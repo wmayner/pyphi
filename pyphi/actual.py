@@ -129,9 +129,10 @@ class TransitionSystem:
     :attr:`_underlying_system`) and delegating the protocol surface
     through :meth:`__getattr__`. The underlying System is constructed
     with ``external_indices = substrate.indices - cause_indices`` (or
-    ``()`` when :attr:`noise_background` is True), encoding the AC
-    paper's Section 3.3 extended-background convention applied to
-    substrate units outside the cause set.
+    ``()`` when :attr:`noise_background` is True), so that substrate
+    units outside the cause set are held fixed in their actual state as
+    background conditions (Albantakis et al. 2019, Section 3.3, "Distinct
+    Background Conditions").
 
     The mechanism-evaluation ``state`` is direction-aware:
     ``after_state`` for the CAUSE direction (Bayesian-inverting from the
@@ -251,12 +252,14 @@ class TransitionSystem:
         partitioned_repertoire_scheme: Any,
         **kw: Any,
     ) -> Any:
-        """Compute the partitioned repertoire using the AC-paper scheme.
+        """Compute the partitioned repertoire under the actual-causation scheme.
 
-        Unlike ``System.partitioned_repertoire`` (which uses a
-        mechanism-measure for IIT), AC's partitioned repertoire is the
-        product of per-part repertoires (Eq. 8 in the 2019 paper),
-        dispatched via the ``partitioned_repertoire_scheme`` registry.
+        The partitioned repertoire is the product of the per-part
+        repertoires (Albantakis et al. 2019, Eq. 8 for the effect
+        direction and Eq. 10 for the cause direction), dispatched through
+        the ``partitioned_repertoire_scheme`` registry. This differs from
+        :meth:`pyphi.system.System.partitioned_repertoire`, which applies a
+        mechanism distance measure for IIT.
         """
         return partitioned_repertoire_scheme(self, direction, partition, **kw)
 
@@ -407,24 +410,28 @@ class Transition(Serializable):
     """A state transition over a substrate, holding two TransitionSystem views.
 
     Implements the actual-causation framework of Albantakis, Marshall, Hoel,
-    and Tononi (2019). The cause-side and effect-side analyses live in
+    and Tononi (2019). The cause and effect analyses live in
     :class:`TransitionSystem` instances accessed via :attr:`cause_system` and
-    :attr:`effect_system`, keyed by Direction in :attr:`system`.
+    :attr:`effect_system`, keyed by :class:`~pyphi.direction.Direction` in
+    :attr:`system`.
 
-    Args:
-        substrate (Substrate): The substrate the system belongs to.
-        before_state (tuple[int]): The state of the substrate at time |t-1|.
-        after_state (tuple[int]): The state of the substrate at time |t|.
-        cause_indices (tuple[int] or tuple[str]): Indices of nodes in the
-            cause system.
-        effect_indices (tuple[int] or tuple[str]): Indices of nodes in the
-            effect system.
-
-    Keyword Args:
-        partition (DirectedBipartition): The partition applied to this transition.
-            Defaults to a :class:`NullCut` over the union of cause and effect indices.
-        noise_background (bool): If ``True``, background conditions are
-            noised instead of frozen.
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate the transition is defined over.
+    before_state : tuple[int]
+        The state of the substrate at time t-1.
+    after_state : tuple[int]
+        The state of the substrate at time t.
+    cause_indices : tuple[int] or tuple[str]
+        Indices (or labels) of nodes in the cause system.
+    effect_indices : tuple[int] or tuple[str]
+        Indices (or labels) of nodes in the effect system.
+    partition : DirectedBipartition, optional
+        The partition applied to this transition. Defaults to a
+        :class:`NullCut` over the union of cause and effect indices.
+    noise_background : bool, optional
+        If ``True``, background conditions are noised instead of frozen.
     """
 
     substrate: Substrate
@@ -535,19 +542,32 @@ class Transition(Serializable):
         return self.repertoire(Direction.EFFECT, mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
-        """Return the unconstrained cause repertoire of the occurence."""
+        """Return the unconstrained cause repertoire of the occurrence."""
         return self.cause_repertoire((), purview)
 
     def unconstrained_effect_repertoire(self, purview):
-        """Return the unconstrained effect repertoire of the occurence."""
+        """Return the unconstrained effect repertoire of the occurrence."""
         return self.effect_repertoire((), purview)
 
     def repertoire(self, direction, mechanism, purview):
-        """Return the cause or effect repertoire function based on a direction.
+        """Return the cause or effect repertoire for the given direction.
 
-        Args:
-            direction (str): The temporal direction, specifiying the cause or
-                effect repertoire.
+        Parameters
+        ----------
+        direction : Direction
+            The temporal direction, selecting the cause or effect
+            repertoire.
+        mechanism : tuple[int]
+            The mechanism to condition on.
+        purview : tuple[int]
+            The purview to compute the repertoire over.
+
+        Raises
+        ------
+        ValueError
+            If ``purview`` is not a subset of the purview indices, or
+            ``mechanism`` is not a subset of the mechanism indices, for the
+            given direction.
         """
         system = self.system[direction]
         node_labels = system.node_labels
@@ -576,16 +596,22 @@ class Transition(Serializable):
         the repertoire.
 
         Collapses the dimensions of the repertoire that correspond to the
-        purview nodes onto their state. All other dimension are already
-        singular and thus receive 0 as the conditioning index.
+        purview nodes onto their state. All other dimensions are already
+        singleton and thus receive 0 as the conditioning index.
 
-        Args:
-            direction: The temporal direction (CAUSE or EFFECT).
-            repertoire: The repertoire array to index into.
-            purview: The purview nodes.
+        Parameters
+        ----------
+        direction : Direction
+            The temporal direction (CAUSE or EFFECT).
+        repertoire : numpy.ndarray
+            The repertoire array to index into.
+        purview : tuple[int]
+            The purview nodes.
 
-        Returns:
-            float: A single probabilty.
+        Returns
+        -------
+        float
+            A single probability.
         """
         purview_state = self.purview_state(direction)
         system = self.system[direction]
@@ -621,8 +647,8 @@ class Transition(Serializable):
         ``direction``.
 
         For example, if we are computing the cause coefficient of a mechanism
-        in ``after_state``, the direction is``CAUSE`` and the ``purview_state``
-        is ``before_state``.
+        in ``after_state``, the direction is ``CAUSE`` and the
+        ``purview_state`` is ``before_state``.
         """
         return {Direction.CAUSE: self.before_state, Direction.EFFECT: self.after_state}[
             direction
@@ -734,16 +760,21 @@ class Transition(Serializable):
     # =========================================================================
 
     def potential_purviews(self, direction, mechanism, purviews=None):
-        """Return all purviews that could belong to the |MIC|/|MIE|.
+        """Return all purviews that could belong to the maximally irreducible
+        cause (:class:`~pyphi.models.mice.MaximallyIrreducibleCause`) or
+        effect (:class:`~pyphi.models.mice.MaximallyIrreducibleEffect`).
 
-        Filters out trivially-reducible purviews.
+        Filters out trivially reducible purviews.
 
-        Args:
-            direction (str): Either |CAUSE| or |EFFECT|.
-            mechanism (tuple[int]): The mechanism of interest.
-
-        Keyword Args:
-            purviews (tuple[int]): Optional subset of purviews of interest.
+        Parameters
+        ----------
+        direction : Direction
+            Either :const:`~pyphi.direction.Direction.CAUSE` or
+            :const:`~pyphi.direction.Direction.EFFECT`.
+        mechanism : tuple[int]
+            The mechanism of interest.
+        purviews : tuple[int], optional
+            Subset of purviews to restrict the search to.
         """
         system = self.system[direction]
         return [
@@ -776,7 +807,7 @@ class Transition(Serializable):
         return self.find_causal_link(Direction.EFFECT, mechanism, purviews, **kw)
 
     def find_mice(self, *args, **kwargs):
-        """Backwards-compatible alias for :func:`find_causal_link`."""
+        """Alias for :meth:`find_causal_link`."""
         return self.find_causal_link(*args, **kwargs)
 
 
@@ -807,7 +838,7 @@ def directed_account(
     allow_neg=False,
     **kwargs,
 ):
-    """Return the set of all |CausalLinks| of the specified direction.
+    """Return every causal link of the specified direction.
 
     Dispatches through the active actual-causation formalism
     (``config.formalism.actual_causation.version``).
@@ -823,7 +854,7 @@ def directed_account(
 
 
 def account(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
-    """Return the set of all causal links for a |Transition|.
+    """Return the set of all causal links for a :class:`Transition`.
 
     Dispatches through the active actual-causation formalism
     (``config.formalism.actual_causation.version``).
@@ -964,7 +995,7 @@ def events(substrate, previous_state, current_state, next_state, nodes, mechanis
         return ()
 
     def index(actual_causes_or_effects):
-        """Filter out unidirectional occurences and return a dictionary keyed
+        """Filter out unidirectional occurrences and return a dictionary keyed
         by the mechanism of the cause or effect.
         """
         return {
@@ -1022,19 +1053,26 @@ def true_events(
     """Return all mechanisms that have true causes and true effects within the
     complex.
 
-    Args:
-        substrate (Substrate): The substrate to analyze.
-        previous_state (tuple[int]): The state of the substrate at ``t - 1``.
-        current_state (tuple[int]): The state of the substrate at ``t``.
-        next_state (tuple[int]): The state of the substrate at ``t + 1``.
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate to analyze.
+    previous_state : tuple[int]
+        The state of the substrate at ``t - 1``.
+    current_state : tuple[int]
+        The state of the substrate at ``t``.
+    next_state : tuple[int]
+        The state of the substrate at ``t + 1``.
+    indices : tuple[int], optional
+        The indices of the major complex.
+    major_complex : AcSystemIrreducibilityAnalysis, optional
+        The major complex. If ``major_complex`` is given then ``indices``
+        is ignored.
 
-    Keyword Args:
-        indices (tuple[int]): The indices of the major complex.
-        major_complex (AcSystemIrreducibilityAnalysis): The major complex. If
-            ``major_complex`` is given then ``indices`` is ignored.
-
-    Returns:
-        tuple[Event]: List of true events in the major complex.
+    Returns
+    -------
+    tuple[Event]
+        The true events in the major complex.
     """
     # TODO: validate triplet of states
 
@@ -1060,19 +1098,26 @@ def extrinsic_events(
     """Set of all mechanisms that are in the major complex but which have true
     causes and effects within the entire substrate.
 
-    Args:
-        substrate (Substrate): The substrate to analyze.
-        previous_state (tuple[int]): The state of the substrate at ``t - 1``.
-        current_state (tuple[int]): The state of the substrate at ``t``.
-        next_state (tuple[int]): The state of the substrate at ``t + 1``.
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate to analyze.
+    previous_state : tuple[int]
+        The state of the substrate at ``t - 1``.
+    current_state : tuple[int]
+        The state of the substrate at ``t``.
+    next_state : tuple[int]
+        The state of the substrate at ``t + 1``.
+    indices : tuple[int], optional
+        The indices of the major complex.
+    major_complex : AcSystemIrreducibilityAnalysis, optional
+        The major complex. If ``major_complex`` is given then ``indices``
+        is ignored.
 
-    Keyword Args:
-        indices (tuple[int]): The indices of the major complex.
-        major_complex (AcSystemIrreducibilityAnalysis): The major complex. If
-            ``major_complex`` is given then ``indices`` is ignored.
-
-    Returns:
-        tuple(actions): List of extrinsic events in the major complex.
+    Returns
+    -------
+    tuple[Event]
+        The extrinsic events in the major complex.
     """
     if major_complex:
         mc_nodes = major_complex.node_indices
