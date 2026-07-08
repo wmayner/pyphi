@@ -268,6 +268,22 @@ def test_numpy_aware_eq_float_outside_tolerance():
     assert not models.cmp.numpy_aware_eq(1.0, 1.001)
 
 
+def test_numpy_aware_eq_sets():
+    """Sets compare by set equality, not by zipping in iteration order.
+
+    Zipping is meaningless for an unordered collection: a set and a sequence
+    with the same elements are not equal (``{1, 2, 3} != [1, 2, 3]``), and two
+    equal sets must compare equal regardless of iteration order.
+    """
+    eq = models.cmp.numpy_aware_eq
+    assert eq({1, 2, 3}, {3, 2, 1})
+    assert eq(frozenset({1, 2}), {1, 2})
+    assert not eq({1, 2, 3}, {1, 2, 4})
+    # A set is not a sequence, even with the same elements.
+    assert not eq({1, 2, 3}, [1, 2, 3])
+    assert not eq({1, 2, 3}, (1, 2, 3))
+
+
 def test_numpy_aware_eq_array_within_tolerance():
     """Arrays differing by ~1e-15 (op-order noise) compare equal."""
     a_ = np.ones(3)

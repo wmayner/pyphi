@@ -123,7 +123,8 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
     leaves compared up to ``EQUALITY_TOLERANCE``.
 
     Arrays compare via :func:`numpy.allclose`; float scalars via
-    :func:`math.isclose`; other types via ``==``. Shape-mismatched or
+    :func:`math.isclose`; sets and frozensets by set equality; other ordered
+    iterables element-wise; remaining types via ``==``. Shape-mismatched or
     non-numeric arrays compare unequal rather than raising.
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
@@ -131,7 +132,10 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
             return np.allclose(a, b, rtol=EQUALITY_TOLERANCE, atol=EQUALITY_TOLERANCE)
         except (ValueError, TypeError):
             return False
-    # TODO: this is broken if the iterables are sets
+    # Sets are unordered, so a positional ``zip`` is meaningless; compare by set
+    # equality (which delegates element comparison to the elements' own ``__eq__``).
+    if isinstance(a, (set, frozenset)) or isinstance(b, (set, frozenset)):
+        return a == b
     if (
         (isinstance(a, Iterable) and isinstance(b, Iterable))
         and not isinstance(a, str)
