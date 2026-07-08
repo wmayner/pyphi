@@ -1,0 +1,18 @@
+/* Responsive docs logo: full wordmark on wide viewports, bare Φ logomark on
+   narrow ones (phones/tablets), following the pydata theme's light/dark model. */
+
+/* Which Φ mark to use, tracking the active theme (explicit toggle + auto). */
+html[data-theme="light"] { --phi-mark: url(phi-mark-black.svg); }
+html[data-theme="dark"]  { --phi-mark: url(phi-mark-white.svg); }
+@media (prefers-color-scheme: light) { html[data-theme="auto"] { --phi-mark: url(phi-mark-black.svg); } }
+@media (prefers-color-scheme: dark)  { html[data-theme="auto"] { --phi-mark: url(phi-mark-white.svg); } }
+
+/* ponytail: single 768px breakpoint; nudge if the wordmark crowds the navbar. */
+@media (max-width: 767.98px) {
+  .navbar-brand.logo .logo__image { display: none; }
+  .navbar-brand.logo {
+    width: 2.25rem;
+    height: 2.25rem;
+    background: center / contain no-repeat var(--phi-mark);
+  }
+}
