@@ -52,3 +52,7 @@ graphify-out/*
 docs/reference/_autosummary/
 
 .jupyter_cache/
+
+# Demo artifact the save-load / getting-started docs pages and the IIT 4.0 demo
+# notebook write when they call `pyphi.save(..., "ces.json")` at build time.
+ces.json

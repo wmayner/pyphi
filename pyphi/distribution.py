@@ -96,8 +96,10 @@ def independent(repertoire: Repertoire) -> bool:
 def purview(repertoire: Repertoire | None) -> Purview | None:
     """Return the purview over which a repertoire is distributed.
 
-    Purview nodes are identified as those with a size-2 dimension, which assumes
-    binary nodes.
+    Purview nodes are identified as those with a non-unitary axis: a purview
+    node carries its full alphabet along its dimension (size ≥ 2), while a
+    node outside the purview is collapsed to a unitary (size-1) dimension. This
+    holds for k-ary as well as binary nodes.
 
     Parameters
     ----------
@@ -113,7 +115,7 @@ def purview(repertoire: Repertoire | None) -> Purview | None:
     if repertoire is None:
         return None
 
-    return tuple(i for i, dim in enumerate(repertoire.shape) if dim == 2)
+    return tuple(i for i, dim in enumerate(repertoire.shape) if dim > 1)
 
 
 def purview_size(repertoire: Repertoire | None) -> int:

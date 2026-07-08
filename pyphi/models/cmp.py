@@ -62,22 +62,28 @@ class Orderable:
         """
         return True
 
-    def __lt__(self, other: object) -> bool:
+    def _check_orderable(self, other: object) -> None:
         if not self.is_orderable_with(other):
             raise TypeError(
                 f"Unorderable: {type(self).__name__} instances do not satisfy "
                 f"the orderability constraint of this type."
             )
+
+    def __lt__(self, other: object) -> bool:
+        self._check_orderable(other)
         return self.order_by() < other.order_by()  # type: ignore[attr-defined]
 
     def __le__(self, other: object) -> bool:
-        return self < other or self == other
+        self._check_orderable(other)
+        return self.order_by() < other.order_by() or self == other  # type: ignore[attr-defined]
 
     def __gt__(self, other: object) -> bool:
-        return other < self
+        self._check_orderable(other)
+        return self.order_by() > other.order_by()  # type: ignore[attr-defined]
 
     def __ge__(self, other: object) -> bool:
-        return other < self or self == other
+        self._check_orderable(other)
+        return self.order_by() > other.order_by() or self == other  # type: ignore[attr-defined]
 
     def __eq__(self, other: object) -> bool:
         raise NotImplementedError
@@ -117,7 +123,8 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
     leaves compared up to ``EQUALITY_TOLERANCE``.
 
     Arrays compare via :func:`numpy.allclose`; float scalars via
-    :func:`math.isclose`; other types via ``==``. Shape-mismatched or
+    :func:`math.isclose`; sets and frozensets by set equality; other ordered
+    iterables element-wise; remaining types via ``==``. Shape-mismatched or
     non-numeric arrays compare unequal rather than raising.
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
@@ -125,7 +132,10 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
             return np.allclose(a, b, rtol=EQUALITY_TOLERANCE, atol=EQUALITY_TOLERANCE)
         except (ValueError, TypeError):
             return False
-    # TODO: this is broken if the iterables are sets
+    # Sets are unordered, so a positional ``zip`` is meaningless; compare by set
+    # equality (which delegates element comparison to the elements' own ``__eq__``).
+    if isinstance(a, (set, frozenset)) or isinstance(b, (set, frozenset)):
+        return a == b
     if (
         (isinstance(a, Iterable) and isinstance(b, Iterable))
         and not isinstance(a, str)

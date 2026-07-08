@@ -3,35 +3,38 @@
 Transition probability matrix conventions
 =========================================
 
-A |Network| can be created with a transition probability matrix (TPM) in any of
-the three forms described below. However, in PyPhi the canonical TPM
-representation is **multidimensional state-by-node form**. The TPM will be
-converted to this form when the |Network| is built.
+A :class:`~pyphi.substrate.Substrate` can be created with a transition
+probability matrix (TPM) in any of the three forms described below. However, in
+PyPhi the canonical TPM representation is **multidimensional state-by-node
+form**. The TPM will be converted to this form when the
+:class:`~pyphi.substrate.Substrate` is built.
 
 .. tip::
     Functions for converting TPMs from one form to another are available in the
-    |convert| module.
+    :mod:`~pyphi.convert` module.
 
 
 .. _state-by-node-form:
 
 State-by-node form
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
-A TPM in **state-by-node form** is a matrix where the entry |(i,j)| gives the
-probability that the |jth| node will be ON at time |t+1| if the system is in
-the |ith| state at time |t|.
+A TPM in **state-by-node form** is a matrix where the entry :math:`(i,j)` gives
+the probability that the :math:`j^{\textrm{th}}` node will be ON at time
+:math:`t+1` if the system is in the :math:`i^{\textrm{th}}` state at time
+:math:`t`.
 
 
 .. _multidimensional-state-by-node-form:
 
 Multidimensional state-by-node form
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A TPM in **multidimensional state-by-node** form is a state-by-node form that
-has been reshaped so that it has |n+1| dimensions instead of two. The first |n|
-dimensions correspond to each of the |n| nodes at time |t|, while the last
-dimension corresponds to the probabilities of each node being ON at |t+1|.
+has been reshaped so that it has :math:`n+1` dimensions instead of two. The
+first :math:`n` dimensions correspond to each of the :math:`n` nodes at time
+:math:`t`, while the last dimension corresponds to the probabilities of each
+node being ON at :math:`t+1`.
 
 With this form, we can take advantage of `NumPy array indexing
 <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_ and use a
@@ -45,22 +48,23 @@ network state as an index directly:
     >>> [float(ft.factor(i)[state][1]) for i in range(sub.size)]
     [0.919, 0.91, 0.756]
 
-This tells us that if the current state is |N_0 = 0, N_1 = 0, N_2 = 1|, then
-for the next state, :math:`\Pr(N_0 = 1) = 0.919`, :math:`\Pr(N_1 = 1) =
+This tells us that if the current state is :math:`N_0 = 0, N_1 = 0, N_2 = 1`,
+then for the next state, :math:`\Pr(N_0 = 1) = 0.919`, :math:`\Pr(N_1 = 1) =
 0.91` and :math:`\Pr(N_2 = 1) = 0.756`.
 
 .. important::
     The multidimensional state-by-node form is used throughout PyPhi,
-    regardless of the form that was used to create the |Network|.
+    regardless of the form that was used to create the
+    :class:`~pyphi.substrate.Substrate`.
 
 .. _state-by-state-form:
 
 State-by-state form
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
-A TPM in **state-by-state form** is a matrix where the entry |(i,j)| gives the
-probability that the state at time |t+1| will be |j| if the state at time |t|
-is labeled by |i|.
+A TPM in **state-by-state form** is a matrix where the entry :math:`(i,j)` gives
+the probability that the state at time :math:`t+1` will be :math:`j` if the
+state at time :math:`t` is labeled by :math:`i`.
 
 .. warning::
     **When converting a state-by-state TPM to one of the other forms, information
@@ -77,7 +81,7 @@ is labeled by |i|.
 .. _little-endian-convention:
 
 Little-endian convention
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Even after choosing one of the above representations, there are several ways to
 write down the TPM.
@@ -119,9 +123,9 @@ Or the last node does:
     | (1, 1)             | 0.7 | 0.8                          |
     +--------------------+-----+------------------------------+
 
-Note that the index |i| of a row in a TPM encodes a network state: convert the
-index to binary, and each bit gives the state of a node. The question is, which
-node?
+Note that the index :math:`i` of a row in a TPM encodes a network state: convert
+the index to binary, and each bit gives the state of a node. The question is,
+which node?
 
 **Throughout PyPhi, we always choose the first convention---the state of the
 first node (the one with the lowest index) varies the fastest.** So, the
@@ -140,13 +144,14 @@ this property.
 
 .. tip::
     Functions to convert states to indices and vice versa, according to either
-    the little-endian or big-endian convention, are available in the |convert|
-    module.
+    the little-endian or big-endian convention, are available in the
+    :mod:`~pyphi.convert` module.
 
 .. note::
     This applies to only situations where decimal indices are encoding states.
     Whenever a network state is represented as a list or tuple, we use the only
-    sensible convention: the |ith| element gives the state of the |ith| node.
+    sensible convention: the :math:`i^{\textrm{th}}` element gives the state of
+    the :math:`i^{\textrm{th}}` node.
 
 
 .. _cm-conventions:
@@ -154,9 +159,10 @@ this property.
 Connectivity matrix conventions
 ===============================
 
-Throughout PyPhi, if |CM| is a connectivity matrix, then |CM[i][j] = 1| means
-that there is a directed edge |(i,j)| from node |i| to node |j|, and
-|CM[i][j] = 0| means there is no edge from |i| to |j|.
+Throughout PyPhi, if :math:`CM` is a connectivity matrix, then
+:math:`[CM]_{i,j} = 1` means that there is a directed edge :math:`(i,j)` from
+node :math:`i` to node :math:`j`, and :math:`[CM]_{i,j} = 0` means there is no
+edge from :math:`i` to :math:`j`.
 
 For example, this network of four nodes
 

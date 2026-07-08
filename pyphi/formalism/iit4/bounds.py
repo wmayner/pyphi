@@ -373,8 +373,8 @@ def sum_phi_distinctions_upper_bound(n: int, bound: str = "I") -> UpperBound:
         Which bound to compute:
 
         ``"I"``
-            Eq 6 (certified, not achievable): every mechanism at
-            phi = |M| n; equals (n**2 / 2) 2**n.
+            Eq 6 (certified, not achievable): every mechanism of size
+            k at phi = k n; equals (n**2 / 2) 2**n.
         ``"II"``
             Eq 7 (conditional): assumes each purview is assigned to
             exactly one mechanism with matching sizes; equals
@@ -460,9 +460,9 @@ def _relation_profile(
     scenarios (Table 3):
 
     - ``"I"``: every purview is the whole system in a congruent maximal
-      state, so every distinction relates over every unit; ratio |M|.
+      state, so every distinction relates over every unit; ratio ``|M|``.
     - ``"II"``: every purview is the mechanism itself; a unit relates the
-      mechanisms containing it; ratio |M|.
+      mechanisms containing it; ratio ``|M|``.
     - ``"III"``: the high-selectivity construction profile as implemented
       in the paper's published experiment code (ratio phi*_K / K over all
       distinctions). The paper text instead assumes cause purviews span

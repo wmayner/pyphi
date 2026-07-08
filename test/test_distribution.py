@@ -98,6 +98,21 @@ def test_purview(s):
     assert distribution.purview(None) is None
 
 
+def test_purview_includes_kary_nodes():
+    """purview() identifies purview nodes by their non-unitary axes, so a k-ary
+    purview node (alphabet size > 2) is included, not just binary ones.
+
+    Node 0 is 4-ary and node 2 is binary in the purview; node 1 is outside it
+    (unitary axis).
+    """
+    shape = distribution.repertoire_shape((0, 1, 2), (0, 2), alphabet_sizes=(4, 2, 2))
+    assert shape == [4, 1, 2]
+
+    repertoire = np.zeros(shape)
+    assert distribution.purview(repertoire) == (0, 2)
+    assert distribution.purview_size(repertoire) == 2
+
+
 def test_repertoire_shape():
     assert distribution.repertoire_shape((0, 1, 2), ()) == [1, 1, 1]
     assert distribution.repertoire_shape((0, 1, 2), (1, 2)) == [1, 2, 2]

@@ -433,20 +433,6 @@ def assume_integer(x: float) -> int:
     return int(x)
 
 
-def enforce_integer(i: int, name: str = "", min: float = float("-inf")) -> int:
-    """Ensure ``i`` is an int not less than ``min``, raising on violation."""
-    if not isinstance(i, int) or i < min:
-        raise ValueError(f"{name} must be a positive integer")
-    return i
-
-
-def enforce_integer_or_none(i: int | None, **kwargs: str | float) -> int | None:
-    """Validate ``i`` as an integer or pass through ``None``."""
-    if i is None:
-        return i
-    return enforce_integer(i, **kwargs)  # type: ignore[arg-type]
-
-
 def all_same(comparison: Callable, seq: Generator | list) -> bool:
     """Return True if all elements compare to the first element."""
     sentinel = object()
