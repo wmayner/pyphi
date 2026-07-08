@@ -169,5 +169,6 @@ the assignment and `override` forms shown above.
 | `version` | formalism.iit | Which IIT version to use. |
 | `ces_measure` | formalism.iit | Distance measure for cause-effect structures. |
 
-For the complete list of options and their meanings, see the
-{doc}`configuration reference </configuration>`.
+For the complete list of options and their meanings, see the configuration
+classes (`IITConfig`, `InfrastructureConfig`, `NumericsConfig`) in the
+{doc}`API reference </reference/index>`.

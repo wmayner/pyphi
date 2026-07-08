@@ -1,3 +1,0 @@
-:orphan:
-
-.. include:: ../CACHING.rst

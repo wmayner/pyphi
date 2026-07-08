@@ -187,6 +187,6 @@ with warnings.catch_warnings():
         print("sia:    ", pyphi.config.formalism.iit.sia_tie_resolution)
 ```
 
-For the full list of configuration options, see the
-{doc}`configuration reference </configuration>`; for how to read, set, and load
+For the full list of configuration options, see the configuration classes in
+the {doc}`API reference </reference/index>`; for how to read, set, and load
 configuration in general, see {doc}`Configure PyPhi <configure>`.
