@@ -46,7 +46,8 @@ or **[both]** — so readers scan for what applies to them.
      map; runtime access (`pyphi.config…`) [both].
    - **Serialization** — the jsonify → msgspec break: `pyphi.jsonify` is gone,
      `pyphi.save` / `pyphi.load` (and `.save()` / `.load()` on results) replace
-     it, and old JSON is handled by the migration tool [both].
+     it. It is a **format break with no standalone converter**: results saved in
+     the old jsonify format cannot be loaded and must be recomputed [both].
    - **Changed defaults** — any default that changed in a way that would
      silently alter results, so a reader knows to check it [both].
 
