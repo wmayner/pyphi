@@ -300,9 +300,10 @@ def _combinations_with_nonempty_congruent_overlap(
     generation, so the family is exactly the Eq. 49/56 congruent overlaps
     (not an over-approximation later filtered down).
 
-    Arguments:
-        components (Distinctions): The distinctions to find overlaps
-            among.
+    Parameters
+    ----------
+    components : Distinctions
+        The distinctions to find overlaps among.
     """
     purview_unions = [frozenset(component.purview_union) for component in components]
     return combinatorics.combinations_with_nonempty_intersection(
@@ -584,14 +585,14 @@ def relations(
 class RelationComputationsRegistry(Registry):
     """Storage for functions for computing relations.
 
-    Users can define custom schemes:
+    Users can define custom schemes and use them by setting
+    ``config.formalism.iit.relation_computation = 'NONE'``.
 
-    Examples:
-        >>> @relation_computations.register('NONE')  # doctest: +SKIP
-        ... def no_relations(system, ces):
-        ...    return Relations([])
-
-    And use them by setting ``config.formalism.iit.relation_computation = 'NONE'``.
+    Examples
+    --------
+    >>> @relation_computations.register('NONE')  # doctest: +SKIP
+    ... def no_relations(system, ces):
+    ...    return Relations([])
     """
 
     desc = "methods for computing relations"

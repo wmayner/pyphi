@@ -704,7 +704,7 @@ def states[T](
 ) -> Iterator[T]:
     """Resolve ties among states (RIAs).
 
-    Controlled by the STATE_TIE_RESOLUTION configuration option.
+    Controlled by the ``state_tie_resolution`` configuration option.
     """
     strategy = fallback(strategy, config.formalism.iit.state_tie_resolution)
     assert strategy is not None, "STATE_TIE_RESOLUTION config must be set"
@@ -716,7 +716,7 @@ def partitions[T](
 ) -> Iterator[T]:
     """Resolve ties among mechanism partitions (MIPs).
 
-    Controlled by the MIP_TIE_RESOLUTION configuration option.
+    Controlled by the ``mip_tie_resolution`` configuration option.
     """
     strategy = fallback(strategy, config.formalism.iit.mip_tie_resolution)
     assert strategy is not None, "MIP_TIE_RESOLUTION config must be set"

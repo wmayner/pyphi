@@ -109,19 +109,32 @@ def most_probable_next_state(tpm, state):
 def settle(tpm, initial_state, *, clamp=None, max_steps=None):
     """Iterate the most-probable-transition map to a fixed point.
 
-    Deterministic complement to `simulate`: each step takes the most-probable
-    next state instead of sampling. Returns the trajectory (a list of states)
-    ending at the fixed point; the fixed point is the last element and the
-    settling time is ``len(result) - 1``. Raises
-    :class:`~pyphi.exceptions.NonConvergenceError` on a limit cycle.
+    Deterministic complement to :func:`simulate`: each step takes the
+    most-probable next state (each unit ON iff its ON-probability exceeds 0.5)
+    instead of sampling.
 
-    Args:
-        tpm: A state-by-node multidimensional TPM (binary).
-        initial_state (tuple[int, ...]): The starting state.
+    Parameters
+    ----------
+    tpm : np.ndarray
+        A state-by-node multidimensional TPM (binary).
+    initial_state : tuple[int, ...]
+        The starting state.
+    clamp : Mapping[int, int] or None, optional
+        Units held fixed to a given value every step.
+    max_steps : int or None, optional
+        Optional cap on the number of steps; raises if exceeded.
 
-    Keyword Args:
-        clamp (Mapping[int, int] | None): Units held fixed every step.
-        max_steps (int | None): Optional cap; raises if exceeded.
+    Returns
+    -------
+    list[tuple[int, ...]]
+        The trajectory of states ending at the fixed point. The fixed point is
+        the last element and the settling time is ``len(result) - 1``.
+
+    Raises
+    ------
+    ~pyphi.exceptions.NonConvergenceError
+        If the map enters a limit cycle, or does not settle within
+        ``max_steps``.
     """
     if clamp is None:
         clamp = {}

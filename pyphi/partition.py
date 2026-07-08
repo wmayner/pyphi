@@ -36,17 +36,21 @@ from .registry import Registry
 def bipartition_indices(N: int) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
     """Return indices for undirected bipartitions of a sequence.
 
-    Args:
-        N (int): The length of the sequence.
+    Parameters
+    ----------
+    N : int
+        The length of the sequence.
 
-    Returns:
-        list: A list of tuples containing the indices for each of the two
-        parts.
+    Returns
+    -------
+    list
+        A list of tuples containing the indices for each of the two parts.
 
-    Example:
-        >>> N = 3
-        >>> bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
+    Examples
+    --------
+    >>> N = 3
+    >>> bipartition_indices(N)
+    [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
     """
     result = []
     if N <= 0:
@@ -65,16 +69,22 @@ def bipartition_indices(N: int) -> list[tuple[tuple[int, ...], tuple[int, ...]]]
 def bipartition(seq: Sequence, nontrivial: bool = False) -> list[tuple[tuple, tuple]]:
     """Return a list of bipartitions for a sequence.
 
-    Args:
-        a (Iterable): The sequence to partition.
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence to partition.
+    nontrivial : bool, optional
+        If ``True``, omit the first bipartition (the one with an empty part).
 
-    Returns:
-        list[tuple[tuple]]: A list of tuples containing each of the two
-        partitions.
+    Returns
+    -------
+    list[tuple[tuple, tuple]]
+        A list of tuples containing each of the two parts.
 
-    Example:
-        >>> bipartition((1,2,3))
-        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
+    Examples
+    --------
+    >>> bipartition((1,2,3))
+    [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
     bipartitions = [
         (tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
@@ -91,16 +101,20 @@ def directed_bipartition_indices(
 ) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
     """Return indices for directed bipartitions of a sequence.
 
-    Args:
-        N (int): The length of the sequence.
+    Parameters
+    ----------
+    N : int
+        The length of the sequence.
 
-    Returns:
-        list: A list of tuples containing the indices for each of the two
-        parts.
+    Returns
+    -------
+    list
+        A list of tuples containing the indices for each of the two parts.
 
-    Example:
-        >>> N = 3
-        >>> directed_bipartition_indices(N)  # doctest: +NORMALIZE_WHITESPACE
+    Examples
+    --------
+    >>> N = 3
+    >>> directed_bipartition_indices(N)  # doctest: +NORMALIZE_WHITESPACE
         [((), (0, 1, 2)),
          ((0,), (1, 2)),
          ((1,), (0, 2)),
@@ -125,15 +139,22 @@ def directed_bipartition(
 ) -> list[tuple[tuple, tuple]]:
     """Return a list of directed bipartitions for a sequence.
 
-    Args:
-        seq (Iterable): The sequence to partition.
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence to partition.
+    nontrivial : bool, optional
+        If ``True``, omit the two bipartitions that have an empty part (the
+        first and last).
 
-    Returns:
-        list[tuple[tuple]]: A list of tuples containing each of the two
-        parts.
+    Returns
+    -------
+    list[tuple[tuple, tuple]]
+        A list of tuples containing each of the two parts.
 
-    Example:
-        >>> directed_bipartition((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
+    Examples
+    --------
+    >>> directed_bipartition((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
         [((), (1, 2, 3)),
          ((1,), (2, 3)),
          ((2,), (1, 3)),
@@ -158,12 +179,15 @@ def directed_bipartition(
 def bipartition_of_one(seq):
     """Generate bipartitions where one part contains exactly one element.
 
-    Args:
-        seq (Iterable): Sequence to partition.
+    Parameters
+    ----------
+    seq : Iterable
+        Sequence to partition.
 
-    Yields:
-        tuple[tuple, tuple]: Bipartitions ``(single, remainder)`` covering all
-        elements of ``seq``.
+    Yields
+    ------
+    tuple[tuple, tuple]
+        Bipartitions ``(single, remainder)`` covering all elements of ``seq``.
     """
     seq = list(seq)
     for i, elt in enumerate(seq):
@@ -179,16 +203,21 @@ def reverse_elements(seq):
 def directed_bipartition_of_one(seq):
     """Generate directed bipartitions where one part is of length 1.
 
-    Args:
-        seq (Iterable): The sequence to partition.
+    Parameters
+    ----------
+    seq : Iterable
+        The sequence to partition.
 
-    Returns:
-        list[tuple[tuple]]: A list of tuples containing each of the two
-        partitions.
+    Returns
+    -------
+    Iterator[tuple[tuple, tuple]]
+        An iterator over each ``(single, remainder)`` bipartition and its
+        reverse.
 
-    Example:
-        >>> partitions = directed_bipartition_of_one((1, 2, 3))
-        >>> list(partitions)  # doctest: +NORMALIZE_WHITESPACE
+    Examples
+    --------
+    >>> partitions = directed_bipartition_of_one((1, 2, 3))
+    >>> list(partitions)  # doctest: +NORMALIZE_WHITESPACE
         [((1,), (2, 3)),
          ((2,), (1, 3)),
          ((3,), (1, 2)),
@@ -206,17 +235,21 @@ def directed_tripartition_indices(
 ) -> list[tuple[tuple[int, ...], tuple[int, ...], tuple[int, ...]]]:
     """Return indices for directed tripartitions of a sequence.
 
-    Args:
-        N (int): The length of the sequence.
+    Parameters
+    ----------
+    N : int
+        The length of the sequence.
 
-    Returns:
-        list[tuple]: A list of tuples containing the indices for each
-        partition.
+    Returns
+    -------
+    list[tuple]
+        A list of tuples containing the indices for each partition.
 
-    Example:
-        >>> N = 1
-        >>> directed_tripartition_indices(N)
-        [((0,), (), ()), ((), (0,), ()), ((), (), (0,))]
+    Examples
+    --------
+    >>> N = 1
+    >>> directed_tripartition_indices(N)
+    [((0,), (), ()), ((), (0,), ()), ((), (), (0,))]
     """
     result = []
     if N <= 0:
@@ -238,15 +271,20 @@ def directed_tripartition(
 ) -> Generator[tuple[tuple, tuple, tuple], None, None]:
     """Generator over all directed tripartitions of a sequence.
 
-    Args:
-        seq (Iterable): a sequence.
+    Parameters
+    ----------
+    seq : Sequence
+        A sequence.
 
-    Yields:
-        tuple[tuple]: A tripartition of ``seq``.
+    Yields
+    ------
+    tuple[tuple, tuple, tuple]
+        A tripartition of ``seq``.
 
-    Example:
-        >>> seq = (2, 5)
-        >>> list(directed_tripartition(seq))  # doctest: +NORMALIZE_WHITESPACE
+    Examples
+    --------
+    >>> seq = (2, 5)
+    >>> list(directed_tripartition(seq))  # doctest: +NORMALIZE_WHITESPACE
         [((2, 5), (), ()),
          ((2,), (5,), ()),
          ((2,), (), (5,)),
@@ -351,9 +389,12 @@ def _b(mu, nu, sigma, n, a, k, collection):
 def k_partitions(collection, k):
     """Generate all ``k``-partitions of a collection.
 
-    Example:
-        >>> list(k_partitions(range(3), 2))
-        [[[0, 1], [2]], [[0], [1, 2]], [[0, 2], [1]]]
+    Uses Knuth's algorithm for set partitions into exactly ``k`` blocks.
+
+    Examples
+    --------
+    >>> list(k_partitions(range(3), 2))
+    [[[0, 1], [2]], [[0], [1, 2]], [[0, 2], [1]]]
     """
     collection = list(collection)
     n = len(collection)
@@ -388,19 +429,19 @@ class PartitionRegistry(Registry):
     (mechanism, purview) pair. Used by ``System.find_mip`` to enumerate
     partitions during MIP search.
 
-    Users can define custom partitions:
-
-    Examples:
-        >>> @partition_types.register('NONE')  # doctest: +SKIP
-        ... def no_partitions(mechanism, purview):
-        ...    return []
-
-    And use them by setting ``config.formalism.iit.mechanism_partition_scheme = 'NONE'``.
+    Users can define custom partitions and use them by setting
+    ``config.formalism.iit.mechanism_partition_scheme = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
     registrations fail at import rather than at the bottom of a phi
     computation.
+
+    Examples
+    --------
+    >>> @partition_types.register('NONE')  # doctest: +SKIP
+    ... def no_partitions(mechanism, purview):
+    ...    return []
     """
 
     desc = "distinction partitions"
@@ -439,8 +480,7 @@ def joint_bipartitions(
     purview: tuple[int, ...],
     node_labels: Any = None,
 ) -> Iterable[JointBipartition]:
-    r"""Return an generator of all |small_phi| bipartitions of a mechanism over
-    a purview.
+    r"""Return a generator of all φ bipartitions of a mechanism over a purview.
 
     Excludes all bipartitions where one half is entirely empty, *e.g*::
 
@@ -456,23 +496,29 @@ def joint_bipartitions(
 
     is.
 
-    Args:
-        mechanism (tuple[int]): The mechanism to partition
-        purview (tuple[int]): The purview to partition
+    Parameters
+    ----------
+    mechanism : tuple[int]
+        The mechanism to partition.
+    purview : tuple[int]
+        The purview to partition.
 
-    Yields:
-        JointBipartition: Where each bipartition is rendered as
-        ``mech0/purview0 × mech1/purview1`` (∅ denotes an empty set).
+    Yields
+    ------
+    JointBipartition
+        Each bipartition, rendered as ``mech0/purview0 × mech1/purview1``
+        (∅ denotes an empty set).
 
-    Example:
-        >>> from pyphi.models.partitions import concise_partition
-        >>> mechanism = (0,)
-        >>> purview = (2, 3)
-        >>> for partition in joint_bipartitions(mechanism, purview):
-        ...     print(concise_partition(partition))
-        ∅/2 × 0/3
-        ∅/3 × 0/2
-        ∅/2,3 × 0/∅
+    Examples
+    --------
+    >>> from pyphi.models.partitions import concise_partition
+    >>> mechanism = (0,)
+    >>> purview = (2, 3)
+    >>> for partition in joint_bipartitions(mechanism, purview):
+    ...     print(concise_partition(partition))
+    ∅/2 × 0/3
+    ∅/3 × 0/2
+    ∅/2,3 × 0/∅
     """
     numerators = bipartition(mechanism)
     denominators = directed_bipartition(purview)
@@ -503,12 +549,17 @@ def wedge_tripartitions(
 
     See ``config.formalism.iit.mechanism_partition_scheme`` for more information.
 
-    Args:
-        mechanism (tuple[int]): A mechanism.
-        purview (tuple[int]): A purview.
+    Parameters
+    ----------
+    mechanism : tuple[int]
+        A mechanism.
+    purview : tuple[int]
+        A purview.
 
-    Yields:
-        JointTripartition: all unique tripartitions of this mechanism and purview.
+    Yields
+    ------
+    JointTripartition
+        All unique tripartitions of this mechanism and purview.
     """
     numerators = bipartition(mechanism)
     denominators = directed_tripartition(purview)
@@ -576,12 +627,17 @@ def all_joint_partitions(
 
     Partitions can consist of any number of parts.
 
-    Args:
-        mechanism (tuple[int]): A mechanism.
-        purview (tuple[int]): A purview.
+    Parameters
+    ----------
+    mechanism : tuple[int]
+        A mechanism.
+    purview : tuple[int]
+        A purview.
 
-    Yields:
-        JointPartition: A partition of this mechanism and purview into ``k`` parts.
+    Yields
+    ------
+    JointPartition
+        A partition of this mechanism and purview into ``k`` parts.
     """
     # TODO: yield complete partition directly, then use nontrivial set partitions
     for mechanism_partition in combinatorics.set_partitions(mechanism):
@@ -616,12 +672,17 @@ class CompleteJointPartition(JointPartition):
 def complete_joint_partition(mechanism, purview):
     """Return the partition that disconnects mechanism and purview entirely.
 
-    Args:
-        mechanism (tuple[int]): Mechanism indices.
-        purview (tuple[int]): Purview indices.
+    Parameters
+    ----------
+    mechanism : tuple[int]
+        Mechanism indices.
+    purview : tuple[int]
+        Purview indices.
 
-    Returns:
-        CompleteJointPartition: Partition with empty cross-connections.
+    Returns
+    -------
+    CompleteJointPartition
+        Partition with empty cross-connections.
     """
     n_parts = len(next(mechanism_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
@@ -635,11 +696,15 @@ class AtomicJointPartition(JointPartition):
 def atomic_joint_partition(elements):
     """Return the partition that isolates every element.
 
-    Args:
-        elements (Iterable[int]): Elements to separate.
+    Parameters
+    ----------
+    elements : Iterable[int]
+        Elements to separate.
 
-    Returns:
-        AtomicJointPartition: Partition where each element is its own part.
+    Returns
+    -------
+    AtomicJointPartition
+        Partition where each element is its own part.
     """
     return AtomicJointPartition(*[Part((elt,), (elt,)) for elt in elements])
 
@@ -655,19 +720,19 @@ class SystemPartitionRegistry(Registry):
     (:class:`pyphi.protocols.SystemPartitionLike` instances) for a set of
     nodes. Used by SIA computations to enumerate cuts of the full system.
 
-    Users can define custom partitions:
-
-    Examples:
-        >>> @system_partition_types.register('NONE')  # doctest: +SKIP
-        ... def no_partitions(nodes):
-        ...    return []
-
-    And use them by setting ``config.formalism.iit.system_partition_scheme = 'NONE'``.
+    Users can define custom partitions and use them by setting
+    ``config.formalism.iit.system_partition_scheme = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape
     registrations fail at import rather than at the bottom of a SIA
     computation.
+
+    Examples
+    --------
+    >>> @system_partition_types.register('NONE')  # doctest: +SKIP
+    ... def no_partitions(nodes):
+    ...    return []
     """
 
     desc = "system partitions"
@@ -693,7 +758,7 @@ system_partition_types = SystemPartitionRegistry()
 
 
 def _bipartitions_to_directed_bipartitions(func):
-    """Wrap a bipartition generator to yield |DirectedBipartition| objects.
+    """Wrap a bipartition generator to yield ``DirectedBipartition`` objects.
 
     Each plain bipartition tuple is wrapped with ``Direction.EFFECT``.  IIT 3.0
     system partitions are symmetric with respect to causal direction, so the
@@ -793,12 +858,18 @@ def temporal_directed_bipartitions_cut_one(nodes):
 def _cut_matrices(n, symmetric=False):
     """Generate binary cut matrices for ``n`` nodes.
 
-    Args:
-        n (int): Number of nodes.
-        symmetric (bool): Whether to enforce symmetry (bidirectional cuts).
+    Parameters
+    ----------
+    n : int
+        Number of nodes.
+    symmetric : bool, optional
+        Whether to enforce symmetry (bidirectional cuts).
 
-    Yields:
-        np.ndarray: ``n x n`` binary matrices encoding disconnections.
+    Yields
+    ------
+    np.ndarray
+        ``n x n`` binary matrices encoding disconnections. The all-zero matrix
+        (no disconnection) is skipped.
     """
     repeat = n**2 - n
     if symmetric:

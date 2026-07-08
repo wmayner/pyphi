@@ -259,19 +259,38 @@ def sweep(
 ) -> SweepResult:
     """Run a computation across the cartesian product of axes into a tidy table.
 
-    Args:
-        substrate: the substrate to sweep over.
-        states: a state tuple, an iterable of states, or ``"all"``.
-        subsets: ``"full"`` (whole system), ``"all"`` (non-empty powerset), or
-            an iterable of node-index tuples.
-        formalisms: ``None`` (the active formalism) or an iterable of version
-            names (``"IIT_3_0"``, ``"IIT_4_0_2023"``, ``"IIT_4_0_2026"``).
-        compute: ``"sia"`` (default), ``"ces"``, or a callable taking a
-            ``System``.
-        parallel: ``None`` follows ``config.infrastructure.parallel``; ``True``/
-            ``False`` forces.
-        progress: ``None`` follows config; ``True``/``False`` forces.
-        seed: stamped into each result's provenance (a bookkeeping label).
+    Parameters
+    ----------
+    substrate
+        The substrate to sweep over.
+    states
+        A state tuple, an iterable of states, or ``"all"``.
+    subsets
+        ``"full"`` (whole system), ``"all"`` (non-empty powerset), or an
+        iterable of node-index tuples.
+    formalisms
+        ``None`` (the active formalism) or an iterable of version names
+        (``"IIT_3_0"``, ``"IIT_4_0_2023"``, ``"IIT_4_0_2026"``).
+    compute
+        ``"sia"`` (default), ``"ces"``, or a callable taking a ``System``.
+    parallel : bool or None, optional
+        ``None`` follows ``config.infrastructure.parallel``; ``True`` or
+        ``False`` forces.
+    progress : bool or None, optional
+        ``None`` follows config; ``True`` or ``False`` forces.
+    seed : int or None, optional
+        Stamped into each result's provenance (a bookkeeping label).
+
+    Returns
+    -------
+    SweepResult
+        The tidy long-format table, the aligned raw result objects, and the
+        list of cells skipped because their state is dynamically unreachable.
+
+    Notes
+    -----
+    Cells are skipped (rather than raising) only when an axis is enumerated via
+    ``"all"``; when every axis is given explicitly, an uncomputable cell raises.
     """
     # Auto-enumerated axes ("all") may produce dynamically-unreachable
     # (uncomputable) cells; skip and record those. When every axis is given
