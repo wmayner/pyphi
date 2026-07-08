@@ -9,7 +9,6 @@ import pandas as pd
 from numpy.typing import ArrayLike
 
 from . import utils
-from .core.tpm.joint_distribution import JointTPM
 from .exceptions import NonConvergenceError
 
 
@@ -19,7 +18,7 @@ def mean_dynamics(
     **kwargs,
 ):
     """Return a sample of the dynamics averaged over all initial states."""
-    tpm = JointTPM(tpm)
+    tpm = np.asarray(tpm, dtype=float)
     clamp = kwargs.get("clamp", {})
     initial_states = [
         insert_clamp(clamp, state)
@@ -50,8 +49,8 @@ def simulate(
         simulate_one_timestep = simulate_one_timestep_from_pandas_state_by_state
     else:
         # Assumes state-by-node multidimensional TPM
-        tpm = JointTPM(tpm)
-        N = tpm.number_of_units
+        tpm = np.asarray(tpm, dtype=float)
+        N = number_of_units(tpm)
         simulate_one_timestep = simulate_one_timestep_from_explicit_tpm_state_by_node
 
     if rng is None:
@@ -61,7 +60,7 @@ def simulate(
         clamp = {}
 
     if initial_state is None:
-        initial_state = tuple(rng.integers(low=0, high=2, size=tpm.number_of_units))  # pyright: ignore[reportAttributeAccessIssue]
+        initial_state = tuple(rng.integers(low=0, high=2, size=N))
     elif len(initial_state) != N:
         raise ValueError("initial_state must have length equal to the number of units")
 
@@ -87,8 +86,7 @@ def simulate_one_timestep_from_pandas_state_by_state(rng, tpm, state):
 
 
 def simulate_one_timestep_from_explicit_tpm_state_by_node(rng, tpm, state):
-    """Simulate one timestep given an JointTPM in multidimensional
-    state-by-node form."""
+    """Simulate one timestep given a multidimensional state-by-node TPM array."""
     # Assumes state-by-node multidimensional TPM
     elementwise_probabilities = tpm[state]
     thresholds = rng.random(len(elementwise_probabilities))
@@ -101,8 +99,8 @@ def most_probable_next_state(tpm, state):
     Counterpart of the sampled `simulate_one_timestep_*`: each unit takes its
     most-probable next value (ON iff P(ON) > 0.5).
     """
-    tpm = JointTPM(tpm)
-    elementwise_probabilities = np.asarray(tpm[state])
+    tpm = np.asarray(tpm, dtype=float)
+    elementwise_probabilities = tpm[state]
     return tuple((elementwise_probabilities > 0.5).astype(int))
 
 
