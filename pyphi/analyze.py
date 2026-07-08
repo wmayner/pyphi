@@ -87,17 +87,34 @@ def analyze(
 ) -> Analysis | Any:
     """Analyze one candidate system over ``substrate`` in ``state``.
 
-    Args:
-        substrate: the substrate to analyze.
-        state: the state of the substrate's nodes.
-        subset: node indices of the candidate system; ``None`` uses the whole
-            substrate.
-        formalism: ``None`` uses the active config formalism; a version name
-            (``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``) applies
-            that formalism for this call only.
-        compute: ``None`` returns an :class:`Analysis` bundle; ``"sia"`` or
-            ``"ces"`` returns the raw result object; a callable returns
-            ``compute(system)``.
+    Parameters
+    ----------
+    substrate
+        The substrate to analyze.
+    state : tuple[int, ...]
+        The state of the substrate's nodes.
+    subset : optional
+        Node indices of the candidate system; ``None`` uses the whole
+        substrate.
+    formalism : str or None, optional
+        ``None`` uses the active config formalism; a version name
+        (``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``) applies that
+        formalism for this call only.
+    compute : optional
+        ``None`` returns an :class:`Analysis` bundle; ``"sia"`` or ``"ces"``
+        returns the raw result object; a callable returns ``compute(system)``.
+
+    Returns
+    -------
+    Analysis
+        The full analysis bundle, or the raw result object when ``compute``
+        selects one.
+
+    Raises
+    ------
+    ValueError
+        If ``formalism`` is not a known version name, or ``compute`` is not
+        ``"sia"``, ``"ces"``, a callable, or ``None``.
     """
     if formalism is not None and formalism not in presets.by_name:
         valid = ", ".join(sorted(presets.by_name))

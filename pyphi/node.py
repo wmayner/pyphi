@@ -20,29 +20,39 @@ from .models.pandas import ToPandasMixin
 class Node(Displayable, ToPandasMixin):
     """A node in a system.
 
-    Args:
-        cause_marginal (CauseMarginals): Per-system-unit cause factors; this
-            node reads its own factor via ``cause_marginal.factor(index)``.
-        effect_marginal (pyphi.core.tpm.joint_distribution.JointTPM): The
-            effect (forward) TPM of the system.
-        cm (np.ndarray): The CM of the system.
-        index (int): The node's index in the substrate.
-        state (int): The state of this node.
-        node_labels (|NodeLabels|): Labels for these nodes.
+    Parameters
+    ----------
+    cause_marginal : pyphi.core.tpm.marginalization.CauseMarginals
+        Per-system-unit cause factors; this node reads its own factor via
+        ``cause_marginal.factor(index)``.
+    effect_marginal : FactoredTPM or joint_distribution.JointTPM
+        The system's effect (forward) TPM. A
+        :class:`~pyphi.core.tpm.factored.FactoredTPM` (the per-node-factored
+        form, including k-ary substrates) or a
+        :class:`~pyphi.core.tpm.joint_distribution.JointTPM` in binary
+        state-by-node form.
+    cm : numpy.ndarray
+        The connectivity matrix of the system.
+    index : int
+        The node's index in the substrate.
+    state : int
+        The state of this node.
+    node_labels : :class:`~pyphi.labels.NodeLabels`
+        Labels for these nodes.
 
-    Attributes:
-        cause_marginal (pyphi.core.tpm.joint_distribution.JointTPM),
-        effect_marginal (pyphi.core.tpm.joint_distribution.JointTPM): The
-            node TPM is an array with shape ``(2,)*(n + 1)``, where ``n`` is
-            the size of the :class:`~pyphi.substrate.Substrate`. The first
-            ``n`` dimensions correspond to each node in the system. Dimensions
-            corresponding to nodes that provide input to this node are of size
-            2, while those that do not correspond to inputs are of size 1, so
-            that the TPM has |2^m x 2| elements where |m| is the number of
-            inputs. The last dimension corresponds to the state of the node in
-            the next timestep, so that ``node.tpm[..., 0]`` gives probabilities
-            that the node will be 'OFF' and ``node.tpm[..., 1]`` gives
-            probabilities that the node will be 'ON'.
+    Attributes
+    ----------
+    cause_marginal : pyphi.core.tpm.joint_distribution.JointTPM
+    effect_marginal : pyphi.core.tpm.joint_distribution.JointTPM
+        The node's marginal cause and effect TPMs. Each is indexed by the
+        states of this node's inputs: an input dimension has the size of that
+        input's alphabet, while a non-input dimension is collapsed to size 1
+        (so a node with ``m`` binary inputs contributes a 2^m × 2 marginal).
+        The trailing axis holds this node's own state distribution — its cause
+        (previous-timestep) state for ``cause_marginal`` and its effect
+        (next-timestep) state for ``effect_marginal`` — so that ``[..., 0]``
+        gives the probabilities that the node is OFF and ``[..., 1]`` that it
+        is ON.
     """
 
     def __init__(self, cause_marginal, effect_marginal, cm, index, state, node_labels):
@@ -198,22 +208,33 @@ class Node(Displayable, ToPandasMixin):
 def generate_nodes(
     cause_marginal, effect_marginal, cm, substrate_state, indices, node_labels=None
 ):
-    """Generate |Node| objects for a system.
+    """Generate :class:`Node` objects for a system.
 
-    Args:
-        cause_marginal (CauseMarginals): Per-system-unit cause factors; each
-            node reads its own factor via ``cause_marginal.factor(index)``.
-        effect_marginal (pyphi.core.tpm.joint_distribution.JointTPM): The
-            system's effect (forward) TPM
-        cm (np.ndarray): The corresponding CM.
-        substrate_state (tuple): The state of the substrate.
-        indices (tuple[int]): Indices to generate nodes for.
+    Parameters
+    ----------
+    cause_marginal : pyphi.core.tpm.marginalization.CauseMarginals
+        Per-system-unit cause factors; each node reads its own factor via
+        ``cause_marginal.factor(index)``.
+    effect_marginal : FactoredTPM or joint_distribution.JointTPM
+        The system's effect (forward) TPM. A
+        :class:`~pyphi.core.tpm.factored.FactoredTPM` (the per-node-factored
+        form, including k-ary substrates) or a
+        :class:`~pyphi.core.tpm.joint_distribution.JointTPM` in binary
+        state-by-node form.
+    cm : numpy.ndarray
+        The corresponding connectivity matrix.
+    substrate_state : tuple
+        The state of the substrate.
+    indices : tuple[int, ...]
+        Indices to generate nodes for.
+    node_labels : :class:`~pyphi.labels.NodeLabels`, optional
+        Textual labels for each node. If ``None``, default labels are
+        generated for ``indices``.
 
-    Keyword Args:
-        node_labels (|NodeLabels|): Textual labels for each node.
-
-    Returns:
-        tuple[Node]: The nodes of the system.
+    Returns
+    -------
+    tuple[Node, ...]
+        The nodes of the system.
     """
     if node_labels is None:
         node_labels = NodeLabels(None, indices)
@@ -229,12 +250,14 @@ def generate_nodes(
 def expand_node_tpm(tpm):
     """Broadcast a node TPM over the full substrate.
 
-    Args:
-        tpm (pyphi.core.tpm.joint_distribution.JointTPM): The node TPM to expand.
+    This differs from broadcasting the TPM of a full system: the last
+    dimension (the state of the node) holds only the distribution of *this*
+    node, rather than the states of every node.
 
-    This is different from broadcasting the TPM of a full system since the last
-    dimension (containing the state of the node) contains only the probability
-    of *this* node being on, rather than the probabilities for each node.
+    Parameters
+    ----------
+    tpm : pyphi.core.tpm.joint_distribution.JointTPM
+        The node TPM to expand.
     """
     uc = JointTPM(np.ones([2 for node in tpm.shape]))
     return uc * tpm

@@ -1,4 +1,4 @@
-"""Numpy-backed JointTPM port behind the TPM Protocol.
+"""Numpy-backed :class:`~pyphi.core.tpm.TPM` implementation.
 
 Wraps :class:`pyphi.core.tpm.joint_distribution.JointTPM`.
 """
@@ -18,10 +18,11 @@ from pyphi.core.tpm.joint_distribution import JointTPM as _BackingJointTPM
 class JointTPM:
     """Numpy-backed transition probability matrix.
 
-    Wraps :class:`pyphi.core.tpm.joint_distribution.JointTPM` and exposes
-    the :class:`pyphi.core.tpm.TPM` Protocol surface. Numerical behavior is
-    delegated to the underlying implementation; the wrapper exists to give
-    the new layering a single, type-checked entry point.
+    Wraps :class:`pyphi.core.tpm.joint_distribution.JointTPM` and exposes the
+    :class:`pyphi.core.tpm.TPM` Protocol surface. Numerical behavior is
+    delegated to the wrapped instance; this class is the type-checked entry
+    point that satisfies the Protocol. Attribute access that is not part of
+    the Protocol falls through to the wrapped array (see :meth:`__getattr__`).
     """
 
     __slots__ = ("_inner",)

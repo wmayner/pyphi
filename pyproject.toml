@@ -168,6 +168,10 @@ ignore = [
     "ERA001",  # Commented-out code - allow for scientific exploration
     "PLC0415", # Import outside top-level - needed for optional dependencies
 ]
+# Mathematical symbols used deliberately in docstrings (Greek measures, set and
+# arithmetic operators). Whitelisted so the ambiguous-character rules
+# (RUF001/RUF002/RUF003) still catch genuine homoglyph typos elsewhere.
+allowed-confusables = ["α", "𝒜", "σ", "×", "−", "∖"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 88

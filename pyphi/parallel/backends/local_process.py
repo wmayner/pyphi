@@ -62,12 +62,15 @@ def _process_chunk(
 class LocalMapReduce:
     """Single-machine parallelization using loky's reusable executor.
 
-    Key features:
-    - Low overhead (~1-5ms per task)
-    - Cloudpickle support for functions defined in __main__ (Jupyter notebooks)
-    - Tree-structured execution for hierarchical computations
-    - Short-circuit support with future cancellation
-    - Progress tracking compatible with Jupyter notebooks
+    Items are grouped into chunks (evenly, or cost-balanced when a
+    ``size_func`` is given), each chunk is submitted to a worker as one
+    future, and the per-chunk result lists are concatenated and reduced.
+    Loky's cloudpickle support lets functions defined in ``__main__`` (e.g.
+    in a Jupyter notebook) be serialized to workers, and its reusable pool
+    keeps per-task overhead low (roughly 1-5 ms). A short-circuit predicate
+    stops collection early and cancels the remaining futures. Progress is
+    reported through :class:`~pyphi.parallel.backends.progress.LocalProgressBar`,
+    which renders in both terminals and notebooks.
     """
 
     def __init__(

@@ -11,15 +11,16 @@ point over the Scheduler Protocol with pluggable backends:
 - **dask**: distributed cluster scheduler (optional dependency)
 - **auto**: resolves per runtime
 
-Backend selection:
-- Use `pyphi.config.parallel_backend = "local"` (default)
-- Or pass `backend="local"` to :func:`map_reduce`
+The backend is chosen by ``pyphi.config.parallel_backend`` (default
+``"local"``), or overridden per call by passing ``backend=`` to
+:func:`map_reduce`.
 
-Example:
-    >>> import pyphi
-    >>> with pyphi.config.override(parallel=True):
-    ...     pyphi.config.infrastructure.parallel
-    True
+Examples
+--------
+>>> import pyphi
+>>> with pyphi.config.override(parallel=True):
+...     pyphi.config.infrastructure.parallel
+True
 """
 
 from __future__ import annotations
@@ -40,7 +41,24 @@ log = logging.getLogger(__name__)
 
 
 def get_num_processes() -> int:
-    """Return the number of processes to use in parallel."""
+    """Return the number of worker processes to use, from config.
+
+    Reads ``config.infrastructure.parallel_workers``. A positive value is
+    used directly, capped at the CPU count. A negative value counts down
+    from the CPU count, so ``-1`` means all CPUs, ``-2`` all but one, and
+    so on.
+
+    Returns
+    -------
+    int
+        The number of processes, always at least 1.
+
+    Raises
+    ------
+    ValueError
+        If ``parallel_workers`` is 0, or if it is negative enough that the
+        implied count would be non-positive.
+    """
     cpu_count = multiprocessing.cpu_count()
 
     if config.infrastructure.parallel_workers == 0:
@@ -77,7 +95,13 @@ def shortcircuit(
     shortcircuit_callback: Callable | None = None,
     shortcircuit_callback_args: Any = None,
 ):
-    """Yield from an iterable, stopping early if a certain value is found."""
+    """Yield items, stopping after the first for which a predicate holds.
+
+    Each item is yielded first, then ``shortcircuit_func`` is tested on it.
+    When the predicate is true, ``shortcircuit_callback`` (if given) is called
+    with ``shortcircuit_callback_args`` (defaulting to ``items``) and iteration
+    stops.
+    """
     for result in items:
         yield result
         if shortcircuit_func(result):
@@ -160,6 +184,13 @@ def map_reduce(
     per-item results into a list. ``size_func`` returns a relative per-item
     cost estimate used to pack cost-balanced chunks (parent-side, so it must
     be cheap); ``None`` packs equal-count chunks.
+
+    Raises
+    ------
+    ValueError
+        If ``size_func`` is given together with ``ordered=True``: cost
+        balancing reorders items across chunks, so it cannot preserve input
+        order.
     """
     if size_func is not None and ordered:
         raise ValueError(

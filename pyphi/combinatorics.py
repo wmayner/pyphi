@@ -51,15 +51,18 @@ def combinations_with_nonempty_intersection(
     Singletons are never yielded; the effective minimum size is
     ``max(2, min_size)``.
 
-    Arguments:
-        sets (Sequence[frozenset]): The sets to consider. Note that they must be
-            ``frozensets``.
+    Parameters
+    ----------
+    sets : Sequence[frozenset]
+        The sets to consider. They must be ``frozenset`` instances.
 
-    Keyword Arguments:
-        min_size (int): The minimum size of the combinations to yield. Defaults
-            to 0.
-        max_size (int): The maximum size of the combinations to yield. If
-            ``None`` (the default), there is no upper bound.
+    Other Parameters
+    ----------------
+    min_size : int
+        The minimum size of the combinations to yield (default 0).
+    max_size : int or None
+        The maximum size of the combinations to yield. If ``None`` (the
+        default), there is no upper bound.
     """
     n = len(sets)
     effective_min = max(2, min_size)
@@ -142,18 +145,21 @@ def sum_of_ratio_of_minima_among_subsets(
 ) -> float:
     """Return the sum of the ratio of minima among numerators/denominators.
 
-    Considers all subsets with size >1 of pairs of numerators and denominators
-    (n_i, d_i) and implicitly computes the sum of the ratios of the minimum
-    numerator / minimum denominator, where the minimum is taken within each
-    subset.
+    Considers all subsets of size > 1 of pairs of numerators and denominators
+    ``(n_i, d_i)`` and computes the sum, over those subsets, of the ratio of
+    the minimum numerator to the minimum denominator, where each minimum is
+    taken within the subset.
 
-    Arguments:
-        num_denom_pairs (list[tuple[float]]): list of pairs of numerators and
-        denominators.
+    Parameters
+    ----------
+    num_denom_pairs : list[tuple[float, float]]
+        List of ``(numerator, denominator)`` pairs.
 
-    Returns:
-        float: Sum of the ratios of minimum numerator to minimum denominator
-        over all subsets of size >1.
+    Returns
+    -------
+    float
+        Sum of the ratios of minimum numerator to minimum denominator over all
+        subsets of size > 1.
     """
     numerators, denominators = zip(*num_denom_pairs, strict=False)
     # For each possible pair of values, we count the number of times the pair is
@@ -244,13 +250,17 @@ def set_partitions(
 ) -> Generator[list[list[Any]]] | itertools.islice[list[list[Any]]]:
     """Generate all set partitions of a collection.
 
-    Example:
-        >>> list(set_partitions(range(3)))  # doctest: +NORMALIZE_WHITESPACE
-        [[[0, 1, 2]],
-         [[0], [1, 2]],
-         [[0, 1], [2]],
-         [[1], [0, 2]],
-         [[0], [1], [2]]]
+    When ``nontrivial`` is ``True``, the single-block partition (the whole
+    collection) is omitted.
+
+    Examples
+    --------
+    >>> list(set_partitions(range(3)))  # doctest: +NORMALIZE_WHITESPACE
+    [[[0, 1, 2]],
+     [[0], [1, 2]],
+     [[0, 1], [2]],
+     [[1], [0, 2]],
+     [[0], [1], [2]]]
     """
     if nontrivial:
         return itertools.islice(_set_partitions(collection), 1, None)

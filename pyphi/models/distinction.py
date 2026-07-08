@@ -46,15 +46,18 @@ class Distinction(
     """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
+    ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
 
-    Attributes:
-        mechanism (tuple[int]): The mechanism that the distinction consists of.
-        cause (MaximallyIrreducibleCause): The |MIC| representing the
-            maximally-irreducible cause of this distinction.
-        effect (MaximallyIrreducibleEffect): The |MIE| representing the
-            maximally-irreducible effect of this distinction.
-        time (float): The number of seconds it took to calculate.
+    Attributes
+    ----------
+    mechanism : tuple[int]
+        The mechanism that the distinction consists of.
+    cause : MaximallyIrreducibleCause
+        The MIC representing the maximally-irreducible cause of this
+        distinction.
+    effect : MaximallyIrreducibleEffect
+        The MIE representing the maximally-irreducible effect of this
+        distinction.
     """
 
     def __init__(
@@ -135,16 +138,15 @@ class Distinction(
     def phi(self) -> float:  # type: ignore[override]
         """float: The size of the distinction.
 
-        This is the minimum of the |small_phi| values of the distinction's |MIC|
-        and |MIE|.
+        This is the minimum of the φ values of the distinction's MIC and MIE.
         """
         assert self.cause is not None
         assert self.effect is not None
         return min(self.cause.phi, self.effect.phi)
 
     def explain(self) -> Explanation:
-        """A typed account of why this distinction's |small_phi| came out as it
-        did: which direction (cause or effect) binds, plus that direction's own
+        """A typed account of why this distinction's φ came out as it did:
+        which direction (cause or effect) binds, plus that direction's own
         findings."""
         assert self.cause is not None
         assert self.effect is not None
@@ -291,7 +293,7 @@ class Distinction(
         )
 
     def __bool__(self):
-        """A distinction is ``True`` if |small_phi > 0|."""
+        """A distinction is ``True`` if φ > 0."""
         return utils.is_positive(self.phi)
 
     def is_congruent(self, system_state):

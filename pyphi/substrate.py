@@ -1,8 +1,8 @@
 # substrate.py
 """Represents the substrate of interest.
 
-This is the primary object of PyPhi and the context of all |small_phi| and
-|big_phi| computation.
+This is the primary object of PyPhi and the context of all φ and Φ
+computation.
 """
 
 from __future__ import annotations
@@ -57,16 +57,23 @@ def _coerce_state_to_indices(
     corresponding alphabet or a label present in ``state_space[i]``.
     Returns a tuple of integer indices in the same order.
 
-    Args:
-        state: The state to coerce — may mix integer indices and labels.
-        state_space: Per-node label tuples from :attr:`Substrate.state_space`.
+    Parameters
+    ----------
+    state : tuple
+        The state to coerce — may mix integer indices and labels.
+    state_space : tuple[tuple, ...]
+        Per-node label tuples from :attr:`Substrate.state_space`.
 
-    Returns:
-        tuple[int]: Integer-indexed state.
+    Returns
+    -------
+    tuple[int, ...]
+        Integer-indexed state.
 
-    Raises:
-        ValueError: If ``len(state) != len(state_space)`` or any element
-            is neither a valid label nor a valid index.
+    Raises
+    ------
+    ValueError
+        If ``len(state) != len(state_space)`` or any element is neither a
+        valid label nor a valid index.
     """
     if len(state) != len(state_space):
         raise ValueError(
@@ -111,39 +118,45 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
       arrays, one per node.  Each factor has shape
       ``(*alphabet_sizes, alphabet_size_i)``.
 
-    Args:
-        tpm (np.ndarray): The joint transition probability matrix of the
-            substrate (joint form only — see above).
+    Parameters
+    ----------
+    tpm : numpy.ndarray or pyphi.core.tpm.joint_distribution.JointTPM
+        The joint transition probability matrix of the substrate (joint form
+        only — see above).
+    cm : numpy.ndarray, optional
+        A square binary adjacency matrix indicating the connections between
+        nodes in the substrate. ``cm[i][j] == 1`` means that node ``i`` is
+        connected to node ``j`` (see :ref:`cm-conventions`). If no connectivity
+        matrix is given, PyPhi assumes that every node is connected to every
+        node (including itself).
+    node_labels : tuple[str] or :class:`~pyphi.labels.NodeLabels`, optional
+        Human-readable labels for each node in the substrate.
+    marginals : sequence of numpy.ndarray, optional
+        Per-node conditional arrays (factored form). Mutually exclusive with
+        ``tpm``.
+    state_space : optional
+        The state space for the substrate nodes. Accepts a uniform-flat integer
+        alphabet size, a tuple of per-node label tuples ``((labels_0, ...),
+        (labels_1, ...), ...)``, or a single flat tuple of labels applied
+        uniformly to every node. When ``None``, defaults to binary ``(0, 1)``
+        per node.
+    alphabet : int, optional
+        Shortcut for a uniform integer alphabet of the given size — equivalent
+        to ``state_space=tuple(range(alphabet))``. Mutually exclusive with
+        ``state_space``.
 
-    Keyword Args:
-        marginals (sequence of np.ndarray): Per-node conditional arrays
-            (factored form). Mutually exclusive with ``tpm=``.
-        state_space: The state space for the substrate nodes. Accepts a
-            uniform-flat integer alphabet size, a tuple of per-node label
-            tuples ``((labels_0, ...), (labels_1, ...), ...)``, or a single
-            flat tuple of labels applied uniformly to every node. When
-            ``None``, defaults to binary ``(0, 1)`` per node.
-        alphabet (int): Shortcut for a uniform integer alphabet of the given
-            size — equivalent to ``state_space=tuple(range(alphabet))``.
-            Mutually exclusive with ``state_space=``.
-        cm (np.ndarray): A square binary adjacency matrix indicating the
-            connections between nodes in the substrate. ``cm[i][j] == 1`` means
-            that node |i| is connected to node |j| (see :ref:`cm-conventions`).
-            **If no connectivity matrix is given, PyPhi assumes that every node
-            is connected to every node (including itself)**.
-        node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
-            each node in the substrate.
-
-    See Also:
-        :meth:`from_factored`: Build a ``Substrate`` directly from an existing
+    See Also
+    --------
+    from_factored : Build a ``Substrate`` directly from an existing
         :class:`~pyphi.core.tpm.factored.FactoredTPM`.
 
-    Example:
-        In a 3-node binary substrate, ``the_substrate.joint_tpm()[(0, 0, 1)]``
-        gives, for each node at |t|, the per-alphabet-value distribution
-        given that state at |t-1| was |N_0 = 0, N_1 = 0, N_2 = 1|; e.g.
-        ``the_substrate.joint_tpm()[(0, 0, 1)][i, 1]`` is the probability
-        that node |i| at |t| takes value 1.
+    Examples
+    --------
+    In a 3-node binary substrate, ``the_substrate.joint_tpm()[(0, 0, 1)]``
+    gives, for each node at *t*, the per-alphabet-value distribution given that
+    the state at *t* − 1 was N₀ = 0, N₁ = 0, N₂ = 1; e.g.
+    ``the_substrate.joint_tpm()[(0, 0, 1)][i, 1]`` is the probability that node
+    ``i`` at *t* takes value 1.
     """
 
     def __init__(
@@ -382,20 +395,23 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
     def potential_purviews(
         self, direction: Direction, mechanism: Mechanism
     ) -> list[Purview]:
-        """All purviews which are not clearly reducible for mechanism.
-
-        Args:
-            direction (Direction): |CAUSE| or |EFFECT|.
-            mechanism (tuple[int]): The mechanism which all purviews are
-                checked for reducibility over.
-
-        Returns:
-            list[tuple[int]]: All purviews which are irreducible over
-            ``mechanism``.
+        """All purviews which are not clearly reducible for a mechanism.
 
         Depends only on connectivity, so the result is cached on
         ``_cm_fingerprint`` and shared across every substrate with the same
         ``cm`` (a parameter sweep over a fixed topology reuses it).
+
+        Parameters
+        ----------
+        direction : Direction
+            ``CAUSE`` or ``EFFECT``.
+        mechanism : tuple[int, ...]
+            The mechanism which all purviews are checked for reducibility over.
+
+        Returns
+        -------
+        list[tuple[int, ...]]
+            All purviews which are irreducible over ``mechanism``.
         """
         from pyphi.conf import config as _config
 
@@ -461,7 +477,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
     ) -> list[Any]:
-        """Return SIAs with |big_phi| > 0; see :func:`irreducible_sias`."""
+        """Return SIAs with Φ > 0; see :func:`irreducible_sias`."""
         return irreducible_sias(self, state, candidates=candidates, **kwargs)
 
     def complexes(
@@ -608,18 +624,27 @@ def irreducible_purviews(
 ) -> list[Purview]:
     """Return all purviews which are irreducible for the mechanism.
 
-    Args:
-        cm (np.ndarray): An |N x N| connectivity matrix.
-        direction (Direction): |CAUSE| or |EFFECT|.
-        mechanism (tuple[int]): The mechanism in question.
-        purviews (Iterable[tuple[int]]): The purviews to check.
+    Parameters
+    ----------
+    cm : numpy.ndarray
+        An N × N connectivity matrix.
+    direction : Direction
+        ``CAUSE`` or ``EFFECT``.
+    mechanism : tuple[int, ...]
+        The mechanism in question.
+    purviews : Iterable[tuple[int, ...]]
+        The purviews to check.
 
-    Returns:
-        list[tuple[int]]: All purviews in ``purviews`` which are not reducible
-        over ``mechanism``.
+    Returns
+    -------
+    list[tuple[int, ...]]
+        All purviews in ``purviews`` which are not reducible over
+        ``mechanism``.
 
-    Raises:
-        ValueError: If ``direction`` is invalid.
+    Raises
+    ------
+    ValueError
+        If ``direction`` is invalid.
     """
 
     def reducible(purview: Purview) -> bool:
@@ -735,11 +760,11 @@ def all_sias(
 ) -> list[Any]:
     """Return SIAs for every candidate system of the substrate.
 
-    Includes reducible (|big_phi| = 0) candidates. The default candidate
+    Includes reducible (Φ = 0) candidates. The default candidate
     iterator is :func:`possible_complexes`, which skips subsets containing
     nodes that lack either inputs or outputs in the substrate — a
     mathematically safe optimization under both formalisms, since such
-    candidates are not strongly connected and have |big_phi| = 0.
+    candidates are not strongly connected and have Φ = 0.
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
@@ -772,7 +797,7 @@ def irreducible_sias(
     candidates: Iterable[Any] | None = None,
     **kwargs: Any,
 ) -> list[Any]:
-    """Return candidate SIAs with |big_phi| > 0.
+    """Return candidate SIAs with Φ > 0.
 
     These are *not* complexes — overlapping candidates may both appear in
     the returned list. The complexes (a subset satisfying exclusion) are
@@ -829,15 +854,14 @@ def complexes(
 ) -> tuple[Any, ...]:
     """Return the complexes of the substrate in its current state.
 
-    A complex is a set of units that is a local maximum of |big_phi|
-    (|small_phi_s|) — no overlapping candidate has higher |small_phi_s|.
-    The returned tuple is non-overlapping (exclusion), ordered by
-    |small_phi_s| descending.
+    A complex is a set of units that is a local maximum of Φ (φₛ): no
+    overlapping candidate has higher φₛ. The returned tuple is
+    non-overlapping (exclusion), ordered by φₛ descending.
 
-    Both formalisms walk SIAs in descending |big_phi| tiers and group
+    Both formalisms walk SIAs in descending Φ tiers and group
     survivors into overlap cliques per tier. Under IIT 4.0, each
     multi-candidate clique escalates to the Composition cascade (max
-    |big_phi|), and ties at Composition fail the exclusion postulate.
+    Φ), and ties at Composition fail the exclusion postulate.
     Under IIT 3.0, no further escalation exists (IIT 3.0 provides no
     paper-canonical system-level tie-break); multi-candidate cliques
     are skipped as indeterminate, and the tier walk continues to the
@@ -889,7 +913,7 @@ def _accept(sia: Any, result: list[Any], covered: set[int]) -> None:
 
 
 def _phi_groups(sorted_sias: list[Any]) -> Iterable[list[Any]]:
-    """Yield contiguous groups of SIAs sharing the same |small_phi_s| value
+    """Yield contiguous groups of SIAs sharing the same φₛ value
     (precision-aware), assuming the input is sorted by ``.order_by()``
     descending."""
     from pyphi import utils as _utils
@@ -933,7 +957,7 @@ def _find_overlap_cliques(sias: list[Any]) -> list[list[Any]]:
 
 
 def _big_phi_of_sia(sia: Any, substrate: Substrate, state: tuple[int, ...]) -> float:
-    """Compute the structure-integrated information |big_phi| of the SIA's
+    """Compute the structure-integrated information Φ of the SIA's
     candidate system. Builds the system from substrate + state + the
     SIA's units and invokes the active formalism's cause-effect-structure
     computation.
@@ -950,9 +974,9 @@ def _big_phi_of_sia(sia: Any, substrate: Substrate, state: tuple[int, ...]) -> f
 def _resolve_clique_by_big_phi(
     clique: list[Any], substrate: Substrate, state: tuple[int, ...]
 ) -> Any | None:
-    """Pick the |big_phi|-maximal candidate in an overlap clique via the
+    """Pick the Φ-maximal candidate in an overlap clique via the
     substrate-exclusion cascade (Composition escalation). Returns ``None``
-    when |big_phi| ties — the exclusion postulate is violated for that
+    when Φ ties — the exclusion postulate is violated for that
     clique and none of its candidates qualify as a complex.
     """
     from dataclasses import dataclass
@@ -980,7 +1004,7 @@ def _substrate_exclusion_cascade(
     substrate: Substrate,
     state: tuple[int, ...],
 ) -> list[Any]:
-    """Walk SIAs in descending |small_phi_s| tiers, applying the S1
+    """Walk SIAs in descending φₛ tiers, applying the S1
     substrate-exclusion cascade within each tier."""
     result: list[Any] = []
     covered: set[int] = set()
@@ -1028,7 +1052,7 @@ def _iit3_exclusion_cascade(
     substrate: Any,  # noqa: ARG001 — kept for parity with iit4 cascade signature
     state: Any,  # noqa: ARG001 — kept for parity with iit4 cascade signature
 ) -> list[Any]:
-    """Walk SIAs in descending |big_phi| tiers, applying the IIT 3.0
+    """Walk SIAs in descending Φ tiers, applying the IIT 3.0
     cross-subsystem cascade within each overlap clique.
 
     Within a tier, drop candidates whose units overlap an already-
@@ -1058,7 +1082,7 @@ def maximal_complex(
     candidates: Iterable[Any] | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Return the complex with maximum |big_phi| over the substrate.
+    """Return the complex with maximum Φ over the substrate.
 
     Equivalent to the first element of :func:`complexes`. Returns a
     null-object :class:`~pyphi.models.complex.Complex` (falsy, with empty

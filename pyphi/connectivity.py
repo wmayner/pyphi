@@ -16,21 +16,28 @@ def subadjacency(
 
     This gives the connections from the first group to the second group.
 
-    Arguments:
-        source (Iterable[int]): The source nodes.
+    Parameters
+    ----------
+    cm : ArrayLike
+        A connectivity matrix.
+    source : Iterable[int]
+        The source nodes.
 
-    Keyword Arguments:
-        target (Iterable[int] | None): The target nodes. If ``None``,
-            defaults to be the same as the first.
+    Other Parameters
+    ----------------
+    target : Iterable[int] or None
+        The target nodes. If ``None``, defaults to the same nodes as
+        ``source``.
 
-    Example:
-        >>> cm = np.identity(5)
-        >>> subadjacency(cm, (2, 3))
-        array([[1., 0.],
-               [0., 1.]])
-        >>> subadjacency(cm, (0, 1), (1, 2))
-        array([[0., 0.],
-               [1., 0.]])
+    Examples
+    --------
+    >>> cm = np.identity(5)
+    >>> subadjacency(cm, (2, 3))
+    array([[1., 0.],
+           [0., 1.]])
+    >>> subadjacency(cm, (0, 1), (1, 2))
+    array([[0., 0.],
+           [1., 0.]])
     """
     cm_array = np.asarray(cm)
     if target is None:
@@ -66,7 +73,7 @@ def causally_significant_nodes(cm: ArrayLike) -> tuple[int, ...]:
     inputs = cm_array.sum(0)
     outputs = cm_array.sum(1)
     nodes_with_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
-    return tuple(np.where(nodes_with_inputs_and_outputs)[0])
+    return tuple(int(i) for i in np.where(nodes_with_inputs_and_outputs)[0])
 
 
 # TODO: better name?
@@ -75,14 +82,20 @@ def relevant_connections(
 ) -> NDArray[np.float64]:
     """Construct a connectivity matrix.
 
-    Args:
-        n (int): The dimensions of the matrix
-        _from (tuple[int]): Nodes with outgoing connections to ``to``
-        to (tuple[int]): Nodes with incoming connections from ``_from``
+    Parameters
+    ----------
+    n : int
+        The number of nodes (the matrix is ``n`` × ``n``).
+    _from : tuple[int]
+        Nodes with outgoing connections to ``to``.
+    to : tuple[int]
+        Nodes with incoming connections from ``_from``.
 
-    Returns:
-        np.ndarray: An |n x n| connectivity matrix with the |i,jth| entry is
-        ``1`` if |i| is in ``_from`` and |j| is in ``to``, and 0 otherwise.
+    Returns
+    -------
+    np.ndarray
+        An ``n`` × ``n`` connectivity matrix whose ``(i, j)``-th entry is ``1``
+        if ``i`` is in ``_from`` and ``j`` is in ``to``, and ``0`` otherwise.
     """
     cm = np.zeros((n, n))
 
@@ -117,8 +130,8 @@ def block_cm(cm: ArrayLike) -> bool:
       B [1, 1, 0, 0]
       C [0, 0, 1, 1]
 
-    Since nodes |AB| only connect to nodes |DE|, and node |C| only connects to
-    nodes |FG|, the subgraph is reducible, because the cut ::
+    Since nodes AB only connect to nodes DE, and node C only connects to
+    nodes FG, the subgraph is reducible, because the cut ::
 
       A,B    C
       ─── ✕ ───
@@ -173,10 +186,14 @@ def block_reducible(
 ) -> bool:
     """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
-    Args:
-        cm (np.ndarray): The substrate's connectivity matrix.
-        nodes1 (tuple[int]): Source nodes
-        nodes2 (tuple[int]): Sink nodes
+    Parameters
+    ----------
+    cm : np.ndarray
+        The substrate's connectivity matrix.
+    nodes1 : tuple[int]
+        Source nodes.
+    nodes2 : tuple[int]
+        Sink nodes.
     """
     # Trivial case
     if not nodes1 or not nodes2:
@@ -206,11 +223,15 @@ def is_strong(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:
 
     Remember that a singleton graph is strongly connected.
 
-    Args:
-        cm (np.ndarray): A square connectivity matrix.
+    Parameters
+    ----------
+    cm : np.ndarray
+        A square connectivity matrix.
 
-    Keyword Args:
-        nodes (tuple[int]): A subset of nodes to consider.
+    Other Parameters
+    ----------------
+    nodes : tuple[int]
+        A subset of nodes to consider.
     """
     return _connected(cm, nodes, "strong")
 
@@ -218,11 +239,15 @@ def is_strong(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:
 def is_weak(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:
     """Return whether the connectivity matrix is weakly connected.
 
-    Args:
-        cm (np.ndarray): A square connectivity matrix.
+    Parameters
+    ----------
+    cm : np.ndarray
+        A square connectivity matrix.
 
-    Keyword Args:
-        nodes (tuple[int]): A subset of nodes to consider.
+    Other Parameters
+    ----------------
+    nodes : tuple[int]
+        A subset of nodes to consider.
     """
     return _connected(cm, nodes, "weak")
 
@@ -230,15 +255,19 @@ def is_weak(cm: ArrayLike, nodes: tuple[int, ...] | None = None) -> bool:
 def is_full(cm: ArrayLike, nodes1: tuple[int, ...], nodes2: tuple[int, ...]) -> bool:
     """Test connectivity of one set of nodes to another.
 
-    Args:
-        cm (``np.ndarrray``): The connectivity matrix
-        nodes1 (tuple[int]): The nodes whose outputs to ``nodes2`` will be
-            tested.
-        nodes2 (tuple[int]): The nodes whose inputs from ``nodes1`` will
-            be tested.
+    Parameters
+    ----------
+    cm : np.ndarray
+        The connectivity matrix.
+    nodes1 : tuple[int]
+        The nodes whose outputs to ``nodes2`` will be tested.
+    nodes2 : tuple[int]
+        The nodes whose inputs from ``nodes1`` will be tested.
 
-    Returns:
-        bool: ``True`` if all elements in ``nodes1`` output to some element in
+    Returns
+    -------
+    bool
+        ``True`` if all elements in ``nodes1`` output to some element in
         ``nodes2`` and all elements in ``nodes2`` have an input from some
         element in ``nodes1``, or if either set of nodes is empty; ``False``
         otherwise.

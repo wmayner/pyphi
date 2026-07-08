@@ -20,7 +20,7 @@ def default_label(index: int) -> str:
 
 
 def default_labels(indices: Sequence[int]) -> tuple[str, ...]:
-    """Default labels for serveral nodes."""
+    """Default labels for several nodes."""
     return tuple(default_label(i) for i in indices)
 
 
@@ -97,8 +97,8 @@ class NodeLabels(Sequence[str]):
         self,
         nodes: Iterable[int | str | np.integer] | None,
     ) -> tuple[int, ...]:
-        """Return the nodes indices for nodes, where ``nodes`` is either
-        already integer indices or node labels.
+        """Return the node indices for ``nodes``, which may be given either as
+        integer indices or as node labels.
         """
         if nodes is None:
             return self.node_indices
@@ -114,8 +114,8 @@ class NodeLabels(Sequence[str]):
         self,
         nodes: Iterable[int | str | np.integer] | None,
     ) -> tuple[str | int, ...]:
-        """Return the nodes labels for nodes, where ``nodes`` is either
-        already labels or node indices.
+        """Return the node labels for ``nodes``, which may be given either as
+        labels or as integer indices.
         """
         if nodes is None:
             return self.node_indices

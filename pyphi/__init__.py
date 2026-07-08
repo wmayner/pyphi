@@ -41,11 +41,12 @@ The :class:`~pyphi.substrate.Substrate` object is the main object on which
 computations are performed. It represents the substrate of interest.
 
 The :class:`~pyphi.system.System` object is the secondary object; it
-represents a system of a substrate. |big_phi| is a function of systems.
+represents a system of a substrate. Φ is a function of systems.
 
-The |compute| module is the main entry-point for the library. It contains
-methods for calculating concepts, cause-effect structures, complexes, etc. See
-its documentation for details.
+The :func:`~pyphi.analyze.analyze` function is the main entry point for the
+library. It computes a system's cause-effect structure and its system
+integrated information (Φ). See its documentation for details. To search a
+substrate for its complexes, use :func:`~pyphi.substrate.complexes`.
 
 
 Configuration (optional)
@@ -61,8 +62,8 @@ the default configuration will be used.
 You can download an example configuration file `here
 <https://raw.githubusercontent.com/wmayner/pyphi/master/pyphi_config.yml>`_.
 
-See the documentation for the |config| module for a description of the options
-and their defaults.
+See the documentation for the :mod:`~pyphi.conf` module for a description of
+the options and their defaults.
 """
 
 import importlib

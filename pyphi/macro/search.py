@@ -26,7 +26,7 @@ it strictly beats every other member whose micro constituents overlap
 its own (Eq. 19). Candidate systems whose state is unreachable under
 their own TPM specify no cause and cannot exist; they are dropped.
 
-All ``phi_s`` evaluations within one driver run share a memo keyed on
+All φₛ evaluations within one driver run share a memo keyed on
 the hashable :class:`~pyphi.macro.system.MacroSystem`.
 """
 
@@ -59,16 +59,24 @@ _APPORTIONMENT_POLICIES = ("NONE", "ENUMERATE")
 class SearchBounds:
     """Bounds on the intrinsic-unit search space.
 
-    Attributes:
-        max_constituents: Cap on ``|U^J|`` per candidate unit.
-        max_update_grain: Largest update grain ``tau'`` per level.
-        max_depth: Macroing levels above micro.
-        mappings: ``"FAMILIES"`` (coarse-grainings and black-boxings)
-            or ``"EXHAUSTIVE"`` (every surjective table, capped).
-        exhaustive_cap: Largest sequence-state count for EXHAUSTIVE.
-        apportionment: ``"NONE"`` or ``"ENUMERATE"`` (assign background
-            micro units to derived candidates).
-        max_background: Cap on apportioned units when enumerating.
+    Attributes
+    ----------
+    max_constituents : int
+        Cap on ``|U^J|`` per candidate unit.
+    max_update_grain : int
+        Largest update grain ``tau'`` per level.
+    max_depth : int
+        Macroing levels above micro.
+    mappings : str
+        ``"FAMILIES"`` (coarse-grainings and black-boxings) or
+        ``"EXHAUSTIVE"`` (every surjective table, capped).
+    exhaustive_cap : int
+        Largest sequence-state count for EXHAUSTIVE.
+    apportionment : str
+        ``"NONE"`` or ``"ENUMERATE"`` (assign background micro units to
+        derived candidates).
+    max_background : int
+        Cap on apportioned units when enumerating.
     """
 
     max_constituents: int = 4
@@ -206,7 +214,7 @@ def _system_of(substrate, units, micro_history) -> MacroSystem | None:
     """The system of ``units`` over the full universe, or None.
 
     Returns None when the system's state is unreachable under its own
-    TPM: such a system specifies no cause and cannot exist (phi_s = 0).
+    TPM: such a system specifies no cause and cannot exist (φₛ = 0).
     """
     units = canonical_units(units)
     needed = max(unit.micro_grain for unit in units)
@@ -230,7 +238,7 @@ def _system_of_cached(substrate, units, micro_history, system_cache):
 
 
 def _phi(substrate, units, micro_history, memo, system_cache):
-    """Memoized ``(system, phi_s)`` of the system of ``units``."""
+    """Memoized ``(system, φₛ)`` of the system of ``units``."""
     system = _system_of_cached(substrate, units, micro_history, system_cache)
     if system is None:
         return None, None
@@ -240,7 +248,7 @@ def _phi(substrate, units, micro_history, memo, system_cache):
 
 
 def _evaluate_one(system: MacroSystem) -> float:
-    """Worker entry: ``phi_s`` of one system.
+    """Worker entry: φₛ of one system.
 
     The inner ``sia`` is forced sequential so search-level parallelism
     stays one process-pool deep (nested pools merely oversubscribe).
@@ -257,7 +265,7 @@ def _evaluate_one(system: MacroSystem) -> float:
 
 
 def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
-    """Evaluate ``systems`` and merge ``phi_s`` into ``memo`` in order.
+    """Evaluate ``systems`` and merge φₛ into ``memo`` in order.
 
     Systems already in the memo, duplicates within the batch, and
     ``None`` (unreachable) entries are skipped. The surviving systems
@@ -498,10 +506,9 @@ def _derive_units(
     decompositions from the previous level's pool, processed in
     footprint-size classes (smallest first). Because ``f(U^J, W^J)``
     admits only strict-subset footprints, every candidate in a size
-    class is independent of the others, so the class's ``phi_s``
-    evaluations are batched (and optionally parallelized) before the
-    judgments run sequentially over the warm memo. Returns
-    ``(pool, verdicts)``.
+    class is independent of the others, so the class's φₛ evaluations
+    are batched (and optionally parallelized) before the judgments run
+    sequentially over the warm memo. Returns ``(pool, verdicts)``.
     """
     n = substrate.size
     indices = tuple(range(n)) if within is None else tuple(sorted(within))
@@ -679,11 +686,14 @@ def is_intrinsic_unit(
 class IntrinsicUnitsResult:
     """The recursion's output: the valid-unit pool and every verdict.
 
-    Attributes:
-        units: All derived intrinsic units, micro units included, in
-            derivation order (footprints smallest-first per level).
-        verdicts: One :class:`DecompositionVerdict` per judged
-            ``(V^J, W^J)`` candidate, micro units included.
+    Attributes
+    ----------
+    units : tuple[MacroUnit, ...]
+        All derived intrinsic units, micro units included, in derivation
+        order (footprints smallest-first per level).
+    verdicts : tuple[DecompositionVerdict, ...]
+        One :class:`DecompositionVerdict` per judged ``(V^J, W^J)``
+        candidate, micro units included.
     """
 
     units: tuple[MacroUnit, ...]
@@ -738,7 +748,7 @@ def valid_systems(
 
 @dataclass(frozen=True)
 class EvaluationRecord:
-    """One evaluated system and its ``phi_s``."""
+    """One evaluated system and its φₛ."""
 
     system: MacroSystem
     phi: float
@@ -748,14 +758,18 @@ class EvaluationRecord:
 class ComplexesResult:
     """The Eq. 19 outcome over the bounded candidate space.
 
-    Attributes:
-        complexes: The winners -- members of ``P(u)`` that strictly
-            beat every other member with overlapping micro
-            constituents. Mutually disjoint by construction.
-        records: Every system evaluated during the run (criteria checks
-            included) with its ``phi_s``, in evaluation order.
-        ties: Pairs of overlapping systems that would each be a complex
-            but for their mutual tie at precision.
+    Attributes
+    ----------
+    complexes : tuple[MacroSystem, ...]
+        The winners -- members of ``P(u)`` that strictly beat every
+        other member with overlapping micro constituents. Mutually
+        disjoint by construction.
+    records : tuple[EvaluationRecord, ...]
+        Every system evaluated during the run (criteria checks included)
+        with its φₛ, in evaluation order.
+    ties : tuple[tuple[MacroSystem, MacroSystem], ...]
+        Pairs of overlapping systems that would each be a complex but for
+        their mutual tie at precision.
     """
 
     complexes: tuple[MacroSystem, ...]

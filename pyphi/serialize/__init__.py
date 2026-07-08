@@ -70,13 +70,26 @@ def _infer_format(target: Any, format: str | None) -> str:
 
 
 def save(obj: Any, target: Any, *, format: str | None = None) -> None:
-    """Serialize ``obj`` to ``target`` (a path or an open binary file object).
+    """Serialize ``obj`` to ``target``.
 
-    The wire format is inferred from a path's extension (``.json`` →
-    ``"json"``; ``.msgpack`` / ``.mpk`` → ``"msgpack"``; otherwise ``"json"``)
-    unless ``format`` is given. A path ending in ``.gz`` is gzip-compressed,
-    with the wire format taken from the inner suffix (``result.json.gz`` →
-    gzip-compressed JSON).
+    Parameters
+    ----------
+    obj : Any
+        A PyPhi domain object with a registered serializer (see
+        :mod:`pyphi.serialize.convert` for the supported types).
+    target : str or os.PathLike or file object
+        Destination path, or an open binary file object to write to.
+    format : {"json", "msgpack"}, optional
+        Wire format. If None (the default), it is inferred from a path's
+        extension: ``.json`` gives ``"json"``; ``.msgpack`` or ``.mpk`` give
+        ``"msgpack"``; any other extension, or a non-path target, gives
+        ``"json"``.
+
+    Notes
+    -----
+    A path ending in ``.gz`` is gzip-compressed, with the wire format taken
+    from the inner suffix (``result.json.gz`` yields gzip-compressed JSON).
+    Compression is applied only to path targets, not to file objects.
     """
     data = dumps(obj, format=_infer_format(target, format))
     if isinstance(target, (str, os.PathLike)):
@@ -88,8 +101,23 @@ def save(obj: Any, target: Any, *, format: str | None = None) -> None:
 
 
 def load(target: Any, *, format: str | None = None) -> Any:
-    """Deserialize from ``target`` (a path or an open binary file object).
+    """Deserialize a PyPhi domain object from ``target``.
 
+    Parameters
+    ----------
+    target : str or os.PathLike or file object
+        Source path, or an open binary file object to read from.
+    format : {"json", "msgpack"}, optional
+        Wire format. If None (the default), it is inferred from a path's
+        extension exactly as in :func:`save`.
+
+    Returns
+    -------
+    Any
+        The reconstructed PyPhi domain object.
+
+    Notes
+    -----
     A path ending in ``.gz`` is transparently decompressed.
     """
     fmt = _infer_format(target, format)

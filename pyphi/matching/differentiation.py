@@ -28,20 +28,30 @@ def _component_perceptions(perception):
 
 @dataclass(frozen=True)
 class Differentiation:
-    """The component union across triggered structures (Eq 15).
+    """The union of components across the structures triggered by a sequence.
 
-    A pure view over ``Perception`` objects: the distinctions and relations
-    of the structures are pooled and deduplicated by value equality, and each
-    unique component carries the maximum perception it attains in any of the
-    structures. Duplicate structures collapse in the union, so sequence order
-    and repeats do not affect the result.
+    A view over ``Perception`` objects realizing the differentiation structure
+    C_D (Eq. 15): the distinctions and relations of the structures are pooled
+    and deduplicated by value equality, and each unique component carries the
+    maximum perception it attains in any of the structures. Duplicate
+    structures collapse in the union, so sequence order and repeats do not
+    affect the result.
+
+    Attributes
+    ----------
+    perceptions : tuple of Perception
+        The perceptual structures triggered by the stimuli in the sequence.
     """
 
     perceptions: tuple[Perception, ...]
 
     @cached_property
     def projection(self) -> dict:
-        """{component: maximum perception across structures containing it}."""
+        """Mapping ``{component: maximum perception across structures}``.
+
+        Each unique distinction or relation maps to the largest perception
+        value it attains in any triggered structure containing it.
+        """
         projection = {}
         for perception in self.perceptions:
             for component, value in _component_perceptions(perception):
@@ -52,31 +62,44 @@ class Differentiation:
 
     @cached_property
     def differentiation(self) -> float:
-        """Differentiation D (Eq 16): summed phi of the unique components."""
+        """Differentiation D (Eq. 16): summed φ of the unique components."""
         return float(sum(float(component.phi) for component in self.projection))
 
     @cached_property
     def perceptual_differentiation(self) -> float:
-        """Perceptual differentiation D_p (Eq 19): summed maximum perception."""
+        """Perceptual differentiation D_p (Eq. 19): summed maximum perception.
+
+        The sum over unique components of the maximum perception value each
+        attains across the triggered structures.
+        """
         return float(sum(self.projection.values()))
 
     @cached_property
     def analytical_differentiation(self) -> float:
-        """Differentiation D (Eq 16), in closed form without enumerating
-        concrete relations.
+        """Differentiation D (Eq. 16) in closed form, without concrete relations.
 
         Equal to :attr:`differentiation` wherever that is computable, but reads
         only each structure's ``distinctions`` (never ``relations``), so it is
         the path to use when the structures carry ``AnalyticalRelations`` (which
-        are not iterable). D splits into the distinction union ``Σφ_d`` plus the
-        relation union, the latter computed by inclusion-exclusion over the
-        unique structures::
+        are not iterable). D splits into the distinction-union term Σφ_d plus
+        the relation-union term, the latter computed by inclusion-exclusion over
+        the unique structures:
 
-            Σ_r φ_r = Σ_{∅≠T} (-1)^(|T|+1) AnalyticalRelations(∩_{k∈T} D_k).sum_phi()
+        .. math::
+
+            \\sum_r \\varphi_r = \\sum_{\\emptyset \\neq T} (-1)^{|T|+1}\\,
+            \\mathrm{AnalyticalRelations}\\!\\left(\\bigcap_{k \\in T} D_k\\right)
+            .\\mathrm{sum\\_phi}()
 
         Cost is ``2**K - 1`` analytical relation-sum calls for ``K`` unique
-        structures; the method targets the small-``K`` (small sensory interface)
-        regime where concrete relation enumeration is the bottleneck.
+        structures, which is practical only for small ``K`` (a small sensory
+        interface), the regime where enumerating concrete relations is instead
+        the bottleneck.
+
+        Returns
+        -------
+        float
+            The differentiation D, ``0.0`` when there are no perceptions.
         """
         if not self.perceptions:
             return 0.0

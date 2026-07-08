@@ -10,6 +10,25 @@ from numpy.lib.mixins import NDArrayOperatorsMixin
 
 
 class ArrayLike(NDArrayOperatorsMixin):
+    """Mixin that lets a wrapper around a NumPy array behave like the array.
+
+    A subclass stores its underlying array under the attribute named by
+    ``_VALUE_ATTR`` (``"value"`` by default). NumPy operations are delegated to
+    that array and their results re-wrapped in the subclass:
+
+    - Arithmetic and other ufuncs (via
+      :class:`~numpy.lib.mixins.NDArrayOperatorsMixin` and ``__array_ufunc__``)
+      unwrap every ``ArrayLike`` operand, apply the ufunc to the bare arrays, and
+      re-wrap each result. An operand whose type is outside ``_HANDLED_TYPES``
+      (:class:`~numpy.ndarray`, :class:`list`, :class:`~numbers.Number`) yields
+      ``NotImplemented``.
+    - High-level NumPy functions (``__array_function__``) are delegated only for
+      the whitelist in ``_TYPE_CLOSED_FUNCTIONS``; any other function returns
+      ``NotImplemented``.
+    - ``np.asarray`` (via ``__array__``) and otherwise-unresolved attribute
+      access (via ``__getattr__``) fall through to the underlying array.
+    """
+
     # Only support operations with instances of _HANDLED_TYPES.
     _HANDLED_TYPES: tuple[type, ...] = (np.ndarray, list, Number)
 

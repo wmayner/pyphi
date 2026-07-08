@@ -124,6 +124,19 @@ def _single_node_effect_repertoire(
     purview_node_index: int,
     direction: Direction,
 ) -> Any:
+    """Single-node effect repertoire — building block for full effect
+    repertoires.
+
+    Conditions the purview node's per-unit marginal on the mechanism state
+    (``condition``), marginalizes out the node's inputs that are not part of
+    the mechanism, then reshapes to the canonical purview shape. Unlike
+    :func:`_single_node_cause_repertoire`, the result is self-describingly
+    canonical (this purview node at full alphabet, every other axis size 1),
+    so it does not rely on the caller's allocation to broadcast.
+
+    ``direction`` selects whether the effect (``EFFECT``) or cause
+    (``CAUSE``) per-unit marginal supplies the factor.
+    """
     purview_node = cs._index2node[purview_node_index]
     if direction == Direction.CAUSE:
         tpm = purview_node.cause_marginal.condition_tpm(condition)
@@ -200,7 +213,19 @@ def cause_repertoire(
     purview: tuple[int, ...],
     **kwargs: Any,  # noqa: ARG001
 ) -> Any:
-    """Cause repertoire — IIT 4.0 Eq. 5 / Eq. 7."""
+    """Cause repertoire πc(z | m) of a mechanism over a purview.
+
+    The distribution over purview (cause) states specified by the mechanism,
+    obtained by Bayesian inversion of the per-node cause factors under a
+    uniform prior over cause states (Albantakis et al. 2023, Eq. 33).
+
+    Returns
+    -------
+    numpy.ndarray
+        The normalized cause repertoire. An empty purview yields
+        ``array([1.0])``; an empty mechanism yields the maximum-entropy
+        (unconstrained) distribution over the purview.
+    """
     if not purview:
         return np.array([1.0])
     if not mechanism:
@@ -218,7 +243,15 @@ def effect_repertoire(
     mechanism_state: Any | None = None,
     direction: Direction = Direction.EFFECT,
 ) -> Any:
-    """Effect repertoire — IIT 4.0 Eq. 5 / Eq. 7."""
+    """Effect repertoire πe(z | m) of a mechanism over a purview.
+
+    The distribution over purview (effect) states specified by the mechanism,
+    formed as the product of the per-node effect factors conditioned on the
+    mechanism state (Albantakis et al. 2023, Eq. 29). An empty purview yields
+    ``array([1.0])``. When ``mechanism_state`` is ``None`` it is read from
+    ``cs.state``; ``direction`` selects which per-node marginal (effect or
+    cause) supplies the factors.
+    """
     if not purview:
         return np.array([1.0])
     if mechanism_state is None:
@@ -638,10 +671,12 @@ def potential_purviews(
     mechanism: tuple[int, ...],
     purviews: Any | None = None,
 ) -> list[tuple[int, ...]]:
-    """Return all purviews that could belong to the |MIC|/|MIE|.
+    """Return all purviews that could belong to the MIC or MIE.
 
-    Filters out trivially-reducible purviews against the (possibly cut)
-    connectivity matrix of this candidate system.
+    A purview is a candidate for the maximally irreducible cause (MIC) or
+    effect (MIE) only if it is not trivially reducible. Purviews that are
+    trivially reducible against the (possibly cut) connectivity matrix of
+    this candidate system are filtered out.
     """
     from pyphi.substrate import irreducible_purviews
 
@@ -678,7 +713,13 @@ null_concept = null_distinction
 
 
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:
-    """Return |Nodes| for these indices."""
+    """Return the ``Node`` objects for these indices.
+
+    Raises
+    ------
+    ValueError
+        If ``indices`` is not a subset of the System's node indices.
+    """
     if set(indices) - set(cs.node_indices):
         raise ValueError("`indices` must be a subset of the System's indices.")
     return tuple(cs._index2node[n] for n in indices)

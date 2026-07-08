@@ -1,11 +1,10 @@
 """Cache policy Protocol and adapters.
 
-A CachePolicy is the uniform observability + control surface across all
-of PyPhi's cache flavors. The Protocol intentionally does NOT include
-``get`` / ``put`` / ``key`` — those have legitimately different
-signatures across flavors (kernel uses ``id(cs)``, module-level uses
-``_make_key``, instance-level uses custom keys). Forcing a uniform
-get/put would re-introduce complexity that doesn't pay off.
+A ``CachePolicy`` is the uniform observability and control surface across all
+of PyPhi's cache flavors: it declares only ``name``, ``info()``, and
+``clear()``. It does not include ``get`` / ``put`` / ``key``, because those
+have different signatures across flavors (the kernel keys on ``id(cs)``,
+module-level caches on ``_make_key``, instance-level caches on custom keys).
 """
 
 from __future__ import annotations

@@ -66,7 +66,7 @@ def fmt_mechanism(indices: tuple[int, ...], node_labels: object | None = None) -
 
 
 def fmt_part(part: object, node_labels: object | None = None) -> str:
-    """Format a |Part|.
+    """Format a :class:`~pyphi.models.partitions.Part`.
 
     The returned string looks like::
 
@@ -131,7 +131,7 @@ def fmt_extended_purview(
 
 
 def fmt_transition(t: object) -> str:
-    """Format a |Transition|."""
+    """Format a :class:`~pyphi.actual.Transition`."""
     cause = fmt_mechanism(t.cause_indices, t.node_labels)  # type: ignore[attr-defined]
     effect = fmt_mechanism(t.effect_indices, t.node_labels)  # type: ignore[attr-defined]
     return f"Transition({cause} {ARROW_RIGHT} {effect})"

@@ -62,12 +62,10 @@ class CauseEffectStructure(
 ):
     """A Φ-structure: SIA + distinctions + relations.
 
-    Access the system-level integrated information value via
-    ``ps.sia.phi``; the system partition via ``ps.sia.partition``; the
-    specified system state via ``ps.sia.system_state``. (Earlier versions
-    of this class proxied those attributes at the top level via
-    ``__getattr__`` — that proxy was removed when the class moved into
-    ``pyphi.models``; access them explicitly through ``.sia``.)
+    System-level quantities are reached through the wrapped
+    :attr:`sia`: the system integrated information value via ``ps.sia.phi``,
+    the system partition via ``ps.sia.partition``, and the specified system
+    state via ``ps.sia.system_state``.
     """
 
     sia: Any  # SystemIrreducibilityAnalysis from formalism.iit4

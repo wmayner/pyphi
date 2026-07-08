@@ -26,17 +26,17 @@ if TYPE_CHECKING:
 class CESMeasureRegistry(Registry):
     """Storage for distance functions between cause-effect structures.
 
-    Users can define custom measures. The third positional / keyword
+    Users can define custom measures. The third positional or keyword
     argument is the :class:`~pyphi.system.System` context; measures that
-    don't need it can
-    accept it as ``system=None`` and ignore it.
+    do not need it can accept it as ``system=None`` and ignore it.
+    Register a measure, then select it by setting
+    ``config.ces_distance = 'ALWAYS_ZERO'``.
 
-    Examples:
-        >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
-        ... def always_zero(a, b, system=None):
-        ...    return 0
-
-    And use them by setting, *e.g.*, ``config.ces_distance = 'ALWAYS_ZERO'``.
+    Examples
+    --------
+    >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
+    ... def always_zero(a, b, system=None):
+    ...    return 0
     """
 
     # pylint: disable=arguments-differ
@@ -52,11 +52,12 @@ class CESMeasureRegistry(Registry):
     ) -> Callable[[Callable[..., float]], Callable[..., float]]:
         """Decorator for registering a CES measure with PyPhi.
 
-        Args:
-            name (string): The name of the measure.
-
-        Keyword Args:
-            asymmetric (boolean): ``True`` if the measure is asymmetric.
+        Parameters
+        ----------
+        name : str
+            The name of the measure.
+        asymmetric : bool
+            ``True`` if the measure is asymmetric.
         """
 
         def register_func(func: Callable[..., float]) -> Callable[..., float]:
@@ -78,12 +79,26 @@ measures = CESMeasureRegistry()
 def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     """Compute the distance between two repertoires of a system.
 
-    Args:
-        r1 (np.ndarray): The first repertoire.
-        r2 (np.ndarray): The second repertoire.
+    The measure named by ``config.formalism.iit.mechanism_phi_measure`` is
+    used as the ground distance. An asymmetric measure cannot serve this
+    role, because the system-level EMD requires a symmetric ground metric.
 
-    Returns:
-        float: The distance between ``r1`` and ``r2``.
+    Parameters
+    ----------
+    r1 : np.ndarray
+        The first repertoire.
+    r2 : np.ndarray
+        The second repertoire.
+
+    Returns
+    -------
+    float
+        The distance between ``r1`` and ``r2``.
+
+    Raises
+    ------
+    ValueError
+        If the configured mechanism measure is asymmetric.
     """
     measure_name = config.formalism.iit.mechanism_phi_measure
     asymmetric_metrics = (
@@ -118,15 +133,26 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
 def emd_concept_distance(c1: Concept, c2: Concept, system: System) -> float:
     """Return the EMD distance between two concepts in concept space.
 
-    Args:
-        c1 (Concept): The first concept.
-        c2 (Concept): The second concept.
-        system (System): The system whose repertoire algebra is used to
-            expand each concept's cause and effect repertoires to the
-            combined purview before taking the ground distance.
+    The distance is the sum of the cause-side and effect-side ground
+    distances. Each concept's cause and effect repertoires are first
+    expanded to the combined purview of the two concepts, so that the two
+    EMD signatures have the same size.
 
-    Returns:
-        float: The distance between the two concepts in concept space.
+    Parameters
+    ----------
+    c1 : Concept
+        The first concept.
+    c2 : Concept
+        The second concept.
+    system : System
+        The system whose repertoire algebra expands each concept's cause
+        and effect repertoires to the combined purview before the ground
+        distance is taken.
+
+    Returns
+    -------
+    float
+        The distance between the two concepts in concept space.
     """
     # Calculate the sum of the cause and effect EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
@@ -251,15 +277,31 @@ def _emd(
 def emd(C1: Distinctions, C2: Distinctions, system: System | None = None) -> float:
     """Return the generalized EMD between two cause-effect structures.
 
-    Args:
-        C1 (Distinctions): The first :class:`~pyphi.models.distinctions.Distinctions`.
-        C2 (Distinctions): The second :class:`~pyphi.models.distinctions.Distinctions`.
-        system (System): The system the CESs were computed over. Required
-            for the EMD measure: repertoire expansion and the null concept
-            both come from the system.
+    When the two structures differ only in that some concepts have
+    disappeared, the simpler :func:`_emd_simple` is used; otherwise the full
+    generalized EMD in :func:`_emd` is taken. The result is rounded to
+    ``config.numerics.precision``.
 
-    Returns:
-        float
+    Parameters
+    ----------
+    C1 : Distinctions
+        The first :class:`~pyphi.models.distinctions.Distinctions`.
+    C2 : Distinctions
+        The second :class:`~pyphi.models.distinctions.Distinctions`.
+    system : System
+        The system the CESs were computed over. Required for the EMD
+        measure: repertoire expansion and the null concept both come from
+        the system.
+
+    Returns
+    -------
+    float
+        The generalized EMD between the two structures.
+
+    Raises
+    ------
+    ValueError
+        If ``system`` is ``None``.
     """
     if system is None:
         raise ValueError(
@@ -283,8 +325,13 @@ def sum_small_phi(
     C2: Distinctions,
     system: System | None = None,  # noqa: ARG001
 ) -> float:
-    """Return the difference in |small_phi| between
-    :class:`~pyphi.models.distinctions.Distinctions`.
+    """Return the difference in summed φ between two structures.
+
+    The value is ``sum(C1.phis) - sum(C2.phis)``. This is a signed
+    difference of the total small-φ of each
+    :class:`~pyphi.models.distinctions.Distinctions`, not a symmetric
+    distance, and may be negative. The ``system`` argument is accepted for
+    a uniform measure signature and is ignored.
     """
     return sum(C1.phis) - sum(C2.phis)
 
@@ -298,17 +345,27 @@ def ces_distance(
 ) -> float:
     """Return the distance between two cause-effect structures.
 
-    Args:
-        C1 (Distinctions): The first :class:`~pyphi.models.distinctions.Distinctions`.
-        C2 (Distinctions): The second :class:`~pyphi.models.distinctions.Distinctions`.
-        measure (str): Which registered CES measure to use; defaults to
-            ``config.formalism.iit.ces_measure``.
-        system (System): The system the CESs were computed over. Required
-            by measures that operate on full repertoires (e.g. ``EMD``);
-            ignored by purely phi-summing measures (e.g. ``SUM_SMALL_PHI``).
+    Dispatches to the registered CES measure named by ``measure`` and rounds
+    the result to ``config.numerics.precision``.
 
-    Returns:
-        float: The distance between the two cause-effect structures.
+    Parameters
+    ----------
+    C1 : Distinctions
+        The first :class:`~pyphi.models.distinctions.Distinctions`.
+    C2 : Distinctions
+        The second :class:`~pyphi.models.distinctions.Distinctions`.
+    measure : str, optional
+        Which registered CES measure to use. If ``None``, defaults to
+        ``config.formalism.iit.ces_measure``.
+    system : System, optional
+        The system the CESs were computed over. Required by measures that
+        operate on full repertoires (e.g. ``EMD``); ignored by purely
+        phi-summing measures (e.g. ``SUM_SMALL_PHI``).
+
+    Returns
+    -------
+    float
+        The distance between the two cause-effect structures.
     """
     measure_name: str = config.formalism.iit.ces_measure if measure is None else measure  # type: ignore[assignment]
     dist: float = measures[measure_name](C1, C2, system=system)

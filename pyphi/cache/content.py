@@ -89,6 +89,17 @@ class ContentCache:
         *,
         store: bool = True,
     ) -> Any:
+        """Return the cached value for ``(fingerprint, args)``, else compute it.
+
+        On a miss, ``compute`` is called and its result returned. An exception
+        from ``compute`` propagates and no entry is added. The result is stored
+        only when ``store`` is true and memory is not over the configured cache
+        limit (see :func:`pyphi.cache.cache_utils.memory_full`); otherwise the
+        value is returned without being cached.
+
+        This method is lock-free; the ``hits`` and ``misses`` counters it
+        updates are best-effort under free-threaded Python.
+        """
         key = (fingerprint, args)
         if key in self._cache:
             self.hits += 1

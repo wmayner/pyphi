@@ -118,9 +118,9 @@ def basic_substrate(cm=False):
     +---+---+---+---+
 
     .. note::
-        |CM[i][j] = 1| means that there is a directed edge |(i,j)| from node
-        |i| to node |j| and |CM[i][j] = 0| means there is no edge from |i| to
-        |j|.
+        ``CM[i][j] = 1`` means there is a directed edge ``(i, j)`` from node
+        ``i`` to node ``j``, and ``CM[i][j] = 0`` means there is no edge from
+        node ``i`` to node ``j``.
     """
     # fmt: off
     tpm = np.array([
@@ -1298,8 +1298,8 @@ def gomez_p53_mdm2_substrate():
 
 @register_example
 def prevention_transition():
-    """The |Transition| for the prevention example from Actual Causation
-    Figure 5D.
+    """The :class:`~pyphi.actual.Transition` for the prevention example from
+    Actual Causation Figure 5D.
     """
     # fmt: off
     tpm = np.array([
@@ -1376,17 +1376,29 @@ def frog_example():
         """
         Returns a pyphi substrate (with the specified activation function)
 
-        Args:
-            mech_func: (list) list of mechanism function labels ('g' for Gaussian, 'nr' or 's' for Naka-Rushton, 'l' for LogFunc)
-            weights: (numpy array) matrix of node by node weights (x sends to y)
-            mu = mean (Gauss)
-            si = standard deviation (Gauss)
-            exp = exponent (NR or MvsG)
-            th = threshold (NR) or curve steepness (MvsG)
-            x0 = midpoint value (LogFunc)
-            l = max value (LogFunc)
-            k = growth rate (LogFunc)
-            gridsize = number of substrate nodes in the grid excluded inputs
+        Parameters
+        ----------
+        mech_func
+            List of mechanism function labels ('g' for Gaussian, 'nr' or 's'
+            for Naka-Rushton, 'l' for LogFunc).
+        weights
+            Node-by-node weight matrix (x sends to y).
+        mu
+            Mean (Gauss).
+        si
+            Standard deviation (Gauss).
+        exp
+            Exponent (NR or MvsG).
+        th
+            Threshold (NR) or curve steepness (MvsG).
+        x0
+            Midpoint value (LogFunc).
+        l
+            Max value (LogFunc).
+        k
+            Growth rate (LogFunc).
+        gridsize
+            Number of substrate nodes in the grid excluded inputs.
         """
         weights = weights.T
         node_indices = [n for n in range(len(weights))]

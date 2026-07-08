@@ -144,13 +144,18 @@ class MacroSystem(System):
     ) -> MacroSystem:
         """Build a MacroSystem from a micro substrate and macro units.
 
-        Args:
-            substrate: The binary micro universe.
-            units: The system's macro units (Eq. 18 must hold).
-            micro_history: Universe micro states, oldest first, of
-                length ``max(tau_J)``. A bare state is accepted when
-                every unit has micro grain 1.
-            node_labels: Labels for the macro units.
+        Parameters
+        ----------
+        substrate : Substrate
+            The binary micro universe.
+        units : sequence of MacroUnit
+            The system's macro units (Eq. 18 must hold).
+        micro_history : sequence of universe states
+            Universe micro states, oldest first, of length
+            ``max(tau_J)``. A bare state is accepted when every unit has
+            micro grain 1.
+        node_labels : optional
+            Labels for the macro units.
         """
         units = tuple(units)
         _validate_units(substrate, units)

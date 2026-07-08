@@ -61,7 +61,7 @@ def evaluate_partition(
     partitioned_repertoire_kwargs: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Evaluate a mechanism partition's |small_phi|.
+    """Evaluate a mechanism partition's φ.
 
     Dispatches to the active formalism's ``evaluate_mechanism_partition``.
     The caller is expected to thread ``mechanism_measure`` (and any other
@@ -247,7 +247,17 @@ def find_mice(
     purviews: Any | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Return the |MIC| or |MIE| for a mechanism."""
+    """Return the maximally irreducible cause or effect for a mechanism.
+
+    The result is a :class:`~pyphi.models.MaximallyIrreducibleCause` or
+    :class:`~pyphi.models.MaximallyIrreducibleEffect`.
+
+    Over the given ``direction``, searches the candidate purviews for the one
+    whose φ (irreducibility) is maximal, resolving ties via
+    :mod:`pyphi.resolve_ties`. When ``config.infrastructure.validate_phi_bounds``
+    is set and a purview is found, the winning φ is checked against the IIT 4.0
+    distinction and partition upper bounds.
+    """
     purviews_list = _ra.potential_purviews(cs, direction, mechanism, purviews)
 
     if direction == Direction.CAUSE:

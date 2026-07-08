@@ -43,7 +43,7 @@ class MaximallyIrreducibleCauseOrEffect(
     """A maximally irreducible cause or effect (MICE).
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
+    ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
     """
 
     parent: Concept  # Set by Concept.__init__
@@ -63,12 +63,12 @@ class MaximallyIrreducibleCauseOrEffect(
 
     @property
     def normalized_phi(self):
-        """float: Normalized |small_phi| value."""
+        """float: Normalized φ value."""
         return self._ria.normalized_phi
 
     @property
     def direction(self):
-        """Direction: |CAUSE| or |EFFECT|."""
+        """Direction: CAUSE or EFFECT."""
         return self._ria.direction
 
     @property
@@ -88,9 +88,7 @@ class MaximallyIrreducibleCauseOrEffect(
 
     @property
     def purview(self):
-        """list[int]: The purview over which this mechanism's |small_phi| is
-        maximal.
-        """
+        """list[int]: The purview over which this mechanism's φ is maximal."""
         return self._ria.purview
 
     @property
@@ -159,8 +157,8 @@ class MaximallyIrreducibleCauseOrEffect(
         return self.ria.reasons
 
     def explain(self):
-        """A typed account of why this |small_phi| value came out as it did,
-        delegated to the underlying RIA."""
+        """A typed account of why this φ value came out as it did, delegated
+        to the underlying RIA."""
         return self.ria.explain()
 
     def diff(self, other):
@@ -223,7 +221,7 @@ class MaximallyIrreducibleCauseOrEffect(
     @property
     def purview_ties(self):
         """tuple[MaximallyIrreducibleCauseOrEffect]: The purviews that are tied
-        for maximal |small_phi| value.
+        for maximal φ value.
         """
         return self._purview_ties
 
@@ -295,35 +293,36 @@ class MaximallyIrreducibleCauseOrEffect(
         return self.ria._pandas_record()
 
     def _relevant_connections(self, system):
-        """Identify connections that “matter” to this concept.
+        """Identify the connections that matter to this MICE.
 
-        For a |MIC|, the important connections are those which connect the
-        purview to the mechanism; for a |MIE| they are the connections from the
-        mechanism to the purview.
-
-        Returns an |N x N| matrix, where `N` is the number of nodes in this
-        corresponding system, that identifies connections that “matter” to
-        this MICE:
+        For a MIC, the connections that matter are those from the purview to
+        the mechanism; for a MIE they are those from the mechanism to the
+        purview. The result is an N × N matrix, where N is the substrate size:
 
         ``direction == Direction.CAUSE``:
-            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            ``relevant_connections[i, j]`` is ``1`` if node ``i`` is in the
             cause purview and node ``j`` is in the mechanism (and ``0``
             otherwise).
 
         ``direction == Direction.EFFECT``:
-            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            ``relevant_connections[i, j]`` is ``1`` if node ``i`` is in the
             mechanism and node ``j`` is in the effect purview (and ``0``
             otherwise).
 
-        Args:
-            system (System): The |System| of this MICE.
+        Parameters
+        ----------
+        system : System
+            The System of this MICE.
 
-        Returns:
-            np.ndarray: A |N x N| matrix of connections, where |N| is the size
-            of the substrate.
+        Returns
+        -------
+        np.ndarray
+            An N × N matrix of connections, where N is the substrate size.
 
-        Raises:
-            ValueError: If ``direction`` is invalid.
+        Raises
+        ------
+        ValueError
+            If ``direction`` is invalid.
         """
         _from, to = self.direction.order(self.mechanism, self.purview)
         return connectivity.relevant_connections(system.substrate.size, _from, to)
@@ -352,7 +351,7 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible cause (MIC).
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
+    ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
     """
 
     def __init__(self, ria):
@@ -367,7 +366,7 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
 
     @property
     def direction(self):
-        """Direction: |CAUSE|."""
+        """Direction: CAUSE."""
         return self._ria.direction
 
 
@@ -375,7 +374,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible effect (MIE).
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
+    ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
     """
 
     def __init__(self, ria):
@@ -387,5 +386,5 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 
     @property
     def direction(self):
-        """Direction: |EFFECT|."""
+        """Direction: EFFECT."""
         return self._ria.direction

@@ -33,10 +33,13 @@ def enable_logging(level: str = "INFO", file: str | Path | None = None) -> None:
     write to that path instead. Calling this again replaces the handler a
     previous call installed (handlers do not stack).
 
-    Args:
-        level: A standard level name (``"DEBUG"``, ``"INFO"``, ``"WARNING"``,
-            ``"ERROR"``, ``"CRITICAL"``). An unknown name raises ``ValueError``.
-        file: A path to log to. If ``None``, logs go to stderr.
+    Parameters
+    ----------
+    level
+        A standard level name (``"DEBUG"``, ``"INFO"``, ``"WARNING"``,
+        ``"ERROR"``, ``"CRITICAL"``). An unknown name raises ``ValueError``.
+    file
+        A path to log to. If ``None``, logs go to stderr.
     """
     logger = logging.getLogger("pyphi")
     for installed in list(logger.handlers):

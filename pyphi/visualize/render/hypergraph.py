@@ -708,8 +708,9 @@ def render_hypergraph(
     ``relation φ`` colorbar, and colour opacity tracks φ so low-φ relations
     fade rather than obscure the high-φ ones. Geometry is computed from the
     full projection regardless of ``only_distinctions``, so successive calls
-    with different subsets align (the primitive ``highlight_phi_fold`` composes
-    on).
+    with different subsets align; this is what lets
+    :func:`~pyphi.visualize.highlight_phi_fold` overlay a highlighted subset on
+    the dimmed full structure.
     """
     unknown = set(show) - set(_ELEMENTS)
     if unknown:

@@ -200,8 +200,10 @@ class _PartitionBase(ToPandasMixin):
         ``cut_matrix[a, b] == 1`` iff the directed connection a→b is
         severed.
 
-        Args:
-            n (int): The size of the substrate.
+        Parameters
+        ----------
+        n : int
+            The size of the substrate.
         """
         raise NotImplementedError
 
@@ -213,8 +215,10 @@ class _PartitionBase(ToPandasMixin):
     def apply_cut(self, cm: NDArray[np.int_]) -> NDArray[np.int_]:
         """Return ``cm`` with the partition's induced edge cut removed.
 
-        Args:
-            cm (np.ndarray): A connectivity matrix.
+        Parameters
+        ----------
+        cm : numpy.ndarray
+            A connectivity matrix.
         """
         inverse = np.logical_not(self.cut_matrix(cm.shape[0])).astype(int)
         return cm * inverse
@@ -327,11 +331,16 @@ class DirectedBipartition(Displayable, _PartitionBase):
     ``direction`` (CAUSE or EFFECT). Corresponds to θ ∈ Θ(S) in IIT 4.0
     Eq. 14-18 in the bipartite case.
 
-    Attributes:
-        direction: The causal direction of the cut.
-        from_nodes: Source side; connections from these to ``to_nodes`` are severed.
-        to_nodes: Target side; connections from ``from_nodes`` to these are severed.
-        node_labels: Optional labels for pretty-printing.
+    Attributes
+    ----------
+    direction : Direction
+        The causal direction of the cut.
+    from_nodes : tuple[int, ...]
+        Source side; connections from these to ``to_nodes`` are severed.
+    to_nodes : tuple[int, ...]
+        Target side; connections from ``from_nodes`` to these are severed.
+    node_labels : NodeLabels or None
+        Optional labels for pretty-printing.
     """
 
     __slots__ = ("direction", "from_nodes", "node_labels", "to_nodes")
@@ -360,13 +369,14 @@ class DirectedBipartition(Displayable, _PartitionBase):
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
         """Connections from ``from_nodes`` to ``to_nodes`` are severed.
 
-        Example:
-            >>> from pyphi.direction import Direction
-            >>> sp = DirectedBipartition(Direction.EFFECT, (1,), (2,))
-            >>> sp.cut_matrix(3)
-            array([[0, 0, 0],
-                   [0, 0, 1],
-                   [0, 0, 0]])
+        Examples
+        --------
+        >>> from pyphi.direction import Direction
+        >>> sp = DirectedBipartition(Direction.EFFECT, (1,), (2,))
+        >>> sp.cut_matrix(3)
+        array([[0, 0, 0],
+               [0, 0, 1],
+               [0, 0, 0]])
         """
         return connectivity.relevant_connections(
             n, self.from_nodes, self.to_nodes
@@ -408,10 +418,14 @@ class DirectedJointPartition(Displayable, _PartitionBase):
     to disintegrating partitions Θ(M,Z) in IIT 4.0 Eq. 38 and to AC
     partitions ψ in Albantakis et al. 2019 Eq. 7.
 
-    Attributes:
-        direction: Causal direction of the induced edge cut.
-        partition: The joint partition (sequence of (mechanism, purview) parts).
-        node_labels: Optional labels for pretty-printing.
+    Attributes
+    ----------
+    direction : Direction
+        Causal direction of the induced edge cut.
+    partition : JointPartition
+        The joint partition (sequence of (mechanism, purview) parts).
+    node_labels : NodeLabels or None
+        Optional labels for pretty-printing.
     """
 
     direction: Direction
@@ -607,17 +621,24 @@ class DirectedSetPartition(EdgeCut):
 class Part:
     """One block of a :class:`JointPartition`.
 
-    Attributes:
-        mechanism: Nodes on the mechanism side of this block.
-        purview: Nodes on the purview side of this block.
+    A block pairs a subset of mechanism nodes with a subset of purview nodes.
 
-    Example:
-        For a |small_phi| computation on a 3-node system, a 2-block
-        partition could be::
+    Attributes
+    ----------
+    mechanism : tuple[int, ...]
+        Nodes on the mechanism side of this block.
+    purview : tuple[int, ...]
+        Nodes on the purview side of this block.
+    node_labels : NodeLabels or None
+        Optional labels used when formatting the block.
 
-            mechanism:  A,C    B
-                        ─── ✕ ───
-              purview:   B    A,C
+    Examples
+    --------
+    For a φ computation on a 3-node system, a 2-block partition could be::
+
+        mechanism:  A,C    B
+                    ─── ✕ ───
+          purview:   B    A,C
     """
 
     mechanism: tuple[int, ...]
@@ -689,7 +710,7 @@ class JointPartition(Displayable, Sequence[Part], _PartitionBase):
             f"/{fmt.fmt_nodes(p.purview, self.node_labels)}"
             for p in self.parts
         ]
-        return " × ".join(part_strs)  # noqa: RUF001
+        return " × ".join(part_strs)
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         return _partition_description(self, self._concise())

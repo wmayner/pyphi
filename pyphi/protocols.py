@@ -9,9 +9,8 @@ these Protocols at registration time, so wrong-shape registrations fail
 at import — not at the bottom of a long phi computation.
 
 Also declares the public-surface contract for ``System`` as
-:class:`SystemPublicInterface`. This is the cross-module contract the
-forthcoming system rewrite must satisfy. ``test/test_system_surface.py``
-fails CI if ``System``'s public surface drifts from this declaration.
+:class:`SystemPublicInterface`. ``test/test_system_surface.py`` fails CI if
+``System``'s public surface drifts from this declaration.
 """
 
 from __future__ import annotations
@@ -51,10 +50,8 @@ class DistanceMetric(Protocol):
       ``DistanceResult``.
 
     The minimum common contract is callability with positional repertoires
-    and arbitrary keyword arguments. A unified, narrower signature is the
-    target of the metric-API refactor (see ``pyphi/measures/distribution.py``
-    around ``repertoire_distance``); until that lands, this Protocol
-    documents the minimum shape and the registry validates against it.
+    and arbitrary keyword arguments. This Protocol documents that minimum
+    shape, and the registry validates registered metrics against it.
     """
 
     def __call__(self, p: Any, q: Any, *args: Any, **kwargs: Any) -> Any: ...
@@ -73,12 +70,12 @@ class MechanismPartition(Protocol):
     of indices on each side via ``mechanism`` and ``purview`` properties; it
     is iterable over its constituent :class:`pyphi.models.partitions.Part` objects.
 
-    This Protocol distinguishes mechanism-level partitions (Eqs. 5-7,
-    used by ``System.find_mip`` for distinctions) from system-level
-    partitions (Eqs. 14-18, used by SIA). The two have different
-    mathematical roles and different probability constructions; making
-    the distinction explicit in the type system prevents accidental
-    cross-use.
+    This Protocol distinguishes mechanism-level partitions (the
+    "disintegrating" partitions Θ(M, Z) of Albantakis et al. 2023, Eq. 38,
+    used by ``System.find_mip`` for distinctions) from system-level directional
+    partitions (Eqs. 14-18, used by SIA). The two have different mathematical
+    roles and different probability constructions; making the distinction
+    explicit in the type system prevents accidental cross-use.
     """
 
     mechanism: Any
@@ -261,12 +258,10 @@ class SystemPublicInterface(Protocol):
     ``System`` itself but not by external callers) are kept on the class
     but excluded from this Protocol.
 
-    The members are typed ``Any`` here because their concrete signatures are
-    in flux until the formalism split and metric-API unification land. The
-    Protocol's role at this stage is **structural conformance and drift
-    detection** — the type system enforces that any caller annotated against
-    ``SystemPublicInterface`` only touches names that ``System``
-    actually exposes. Concrete signatures will be added incrementally.
+    The members are typed ``Any``. The Protocol's role is structural
+    conformance and drift detection: the type system enforces that any caller
+    annotated against ``SystemPublicInterface`` only touches names that
+    ``System`` actually exposes.
     """
 
     # Construction-time attributes
@@ -357,10 +352,9 @@ class SystemInternalInterface(Protocol):
     contract.
 
     These names are referenced only from ``System`` itself (and the
-    macro/actual-causation modules that subclass it). The forthcoming
-    system rewrite is free to rename, restructure, or remove them
-    without affecting external callers. They are listed here so changes
-    can be tracked — additions or removals should be intentional, not
+    macro/actual-causation modules that subclass it), so they may be renamed,
+    restructured, or removed without affecting external callers. They are
+    listed here so that additions or removals are intentional rather than
     incidental.
     """
 

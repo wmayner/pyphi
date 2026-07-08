@@ -1,13 +1,10 @@
-"""Skeleton DaskScheduler.
+"""Distributed-cluster scheduler stub.
 
-Stub implementation that documents the Protocol shape against
-``dask.distributed`` without depending on the import. Cluster deployment
-fills this in as a separate follow-up project; the Protocol is the contract
-that unblocks it.
-
-The import of ``dask.distributed`` is deferred until ``map_reduce`` is
-actually called (which raises NotImplementedError). Until then, importing
-this module is free.
+Conforms to the :class:`~pyphi.parallel.scheduler.Scheduler` Protocol so that
+``config.parallel_backend = "dask"`` resolves to a concrete object, but the
+map-reduce implementation is not yet provided. The module has no dependency on
+``dask.distributed``; importing it is free, and calling
+:meth:`DaskScheduler.map_reduce` raises :exc:`NotImplementedError`.
 """
 
 from __future__ import annotations
@@ -18,7 +15,11 @@ from typing import Any
 
 
 class DaskScheduler:
-    """Stub scheduler placeholder for cluster deployments."""
+    """Scheduler Protocol stub for distributed-cluster execution.
+
+    Reports ``supports_shared_state = False``; :meth:`map_reduce` raises
+    :exc:`NotImplementedError`.
+    """
 
     @property
     def supports_shared_state(self) -> bool:

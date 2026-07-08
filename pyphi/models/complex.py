@@ -1,7 +1,7 @@
 # models/complex.py
 """The :class:`~pyphi.models.complex.Complex` — an irreducible system selected
-as a local maximum of |big_phi| under the exclusion postulate — and the
-lightweight record of a candidate excluded in its favor."""
+as a local maximum of Φ under the exclusion postulate — and the lightweight
+record of a candidate excluded in its favor."""
 
 from __future__ import annotations
 
@@ -21,15 +21,18 @@ from .pandas import ToPandasMixin
 
 class ExcludedCandidate(Displayable, ToPandasMixin):
     """A candidate system excluded from being a complex in favor of an
-    overlapping complex with greater-or-equal |big_phi|.
+    overlapping complex with greater-or-equal Φ.
 
-    Holds plain values only (units and |big_phi|), never a back-reference to
-    the excluding :class:`~pyphi.models.complex.Complex`, so the heavy
-    analysis graph is not retained.
+    Holds plain values only (units and Φ), never a back-reference to the
+    excluding :class:`~pyphi.models.complex.Complex`, so the heavy analysis
+    graph is not retained.
 
-    Attributes:
-        node_indices (tuple[int, ...]): The excluded candidate's units.
-        phi (float): The candidate's |big_phi| value.
+    Attributes
+    ----------
+    node_indices : tuple[int, ...]
+        The excluded candidate's units.
+    phi : float
+        The candidate's Φ value.
     """
 
     def __init__(self, node_indices: Any, phi: Any) -> None:
@@ -59,20 +62,24 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
 
 
 class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
-    """An irreducible system selected as a complex: a local maximum of
-    |big_phi| over overlapping candidate systems (the exclusion postulate).
+    """An irreducible system selected as a complex: a local maximum of Φ over
+    overlapping candidate systems (the exclusion postulate).
 
     Wraps the system irreducibility analysis (IIT 3.0 or 4.0) and records
-    whether it is the |big_phi|-maximal complex of its substrate, the
-    candidates excluded in its favor, and the substrate that selected it.
-    Ordered by |big_phi| like the wrapped analysis.
+    whether it is the Φ-maximal complex of its substrate, the candidates
+    excluded in its favor, and the substrate that selected it. Ordered by Φ
+    like the wrapped analysis.
 
-    Attributes:
-        sia: The wrapped system irreducibility analysis.
-        substrate (Substrate): The substrate this complex was selected from.
-        is_maximal (bool): Whether this is the |big_phi|-maximal complex.
-        excluded (tuple[ExcludedCandidate, ...]): Overlapping candidates
-            excluded in this complex's favor.
+    Attributes
+    ----------
+    sia
+        The wrapped system irreducibility analysis.
+    substrate : Substrate
+        The substrate this complex was selected from.
+    is_maximal : bool
+        Whether this is the Φ-maximal complex.
+    excluded : tuple[ExcludedCandidate, ...]
+        Overlapping candidates excluded in this complex's favor.
     """
 
     def __init__(
@@ -96,7 +103,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     @property
     def phi(self) -> Any:  # type: ignore[override]
-        """The |big_phi| value of this complex."""
+        """The Φ value of this complex."""
         return self.sia.phi
 
     def _pandas_record(self) -> dict[str, Any]:
@@ -108,7 +115,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         return self.sia.order_by()
 
     def __bool__(self) -> bool:
-        """``True`` iff |big_phi > 0| (a null complex is falsy)."""
+        """``True`` iff Φ > 0 (a null complex is falsy)."""
         return not utils.eq(self.phi, 0)
 
     def __eq__(self, other: object) -> bool:

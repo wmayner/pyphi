@@ -254,6 +254,7 @@ autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 napoleon_use_rtype = False
 napoleon_use_ivar = True
+napoleon_google_docstring = False
 
 # pyphi.relations defines both a function and a class whose names differ
 # only in case (relation/Relation, relations/Relations). On case-insensitive

@@ -1,4 +1,4 @@
-"""Layered configuration system for PyPhi 2.0.
+"""Layered configuration system for PyPhi.
 
 Three frozen dataclass layers (:class:`FormalismConfig`,
 :class:`InfrastructureConfig`, :class:`NumericsConfig`) wrapped in a
@@ -9,8 +9,9 @@ form (``config.precision = 6``) or :meth:`config.override` for scoped
 changes.
 
 If a ``pyphi_config.yml`` file exists in the working directory at import
-time, its layered-format contents are auto-applied. Legacy uppercase YAML
-format raises :class:`ConfigurationError` with a pointer to the rename map.
+time, its layered-format contents are auto-applied. A YAML file using the
+uppercase flat format raises :class:`ConfigurationError` with a pointer to
+the rename map.
 """
 
 from __future__ import annotations

@@ -16,12 +16,22 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class PerceptualSystem:
-    """A system S within a substrate U, coupled to its environment E = U\\S
-    through a sensory interface dS subset of E.
+    """A system S within a substrate U, coupled to its environment E = U∖S
+    through a sensory interface ∂S ⊆ E.
 
     Produces the fixed-lag triggered TPM and the triggered response state for
-    each stimulus (the state of the sensory interface). Assumes a binary
+    each stimulus (a state of the sensory interface ∂S). Assumes a binary
     substrate.
+
+    Attributes
+    ----------
+    substrate : Substrate
+        The full substrate U.
+    system_indices : tuple of int
+        Indices of the units composing the system S.
+    sensory_indices : tuple of int
+        Indices of the sensory interface ∂S. Must be non-empty and disjoint
+        from ``system_indices``; the environment E is the remaining units.
     """
 
     substrate: Substrate
@@ -63,7 +73,22 @@ class PerceptualSystem:
             raise ValueError(f"require 0 <= tau_clamp <= tau; got {tau_clamp}, {tau}")
 
     def triggered_tpm(self, *, tau, tau_clamp) -> TriggeredTPM:
-        """The fixed-lag response distribution Pr(S_t | dS_{t-tau}=x)."""
+        """The fixed-lag response distribution Pr(Sₜ | ∂S_{t−τ} = x).
+
+        Parameters
+        ----------
+        tau : int
+            The lag τ >= 1 at which the stimulus's effect is evaluated.
+        tau_clamp : int
+            The number of initial steps for which the sensory interface is held
+            at the stimulus before being marginalized. Must satisfy
+            ``0 <= tau_clamp <= tau``.
+
+        Returns
+        -------
+        TriggeredTPM
+            One system-state distribution per stimulus.
+        """
         self._validate_tau(tau, tau_clamp)
         return build_triggered_tpm(
             self.substrate,
@@ -74,14 +99,17 @@ class PerceptualSystem:
         )
 
     def triggered_states(self, *, tau, tau_clamp) -> dict:
-        """Mapping {stimulus: response_state} -- the argmax system state per
-        stimulus. This is what the Phi-structure computation consumes."""
+        """Mapping ``{stimulus: response_state}`` over all stimuli.
+
+        The response state is the most-probable (argmax) system state for each
+        stimulus, the triggered state the Φ-structure computation consumes.
+        """
         ttpm = self.triggered_tpm(tau=tau, tau_clamp=tau_clamp)
         return {
             x: ttpm.argmax_state(x) for x in utils.all_states(len(self.sensory_indices))
         }
 
     def triggered_state(self, stimulus, *, tau, tau_clamp) -> tuple[int, ...]:
-        """The response state for a single stimulus."""
+        """The response state (argmax system state) for a single stimulus."""
         ttpm = self.triggered_tpm(tau=tau, tau_clamp=tau_clamp)
         return ttpm.argmax_state(tuple(stimulus))

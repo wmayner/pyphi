@@ -41,15 +41,21 @@ class Reason(Enum):
 class UnitVerdict:
     """The outcome of checking Eqs. 15-16 for one candidate decomposition.
 
-    Attributes:
-        valid: Whether the candidate satisfies both criteria.
-        reason: ``VALID``, or which criterion failed: ``NOT_INTEGRATED``
-            (Eq. 15), ``NOT_MAXIMAL`` or ``TIED`` (Eq. 16).
-        phi: ``phi_s(v^J)``, the constituent system's integrated
-            information.
-        witness: The competitor that beat or tied the candidate, if any.
-        witness_phi: The witness's ``phi_s``.
-        num_competitors: Size of the competitor set ``f(U^J, W^J)``.
+    Attributes
+    ----------
+    valid : bool
+        Whether the candidate satisfies both criteria.
+    reason : Reason
+        ``VALID``, or which criterion failed: ``NOT_INTEGRATED``
+        (Eq. 15), ``NOT_MAXIMAL`` or ``TIED`` (Eq. 16).
+    phi : float
+        φₛ(v^J), the constituent system's integrated information.
+    witness : MacroSystem or None
+        The competitor that beat or tied the candidate, if any.
+    witness_phi : float or None
+        The witness's φₛ.
+    num_competitors : int
+        Size of the competitor set ``f(U^J, W^J)``.
     """
 
     valid: bool
@@ -63,15 +69,18 @@ class UnitVerdict:
 def judge_candidate(
     phi: float, competitors: Iterable[tuple[MacroSystem, float]]
 ) -> UnitVerdict:
-    """Eqs. 15-16 given ``phi_s(v^J)`` and the evaluated competitor set.
+    """Eqs. 15-16 given φₛ(v^J) and the evaluated competitor set.
 
     All inequalities are strict at ``config.numerics.precision``; a
     candidate that ties its strongest competitor is invalid with reason
     ``TIED``.
 
-    Args:
-        phi: The candidate's ``phi_s(v^J)``.
-        competitors: ``(system, phi_s)`` pairs for ``f(U^J, W^J)``.
+    Parameters
+    ----------
+    phi : float
+        The candidate's φₛ(v^J).
+    competitors : Iterable[tuple[MacroSystem, float]]
+        ``(system, φₛ)`` pairs for ``f(U^J, W^J)``.
     """
     competitors = tuple(competitors)
     if not utils.is_positive(phi):
@@ -179,7 +188,7 @@ def unit_integration(
     constituents: Iterable[MacroUnit | int],
     micro_history,
 ) -> PyPhiFloat:
-    """``phi_s(v^J)``: the constituent system's integrated information (Eq. 15).
+    """φₛ(v^J): the constituent system's integrated information (Eq. 15).
 
     A constituent system whose state is unreachable specifies no cause
     and cannot exist; its integration is zero.

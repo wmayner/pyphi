@@ -21,10 +21,20 @@ if TYPE_CHECKING:
 class Perception:
     """The triggering coefficients and perception values for one stimulus.
 
-    A pure view over a cause-effect structure: it computes how much of the
+    A view over a cause-effect structure that computes how much of the
     structure's cause-effect power was triggered by ``stimulus``, without
     modifying the structure. ``ces`` must be the structure triggered by
-    ``stimulus`` (its system state equals the stimulus's triggered state).
+    ``stimulus``: its system state must equal the state the stimulus triggers,
+    which ``__post_init__`` checks against ``triggered_tpm``.
+
+    Attributes
+    ----------
+    ces : CauseEffectStructure
+        The Φ-structure unfolded from the triggered system state.
+    triggered_tpm : TriggeredTPM
+        The fixed-lag response distribution supplying triggering coefficients.
+    stimulus : tuple of int
+        The sensory-interface state that triggered ``ces``.
     """
 
     ces: CauseEffectStructure
@@ -46,7 +56,11 @@ class Perception:
 
     @cached_property
     def triggering_coefficients(self) -> dict:
-        """Mapping {mechanism: TriggeringCoefficient}, one per distinction."""
+        """Mapping ``{mechanism: TriggeringCoefficient}``, one per distinction.
+
+        Keyed by each distinction's mechanism, evaluated at that distinction's
+        mechanism state for this stimulus.
+        """
         return {
             d.mechanism: triggering_coefficient(
                 self.triggered_tpm, d.mechanism, d.mechanism_state, self.stimulus
@@ -55,12 +69,17 @@ class Perception:
         }
 
     def distinction_perception(self, distinction) -> float:
-        """t(x, m) * phi_d (Eq 8)."""
+        """Perception value of a distinction, t(x, m) · φ_d (Eq. 8)."""
         t = self.triggering_coefficients[distinction.mechanism].value
         return t * float(distinction.phi)
 
     def relation_perception(self, relation) -> float:
-        """phi_r * mean over relata of t(x, relatum) (Eq 9-10, full phi_r)."""
+        """Perception value of a relation, t(x, r(d)) · φ_r (Eqs. 9-10).
+
+        The relation's triggering coefficient t(x, r(d)) is the unweighted mean
+        of the triggering coefficients of the distinctions it binds (Eq. 9), so
+        the perception value is the full relation φ_r times that mean (Eq. 10).
+        """
         mean_t = float(
             np.mean(
                 [self.triggering_coefficients[rel.mechanism].value for rel in relation]
@@ -69,14 +88,24 @@ class Perception:
         return float(relation.phi) * mean_t
 
     def fold_perception(self, fold: PhiFold) -> float:
-        """t(x, m) * Phi_d (Eq 11), for the single-distinction fold of m."""
+        """Summed perception value of a single distinction's Φ-fold (Eq. 11).
+
+        For the Φ-fold of a mechanism m — the distinction and every relation
+        involving it — the perception values of its components sum to
+        t(x, m) · Φ_d(C(d(m))), where Φ_d is the fold's contribution to Φ
+        (Eq. 3). ``fold`` must contain exactly one distinction (its seed).
+        """
         (seed,) = fold.distinctions
         t = self.triggering_coefficients[seed.mechanism].value
         return t * fold.big_phi_contribution
 
     @cached_property
     def richness(self) -> float:
-        """Total perceptual richness (Eq 13)."""
+        """Total perceptual richness P(x, y), summed over the structure (Eq. 13).
+
+        The sum of the perception values of every distinction and relation in
+        ``ces``: the quantity of intrinsic meaning the stimulus triggered.
+        """
         distinctions = sum(self.distinction_perception(d) for d in self.ces.distinctions)
         relations = sum(
             self.relation_perception(r)

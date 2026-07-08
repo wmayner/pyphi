@@ -118,11 +118,11 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
     """Base class for a collection of distinctions.
 
     Holds the read-only operations shared by :class:`UnresolvedDistinctions`
-    and :class:`ResolvedDistinctions`. Instantiable directly for the
-    rare cases where the resolution status is genuinely unknown (e.g.,
-    deserializing a legacy fixture); new code should construct
-    one of the marker subtypes so passing the result to a function that
-    requires a specific resolution status is checked at the type level.
+    and :class:`ResolvedDistinctions`. Instantiable directly for the rare
+    cases where the resolution status is genuinely unknown (e.g. deserializing
+    a stored fixture); construct one of the marker subtypes instead so that
+    passing the result to a function requiring a specific resolution status is
+    checked at the type level.
     """
 
     def __init__(self, concepts: Iterable = ()):
@@ -201,7 +201,7 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
 
     @property
     def phis(self):
-        """The |small_phi| values of each concept."""
+        """The φ values of each concept."""
         for concept in self:
             yield concept.phi
 
