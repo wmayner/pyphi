@@ -3,8 +3,9 @@
 ```{toctree}
 :maxdepth: 1
 
-../examples/index
-../examples/xor
-../examples/macro
-../examples/actual_causation
+iit-4.0-demo
+cause-effect-structure
+worked-example
+macro
+actual-causation
 ```
