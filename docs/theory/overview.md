@@ -31,11 +31,11 @@ one another) and a **state** of that substrate, PyPhi answers two questions:
 1. **Is a set of units a subject of experience, and how much?** IIT identifies
    the units that form a *complex* — a set whose cause–effect power is maximally
    irreducible — and measures its irreducibility as the **system integrated
-   information**, φ_s.
+   information**, $\varphi_s$.
 2. **What is the structure of that experience?** From the complex, PyPhi unfolds
-   the **Φ-structure**: the **distinctions** the units specify and the
-   **relations** among them. The Φ-structure's total irreducibility is the
-   **structure integrated information**, Φ ("big phi").
+   the **$\Phi$-structure**: the **distinctions** the units specify and the
+   **relations** among them. The $\Phi$-structure's total irreducibility is the
+   **structure integrated information**, $\Phi$ ("big phi").
 
 The rest of this section builds these two answers up in the order PyPhi computes
 them.
@@ -44,15 +44,15 @@ them.
 
 PyPhi's objects mirror the theory's layering:
 
-    Substrate  →  System  →  formalism  →  Φ-structure
+$$ \textsf{Substrate} \;\rightarrow\; \textsf{System} \;\rightarrow\; \textsf{formalism} \;\rightarrow\; \Phi\textsf{-structure} $$
 
 - A `Substrate` is the causal model: the units and their transition
   probabilities.
 - A `System` is a candidate subset of the substrate's units, in a state.
 - A **formalism** (IIT 4.0, IIT 3.0, actual causation) is the set of rules for
   turning a system into results; which one applies is a matter of configuration.
-- The **Φ-structure** is the result: the distinctions and relations the complex
-  specifies, with their integrated-information values.
+- The **$\Phi$-structure** is the result: the distinctions and relations the
+  complex specifies, with their integrated-information values.
 
 ## The postulates
 
@@ -65,16 +65,16 @@ physical counterpart of a property of experience (Albantakis et al., 2023):
   make a difference *within themselves*, from their own perspective.
 - **Information** — the power must be *specific*: the system in its state selects
   a particular cause–effect state, the one with maximal *intrinsic information*
-  (ii).
+  ($\mathit{ii}$).
 - **Integration** — the power must be *unitary*: the cause–effect state must be
   irreducible to independent parts, measured by *integrated information* over the
-  system's minimum partition (φ_s).
+  system's minimum partition ($\varphi_s$).
 - **Exclusion** — the power must be *definite*: exactly one set of units, the one
   with maximal integrated information, is the complex.
 - **Composition** — the power must be *structured*: subsets of the units
   (mechanisms) specify cause–effect states over subsets of units (purviews) —
   the **distinctions** — which overlap in **relations**, together forming the
-  Φ-structure.
+  $\Phi$-structure.
 
 Each page that follows takes one step of the pipeline and names the postulate it
 enforces.
@@ -100,18 +100,18 @@ analysis = pyphi.analyze(substrate, (1, 1, 0))
 analysis.phi  # the system integrated information, φ_s
 ```
 
-This value, φ_s, answers the first question: the units form a complex, and
-$φ_s ≈ 0.208$ measures how irreducible it is. The second question — the
-structure — is answered by the Φ-structure it specifies:
+This value, $\varphi_s$, answers the first question: the units form a complex,
+and $\varphi_s \approx 0.208$ measures how irreducible it is. The second
+question — the structure — is answered by the $\Phi$-structure it specifies:
 
 ```{code-cell} python
 (len(analysis.ces.distinctions), len(analysis.ces.relations), analysis.ces.big_phi)
 ```
 
 Three distinctions, two relations, and a structure integrated information
-$Φ ≈ 1.857$. The pages ahead unpack each of these: the [substrate and
+$\Phi \approx 1.857$. The pages ahead unpack each of these: the [substrate and
 system](substrate-and-system.md) it starts from, the [system integrated
-information](system-integration.md) φ_s that finds the complex, the
+information](system-integration.md) $\varphi_s$ that finds the complex, the
 [distinctions and relations](distinctions-and-relations.md) that compose the
-structure, and [the Φ-structure](phi-structure.md) itself with the full map from
-paper symbols to PyPhi types.
+structure, and [the $\Phi$-structure](phi-structure.md) itself with the full map
+from paper symbols to PyPhi types.
