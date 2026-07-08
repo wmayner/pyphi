@@ -1,3 +1,5 @@
+:orphan:
+
 Getting started
 ===============
 
