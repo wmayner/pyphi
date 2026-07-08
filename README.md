@@ -30,11 +30,6 @@ transition probabilities — and a **state**, PyPhi computes:
 It implements the current formalism, **IIT 4.0** (Albantakis et al., 2023), and
 retains the earlier **IIT 3.0** formalism, selectable by configuration.
 
-> **Release status.** The version on the `main` branch is the in-development
-> **2.0** line, which implements IIT 4.0. The current release on PyPI is the
-> **1.x** line (IIT 3.0). To use the IIT 4.0 code today, install from GitHub
-> (see [Installation](#installation)).
-
 ## Example
 
 ```python
@@ -58,24 +53,38 @@ for a complete walkthrough.
 
 ## Beyond Φ
 
-Around the core Φ and cause–effect-structure computations, PyPhi is a broader
-toolkit for IIT research:
+Around the core Φ and cause–effect-structure computations, PyPhi is a toolkit
+for IIT research:
 
 - **Actual causation** — which specific past events actually caused a given
   present event, and which effects it will actually cause (Albantakis et al.,
   2019).
+- **Matching and perception** — quantify how well a system's cause–effect
+  structure matches the causal structure of its environment, the basis of
+  perception and intrinsic meaning in IIT (Mayner et al., 2024).
 - **Macro and micro scales** — coarse-grain or black-box a substrate to
   analyze integrated information at different spatial and temporal scales.
-- **Substrate generation** — build substrates from a library of unit
-  mechanisms, weight matrices, or Ising models.
-- **Visualization** — plot connectivity, repertoires, and Φ-structures
-  (requires the `visualize` extra).
-- **Labeled export** — export results to pandas DataFrames, xarray, or a
-  two-timeslice dynamic Bayesian network for use with other tools.
+- **Analytical bounds** — bound Φ and its components from above without the
+  full combinatorial computation (Zaeemzadeh & Tononi, 2024).
 - **Parameter sweeps** — evaluate many substrates, states, or configurations in
   one call, with optional parallelism.
 - **Estimating substrates from data** — infer a substrate, with epistemic
   uncertainty, from observed state transitions.
+- **Simulating dynamics** — settle a substrate to its most probable next states
+  or sample stochastic trajectories.
+- **Substrate generation** — build substrates from a library of unit
+  mechanisms, weight matrices, or Ising models.
+- **Visualization** — plot connectivity, repertoires, and Φ-structures
+  (requires the `visualize` extra).
+- **Export and interop** — export results to pandas DataFrames or xarray, and
+  substrates to networkx, GraphML, or a two-timeslice dynamic Bayesian network.
+- **Saving and loading** — persist any result to disk (JSON, transparently
+  gzipped) and reload it later.
+
+> **Release status.** The version on the `main` branch is the in-development
+> **2.0** line, which implements IIT 4.0. The current release on PyPI is the
+> **1.x** line (IIT 3.0). To use the IIT 4.0 code today, install from GitHub
+> (see [Installation](#installation)).
 
 ## Documentation
 
@@ -122,8 +131,8 @@ uv pip install "pyphi[visualize,emd]"
 ### Using pip
 
 ```bash
-pip install pyphi                     # current release (1.x)
-pip install "git+https://github.com/wmayner/pyphi@main"   # 2.0 (IIT 4.0)
+python -m pip install pyphi                     # current release (1.x)
+python -m pip install "git+https://github.com/wmayner/pyphi@main"   # 2.0 (IIT 4.0)
 ```
 
 ### Detailed installation guide for macOS
@@ -159,7 +168,7 @@ group](https://groups.google.com/forum/#!forum/pyphi-users).
 For bug reports and feature requests, use the [issues
 page](https://github.com/wmayner/pyphi/issues).
 
-## Credit
+## Citation
 
 If you use this software in your research, please cite the papers:
 
@@ -229,9 +238,13 @@ Mechanisms of Consciousness: Integrated Information Theory
 }
 ```
 
+## Acknowledgements
+
 The initial version of this project was inspired by a [previous
 project](https://github.com/albantakis/iit) written in MATLAB by L. Albantakis,
 M. Oizumi, A. Hashmi, A. Nere, U. Olcese, P. Rana, and B. Shababo.
+
+## Correspondence
 
 Correspondence regarding the PyPhi software should be directed to Will Mayner,
 at [<mayner@wisc.edu>](mailto:mayner@wisc.edu).
