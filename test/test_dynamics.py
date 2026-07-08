@@ -1,13 +1,40 @@
-"""Value-based tests for pyphi.dynamics (the functions not already covered by
-test_tpm.py's ising stationary-distribution test)."""
+"""Value-based tests for pyphi.dynamics."""
 
 import numpy as np
 
+from pyphi import convert
+from pyphi import utils
 from pyphi.dynamics import apply_clamp
 from pyphi.dynamics import insert_clamp
 from pyphi.dynamics import mean_dynamics
 from pyphi.dynamics import number_of_units
 from pyphi.dynamics import simulate
+
+
+def test_simulate_reproduces_ising_stationary_distribution():
+    """``simulate`` reproduces the analytical Ising stationary distribution.
+
+    The Ising TPM is conditionally independent, so the state-by-node path
+    samples each unit independently from its marginal and still reproduces the
+    joint stationary distribution. Validates the public simulator against a
+    saved analytical ground truth.
+    """
+    rng = np.random.default_rng(42)
+    sbs = np.load("test/data/ising_tpm.npy")
+    analytical = np.load("test/data/ising_stationary_distribution.npy")
+    sbn = convert.state_by_state2state_by_node(sbs)  # multidimensional state-by-node
+    n = sbn.shape[-1]
+    # 2e6 steps puts the Monte-Carlo error floor (~1/sqrt(N_eff), with a
+    # mixing time of ~3 steps here) safely under the 1e-3 tolerance at this
+    # fixed seed.
+    timesteps = 2_000_000
+    path = simulate(sbn, initial_state=(0,) * n, timesteps=timesteps, rng=rng)
+    # Map each state-vector to its little-endian decimal index (the row order
+    # of the saved TPM / stationary distribution) and histogram the occupancy.
+    index_of = {state: i for i, state in enumerate(utils.all_states(n))}
+    counts = np.bincount([index_of[state] for state in path], minlength=sbs.shape[0])
+    empirical = counts / timesteps
+    assert np.allclose(empirical, analytical, atol=1e-3, rtol=0)
 
 
 def test_apply_clamp():

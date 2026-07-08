@@ -120,7 +120,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
 
     Parameters
     ----------
-    tpm : numpy.ndarray or pyphi.core.tpm.joint_distribution.JointTPM
+    tpm : numpy.ndarray
         The joint transition probability matrix of the substrate (joint form
         only — see above).
     cm : numpy.ndarray, optional

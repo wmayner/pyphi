@@ -10,7 +10,8 @@ from pyphi.core.tpm.joint import JointTPM
 
 def test_tpm_protocol_has_alphabet_sizes() -> None:
     """The TPM Protocol exposes alphabet_sizes as a property."""
-    tpm = JointTPM(np.zeros((2, 2, 2, 3)))
+    # Explicit-alphabet joint layout: (*alphabet_sizes, n_nodes, max_alphabet).
+    tpm = JointTPM(np.zeros((2, 2, 2, 3, 2)))
     assert isinstance(tpm, TPM)
     assert tpm.alphabet_sizes == (2, 2, 2)
 

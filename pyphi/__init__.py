@@ -97,8 +97,7 @@ from .conf import iit3
 from .conf import iit4_2023
 from .conf import iit4_2026
 from .core.tpm import FactoredTPM as FactoredTPM
-from .core.tpm import JointDistribution as JointDistribution
-from .core.tpm.joint_distribution import JointTPM
+from .core.tpm import JointTPM as JointTPM
 from .direction import Direction
 from .estimate import estimate_substrate as estimate_substrate
 from .estimate import phi_posterior as phi_posterior
@@ -147,7 +146,6 @@ __all__ = [
     "Analysis",
     "Direction",
     "FactoredTPM",
-    "JointDistribution",
     "JointTPM",
     "Substrate",
     "System",

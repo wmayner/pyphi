@@ -95,11 +95,11 @@ def test_ascii_row_extra_fields_appended():
 
 def test_ascii_format_table_aligns_columns():
     t = Table(
-        headers=("dir", "purview", "α"),  # noqa: RUF001
+        headers=("dir", "purview", "α"),
         rows=(("CAUSE", "OR", 0.415037), ("EFFECT", "AND", 0.415037)),
     )
     lines = ascii_backend._format_table(t)
-    assert lines[0] == "dir      purview   α"  # noqa: RUF001
+    assert lines[0] == "dir      purview   α"
     assert lines[1] == "CAUSE    OR        0.415037"
     assert lines[2] == "EFFECT   AND       0.415037"
 
@@ -623,7 +623,7 @@ def test_acsia_is_card():
     _, acsia = _ac_account_and_sia()
     out = repr(acsia)
     assert out.startswith("╭")
-    assert "α" in out  # noqa: RUF001
+    assert "α" in out
     assert "Direction" in out
     assert "System" in out
 
@@ -1019,7 +1019,7 @@ def test_joint_tpm_is_displayable_card():
     import numpy as np
 
     tpm = _binary_factored_tpm()
-    joint = pyphi.JointTPM(np.asarray(tpm.to_joint())[..., 1])  # multidim SBN P(on)
+    joint = pyphi.JointTPM(np.asarray(tpm.to_joint()))  # explicit-alphabet joint
     r = repr(joint)
     assert r.startswith("╭")
     assert "JointTPM" in r
@@ -1108,10 +1108,10 @@ def test_joint_tpm_to_xarray():
     import numpy as np
 
     tpm = _binary_factored_tpm()
-    sbn = np.asarray(tpm.to_joint())[..., 1]
-    da = pyphi.JointTPM(sbn).to_xarray()
-    assert da.dims == ("u0", "u1", "u2", "next_unit")
-    assert np.allclose(np.asarray(da), sbn)
+    joint = np.asarray(tpm.to_joint())
+    da = pyphi.JointTPM(joint).to_xarray()
+    assert da.dims == ("u0", "u1", "u2", "unit", "out")
+    assert np.allclose(np.asarray(da), joint)
 
 
 def test_tpm_to_xarray_without_xarray_raises(monkeypatch):

@@ -6,7 +6,6 @@ from pyphi import Substrate
 from pyphi import System
 from pyphi import exceptions
 from pyphi import validate
-from pyphi.core.tpm.joint_distribution import JointTPM
 
 
 def test_validate_direction():
@@ -19,36 +18,6 @@ def test_validate_direction():
     validate.direction(Direction.BIDIRECTIONAL, allow_bi=True)
     with pytest.raises(ValueError):
         validate.direction(Direction.BIDIRECTIONAL)
-
-
-def test_validate_tpm_wrong_shape():
-    with pytest.raises(ValueError):
-        tpm = JointTPM(np.arange(3**3).reshape(3, 3, 3))
-        assert tpm.validate()
-
-
-def test_validate_tpm_nonbinary_nodes():
-    with pytest.raises(ValueError):
-        tpm = JointTPM(np.arange(3 * 3 * 2).reshape(3, 3, 2))
-        assert tpm.validate()
-
-
-def test_validate_tpm_conditional_independence():
-    # fmt: off
-    tpm = JointTPM(
-        np.array([
-            [1, 0.0, 0.0, 0],
-            [0, 0.5, 0.5, 0],
-            [0, 0.5, 0.5, 0],
-            [0, 0.0, 0.0, 1],
-        ])
-    )
-    # fmt: on
-    with pytest.raises(exceptions.ConditionallyDependentError):
-        tpm.conditionally_independent()
-    with pytest.raises(exceptions.ConditionallyDependentError):
-        tpm.validate()
-    tpm.validate(check_independence=False)
 
 
 def test_validate_connectivity_matrix_valid(s):
