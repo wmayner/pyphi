@@ -246,6 +246,9 @@ myst_enable_extensions = [
 nb_execution_mode = "cache"
 nb_execution_timeout = 300
 nb_execution_raise_on_error = True
+# Drop stderr stream output (e.g. the tqdm/ipywidgets notice) from rendered
+# pages; genuine cell errors still fail the build via raise_on_error above.
+nb_output_stderr = "remove"
 
 # --- API reference ----------------------------------------------------------
 
