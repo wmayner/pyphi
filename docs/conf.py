@@ -280,10 +280,13 @@ intersphinx_mapping = {
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-html_logo = "_static/pyphi-logo-text-776x196.png"
 html_favicon = "_static/phi_144x144.png"
 html_theme_options = {
     "github_url": "https://github.com/wmayner/pyphi",
     "navbar_align": "left",
     "header_links_before_dropdown": 6,
+    "logo": {
+        "image_light": "_static/pyphi-logo-text-776x196.png",
+        "image_dark": "_static/pyphi-logo-text-white-776x196.png",
+    },
 }
