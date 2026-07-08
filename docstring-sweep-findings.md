@@ -37,6 +37,24 @@ noted under "Code touched").
    by import path. This is an API-naming footgun (and it makes bare `JointTPM`
    cross-references ambiguous in the docs). Consider renaming one (e.g. the
    wrapper) so the public name is unambiguous.
+8. **`pyphi/models/cmp.py:77` `Orderable.__gt__` (and `__ge__`) recurse to a
+   stack overflow.** (Surfaced 2026-07-08 by the tutorials sub-project, not the
+   docstring sweep; recorded here to keep the follow-up list in one place.)
+   `__gt__` returns `other < self`. When `other.__lt__(self)` returns
+   `NotImplemented` — which happens when the two operands are different
+   `Orderable` subclasses, e.g. a concrete `SystemIrreducibilityAnalysis`
+   compared with a `NullSystemIrreducibilityAnalysis` — Python reflects
+   `other < self` back to `self.__gt__(other)`, which returns `other < self`
+   again, looping forever. Confirmed reproducible at the default recursion
+   limit: for a list of SIAs over the powerset of a 3-node substrate (which
+   mixes concrete and null SIAs), `max(sias)`, `min(sias)`, and
+   `sorted(sias, reverse=True)` all raise `RecursionError`, while forward
+   `sorted(sias)` and a single `a > b` succeed. Finding the maximal complex by
+   `max()` is a natural operation, so this is a real trap. Likely fix: define
+   `__gt__`/`__ge__` in terms of `order_by()` directly rather than delegating to
+   the reflected `<`, or make the ordering total across subclasses. The
+   `IIT_4.0_demo` notebook works around it with
+   `sorted(sias, key=lambda sia: sia.phi, reverse=True)`.
 
 (The 46 docstring-vs-code disagreements the sweep *corrected* — reversed
 connectivity-matrix semantics, wrong equation citations, wrong return types,
