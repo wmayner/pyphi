@@ -26,6 +26,7 @@ from .cache.content import ContentCache
 from .core.tpm import _display
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
+from .core.tpm.joint import JointTPM
 from .direction import Direction
 from .display import HIGH
 from .display import LOW
@@ -277,17 +278,19 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         """Per-node label tuples, delegated from the underlying FactoredTPM."""
         return self._factored_tpm.state_space
 
-    def joint_tpm(self) -> NDArray[np.float64]:
-        """Materialize the joint conditional TPM on demand.
+    def joint_tpm(self) -> JointTPM:
+        """The joint conditional TPM as a read-only :class:`JointTPM` view.
 
-        Returns the explicit-alphabet array
-        ``[a_1, ..., a_N, N, max_alphabet]`` for both binary and k-ary
-        substrates. Per-row, axis ``-1`` holds factor ``i``'s distribution
-        in slots ``[:alphabet_sizes[i]]``; trailing slots are zero when
-        alphabets are heterogeneous. Recomputes on every call (no cache);
+        The joint peer of :attr:`tpm` (the factored form). Materializes
+        ``P(sₜ₊₁ | sₜ)`` from the factored storage in the explicit-alphabet
+        layout ``[a_1, ..., a_N, N, max_alphabet]`` for both binary and k-ary
+        substrates: per row, axis ``-1`` holds factor ``i``'s distribution in
+        slots ``[:alphabet_sizes[i]]``, with trailing slots zero when alphabets
+        are heterogeneous. The returned view is array-convertible
+        (``numpy.asarray``) and indexable. Recomputes on every call (no cache);
         callers needing it repeatedly should cache locally.
         """
-        return self._factored_tpm.to_joint()
+        return JointTPM(self._factored_tpm.to_joint(), node_labels=self._node_labels)
 
     @classmethod
     def from_factored(

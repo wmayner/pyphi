@@ -21,6 +21,7 @@ and display, not for computation.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
@@ -46,7 +47,7 @@ class JointTPM(Displayable, ToPandasMixin):
     __slots__ = ("_array", "_node_labels")
 
     def __init__(
-        self, data: ArrayLike, node_labels: tuple[str, ...] | None = None
+        self, data: ArrayLike, node_labels: Sequence[str] | None = None
     ) -> None:
         self._array = np.array(data, dtype=np.float64)  # copy = eager snapshot
         self._node_labels = tuple(node_labels) if node_labels is not None else None
