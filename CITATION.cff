@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: "If you use PyPhi in your research, please cite the article in preferred-citation."
+title: PyPhi
+abstract: "A Python platform for research in Integrated Information Theory (IIT): computing integrated information (Φ), cause–effect structures, and related quantities and objects."
+type: software
+repository-code: "https://github.com/wmayner/pyphi"
+url: "https://pyphi.readthedocs.io"
+license: GPL-3.0-or-later
+keywords:
+  - integrated information theory
+  - IIT
+  - consciousness
+  - phi
+  - causation
+  - neuroscience
+authors:
+  - family-names: Mayner
+    given-names: "William G. P."
+  - family-names: Marshall
+    given-names: William
+  - family-names: Albantakis
+    given-names: Larissa
+  - family-names: Findlay
+    given-names: Graham
+  - family-names: Marchman
+    given-names: Robert
+  - family-names: Tononi
+    given-names: Giulio
+preferred-citation:
+  type: article
+  title: "PyPhi: A toolbox for integrated information theory"
+  authors:
+    - family-names: Mayner
+      given-names: "William G. P."
+    - family-names: Marshall
+      given-names: William
+    - family-names: Albantakis
+      given-names: Larissa
+    - family-names: Findlay
+      given-names: Graham
+    - family-names: Marchman
+      given-names: Robert
+    - family-names: Tononi
+      given-names: Giulio
+  journal: "PLOS Computational Biology"
+  year: 2018
+  month: 7
+  volume: 14
+  issue: 7
+  start: "e1006343"
+  doi: "10.1371/journal.pcbi.1006343"
+  url: "https://doi.org/10.1371/journal.pcbi.1006343"
+  publisher:
+    name: "Public Library of Science"
