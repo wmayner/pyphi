@@ -118,8 +118,19 @@ class CESProjection:
     def inclusion(self, order: str) -> InclusionOrder:
         """The inclusion order named by ``order``.
 
-        Args:
-            order (str): ``"mechanism"`` or ``"purview_union"``.
+        Parameters
+        ----------
+        order : str
+            ``"mechanism"`` or ``"purview_union"``.
+
+        Returns
+        -------
+        InclusionOrder
+
+        Raises
+        ------
+        ValueError
+            If ``order`` is neither ``"mechanism"`` nor ``"purview_union"``.
         """
         if order == "mechanism":
             return self.mechanism_inclusion
@@ -224,7 +235,26 @@ def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
 
 
 def project_ces(ces, node_labels=None) -> CESProjection:
-    """Project a |CauseEffectStructure| into plot-ready data."""
+    """Project a :class:`~pyphi.models.ces.CauseEffectStructure` into plot-ready data.
+
+    Parameters
+    ----------
+    ces : CauseEffectStructure
+        The cause-effect structure to project. Must be relation-closed.
+    node_labels : NodeLabels, optional
+        Labels for substrate units. Defaults to the labels carried by the first
+        distinction.
+
+    Returns
+    -------
+    CESProjection
+
+    Raises
+    ------
+    TypeError
+        If ``ces`` is not relation-closed (e.g. a :class:`PhiFold`, whose
+        relations may reference distinctions outside it).
+    """
     if not getattr(ces, "relation_closed", True):
         raise TypeError(
             "cannot project a view that is not relation-closed (e.g. a PhiFold, "

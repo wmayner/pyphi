@@ -11,11 +11,28 @@ def plot_dynamics(
 ):
     """Plot an array of states over time.
 
-    Arguments:
-        data (ArrayLike): An array of states with shape (timesteps, units).
+    States are shown as an image with time on the horizontal axis and substrate
+    units on the vertical axis; cell brightness encodes each unit's state.
 
-    Returns:
-        tuple: The matplotlib figure and axes.
+    Parameters
+    ----------
+    data : ArrayLike
+        An array of states with shape ``(timesteps, units)``.
+    node_labels : optional
+        Labels for the substrate units, used as y-axis tick labels.
+    title : str, optional
+        Axes title.
+    fig : matplotlib.figure.Figure, optional
+        Existing figure to draw into.
+    ax : matplotlib.axes.Axes, optional
+        Existing axes to draw into.
+    figsize : tuple of float, optional
+        Figure size, used only when a new figure is created.
+
+    Returns
+    -------
+    tuple
+        The matplotlib figure and axes.
     """
     # Plot time horizontally.
     data = np.transpose(data)

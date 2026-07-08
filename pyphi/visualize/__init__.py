@@ -60,70 +60,90 @@ def plot_ces(
     degrees=None,
     star_min_degree=None,
 ):
-    """Plot a |CauseEffectStructure|.
+    """Plot a :class:`~pyphi.models.ces.CauseEffectStructure`.
 
-    Args:
-        ces_ (CauseEffectStructure): The cause-effect structure to plot
-            (distinctions and relations).
+    Parameters
+    ----------
+    ces_ : CauseEffectStructure
+        The cause-effect structure to plot (distinctions and relations).
+    view : str, optional
+        Which rendering of the structure to produce.
 
-    Keyword Args:
-        view (str): Which rendering of the structure to produce.
-            ``"lattice"``: an inclusion partial order over the distinctions
-            drawn as a 2-D Hasse diagram, with marker size given by each
-            distinction's total relation phi and color by its phi.
-            ``"hypergraph"``: the 3-D view with cause/effect purviews as
-            vertices and relation faces drawn as star expansions (hub +
-            spokes) by default; raise ``star_min_degree`` to keep degree-2
-            faces as line segments and degree-3 faces as triangles.
-            ``"scatter"``: distinctions on a deterministic PCA embedding of
-            their unit composition, sized by total relation phi and colored
-            by relational role.
-            ``"matrix"``: a distinctions-by-distinctions heatmap of shared
-            relation phi, with self-relation strength on the diagonal.
-            ``"spectrum"``: a 2-D bar panel of relation count and sum of phi
-            per relation degree, summarizing the high-degree structure.
-        theme (Theme): Visual theme.
-        node_labels (NodeLabels): Labels for substrate units. Defaults to the
-            labels carried by the distinctions.
-        fig: An existing plotly figure to draw into.
-        layout (str): Within-level ordering. In the lattice view,
-            ``"barycentric"`` orders each rank by the mean position of its
-            cover neighbors to reduce edge crossings; in the
-            hypergraph view it orders each shell ring so subsets
-            connected by drawn elements sit at nearby angles, shortening
-            edges. ``"sorted"`` orders by label in both views.
-            ``"embedding"`` (hypergraph view) ignores the shells and
-            positions each MICE by a deterministic embedding of its composition
-            (``HypergraphGeometry.embedding_method`` selects ``"mds"``,
-            the default, or ``"pca"``), so proximity reflects compositional
-            similarity.
-        order (str): Which partial order the lattice view shows:
-            ``"mechanism"`` orders distinctions by subset relation on their
-            mechanisms; ``"purview_union"`` by subset relation on the unions
-            of their cause and effect purviews.
-        rank (str): Vertical placement in the lattice view: ``"chain"``
-            places each distinction at its longest-down-chain rank
-            (compact); ``"size"`` at the cardinality of its mechanism or
-            purview union, leaving gaps at sizes with no distinctions.
-        size_by (str): Marker size encoding (lattice and scatter views):
-            ``"sum_phi_relations"``, ``"phi"``, or ``None`` for uniform
-            markers.
-        color_by (str): Marker color encoding (lattice and scatter views).
-            ``None`` (the default) uses the view's default — ``"phi"`` for
-            the lattice, ``"role"`` for the scatter. Both views accept
-            ``"phi"`` and ``"sum_phi_relations"``; the scatter additionally
-            accepts ``"role"``.
-        geometry (HypergraphGeometry): Layout knobs for the
-            hypergraph view.
-        show (tuple[str, ...]): Element classes the hypergraph view
-            draws. Defaults to all of them.
-        degrees (tuple[int, ...]): Restrict the hypergraph view to
-            relation faces of these degrees. Defaults to all degrees present.
-        star_min_degree (int): In the hypergraph view, the lowest
-            relation-face degree drawn as a star expansion (hub + spokes);
-            lower degrees keep their geometric form (degree-2 lines, degree-3
-            triangles). Must be 2, 3, or 4. ``2`` (the default) draws every
-            face as a star; ``4`` keeps degree-2 lines and degree-3 triangles.
+        ``"lattice"``
+            An inclusion partial order over the distinctions drawn as a 2-D
+            Hasse diagram, with marker size given by each distinction's total
+            relation φ and color by its φ.
+        ``"hypergraph"``
+            The 3-D view with cause/effect purviews as vertices and relation
+            faces drawn as star expansions (hub + spokes) by default; raise
+            ``star_min_degree`` to keep degree-2 faces as line segments and
+            degree-3 faces as triangles.
+        ``"scatter"``
+            Distinctions on a deterministic PCA embedding of their unit
+            composition, sized by total relation φ and colored by relational
+            role.
+        ``"matrix"``
+            A distinctions-by-distinctions heatmap of shared relation φ, with
+            self-relation strength on the diagonal.
+        ``"spectrum"``
+            A 2-D bar panel of relation count and sum of φ per relation degree,
+            summarizing the high-degree structure.
+    theme : Theme, optional
+        Visual theme.
+    node_labels : NodeLabels, optional
+        Labels for substrate units. Defaults to the labels carried by the
+        distinctions.
+    fig : plotly.graph_objects.Figure, optional
+        An existing plotly figure to draw into.
+    layout : str, optional
+        Within-level ordering. In the lattice view, ``"barycentric"`` orders
+        each rank by the mean position of its cover neighbors to reduce edge
+        crossings; in the hypergraph view it orders each shell ring so subsets
+        connected by drawn elements sit at nearby angles, shortening edges.
+        ``"sorted"`` orders by label in both views. ``"embedding"`` (hypergraph
+        view) ignores the shells and positions each MICE by a deterministic
+        embedding of its composition (``HypergraphGeometry.embedding_method``
+        selects ``"mds"``, the default, or ``"pca"``), so proximity reflects
+        compositional similarity.
+    order : str, optional
+        Which partial order the lattice view shows: ``"mechanism"`` orders
+        distinctions by subset relation on their mechanisms; ``"purview_union"``
+        by subset relation on the unions of their cause and effect purviews.
+    rank : str, optional
+        Vertical placement in the lattice view: ``"chain"`` places each
+        distinction at its longest-down-chain rank (compact); ``"size"`` at the
+        cardinality of its mechanism or purview union, leaving gaps at sizes
+        with no distinctions.
+    size_by : str, optional
+        Marker size encoding (lattice and scatter views):
+        ``"sum_phi_relations"``, ``"phi"``, or ``None`` for uniform markers.
+    color_by : str, optional
+        Marker color encoding (lattice and scatter views). ``None`` (the
+        default) uses the view's default — ``"phi"`` for the lattice, ``"role"``
+        for the scatter. Both views accept ``"phi"`` and ``"sum_phi_relations"``;
+        the scatter additionally accepts ``"role"``.
+    geometry : HypergraphGeometry, optional
+        Layout knobs for the hypergraph view.
+    show : tuple of str, optional
+        Element classes the hypergraph view draws. Defaults to all of them.
+    degrees : tuple of int, optional
+        Restrict the hypergraph view to relation faces of these degrees.
+        Defaults to all degrees present.
+    star_min_degree : int, optional
+        In the hypergraph view, the lowest relation-face degree drawn as a star
+        expansion (hub + spokes); lower degrees keep their geometric form
+        (degree-2 lines, degree-3 triangles). Must be 2, 3, or 4. ``2`` (the
+        default) draws every face as a star; ``4`` keeps degree-2 lines and
+        degree-3 triangles.
+
+    Raises
+    ------
+    TypeError
+        If ``ces_`` is not relation-closed (e.g. a :class:`PhiFold`); use
+        :func:`highlight_phi_fold` to render a fold against its parent
+        structure.
+    ValueError
+        If ``view`` is not one of the recognized view names.
     """
     if not getattr(ces_, "relation_closed", True):
         raise TypeError(
@@ -189,26 +209,37 @@ def highlight_phi_fold(
     geometry=None,
     show=None,
 ):
-    """Plot a |CauseEffectStructure| dimmed, highlighting a phi-fold.
+    """Plot a cause-effect structure dimmed, highlighting a phi-fold.
 
     Call with a single :class:`PhiFold` to highlight it against its own
     ``parent``, or with ``(ces_, phi_fold)`` to highlight any object with a
     ``distinctions`` attribute against an explicit structure.
 
-    Args:
-        ces_ (CauseEffectStructure | PhiFold): The full cause-effect structure,
-            or a fold (whose ``parent`` supplies the background).
-        phi_fold: An object with a ``distinctions`` attribute giving the
-            distinctions to highlight; they are matched to the structure's
-            by mechanism. Omit when ``ces_`` is a fold.
+    Parameters
+    ----------
+    ces_ : CauseEffectStructure or PhiFold
+        The full cause-effect structure, or a fold (whose ``parent`` supplies
+        the background).
+    phi_fold : object, optional
+        An object with a ``distinctions`` attribute giving the distinctions to
+        highlight; they are matched to the structure's by mechanism. Omit when
+        ``ces_`` is a fold.
+    theme : Theme, optional
+        Visual theme for the highlighted fold; the dimmed background style is
+        derived from it.
+    node_labels : NodeLabels, optional
+        Labels for substrate units.
+    fig : plotly.graph_objects.Figure, optional
+        An existing plotly figure to draw into.
+    geometry : HypergraphGeometry, optional
+        Layout knobs.
+    show : tuple of str, optional
+        Element classes to draw.
 
-    Keyword Args:
-        theme (Theme): Visual theme for the highlighted fold; the dimmed
-            background style is derived from it.
-        node_labels (NodeLabels): Labels for substrate units.
-        fig: An existing plotly figure to draw into.
-        geometry (HypergraphGeometry): Layout knobs.
-        show (tuple[str, ...]): Element classes to draw.
+    Raises
+    ------
+    TypeError
+        If called with a single argument that is not a :class:`PhiFold`.
     """
     from pyphi.models.ces import PhiFold
 

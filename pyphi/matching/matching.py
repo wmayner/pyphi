@@ -19,15 +19,31 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class MatchingResult:
-    """The result of a matching computation (Eq 21).
+    """The result of a matching computation (Eq. 21).
 
-    Carries everything needed to reproduce the value: the ``seed``, the
-    sampling parameters, and the per-trial perceptual differentiation of the
-    world and noise sequences. ``value`` equals the mean of
-    ``world_differentiation`` minus the mean of ``noise_differentiation``.
-    ``subsequence`` is the winning 1-based inclusive window ``(a, b)`` when
-    the maximum was taken over contiguous subsequences (``None`` when the
-    full sequence was used); the per-trial values are those of that window.
+    Carries everything needed to reproduce the value: the seed, the sampling
+    parameters, and the per-trial perceptual differentiation of the world and
+    noise sequences.
+
+    Attributes
+    ----------
+    value : float
+        The matching estimate: the mean of ``world_differentiation`` minus the
+        mean of ``noise_differentiation``.
+    seed : int
+        The seed of the RNG used to draw the sequences.
+    n_trials : int
+        The number of paired world/noise sequences sampled.
+    k : int
+        The length of each sampled stimulus sequence.
+    world_differentiation : tuple of float
+        Per-trial perceptual differentiation of the world sequences.
+    noise_differentiation : tuple of float
+        Per-trial perceptual differentiation of the noise sequences.
+    subsequence : tuple of int or None
+        The winning 1-based inclusive window ``(a, b)`` when the maximum was
+        taken over contiguous subsequences; ``None`` when the full sequence was
+        used. The per-trial values are those of this window.
     """
 
     value: float
@@ -43,11 +59,21 @@ class MatchingResult:
 class MatchingAnalysis:
     """Matching between a system and a world distribution over stimuli.
 
-    ``perceptions`` maps each stimulus to the perceptual structure it
-    triggers; ``world_distribution`` gives the probability of each stimulus
-    in the world. Every stimulus the world can produce must have a
-    perceptual structure; the noise distribution is uniform over all stimuli
-    that have one.
+    Matching (Eq. 21) is the expected excess of perceptual differentiation that
+    a complex's environment evokes over what random noise evokes.
+
+    Attributes
+    ----------
+    perceptions : Mapping[tuple[int, ...], Perception]
+        Maps each stimulus to the perceptual structure it triggers.
+    world_distribution : Mapping[tuple[int, ...], float]
+        The probability of each stimulus in the world; must sum to 1 and every
+        stimulus with positive probability must appear in ``perceptions``.
+
+    Notes
+    -----
+    The noise distribution is uniform over all stimuli that have a perceptual
+    structure (the structureless world).
     """
 
     perceptions: Mapping[tuple[int, ...], Perception]
@@ -82,20 +108,40 @@ class MatchingAnalysis:
         k: int,
         subsequence_max: bool = False,
     ) -> MatchingResult:
-        """Estimate matching M (Eq 21) by seeded Monte Carlo sampling.
+        """Estimate matching M (Eq. 21) by seeded Monte Carlo sampling.
 
         Each trial samples a length-``k`` world sequence (i.i.d. from
-        ``world_distribution``) and a length-``k`` noise sequence (i.i.d.
-        from ``noise_distribution``) and compares their perceptual
-        differentiation. The two sequences are drawn from common random
-        numbers (the same uniform deviates mapped through each
-        distribution's inverse CDF), so the comparison is paired: identical
-        distributions yield identical sequences and a gap of exactly zero.
+        ``world_distribution``) and a length-``k`` noise sequence (i.i.d. from
+        ``noise_distribution``) and compares their perceptual differentiation.
+        The two sequences are drawn from common random numbers (the same
+        uniform deviates mapped through each distribution's inverse CDF), so the
+        comparison is paired: identical distributions yield identical sequences
+        and a gap of exactly zero.
 
-        By default the gap is computed over the full sequence (Eq 21 with
-        ``(a, b) = (1, k)``). With ``subsequence_max=True`` the trial-mean
-        gap is computed for every contiguous window ``(a, b)`` and the
-        maximum is returned, recording the winning window.
+        Parameters
+        ----------
+        seed : int
+            Seed for the isolated ``numpy`` RNG; recorded in the result.
+        n_trials : int
+            Number of paired world/noise sequences to sample. Must be >= 1.
+        k : int
+            Length of each stimulus sequence. Must be >= 1.
+        subsequence_max : bool, optional
+            If False (default), the gap is computed over the full sequence
+            (Eq. 21 with ``(a, b) = (1, k)``). If True, the trial-mean gap is
+            computed for every contiguous 1-based window ``(a, b)`` and the
+            maximum is returned, recording the winning window.
+
+        Returns
+        -------
+        MatchingResult
+            The estimate, its inputs, and the per-trial world and noise
+            differentiation values.
+
+        Raises
+        ------
+        ValueError
+            If ``n_trials`` or ``k`` is less than 1.
         """
         if n_trials < 1:
             raise ValueError("n_trials must be at least 1")

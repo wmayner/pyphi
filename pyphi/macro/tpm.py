@@ -51,10 +51,12 @@ def _discounted_on_probabilities(
     ``units`` (not ``j``), so a caller updating every unit may build it once
     and pass it in. If ``None``, it is computed here.
 
-    Returns:
-        np.ndarray: ``(2**n, n)`` — for each universe state (little-endian
-        row index) and micro unit, the modified probability that the unit
-        is ON at the next micro update.
+    Returns
+    -------
+    np.ndarray
+        ``(2**n, n)`` — for each universe state (little-endian row
+        index) and micro unit, the modified probability that the unit is
+        ON at the next micro update.
     """
     n = factored.n_nodes
     constituents = set(units[j].micro_constituents)
@@ -105,9 +107,11 @@ def _unit_sequence_distributions(transition: np.ndarray, unit: MacroUnit) -> np.
     With the pinned digit convention, a sequence-class index is directly
     an index into ``unit.micro_mapping``.
 
-    Returns:
-        np.ndarray: ``(2**n, 2**(m * tau_J))`` — for each starting
-        universe state, the probability of each ``U^J`` state-sequence.
+    Returns
+    -------
+    np.ndarray
+        ``(2**n, 2**(m * tau_J))`` — for each starting universe state,
+        the probability of each ``U^J`` state-sequence.
     """
     num_states = transition.shape[0]
     m = len(unit.micro_constituents)
@@ -141,8 +145,10 @@ def _unit_sequence_distributions(transition: np.ndarray, unit: MacroUnit) -> np.
 def _unit_macro_probabilities(transition: np.ndarray, unit: MacroUnit) -> np.ndarray:
     """Eq. 35: probability of each macro state of ``J`` per starting state.
 
-    Returns:
-        np.ndarray: ``(2**n, 2)``.
+    Returns
+    -------
+    np.ndarray
+        ``(2**n, 2)``.
     """
     sequence_dist = _unit_sequence_distributions(transition, unit)
     table = np.asarray(unit.micro_mapping)
@@ -203,8 +209,10 @@ def _background_weights_cause(
     state, with a uniform prior over the full prior state. Computed from
     the ORIGINAL (undiscounted) TPM.
 
-    Returns:
-        np.ndarray: ``(2**|W|,)`` over little-endian background states.
+    Returns
+    -------
+    np.ndarray
+        ``(2**|W|,)`` over little-endian background states.
     """
     n = factored.n_nodes
     likelihood = np.ones((2,) * n)
@@ -235,10 +243,11 @@ def _initial_distribution_indices(n: int, system_indices):
     """Precompute the (loop-invariant) index vectors for the initial
     universe-state distributions.
 
-    Returns:
-        tuple[np.ndarray, np.ndarray, np.ndarray]: ``(system_part,
-        background_part, idx)`` mapping each universe state to its system
-        and background sub-state indices.
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, np.ndarray]
+        ``(system_part, background_part, idx)`` mapping each universe
+        state to its system and background sub-state indices.
     """
     background_indices = tuple(i for i in range(n) if i not in set(system_indices))
     idx = np.arange(2**n)
@@ -265,10 +274,12 @@ def _initial_distributions(
     :func:`_initial_distribution_indices`; only ``background_weights``
     varies per direction.
 
-    Returns:
-        np.ndarray: ``(2**|U^S|, 2**n)`` — row ``u^S`` is the
-        distribution with the system part pinned to ``u^S`` and the
-        background part distributed per ``background_weights``.
+    Returns
+    -------
+    np.ndarray
+        ``(2**|U^S|, 2**n)`` — row ``u^S`` is the distribution with the
+        system part pinned to ``u^S`` and the background part distributed
+        per ``background_weights``.
     """
     init = np.zeros((num_system_states, len(idx)))
     init[system_part, idx] = background_weights[background_part]
@@ -278,17 +289,23 @@ def _initial_distributions(
 def macro_tpms(substrate, units, micro_history):
     """The macro cause and effect TPMs ``(T_c, T_e)`` (Eqs. 26-42).
 
-    Args:
-        substrate: A binary :class:`~pyphi.substrate.Substrate` for the
-            micro universe.
-        units: The system's macro units. Their ``U^J union W^J`` must be
-            pairwise disjoint (Eq. 18).
-        micro_history: Universe micro states, oldest first, of length
-            ``max(tau_J)``; the last entry is the current state.
+    Parameters
+    ----------
+    substrate : Substrate
+        A binary :class:`~pyphi.substrate.Substrate` for the micro
+        universe.
+    units : sequence of MacroUnit
+        The system's macro units. Their ``U^J union W^J`` must be
+        pairwise disjoint (Eq. 18).
+    micro_history : sequence of universe states
+        Universe micro states, oldest first, of length ``max(tau_J)``;
+        the last entry is the current state.
 
-    Returns:
-        tuple[FactoredTPM, FactoredTPM]: ``(T_c, T_e)`` with one factor
-        per macro unit over the macro system's states.
+    Returns
+    -------
+    tuple[FactoredTPM, FactoredTPM]
+        ``(T_c, T_e)`` with one factor per macro unit over the macro
+        system's states.
     """
     factored = substrate.factored_tpm
     n = factored.n_nodes

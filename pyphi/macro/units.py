@@ -46,16 +46,19 @@ def _mixed_radix_digits(index, radices):
 class MacroUnit:
     """A macro unit ``J = (U^J, V^J, tau'_J, g'_J, W^J)`` (Eq. 11).
 
-    Args:
-        constituents: Direct constituents ``V^J`` — micro unit indices
-            or meso ``MacroUnit`` objects. Order fixes the truth-table
-            digit order.
-        update_grain: ``tau'_J`` — constituent updates per unit update.
-        mapping: ``g'_J`` as a flat truth table of 0/1 entries over the
-            ``prod(alphabets) ** update_grain`` joint sequence-states of
-            the constituents (see module docstring for digit order).
-        background_apportionment: ``W^J`` — universe indices apportioned
-            to this unit.
+    Parameters
+    ----------
+    constituents : tuple[MacroUnit | int, ...]
+        Direct constituents ``V^J`` — micro unit indices or meso
+        ``MacroUnit`` objects. Order fixes the truth-table digit order.
+    update_grain : int
+        ``tau'_J`` — constituent updates per unit update.
+    mapping : tuple[int, ...]
+        ``g'_J`` as a flat truth table of 0/1 entries over the
+        ``prod(alphabets) ** update_grain`` joint sequence-states of the
+        constituents (see module docstring for digit order).
+    background_apportionment : tuple[int, ...]
+        ``W^J`` — universe indices apportioned to this unit.
     """
 
     constituents: tuple[MacroUnit | int, ...]
@@ -160,13 +163,17 @@ class MacroUnit:
     def state_from(self, history) -> int:
         """The unit's state given a micro-state window of ``U^J`` (Eq. 22).
 
-        Args:
-            history: Sequence of length :attr:`micro_grain` of micro
-                states of ``U^J`` (each a tuple of 0/1 values ordered by
-                ascending micro index), oldest first.
+        Parameters
+        ----------
+        history : sequence of tuple[int, ...]
+            Sequence of length :attr:`micro_grain` of micro states of
+            ``U^J`` (each a tuple of 0/1 values ordered by ascending
+            micro index), oldest first.
 
-        Returns:
-            int: The macro state ``j = g_J`` applied to the window.
+        Returns
+        -------
+        int
+            The macro state ``j = g_J`` applied to the window.
         """
         history = tuple(tuple(s) for s in history)
         if len(history) != self.micro_grain:

@@ -17,7 +17,7 @@ Protocols; the registries are typed against the corresponding Protocol.
   system level.
 - ``StatefulDistributionMeasure``: (p, q, state) -> float | DistanceResult.
   Two-distribution measure evaluated at a specified state. Both
-  distributions are load-bearing. IIT_4.0_SMALL_PHI variants return
+  distributions contribute to the result. IIT_4.0_SMALL_PHI variants return
   DistanceResult.
 
 Plain functions don't carry the class-level ``name``/``asymmetric``
@@ -95,8 +95,8 @@ class CompositeMeasure(Protocol):
 class StatefulDistributionMeasure(Protocol):
     """Two-distribution measure evaluated at a specified state.
 
-    Both distributions are load-bearing; the state selects a single
-    element from the resulting pointwise array.
+    Both distributions contribute to the result; the state selects a
+    single element from the resulting pointwise array.
     """
 
     name: str

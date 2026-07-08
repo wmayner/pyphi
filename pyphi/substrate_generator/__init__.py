@@ -60,6 +60,40 @@ def build_tpm(
     weights: NDArray[Any],
     **kwargs,
 ):
+    """Build a binary state-by-node TPM from unit functions and a weight matrix.
+
+    Each unit function is evaluated at every one of the ``2**N`` substrate
+    states, returning the probability that its node is ON at the next step.
+
+    Parameters
+    ----------
+    unit_functions : str or Callable or Iterable[str or Callable]
+        A single unit function (a name in :data:`UNIT_FUNCTIONS` or a callable
+        with signature ``f(element, weights, state, **kwargs) -> float``)
+        applied to every node, or an iterable of ``N`` such functions, one per
+        node.
+    weights : numpy.ndarray
+        Square ``N × N`` connection weight matrix; ``weights[i, j]`` couples
+        input ``i`` to node ``j``.
+
+    Other Parameters
+    ----------------
+    **kwargs
+        Passed through to every unit function.
+
+    Returns
+    -------
+    numpy.ndarray
+        A state-by-node TPM of shape ``(2,) * N + (N,)``; entry
+        ``tpm[state + (j,)]`` is the probability that node ``j`` is ON given
+        ``state``.
+
+    Raises
+    ------
+    ValueError
+        If ``weights`` is not square, or if an iterable of unit functions does
+        not have one entry per node.
+    """
     if weights.ndim != 2 or weights.shape[0] != weights.shape[1]:
         raise ValueError("weights must be a square matrix")
 
@@ -97,18 +131,32 @@ def build_substrate(
     node_labels: NodeLabels | None = None,
     **kwargs,
 ):
-    """Returns a PyPhi substrate given a weight matrix and a unit function.
+    """Build a PyPhi substrate from a weight matrix and unit functions.
 
-    Args:
-        unit_function (Callable): The function of a unit; must have signature
-            (index, weights, state) and return a probability.
-        weights: (ArrayLike) The weight matrix describing the system's connectivity.
+    The connectivity matrix is derived from the nonzero entries of ``weights``.
 
-    Keyword Args:
-        **kwargs: Additional keyword arguments are passed through to the unit function.
+    Parameters
+    ----------
+    unit_functions : str or Callable or Iterable[str or Callable]
+        A single unit function applied to every node, or an iterable of one
+        function per node. Each function has signature
+        ``f(element, weights, state, **kwargs) -> float`` returning a
+        probability; a string names an entry in :data:`UNIT_FUNCTIONS`.
+    weights : numpy.ndarray
+        Square weight matrix describing the substrate's connectivity.
+    node_labels : NodeLabels, optional
+        Labels for the nodes. Defaults to ``A, B, C, ...``.
 
-    Returns:
-        Substrate: A PyPhi substrate.
+    Other Parameters
+    ----------------
+    **kwargs
+        Passed through to every unit function.
+
+    Returns
+    -------
+    Substrate
+        A PyPhi substrate whose TPM is built by :func:`build_tpm` and whose
+        connectivity matrix marks the nonzero entries of ``weights``.
     """
     if node_labels is None:
         # Create default labels from uppercase letters
@@ -176,32 +224,46 @@ def create_substrate(
 ) -> Substrate:
     """Build a :class:`~pyphi.substrate.Substrate` from per-node specifications.
 
-    Mirrors the per-node construction of Bjørn Juel's ``substrate_modeler``: each
-    node names a ``mechanism`` (a key in :data:`MECHANISMS`), its ``inputs``, and
-    a ``params`` dict; the resulting substrate TPM equals the original library's
-    ``dynamic_tpm`` (present state = past state).
+    Each node names a ``mechanism`` (a key in :data:`MECHANISMS`), its
+    ``inputs``, and a ``params`` dict. The resulting substrate TPM matches the
+    ``dynamic_tpm`` of the ``substrate_modeler`` library, in which the present
+    state equals the past state.
 
-    Args:
-        node_params: Either an integer-keyed mapping or an ordered iterable of
-            node specs. Each spec is a dict with keys:
+    Parameters
+    ----------
+    node_params : Mapping[int, Mapping] or Sequence[Mapping]
+        Either an integer-keyed mapping (nodes taken in sorted key order) or an
+        ordered iterable of node specs. Each spec is a dict with keys:
 
-            - ``"mechanism"`` (str): mechanism name, **or**
-            - ``"composite"`` (list of sub-specs) + optional
-              ``"mechanism_combination"`` (str, default ``"selective"``) and
-              ``"combination_params"`` (dict);
-            - ``"inputs"`` (tuple[int]): the unit's input indices;
-            - ``"params"`` (dict): mechanism parameters (e.g. ``input_weights``,
-              ``determinism``, ``threshold``, ``weight_scale_mapping``).
+        - ``"mechanism"`` (str): mechanism name, **or**
+        - ``"composite"`` (list of sub-specs) plus optional
+          ``"mechanism_combination"`` (str, default ``"selective"``) and
+          ``"combination_params"`` (dict);
+        - ``"inputs"`` (tuple[int]): the unit's input indices;
+        - ``"params"`` (dict): mechanism parameters (e.g. ``input_weights``,
+          ``determinism``, ``threshold``, ``weight_scale_mapping``).
+    labels : Sequence[str] or NodeLabels, optional
+        Node labels. Defaults to ``A, B, C, ...``.
 
-    Keyword Args:
-        labels: Optional node labels; defaults to ``A, B, C, ...``.
+    Returns
+    -------
+    Substrate
+        A PyPhi substrate.
 
-    Returns:
-        Substrate: A PyPhi substrate.
+    Raises
+    ------
+    TypeError
+        If ``node_params`` is a mapping whose keys are not all integers.
 
-    State-dependent mechanisms (:data:`STATE_DEPENDENT`) read the unit's own
-    state, so a self-loop is inserted into the connectivity matrix when the spec
-    does not already include one.
+    Notes
+    -----
+    The connectivity matrix is assembled in two passes: every input edge is
+    first marked with weight 1, then the real edge weights of weighted
+    mechanisms (:data:`~pyphi.substrate_generator.mechanisms.WEIGHTED`) overwrite
+    those markers. State-dependent mechanisms
+    (:data:`~pyphi.substrate_generator.mechanisms.STATE_DEPENDENT`) read the
+    unit's own state, so a self-loop is inserted into the connectivity matrix
+    when the spec does not already include one.
     """
     if isinstance(node_params, Mapping):
         if not all(isinstance(k, int) for k in node_params):

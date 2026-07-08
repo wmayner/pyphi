@@ -73,9 +73,9 @@ class AlphaAggregationRegistry(Registry):
 
     Aggregators consume ``(rho, rho_partitioned)`` and return α — the
     integrated information of an actual cause/effect link.
-    """  # noqa: RUF002
+    """
 
-    desc = "α-aggregation rules"  # noqa: RUF001
+    desc = "α-aggregation rules"
 
 
 partitioned_repertoire_schemes = PartitionedRepertoireSchemeRegistry()
@@ -125,24 +125,37 @@ def probability_distance(
 ) -> float:
     """Compute the distance between two probabilities in actual causation.
 
-    Args:
-        p (float): The first probability.
-        q (float): The second probability.
+    The result is rounded to ``config.numerics.precision`` decimal places. It
+    is signed rather than a metric distance: the default ``PMI`` measure is the
+    pointwise mutual information ``log2(p / q)``, which is negative when ``p <
+    q``.
 
-    Keyword Args:
-        measure (str): Optional measure name registered in
-            :data:`pyphi.measures.distribution.actual_causation_measures`.
-            Mutually exclusive with ``alpha_measure``.
-        alpha_measure (DistributionMeasure): Optional resolved measure callable
-            (e.g., from
-            :func:`pyphi.measures.distribution.resolve_actual_causation_measure`).
-            Internal callers thread the resolved object through to avoid
-            repeated registry lookups; external callers may pass ``measure``.
-            If both are ``None``, the active configuration's
-            ``alpha_measure`` is resolved.
+    Parameters
+    ----------
+    p : float
+        The first probability.
+    q : float
+        The second probability.
+    measure : str, optional
+        Measure name registered in
+        :data:`pyphi.measures.distribution.actual_causation_measures`. Mutually
+        exclusive with ``alpha_measure``.
+    alpha_measure : DistributionMeasure, optional
+        Resolved measure callable (e.g., from
+        :func:`pyphi.measures.distribution.resolve_actual_causation_measure`).
+        Internal callers thread the resolved object through to avoid repeated
+        registry lookups; external callers may pass ``measure`` instead. If both
+        are ``None``, the active configuration's ``alpha_measure`` is resolved.
 
-    Returns:
-        float: The probability distance between ``p`` and ``q``.
+    Returns
+    -------
+    float
+        The probability distance between ``p`` and ``q``.
+
+    Raises
+    ------
+    ValueError
+        If both ``measure`` and ``alpha_measure`` are given.
     """
     if alpha_measure is not None and measure is not None:
         raise ValueError(
@@ -163,15 +176,23 @@ def probability_distance(
 
 
 def account_distance(A1, A2):
-    """Return the distance between two accounts. Here that is just the
-    difference in sum(alpha)
+    """Return the distance between two accounts.
 
-    Args:
-        A1 (Account): The first account.
-        A2 (Account): The second account
+    Defined as the difference in total α: ``sum(α over A1) - sum(α over A2)``.
+    This is signed, and for the unpartitioned-minus-partitioned pairing used in
+    the AC system analysis it gives the account's big-α (𝒜).
 
-    Returns:
-        float: The distance between the two accounts.
+    Parameters
+    ----------
+    A1 : Account
+        The first account.
+    A2 : Account
+        The second account.
+
+    Returns
+    -------
+    float
+        The distance between the two accounts.
     """
     return sum([action.alpha for action in A1]) - sum([action.alpha for action in A2])
 
@@ -189,26 +210,37 @@ def _find_mip(
     """Find the ratio minimum information partition for a mechanism
     over a purview.
 
-    Args:
-        direction (str): |CAUSE| or |EFFECT|
-        mechanism (tuple[int]): A mechanism.
-        purview (tuple[int]): A purview.
+    Evaluates every mechanism partition, scores each by α (the
+    ``alpha_measure`` distance between the unpartitioned and partitioned
+    probabilities), and returns the partition of minimum α. The search
+    short-circuits and returns a null analysis on the first partition against
+    which the mechanism is reducible (α is zero, or negative when
+    ``allow_neg`` is false), since the minimum α cannot then fall lower.
 
-    Keyword Args:
-        allow_neg (boolean): If true, ``alpha`` is allowed to be negative.
-            Otherwise, negative values of ``alpha`` will be treated as if
-            they were 0.
-        alpha_measure (DistributionMeasure): Resolved alpha measure callable.
-            When ``None``, ``config.formalism.actual_causation.alpha_measure``
-            is resolved at the call boundary.
-        partitioned_repertoire_scheme: Resolved partitioned-repertoire
-            scheme callable. When ``None``,
-            ``config.formalism.actual_causation.partitioned_repertoire_scheme``
-            is resolved at the call boundary.
+    Parameters
+    ----------
+    direction : Direction
+        The temporal direction, ``Direction.CAUSE`` or ``Direction.EFFECT``.
+    mechanism : tuple[int]
+        A mechanism.
+    purview : tuple[int]
+        A purview.
+    allow_neg : bool
+        If true, α is allowed to be negative. Otherwise, negative values of α
+        are treated as if they were zero.
+    alpha_measure : DistributionMeasure, optional
+        Resolved alpha measure callable. When ``None``,
+        ``config.formalism.actual_causation.alpha_measure`` is resolved at the
+        call boundary.
+    partitioned_repertoire_scheme : optional
+        Resolved partitioned-repertoire scheme callable. When ``None``,
+        ``config.formalism.actual_causation.partitioned_repertoire_scheme`` is
+        resolved at the call boundary.
 
-    Returns:
-        AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
-        the mechanism.
+    Returns
+    -------
+    AcRepertoireIrreducibilityAnalysis
+        The irreducibility analysis for the mechanism.
     """
     if not purview:
         return _null_ac_ria(
@@ -281,28 +313,38 @@ def _find_causal_link(
     """Return the maximally irreducible cause or effect ratio for a
     mechanism.
 
-    Args:
-        direction (str): The temporal direction, specifying cause or
-            effect.
-        mechanism (tuple[int]): The mechanism to be tested for
-            irreducibility.
+    Runs :func:`_find_mip` over every candidate purview and returns the causal
+    link of maximum α, resolving ties via :mod:`pyphi.resolve_ties`. The
+    returned :class:`~pyphi.models.actual_causation.CausalLink` records the tied
+    purviews as its extended purview.
 
-    Keyword Args:
-        purviews (tuple[int]): Optionally restrict the possible purviews
-            to a subset of the system. This may be useful for _e.g._
-            finding only concepts that are "about" a certain subset of
-            nodes.
-        alpha_measure (DistributionMeasure): Resolved alpha measure
-            callable. When ``None``,
-            ``config.formalism.actual_causation.alpha_measure`` is
-            resolved at the call boundary.
-        partitioned_repertoire_scheme: Resolved partitioned-repertoire
-            scheme callable. When ``None``,
-            ``config.formalism.actual_causation.partitioned_repertoire_scheme``
-            is resolved at the call boundary.
+    Parameters
+    ----------
+    direction : Direction
+        The temporal direction, specifying cause or effect.
+    mechanism : tuple[int]
+        The mechanism to be tested for irreducibility.
+    purviews : tuple[int], optional
+        Restrict the possible purviews to a subset of the system. This is
+        useful, for example, for finding only causal links that are "about" a
+        certain subset of nodes.
+    allow_neg : bool
+        If true, α is allowed to be negative. Otherwise, negative values of α
+        are treated as if they were zero.
+    alpha_measure : DistributionMeasure, optional
+        Resolved alpha measure callable. When ``None``,
+        ``config.formalism.actual_causation.alpha_measure`` is resolved at the
+        call boundary.
+    partitioned_repertoire_scheme : optional
+        Resolved partitioned-repertoire scheme callable. When ``None``,
+        ``config.formalism.actual_causation.partitioned_repertoire_scheme`` is
+        resolved at the call boundary.
 
-    Returns:
-        CausalLink: The maximally-irreducible actual cause or effect.
+    Returns
+    -------
+    CausalLink
+        The maximally-irreducible actual cause or effect. An empty list is
+        returned when no purview yields a positive α.
     """
     purviews = transition.potential_purviews(direction, mechanism, purviews)
 
@@ -353,16 +395,25 @@ def _directed_account(
     alpha_measure: DistributionMeasure | None = None,
     partitioned_repertoire_scheme=None,
 ):
-    """Return the set of all |CausalLinks| of the specified direction.
+    """Return the set of all
+    :class:`~pyphi.models.actual_causation.CausalLink` of the specified
+    direction.
 
-    Keyword Args:
-        alpha_measure (DistributionMeasure): Resolved alpha measure callable.
-            When ``None``, ``config.formalism.actual_causation.alpha_measure``
-            is resolved at the call boundary.
-        partitioned_repertoire_scheme: Resolved partitioned-repertoire scheme
-            callable. When ``None``, the active
-            ``config.formalism.actual_causation.partitioned_repertoire_scheme``
-            is resolved at the call boundary.
+    One causal link is found per candidate mechanism (the whole non-empty
+    powerset of mechanism indices when ``mechanisms`` is ``None``); links with
+    zero α are dropped from the returned
+    :class:`~pyphi.models.DirectedAccount`.
+
+    Parameters
+    ----------
+    alpha_measure : DistributionMeasure, optional
+        Resolved alpha measure callable. When ``None``,
+        ``config.formalism.actual_causation.alpha_measure`` is resolved at the
+        call boundary.
+    partitioned_repertoire_scheme : optional
+        Resolved partitioned-repertoire scheme callable. When ``None``, the
+        active ``config.formalism.actual_causation.partitioned_repertoire_scheme``
+        is resolved at the call boundary.
     """
     if mechanisms is None:
         mechanisms = utils.powerset(
@@ -392,21 +443,29 @@ def _account(
     alpha_measure: DistributionMeasure | None = None,
     partitioned_repertoire_scheme=None,
 ):
-    """Return the set of all causal links for a |Transition|.
+    """Return the set of all causal links for a
+    :class:`~pyphi.actual.Transition`.
 
-    Args:
-        transition (Transition): The transition of interest.
+    A bidirectional account (the default) is the union of the cause-side and
+    effect-side directed accounts, returned as an
+    :class:`~pyphi.models.Account`; a directional call returns the single
+    :class:`~pyphi.models.DirectedAccount`.
 
-    Keyword Args:
-        direction (Direction): By default the account contains actual causes
-            and actual effects.
-        alpha_measure (DistributionMeasure): Resolved alpha measure callable.
-            When ``None``, ``config.formalism.actual_causation.alpha_measure``
-            is resolved at the call boundary.
-        partitioned_repertoire_scheme: Resolved partitioned-repertoire scheme
-            callable. When ``None``, the active
-            ``config.formalism.actual_causation.partitioned_repertoire_scheme``
-            is resolved at the call boundary.
+    Parameters
+    ----------
+    transition : Transition
+        The transition of interest.
+    direction : Direction
+        By default (``Direction.BIDIRECTIONAL``) the account contains actual
+        causes and actual effects.
+    alpha_measure : DistributionMeasure, optional
+        Resolved alpha measure callable. When ``None``,
+        ``config.formalism.actual_causation.alpha_measure`` is resolved at the
+        call boundary.
+    partitioned_repertoire_scheme : optional
+        Resolved partitioned-repertoire scheme callable. When ``None``, the
+        active ``config.formalism.actual_causation.partitioned_repertoire_scheme``
+        is resolved at the call boundary.
     """
     if direction != Direction.BIDIRECTIONAL:
         return _directed_account(
@@ -441,7 +500,11 @@ def _evaluate_partition(
     alpha_measure: DistributionMeasure,
     partitioned_repertoire_scheme,
 ):
-    """Find the |AcSystemIrreducibilityAnalysis| for a given partition."""
+    """Find the system irreducibility analysis for a given partition.
+
+    Returns the :class:`~pyphi.models.AcSystemIrreducibilityAnalysis` for the
+    transition under ``partition``.
+    """
     partitioned_transition = transition.apply_cut(partition)
     partitioned_account = _account(
         partitioned_transition,
@@ -506,13 +569,23 @@ def _sia(
     """Return the minimal information partition of a transition in a specific
     direction.
 
-    Args:
-        transition (Transition): The candidate system.
+    Computes the unpartitioned account, then evaluates every system partition
+    and selects the one of minimum big-α (𝒜), the account distance between the
+    unpartitioned and partitioned accounts. A null analysis is returned
+    immediately when the transition is empty, is not at least weakly connected,
+    or has an empty unpartitioned account.
 
-    Returns:
-        AcSystemIrreducibilityAnalysis: A nested structure containing all the
-        data from the intermediate calculations. The top level contains the
-        basic irreducibility information for the given system.
+    Parameters
+    ----------
+    transition : Transition
+        The candidate system.
+
+    Returns
+    -------
+    AcSystemIrreducibilityAnalysis
+        A nested structure containing all the data from the intermediate
+        calculations. The top level contains the basic irreducibility
+        information for the given system.
     """
     validate.direction(direction, allow_bi=True)
     log.info("Calculating big-alpha for %s...", transition)

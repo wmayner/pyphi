@@ -24,12 +24,17 @@ if TYPE_CHECKING:
 def directions(directions: Iterable[Direction], **kwargs: bool) -> bool:
     """Validate each direction in an iterable.
 
-    Args:
-        directions (Iterable[Direction]): Directions to validate.
-        **kwargs: Passed through to :func:`direction`.
+    Parameters
+    ----------
+    directions : Iterable[Direction]
+        Directions to validate.
+    **kwargs
+        Passed through to :func:`direction`.
 
-    Returns:
-        bool: ``True`` if every element is a valid
+    Returns
+    -------
+    bool
+        ``True`` if every element is a valid
         :class:`~pyphi.direction.Direction`.
     """
     return all(direction(d, **kwargs) for d in directions)
@@ -38,12 +43,22 @@ def directions(directions: Iterable[Direction], **kwargs: bool) -> bool:
 def direction(direction: Direction, allow_bi: bool = False) -> bool:
     """Validate that the given direction is one of the allowed constants.
 
-    Args:
-        direction (Direction): Direction to validate.
-        allow_bi (bool): Whether bidirectional arrows are allowed.
+    Parameters
+    ----------
+    direction : Direction
+        Direction to validate.
+    allow_bi : bool
+        Whether the bidirectional arrow is also allowed.
 
-    Returns:
-        bool: ``True`` if the direction is valid; otherwise raises.
+    Returns
+    -------
+    bool
+        ``True`` if the direction is valid.
+
+    Raises
+    ------
+    ValueError
+        If the direction is not one of the allowed constants.
     """
     valid = set(Direction.both())
     if allow_bi:
@@ -246,13 +261,22 @@ def non_overlapping(complexes: Iterable[Any]) -> bool:
     """Validate that complexes have pairwise-disjoint units (exclusion).
 
     The exclusion postulate requires that no unit belongs to more than one
-    complex. Raises if any two of ``complexes`` share a unit.
+    complex.
 
-    Args:
-        complexes (Iterable): Objects exposing ``node_indices``.
+    Parameters
+    ----------
+    complexes : Iterable
+        Objects exposing ``node_indices``.
 
-    Returns:
-        bool: ``True`` if the complexes are pairwise node-disjoint.
+    Returns
+    -------
+    bool
+        ``True`` if the complexes are pairwise node-disjoint.
+
+    Raises
+    ------
+    ValueError
+        If any two of ``complexes`` share a unit.
     """
     seen: set[int] = set()
     for c in complexes:

@@ -6,8 +6,8 @@ product of the factors under conditional independence (IIT's standing
 assumption that nodes update independently given the joint past).
 
 Factor ``i`` has shape ``(a_1, ..., a_N, a_i)`` where ``a_j`` is the
-alphabet size of node ``j``. Input dims for non-input nodes are size 1
-and are semantically load-bearing — they encode the connectivity
+alphabet size of node ``j``. Each input axis of a node that factor ``i``
+does not depend on has size 1; these size-1 axes encode the connectivity
 structure and are never squeezed away.
 """
 
@@ -141,8 +141,8 @@ class FactoredTPM(Displayable, ToPandasMixin):
 
         Accepts either:
 
-        - Legacy binary form: shape ``(2,) * n + (n,)``, where the last
-          dim's entry ``i`` is ``P(node_i = 1 | s_t)``. Factor ``i`` is
+        - Binary state-by-node form: shape ``(2,) * n + (n,)``, where the
+          last dim's entry ``i`` is ``P(node_i = 1 | s_t)``. Factor ``i`` is
           built by stacking ``[1 - p_on, p_on]`` along an explicit
           alphabet dim.
 
@@ -266,9 +266,11 @@ class FactoredTPM(Displayable, ToPandasMixin):
         per-row last dim holds factor ``i``'s distribution in slots
         ``[:alphabet_sizes[i]]``; trailing slots are zero when alphabets are
         heterogeneous. For uniform alphabets this collapses to
-        ``(a, ..., a, n, a)`` with no padding. Slow path — only used at
-        boundaries (serialization, legacy fixture comparison,
-        ``Substrate.joint_tpm()``).
+        ``(a, ..., a, n, a)`` with no padding.
+
+        Materializing the joint costs exponential space in the number of
+        units, so this is used only at boundaries where a dense joint is
+        required (serialization, fixture comparison, ``Substrate.joint_tpm()``).
         """
         n = self.n_nodes
         a = self.alphabet_sizes

@@ -14,13 +14,21 @@ from pyphi.labels import NodeLabels
 
 @dataclass(frozen=True)
 class TriggeredTPM:
-    """Pr(S_t = s | dS_{t-tau} = x), one distribution over system states per
+    """Pr(Sₜ = s | ∂S_{t−τ} = x), one distribution over system states per
     stimulus.
 
-    ``array`` is a multidimensional ndarray with one binary axis per unit,
-    ordered ``(sensory axes..., system axes...)``; ``array[x + s]`` is
-    Pr(S = s | dS = x). Marginalization over unit subsets is a uniform axis
-    sum.
+    Attributes
+    ----------
+    array : numpy.ndarray
+        A multidimensional array with one binary axis per unit, ordered
+        ``(sensory axes..., system axes...)``; ``array[x + s]`` is
+        Pr(S = s | ∂S = x). Marginalizing a unit subset is a uniform axis sum.
+    sensory_indices : tuple of int
+        Substrate indices of the sensory-interface units, in axis order.
+    system_indices : tuple of int
+        Substrate indices of the system units, in axis order.
+    node_labels : NodeLabels
+        Labels for the substrate units, for the labeled ``to_pandas`` view.
     """
 
     array: np.ndarray
@@ -41,8 +49,11 @@ class TriggeredTPM:
         return convert.le_index2state(flat, len(self.system_indices))
 
     def _marginalize_system(self, distribution, mechanism, state) -> float:
-        """Given a distribution over the system axes, return Pr(mechanism = state)
-        by summing out the system units not in ``mechanism``."""
+        """Return Pr(mechanism = state) from a distribution over the system axes.
+
+        Sums out the system units not in ``mechanism``. Requires ``mechanism``
+        to be a subset of ``system_indices`` and ``state`` to match its length.
+        """
         mechanism = tuple(mechanism)
         if not set(mechanism) <= set(self.system_indices):
             raise ValueError(
@@ -59,7 +70,7 @@ class TriggeredTPM:
         return float(reduced[tuple(state)])
 
     def conditional_probability(self, mechanism, state, stimulus) -> float:
-        """Pr(mechanism = state | dS = stimulus)."""
+        """Pr(mechanism = state | ∂S = stimulus)."""
         return self._marginalize_system(self.row(stimulus), mechanism, state)
 
     def marginal_probability(self, mechanism, state) -> float:

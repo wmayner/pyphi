@@ -16,12 +16,13 @@ from pyphi.conf._helpers import yaml_repr
 class NumericsConfig:
     """Numerical-comparison settings.
 
-    Attributes:
-        precision: Decimal places of agreement required when comparing phi
-            values via :func:`pyphi.utils.eq` and friends. Values smaller
-            than ``10**-precision`` are treated as zero. ``PyPhiFloat``
-            snapshots this at construction so its hash is stable across
-            config writes.
+    Attributes
+    ----------
+    precision : int
+        Decimal places of agreement required when comparing phi values via
+        :func:`pyphi.utils.eq` and friends. Values smaller than
+        ``10**-precision`` are treated as zero. ``PyPhiFloat`` snapshots
+        this at construction so its hash is stable across config writes.
     """
 
     precision: int = 13

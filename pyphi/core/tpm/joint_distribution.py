@@ -44,17 +44,28 @@ def _new_attribute(
     tpm: NDArray[np.float64],
     cls: type,
 ) -> object:
-    """Helper function to return adequate proxy attributes for TPM arrays.
+    """Return a proxy for one of the underlying array's attributes.
 
-    Args:
-        name (str): The name of the attribute to  proxy.
-        closures (set[str]): Attribute names which should return a PyPhi TPM.
-        tpm (np.ndarray): The array to introspect for attributes.
-        cls (type): The TPM type that the proxied attribute should return.
+    Attributes named in ``closures`` are wrapped so that array-valued results
+    are re-cast back to ``cls`` (keeping the custom TPM type closed under those
+    operations); all other attributes are returned unwrapped.
 
-    Returns:
-        object: A proxy to the underlying array's attribute, whether unmodified
-            or decorated with casting to `cls`.
+    Parameters
+    ----------
+    name : str
+        The name of the attribute to proxy.
+    closures : set[str]
+        Attribute names whose results should be re-cast to ``cls``.
+    tpm : numpy.ndarray
+        The array to read the attribute from.
+    cls : type
+        The TPM type that a wrapped, array-valued result is re-cast to.
+
+    Returns
+    -------
+    object
+        The array's attribute, either unmodified or wrapped with re-casting
+        to ``cls``.
     """
     attribute = getattr(tpm, name)
 
@@ -212,8 +223,10 @@ class JointDistribution(data_structures.ArrayLike):
         See the PyPhi documentation on :ref:`tpm-conventions` for more
         information.
 
-        Returns:
-            np.ndarray: The TPM in multidimensional state-by-node format.
+        Returns
+        -------
+        numpy.ndarray
+            The TPM in multidimensional state-by-node format.
         """
         if self.is_state_by_state():
             tpm = convert.state_by_state2state_by_node(self._tpm)
@@ -225,12 +238,16 @@ class JointDistribution(data_structures.ArrayLike):
     def marginalize_out(self, node_indices: Iterable[int]) -> JointDistribution:
         """Marginalize out nodes from this TPM.
 
-        Args:
-            node_indices (list[int]): The indices of nodes to be marginalized out.
+        Parameters
+        ----------
+        node_indices : Iterable[int]
+            The indices of nodes to be marginalized out.
 
-        Returns:
-            JointDistribution: A distribution with the same number of dimensions,
-            with the nodes marginalized out.
+        Returns
+        -------
+        JointDistribution
+            A distribution with the same number of dimensions, with the given
+            nodes marginalized out (their axes collapsed to singletons).
         """
         tpm = self._tpm.sum(tuple(node_indices), keepdims=True) / (
             np.array(self.shape)[list(node_indices)].prod()
@@ -264,8 +281,29 @@ class JointDistribution(data_structures.ArrayLike):
         for _state in all_states(tpm.shape[-1]):
             pass
 
-    # TODO: docstring
     def permute_nodes(self, permutation: tuple[int, ...]) -> JointDistribution:
+        """Reorder the nodes of this distribution by a permutation.
+
+        Applies ``permutation`` to both the leading input-state axes and the
+        trailing node axis, so that node ``permutation[k]`` takes position
+        ``k`` in the result. The trailing (node) axis is left in place during
+        the transpose, then reindexed by the same permutation.
+
+        Parameters
+        ----------
+        permutation : tuple[int, ...]
+            A permutation of ``range(self.ndim - 1)`` (one entry per node).
+
+        Returns
+        -------
+        JointDistribution
+            A distribution of the same type with its nodes reordered.
+
+        Raises
+        ------
+        ValueError
+            If ``permutation`` does not have length ``self.ndim - 1``.
+        """
         if not len(permutation) == self.ndim - 1:
             raise ValueError(
                 f"Permutation must have length {self.ndim - 1}, but has length "
@@ -398,12 +436,16 @@ class JointTPM(Displayable, ToPandasMixin, JointDistribution):
         for broadcasting. The number of dimensions of the conditioned TPM will
         be the same as the unconditioned TPM.
 
-        Args:
-            condition (dict[int, int]): A mapping from node indices to the state
-                to condition on for that node.
+        Parameters
+        ----------
+        condition : Mapping[int, int]
+            A mapping from node indices to the state to condition on for that
+            node.
 
-        Returns:
-            TPM: A conditioned TPM with the same number of dimensions, with
+        Returns
+        -------
+        JointTPM
+            A conditioned TPM with the same number of dimensions, with
             singleton dimensions for nodes in a fixed state.
         """
         # Assumes multidimensional form
@@ -427,14 +469,20 @@ class JointTPM(Displayable, ToPandasMixin, JointDistribution):
     def subtpm(self, fixed_nodes: tuple[int, ...], state: tuple[int, ...]) -> JointTPM:
         """Return the TPM for a subset of nodes, conditioned on other nodes.
 
-        Arguments:
-            fixed_nodes (tuple[int]): The nodes to select.
-            state (tuple[int]): The state of the fixed nodes.
+        Parameters
+        ----------
+        fixed_nodes : tuple[int, ...]
+            The nodes to condition on (removed from the returned TPM).
+        state : tuple[int, ...]
+            The state of the fixed nodes, in the same order as ``fixed_nodes``.
 
-        Returns:
-            JointTPM: The TPM of just the system of the free nodes.
+        Returns
+        -------
+        JointTPM
+            The TPM over just the free (non-fixed) nodes.
 
-        Examples:
+        Examples
+        --------
             >>> from pyphi import JointTPM, examples
             >>> # Get the TPM for nodes only 1 and 2, conditioned on node 0 = OFF
             >>> sub = examples.grid3_substrate()
@@ -452,13 +500,13 @@ class JointTPM(Displayable, ToPandasMixin, JointDistribution):
         return result  # type: ignore[return-value]
 
     def tpm_indices(self) -> tuple[int, ...]:
-        """Binary-only substrate-unit axis indices via size-2 grep.
+        """Binary-only substrate-unit axis indices, identified by their size.
 
-        Returns leading axes whose size equals 2, excluding singleton (size-1)
-        axes that arise from marginalizing out non-input nodes, so the
+        Returns the leading axes whose size equals 2, excluding singleton
+        (size-1) axes that arise from marginalizing out non-input nodes, so the
         indices stay aligned with a ``squeeze()``-d view of the array.
-        Multi-valued substrates use :meth:`FactoredTPM.tpm_indices`
-        instead.
+        Multi-valued substrates use
+        :meth:`~pyphi.core.tpm.factored.FactoredTPM.tpm_indices` instead.
         """
         return tuple(int(i) for i in np.where(np.array(self.shape[:-1]) == 2)[0])
 
@@ -563,16 +611,31 @@ def simulate(
 ) -> list[int]:
     """Simulate the dynamics of a system.
 
-    Generates a sequence of states using the TPM and a random number generator.
+    Generates a sequence of states by drawing each next state from the
+    conditional distribution given the current state.
 
-    Arguments:
-        tpm (np.ndarray): TPM to simulate.
-        initial_state (int): The initial state of the simulation.
-        timesteps (int): The number of timesteps to simulate.
-        rng (np.random.Generator): The random number generator to use.
+    Parameters
+    ----------
+    tpm : JointTPM or array_like
+        The TPM to simulate. Must be (or convert to) state-by-state form; a
+        non-``JointTPM`` input is wrapped in a :class:`JointTPM` first.
+    initial_state : int
+        The decimally-indexed initial state.
+    timesteps : int
+        The total number of states in the output, including the initial state.
+    rng : numpy.random.Generator
+        The random number generator supplying the draws.
 
-    Returns:
-        list: a list of (decimally-indexed) states.
+    Returns
+    -------
+    list[int]
+        The state trajectory as a list of ``timesteps`` decimally-indexed
+        states, beginning with ``initial_state``.
+
+    Raises
+    ------
+    ValueError
+        If ``tpm`` is not in state-by-state form.
     """
     # Ensure tpm is a JointTPM
     if not isinstance(tpm, JointTPM):

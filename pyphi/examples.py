@@ -118,9 +118,9 @@ def basic_substrate(cm=False):
     +---+---+---+---+
 
     .. note::
-        |CM[i][j] = 1| means that there is a directed edge |(i,j)| from node
-        |i| to node |j| and |CM[i][j] = 0| means there is no edge from |i| to
-        |j|.
+        ``CM[i][j] = 1`` means there is a directed edge ``(i, j)`` from node
+        ``i`` to node ``j``, and ``CM[i][j] = 0`` means there is no edge from
+        node ``i`` to node ``j``.
     """
     # fmt: off
     tpm = np.array([
@@ -1298,8 +1298,8 @@ def gomez_p53_mdm2_substrate():
 
 @register_example
 def prevention_transition():
-    """The |Transition| for the prevention example from Actual Causation
-    Figure 5D.
+    """The :class:`~pyphi.actual.Transition` for the prevention example from
+    Actual Causation Figure 5D.
     """
     # fmt: off
     tpm = np.array([

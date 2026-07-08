@@ -2,7 +2,7 @@
 """Typed explanations of why a result came out as it did (``result.explain()``).
 
 :class:`NullResultReason` enumerates the conditions under which an analysis
-yields a trivial (|big_phi| = 0 / |alpha| = 0) result. :class:`Finding` and
+yields a trivial (Φ = 0 / α = 0) result. :class:`Finding` and
 :class:`Explanation` are the typed account ``.explain()`` returns;
 :class:`RunnerUp` is the lightweight record of the second-best partition
 retained at MIP selection.
@@ -71,7 +71,7 @@ _LEVEL_OF: dict[NullResultReason, str] = {
 class RunnerUp:
     """The second-best partition at MIP selection.
 
-    The lowest-|small_phi| candidate whose value is strictly greater than the
+    The lowest-φ candidate whose value is strictly greater than the
     MIP's. ``partition`` is the cut; ``phi`` is its (clamped) integrated
     information.
     """
@@ -163,7 +163,11 @@ class Explanation(Displayable):
         )
 
     def to_pandas(self):
-        """A tidy, one-row-per-finding ``DataFrame`` (B8 / P14d export)."""
+        """A tidy ``DataFrame`` with one row per finding.
+
+        Columns: ``level``, ``kind``, ``label``, ``value``. A
+        :class:`NullResultReason` value renders by its enum name.
+        """
         from pyphi.models.pandas import records_to_frame
 
         return records_to_frame(

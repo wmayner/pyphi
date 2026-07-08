@@ -74,19 +74,28 @@ MECHANISM_COMBINATIONS = {
 def composite(sub_specs, combination="selective", **combination_kwargs):
     """Build a composite unit function from sub-mechanism specs.
 
-    Args:
-        sub_specs: An iterable of dicts, each ``{"mechanism": name | callable,
-            "inputs": tuple[int] | None, "params": dict}``. Each sub-mechanism is
-            evaluated at the full from-state and reads its own ``inputs``.
-        combination: A name in :data:`MECHANISM_COMBINATIONS` or a callable
-            mapping a sequence of probabilities to a single probability.
+    Parameters
+    ----------
+    sub_specs : Iterable[Mapping]
+        An iterable of dicts, each ``{"mechanism": name | callable,
+        "inputs": tuple[int] | None, "params": dict}``. Each sub-mechanism is
+        evaluated at the full from-state and reads its own ``inputs``.
+    combination : str or Callable, optional
+        A name in :data:`MECHANISM_COMBINATIONS` or a callable mapping a
+        sequence of probabilities to a single probability. Defaults to
+        ``"selective"``.
 
-    Keyword Args:
-        **combination_kwargs: Passed to the combination strategy (e.g.
-            ``steepness`` / ``offset`` for ``first_necessary``).
+    Other Parameters
+    ----------------
+    **combination_kwargs
+        Passed to the combination strategy (e.g. ``steepness`` / ``offset`` for
+        ``first_necessary``).
 
-    Returns:
-        A unit function ``f(element, weights, state, **kwargs) -> float``.
+    Returns
+    -------
+    Callable
+        A unit function ``f(element, weights, state, **kwargs) -> float`` whose
+        value is the combined probability of its sub-mechanisms.
     """
     if isinstance(combination, str):
         combine = MECHANISM_COMBINATIONS[combination]

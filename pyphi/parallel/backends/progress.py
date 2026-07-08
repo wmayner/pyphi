@@ -16,9 +16,12 @@ class LocalProgressBar:
     def __init__(self, total: int | None = None, desc: str = ""):
         """Initialize the progress bar.
 
-        Args:
-            total: Total number of items to process (None for unknown).
-            desc: Description to display on the progress bar.
+        Parameters
+        ----------
+        total : int or None
+            Total number of items to process, or ``None`` when unknown.
+        desc : str
+            Description shown as a label on the progress bar.
         """
         # miniters=1 ensures every update is displayed (no skipping)
         # mininterval=0 allows immediate refresh
@@ -26,10 +29,12 @@ class LocalProgressBar:
         self._closed = False
 
     def update(self, n: int = 1) -> None:
-        """Update progress by n items.
+        """Advance the bar by ``n`` items.
 
-        Args:
-            n: Number of items completed.
+        Parameters
+        ----------
+        n : int
+            Number of items completed since the last update.
         """
         if not self._closed and self._bar is not None:
             self._bar.update(n)

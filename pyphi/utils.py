@@ -56,26 +56,32 @@ def all_states(
 ) -> Generator[tuple[int, ...]]:
     """Return all states for a system.
 
-    Args:
-        spec: Either an integer ``n`` (binary, ``n`` nodes) or a sequence of
-            per-node alphabet sizes.
-        big_endian: Return states in big-endian order if ``True``, otherwise
-            little-endian (index 0 varies fastest).
+    Parameters
+    ----------
+    spec : int or Sequence[int]
+        Either an integer ``n`` (binary system, ``n`` nodes) or a sequence of
+        per-node alphabet sizes.
+    big_endian : bool
+        Return states in big-endian order if ``True``, otherwise little-endian
+        (index 0 varies fastest).
 
-    Yields:
-        tuple[int, ...]: Each possible state.
+    Yields
+    ------
+    tuple[int, ...]
+        Each possible state.
 
-    Examples:
-        Binary, 2 nodes (little-endian):
+    Examples
+    --------
+    Binary, 2 nodes (little-endian):
 
-        >>> from pyphi.utils import all_states
-        >>> list(all_states(2))
-        [(0, 0), (1, 0), (0, 1), (1, 1)]
+    >>> from pyphi.utils import all_states
+    >>> list(all_states(2))
+    [(0, 0), (1, 0), (0, 1), (1, 1)]
 
-        Ternary first node, binary second (little-endian):
+    Ternary first node, binary second (little-endian):
 
-        >>> list(all_states((3, 2)))
-        [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)]
+    >>> list(all_states((3, 2)))
+    [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)]
     """
     if isinstance(spec, int):
         alphabet_sizes: tuple[int, ...] = (2,) * spec
@@ -132,7 +138,7 @@ class np_hashable:
 
 
 def eq(x: float, y: float) -> bool:
-    """Compare two values up to |PRECISION|."""
+    """Compare two values for equality up to ``config.numerics.precision``."""
     # TODO: just use float value in config
     precision = int(config.numerics.precision)
     epsilon = 10 ** (-precision)
@@ -140,7 +146,7 @@ def eq(x: float, y: float) -> bool:
 
 
 def is_positive(x: float) -> bool:
-    """Return whether ``x`` is positive up to |PRECISION|."""
+    """Return whether ``x`` is positive up to ``config.numerics.precision``."""
     # Need `bool` to cast from numpy to native Boolean
     return not eq(x, 0) and bool(x > 0)
 
@@ -157,12 +163,14 @@ def is_falsy(x: object) -> bool:
 
 
 def positive_part(x: float) -> float:
-    """Return ``max(0, x)``.
+    """Return ``max(0, x)``, the positive-part operator ``|·|⁺``.
 
-    The ``|·|+`` operator from Eqs. 19-20 of the IIT 4.0 paper. Clamps a
-    raw integration value to zero from below; PyPhi retains the raw
-    signed value as metadata for "preventative cause" visibility while
-    exposing the clamped value as ``φ``.
+    Rectifies a signed integration value by setting negative values to zero.
+    In IIT 4.0 this operator appears in the definitions of the integrated
+    effect and cause information φ (Albantakis et al., 2023, Eqs. 19 and 20):
+    a partition that lowers the probability of the effect or cause state
+    yields a negative value, which is clamped to zero so that only genuine
+    increases in probability contribute.
     """
     return max(0.0, float(x))
 
@@ -173,12 +181,17 @@ def combs(a: np.ndarray, r: int) -> np.ndarray:
 
     Return successive ``r``-length combinations of elements in the array ``a``.
 
-    Args:
-        a (np.ndarray): The array from which to get combinations.
-        r (int): The length of the combinations.
+    Parameters
+    ----------
+    a : np.ndarray
+        The array from which to get combinations.
+    r : int
+        The length of the combinations.
 
-    Returns:
-        np.ndarray: An array of combinations.
+    Returns
+    -------
+    np.ndarray
+        An array of combinations.
     """
     # Special-case for 0-length combinations
     if r == 0:
@@ -194,25 +207,31 @@ def combs(a: np.ndarray, r: int) -> np.ndarray:
 def comb_indices(n: int, k: int) -> np.ndarray:
     """Return indices that generate the ``k``-combinations of ``n`` elements.
 
-    Args:
-        n (int): The total number of elements to choose from.
-        k (int): The length of each combination.
+    Parameters
+    ----------
+    n : int
+        The total number of elements to choose from.
+    k : int
+        The length of each combination.
 
-    Returns:
-        np.ndarray: A ``(comb(n, k), k)`` array of indices that can be used to
-        select every length-``k`` combination from an array.
+    Returns
+    -------
+    np.ndarray
+        A ``(comb(n, k), k)`` array of indices that can be used to select every
+        length-``k`` combination from an array.
 
-    Example:
-        >>> n, k = 3, 2
-        >>> data = np.arange(6).reshape(2, 3)
-        >>> data[:, comb_indices(n, k)]
-        array([[[0, 1],
-                [0, 2],
-                [1, 2]],
-        <BLANKLINE>
-               [[3, 4],
-                [3, 5],
-                [4, 5]]])
+    Examples
+    --------
+    >>> n, k = 3, 2
+    >>> data = np.arange(6).reshape(2, 3)
+    >>> data[:, comb_indices(n, k)]
+    array([[[0, 1],
+            [0, 2],
+            [1, 2]],
+    <BLANKLINE>
+           [[3, 4],
+            [3, 5],
+            [4, 5]]])
     """
     # Count the number of combinations for preallocation
     count = comb(n, k, exact=True)
@@ -234,39 +253,49 @@ def powerset(
 ) -> chain[Any]:
     """Generate the power set of an iterable.
 
-    Args:
-        iterable (Iterable): The iterable of which to generate the power set.
+    Parameters
+    ----------
+    iterable : Iterable
+        The iterable of which to generate the power set.
 
-    Keyword Args:
-        nonempty (boolean): If True, don't include the empty set.
-        reverse (boolean): If True, reverse the order of the powerset.
-        min_size (int | None): Only generate subsets of this size or larger.
-            Defaults to None, meaning no restriction. Overrides ``nonempty``.
-        max_size (int | None): Only generate subsets of this size or smaller.
-            Defaults to None, meaning no restriction.
+    Other Parameters
+    ----------------
+    nonempty : bool
+        If ``True``, do not include the empty set.
+    reverse : bool
+        If ``True``, reverse the order of the power set.
+    min_size : int
+        Only generate subsets of this size or larger (default 0). When greater
+        than 0, this supersedes ``nonempty``.
+    max_size : int or None
+        Only generate subsets of this size or smaller. If ``None`` (the
+        default), the maximum is the length of ``iterable``.
 
-    Returns:
-        Iterable: An iterator over the power set.
+    Returns
+    -------
+    Iterable
+        An iterator over the power set.
 
-    Example:
-        >>> ps = powerset(range(2))
-        >>> list(ps)
-        [(), (0,), (1,), (0, 1)]
-        >>> ps = powerset(range(2), nonempty=True)
-        >>> list(ps)
-        [(0,), (1,), (0, 1)]
-        >>> ps = powerset(range(2), nonempty=True, reverse=True)
-        >>> list(ps)
-        [(1, 0), (1,), (0,)]
-        >>> ps = powerset(range(3), max_size=2)
-        >>> list(ps)
-        [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
-        >>> ps = powerset(range(3), min_size=2)
-        >>> list(ps)
-        [(0, 1), (0, 2), (1, 2), (0, 1, 2)]
-        >>> ps = powerset(range(3), min_size=2, max_size=2)
-        >>> list(ps)
-        [(0, 1), (0, 2), (1, 2)]
+    Examples
+    --------
+    >>> ps = powerset(range(2))
+    >>> list(ps)
+    [(), (0,), (1,), (0, 1)]
+    >>> ps = powerset(range(2), nonempty=True)
+    >>> list(ps)
+    [(0,), (1,), (0, 1)]
+    >>> ps = powerset(range(2), nonempty=True, reverse=True)
+    >>> list(ps)
+    [(1, 0), (1,), (0,)]
+    >>> ps = powerset(range(3), max_size=2)
+    >>> list(ps)
+    [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
+    >>> ps = powerset(range(3), min_size=2)
+    >>> list(ps)
+    [(0, 1), (0, 2), (1, 2), (0, 1, 2)]
+    >>> ps = powerset(range(3), min_size=2, max_size=2)
+    >>> list(ps)
+    [(0, 1), (0, 2), (1, 2)]
     """
     iterable = list(iterable)
 
@@ -290,12 +319,14 @@ def powerset(
 def load_data(directory: str, num: int) -> list[np.ndarray]:
     """Load numpy data from the data directory.
 
-    The files should stored in ``../data/<dir>`` and named
+    The files should be stored in ``../data/<directory>`` and named
     ``0.npy, 1.npy, ... <num - 1>.npy``.
 
-    Returns:
-        list: A list of loaded data, such that ``list[i]`` contains the the
-        contents of ``i.npy``.
+    Returns
+    -------
+    list
+        A list of loaded data, such that ``list[i]`` contains the contents of
+        ``i.npy``.
     """
     root = Path(__file__).parent.resolve()
 
@@ -323,20 +354,28 @@ def extremum_with_short_circuit(
 ) -> object | None:
     """Return the extreme item in ``seq``, optionally short-circuiting early.
 
-    Args:
-        seq (Iterable): Items to evaluate.
-        value_func (callable): Function extracting the value to compare from an
-            item. Defaults to ``lambda item: item.phi``.
-        cmp (callable): Comparison operator used to track the extremum; use
-            ``operator.lt`` for minima or ``operator.gt`` for maxima.
-        initial (float): Initial comparison value for the extremum tracker.
-        shortcircuit_value (float): If ``value_func(item)`` equals this, return
-            the item immediately.
-        shortcircuit_callback (callable | None): Callback invoked when
-            short-circuiting, if provided.
+    Parameters
+    ----------
+    seq : Iterable
+        Items to evaluate.
+    value_func : callable
+        Function extracting the value to compare from an item. Defaults to
+        ``lambda item: item.phi``.
+    cmp : callable
+        Comparison operator used to track the extremum; use ``operator.lt`` for
+        minima or ``operator.gt`` for maxima.
+    initial : float
+        Initial comparison value for the extremum tracker.
+    shortcircuit_value : float
+        If ``value_func(item)`` equals this, return the item immediately.
+    shortcircuit_callback : callable or None
+        Callback invoked when short-circuiting, if provided.
 
-    Returns:
-        object: The item with the extreme value according to ``cmp``.
+    Returns
+    -------
+    object or None
+        The item with the extreme value according to ``cmp``, or ``None`` if
+        ``seq`` is empty.
     """
     extreme_item: object | None = None
     extreme_value: float = initial
@@ -365,7 +404,8 @@ def expsublog(x: float, y: float) -> float:
 def expaddlog(x: float, y: float) -> float:
     """Computes ``x * y`` as ``exp(log(x) + log(y))``.
 
-    Useful for dividing by extremely large denominators.
+    Useful for multiplying extremely large or small factors without overflow
+    or underflow.
 
     See also ``numpy.logaddexp``.
     """
@@ -436,12 +476,17 @@ def all_extrema(
 
     Uses only one pass through ``seq``.
 
-    Args:
-        comparison (callable): A comparison operator.
-        seq (iterator): An iterator over a sequence.
+    Parameters
+    ----------
+    comparison : callable
+        A comparison operator.
+    seq : iterator
+        An iterator over a sequence.
 
-    Returns:
-        list: The maxima/minima in ``seq``.
+    Returns
+    -------
+    list
+        The maxima or minima in ``seq``.
     """
     extrema: list = []
     sentinel = object()

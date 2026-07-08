@@ -65,14 +65,19 @@ _CORE_ASSUMPTIONS = ("binary units", "conditionally independent TPM")
 class UpperBound:
     """An upper bound on an IIT quantity, with its certificate.
 
-    Attributes:
-        value: The bound. An exact ``int`` when the quantity is integral.
-        certified: Whether the bound is theorem-backed for arbitrary
-            systems satisfying ``assumptions``. Non-certified bounds rely
-            on a scenario assumption or an open conjecture and are not
-            valid pruning certificates.
-        assumptions: The assumptions under which the bound holds.
-        citation: Locus in Zaeemzadeh & Tononi (2024), e.g. ``"Eq 6"``.
+    Attributes
+    ----------
+    value : float
+        The bound. An exact ``int`` when the quantity is integral.
+    certified : bool
+        Whether the bound is a theorem that holds for every system
+        satisfying ``assumptions``. A non-certified bound instead relies
+        on a scenario assumption or an open conjecture, so it is not a
+        valid pruning certificate.
+    assumptions : tuple of str
+        The assumptions under which the bound holds.
+    citation : str
+        Locus in Zaeemzadeh & Tononi (2024), e.g. ``"Eq 6"``.
     """
 
     value: float
@@ -251,9 +256,11 @@ def partition_phi_upper_bound(partition: Any) -> UpperBound:
     Lemma 2: phi(m, Z given theta) <= N(theta), the number of connections
     severed by the partition. Holds for any partitioning, valid or not.
 
-    Args:
-        partition: Any partition exposing ``num_connections_cut()``
-            (e.g. :class:`~pyphi.models.partitions.JointPartition`).
+    Parameters
+    ----------
+    partition
+        Any partition exposing ``num_connections_cut()``
+        (e.g. :class:`~pyphi.models.partitions.JointPartition`).
     """
     _require_valid_domain()
     return UpperBound(
@@ -358,15 +365,29 @@ def _phi_e_star(n: int, k: int) -> float:
 def sum_phi_distinctions_upper_bound(n: int, bound: str = "I") -> UpperBound:
     """Upper bound on the sum of distinction phi for a system of n units.
 
-    Bounds:
-        ``"I"`` (Eq 6, certified, not achievable): every mechanism at
+    Parameters
+    ----------
+    n
+        Number of binary units.
+    bound
+        Which bound to compute:
+
+        ``"I"``
+            Eq 6 (certified, not achievable): every mechanism at
             phi = |M| n; equals (n**2 / 2) 2**n.
-        ``"II"`` (Eq 7, conditional): assumes each purview is assigned to
+        ``"II"``
+            Eq 7 (conditional): assumes each purview is assigned to
             exactly one mechanism with matching sizes; equals
             (n (n+1) / 4) 2**n.
-        ``"III"`` (Sec 2.1.3, conjectured): the numerical bound from the
+        ``"III"``
+            Sec 2.1.3 (conjectured): the numerical bound from the
             high-selectivity reflexive construction,
             sum over K of C(n, K) phi*_e(K).
+
+    Raises
+    ------
+    ValueError
+        If ``bound`` is not ``"I"``, ``"II"``, or ``"III"``.
     """
     _require_valid_domain()
     _require_positive(n)
@@ -412,8 +433,10 @@ def _grouped_subset_min_sum(groups: list[tuple[float, int]]) -> float:
     has total weight 2**after (2**m - 1) - m. The computation is exact
     (arbitrary-precision int) when the ratios are ints.
 
-    Args:
-        groups: ``(ratio, multiplicity)`` pairs; order irrelevant.
+    Parameters
+    ----------
+    groups
+        ``(ratio, multiplicity)`` pairs; order irrelevant.
     """
     groups = sorted(groups)
     total_count = sum(multiplicity for _, multiplicity in groups)
@@ -592,15 +615,27 @@ def _candidate_partitions(n: int, k: int):
 def report(n: int | None = None, substrate: Substrate | None = None) -> dict[str, Any]:
     """All size-based bounds for a system of n binary units, in one call.
 
-    Args:
-        n: Number of binary units. Mutually exclusive with ``substrate``.
-        substrate: A substrate whose size is used; its alphabet must be
-            binary.
+    Exactly one of ``n`` or ``substrate`` must be given.
 
-    Returns:
+    Parameters
+    ----------
+    n
+        Number of binary units. Mutually exclusive with ``substrate``.
+    substrate
+        A substrate whose size is used; its alphabet must be binary.
+
+    Returns
+    -------
+    dict
         Mapping from flat keys (e.g. ``"sum_phi_distinctions:I"``,
         ``"big_phi:GENERAL"``) to :class:`UpperBound` values, plus the
         ``int``-valued counting entries.
+
+    Raises
+    ------
+    ValueError
+        If neither or both of ``n`` and ``substrate`` are given, or if
+        ``substrate`` has any non-binary unit.
     """
     if (n is None) == (substrate is None):
         raise ValueError("provide exactly one of n or substrate")

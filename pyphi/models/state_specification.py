@@ -76,6 +76,33 @@ class UnitState(Displayable, ToPandasMixin):
 
 @dataclass(repr=False)
 class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
+    """The state of a purview that a mechanism maximally specifies in one
+    direction, together with the intrinsic information of that specification.
+
+    Attributes
+    ----------
+    direction : Direction
+        Whether the purview state is specified in the cause or effect
+        direction.
+    purview : tuple[int, ...]
+        The purview node indices whose state is specified.
+    state : tuple[int, ...]
+        The specified purview state: the state that maximizes the intrinsic
+        information over ``purview``.
+    intrinsic_information : PyPhiFloat or DistanceResult
+        The intrinsic information of the specified state.
+    repertoire : ArrayLike
+        The constrained cause or effect repertoire over ``purview``.
+    unconstrained_repertoire : ArrayLike
+        The unconstrained repertoire over ``purview`` (the repertoire under
+        maximum uncertainty about the mechanism).
+    runner_up_state : tuple[int, ...] or None
+        The best competing purview state, if any.
+    runner_up_intrinsic_information : PyPhiFloat or DistanceResult or None
+        The intrinsic information of ``runner_up_state``; ``None`` when there
+        was no competing state.
+    """
+
     direction: Direction
     purview: tuple[int, ...]
     state: tuple[int, ...]
@@ -196,9 +223,9 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
 
 class DistinctionPhiNormalizationRegistry(Registry):
-    """Storage for distinction |small_phi| normalizations."""
+    """Storage for distinction φ normalizations."""
 
-    desc = "functions for normalizing distinction |small_phi| values"
+    desc = "functions for normalizing distinction φ values"
 
 
 distinction_phi_normalizations = DistinctionPhiNormalizationRegistry()

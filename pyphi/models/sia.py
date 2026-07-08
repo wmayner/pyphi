@@ -35,33 +35,39 @@ from .partitions import concise_partition
 class IIT3SystemIrreducibilityAnalysis(
     HasProvenance, Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable
 ):
-    """An analysis of system irreducibility (|big_phi|).
+    """An analysis of system irreducibility (Φ).
 
-    Contains the |big_phi| value of the :class:`~pyphi.system.System` and the
+    Contains the Φ value of the :class:`~pyphi.system.System` and the
     intermediate results obtained in the course of computing it.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |big_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the one with the larger system is greater.
+    ``>``, etc.). Ordering is by :meth:`order_by`: Φ values are compared first
+    (up to the configured numerical precision); ties are then broken by the
+    minimum-information partition's lexicographic key.
 
-    Attributes:
-        phi (float): The |big_phi| value for the system, *i.e.* the distance
-            between the unpartitioned and partitioned cause-effect structures
-            under the minimum-information partition.
-        distinctions (Distinctions): The cause-effect structure of the
-            unpartitioned system, computed in the course of the |big_phi|
-            analysis. ``None`` when the analysis short-circuited to zero
-            |big_phi| before the cause-effect structure was computed (*e.g.*
-            the system is not strongly connected); retrieve it via
-            :func:`pyphi.formalism.iit3.ces` in that case.
-        partitioned_distinctions (Distinctions): The cause-effect structure
-            when the system is partitioned according to the MIP.
-        partition (DirectedBipartition): The minimum-information partition.
-        node_indices (tuple[int, ...]): Indices of the nodes the analysis
-            was computed over.
-        node_labels (NodeLabels): Labels corresponding to ``node_indices``.
-        current_state (tuple[int, ...]): The system state at the time of
-            analysis.
+    Attributes
+    ----------
+    phi : float
+        The Φ value for the system, i.e. the distance between the
+        unpartitioned and partitioned cause-effect structures under the
+        minimum-information partition.
+    distinctions : Distinctions
+        The cause-effect structure of the unpartitioned system, computed in
+        the course of the Φ analysis. ``None`` when the analysis
+        short-circuited to zero Φ before the cause-effect structure was
+        computed (e.g. the system is not strongly connected); retrieve it via
+        :func:`pyphi.formalism.iit3.ces` in that case.
+    partitioned_distinctions : Distinctions
+        The cause-effect structure when the system is partitioned according to
+        the MIP.
+    partition : DirectedBipartition
+        The minimum-information partition.
+    node_indices : tuple[int, ...]
+        Indices of the nodes the analysis was computed over.
+    node_labels : NodeLabels
+        Labels corresponding to ``node_indices``.
+    current_state : tuple[int, ...]
+        The system state at the time of analysis.
     """
 
     phi: float  # Override parent to allow None during init
@@ -239,9 +245,7 @@ class IIT3SystemIrreducibilityAnalysis(
         return utils.eq(self.phi, other.phi)
 
     def __bool__(self):
-        """A |SystemIrreducibilityAnalysis| is ``True`` if it has
-        |big_phi > 0|.
-        """
+        """A SystemIrreducibilityAnalysis is ``True`` if it has Φ > 0."""
         return not utils.eq(self.phi, 0)
 
     def __hash__(self) -> int:

@@ -14,8 +14,11 @@ from numpy.typing import NDArray
 class TPM(Protocol):
     """Structural protocol satisfied by every PyPhi TPM.
 
-    Implementations: :class:`pyphi.core.tpm.joint.JointTPM` (joint
-    ndarray storage).
+    Implementations include :class:`pyphi.core.tpm.joint.JointTPM` (dense
+    joint-distribution storage) and
+    :class:`pyphi.core.tpm.factored.FactoredTPM` (per-node factored storage).
+    Being :func:`~typing.runtime_checkable`, ``isinstance(x, TPM)`` tests for
+    the presence of these members.
     """
 
     @property

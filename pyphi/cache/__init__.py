@@ -50,20 +50,31 @@ def cache(
     maxmem: int | None = config.infrastructure.maximum_cache_memory_percentage,
     typed: bool = False,
 ):
-    """Memory-limited cache decorator.
-
-    ``maxmem`` is a float between 0 and 100, inclusive, specifying the maximum
-    percentage of physical memory that the cache can use. Can be None for unlimited.
-
-    If ``typed`` is ``True``, arguments of different types will be cached
-    separately. For example, f(3.0) and f(3) will be treated as distinct calls
-    with distinct results.
+    """Memory-limited memoization decorator.
 
     Arguments to the cached function must be hashable.
 
-    View the cache statistics named tuple (hits, misses, currsize)
-    with f.cache_info(). Clear the cache and statistics with f.cache_clear().
-    Access the underlying function with f.__wrapped__.
+    Parameters
+    ----------
+    cache : dict, optional
+        Backing store for cached results. A fresh empty dict is created when
+        omitted; passing one shares the store across decorated functions.
+    maxmem : float or None, optional
+        Maximum percentage of physical memory the cache may use, between 0 and
+        100 inclusive. ``None`` (or 0) means unlimited. Once the process
+        exceeds this fraction of memory, no new entries are stored, though
+        entries already cached are still served.
+    typed : bool, optional
+        If ``True``, arguments of different types are cached separately: for
+        example, ``f(3.0)`` and ``f(3)`` are treated as distinct calls with
+        distinct results. Defaults to ``False``.
+
+    Notes
+    -----
+    The decorated function exposes ``cache_info()``, which returns a
+    ``(hits, misses, currsize)`` named tuple; ``cache_clear()``, which empties
+    the cache and resets its statistics; and ``__wrapped__``, the underlying
+    function.
     """
     # Constants shared by all lru cache instances:
     # Unique object used to signal cache misses.
@@ -205,10 +216,23 @@ class DictCache:
     # TODO: handle **kwarg keys if needed
     # See joblib.func_inspect.filter_args
     def key(self, *args, _prefix=None, **kwargs):
-        """Get the cache key for the given function args.
+        """Build the cache key for the given function arguments.
 
-        Kwargs:
-           prefix: A constant to prefix to the key.
+        The key is the tuple ``(_prefix, *args)``.
+
+        Parameters
+        ----------
+        *args
+            Positional arguments to the cached method, used as the tail of
+            the key.
+        _prefix : optional
+            A constant placed at the head of the key. Defaults to ``None``.
+
+        Raises
+        ------
+        NotImplementedError
+            If any keyword arguments are passed; keyword-argument keys are
+            not supported.
         """
         if kwargs:
             raise NotImplementedError("kwarg cache keys not implemented")
@@ -225,14 +249,24 @@ def validate_parent_cache(parent_cache):
 def method(cache_name, key_prefix=None):
     """Caching decorator for object-level method caches.
 
-    Cache key generation is delegated to the cache.
+    Key generation is delegated to the named cache's ``key`` method, and the
+    result is stored via its ``set`` method on a miss. A returned value of
+    ``None`` from ``cache.get`` is treated as a miss.
 
-    Args:
-        cache_name (str): The name of the (already-instantiated) cache
-            on the decorated object which should be used to store results
-            of this method.
-        *key_prefix: A constant to use as part of the cache key in addition
-            to the method arguments.
+    Parameters
+    ----------
+    cache_name : str
+        Name of an attribute on the decorated object holding an
+        already-instantiated cache, used to store results of this method.
+    key_prefix : optional
+        A constant folded into the cache key alongside the method arguments.
+        Defaults to ``None``.
+
+    Notes
+    -----
+    If ``config.infrastructure.cache_repertoires`` is false and the wrapped
+    function's name contains ``"repertoire"``, the decorator returns the
+    function unwrapped, so repertoire computations are not cached.
     """
 
     def decorator(func):

@@ -104,11 +104,11 @@ def _repertoire_table(
 class RepertoireIrreducibilityAnalysis(
     Displayable, cmp.OrderableByPhi, ToDictFromExplicitAttrsMixin, ToPandasMixin
 ):
-    """An analysis of the irreducibility (|small_phi|) of a mechanism over a
-    purview, for a given partition, in one temporal direction.
+    """An analysis of the irreducibility (φ) of a mechanism over a purview,
+    for a given partition, in one temporal direction.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). Comparison is based on |small_phi| value, then mechanism size.
+    ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
     """
 
     _phi: PyPhiFloat
@@ -204,19 +204,20 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def phi(self) -> PyPhiFloat:  # type: ignore[override]
-        """PyPhiFloat: Canonical |small_phi| value (``|·|+`` clamped).
+        """PyPhiFloat: Canonical φ value (``|·|+`` clamped).
 
         This is ``positive_part(signed_phi)`` — the integrated information
-        value with the ``|·|+`` operator applied (Eqs. 19-20 of the IIT 4.0
-        paper). Always non-negative. For the raw value before clamping
-        (which may be negative under preventative-cause semantics), see
-        ``signed_phi``.
+        value with the ``|·|+`` positive-part operator applied. That operator
+        is defined in Albantakis et al. (2023), Eqs. 19-20, where it sets
+        negative integrated-information values to zero. Always non-negative.
+        For the raw value before clamping (which may be negative under
+        preventative-cause semantics), see ``signed_phi``.
         """
         return self._phi
 
     @property
     def signed_phi(self) -> PyPhiFloat | DistanceResult:
-        """The raw |small_phi| before the ``|·|+`` clamp.
+        """The raw φ before the ``|·|+`` clamp.
 
         When negative, flags preventative-cause structure that the
         clamped ``phi`` hides. Surfaced for diagnostic inspection of
@@ -226,17 +227,17 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def normalized_phi(self):
-        """float: Canonical normalized |small_phi| (``|·|+`` clamped)."""
+        """float: Canonical normalized φ (``|·|+`` clamped)."""
         return self._normalized_phi
 
     @property
     def signed_normalized_phi(self):
-        """float: Raw normalized |small_phi| before the ``|·|+`` clamp."""
+        """float: Raw normalized φ before the ``|·|+`` clamp."""
         return self._signed_normalized_phi
 
     @property
     def direction(self):
-        """Direction: |CAUSE| or |EFFECT|."""
+        """Direction: CAUSE or EFFECT."""
         return self._direction
 
     @property
@@ -260,14 +261,12 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def purview(self):
-        """tuple[int]: The purview over which the the mechanism was
-        analyzed.
-        """
+        """tuple[int]: The purview over which the mechanism was analyzed."""
         return self._purview
 
     @property
     def purview_label(self):
-        """tuple[str]: The labels of the mechanism nodes."""
+        """tuple[str]: The labels of the purview nodes."""
         assert self.node_labels is not None
         return self.node_labels.label_string(
             self.purview,
@@ -327,7 +326,7 @@ class RepertoireIrreducibilityAnalysis(
         return tuple(findings)
 
     def explain(self) -> Explanation:
-        """A typed account of why this |small_phi| value came out as it did."""
+        """A typed account of why this φ value came out as it did."""
         return Explanation(
             subject=f"φ = {format_value(self.phi)}",
             level="mechanism",
@@ -425,7 +424,7 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def node_labels(self):
-        """|NodeLabels| for this system."""
+        """NodeLabels for this system."""
         return self._node_labels
 
     def __eq__(self, other: object) -> bool:  # noqa: PLR0911
@@ -445,9 +444,7 @@ class RepertoireIrreducibilityAnalysis(
         return cmp.numpy_aware_eq(self.repertoire, other.repertoire)
 
     def __bool__(self):
-        """A |RepertoireIrreducibilityAnalysis| is ``True`` if it has
-        |small_phi > 0|.
-        """
+        """A RepertoireIrreducibilityAnalysis is ``True`` if it has φ > 0."""
         return utils.is_positive(self.phi)
 
     def __hash__(self) -> int:

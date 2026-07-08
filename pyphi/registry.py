@@ -23,10 +23,12 @@ class Registry[T](Mapping[str, Callable[..., Any]]):
         self.store: dict[str, Callable[..., T]] = {}
 
     def register(self, name: str) -> Callable[[Callable[..., T]], Callable[..., T]]:
-        """Decorator for registering a function with PyPhi.
+        """Return a decorator that registers a function under ``name``.
 
-        Args:
-            name (string): The name of the function
+        Parameters
+        ----------
+        name : str
+            The name to register the function under.
         """
 
         def register_func(func: Callable[..., T]) -> Callable[..., T]:

@@ -1,9 +1,9 @@
 """YAML I/O for the layered config system.
 
-The 2.0 nested format groups options under three top-level keys
-(``formalism``, ``infrastructure``, ``numerics``). The legacy 1.x flat
-format (uppercase top-level keys) is detected and rejected with a
-pointer to the rename map.
+The nested format groups options under three top-level keys
+(``formalism``, ``infrastructure``, ``numerics``). A flat format with
+uppercase top-level keys is detected and rejected with a pointer to the
+rename map.
 """
 
 from __future__ import annotations
@@ -21,9 +21,17 @@ KNOWN_LAYERS = frozenset({"formalism", "infrastructure", "numerics"})
 def load_yaml(path: str | Path) -> dict[str, dict[str, Any]]:
     """Load a nested-format YAML config file.
 
-    Raises :class:`ConfigurationError` if the file uses the old 1.x flat
-    format (any uppercase top-level keys) or if any unrecognized
-    top-level key is present.
+    Returns
+    -------
+    dict[str, dict[str, Any]]
+        The parsed top-level layer sections, keyed by layer name.
+
+    Raises
+    ------
+    ConfigurationError
+        If the file does not parse to a dict, uses the flat format with
+        uppercase top-level keys, or contains a top-level key outside
+        ``formalism`` / ``infrastructure`` / ``numerics``.
     """
     with open(path) as f:
         data = yaml.safe_load(f)

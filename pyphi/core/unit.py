@@ -9,10 +9,18 @@ from dataclasses import dataclass
 class Unit:
     """An atomic node in a substrate.
 
-    Holds the node's index, label, and alphabet size (number of distinct
-    states the node can take). Alphabet size defaults to 2 (binary). Math
-    operations against ``Unit`` are parameterized by ``alphabet_size``;
-    multi-valued substrates pass non-2 values.
+    An immutable, hashable value holding the node's index, label, and
+    alphabet size (the number of distinct states the node can take).
+
+    Attributes
+    ----------
+    index : int
+        The node's position within its substrate.
+    label : str
+        The node's display name.
+    alphabet_size : int
+        The number of distinct states the node can take. Defaults to 2
+        (binary); multi-valued substrates use larger sizes.
     """
 
     index: int

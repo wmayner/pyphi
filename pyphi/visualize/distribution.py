@@ -111,18 +111,50 @@ def plot_distribution(
     labels=None,
     **kwargs,
 ):
-    """Plot a distribution over states.
+    """Plot one or more distributions over states.
 
-    Arguments:
-        d (array_like): The distribution. If no states are provided, must
-            have length equal to a power of 2. Multidimensional distributions
-            are flattened with ``pyphi.distribution.flatten()``.
+    Distributions with at most ``lineplot_threshold`` states are drawn as a bar
+    panel; larger ones are drawn as a line plot.
 
-    Keyword Arguments:
-        states (Iterable | None): The states corresponding to the
-            probabilities in the distribution; if ``None``, infers states from
-            the length of the distribution and assumes little-endian ordering.
-        **kwargs: Passed to ``sb.barplot()``.
+    Parameters
+    ----------
+    *distributions : array_like
+        The distributions to plot. If no states are provided, each must have
+        length equal to a power of 2. Multidimensional distributions are
+        flattened with :func:`pyphi.distribution.flatten`.
+    states : Iterable or None, optional
+        The states corresponding to the probabilities; if ``None``, states are
+        inferred from the length of the distribution assuming little-endian
+        bit-string ordering.
+    label : str or None, optional
+        State-space label drawn beneath the bar panel. Defaults to the unit
+        names (``A``, ``B``, ...) inferred alongside bit-string states.
+    figsize : tuple of float, optional
+        Figure size, used only when a new figure is created.
+    fig : matplotlib.figure.Figure or None, optional
+        Existing figure to draw into.
+    ax : matplotlib.axes.Axes or None, optional
+        Existing axes to draw into.
+    lineplot_threshold : int, optional
+        Above this many states, the distribution is drawn as a line plot rather
+        than a bar plot.
+    title : str or None, optional
+        Axes title.
+    y_label : str, optional
+        Y-axis label.
+    validate : bool, optional
+        If true, check that each distribution sums to 1 and that their indices
+        match.
+    labels : list of str or None, optional
+        Series labels shown in the legend; default is the series index.
+    **kwargs
+        Passed to :func:`seaborn.barplot` (or :func:`seaborn.lineplot` above
+        ``lineplot_threshold``).
+
+    Returns
+    -------
+    tuple
+        The matplotlib figure and axes.
     """
     data, default_label = _distribution_frame(
         distributions,

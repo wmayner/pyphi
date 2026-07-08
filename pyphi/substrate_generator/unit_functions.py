@@ -38,18 +38,35 @@ def naka_rushton(element, weights, state, exponent=2.0, threshold=1.0, **kwargs)
 
 
 def boolean_function(element, weights, state, on_inputs=(), **kwargs):
-    """An arbitrary boolean function.
+    """An arbitrary boolean function of the element's inputs.
 
-    Arguments:
-        element (int): The index of the element whose output is being computed.
-        weights (np.ndarray): The weight matrix.
-        state (np.ndarray): The state of the substrate.
+    The element is ON exactly when the tuple of its (weighted) input states is
+    one of ``on_inputs``. All weights must be 0 or 1.
 
-    Keyword Arguments:
-        on_inputs (tuple): The input states that return True.
+    Parameters
+    ----------
+    element : int
+        Index of the element whose output is being computed.
+    weights : numpy.ndarray
+        The weight matrix (entries restricted to 0 or 1).
+    state : numpy.ndarray
+        The state of the substrate.
+    on_inputs : tuple of tuple, optional
+        The input patterns for which the element is ON. All patterns must have
+        the same length, which must equal the number of nonzero input weights.
 
-    Returns:
-        bool: The output of the element.
+    Returns
+    -------
+    bool
+        The output of the element.
+
+    Raises
+    ------
+    NotImplementedError
+        If any weight is neither 0 nor 1.
+    ValueError
+        If the ``on_inputs`` patterns differ in length, or their length does not
+        match the number of nonzero input weights.
     """
     if np.any((weights != 1) & (weights != 0)):
         raise NotImplementedError("weights must be 0 or 1")

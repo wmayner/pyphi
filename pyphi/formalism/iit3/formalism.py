@@ -78,9 +78,13 @@ class IIT3Formalism:
         **kwargs: Any,
     ) -> Any:
         """Internal mechanism-MIP search. Called by ``queries.find_mip``
-        after its short-circuit checks. IIT 3.0 has no candidate
-        specified-states phase — there's a single, unique MIP per
-        (mechanism, purview), found by minimizing over partitions.
+        after its short-circuit checks.
+
+        Unlike IIT 4.0, IIT 3.0 has no candidate specified-state phase: a
+        single search over the mechanism partitions minimizes φ for the fixed
+        (mechanism, purview) pair. Passing ``state`` therefore raises
+        :class:`ValueError`. Partitions that tie on minimum φ are resolved by
+        :mod:`pyphi.resolve_ties`.
         """
         from pyphi.formalism.queries import (
             _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]

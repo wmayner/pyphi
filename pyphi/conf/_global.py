@@ -14,8 +14,8 @@ or :meth:`override` for scoped changes; wholesale layer replacement
 replacement (``config.iit = IITConfig(mechanism_phi_measure="EMD")``) are
 also supported.
 
-Legacy uppercase access (``config.PRECISION``) is preserved as syntax
-sugar — names are case-folded and routed to the appropriate layer.
+Uppercase access (``config.PRECISION``) is accepted as syntax sugar —
+names are case-folded and routed to the appropriate layer.
 
 Field names that collide between the formalism's IIT and AC
 sub-namespaces (e.g. ``version``, ``mechanism_partition_scheme``) are
@@ -197,7 +197,7 @@ class _GlobalConfig:
         Returns a :class:`contextlib.ContextDecorator` — usable as
         ``with config.override(...):`` or ``@config.override(...)``.
 
-        Accepts flat layered names (``precision=6``), legacy uppercase names
+        Accepts flat layered names (``precision=6``), uppercase names
         (``PRECISION=6``), and dotted paths via the positional mapping or
         kwargs (``override({"iit.version": "IIT_3_0"})`` or
         ``override(**{"iit.version": "IIT_3_0"})``). Dotted paths accept the
@@ -210,7 +210,7 @@ class _GlobalConfig:
         return _OverrideContext(self, merged)
 
     def load_yaml(self, path: str | Path) -> None:
-        """Load a 2.0 nested-format YAML config file.
+        """Load a nested-format YAML config file.
 
         Top-level ``infrastructure`` / ``numerics`` leaves are written by
         flat name. ``formalism`` is loaded from its nested ``iit`` and
@@ -243,7 +243,7 @@ class _GlobalConfig:
             raise
 
     def to_yaml(self, path: str | Path) -> None:
-        """Write the current config in 2.0 nested-format YAML."""
+        """Write the current config as nested-format YAML."""
         with open(path, "w") as f:
             yaml.safe_dump(self._as_nested_dict(), f, sort_keys=False)
 

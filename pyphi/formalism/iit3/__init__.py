@@ -61,20 +61,27 @@ def concept(
 ) -> Concept:
     """Return the IIT 3.0 concept specified by a mechanism.
 
-    Args:
-        system (System): The system the mechanism belongs to.
-        mechanism (tuple[int]): The mechanism for which to determine the
-            concept.
+    A concept pairs the mechanism's maximally irreducible cause (its MIC) with
+    its maximally irreducible effect (its MIE). The empty mechanism specifies
+    the null concept.
 
-    Keyword Args:
-        purviews (tuple[tuple[int]]): A list of purviews to consider.
-        cause_purviews (tuple[tuple[int]]): A list of cause purviews to
-            consider, overriding ``purviews``.
-        effect_purviews (tuple[tuple[int]]): A list of effect purviews to
-            consider, overriding ``purviews``.
+    Parameters
+    ----------
+    system : System
+        The system the mechanism belongs to.
+    mechanism : tuple[int]
+        The mechanism for which to determine the concept.
+    purviews : tuple[tuple[int]], optional
+        A list of purviews to consider.
+    cause_purviews : tuple[tuple[int]], optional
+        A list of cause purviews to consider, overriding ``purviews``.
+    effect_purviews : tuple[tuple[int]], optional
+        A list of effect purviews to consider, overriding ``purviews``.
 
-    Returns:
-        Concept: The concept of the given mechanism.
+    Returns
+    -------
+    Concept
+        The concept of the given mechanism.
     """
     from pyphi.core import repertoire_algebra as _ra
     from pyphi.formalism.queries import mic
@@ -105,27 +112,40 @@ def _compute_distinctions(
     """Compute the bag of distinctions for a system, restricted by the
     given mechanism / purview / direction filters.
 
-    Args:
-        system (System): The system for which to determine the
-            :class:`~pyphi.models.distinctions.Distinctions`.
+    Concepts are computed over the mechanisms via
+    :func:`pyphi.parallel.map_reduce`, so the ``parallel`` keyword and the
+    other keys of ``config.infrastructure.parallel_concept_evaluation`` govern
+    the work.
 
-    Keyword Args:
-        mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
-            in this list.
-        purviews (tuple[tuple[int]]): Same as in :func:`pyphi.formalism.iit3.concept`.
-        cause_purviews (tuple[tuple[int]]): Same as in
-            :func:`pyphi.formalism.iit3.concept`.
-        effect_purviews (tuple[tuple[int]]): Same as in
-            :func:`pyphi.formalism.iit3.concept`.
-        parallel (bool): Whether to compute concepts in parallel. If ``True``,
-            overrides :data:`config.infrastructure.parallel_concept_evaluation`.
-        directions (Iterable[Direction]): Restrict possible directions to these.
-        only_positive_phi (bool): Whether to only return concepts with positive
-            phi.
+    Parameters
+    ----------
+    system : System
+        The system for which to determine the
+        :class:`~pyphi.models.distinctions.Distinctions`.
+    mechanisms : tuple[tuple[int]], optional
+        Restrict possible mechanisms to those in this list. If ``None``, the
+        non-empty powerset of system nodes is used.
+    purviews : tuple[tuple[int]], optional
+        Same as in :func:`pyphi.formalism.iit3.concept`.
+    cause_purviews : tuple[tuple[int]], optional
+        Same as in :func:`pyphi.formalism.iit3.concept`.
+    effect_purviews : tuple[tuple[int]], optional
+        Same as in :func:`pyphi.formalism.iit3.concept`.
+    directions : Iterable[Direction], optional
+        Restrict possible directions to these.
+    only_positive_phi : bool
+        Whether to only return concepts with positive φ (default ``True``).
+    parallel : bool, optional
+        Whether to compute concepts in parallel. If given, overrides
+        :data:`config.infrastructure.parallel_concept_evaluation`.
 
-    Returns:
-        Distinctions: A tuple of every |Concept| in the cause-effect
-        structure.
+    Returns
+    -------
+    Distinctions
+        An :class:`~pyphi.models.UnresolvedDistinctions` over the surviving
+        concepts. It is unresolved because the active formalism's MICE search
+        may return tied specified states; IIT 3.0 callers route through
+        ``ces_distance``, which accepts the base distinctions unchanged.
     """
     total = None
     if mechanisms is None:
@@ -239,15 +259,24 @@ def evaluate_partition(
 ) -> IIT3SystemIrreducibilityAnalysis:
     """Compute the system irreducibility for a given partition.
 
-    Args:
-        unpartitioned_system (System): The system without a partition applied.
-        partition (DirectedBipartition): The partition to evaluate.
-        unpartitioned_ces (Distinctions): The cause-effect structure of
-            the unpartitioned system.
+    The partition is applied to the system, the partitioned system's
+    distinctions are computed, and φ is the CES distance
+    (:func:`pyphi.measures.ces.ces_distance`) between the unpartitioned and
+    partitioned distinctions.
 
-    Returns:
-        IIT3SystemIrreducibilityAnalysis: The |big_phi| analysis for
-        that partition.
+    Parameters
+    ----------
+    partition : DirectedBipartition
+        The partition to evaluate.
+    unpartitioned_system : System
+        The system without a partition applied.
+    unpartitioned_ces : Distinctions
+        The cause-effect structure of the unpartitioned system.
+
+    Returns
+    -------
+    IIT3SystemIrreducibilityAnalysis
+        The Φ analysis for that partition.
     """
     log.debug("Evaluating %s...", partition)
 
@@ -283,19 +312,32 @@ def evaluate_partition(
 def sia_partitions(
     nodes: tuple[int, ...], node_labels: NodeLabels | None = None
 ) -> list[DirectedBipartition]:
-    """Return all |big_phi| cuts for the given nodes.
+    """Return all Φ cuts for the given nodes.
 
-    Controlled by the :const:`config.formalism.iit.system_partition_scheme` option.
+    The scheme is chosen by the
+    :const:`config.formalism.iit.system_partition_scheme` option, which for IIT
+    3.0 must be one of the schemes in
+    :attr:`IIT3Formalism.compatible_system_partition_schemes`
+    (``DIRECTED_BIPARTITION`` or ``DIRECTED_BIPARTITION_CUT_ONE``); any other
+    value raises :class:`ValueError`.
 
-    Arguments:
-        nodes (tuple[int]): The node indices to partition.
+    Parameters
+    ----------
+    nodes : tuple[int]
+        The node indices to partition.
+    node_labels : NodeLabels, optional
+        Enables printing the partition with labels.
 
-    Keyword Arguments:
-        node_labels (NodeLabels): Enables printing the partition with labels.
+    Returns
+    -------
+    list[DirectedBipartition]
+        All unidirectional partitions.
 
-    Returns:
-        list[DirectedBipartition]: All unidirectional partitions.
-
+    Raises
+    ------
+    ValueError
+        If the configured system partition scheme is not compatible with IIT
+        3.0.
     """
     # TODO(4.0 consolidate 3.0 and 4.0 cuts)
     scheme = config.formalism.iit.system_partition_scheme
@@ -368,13 +410,24 @@ def _sia_map_reduce(
 def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
     """Return the minimal information partition of a system.
 
-    Args:
-        system (System): The candidate set of nodes.
+    Φ is necessarily zero, and a null analysis is returned immediately, when the
+    system is empty, is not strongly connected, or is a single micro element
+    with no self-loop (or with a self-loop but
+    ``config.formalism.iit.single_micro_nodes_with_selfloops_have_phi`` unset).
+    Otherwise the unpartitioned distinctions are computed once, every system
+    partition is evaluated, and the partition of minimum φ is selected.
 
-    Returns:
-        IIT3SystemIrreducibilityAnalysis: A nested structure containing all the
-        data from the intermediate calculations. The top level contains the
-        basic irreducibility information for the given system.
+    Parameters
+    ----------
+    system : System
+        The candidate set of nodes.
+
+    Returns
+    -------
+    IIT3SystemIrreducibilityAnalysis
+        A nested structure containing all the data from the intermediate
+        calculations. The top level contains the basic irreducibility
+        information for the given system.
     """
     # pylint: disable=unused-argument
 
@@ -470,5 +523,5 @@ sia = _sia
 
 
 def phi(system: System) -> float:
-    """Return the |big_phi| value of a system."""
+    """Return the Φ value of a system."""
     return sia(system).phi

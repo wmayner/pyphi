@@ -164,7 +164,7 @@ class SystemIrreducibilityAnalysis(
     ``phi`` is the non-negative integrated-information value defined by
     Eqs. 19-20 (the ``|·|+`` operator applied to the raw integration).
     ``signed_phi`` is the raw value before clamping; when negative, it
-    flags "preventative cause" structure that the clamp hides. Construction
+    indicates preventative causation that the clamp hides. Construction
     accepts the signed value as ``phi`` and ``__post_init__`` writes the
     clamped value to ``phi`` while preserving the raw value on
     ``signed_phi``. ``normalized_phi`` and ``signed_normalized_phi``
@@ -324,7 +324,7 @@ class SystemIrreducibilityAnalysis(
         )
 
     def __bool__(self):
-        """Whether |big_phi > 0|."""
+        """Whether φ_s > 0."""
         return utils.is_positive(self.phi)
 
     def __hash__(self) -> int:

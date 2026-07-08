@@ -51,34 +51,40 @@ def greater_than_zero(alpha):
 
 
 class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMixin):
-    """A minimum information partition for ac_coef calculation.
+    """The irreducibility analysis of an actual cause or effect.
 
+    Holds the minimum information partition of a mechanism over a purview and
+    the resulting α, the integrated cause or effect information (Albantakis
+    et al. 2019, Eqs. 15-16): how much more the occurrence specifies about its
+    actual cause or effect than it does under that partition.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
-    up to |PRECISION|, the size of the mechanism is compared.
+    ``>``, etc.). The ordering key is ``(α, mechanism size, -purview size)``,
+    so α is compared first, ties are broken toward the larger mechanism, and
+    remaining ties toward the smaller purview.
 
-    Attributes:
-        alpha (float):
-            This is the difference between the mechanism's unpartitioned and
-            partitioned actual probability.
-        state (tuple[int]):
-            state of system in specified direction (cause, effect)
-        direction (str):
-            The temporal direction specifiying whether this analysis should be
-            calculated with cause or effect repertoires.
-        mechanism (tuple[int]):
-            The mechanism to analyze.
-        purview (tuple[int]):
-            The purview over which the unpartitioned actual probability differs
-            the least from the actual probability of the partition.
-        partition (tuple[Part, Part]):
-            The partition that makes the least difference to the mechanism's
-            repertoire.
-        probability (float):
-            The probability of the state in the previous/next timestep.
-        partitioned_probability (float):
-            The probability of the state in the partitioned repertoire.
+    Attributes
+    ----------
+    alpha : float
+        α, the integrated cause or effect information. Derived from the
+        unpartitioned and partitioned actual probabilities via the configured
+        ``alpha_measure``.
+    state : tuple[int, ...]
+        The state of the mechanism in the specified temporal direction.
+    direction : Direction
+        Whether this analysis is computed with cause or effect repertoires.
+    mechanism : tuple[int, ...]
+        The mechanism analyzed.
+    purview : tuple[int, ...]
+        The purview over which the unpartitioned actual probability differs
+        the least from the actual probability under the partition.
+    partition : JointPartition or None
+        The minimum information partition of the mechanism over the purview
+        (``None`` for a null analysis).
+    probability : float
+        The unpartitioned actual probability of the purview state.
+    partitioned_probability : float
+        The actual probability of the purview state under the partition.
     """
 
     def __init__(
@@ -122,7 +128,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
     def partition_ties(
         self,
     ) -> tuple[AcRepertoireIrreducibilityAnalysis, ...] | None:
-        """Tuple of AcRIAs tied with this one at the cascade's min |alpha|
+        """Tuple of AcRIAs tied with this one at the cascade's minimum α
         level over the MIP search, or ``None`` if no tie."""
         return self._partition_ties
 
@@ -165,18 +171,18 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
         return utils.eq(self.probability, other.probability)
 
     def __bool__(self):
-        """An |AcRepertoireIrreducibilityAnalysis| is ``True`` if it has
-        |alpha > 0|.
+        """An :class:`AcRepertoireIrreducibilityAnalysis` is ``True`` if it has
+        α > 0.
         """
         return greater_than_zero(self.alpha)
 
     @property
     def phi(self):
-        """Alias for |alpha| for PyPhi utility functions."""
+        """Alias for α for PyPhi utility functions."""
         return self.alpha
 
     def explain(self) -> Explanation:
-        """A typed account of why this actual cause/effect link's |alpha| came
+        """A typed account of why this actual cause/effect link's α came
         out as it did."""
         findings = [
             Finding(kind="null_result", label="Null result", value=reason)
@@ -193,7 +199,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
                 )
             )
         return Explanation(
-            subject=f"α = {format_value(self.alpha)}",  # noqa: RUF001
+            subject=f"α = {format_value(self.alpha)}",
             level="mechanism",
             findings=tuple(findings),
         )
@@ -220,7 +226,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
             sections=(
                 Section(
                     rows=(
-                        Row("α", self.alpha),  # noqa: RUF001
+                        Row("α", self.alpha),
                         Row(
                             "Direction",
                             str(self.direction),
@@ -236,7 +242,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
                 ),
             ),
             compact=(
-                f"{cls}(α={format_value(self.alpha)}, "  # noqa: RUF001
+                f"{cls}(α={format_value(self.alpha)}, "
                 f"{self.direction}, {mechanism_str}→{purview_str})"
             ),
         )
@@ -265,8 +271,10 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
     """A maximally irreducible actual cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
-    up to |PRECISION|, the size of the mechanism is compared.
+    ``>``, etc.), using the same ordering key as the underlying
+    :class:`AcRepertoireIrreducibilityAnalysis`: α is compared first, ties are
+    broken toward the larger mechanism, and remaining ties toward the smaller
+    purview.
     """
 
     def __init__(
@@ -295,12 +303,12 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
 
     @property
     def phi(self):
-        """Alias for |alpha| for PyPhi utility functions."""
+        """Alias for α for PyPhi utility functions."""
         return self.alpha
 
     @property
     def direction(self):
-        """Direction: Either |CAUSE| or |EFFECT|."""
+        """Direction: the causal direction, either ``CAUSE`` or ``EFFECT``."""
         return self._ria.direction
 
     @property
@@ -310,7 +318,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
 
     @property
     def purview(self):
-        """list[int]: The purview over which this mechanism's |alpha| is
+        """list[int]: The purview over which this mechanism's α is
         maximal.
         """
         return self._ria.purview
@@ -353,7 +361,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
         return self._ria
 
     def explain(self) -> Explanation:
-        """A typed account of why this causal link's |alpha| came out as it
+        """A typed account of why this causal link's α came out as it
         did, delegated to the underlying AcRIA."""
         return self._ria.explain()
 
@@ -374,7 +382,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
             sections=(
                 Section(
                     rows=(
-                        Row("α", self.alpha),  # noqa: RUF001
+                        Row("α", self.alpha),
                         Row(
                             "Direction",
                             str(self.direction),
@@ -386,7 +394,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
                 ),
             ),
             compact=(
-                f"{cls}(α={format_value(self.alpha)}, "  # noqa: RUF001
+                f"{cls}(α={format_value(self.alpha)}, "
                 f"{self.direction}, {mechanism_str}→{purview_str})"
             ),
         )
@@ -406,16 +414,19 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
         return hash(self._ria)
 
     def __bool__(self):
-        """An |CausalLink| is ``True`` if |alpha > 0|."""
+        """A :class:`CausalLink` is ``True`` if α > 0."""
         return greater_than_zero(self.alpha)
 
 
 class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
     """A mechanism which has both an actual cause and an actual effect.
 
-    Attributes:
-        actual_cause (CausalLink): The actual cause of the mechanism.
-        actual_effect (CausalLink): The actual effect of the mechanism.
+    Attributes
+    ----------
+    actual_cause : CausalLink
+        The actual cause of the mechanism.
+    actual_effect : CausalLink
+        The actual effect of the mechanism.
     """
 
     @property
@@ -426,8 +437,8 @@ class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
 
 
 class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable):
-    """The set of |CausalLinks| with |alpha > 0|. This includes both actual
-    causes and actual effects.
+    """The set of :class:`CausalLink` instances with α > 0. This includes both
+    actual causes and actual effects.
     """
 
     def __init__(self, causal_links):
@@ -463,12 +474,12 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
 
     @property
     def irreducible_causes(self):
-        """The set of irreducible causes in this |Account|."""
+        """The set of irreducible causes in this :class:`Account`."""
         return tuple(link for link in self if link.direction is Direction.CAUSE)
 
     @property
     def irreducible_effects(self):
-        """The set of irreducible effects in this |Account|."""
+        """The set of irreducible effects in this :class:`Account`."""
         return tuple(link for link in self if link.direction is Direction.EFFECT)
 
     @property
@@ -479,7 +490,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
         num_links = len(self.causal_links)
-        headers = ("Direction", "Mechanism", "Purview", "α")  # noqa: RUF001
+        headers = ("Direction", "Mechanism", "Purview", "α")
         table = capped_table(
             headers,
             self.causal_links,
@@ -508,7 +519,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
 
     def explain(self) -> Explanation:
         """A typed account listing each irreducible causal link with its
-        |alpha|."""
+        α."""
         findings = [
             Finding(
                 kind="link",
@@ -528,7 +539,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         """Structured delta from this account to ``other`` (``a.diff(b)``).
 
         Causal links are keyed by direction + mechanism + purview; a link
-        present in both is *changed* when its |alpha| differs. An account
+        present in both is *changed* when its α differs. An account
         carries no :class:`ConfigSnapshot`, so ``config_diff`` is empty.
         """
         from pyphi import utils
@@ -570,8 +581,8 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
 
 
 class DirectedAccount(Account):
-    """The set of |CausalLinks| with |alpha > 0| for one direction of a
-    transition.
+    """The set of :class:`CausalLink` instances with α > 0 for one direction
+    of a transition.
     """
 
 
@@ -580,24 +591,36 @@ class DirectedAccount(Account):
 class AcSystemIrreducibilityAnalysis(
     HasProvenance, Displayable, cmp.Orderable, ToPandasMixin, Serializable
 ):
-    """An analysis of transition-level irreducibility (|big_alpha|).
+    """An analysis of transition-level irreducibility (𝒜).
 
-    Contains the |big_alpha| value of the |Transition|, the causal account, and
-    all the intermediate results obtained in the course of computing them.
+    Contains the 𝒜 value of the :class:`~pyphi.actual.Transition`, the causal
+    account, and all the intermediate results obtained in the course of
+    computing them.
 
-    Attributes:
-        alpha (float): The |big_alpha| value for the transition when taken
-            against this analysis, *i.e.* the difference between the
-            unpartitioned account and this analysis's partitioned account.
-        account (Account): The account of the whole transition.
-        partitioned_account (Account): The account of the partitioned
-            transition.
-        partition (DirectedJointPartition): The minimal partition.
-        before_state (tuple[int, ...]): The state of the substrate at time |t-1|.
-        after_state (tuple[int, ...]): The state of the substrate at time |t|.
-        size (int): Number of nodes in the transition.
-        node_indices (tuple[int, ...]): Indices of nodes in the transition.
-        node_labels (NodeLabels): Labels corresponding to ``node_indices``.
+    Attributes
+    ----------
+    alpha : float
+        𝒜, the transition-level integrated cause-effect information: the
+        distance between the unpartitioned account and this analysis's
+        partitioned account.
+    direction : Direction
+        The causal direction the account is taken over.
+    account : Account
+        The account of the whole transition.
+    partitioned_account : Account
+        The account of the partitioned transition.
+    partition : DirectedJointPartition
+        The minimal partition.
+    before_state : tuple[int, ...]
+        The state of the substrate at time t-1.
+    after_state : tuple[int, ...]
+        The state of the substrate at time t.
+    size : int
+        Number of nodes in the transition.
+    node_indices : tuple[int, ...]
+        Indices of nodes in the transition.
+    node_labels : NodeLabels
+        Labels corresponding to ``node_indices``.
     """
 
     alpha: float  # Override parent to allow None during init
@@ -681,7 +704,7 @@ class AcSystemIrreducibilityAnalysis(
         sections = [
             Section(
                 rows=(
-                    Row("α", self.alpha),  # noqa: RUF001
+                    Row("α", self.alpha),
                     Row(
                         "Direction",
                         str(self.direction) if self.direction is not None else None,
@@ -703,12 +726,12 @@ class AcSystemIrreducibilityAnalysis(
         return Description(
             title=cls,
             sections=tuple(sections),
-            compact=f"{cls}(α={format_value(self.alpha)})",  # noqa: RUF001
+            compact=f"{cls}(α={format_value(self.alpha)})",
         )
 
     def explain(self) -> Explanation:
-        """A typed account of why this transition's |big_alpha| came out as it
-        did. A runner-up / alpha-gap is not retained for actual causation."""
+        """A typed account of why this transition's 𝒜 came out as it
+        did. A runner-up / α-gap is not retained for actual causation."""
         findings = [
             Finding(kind="null_result", label="Null result", value=reason)
             for reason in (self.reasons or [])
@@ -724,7 +747,7 @@ class AcSystemIrreducibilityAnalysis(
                 )
             )
         return Explanation(
-            subject=f"α = {format_value(self.alpha)}",  # noqa: RUF001
+            subject=f"α = {format_value(self.alpha)}",
             level="system",
             findings=tuple(findings),
         )
@@ -782,8 +805,8 @@ class AcSystemIrreducibilityAnalysis(
         return utils.eq(self.alpha, other.alpha)
 
     def __bool__(self):
-        """An |AcSystemIrreducibilityAnalysis| is ``True`` if it has
-        |big_alpha > 0|.
+        """An :class:`AcSystemIrreducibilityAnalysis` is ``True`` if it has
+        𝒜 > 0.
         """
         return greater_than_zero(self.alpha)
 
@@ -806,7 +829,7 @@ class AcSystemIrreducibilityAnalysis(
 
 
 def _null_ac_sia(transition, direction, alpha=0.0, reasons=None):
-    """Return an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
+    """Return an :class:`AcSystemIrreducibilityAnalysis` with zero 𝒜 and
     empty accounts. ``reasons`` records why (a list of
     :class:`~pyphi.models.explanation.NullResultReason`).
     """

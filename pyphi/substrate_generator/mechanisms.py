@@ -6,8 +6,8 @@ Each mechanism is a unit function with the signature
 ``element`` is ON at the next step, given the substrate ``state`` at the current
 step. This is the contract consumed by :func:`pyphi.substrate_generator.build_tpm`
 (it is called once per from-state), so the assembled substrate TPM equals the
-``dynamic_tpm`` of the original ``substrate_modeler`` (present state = past
-state).
+``dynamic_tpm`` of the ``substrate_modeler`` library, in which the present state
+equals the past state.
 
 State-dependent mechanisms (the "endorsement" family — :func:`resonator`,
 :func:`mismatch_corrector`, :func:`stabilized_sigmoid`, :func:`biased_sigmoid`,
@@ -314,12 +314,10 @@ def stabilized_sigmoid(
     ``modulation`` is ``{'modulator': tuple(indices), 'threshold': float,
     'determinism': float, 'selectivity': float}``. Requires a self-loop.
 
-    The original ``substrate_modeler`` implementation built its per-unit TPM with
-    the input and modulator axes in swapped order (a Fortran-reshape artifact),
-    so the declared ``modulator`` was not the axis actually treated as the
-    modulator. This port uses the documented convention consistently (the
-    modulators are exactly ``modulation['modulator']``), so it does not
-    reproduce that artifact.
+    The modulator inputs are exactly ``modulation['modulator']``; the remaining
+    inputs drive the sigmoid. Results differ from the ``substrate_modeler``
+    library for this mechanism, which treated the input and modulator axes in
+    swapped order.
     """
     modulator = tuple(modulation["modulator"])
     ins = _ordered_inputs(element, weights, inputs)

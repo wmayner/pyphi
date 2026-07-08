@@ -144,7 +144,7 @@ class AC2019Formalism:
         purview: Any,
         **kwargs: Any,
     ) -> Any:
-        """Compute the mechanism MIP over a purview (today's ``find_mip``)."""
+        """Compute the mechanism MIP over a purview."""
         resolved = _resolve_ac_measures(self)
         return compute._find_mip(
             transition,
@@ -159,7 +159,7 @@ class AC2019Formalism:
     def evaluate_causal_link(
         self, transition: Any, direction: Any, mechanism: Any, **kwargs: Any
     ) -> Any:
-        """Compute the maximally-irreducible causal link (``find_causal_link``)."""
+        """Compute the maximally-irreducible causal link for a mechanism."""
         resolved = _resolve_ac_measures(self)
         return compute._find_causal_link(
             transition,

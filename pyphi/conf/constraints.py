@@ -1,4 +1,4 @@
-"""Eager config-combination validation (roadmap B13).
+"""Eager config-combination validation.
 
 Single-field validity is enforced by each config dataclass's
 ``__post_init__``. This module adds the orthogonal layer of *cross-field*
@@ -10,47 +10,42 @@ point of configuration with a :class:`~pyphi.conf.ConfigurationError` that
 names the two conflicting fields and a concrete fix — rather than at compute
 time, deep in the math, or not at all.
 
-Design notes
-------------
+A constraint fires only on a combination that is genuinely wrong, not one
+that is merely inert: every shipped preset (``iit3``, ``iit4_2023``,
+``iit4_2026``) passes. An option left at a default that the active formalism
+never consults is not flagged — for example, an IIT 3.0 config leaves
+``system_phi_measure`` at its IIT 4.0 default, but IIT 3.0 never reads it.
 
-- **Conservative by construction.** Every shipped preset (``iit3``,
-  ``iit4_2023``, ``iit4_2026``) must pass, and a constraint is only added when
-  the combination is genuinely wrong with code evidence — not merely *inert*.
-  For example, an IIT-3.0 config leaves ``system_phi_measure`` at its 4.0
-  default, but IIT 3.0 never consults it, so that is not flagged.
+The measure/version constraint reproduces the reactive
+``check_measure_compatible`` boundary (each formalism's ``compatible_measures``)
+eagerly, so the two cannot diverge from what the compute path enforces.
 
-- **Mirrors the established source of truth.** The measure/version constraints
-  reproduce the existing reactive ``check_measure_compatible`` boundary (each
-  formalism's ``compatible_measures``) but eagerly, so they cannot diverge from
-  what the compute path already enforces.
+Register a constraint by appending a :class:`ConfigConstraint` to
+:data:`CONFIG_CONSTRAINTS`, or with :func:`register_constraint`.
 
-- **Verified, not assumed.** Only combinations confirmed to be wrong are
-  encoded. Notably, ``system_phi_measure="INTRINSIC_INFORMATION"`` is *not*
-  constrained to ``IIT_4_0_2026``: the Eq. 23 cap is keyed on the measure
-  (``applies_ii_cap``), not the version, so ``IIT_4_0_2023`` + that measure
-  correctly applies the cap (it equals the 2026 result, confirmed
-  empirically) — a valid, if redundant, configuration.
+Notes
+-----
+``system_phi_measure="INTRINSIC_INFORMATION"`` is *not* constrained to
+``IIT_4_0_2026``. The Eq. 23 cap is keyed on the measure (``applies_ii_cap``),
+not the version, so ``IIT_4_0_2023`` paired with that measure applies the cap
+and yields the same result as ``IIT_4_0_2026`` — a valid, if redundant,
+configuration.
 
-Registering more constraints is a matter of appending a
-:class:`ConfigConstraint` to :data:`CONFIG_CONSTRAINTS` (or using
-:func:`register_constraint`); add only ones backed by a confirmation
-experiment.
+No EMD-precision constraint is registered. Under the POT backend
+(``ot.emd2``, an exact network-simplex linear program) the EMD noise floor is
+machine epsilon, and IIT 3.0 phi is stable across precision 6-13 with an
+identical MIP. The ``precision: 6`` pin in the IIT 3.0 preset calibrates the
+golden values; it is not a correctness requirement.
 
-Two constraints that might seem warranted are deliberately absent:
-
-- **EMD precision** — no constraint. Under the POT backend (``ot.emd2``, an
-  exact network-simplex LP) the EMD noise floor is machine epsilon, and IIT 3.0
-  phi is stable across precision 6-13 with an identical MIP. The ``precision: 6``
-  pin in the IIT 3.0 preset is a goldens-calibration choice, not a correctness
-  requirement.
-- **System partition scheme x version** -- the
-  ``system_partition_scheme_compatible_with_version`` constraint. IIT 3.0 accepts
-  only ``DIRECTED_BIPARTITION`` / ``DIRECTED_BIPARTITION_CUT_ONE`` (its
-  ``sia_partitions`` raises for any other scheme, so the constraint mirrors that
-  boundary eagerly via the formalism's ``compatible_system_partition_schemes``).
-  IIT 4.0 accepts any registered scheme (a non-default scheme computes a
-  well-defined per-scheme phi), so it declares
-  ``compatible_system_partition_schemes = None`` and is left unconstrained.
+The ``system_partition_scheme_compatible_with_version`` constraint binds only
+under formalisms that restrict their system partition schemes. IIT 3.0 accepts
+only ``DIRECTED_BIPARTITION`` / ``DIRECTED_BIPARTITION_CUT_ONE`` (its
+``sia_partitions`` raises for any other scheme), so the constraint mirrors that
+boundary eagerly via the formalism's ``compatible_system_partition_schemes``.
+IIT 4.0 accepts any registered scheme — a non-default scheme computes a
+well-defined per-scheme phi — so it declares
+``compatible_system_partition_schemes = None`` and its partition scheme is left
+unconstrained.
 """
 
 from __future__ import annotations
