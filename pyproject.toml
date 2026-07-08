@@ -125,6 +125,8 @@ exclude = [
     "docs",
     "htmlcov",
     "benchmarks",
+    # One-off research experiment scripts with committed seeded outputs.
+    "*_experiments",
     # Vendored third-party tool (gprof2dot); not maintained here.
     "profiling",
     # Pre-2.0 oracle reproducer: deliberately imports pre-refactor API that
@@ -294,7 +296,7 @@ directory = "htmlcov"
 
 [tool.pyright]
 include = ["pyphi"]
-exclude = ["**/__pycache__", "test", "docs", "benchmarks", "profiling"]
+exclude = ["**/__pycache__", "test", "docs", "benchmarks", "*_experiments", "profiling"]
 pythonVersion = "3.13"
 typeCheckingMode = "standard"                                           # Start at standard, not basic
 reportMissingImports = false

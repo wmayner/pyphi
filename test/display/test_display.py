@@ -907,6 +907,18 @@ def test_iit4_sia_ascii_golden():
     assert repr(sia) == _GOLDEN_IIT4_SIA
 
 
+def test_iit4_sia_full_verbosity_shows_margins():
+    """Margin rows appear at FULL verbosity; the default card is unchanged
+    (covered by test_iit4_sia_ascii_golden)."""
+    pyphi.config.progress_bars = False
+    sia = pyphi.examples.basic_system().sia()
+    with pyphi.config.override(repr_verbosity=3):
+        out = repr(sia)
+    assert "Selection margin" in out
+    assert "State margin" in out
+    assert "Effectively tied" in out
+
+
 def test_capped_table_respects_config_and_records_overflow():
     from pyphi.display.tables import capped_table
 

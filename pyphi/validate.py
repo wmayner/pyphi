@@ -26,10 +26,11 @@ def directions(directions: Iterable[Direction], **kwargs: bool) -> bool:
 
     Args:
         directions (Iterable[Direction]): Directions to validate.
-        **kwargs: Passed through to |direction|.
+        **kwargs: Passed through to :func:`direction`.
 
     Returns:
-        bool: ``True`` if every element is a valid |Direction|.
+        bool: ``True`` if every element is a valid
+        :class:`~pyphi.direction.Direction`.
     """
     return all(direction(d, **kwargs) for d in directions)
 
@@ -105,7 +106,7 @@ def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None
 
 
 def substrate(n: object) -> bool:
-    """Validate a |Substrate|.
+    """Validate a :class:`~pyphi.substrate.Substrate`.
 
     Checks the FactoredTPM and connectivity matrix.
     """
@@ -126,7 +127,7 @@ def substrate(n: object) -> bool:
 
 
 def is_substrate(substrate: object) -> None:
-    """Validate that the argument is a |Substrate|."""
+    """Validate that the argument is a :class:`~pyphi.substrate.Substrate`."""
     from . import Substrate
 
     if not isinstance(substrate, Substrate):
@@ -168,7 +169,8 @@ def state_length(state: Sequence[int], size: int) -> bool:
 
 
 def state_reachable(system: object) -> None:
-    """Raise |StateUnreachableForwardsError| if the state is unreachable.
+    """Raise :class:`~pyphi.exceptions.StateUnreachableForwardsError` if the
+    state is unreachable.
 
     Two checks fire:
 
@@ -223,7 +225,7 @@ def system_partition(partition: object, node_indices: Sequence[int]) -> None:
 
 
 def system(s: object) -> bool:
-    """Validate a |System|.
+    """Validate a :class:`~pyphi.system.System`.
 
     Checks its state and partition.
     """

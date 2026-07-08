@@ -88,6 +88,10 @@ def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
             np.asarray(spec.unconstrained_repertoire)
         ),
         tie_peers=tuple(_encode_state_spec(p, include_peers=False) for p in peers),
+        runner_up_state=_opt_tuple(spec.runner_up_state),
+        runner_up_intrinsic_information=_enc_optional(
+            spec.runner_up_intrinsic_information
+        ),
     )
 
 
@@ -101,6 +105,10 @@ def _decode_state_spec(struct: Any) -> Any:
         intrinsic_information=from_schema(struct.intrinsic_information),
         repertoire=arrays.bytes_to_array(struct.repertoire),
         unconstrained_repertoire=arrays.bytes_to_array(struct.unconstrained_repertoire),
+        runner_up_state=_opt_tuple(struct.runner_up_state),
+        runner_up_intrinsic_information=_dec_optional(
+            struct.runner_up_intrinsic_information
+        ),
     )
     if struct.tie_peers:
         peers = tuple(_decode_state_spec(p) for p in struct.tie_peers)
@@ -413,6 +421,7 @@ def _register_provenance() -> None:
         wall_time=p.wall_time,
         seed=p.seed,
         note=p.note,
+        estimator=p.estimator,
     )
     _DECODERS[schema.ProvenanceSchema] = lambda s: Provenance(
         **msgspec.structs.asdict(s)
@@ -543,6 +552,7 @@ def _encode_iit4_sia(sia: Any, *, include_peers: bool) -> Any:
         config=_enc_config(sia.config),
         provenance=_enc_optional(sia.provenance),
         tie_peers=tuple(_encode_iit4_sia(p, include_peers=False) for p in peers),
+        partition_margin=_enc_optional(sia.partition_margin),
     )
 
 
@@ -568,6 +578,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "signed_normalized_phi": _dec_optional(struct.signed_normalized_phi),
         "config": struct.config,
         "provenance": _dec_optional(struct.provenance),
+        "partition_margin": _dec_optional(struct.partition_margin),
     }
     if type(struct) is schema.NullIIT4SIASchema:
         instance = object.__new__(NullSystemIrreducibilityAnalysis)
@@ -935,6 +946,67 @@ def _register_complex() -> None:
     )
 
 
+def _register_coverage_report() -> None:
+    from pyphi.estimate import CoverageReport
+
+    _ENCODERS[CoverageReport] = lambda c: schema.CoverageReportSchema(
+        counts=arrays.array_to_bytes(np.asarray(c.counts)),
+        n_units=c.n_units,
+    )
+    _DECODERS[schema.CoverageReportSchema] = lambda s: CoverageReport(
+        counts=arrays.bytes_to_array(s.counts),
+        n_units=s.n_units,
+    )
+
+
+def _register_substrate_posterior() -> None:
+    from pyphi.estimate import SubstratePosterior
+
+    _ENCODERS[SubstratePosterior] = lambda p: schema.SubstratePosteriorSchema(
+        alpha_on=arrays.array_to_bytes(np.asarray(p.alpha_on)),
+        alpha_off=arrays.array_to_bytes(np.asarray(p.alpha_off)),
+        regime=p.regime,
+        prior=float(p.prior),
+        coverage=to_schema(p.coverage),
+        node_labels=_opt_tuple(p.node_labels),
+        provenance=to_schema(p.provenance),
+    )
+    _DECODERS[schema.SubstratePosteriorSchema] = lambda s: SubstratePosterior(
+        alpha_on=arrays.bytes_to_array(s.alpha_on),
+        alpha_off=arrays.bytes_to_array(s.alpha_off),
+        regime=s.regime,
+        prior=s.prior,
+        coverage=from_schema(s.coverage),
+        node_labels=_opt_tuple(s.node_labels),
+        provenance=from_schema(s.provenance),
+    )
+
+
+def _register_phi_posterior() -> None:
+    from pyphi.estimate import PhiPosterior
+
+    _ENCODERS[PhiPosterior] = lambda p: schema.PhiPosteriorSchema(
+        samples=arrays.array_to_bytes(np.asarray(p.samples)),
+        complex_samples=tuple(tuple(c) for c in p.complex_samples),
+        state=tuple(p.state),
+        subset=_opt_tuple(p.subset),
+        seed=p.seed,
+        regime=p.regime,
+        coverage=to_schema(p.coverage),
+        provenance=to_schema(p.provenance),
+    )
+    _DECODERS[schema.PhiPosteriorSchema] = lambda s: PhiPosterior(
+        samples=arrays.bytes_to_array(s.samples),
+        complex_samples=tuple(tuple(c) for c in s.complex_samples),
+        state=tuple(s.state),
+        subset=_opt_tuple(s.subset),
+        seed=s.seed,
+        regime=s.regime,
+        coverage=from_schema(s.coverage),
+        provenance=from_schema(s.provenance),
+    )
+
+
 _REGISTERED = False
 
 
@@ -984,3 +1056,6 @@ def _ensure_registered() -> None:
     _register_account()
     _register_ac_sia()
     _register_complex()
+    _register_coverage_report()
+    _register_substrate_posterior()
+    _register_phi_posterior()

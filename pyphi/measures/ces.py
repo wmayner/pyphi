@@ -27,7 +27,8 @@ class CESMeasureRegistry(Registry):
     """Storage for distance functions between cause-effect structures.
 
     Users can define custom measures. The third positional / keyword
-    argument is the |System| context; measures that don't need it can
+    argument is the :class:`~pyphi.system.System` context; measures that
+    don't need it can
     accept it as ``system=None`` and ignore it.
 
     Examples:
@@ -251,8 +252,8 @@ def emd(C1: Distinctions, C2: Distinctions, system: System | None = None) -> flo
     """Return the generalized EMD between two cause-effect structures.
 
     Args:
-        C1 (Distinctions): The first |Distinctions|.
-        C2 (Distinctions): The second |Distinctions|.
+        C1 (Distinctions): The first :class:`~pyphi.models.distinctions.Distinctions`.
+        C2 (Distinctions): The second :class:`~pyphi.models.distinctions.Distinctions`.
         system (System): The system the CESs were computed over. Required
             for the EMD measure: repertoire expansion and the null concept
             both come from the system.
@@ -282,7 +283,9 @@ def sum_small_phi(
     C2: Distinctions,
     system: System | None = None,  # noqa: ARG001
 ) -> float:
-    """Return the difference in |small_phi| between |Distinctions|."""
+    """Return the difference in |small_phi| between
+    :class:`~pyphi.models.distinctions.Distinctions`.
+    """
     return sum(C1.phis) - sum(C2.phis)
 
 
@@ -296,8 +299,8 @@ def ces_distance(
     """Return the distance between two cause-effect structures.
 
     Args:
-        C1 (Distinctions): The first |Distinctions|.
-        C2 (Distinctions): The second |Distinctions|.
+        C1 (Distinctions): The first :class:`~pyphi.models.distinctions.Distinctions`.
+        C2 (Distinctions): The second :class:`~pyphi.models.distinctions.Distinctions`.
         measure (str): Which registered CES measure to use; defaults to
             ``config.formalism.iit.ces_measure``.
         system (System): The system the CESs were computed over. Required

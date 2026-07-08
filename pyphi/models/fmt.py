@@ -87,7 +87,9 @@ def fmt_part(part: object, node_labels: object | None = None) -> str:
 def fmt_partition_arrow(
     cut: object, direction: object | None = None, name: bool = True
 ) -> str:
-    """Format a |DirectedBipartition| as an arrow expression."""
+    """Format a :class:`~pyphi.models.partitions.DirectedBipartition` as an
+    arrow expression.
+    """
     from pyphi.direction import Direction
 
     CUT_SYMBOLS_BY_DIRECTION = {
@@ -111,7 +113,7 @@ def fmt_partition_arrow(
 
 
 def fmt_directed_joint_partition(cut: object) -> str:
-    """Format a |DirectedJointPartition|."""
+    """Format a :class:`~pyphi.models.partitions.DirectedJointPartition`."""
     return f"DirectedJointPartition {cut.direction}\n{cut.partition}"  # type: ignore[attr-defined]
 
 

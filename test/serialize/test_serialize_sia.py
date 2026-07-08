@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from pyphi import serialize
@@ -22,6 +24,32 @@ def test_provenance_round_trips(fmt):
     obj = Provenance.capture()
     restored = round_trip(obj, fmt)
     assert restored == obj
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_provenance_round_trips_estimator(fmt):
+    obj = Provenance.capture(
+        estimator={
+            "regime": "perturbational",
+            "model": "counts",
+            "prior": 0.5,
+            "n_transitions": 16,
+            "n_states_observed": 8,
+            "n_states_total": 8,
+            "uncovered_state_count": 0,
+        }
+    )
+    restored = round_trip(obj, fmt)
+    assert restored == obj
+    assert restored.estimator == obj.estimator
+
+
+def test_provenance_decodes_payload_without_estimator():
+    # Payloads written before the estimator field existed decode to None.
+    doc = json.loads(serialize.dumps(Provenance.capture(), format="json"))
+    doc["payload"].pop("estimator", None)
+    restored = serialize.loads(json.dumps(doc).encode(), format="json")
+    assert restored.estimator is None
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
@@ -116,3 +144,59 @@ def test_iit4_sia_preserves_tie_peers(fmt):
     assert restored == a
     peers = [t for t in restored.ties if t is not restored]
     assert len(peers) == 1
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_iit4_sia_margins_round_trip(fmt):
+    import pyphi
+    from pyphi import examples
+
+    with pyphi.config.override(progress_bars=False):
+        sia = examples.basic_system().sia()
+    restored = round_trip(sia, fmt)
+    assert restored == sia
+    assert float(restored.partition_margin) == pytest.approx(float(sia.partition_margin))
+    spec = restored.system_state.cause
+    assert spec.runner_up_state == sia.system_state.cause.runner_up_state
+    assert float(spec.runner_up_intrinsic_information) == pytest.approx(
+        float(sia.system_state.cause.runner_up_intrinsic_information)
+    )
+    assert restored.effectively_tied == sia.effectively_tied
+
+
+def test_iit4_sia_loads_without_margin_fields():
+    """Serialized results produced before margins existed decode with the
+    margin fields at their defaults."""
+    import json
+
+    import pyphi
+    from pyphi import examples
+    from pyphi import serialize
+
+    with pyphi.config.override(progress_bars=False):
+        sia = examples.basic_system().sia()
+    data = json.loads(serialize.dumps(sia, format="json"))
+
+    def strip(obj):
+        if isinstance(obj, dict):
+            for key in (
+                "partition_margin",
+                "runner_up_state",
+                "runner_up_intrinsic_information",
+            ):
+                obj.pop(key, None)
+            for value in obj.values():
+                strip(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                strip(item)
+
+    strip(data)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    assert restored.partition_margin is None
+    assert restored.system_state.cause.runner_up_intrinsic_information is None
+    assert restored.system_state.cause.state_margin is None
+    assert not restored.effectively_tied
+    # All pre-existing fields are untouched by the additions.
+    assert float(restored.phi) == pytest.approx(float(sia.phi))
+    assert restored.partition == sia.partition

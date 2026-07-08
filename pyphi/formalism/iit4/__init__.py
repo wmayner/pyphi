@@ -25,6 +25,7 @@ from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.core import repertoire_algebra as repertoire
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
+from pyphi.display import FULL
 from pyphi.display import PROVENANCE
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -136,6 +137,11 @@ def _optional_eq(
     return utils.eq(a, b)
 
 
+def _optional_float(x: Any) -> float | None:
+    """``float(x)``, passing ``None`` through."""
+    return float(x) if x is not None else None
+
+
 def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
     """Tolerance-aware equality for ``intrinsic_differentiation`` dicts.
 
@@ -163,6 +169,13 @@ class SystemIrreducibilityAnalysis(
     clamped value to ``phi`` while preserving the raw value on
     ``signed_phi``. ``normalized_phi`` and ``signed_normalized_phi``
     follow the same pattern.
+
+    ``partition_margin`` is the gap in (clamped) normalized φ between the
+    MIP and the best competing partition, computed at selection (before
+    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties,
+    ``None`` when there was no competitor, and exact whenever φ_s > 0 (a
+    reducibility short-circuit stops the partition sweep early, in which
+    case the margin is over the evaluated subset).
     """
 
     phi: float | DistanceResult
@@ -177,6 +190,7 @@ class SystemIrreducibilityAnalysis(
     intrinsic_differentiation: dict | None = None
     reasons: list | None = None
     runner_up: Any = None
+    partition_margin: PyPhiFloat | None = None
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
     config: ConfigSnapshot | None = None
@@ -232,6 +246,30 @@ class SystemIrreducibilityAnalysis(
 
     def set_ties(self, ties):
         self._ties = ties
+
+    @property
+    def state_margins(self) -> dict[Direction, PyPhiFloat | None]:
+        """Per-direction intrinsic-information gap between the specified
+        system state and the best competing state
+        (:attr:`StateSpecification.state_margin`)."""
+        margins: dict[Direction, PyPhiFloat | None] = {}
+        for direction in Direction.both():
+            spec = (
+                self.system_state[direction] if self.system_state is not None else None
+            )
+            margins[direction] = spec.state_margin if spec is not None else None
+        return margins
+
+    @property
+    def effectively_tied(self) -> bool:
+        """Whether any selection margin is within
+        ``config.numerics.precision`` of zero — i.e. the partition or
+        specified-state selection is effectively tied at the configured
+        precision."""
+        margins = [self.partition_margin, *self.state_margins.values()]
+        return any(
+            margin is not None and utils.eq(float(margin), 0.0) for margin in margins
+        )
 
     def resolve_system_state(self) -> None:
         """Update system_state to reflect the specified states resolved by the MIP.
@@ -319,6 +357,10 @@ class SystemIrreducibilityAnalysis(
             "partition": concise_partition(self.partition)
             if self.partition is not None
             else None,
+            "partition_margin": _optional_float(self.partition_margin),
+            "cause_state_margin": _optional_float(self.state_margins[Direction.CAUSE]),
+            "effect_state_margin": _optional_float(self.state_margins[Direction.EFFECT]),
+            "effectively_tied": self.effectively_tied,
         }
 
     def _describe(self, verbosity: int) -> Description:
@@ -336,37 +378,33 @@ class SystemIrreducibilityAnalysis(
             )
         ]
         if state is not None and state.cause is not None:
-            sections.append(
-                Section(
-                    label="Cause",
-                    tone="cause",
-                    rows=(
-                        Row("Specified state", state.cause.state),
-                        Row("Intrinsic information", state.cause.intrinsic_information),
-                        Row(
-                            "Intrinsic differentiation",
-                            idiff[Direction.CAUSE] if idiff else None,
-                        ),
-                    ),
-                )
-            )
+            cause_rows = [
+                Row("Specified state", state.cause.state),
+                Row("Intrinsic information", state.cause.intrinsic_information),
+                Row(
+                    "Intrinsic differentiation",
+                    idiff[Direction.CAUSE] if idiff else None,
+                ),
+            ]
+            if verbosity >= FULL and state.cause.state_margin is not None:
+                cause_rows.append(Row("State margin", state.cause.state_margin))
+            sections.append(Section(label="Cause", tone="cause", rows=tuple(cause_rows)))
         if state is not None and state.effect is not None:
+            effect_rows = [
+                Row("Specified state", state.effect.state),
+                Row(
+                    "Intrinsic information",
+                    state.effect.intrinsic_information,
+                ),
+                Row(
+                    "Intrinsic differentiation",
+                    idiff[Direction.EFFECT] if idiff else None,
+                ),
+            ]
+            if verbosity >= FULL and state.effect.state_margin is not None:
+                effect_rows.append(Row("State margin", state.effect.state_margin))
             sections.append(
-                Section(
-                    label="Effect",
-                    tone="effect",
-                    rows=(
-                        Row("Specified state", state.effect.state),
-                        Row(
-                            "Intrinsic information",
-                            state.effect.intrinsic_information,
-                        ),
-                        Row(
-                            "Intrinsic differentiation",
-                            idiff[Direction.EFFECT] if idiff else None,
-                        ),
-                    ),
-                )
+                Section(label="Effect", tone="effect", rows=tuple(effect_rows))
             )
         mip_rows = []
         mip_body: tuple[Any, ...] = ()
@@ -375,6 +413,13 @@ class SystemIrreducibilityAnalysis(
             if self.partition.num_connections_cut():
                 mip_body = (_cut_grid(self.partition),)
         mip_rows.append(Row("Tied MIPs", len(self.ties) - 1))
+        if verbosity >= FULL:
+            if self.partition_margin is not None:
+                mip_rows.append(Row("Selection margin", self.partition_margin))
+            if self.partition_margin is not None or any(
+                margin is not None for margin in self.state_margins.values()
+            ):
+                mip_rows.append(Row("Effectively tied", self.effectively_tied))
         sections.append(Section(label="MIP", rows=tuple(mip_rows), body=mip_body))
         if self.reasons:
             reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
@@ -416,6 +461,37 @@ class SystemIrreducibilityAnalysis(
                     kind="gap",
                     label="φ-gap to runner-up",
                     value=PyPhiFloat(float(self.runner_up.phi) - float(self.phi)),
+                )
+            )
+        if self.partition_margin is not None:
+            findings.append(
+                Finding(
+                    kind="partition_margin",
+                    label="MIP selection margin (normalized φ)",
+                    value=self.partition_margin,
+                )
+            )
+        state_margins = self.state_margins
+        for direction in Direction.both():
+            margin = state_margins[direction]
+            if margin is not None:
+                tone = "cause" if direction == Direction.CAUSE else "effect"
+                findings.append(
+                    Finding(
+                        kind="state_margin",
+                        label=f"Specified-{tone}-state margin (ii)",
+                        value=margin,
+                        tone=tone,
+                    )
+                )
+        if self.partition_margin is not None or any(
+            margin is not None for margin in state_margins.values()
+        ):
+            findings.append(
+                Finding(
+                    kind="effectively_tied",
+                    label="Selection effectively tied",
+                    value=self.effectively_tied,
                 )
             )
         if self.cause is not None and self.effect is not None:
@@ -1059,6 +1135,12 @@ def _find_mip_for_fixed_state(
     ties = tuple(resolve_ties.sias(candidates))
     mip_sia = ties[0]
     mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
+    others = [candidate for candidate in candidates if candidate is not mip_sia]
+    if others:
+        gap = min(float(c.normalized_phi) for c in others) - float(
+            mip_sia.normalized_phi
+        )
+        mip_sia.partition_margin = PyPhiFloat(max(0.0, gap))
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)

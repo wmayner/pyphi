@@ -1,7 +1,7 @@
 # models/complex.py
-"""The |Complex| — an irreducible system selected as a local maximum of
-|big_phi| under the exclusion postulate — and the lightweight record of a
-candidate excluded in its favor."""
+"""The :class:`~pyphi.models.complex.Complex` — an irreducible system selected
+as a local maximum of |big_phi| under the exclusion postulate — and the
+lightweight record of a candidate excluded in its favor."""
 
 from __future__ import annotations
 
@@ -24,7 +24,8 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
     overlapping complex with greater-or-equal |big_phi|.
 
     Holds plain values only (units and |big_phi|), never a back-reference to
-    the excluding |Complex|, so the heavy analysis graph is not retained.
+    the excluding :class:`~pyphi.models.complex.Complex`, so the heavy
+    analysis graph is not retained.
 
     Attributes:
         node_indices (tuple[int, ...]): The excluded candidate's units.

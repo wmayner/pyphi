@@ -228,7 +228,7 @@ def distinction_phi_upper_bound(
 ) -> UpperBound:
     """Upper bound on phi of a mechanism over a candidate purview.
 
-    Theorem 1: phi(m, Z) <= |M| |Z|, the number of potential causal
+    Theorem 1: ``phi(m, Z) <= |M| |Z|``, the number of potential causal
     connections between the mechanism and the purview. Only the sizes
     matter.
     """
@@ -482,8 +482,8 @@ def sum_phi_relations_upper_bound(n: int, bound: str = "I") -> UpperBound:
     scenario, so they are not certified for arbitrary systems.
 
     For ``bound="GENERAL"``: the certified growth bound of Eq 16, built
-    from S(o) <= n 2**(n-1) (Theorem 1) and |Z(o)| <= 2**n - 1 via the
-    Eq 14 linear-program maximum, summed over all 2n unit-states, plus
+    from ``S(o) <= n 2**(n-1)`` (Theorem 1) and ``|Z(o)| <= 2**n - 1`` via
+    the Eq 14 linear-program maximum, summed over all 2n unit-states, plus
     the Eq 6 ceiling on self-relations.
     """
     _require_valid_domain()

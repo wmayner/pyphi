@@ -23,17 +23,19 @@ class Node(Displayable, ToPandasMixin):
     Args:
         cause_marginal (CauseMarginals): Per-system-unit cause factors; this
             node reads its own factor via ``cause_marginal.factor(index)``.
-        effect_marginal (JointTPM): The effect (forward) TPM of the system.
+        effect_marginal (pyphi.core.tpm.joint_distribution.JointTPM): The
+            effect (forward) TPM of the system.
         cm (np.ndarray): The CM of the system.
         index (int): The node's index in the substrate.
         state (int): The state of this node.
         node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
-        cause_marginal (JointTPM),
-        effect_marginal (JointTPM): The node TPM is an array with shape ``(2,)*(n + 1)``,
-            where ``n`` is the size of the |Substrate|. The first ``n``
-            dimensions correspond to each node in the system. Dimensions
+        cause_marginal (pyphi.core.tpm.joint_distribution.JointTPM),
+        effect_marginal (pyphi.core.tpm.joint_distribution.JointTPM): The
+            node TPM is an array with shape ``(2,)*(n + 1)``, where ``n`` is
+            the size of the :class:`~pyphi.substrate.Substrate`. The first
+            ``n`` dimensions correspond to each node in the system. Dimensions
             corresponding to nodes that provide input to this node are of size
             2, while those that do not correspond to inputs are of size 1, so
             that the TPM has |2^m x 2| elements where |m| is the number of
@@ -201,7 +203,8 @@ def generate_nodes(
     Args:
         cause_marginal (CauseMarginals): Per-system-unit cause factors; each
             node reads its own factor via ``cause_marginal.factor(index)``.
-        effect_marginal (JointTPM): The system's effect (forward) TPM
+        effect_marginal (pyphi.core.tpm.joint_distribution.JointTPM): The
+            system's effect (forward) TPM
         cm (np.ndarray): The corresponding CM.
         substrate_state (tuple): The state of the substrate.
         indices (tuple[int]): Indices to generate nodes for.
@@ -227,7 +230,7 @@ def expand_node_tpm(tpm):
     """Broadcast a node TPM over the full substrate.
 
     Args:
-        tpm (JointTPM): The node TPM to expand.
+        tpm (pyphi.core.tpm.joint_distribution.JointTPM): The node TPM to expand.
 
     This is different from broadcasting the TPM of a full system since the last
     dimension (containing the state of the node) contains only the probability

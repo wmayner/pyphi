@@ -1,0 +1,1 @@
+Rebuilt the documentation toolchain: pydata-sphinx-theme, MyST Markdown with build-time-executed code cells, notebook pairing with Colab links, an API reference generated from the current module layout on every build, and a docs CI job that fails on any warning or failed cell.

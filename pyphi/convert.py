@@ -176,8 +176,8 @@ le2be_state_by_state = be2le_state_by_state
 def to_multidimensional(tpm):
     """Reshape a state-by-node TPM to the multidimensional form.
 
-    See documentation for the |Substrate| object for more information on TPM
-    formats.
+    See documentation for the :class:`~pyphi.substrate.Substrate` object for
+    more information on TPM formats.
     """
     # Cast to np.array
     tpm = np.array(tpm)
@@ -203,15 +203,16 @@ def sbs_to_multidimensional(tpm):
 def to_2dimensional(tpm):
     """Reshape a state-by-node TPM to the 2-dimensional form.
 
-    See :ref:`tpm-conventions` and documentation for the |Substrate| object for
-    more information on TPM representations.
+    See :ref:`tpm-conventions` and documentation for the
+    :class:`~pyphi.substrate.Substrate` object for more information on TPM
+    representations.
     """
     # Cast to np.array
     tpm = np.array(tpm)
     # Get the number of previous states
-    S = np.prod(tpm.shape[:-1])
+    S = int(np.prod(tpm.shape[:-1]))
     # Get the number of next states
-    N = tpm.shape[-1]
+    N = int(tpm.shape[-1])
     # Reshape
     return tpm.reshape([S, N], order="F").astype(float)
 
@@ -302,48 +303,48 @@ def state_by_node2state_by_state(sbn):
         following the little-endian convention.
 
     Examples:
-    >>> tpm = np.array([[1, 1, 0],
-    ...                 [0, 0, 1],
-    ...                 [0, 1, 1],
-    ...                 [1, 0, 0],
-    ...                 [0, 0, 1],
-    ...                 [1, 0, 0],
-    ...                 [1, 1, 1],
-    ...                 [1, 0, 1]])
-    >>> state_by_node2state_by_state(tpm)
-    array([[0., 0., 0., 1., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 1., 0., 0., 0.],
-           [0., 0., 0., 0., 0., 0., 1., 0.],
-           [0., 1., 0., 0., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 1., 0., 0., 0.],
-           [0., 1., 0., 0., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 0., 0., 0., 1.],
-           [0., 0., 0., 0., 0., 1., 0., 0.]])
-    >>> tpm = np.array([[0.1, 0.3, 0.7],
-    ...                 [0.3, 0.9, 0.2],
-    ...                 [0.3, 0.9, 0.1],
-    ...                 [0.2, 0.8, 0.5],
-    ...                 [0.1, 0.7, 0.4],
-    ...                 [0.4, 0.3, 0.6],
-    ...                 [0.4, 0.3, 0.1],
-    ...                 [0.5, 0.2, 0.1]])
-    >>> state_by_node2state_by_state(tpm)
-    array([[0.189, 0.021, 0.081, 0.009, 0.441, 0.049, 0.189, 0.021],
-           [0.056, 0.024, 0.504, 0.216, 0.014, 0.006, 0.126, 0.054],
-           [0.063, 0.027, 0.567, 0.243, 0.007, 0.003, 0.063, 0.027],
-           [0.08 , 0.02 , 0.32 , 0.08 , 0.08 , 0.02 , 0.32 , 0.08 ],
-           [0.162, 0.018, 0.378, 0.042, 0.108, 0.012, 0.252, 0.028],
-           [0.168, 0.112, 0.072, 0.048, 0.252, 0.168, 0.108, 0.072],
-           [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
-           [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
-    >>> tpm = np.array([[1],
-    ...                 [0]])
-    >>> state_by_node2state_by_state(tpm)
-    array([[0., 1.],
-           [1., 0.]])
-    >>> tpm = np.array([[[[0.5, 0.5]]]])
-    >>> state_by_node2state_by_state(tpm)
-    array([[0.25, 0.25, 0.25, 0.25]])
+        >>> tpm = np.array([[1, 1, 0],
+        ...                 [0, 0, 1],
+        ...                 [0, 1, 1],
+        ...                 [1, 0, 0],
+        ...                 [0, 0, 1],
+        ...                 [1, 0, 0],
+        ...                 [1, 1, 1],
+        ...                 [1, 0, 1]])
+        >>> state_by_node2state_by_state(tpm)
+        array([[0., 0., 0., 1., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 1., 0., 0., 0.],
+               [0., 0., 0., 0., 0., 0., 1., 0.],
+               [0., 1., 0., 0., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 1., 0., 0., 0.],
+               [0., 1., 0., 0., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 0., 0., 0., 1.],
+               [0., 0., 0., 0., 0., 1., 0., 0.]])
+        >>> tpm = np.array([[0.1, 0.3, 0.7],
+        ...                 [0.3, 0.9, 0.2],
+        ...                 [0.3, 0.9, 0.1],
+        ...                 [0.2, 0.8, 0.5],
+        ...                 [0.1, 0.7, 0.4],
+        ...                 [0.4, 0.3, 0.6],
+        ...                 [0.4, 0.3, 0.1],
+        ...                 [0.5, 0.2, 0.1]])
+        >>> state_by_node2state_by_state(tpm)
+        array([[0.189, 0.021, 0.081, 0.009, 0.441, 0.049, 0.189, 0.021],
+               [0.056, 0.024, 0.504, 0.216, 0.014, 0.006, 0.126, 0.054],
+               [0.063, 0.027, 0.567, 0.243, 0.007, 0.003, 0.063, 0.027],
+               [0.08 , 0.02 , 0.32 , 0.08 , 0.08 , 0.02 , 0.32 , 0.08 ],
+               [0.162, 0.018, 0.378, 0.042, 0.108, 0.012, 0.252, 0.028],
+               [0.168, 0.112, 0.072, 0.048, 0.252, 0.168, 0.108, 0.072],
+               [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
+               [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
+        >>> tpm = np.array([[1],
+        ...                 [0]])
+        >>> state_by_node2state_by_state(tpm)
+        array([[0., 1.],
+               [1., 0.]])
+        >>> tpm = np.array([[[[0.5, 0.5]]]])
+        >>> state_by_node2state_by_state(tpm)
+        array([[0.25, 0.25, 0.25, 0.25]])
     """
     # First convert to multidimensional form
     sbn = to_multidimensional(sbn)

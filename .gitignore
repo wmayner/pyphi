@@ -48,3 +48,7 @@ dump.rdb
 # cost.json, manifest.json, the HTML viz, and the .graphify_* dotfiles.
 graphify-out/*
 !graphify-out/bridge-edges.json
+
+docs/reference/_autosummary/
+
+.jupyter_cache/

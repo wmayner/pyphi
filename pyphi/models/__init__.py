@@ -1,5 +1,6 @@
 # models/__init__.py
-"""See |models.system|, |models.mechanism|, and |models.partitions| for documentation.
+"""See :mod:`pyphi.models.sia`, :mod:`pyphi.models.mice`, and
+:mod:`pyphi.models.partitions` for documentation.
 
 Attributes:
     Account: Alias for :class:`pyphi.models.actual_causation.Account`.

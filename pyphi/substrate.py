@@ -474,8 +474,9 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
     ) -> tuple[Any, ...]:
-        """Return the substrate's complexes as |Complex| objects; see
-        :func:`complexes`."""
+        """Return the substrate's complexes as
+        :class:`~pyphi.models.complex.Complex` objects; see :func:`complexes`.
+        """
         return complexes(self, state, candidates=candidates, **kwargs)
 
     def maximal_complex(
@@ -484,7 +485,8 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Return the maximal |Complex|; see :func:`maximal_complex`."""
+        """Return the maximal :class:`~pyphi.models.complex.Complex`; see
+        :func:`maximal_complex`."""
         return maximal_complex(self, state, candidates=candidates, **kwargs)
 
     def __len__(self) -> int:
@@ -1063,8 +1065,8 @@ def maximal_complex(
     """Return the complex with maximum |big_phi| over the substrate.
 
     Equivalent to the first element of :func:`complexes`. Returns a
-    null-object |Complex| (falsy, with empty units) when no irreducible
-    candidate exists.
+    null-object :class:`~pyphi.models.complex.Complex` (falsy, with empty
+    units) when no irreducible candidate exists.
     """
     from pyphi.models.complex import Complex
     from pyphi.system import System

@@ -42,3 +42,13 @@ repos:
     rev: 25.8.0
     hooks:
       - id: towncrier-check
+
+  - repo: https://github.com/mwouts/jupytext
+    # Must match uv.lock's jupytext version: paired .md front matter embeds
+    # jupytext_version, so a mismatched hook rewrites pairs on every commit.
+    rev: v1.19.4
+    hooks:
+      - id: jupytext
+        args: [--sync]
+        files: ^docs/.*\.md$
+        require_serial: true
