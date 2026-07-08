@@ -3,7 +3,11 @@
 ```{toctree}
 :maxdepth: 1
 
-../configuration
-../caching
-../tiebreaking
+configure
+parallel
+cache
+save-load
+export
+sweep
+tie-breaking
 ```
