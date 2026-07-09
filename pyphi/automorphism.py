@@ -192,7 +192,7 @@ def _distinction_record(distinction, mapping):
 
 
 def _structure_node_indices(ces):
-    from pyphi.substrate import _sia_node_indices
+    from pyphi.condensation import _sia_node_indices
 
     indices = _sia_node_indices(ces.sia)
     if indices is None:

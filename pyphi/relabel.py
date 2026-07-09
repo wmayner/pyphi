@@ -237,7 +237,7 @@ def relabel_ces(ces, mapping, node_labels=None) -> CauseEffectStructure:
     All φ values are preserved exactly; see the module docstring for the
     contract on ties, views, and labels.
     """
-    from pyphi.substrate import _sia_node_indices
+    from pyphi.condensation import _sia_node_indices
 
     if isinstance(ces, StructureView):
         raise ValueError(

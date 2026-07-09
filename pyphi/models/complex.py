@@ -97,7 +97,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     @property
     def node_indices(self) -> tuple[int, ...]:
         """The units of this complex (``()`` for a null complex)."""
-        from pyphi.substrate import _sia_node_indices
+        from pyphi.condensation import _sia_node_indices
 
         return _sia_node_indices(self.sia) or ()
 

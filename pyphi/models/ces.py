@@ -326,7 +326,7 @@ class CauseEffectStructure(
         because distinction equality also compares purviews, φ, and
         repertoires. The config snapshots are not compared.
         """
-        from pyphi.substrate import _sia_node_indices
+        from pyphi.condensation import _sia_node_indices
 
         mine = (
             _sia_node_indices(self.sia),
