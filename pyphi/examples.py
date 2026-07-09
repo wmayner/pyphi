@@ -6,28 +6,39 @@
 
 import string
 from collections import defaultdict
-from dataclasses import replace
 
 import numpy as np
 
 from . import actual
 from .actual import Transition
-from .conf import config, iit3
+from .conf import config
 from .substrate import Substrate
 from .substrate_generator import build_substrate, ising
 from .system import System
-from .utils import all_states, powerset
+from .utils import all_states
 
 LABELS = string.ascii_uppercase
+
+EXAMPLE_CATEGORIES = ("substrate", "system", "tpm", "transition")
 
 EXAMPLES = defaultdict(dict)
 
 
 def register_example(func):
-    name = func.__name__.split("_")
-    obj = name[-1]
-    name = "_".join(name[:-1])
-    EXAMPLES[obj][name] = func
+    """Register an example function in ``EXAMPLES[category][name]``.
+
+    The category is the last underscore-delimited token of the function name
+    (so ``xor_substrate`` registers under ``EXAMPLES["substrate"]["xor"]``) and
+    must be one of :data:`EXAMPLE_CATEGORIES`; a name that does not end in a
+    known category raises, rather than registering under a spurious one.
+    """
+    *name_parts, category = func.__name__.split("_")
+    if category not in EXAMPLE_CATEGORIES:
+        raise ValueError(
+            f"example function {func.__name__!r} must end in one of "
+            f"{EXAMPLE_CATEGORIES}, got {category!r}"
+        )
+    EXAMPLES[category]["_".join(name_parts)] = func
     return func
 
 

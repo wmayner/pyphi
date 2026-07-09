@@ -16,6 +16,17 @@ def test_examples_registry_contains_expected_categories():
     assert expected.issubset(examples.EXAMPLES.keys())
 
 
+def test_register_example_rejects_unknown_category():
+    """A function whose name does not end in a known category raises, rather
+    than registering under a spurious one.
+    """
+    with pytest.raises(ValueError, match="must end in one of"):
+
+        @examples.register_example
+        def something_bogus():  # 'bogus' is not a known category
+            return None
+
+
 @pytest.mark.parametrize("name, func", _example_items("substrate"))
 def test_example_substrates_construct(name, func):
     substrate = func()
