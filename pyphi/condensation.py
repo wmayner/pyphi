@@ -286,6 +286,6 @@ def exclusion_records(
             if cand_idx == acc_idx or cand_idx in accepted_footprints:
                 continue
             if acc.footprint & cand.footprint:
-                recs.append(ExcludedCandidate(cand_idx, cand.phi))
+                recs.append(ExcludedCandidate(cand_idx, cand.phi, units=cand.units))
         records[acc_idx] = tuple(recs)
     return records

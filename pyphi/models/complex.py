@@ -20,27 +20,37 @@ from .pandas import ToPandasMixin
 
 
 class ExcludedCandidate(Displayable, ToPandasMixin):
-    """A candidate system excluded from being a complex in favor of an
-    overlapping complex with greater-or-equal Φ.
+    """A candidate system that overlaps a complex and is not itself a
+    complex: it was beaten (or Φ-outranked) by an overlapping accepted
+    complex, or belonged to a Φ-tied clique that failed exclusion.
 
-    Holds plain values only (units and Φ), never a back-reference to the
+    An excluded candidate may carry higher φₛ than a complex whose record
+    it appears in, when it was carved away by a different overlapping
+    complex. Holds plain values only, never a back-reference to the
     excluding :class:`~pyphi.models.complex.Complex`, so the heavy analysis
     graph is not retained.
 
     Attributes
     ----------
     node_indices : tuple[int, ...]
-        The excluded candidate's units.
+        The excluded candidate's micro units.
     phi : float
-        The candidate's Φ value.
+        The candidate's φₛ value.
+    units : tuple or None
+        The candidate's macro unit structure; ``None`` for a candidate
+        system of micro units.
     """
 
-    def __init__(self, node_indices: Any, phi: Any) -> None:
+    def __init__(self, node_indices: Any, phi: Any, units: Any = None) -> None:
         self.node_indices: tuple[int, ...] = tuple(node_indices)
         self.phi: float = float(phi)
+        self.units: tuple[Any, ...] | None = tuple(units) if units is not None else None
 
     def _pandas_record(self) -> dict[str, Any]:
-        return {"node_indices": self.node_indices, "phi": float(self.phi)}
+        record = {"node_indices": self.node_indices, "phi": float(self.phi)}
+        if self.units is not None:
+            record["units"] = self.units
+        return record
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
@@ -88,15 +98,27 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         substrate: Any,
         is_maximal: bool = False,
         excluded: Any = (),
+        units: Any = None,
+        node_indices: Any = None,
     ) -> None:
         self.sia = sia
         self.substrate = substrate
         self.is_maximal = bool(is_maximal)
         self.excluded: tuple[ExcludedCandidate, ...] = tuple(excluded)
+        self.units: tuple[Any, ...] | None = tuple(units) if units is not None else None
+        self._node_indices: tuple[int, ...] | None = (
+            tuple(node_indices) if node_indices is not None else None
+        )
 
     @property
     def node_indices(self) -> tuple[int, ...]:
-        """The units of this complex (``()`` for a null complex)."""
+        """The micro units of this complex (``()`` for a null complex).
+
+        For a complex of macro units this is the union of the units' micro
+        constituents, not the macro units' own indices.
+        """
+        if self._node_indices is not None:
+            return self._node_indices
         from pyphi.condensation import _sia_node_indices
 
         return _sia_node_indices(self.sia) or ()
@@ -136,18 +158,17 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
         num_excluded = len(self.excluded)
+        rows = [
+            Row("Φ", self.phi),
+            Row("Nodes", str(self.node_indices)),
+            Row("Is maximal", self.is_maximal),
+            Row("Excluded candidates", num_excluded),
+        ]
+        if self.units is not None:
+            rows.insert(2, Row("Units", len(self.units)))
         return Description(
             title=cls,
-            sections=(
-                Section(
-                    rows=(
-                        Row("Φ", self.phi),
-                        Row("Nodes", str(self.node_indices)),
-                        Row("Is maximal", self.is_maximal),
-                        Row("Excluded candidates", num_excluded),
-                    )
-                ),
-            ),
+            sections=(Section(rows=tuple(rows)),),
             compact=(
                 f"{cls}({self.node_indices}, Φ={format_value(self.phi)},"
                 f" is_maximal={self.is_maximal})"

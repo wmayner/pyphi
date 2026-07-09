@@ -121,3 +121,40 @@ def test_non_overlapping_rejects_overlap():
     overlapping = [_Stub((0, 1)), _Stub((1, 2))]  # share unit 1
     with pytest.raises(ValueError, match="Exclusion violated"):
         validate.non_overlapping(overlapping)
+
+
+class _StubSIA:
+    phi = 1.0
+    node_indices = (0, 1)
+
+    def order_by(self):
+        return self.phi
+
+    def _pandas_record(self):
+        return {"phi": self.phi}
+
+
+def test_complex_node_indices_override_and_units():
+    units = ("unit-a", "unit-b")  # opaque to Complex; MacroUnits in practice
+    c = Complex(
+        sia=_StubSIA(),
+        substrate=None,
+        units=units,
+        node_indices=(0, 1, 2, 3),
+    )
+    assert c.node_indices == (0, 1, 2, 3)
+    assert c.units == units
+
+
+def test_complex_defaults_micro():
+    c = Complex(sia=_StubSIA(), substrate=None)
+    assert c.node_indices == (0, 1)
+    assert c.units is None
+
+
+def test_excluded_candidate_units_default_none():
+    e = ExcludedCandidate((1, 2), 0.5)
+    assert e.units is None
+    e2 = ExcludedCandidate((1, 2), 0.5, units=("u",))
+    assert e2.units == ("u",)
+    assert e2 == ExcludedCandidate((1, 2), 0.5)  # units not part of identity
