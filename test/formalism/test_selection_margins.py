@@ -489,3 +489,18 @@ def test_relabel_preserves_mechanism_margins(basic_mice_cause):
     assert float(relabeled.ria.partition_margin) == pytest.approx(
         float(basic_mice_cause.ria.partition_margin)
     )
+
+
+def test_tied_selections_names_the_tied_selection(xor_sia, basic_sia):
+    assert "cause_state" in xor_sia.tied_selections
+    assert xor_sia.effectively_tied
+    assert basic_sia.tied_selections == ()
+    by_kind = _findings_by_kind(xor_sia.explain())
+    detail = dict(by_kind["effectively_tied"][0].detail)
+    assert "cause_state" in detail["tied_selections"]
+
+
+def test_tied_selections_partition(basic_sia):
+    sia = examples.grid3_system().sia()
+    assert "partition" in sia.tied_selections
+    assert basic_sia.tied_selections == ()

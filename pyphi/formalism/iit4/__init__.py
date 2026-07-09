@@ -263,15 +263,31 @@ class SystemIrreducibilityAnalysis(
         return margins
 
     @property
+    def tied_selections(self) -> tuple[str, ...]:
+        """The selections whose margin is within ``config.numerics.precision``
+        of zero — a subset of ``("partition", "cause_state", "effect_state")``.
+
+        Empty when every selection has a clear winner. See also the
+        per-direction :attr:`StateSpecification.state_margin` on
+        ``system_state`` and :attr:`partition_margin`.
+        """
+        named = {
+            "partition": self.partition_margin,
+            "cause_state": self.state_margins[Direction.CAUSE],
+            "effect_state": self.state_margins[Direction.EFFECT],
+        }
+        return tuple(
+            name
+            for name, margin in named.items()
+            if margin is not None and utils.eq(float(margin), 0.0)
+        )
+
+    @property
     def effectively_tied(self) -> bool:
         """Whether any selection margin is within
-        ``config.numerics.precision`` of zero — i.e. the partition or
-        specified-state selection is effectively tied at the configured
-        precision."""
-        margins = [self.partition_margin, *self.state_margins.values()]
-        return any(
-            margin is not None and utils.eq(float(margin), 0.0) for margin in margins
-        )
+        ``config.numerics.precision`` of zero — i.e.
+        :attr:`tied_selections` is non-empty."""
+        return bool(self.tied_selections)
 
     def resolve_system_state(self) -> None:
         """Update system_state to reflect the specified states resolved by the MIP.
@@ -494,6 +510,7 @@ class SystemIrreducibilityAnalysis(
                     kind="effectively_tied",
                     label="Selection effectively tied",
                     value=self.effectively_tied,
+                    detail=(("tied_selections", self.tied_selections),),
                 )
             )
         if self.cause is not None and self.effect is not None:
