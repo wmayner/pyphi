@@ -130,7 +130,7 @@ def _table_html(table: Table) -> str:
         body = "".join(f"<tr>{_grid_cells(row, 'td')}</tr>" for row in table.rows)
         grid_html = (
             '<table class="pyphi-table pyphi-grid" '
-            'style="border-collapse:collapse;width:auto">'
+            'style="border-collapse:collapse;width:auto;margin:0">'
             f"{head}{body}</table>"
         )
         # Small grids (e.g. cut grids) render inline; tall grids (e.g. TPMs)
