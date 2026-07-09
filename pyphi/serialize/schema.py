@@ -222,9 +222,17 @@ class ProvenanceSchema(msgspec.Struct, frozen=True, tag="provenance"):
     estimator: dict | None = None
 
 
+class MacroUnitSchema(msgspec.Struct, frozen=True, tag="macro_unit"):
+    constituents: tuple["MacroUnitSchema | int", ...]
+    update_grain: int
+    mapping: tuple[int, ...]
+    background_apportionment: tuple[int, ...] = ()
+
+
 class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candidate"):
     node_indices: tuple[int, ...]
     phi: float
+    units: tuple[MacroUnitSchema, ...] | None = None
 
 
 class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
@@ -428,6 +436,8 @@ class ComplexSchema(msgspec.Struct, frozen=True, tag="complex"):
     substrate: SubstrateSchema
     is_maximal: bool
     excluded: tuple[ExcludedCandidateSchema, ...]
+    units: tuple[MacroUnitSchema, ...] | None = None
+    node_indices: tuple[int, ...] | None = None
 
 
 # --- Estimation-layer posteriors ----------------------------------------------
@@ -487,6 +497,7 @@ Schema = (
     | ResolvedDistinctionsSchema
     | ProvenanceSchema
     | ExcludedCandidateSchema
+    | MacroUnitSchema
     | IIT3SIASchema
     | IIT4SIASchema
     | NullIIT4SIASchema

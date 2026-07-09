@@ -428,14 +428,56 @@ def _register_provenance() -> None:
     )
 
 
+def _register_macro_unit() -> None:
+    from pyphi.macro.units import MacroUnit
+
+    def _enc(u: Any) -> Any:
+        return schema.MacroUnitSchema(
+            constituents=tuple(
+                _enc(c) if isinstance(c, MacroUnit) else int(c) for c in u.constituents
+            ),
+            update_grain=u.update_grain,
+            mapping=tuple(u.mapping),
+            background_apportionment=tuple(u.background_apportionment),
+        )
+
+    def _dec(s: Any) -> Any:
+        return MacroUnit(
+            constituents=tuple(
+                _dec(c) if isinstance(c, schema.MacroUnitSchema) else int(c)
+                for c in s.constituents
+            ),
+            update_grain=s.update_grain,
+            mapping=tuple(s.mapping),
+            background_apportionment=tuple(s.background_apportionment),
+        )
+
+    _ENCODERS[MacroUnit] = _enc
+    _DECODERS[schema.MacroUnitSchema] = _dec
+
+
+def _encode_optional_units(units: Any) -> Any:
+    if units is None:
+        return None
+    return tuple(to_schema(u) for u in units)
+
+
+def _decode_optional_units(units: Any) -> Any:
+    if units is None:
+        return None
+    return tuple(from_schema(u) for u in units)
+
+
 def _register_excluded_candidate() -> None:
     from pyphi.models.complex import ExcludedCandidate
 
     _ENCODERS[ExcludedCandidate] = lambda e: schema.ExcludedCandidateSchema(
-        node_indices=tuple(e.node_indices), phi=float(e.phi)
+        node_indices=tuple(e.node_indices),
+        phi=float(e.phi),
+        units=_encode_optional_units(e.units),
     )
     _DECODERS[schema.ExcludedCandidateSchema] = lambda s: ExcludedCandidate(
-        s.node_indices, s.phi
+        s.node_indices, s.phi, units=_decode_optional_units(s.units)
     )
 
 
@@ -937,12 +979,16 @@ def _register_complex() -> None:
         substrate=to_schema(c.substrate),
         is_maximal=bool(c.is_maximal),
         excluded=tuple(to_schema(e) for e in c.excluded),
+        units=_encode_optional_units(c.units),
+        node_indices=tuple(c.node_indices),
     )
     _DECODERS[schema.ComplexSchema] = lambda s: Complex(
         sia=from_schema(s.sia),
         substrate=from_schema(s.substrate),
         is_maximal=s.is_maximal,
         excluded=tuple(from_schema(e) for e in s.excluded),
+        units=_decode_optional_units(s.units),
+        node_indices=s.node_indices,
     )
 
 
@@ -1042,6 +1088,7 @@ def _ensure_registered() -> None:
     _register_distinction()
     _register_distinctions()
     _register_provenance()
+    _register_macro_unit()
     _register_excluded_candidate()
     _register_iit3_sia()
     _register_iit4_sia()
