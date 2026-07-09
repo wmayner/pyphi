@@ -5,25 +5,27 @@ docstrings; the items below are things it *surfaced* and are recorded here for
 separate follow-up, not fixed as part of the sweep (with two small exceptions,
 noted under "Code touched").
 
-## Code-level bugs found (reported, NOT fixed)
+## Code-level bugs found (all resolved)
 
-1. **`pyphi/distribution.py` `purview()`** identifies purview nodes by a size-2
-   dimension (`dim == 2`). With non-binary nodes now supported
-   (`repertoire_shape`/`max_entropy_distribution` take `alphabet_sizes`), a
-   k-ary purview node has dimension > 2 and is silently dropped. Latent bug for
-   k-ary repertoires. The docstring now states the binary assumption.
-2. **`pyphi/models/cmp.py` `numpy_aware_eq`**: pre-existing
-   `# TODO: this is broken if the iterables are sets` — the Iterable branch uses
-   `len()`/`zip()`, which misbehaves for set inputs.
-3. **Two distinct classes named `JointTPM`, exported inconsistently.**
-   `pyphi/core/tpm/joint_distribution.py` defines the full backing `JointTPM`;
-   `pyphi/core/tpm/joint.py` defines a thin wrapper class *also* named
-   `JointTPM`. The top-level `pyphi.__init__` re-exports the backing class
-   (`pyphi.JointTPM`), while `pyphi.core.tpm.__init__` re-exports the wrapper
-   (`pyphi.core.tpm.JointTPM`) — so the same name resolves to different classes
-   by import path. This is an API-naming footgun (and it makes bare `JointTPM`
-   cross-references ambiguous in the docs). Deferred to the JointTPM-as-view
-   refactor, which consolidates the two classes; do not rename standalone.
+Every code-level bug the sweep surfaced has since been fixed:
+
+- `pyphi/actual.py`: "is no a {direction} mechanism" `ValueError` typo → "is not a".
+- `pyphi/utils.py` `enforce_integer` / `enforce_integer_or_none`: unused, with a
+  wrong error message — deleted as dead code.
+- `pyphi/core/tpm` `JointDistribution.print()`: a no-op stub with no callers —
+  deleted.
+- `pyphi/dynamics.py` `> 0.5` ON threshold: settling a P(ON)=0.5 unit to OFF is
+  the intended, now-documented convention (no change needed).
+- `pyphi/models/cmp.py` `Orderable.__gt__`/`__ge__`: reverse-sort / `max` / `min`
+  over a class and its subclass (e.g. concrete vs null SIA) recursed to a stack
+  overflow — the operators now compare `order_by()` directly.
+- `pyphi/models/cmp.py` `numpy_aware_eq`: compared sets by positional `zip` →
+  now compares sets by set equality.
+- `pyphi/distribution.py` `purview()`: dropped k-ary purview nodes (`dim == 2`)
+  → identifies non-unitary axes (`dim > 1`).
+- The two classes named `JointTPM` were consolidated by the JointTPM-as-view
+  refactor, so `pyphi.JointTPM` and `pyphi.core.tpm.JointTPM` now resolve to the
+  same class.
 
 (The 46 docstring-vs-code disagreements the sweep *corrected* — reversed
 connectivity-matrix semantics, wrong equation citations, wrong return types,
