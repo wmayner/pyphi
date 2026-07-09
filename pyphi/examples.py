@@ -1325,259 +1325,185 @@ def prevention_transition():
     return Transition(substrate, x_state, y_state, (0, 1), (2,))
 
 
-@register_example
-@config.override(
-    iit=replace(
-        iit3["iit"],
-        mechanism_partition_scheme="WEDGE_TRIPARTITION",
-        mechanism_phi_measure="AID",
-    ),
-    validate_system_states=False,
-    alpha_measure="WPMI",
-)
-def frog_example():
-    """
-    Example used in the paper::
+# The frog example from Grasso, Albantakis, Lang & Tononi (2021), "Causal
+# reductionism and causal structures" (Nat. Neurosci. 24, 1348-1355). Three
+# species of simulated "frog" organisms (F3, F2, F1) whose actual-causation
+# accounts expose composite, higher-order causes that a first-order account
+# misses. See papers/2021__grasso-et-al__causal-reductionism.pdf and
+# docs/tutorials/causal-reductionism.md.
 
-        Causal reductionism and causal structures
-        Grasso, M, Albantakis, L, Lang, J, & Tononi, G
-
-    """
-
-    def LogFunc(x, l, k, x0):
-        y = 1 / (l + np.e ** (-k * (x - x0)))
-        return y
-
-    def Gauss(x, mu, si):
-        y = np.exp(-0.5 * (((x - mu) / si) ** 2))
-        return y
-
-    def NR(x, exponent, threshold):
-        x_exp = x**exponent
-        y = x_exp / (threshold + x_exp)
-        return y
-
-    def get_net(
-        mech_func,
-        weights,
-        mu=None,
-        si=None,
-        exp=None,
-        th=None,
-        l=None,
-        k=None,
-        x0=None,
-        input_nodes=None,
-        input_modifier=None,
-        node_labels=None,
-    ):
-        """
-        Returns a pyphi substrate (with the specified activation function)
-
-        Parameters
-        ----------
-        mech_func
-            List of mechanism function labels ('g' for Gaussian, 'nr' or 's'
-            for Naka-Rushton, 'l' for LogFunc).
-        weights
-            Node-by-node weight matrix (x sends to y).
-        mu
-            Mean (Gauss).
-        si
-            Standard deviation (Gauss).
-        exp
-            Exponent (NR).
-        th
-            Threshold (NR).
-        x0
-            Midpoint value (LogFunc).
-        l
-            Max value (LogFunc).
-        k
-            Growth rate (LogFunc).
-        """
-        weights = weights.T
-        node_indices = [n for n in range(len(weights))]
-        nodes_n = len(node_indices)
-
-        if node_labels is None:
-            node_labels = [string.ascii_uppercase[n] for n in range(len(weights))]
-
-        mechs_pset = list(powerset(range(nodes_n), nonempty=True))
-        states = list(all_states(nodes_n))
-        tpm = np.zeros([2**nodes_n, nodes_n])
-
-        for s in range(len(states)):
-            state = states[s]
-            tpm_line = []
-
-            for z in node_indices:
-                # g = Gaussian
-                if mech_func[z] == "g":
-                    val = Gauss(
-                        sum(state * np.array([weights[z][n] for n in node_indices])),
-                        mu,
-                        si,
-                    )
-                # nr = Naka Rushton, s = space
-                elif mech_func[z] == "nr" or mech_func[z] == "s":
-                    input_sum = sum(state * weights[z])
-                    val = NR(input_sum, exp, th)
-                # l = LogFunc
-                elif mech_func[z] == "l":
-                    val = LogFunc(
-                        sum(state * np.array([weights[z][n] for n in node_indices])),
-                        l,
-                        k,
-                        x0,
-                    )
-                # i = inhibiting input
-                elif mech_func[z] == "i":
-                    assert input_nodes is not None, (
-                        "input_nodes required for inhibiting input"
-                    )
-                    assert input_modifier is not None, (
-                        "input_modifier required for inhibiting input"
-                    )
-                    non_input_nodes = [n for n in node_indices if n not in input_nodes]
-                    input_weights = [
-                        -input_modifier if state[n] == 0 else 1 for n in input_nodes
-                    ] * np.array([weights[z][n] for n in input_nodes])
-                    other_weights = [state[n] for n in non_input_nodes] * np.array(
-                        [weights[z][n] for n in non_input_nodes]
-                    )
-                    weights_sum = sum(input_weights) + sum(other_weights)
-                    val = Gauss(weights_sum, mu, si)
-                else:
-                    raise NameError("Mechanism function not recognized")
-
-                tpm_line.append(val)
-
-            tpm[s] = tuple(tpm_line)
-
-        cm = np.array(
-            [[1.0 if w else 0 for w in weights[n]] for n in range(len(weights))]
-        )
-        cm = cm.T
-        substrate = Substrate(tpm, cm, node_labels)
-
-        return substrate
-
-    # F3 Frog
-    print("F3 frog:\n")
-    mu = 1
-    si = 0.3
-
-    mech_func = ["g", "g", "g", "g", "g", "g", "g", "g"]
-    #'S1','S2','S3','H1','H2','H3','M1','M2'
-
-    weights = np.array(
-        [
-            [0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 0.0],  # S1
-            [0.0, 0.0, 0.0, 0.5, 0.9, 0.5, 0.0, 0.0],  # S2
-            [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 0.0, 0.0],  # S3
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.0],  # H1
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2],  # H3
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8],  # H2
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M1
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M2
-        ]
-    )  # S1,S2,S3,H1,H3,H2,M1,M2
-
-    node_labels = ["SL", "SC", "SR", "CL", "CC", "CR", "ML", "MR"]
-
-    substrate = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
-
-    transition = actual.Transition(
-        substrate,
-        (1, 0, 1, 1, 1, 1, 1, 1),
-        (1, 0, 1, 1, 1, 1, 1, 1),
-        (0, 1, 2, 3, 4, 5),
-        (3, 4, 5, 6, 7),
-    )
-    print(transition)
-    account = actual.account(transition)
-    print(account)
-
-    # F2 Frog
-    print("F2 frog:\n")
-
-    mu = 1
-    si = 0.3
-
-    mech_func = [
-        "g",
-        "g",
-        "g",
-        "g",
-        "g",
-        "g",
-        "g",
-    ]
-    #'S1','S2','S3', N1','N2','M1','M2',
-
-    weights = np.array(
-        [
-            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # S1
-            [0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0],  # S2
-            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],  # S3
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.2],  # H1
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.8],  # H2
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M1
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M2
-        ]
-    )  # S1,S2,S3,H1,H2,M1,M2
-
-    node_labels = ["SL", "SC", "SR", "CL", "CR", "ML", "MR"]
-
-    substrate = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
-
-    transition = actual.Transition(
-        substrate,
-        (1, 0, 1, 1, 1, 1, 1),
-        (1, 0, 1, 1, 1, 1, 1),
-        (0, 1, 2, 3, 4),
-        (3, 4, 5, 6),
-    )
-    print(transition)
-    account = actual.account(transition)
-    print(account)
-
-    # F1 Frog
-    print("\n\nF1 frog:\n")
-    mu = 1
-    si = 0.3
-
-    mech_func = ["g", "g", "g", "g", "g", "g", "g", "g"]
-    #'S1','S2','S3','S4','N1','N2','M1','M2',
-
-    weights = np.array(
-        [
+# fmt: off
+_FROG_SPECIES = {
+    # F3: three sensors, three central neurons (CC is the composite super-bug
+    # detector), two motors.
+    "F3": {
+        "node_labels": ("SL", "SC", "SR", "CL", "CC", "CR", "ML", "MR"),
+        "weights": [
+            [0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 0.0],  # SL
+            [0.0, 0.0, 0.0, 0.5, 0.9, 0.5, 0.0, 0.0],  # SC
+            [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 0.0, 0.0],  # SR
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.0],  # CL
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2],  # CC
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8],  # CR
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # ML
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # MR
+        ],
+        "before_state": (1, 0, 1, 1, 1, 1, 1, 1),
+        "after_state": (1, 0, 1, 1, 1, 1, 1, 1),
+        "cause_units": (0, 1, 2, 3, 4, 5),
+        "effect_units": (3, 4, 5, 6, 7),
+    },
+    # F2: the super-bug detector CC is gone, but CL and CR still jointly form a
+    # composite cause (seven units).
+    "F2": {
+        "node_labels": ("SL", "SC", "SR", "CL", "CR", "ML", "MR"),
+        "weights": [
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # SL
+            [0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0],  # SC
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],  # SR
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.2],  # CL
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.8],  # CR
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # ML
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # MR
+        ],
+        "before_state": (1, 0, 1, 1, 1, 1, 1),
+        "after_state": (1, 0, 1, 1, 1, 1, 1),
+        "cause_units": (0, 1, 2, 3, 4),
+        "effect_units": (3, 4, 5, 6),
+    },
+    # F1: a pair of "half-frogs" (left and right), each reduced to two sensors,
+    # one central neuron (CL / CR), and one motor (ML / MR) -- the reductionist
+    # baseline (eight units).
+    "F1": {
+        "node_labels": ("S1", "S2", "S3", "S4", "CL", "CR", "ML", "MR"),
+        "weights": [
             [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # S1
             [0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],  # S2
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],  # S3
             [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],  # S4
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # H1
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # H2
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M1
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # M2
-        ]
-    )  # S1,S2,S3,S4,H1,H2,M1,M2
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # CL
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # CR
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # ML
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # MR
+        ],
+        "before_state": (1, 0, 0, 1, 1, 1, 1, 1),
+        "after_state": (1, 0, 0, 1, 1, 1, 1, 1),
+        "cause_units": (0, 1, 2, 3, 4, 5),
+        "effect_units": (4, 5, 6, 7),
+    },
+}
+# fmt: on
 
-    node_labels = ["S1", "S2", "S3", "S4", "H1", "H2", "M1", "M2"]
 
-    substrate = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+def _frog_net(weights, node_labels, *, mu=1.0, si=0.3):
+    """Build a frog substrate from a connection-weight matrix.
 
-    transition = actual.Transition(
-        substrate,
-        (1, 0, 0, 1, 1, 1, 1, 1),
-        (1, 0, 0, 1, 1, 1, 1, 1),
-        (0, 1, 2, 3, 4, 5),
-        (4, 5, 6, 7),
+    Each unit turns ON in the next state with a probability given by a Gaussian
+    (mean ``mu``, standard deviation ``si``) of its total weighted input, where
+    ``weights[i][j]`` is the weight of the connection from unit ``i`` to unit
+    ``j``.
+
+    Parameters
+    ----------
+    weights : array_like
+        Square connection-weight matrix in from-to order.
+    node_labels : sequence of str
+        One label per unit.
+    mu : float, optional
+        Mean of the Gaussian activation function.
+    si : float, optional
+        Standard deviation of the Gaussian activation function.
+
+    Returns
+    -------
+    Substrate
+    """
+    weights = np.asarray(weights, dtype=float)
+    incoming = weights.T
+    n = len(incoming)
+    tpm = np.zeros((2**n, n))
+    for index, state in enumerate(all_states(n)):
+        activation = incoming @ np.asarray(state)  # total input to each unit
+        tpm[index] = np.exp(-0.5 * (((activation - mu) / si) ** 2))
+    cm = (weights != 0).astype(float)
+    return Substrate(tpm, cm, node_labels=list(node_labels))
+
+
+def _frog_spec(species):
+    """Return the definition for a frog species, or raise on an unknown one."""
+    try:
+        return _FROG_SPECIES[species]
+    except KeyError:
+        raise ValueError(
+            f"unknown frog species {species!r}; expected one of {sorted(_FROG_SPECIES)}"
+        ) from None
+
+
+@register_example
+def frog_substrate(species="F3"):
+    """The substrate of a frog from Grasso et al. (2021).
+
+    Three species are available. **F3** has three sensors (SL, SC, SR), three
+    central neurons (CL, CC, CR — CC is a composite super-bug detector), and two
+    motors (ML, MR). **F2** removes CC, leaving CL and CR to jointly form a
+    composite cause. **F1** is a pair of reduced "half-frogs," each with two
+    sensors, one central neuron, and one motor.
+
+    Parameters
+    ----------
+    species : str, optional
+        One of ``"F3"`` (default), ``"F2"``, or ``"F1"``.
+
+    Returns
+    -------
+    Substrate
+
+    Raises
+    ------
+    ValueError
+        If ``species`` is not a known frog species.
+
+    References
+    ----------
+    Grasso M, Albantakis L, Lang JP, Tononi G (2021). Causal reductionism and
+    causal structures. Nature Neuroscience 24, 1348-1355.
+    """
+    spec = _frog_spec(species)
+    return _frog_net(spec["weights"], spec["node_labels"])
+
+
+@register_example
+def frog_transition(species="F3"):
+    """The state transition analyzed for a frog from Grasso et al. (2021).
+
+    Wraps :func:`frog_substrate` in the actual-causation transition — the before
+    and after states and the cause and effect unit sets — that the paper
+    analyzes with :func:`pyphi.actual.account`. Computing the account requires
+    the paper's IIT 3.0 actual-causation configuration; see the
+    causal-reductionism tutorial.
+
+    Parameters
+    ----------
+    species : str, optional
+        One of ``"F3"`` (default), ``"F2"``, or ``"F1"``.
+
+    Returns
+    -------
+    Transition
+
+    Raises
+    ------
+    ValueError
+        If ``species`` is not a known frog species.
+    """
+    spec = _frog_spec(species)
+    return actual.Transition(
+        frog_substrate(species),
+        spec["before_state"],
+        spec["after_state"],
+        spec["cause_units"],
+        spec["effect_units"],
     )
-    print(transition)
-    account = actual.account(transition)
-    print(account)
 
 
 def differentiation_micro_tpm(p, epsilon):

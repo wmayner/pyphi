@@ -40,3 +40,50 @@ def test_example_tpms_construct(name, func):
 def test_example_transitions_construct(name, func):
     transition = func()
     assert isinstance(transition, Transition)
+
+
+def test_frog_species_build_under_default_config():
+    """Each frog species builds a substrate and transition of the expected
+    size, with no special configuration required to construct them.
+    """
+    sizes = {"F1": 8, "F2": 7, "F3": 8}
+    for species, size in sizes.items():
+        substrate = examples.frog_substrate(species)
+        assert isinstance(substrate, Substrate)
+        assert substrate.size == size
+        assert isinstance(examples.frog_transition(species), Transition)
+
+    with pytest.raises(ValueError, match="unknown frog species"):
+        examples.frog_substrate("bogus")
+
+
+def test_frog_accounts_have_composite_causes():
+    """The frogs' actual-causation accounts contain composite (multi-unit)
+    causes — most in F3 (which has the composite super-bug detector CC) and
+    fewest in the reduced F1 — reproducing the point of Grasso et al. (2021).
+    """
+    from dataclasses import replace
+
+    from pyphi import actual
+    from pyphi import config
+    from pyphi import iit3
+
+    composite_counts = {}
+    with config.override(
+        iit=replace(
+            iit3["iit"],
+            mechanism_partition_scheme="WEDGE_TRIPARTITION",
+            mechanism_phi_measure="AID",
+        ),
+        validate_system_states=False,
+        alpha_measure="WPMI",
+        progress_bars=False,
+    ):
+        for species in ("F1", "F2", "F3"):
+            account = actual.account(examples.frog_transition(species))
+            composite_counts[species] = sum(
+                1 for link in account if len(link.purview) >= 2
+            )
+
+    assert all(count >= 1 for count in composite_counts.values())
+    assert composite_counts["F3"] > composite_counts["F1"]
