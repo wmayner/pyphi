@@ -3767,42 +3767,26 @@ to ease transition:
   ``pyphi/core/repertoire_algebra.py``, plus consumers and ~30 test
   sites. Roughly 1–3 days. Independent of any other in-flight project.
 
-- **Finish `JointTPM` as a clean joint *view* over `FactoredTPM`.** The P12a design keeps
-  two public representations under the `TPM` Protocol: `FactoredTPM` (canonical per-node
-  storage, k-ary-native) and `JointTPM` (the joint/dense form, renamed from `ExplicitTPM`
-  "for symmetry with `FactoredTPM`", intended as the boundary value type that
-  `FactoredTPM.to_joint()` produces — see spec `2026-05-22-p12a-factored-tpm-design.md`
-  §3.2). `JointTPM` is **kept**, not retired; the intended end-state is a pure
-  materialized-on-demand **view** — `FactoredTPM` stays the only stored TPM. What remains is
-  finishing the joint view's implementation, which today is half-built and still carries a
-  stale "legacy" label from when it was the canonical store (pre-P12a):
-    - **Consolidate the two classes into one.** A joint object exists twice — the real
-      container `joint_distribution.JointTPM` (on the `JointDistribution`/`ArrayLike`
-      numpy-proxy base) and a thin Protocol wrapper `joint.JointTPM` that delegates to it.
-      The P12a plan called for a single `joint.py`; the wrapper split is incidental later
-      layering. Collapse to one clean `JointTPM`.
-    - **Remove the `ArrayLike` numpy-proxy machinery** (`_new_attribute` / `__closures__` /
-      `__wraps__`, the three `TODO(tpm) remove pending ArrayLike refactor` markers) — the
-      actual flagged debt. A view needs only a small read-only surface, not a
-      self-proxying ndarray subclass.
-    - **Make the view k-ary-capable** (drop the binary-only `number_of_units` `log2`,
-      size-2 `tpm_indices`, `2**N` validation) so it is a true peer of the k-ary
-      `FactoredTPM`, and have `Substrate.joint_tpm()` return a `JointTPM` rather than a raw
-      ndarray, completing the joint↔factored symmetry.
-  **Substrate increment landed** (2026-07-08, commit b006aefb): `Substrate` no longer
-  depends on the joint class — input coercion normalizes via `convert.*` directly, the
-  binary-only `_legacy_binary_joint()` renderer and test-only `reconstitute_tpm()` are
-  removed, and the `num_states` `2**n` k-ary bug is fixed.
-  **Prerequisite (a thin view forces this first):** `node.py` and `dynamics.py` currently
-  use the joint class as an *internal* container, calling `marginalize_out` / `condition_tpm`
-  / `reshape` on it (the ArrayLike-proxy surface). A read-only view drops those methods, so
-  the compute path must move off the container *before* the view can be slimmed — move the
-  `node.py` per-node marginals onto `FactoredTPM` factors (or a light distribution helper),
-  `dynamics.py` onto arrays, and the `marginalization.py` wrapper's `._inner` access onto
-  the factored path. The one real downstream consumer is `repertoire_algebra.py`
-  (`__getitem__`, `condition_tpm`, `marginalize_out`, `reshape`, `.tpm`). This touches the φ
-  path in `node.py` and must be verified φ-invariant against the golden suite (goldens
-  byte-identical if faithful — no regeneration).
+- **`JointTPM` as a clean joint *view* over `FactoredTPM` — landed (2026-07-09, commit
+  `4df22ab7`; plan `docs/superpowers/plans/2026-07-08-jointtpm-view.md`).** Realizes the
+  P12a design's two coexisting `TPM`-Protocol representations: `FactoredTPM` (canonical
+  per-node storage, k-ary-native) stays the only *stored* TPM, and `JointTPM` is now a
+  read-only, k-ary, eager-snapshot **view** of the joint conditional (the joint peer,
+  produced by `Substrate.joint_tpm()` / `FactoredTPM.to_joint()`). The legacy
+  `JointTPM`/`JointDistribution` container, its `ArrayLike` numpy-proxy base (the three
+  `TODO(tpm)` markers), and `joint_distribution.py` are **deleted**. The compute path moved
+  off the container first, φ-invariant (goldens byte-identical, no regeneration): per-node
+  marginals are plain ndarrays built via `FactoredTPM.factor(i)` + free
+  `_node_ops.{marginalize_out,condition}` helpers (`node.py`/`repertoire_algebra.py`),
+  `dynamics.py` operates on arrays, and `marginalization.py` routes joint inputs through
+  `to_array()`. Earlier substrate increment (2026-07-08, `b006aefb`: input coercion via
+  `convert.*`, `_legacy_binary_joint`/`reconstitute_tpm` removed, `num_states` `2**n` k-ary
+  bugfix) is subsumed. **Follow-ons that landed with it:** `dynamics.simulate`'s
+  state-by-state path re-sampled via precomputed inverse-CDF (`np.searchsorted`), ~120×
+  faster, with the Ising stationary-distribution test re-homed onto the public
+  `dynamics.simulate`; and `FactoredTPM` gained `is_deterministic` / `permute_nodes` /
+  `subtpm` to preserve the dense-TPM convenience surface (`expand_tpm` intentionally
+  dropped — `joint_tpm()`/`to_joint()` already materialize the dense form).
 
 - **~~Retire ``config.numerics.precision`` when IIT 3.0 is dropped.~~ (Moot — 3.0 is kept.)**
   The setting is a holdover from the EMD-era ``pyemd`` C-library noise, and the original idea
