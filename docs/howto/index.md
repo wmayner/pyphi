@@ -10,4 +10,5 @@ save-load
 export
 sweep
 tie-breaking
+mcp-server
 ```
