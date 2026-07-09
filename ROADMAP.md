@@ -193,6 +193,9 @@ against a renamed surface. Scope:
   `docs/tutorials/iit-4.0-demo.md`. Retiring the last `.rst` example/config/
   tie-breaking pages, de-substituting `conventions.rst`, and deleting the
   `rst_prolog` block completed the removal of substitution markup from the docs.
+  A later addition: the `frog_example` print-demo was refactored into reusable
+  `frog_substrate`/`frog_transition` builders plus a `causal-reductionism`
+  tutorial reproducing Grasso et al. (2021).
 - **Migration guide.** ✅ Landed. `docs/migration/migration-2.0.md` documents
   every API change for existing users (the renames, `compute.*` → `analyze`, the
   formalism dispatch and changed default, the layered config, and the
