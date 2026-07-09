@@ -9,6 +9,7 @@ from pyphi import examples
 from pyphi import sweep
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.direction import Direction
 from pyphi.sweep import SweepResult
 
 
@@ -134,3 +135,27 @@ def test_sweep_progress_false_silences_sequential_path():
             progress=False,
         )
     assert seen == [False]
+
+
+def test_sia_rows_carry_selection_margins():
+    substrate = examples.basic_substrate()
+    state = (1, 0, 0)
+    result = sweep(substrate, states=[state])
+    row = result.df.iloc[0]
+    sia = System(substrate, state).sia()
+    assert math.isclose(row["partition_margin"], float(sia.partition_margin))
+    assert math.isclose(
+        row["cause_state_margin"], float(sia.state_margins[Direction.CAUSE])
+    )
+    assert math.isclose(
+        row["effect_state_margin"], float(sia.state_margins[Direction.EFFECT])
+    )
+    assert bool(row["effectively_tied"]) == sia.effectively_tied
+
+
+def test_iit3_sia_rows_have_no_margins():
+    substrate = examples.basic_substrate()
+    result = sweep(substrate, states=[(1, 0, 0)], formalisms=["IIT_3_0"])
+    row = result.df.iloc[0]
+    assert row["partition_margin"] is None or math.isnan(row["partition_margin"])
+    assert row["effectively_tied"] is None

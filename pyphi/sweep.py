@@ -20,6 +20,7 @@ from pyphi import exceptions
 from pyphi import utils
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.direction import Direction
 from pyphi.system import System
 
 # A dynamically-unreachable state has no defined cause/effect repertoire, so its
@@ -115,11 +116,26 @@ def _run_cell(cell: tuple[Any, Any], *, substrate: Any, compute: Any, skip: bool
         raise
 
 
+def _optional_margin(value: Any) -> float | None:
+    return None if value is None else float(value)
+
+
 def _row_sia(result: Any) -> dict[str, Any]:
+    # Selection margins exist only on IIT 4.0 SIAs; other formalisms' cells
+    # carry None in those columns.
+    state_margins = getattr(result, "state_margins", None)
     return {
         "phi": float(result.phi),
         "normalized_phi": float(getattr(result, "normalized_phi", float("nan"))),
         "is_irreducible": utils.is_positive(result.phi),
+        "partition_margin": _optional_margin(getattr(result, "partition_margin", None)),
+        "cause_state_margin": _optional_margin(
+            state_margins[Direction.CAUSE] if state_margins is not None else None
+        ),
+        "effect_state_margin": _optional_margin(
+            state_margins[Direction.EFFECT] if state_margins is not None else None
+        ),
+        "effectively_tied": getattr(result, "effectively_tied", None),
     }
 
 
