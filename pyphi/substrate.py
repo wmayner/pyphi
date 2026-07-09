@@ -23,11 +23,12 @@ from . import convert
 from . import utils
 from . import validate
 from .cache.content import ContentCache
+from .condensation import Candidate
 from .condensation import _config_iit_version
-from .condensation import _exclusion_records
-from .condensation import _iit3_exclusion_cascade
 from .condensation import _sia_node_indices
-from .condensation import _substrate_exclusion_cascade
+from .condensation import exclusion_cascade
+from .condensation import exclusion_records
+from .condensation import iit3_exclusion_cascade
 from .core.tpm import _display
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
@@ -837,6 +838,7 @@ def complexes(
     """
     from pyphi import validate
     from pyphi.models.complex import Complex
+    from pyphi.system import System
 
     sorted_sias = sorted(
         irreducible_sias(substrate, state, candidates, **kwargs), reverse=True
@@ -844,22 +846,36 @@ def complexes(
     if not sorted_sias:
         return ()
 
-    if _config_iit_version() == "IIT_3_0":
-        accepted = _iit3_exclusion_cascade(sorted_sias, substrate, state)
-    else:
-        accepted = _substrate_exclusion_cascade(sorted_sias, substrate, state)
-    if not accepted:
+    def _as_candidate(sia: Any) -> Candidate:
+        indices = tuple(_sia_node_indices(sia) or ())
+        return Candidate(
+            footprint=frozenset(indices),
+            phi=float(sia.phi),
+            sia_provider=lambda sia=sia: sia,
+            system_provider=lambda indices=indices: System.from_substrate(
+                substrate, state, indices
+            ),
+        )
+
+    cascade_candidates = [_as_candidate(sia) for sia in sorted_sias]
+    cascade = (
+        iit3_exclusion_cascade
+        if _config_iit_version() == "IIT_3_0"
+        else exclusion_cascade
+    )
+    outcome = cascade(cascade_candidates)
+    if not outcome.accepted:
         return ()
 
-    records = _exclusion_records(accepted, sorted_sias)
+    records = exclusion_records(outcome.accepted, cascade_candidates)
     result = tuple(
         Complex(
-            sia=sia,
+            sia=cand.sia_provider(),
             substrate=substrate,
             is_maximal=(i == 0),
-            excluded=records[tuple(_sia_node_indices(sia) or ())],
+            excluded=records[tuple(sorted(cand.footprint))],
         )
-        for i, sia in enumerate(accepted)
+        for i, cand in enumerate(outcome.accepted)
     )
     validate.non_overlapping(result)
     return result

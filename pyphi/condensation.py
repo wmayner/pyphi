@@ -8,11 +8,17 @@ candidates that overlap an accepted complex. Ties within a clique escalate
 to Composition (big Φ) per the S1 tie-resolution supplement; a clique whose
 Φ also ties fails exclusion — its members are removed, but their units stay
 available to lower-φ candidates in later tiers.
+
+Overlap is assessed in micro units: each candidate carries a ``footprint``
+of micro indices, so candidate systems of micro units and of macro units
+compete in the same cascade.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable
+from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -28,32 +34,57 @@ def _sia_node_indices(sia: Any) -> tuple[int, ...] | None:
     return getattr(sia, "node_indices", None)
 
 
-def _exclusion_records(
-    accepted: list[Any], sorted_sias: list[Any]
-) -> dict[tuple[int, ...], tuple[Any, ...]]:
-    """Map each accepted complex (by units) to the ExcludedCandidate records
-    it excluded: every irreducible candidate that overlaps it and was not
-    itself accepted.
+@dataclass(frozen=True)
+class Candidate:
+    """A candidate system as the exclusion cascade sees it.
 
-    A candidate that overlaps several accepted complexes appears in each of
-    their exclusion sets. Reads only values the cascade already computed.
+    ``footprint`` holds the candidate's micro units — the currency in which
+    overlap is assessed (a macro system's own analysis indexes macro units
+    of a synthetic substrate, so its indices cannot be compared with other
+    candidates' directly). The providers defer materialization: the SIA is
+    needed only for accepted complexes, the system only when a tie escalates
+    to Composition.
+
+    Attributes
+    ----------
+    footprint : frozenset[int]
+        The candidate's micro units.
+    phi : float
+        The candidate's φₛ.
+    sia_provider : Callable
+        Zero-argument callable returning the candidate's system
+        irreducibility analysis.
+    system_provider : Callable
+        Zero-argument callable returning the candidate's system, used to
+        compute Φ when a φₛ tie escalates to Composition.
+    units : tuple or None
+        The candidate's macro unit structure; ``None`` for a system of
+        micro units.
     """
-    from pyphi.models.complex import ExcludedCandidate
 
-    accepted_indices = {tuple(_sia_node_indices(s) or ()) for s in accepted}
-    records: dict[tuple[int, ...], tuple[Any, ...]] = {}
-    for acc in accepted:
-        acc_idx = tuple(_sia_node_indices(acc) or ())
-        acc_set = set(acc_idx)
-        recs = []
-        for cand in sorted_sias:
-            cand_idx = tuple(_sia_node_indices(cand) or ())
-            if cand_idx == acc_idx or cand_idx in accepted_indices:
-                continue
-            if acc_set & set(cand_idx):
-                recs.append(ExcludedCandidate(cand_idx, float(cand.phi)))
-        records[acc_idx] = tuple(recs)
-    return records
+    footprint: frozenset[int]
+    phi: float
+    sia_provider: Callable[[], Any]
+    system_provider: Callable[[], Any]
+    units: tuple[Any, ...] | None = None
+
+
+@dataclass(frozen=True)
+class CondensationOutcome:
+    """The cascade's result.
+
+    Attributes
+    ----------
+    accepted : tuple[Candidate, ...]
+        The complexes, in descending-φₛ acceptance order.
+    failed_cliques : tuple[tuple[Candidate, ...], ...]
+        Cliques of overlapping candidates that tied at φₛ and still tied
+        at Φ, failing the exclusion postulate; none of their members is a
+        complex.
+    """
+
+    accepted: tuple[Candidate, ...]
+    failed_cliques: tuple[tuple[Candidate, ...], ...]
 
 
 def _config_iit_version() -> str:
@@ -62,34 +93,24 @@ def _config_iit_version() -> str:
     return _config.formalism.iit.version
 
 
-def _accept(sia: Any, result: list[Any], covered: set[int]) -> None:
-    """Add a SIA to the accepted-complex result list and mark its units as covered."""
-    indices = _sia_node_indices(sia)
-    if indices is None:
-        return
-    result.append(sia)
-    covered.update(indices)
-
-
-def _phi_groups(sorted_sias: list[Any]) -> Iterable[list[Any]]:
-    """Yield contiguous groups of SIAs sharing the same φₛ value
-    (precision-aware), assuming the input is sorted by ``.order_by()``
-    descending."""
+def _phi_groups(candidates: Sequence[Candidate]):
+    """Yield contiguous groups of candidates sharing the same φₛ value
+    (precision-aware), assuming the input is sorted by φₛ descending."""
     from pyphi import utils as _utils
 
     i = 0
-    while i < len(sorted_sias):
-        tier_phi = float(sorted_sias[i].phi)
+    while i < len(candidates):
+        tier_phi = candidates[i].phi
         j = i + 1
-        while j < len(sorted_sias) and _utils.eq(float(sorted_sias[j].phi), tier_phi):
+        while j < len(candidates) and _utils.eq(candidates[j].phi, tier_phi):
             j += 1
-        yield sorted_sias[i:j]
+        yield list(candidates[i:j])
         i = j
 
 
-def _find_overlap_cliques(sias: list[Any]) -> list[list[Any]]:
-    """Group SIAs into connected components by unit overlap."""
-    n = len(sias)
+def _find_overlap_cliques(candidates: list[Candidate]) -> list[list[Candidate]]:
+    """Group candidates into connected components by footprint overlap."""
+    n = len(candidates)
     parent = list(range(n))
 
     def find(x: int) -> int:
@@ -103,133 +124,168 @@ def _find_overlap_cliques(sias: list[Any]) -> list[list[Any]]:
         if rx != ry:
             parent[rx] = ry
 
-    units = [set(_sia_node_indices(sia) or ()) for sia in sias]
     for i in range(n):
         for j in range(i + 1, n):
-            if units[i] & units[j]:
+            if candidates[i].footprint & candidates[j].footprint:
                 union(i, j)
 
-    groups: dict[int, list[Any]] = {}
+    groups: dict[int, list[Candidate]] = {}
     for i in range(n):
-        groups.setdefault(find(i), []).append(sias[i])
+        groups.setdefault(find(i), []).append(candidates[i])
     return list(groups.values())
 
 
-def _big_phi_of_sia(sia: Any, substrate: Any, state: tuple[int, ...]) -> float:
-    """Compute the structure-integrated information Φ of the SIA's
-    candidate system. Builds the system from substrate + state + the
-    SIA's units and invokes the active formalism's cause-effect-structure
-    computation.
+def _fingerprint_key(system: Any):
+    """Content digest used to deduplicate Φ computations; systems without
+    one never deduplicate."""
+    key = getattr(system, "_fingerprint", None)
+    return key if key is not None else object()
+
+
+def _resolve_clique_by_big_phi(clique: list[Candidate]) -> Candidate | None:
+    """Pick the Φ-maximal member of a φₛ-tied overlap clique, or ``None``
+    when Φ also ties — the exclusion postulate is violated for that clique
+    and none of its members qualifies as a complex.
+
+    Φ is computed once per distinct system content fingerprint: equal
+    fingerprints denote byte-identical kernel computations, so their Φ
+    values tie exactly, and a clique whose members all share one
+    fingerprint fails exclusion with no cause-effect-structure computation
+    at all.
     """
-    from pyphi.system import System
-
-    indices = _sia_node_indices(sia)
-    if indices is None:
-        return 0.0
-    system = System.from_substrate(substrate, state, indices)
-    return float(system.ces().big_phi)
-
-
-def _resolve_clique_by_big_phi(
-    clique: list[Any], substrate: Any, state: tuple[int, ...]
-) -> Any | None:
-    """Pick the Φ-maximal candidate in an overlap clique via the
-    substrate-exclusion cascade (Composition escalation). Returns ``None``
-    when Φ ties — the exclusion postulate is violated for that
-    clique and none of its candidates qualify as a complex.
-    """
-    from dataclasses import dataclass
-
     from pyphi import resolve_ties
+
+    systems = [candidate.system_provider() for candidate in clique]
+    keys = [_fingerprint_key(system) for system in systems]
+    if len(set(keys)) == 1:
+        return None
+
+    big_phis: dict[Any, float] = {}
+    for system, key in zip(systems, keys, strict=True):
+        if key not in big_phis:
+            big_phis[key] = float(system.ces().big_phi)
 
     @dataclass(frozen=True)
     class _CandidateProxy:
-        sia: Any
+        candidate: Candidate
         big_phi: float
 
     proxies = [
-        _CandidateProxy(sia=sia, big_phi=_big_phi_of_sia(sia, substrate, state))
-        for sia in clique
+        _CandidateProxy(candidate=candidate, big_phi=big_phis[key])
+        for candidate, key in zip(clique, keys, strict=True)
     ]
     ctx = resolve_ties.ResolutionContext(max_escalation_level="Composition")
     outcome = resolve_ties.resolve_complex_tie(proxies, context=ctx)
     if outcome.outcome == "RESOLVED" and outcome.resolved is not None:
-        return outcome.resolved.sia
+        return outcome.resolved.candidate
     return None
 
 
-def _substrate_exclusion_cascade(
-    sorted_sias: list[Any],
-    substrate: Any,
-    state: tuple[int, ...],
-) -> list[Any]:
-    """Walk SIAs in descending φₛ tiers, applying the S1
-    substrate-exclusion cascade within each tier."""
-    result: list[Any] = []
-    covered: set[int] = set()
+def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
+    """Condense candidates into complexes by the recursive exclusion cascade.
 
-    for tier in _phi_groups(sorted_sias):
-        # Within this tier, discard candidates whose units overlap any
-        # already-accepted complex.
-        survivors = [
-            sia for sia in tier if not (set(_sia_node_indices(sia) or ()) & covered)
-        ]
+    ``candidates`` must be sorted by φₛ descending (a stable sort — ties
+    keep their input order). Within each φₛ tier, candidates overlapping an
+    accepted complex are dropped; survivors group into overlap cliques;
+    multi-member cliques escalate to Composition (Φ). A Φ-tied clique fails
+    exclusion: its members are removed, but their units stay available to
+    lower-φₛ candidates in later tiers.
+    """
+    accepted: list[Candidate] = []
+    covered: set[int] = set()
+    failed: list[tuple[Candidate, ...]] = []
+    for tier in _phi_groups(candidates):
+        survivors = [c for c in tier if not (c.footprint & covered)]
         if not survivors:
             continue
         for clique in _find_overlap_cliques(survivors):
             if len(clique) == 1:
-                _accept(clique[0], result, covered)
-                continue
-            winner = _resolve_clique_by_big_phi(clique, substrate, state)
-            if winner is not None:
-                _accept(winner, result, covered)
-    return result
+                winner = clique[0]
+            else:
+                winner = _resolve_clique_by_big_phi(clique)
+                if winner is None:
+                    failed.append(tuple(clique))
+                    continue
+            accepted.append(winner)
+            covered |= winner.footprint
+    return CondensationOutcome(tuple(accepted), tuple(failed))
 
 
-def _resolve_clique_iit3(clique: list[Any]) -> Any | None:
-    """Return the unique complex from an IIT 3.0 overlap clique, or None
+def _resolve_clique_iit3(clique: list[Candidate]) -> Candidate | None:
+    """Return the unique complex from an IIT 3.0 overlap clique, or ``None``
     when the clique is indeterminate.
 
     Single-candidate cliques resolve trivially; multi-candidate cliques
     always flag ``UNRESOLVED_WITHIN_BUDGET`` because IIT 3.0 has no
-    paper-canonical escalation level. The caller treats None as
+    paper-canonical escalation level. The caller treats ``None`` as
     exclusion-postulate failure for the clique.
     """
     from pyphi import resolve_ties
 
     if len(clique) == 1:
         return clique[0]
+    sias = [candidate.sia_provider() for candidate in clique]
     ctx = resolve_ties.ResolutionContext(max_escalation_level="Exclusion")
-    outcome = resolve_ties.resolve_iit3_complex_tie(clique, context=ctx)
+    outcome = resolve_ties.resolve_iit3_complex_tie(sias, context=ctx)
     if outcome.outcome == "RESOLVED" and outcome.resolved is not None:
-        return outcome.resolved
+        for candidate, sia in zip(clique, sias, strict=True):
+            if sia is outcome.resolved:
+                return candidate
     return None
 
 
-def _iit3_exclusion_cascade(
-    sorted_sias: list[Any],
-    substrate: Any,  # noqa: ARG001 — kept for parity with iit4 cascade signature
-    state: Any,  # noqa: ARG001 — kept for parity with iit4 cascade signature
-) -> list[Any]:
-    """Walk SIAs in descending Φ tiers, applying the IIT 3.0
-    cross-subsystem cascade within each overlap clique.
+def iit3_exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
+    """Condense candidates under IIT 3.0: the recursive tier walk with no
+    Composition escalation.
 
-    Within a tier, drop candidates whose units overlap an already-
-    accepted complex, then group survivors into overlap cliques.
-    Each clique with one member is accepted directly; cliques with
-    multiple members run through ``_resolve_clique_iit3`` and are
-    skipped when indeterminate.
+    Within a tier, candidates overlapping an accepted complex are dropped
+    and survivors group into overlap cliques; a clique with one member is
+    accepted directly, and a multi-member clique is indeterminate (IIT 3.0
+    has no paper-canonical system-level tie-break) — it fails exclusion and
+    the walk continues.
     """
-    result: list[Any] = []
+    accepted: list[Candidate] = []
     covered: set[int] = set()
-    for tier in _phi_groups(sorted_sias):
-        survivors = [
-            sia for sia in tier if not (set(_sia_node_indices(sia) or ()) & covered)
-        ]
+    failed: list[tuple[Candidate, ...]] = []
+    for tier in _phi_groups(candidates):
+        survivors = [c for c in tier if not (c.footprint & covered)]
         if not survivors:
             continue
         for clique in _find_overlap_cliques(survivors):
             winner = _resolve_clique_iit3(clique)
-            if winner is not None:
-                _accept(winner, result, covered)
-    return result
+            if winner is None:
+                failed.append(tuple(clique))
+                continue
+            accepted.append(winner)
+            covered |= winner.footprint
+    return CondensationOutcome(tuple(accepted), tuple(failed))
+
+
+def exclusion_records(
+    accepted: Sequence[Candidate], candidates: Sequence[Candidate]
+) -> dict[tuple[int, ...], tuple[Any, ...]]:
+    """Map each accepted complex (by sorted footprint) to the
+    ExcludedCandidate records it excluded: every candidate that overlaps it
+    and was not itself accepted.
+
+    A candidate that overlaps several accepted complexes appears in each of
+    their exclusion sets. An excluded candidate may carry higher φₛ than a
+    complex whose record it appears in, when it was carved away by a
+    different overlapping complex. Reads only values the cascade already
+    computed.
+    """
+    from pyphi.models.complex import ExcludedCandidate
+
+    accepted_footprints = {tuple(sorted(c.footprint)) for c in accepted}
+    records: dict[tuple[int, ...], tuple[Any, ...]] = {}
+    for acc in accepted:
+        acc_idx = tuple(sorted(acc.footprint))
+        recs = []
+        for cand in candidates:
+            cand_idx = tuple(sorted(cand.footprint))
+            if cand_idx == acc_idx or cand_idx in accepted_footprints:
+                continue
+            if acc.footprint & cand.footprint:
+                recs.append(ExcludedCandidate(cand_idx, cand.phi))
+        records[acc_idx] = tuple(recs)
+    return records

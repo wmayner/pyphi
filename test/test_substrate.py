@@ -95,7 +95,7 @@ def test_size(standard):
 
 
 class _StubSia:
-    """Minimal SIA stub for _iit3_exclusion_cascade tests.
+    """Minimal SIA stub for iit3_exclusion_cascade tests.
 
     Supports ``phi`` (for tier grouping) and ``node_indices`` (for
     overlap detection and the cascade key). ``__lt__`` keys on
@@ -114,13 +114,29 @@ class _StubSia:
         return f"_StubSia(phi={self.phi}, node_indices={self.node_indices})"
 
 
+def _iit3_cascade(sias):
+    """Run the IIT 3.0 cascade over stub SIAs; return the accepted SIAs."""
+    from pyphi.condensation import Candidate
+    from pyphi.condensation import iit3_exclusion_cascade
+
+    candidates = [
+        Candidate(
+            footprint=frozenset(sia.node_indices),
+            phi=float(sia.phi),
+            sia_provider=lambda sia=sia: sia,
+            system_provider=lambda: None,
+        )
+        for sia in sias
+    ]
+    outcome = iit3_exclusion_cascade(candidates)
+    return [candidate.sia_provider() for candidate in outcome.accepted]
+
+
 def test_iit3_cascade_single_tier_non_overlapping_accepts_all():
     """Tied phi, non-overlapping units: both accepted as complexes."""
     a = _StubSia(phi=1.0, node_indices=(0, 1))
     b = _StubSia(phi=1.0, node_indices=(2, 3))
-    result = substrate_mod._iit3_exclusion_cascade(  # pyright: ignore[reportPrivateUsage]
-        sorted([a, b], reverse=True), substrate=None, state=None
-    )
+    result = _iit3_cascade(sorted([a, b], reverse=True))
     assert set(result) == {a, b}
 
 
@@ -128,9 +144,7 @@ def test_iit3_cascade_single_tier_overlapping_yields_no_complex():
     """Tied phi, overlapping units: indeterminate clique, no complex."""
     a = _StubSia(phi=1.0, node_indices=(0, 2))
     b = _StubSia(phi=1.0, node_indices=(1, 2))
-    result = substrate_mod._iit3_exclusion_cascade(  # pyright: ignore[reportPrivateUsage]
-        sorted([a, b], reverse=True), substrate=None, state=None
-    )
+    result = _iit3_cascade(sorted([a, b], reverse=True))
     assert result == []
 
 
@@ -145,26 +159,20 @@ def test_iit3_cascade_multi_tier_lower_phi_accepted_when_higher_is_indeterminate
     )  # different tier; the indeterminate clique
     # didn't cover any units (no winner accepted),
     # so c is evaluated and accepted.
-    result = substrate_mod._iit3_exclusion_cascade(  # pyright: ignore[reportPrivateUsage]
-        sorted([a, b, c], reverse=True), substrate=None, state=None
-    )
+    result = _iit3_cascade(sorted([a, b, c], reverse=True))
     assert result == [c]
 
 
 def test_iit3_cascade_solo_candidate_accepted():
     """A solo high-phi SIA is accepted without ambiguity."""
     a = _StubSia(phi=3.0, node_indices=(0, 1, 2))
-    result = substrate_mod._iit3_exclusion_cascade(  # pyright: ignore[reportPrivateUsage]
-        [a], substrate=None, state=None
-    )
+    result = _iit3_cascade([a])
     assert result == [a]
 
 
 def test_iit3_cascade_empty_input_returns_empty():
     """No candidates → no complexes."""
-    result = substrate_mod._iit3_exclusion_cascade(  # pyright: ignore[reportPrivateUsage]
-        [], substrate=None, state=None
-    )
+    result = _iit3_cascade([])
     assert result == []
 
 
