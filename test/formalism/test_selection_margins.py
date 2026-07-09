@@ -8,10 +8,12 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.core import repertoire_algebra as ra
 from pyphi.direction import Direction
+from pyphi.formalism import queries
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.formalism.iit4 import evaluate_partition
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
+from pyphi.partition import mechanism_partitions
 from pyphi.partition import system_partitions
 
 
@@ -321,4 +323,169 @@ def test_shortcircuit_off_preserves_values(basic_sia):
     )
     assert float(exhaustive.partition_margin) == pytest.approx(
         float(basic_sia.partition_margin)
+    )
+
+
+# ---- mechanism-level margins ----
+
+
+@pytest.fixture(scope="module")
+def basic_mice_effect():
+    """The MIE of mechanism (2,) in basic_system — a known purview tie at
+    φ = 1 between purviews (1,) and (0, 1)."""
+    with pyphi.config.override(progress_bars=False):
+        return queries.find_mice(examples.basic_system(), Direction.EFFECT, (2,))
+
+
+@pytest.fixture(scope="module")
+def basic_mice_cause():
+    """The MIC of mechanism (0, 2) in basic_system — 10 candidate partitions
+    over its purview (0, 1) and a competing purview, so both the partition
+    and purview margins are finite and positive."""
+    with pyphi.config.override(progress_bars=False):
+        return queries.find_mice(examples.basic_system(), Direction.CAUSE, (0, 2))
+
+
+def _mechanism_partition_values(system, ria):
+    """Brute force: normalized φ of every partition of the RIA's
+    mechanism-purview pair, at its specified state."""
+    return sorted(
+        float(
+            queries.find_mip(
+                system,
+                ria.direction,
+                ria.mechanism,
+                ria.purview,
+                partitions=[partition],
+                state=ria.specified_state,
+            ).normalized_phi
+        )
+        for partition in mechanism_partitions(
+            ria.mechanism, ria.purview, system.node_labels
+        )
+    )
+
+
+def test_ria_partition_margin_matches_brute_force(basic_mice_cause):
+    ria = basic_mice_cause.ria
+    values = _mechanism_partition_values(examples.basic_system(), ria)
+    assert len(values) > 1
+    assert float(ria.normalized_phi) == pytest.approx(values[0])
+    assert ria.partition_margin is not None
+    assert float(ria.partition_margin) == pytest.approx(values[1] - values[0])
+
+
+def test_ria_partition_margin_none_without_competitor(basic_mice_effect):
+    # Mechanism (2,) over its winning purview (1,) admits exactly one
+    # partition, so there is no competitor and no margin.
+    ria = basic_mice_effect.ria
+    assert len(list(mechanism_partitions(ria.mechanism, ria.purview, None))) == 1
+    assert ria.partition_margin is None
+
+
+def test_mice_purview_margin_zero_on_purview_tie(basic_mice_effect):
+    # Purviews (1,) and (0, 1) tie at φ = 1, so the winner's best competitor
+    # matches it exactly.
+    assert basic_mice_effect.num_purview_ties >= 1
+    assert basic_mice_effect.purview_margin is not None
+    assert float(basic_mice_effect.purview_margin) == pytest.approx(0.0)
+    assert basic_mice_effect.effectively_tied
+
+
+def test_mice_purview_margin_matches_brute_force(basic_mice_cause):
+    system = examples.basic_system()
+    from pyphi.core import repertoire_algebra as ra_kernel
+
+    purviews = ra_kernel.potential_purviews(system, Direction.CAUSE, (0, 2))
+    values = sorted(
+        (
+            float(queries.find_mip(system, Direction.CAUSE, (0, 2), purview).phi)
+            for purview in purviews
+        ),
+        reverse=True,
+    )
+    assert float(basic_mice_cause.phi) == pytest.approx(values[0])
+    assert basic_mice_cause.purview_margin is not None
+    assert float(basic_mice_cause.purview_margin) == pytest.approx(values[0] - values[1])
+
+
+def test_ria_state_margin_reads_specified_state(basic_mice_effect):
+    ria = basic_mice_effect.ria
+    if ria.specified_state is None or ria.specified_state.state_margin is None:
+        pytest.skip("no state competitor for this mechanism")
+    assert float(ria.state_margin) == pytest.approx(
+        float(ria.specified_state.state_margin)
+    )
+
+
+def test_mechanism_margins_in_pandas_and_findings(basic_mice_effect, basic_mice_cause):
+    record = basic_mice_effect.to_pandas()
+    assert float(record["purview_margin"]) == pytest.approx(0.0)
+    assert "partition_margin" in record
+    assert "state_margin" in record
+    assert bool(record["effectively_tied"]) is True
+
+    kinds = {f.kind for f in basic_mice_cause.explain().findings}
+    assert "purview_margin" in kinds
+    assert "partition_margin" in kinds
+    assert not basic_mice_cause.effectively_tied
+
+
+def test_distinction_effectively_tied():
+    with pyphi.config.override(progress_bars=False):
+        ces = examples.basic_system().ces()
+    by_mechanism = {tuple(d.mechanism): d for d in ces.distinctions}
+    distinction = by_mechanism[(2,)]
+    # Its effect side has the exact purview tie.
+    assert distinction.effect.effectively_tied
+    assert distinction.effectively_tied
+
+
+def test_mechanism_margins_round_trip(basic_mice_cause):
+    from pyphi import serialize
+
+    restored = serialize.loads(serialize.dumps(basic_mice_cause))
+    assert restored == basic_mice_cause
+    assert float(restored.purview_margin) == pytest.approx(
+        float(basic_mice_cause.purview_margin)
+    )
+    assert float(restored.ria.partition_margin) == pytest.approx(
+        float(basic_mice_cause.ria.partition_margin)
+    )
+
+
+def test_mechanism_margins_absent_in_old_payloads(basic_mice_cause):
+    import json
+
+    from pyphi import serialize
+
+    data = json.loads(serialize.dumps(basic_mice_cause, format="json"))
+
+    def strip(obj):
+        if isinstance(obj, dict):
+            obj.pop("partition_margin", None)
+            obj.pop("purview_margin", None)
+            for value in obj.values():
+                strip(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                strip(item)
+
+    strip(data)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    assert restored.purview_margin is None
+    assert restored.ria.partition_margin is None
+    assert not restored.effectively_tied
+
+
+def test_relabel_preserves_mechanism_margins(basic_mice_cause):
+    from pyphi import relabel as relabel_mod
+
+    mapping = {0: 2, 1: 0, 2: 1}
+    relabeled = relabel_mod.relabel_mice(basic_mice_cause, mapping)
+    assert float(relabeled.purview_margin) == pytest.approx(
+        float(basic_mice_cause.purview_margin)
+    )
+    assert float(relabeled.ria.partition_margin) == pytest.approx(
+        float(basic_mice_cause.ria.partition_margin)
     )

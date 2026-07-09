@@ -16,15 +16,21 @@ import numpy as np
 from more_itertools import flatten
 
 from pyphi import connectivity
+from pyphi import utils
+from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.display import LOW
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import tone_of
+from pyphi.display.mixin import FULL
 from pyphi.display.numbers import format_value
 from pyphi.exceptions import WrongDirectionError
 from pyphi.models import fmt
+from pyphi.models.explanation import Explanation
+from pyphi.models.explanation import Finding
 
 from .pandas import ToDictFromExplicitAttrsMixin
 from .pandas import ToPandasMixin
@@ -53,6 +59,7 @@ class MaximallyIrreducibleCauseOrEffect(
         self._state_ties = None
         self._partition_ties = None
         self._purview_ties = None
+        self._purview_margin = None
 
     @property
     def phi(self):
@@ -156,10 +163,64 @@ class MaximallyIrreducibleCauseOrEffect(
     def reasons(self):
         return self.ria.reasons
 
+    @property
+    def purview_margin(self):
+        """The φ gap between this purview and the best competing purview.
+
+        Purview selection is keyed on the value it reports, so a purview
+        switch changes the cause-effect structure's composition without a
+        discontinuity in φ; this margin measures how decisively the
+        structural choice was made. Zero when another purview ties
+        exactly; ``None`` when there was no competing purview. Excluded
+        from equality and hashing.
+        """
+        return self._purview_margin
+
+    @purview_margin.setter
+    def purview_margin(self, value):
+        self._purview_margin = None if value is None else PyPhiFloat(value)
+
+    @property
+    def partition_margin(self):
+        """The winning RIA's mechanism-partition selection margin
+        (:attr:`~pyphi.models.ria.RepertoireIrreducibilityAnalysis.partition_margin`).
+        """
+        return self.ria.partition_margin
+
+    @property
+    def state_margin(self):
+        """The winning RIA's specified-state selection margin
+        (:attr:`~pyphi.models.ria.RepertoireIrreducibilityAnalysis.state_margin`).
+        """
+        return self.ria.state_margin
+
+    @property
+    def effectively_tied(self):
+        """Whether the purview, partition, or specified-state selection is
+        within ``config.numerics.precision`` of a tie."""
+        return (
+            self.purview_margin is not None and utils.eq(float(self.purview_margin), 0.0)
+        ) or self.ria.effectively_tied
+
     def explain(self):
-        """A typed account of why this φ value came out as it did, delegated
-        to the underlying RIA."""
-        return self.ria.explain()
+        """A typed account of why this φ value came out as it did: the
+        underlying RIA's findings plus the purview-selection margin."""
+        explanation = self.ria.explain()
+        if self.purview_margin is None:
+            return explanation
+        return Explanation(
+            subject=explanation.subject,
+            level=explanation.level,
+            findings=(
+                *explanation.findings,
+                Finding(
+                    kind="purview_margin",
+                    label="Purview selection margin (φ)",
+                    value=self.purview_margin,
+                    tone=tone_of(self.direction),
+                ),
+            ),
+        )
 
     def diff(self, other):
         """Structured delta to ``other`` (``a.diff(b)``), delegated to the
@@ -254,21 +315,23 @@ class MaximallyIrreducibleCauseOrEffect(
         compact = f"{title}({fmt.SMALL_PHI}={format_value(self.phi)})"
         if verbosity == LOW:
             return Description(title=title, compact=compact)
-        # Inherit the RIA's sections, adding the purview-ties count to its
-        # "Ties" section.
-        extra_row = Row("Purview ties", self.num_purview_ties)
+        # Inherit the RIA's sections, adding the purview-ties count (and, at
+        # FULL verbosity, the purview-selection margin) to its "Ties" section.
+        extra_rows = [Row("Purview ties", self.num_purview_ties)]
+        if verbosity >= FULL and self.purview_margin is not None:
+            extra_rows.append(Row("Purview margin", self.purview_margin))
         sections = []
         injected = False
         for sec in self.ria._describe(verbosity).sections:
             if sec.label == "Ties":
                 sections.append(
-                    Section(label="Ties", rows=(*sec.rows, extra_row), body=sec.body)
+                    Section(label="Ties", rows=(*sec.rows, *extra_rows), body=sec.body)
                 )
                 injected = True
             else:
                 sections.append(sec)
         if not injected:
-            sections.append(Section(label="Ties", rows=(extra_row,)))
+            sections.append(Section(label="Ties", rows=tuple(extra_rows)))
         return Description(title=title, sections=tuple(sections), compact=compact)
 
     def order_by(self):
@@ -290,7 +353,12 @@ class MaximallyIrreducibleCauseOrEffect(
         return dct
 
     def _pandas_record(self):
-        return self.ria._pandas_record()
+        record = self.ria._pandas_record()
+        record["purview_margin"] = (
+            None if self.purview_margin is None else float(self.purview_margin)
+        )
+        record["effectively_tied"] = self.effectively_tied
+        return record
 
     def _relevant_connections(self, system):
         """Identify the connections that matter to this MICE.

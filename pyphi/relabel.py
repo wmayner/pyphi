@@ -156,11 +156,14 @@ def relabel_ria(ria, mapping, node_labels=None):
         selectivity=ria.selectivity,
         reasons=ria.reasons,
         signed_phi=ria.signed_phi,
+        partition_margin=ria.partition_margin,
     )
 
 
 def relabel_mice(mice, mapping, node_labels=None):
-    return type(mice)(relabel_ria(mice._ria, mapping, node_labels))
+    relabeled = type(mice)(relabel_ria(mice._ria, mapping, node_labels))
+    relabeled.purview_margin = mice.purview_margin
+    return relabeled
 
 
 def relabel_distinction(distinction, mapping, node_labels=None):

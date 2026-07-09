@@ -18,6 +18,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display.mixin import FULL
 from pyphi.display.numbers import format_value
 
 from . import cmp
@@ -76,7 +77,16 @@ class Distinction(
         self.cause.parent = self
         self.effect.parent = self
 
-    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+    @property
+    def effectively_tied(self) -> bool:
+        """Whether any selection behind this distinction's cause or effect
+        (purview, mechanism partition, or specified state) is within
+        ``config.numerics.precision`` of a tie."""
+        assert self.cause is not None
+        assert self.effect is not None
+        return self.cause.effectively_tied or self.effect.effectively_tied
+
+    def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         mechanism_label = getattr(self, "mechanism_label", None) or str(
             getattr(self, "mechanism", "")
@@ -102,6 +112,16 @@ class Distinction(
         cause_state = getattr(_cause_spec, "state", _cause_spec)
         effect_state = getattr(_effect_spec, "state", _effect_spec)
 
+        def _margin_rows(mice) -> tuple[Row, ...]:
+            if verbosity < FULL or mice is None:
+                return ()
+            rows = []
+            if mice.purview_margin is not None:
+                rows.append(Row("Purview margin", mice.purview_margin))
+            if mice.state_margin is not None:
+                rows.append(Row("State margin", mice.state_margin))
+            return tuple(rows)
+
         return Description(
             title=cls,
             sections=(
@@ -118,6 +138,7 @@ class Distinction(
                         Row("Purview", str(cause_purview)),
                         Row("φ", cause_phi),
                         Row("Specified state", str(cause_state)),
+                        *_margin_rows(self.cause),
                     ),
                 ),
                 Section(
@@ -127,6 +148,7 @@ class Distinction(
                         Row("Purview", str(effect_purview)),
                         Row("φ", effect_phi),
                         Row("Specified state", str(effect_state)),
+                        *_margin_rows(self.effect),
                     ),
                 ),
             ),

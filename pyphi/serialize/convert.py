@@ -298,6 +298,7 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
             _encode_ria(p, include_peers=False) for p in partition_peers
         ),
         state_tie_peers=tuple(_encode_ria(p, include_peers=False) for p in state_peers),
+        partition_margin=_enc_optional(ria.partition_margin),
     )
 
 
@@ -316,6 +317,7 @@ def _decode_ria(struct: Any) -> Any:
         mechanism_state=_opt_tuple(struct.mechanism_state),
         purview_state=_opt_tuple(struct.purview_state),
         node_labels=_dec_optional(struct.node_labels),
+        partition_margin=_dec_optional(struct.partition_margin),
     )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ria(p) for p in struct.partition_tie_peers)
@@ -344,6 +346,7 @@ def _register_ria() -> None:
 def _decode_mice(cls: type, struct: Any) -> Any:
     instance = cls(from_schema(struct.ria))
     instance._purview_ties = (instance,)
+    instance.purview_margin = _dec_optional(struct.purview_margin)
     return instance
 
 
@@ -353,13 +356,16 @@ def _register_mice() -> None:
     from pyphi.models.mice import MaximallyIrreducibleEffect
 
     _ENCODERS[MaximallyIrreducibleCauseOrEffect] = lambda m: schema.MICESchema(
-        ria=to_schema(m.ria)
+        ria=to_schema(m.ria),
+        purview_margin=_enc_optional(m.purview_margin),
     )
     _ENCODERS[MaximallyIrreducibleCause] = lambda m: schema.MICECauseSchema(
-        ria=to_schema(m.ria)
+        ria=to_schema(m.ria),
+        purview_margin=_enc_optional(m.purview_margin),
     )
     _ENCODERS[MaximallyIrreducibleEffect] = lambda m: schema.MICEEffectSchema(
-        ria=to_schema(m.ria)
+        ria=to_schema(m.ria),
+        purview_margin=_enc_optional(m.purview_margin),
     )
     _DECODERS[schema.MICESchema] = lambda s: _decode_mice(
         MaximallyIrreducibleCauseOrEffect, s
