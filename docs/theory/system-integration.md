@@ -71,6 +71,47 @@ analysis** that produced it, including the MIP, the cause and effect sides, and 
 size-normalized value (`analysis.sia.normalized_phi`) used when comparing systems
 of different sizes.
 
+## Selection margins
+
+The definitions above make two kinds of discrete choice. The specified
+cause and effect states are chosen by *maximizing* intrinsic information
+over candidate states — the principle of maximal existence (Albantakis et
+al., 2023, Eq. 12). The MIP is chosen by *minimizing* integrated
+information over partitions; the minimization compares partitions on a
+**normalized** value (each partition's $\varphi_s$ divided by the maximum
+number of connections it could sever), while the reported $\varphi_s$ is
+the **unnormalized** value at the winning partition (Albantakis et al.,
+2023, Eqs. 22–23). Normalization ensures the comparison is fair across
+partitions of different sizes; the reported quantity, once the MIP is
+identified, is an absolute one.
+
+Each such choice has a **margin**: the gap between the winner and the best
+competitor, in the units of the comparison. PyPhi reports these on the
+analysis — `partition_margin` (in normalized $\varphi$), the per-direction
+specified-state margins (in intrinsic information), and `tied_selections`
+naming any selection whose margin is within the configured numerical
+precision of zero.
+
+```{code-cell} python
+(
+    float(analysis.sia.partition_margin),
+    {str(d): float(m) for d, m in analysis.sia.state_margins.items()},
+    analysis.sia.tied_selections,
+)
+```
+
+Margins are the theory-native form of sensitivity analysis. Because the
+selections implement the principles of maximal and minimal existence, a
+substrate near a selection boundary is near a point where *what exists* —
+which state it specifies, where its weakest link lies — changes discretely,
+even though the substrate's own parameters vary continuously. A small
+margin flags exactly that proximity, which no derivative of $\varphi_s$
+reveals. Exact zeros are ties, resolved by explicit, configurable rules;
+see {doc}`Control tie-breaking </howto/tie-breaking>` for reading and
+acting on margins, and
+{doc}`Explore substrate parameter landscapes </howto/landscape>` for
+converting them into distances in parameter space.
+
 ## Exclusion: the complex
 
 Many overlapping subsets of a substrate may each have positive $\varphi_s$. The

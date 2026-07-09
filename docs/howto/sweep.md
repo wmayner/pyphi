@@ -9,12 +9,15 @@ kernelspec:
   name: python3
 ---
 
-# Sweep parameter landscapes
+# Sweep states and subsystems
 
 `pyphi.sweep` runs one IIT computation across many states, candidate
 subsystems, and formalisms in a single call, and collects every result into
 one tidy long-format DataFrame. It saves you from writing the nested loops,
 building each `System` by hand, and stitching the results back together.
+(To vary the substrate's *parameters* — its connection weights — rather than
+its state or the candidate system, see
+{doc}`Explore substrate parameter landscapes <landscape>`.)
 
 ```{code-cell} python
 import pyphi
@@ -37,8 +40,11 @@ result.df.round(6)
 Each row is one system-level integrated information analysis (an
 {abbr}`SIA (System Irreducibility Analysis)`). The index holds the axis that
 varied — here, the state — and the columns hold the extracted quantities:
-`phi`, `normalized_phi`, and whether the system is irreducible. The axes that
-did not vary appear as constant context columns (`formalism`, `subset`).
+`phi`, `normalized_phi`, whether the system is irreducible, and the selection
+margins (`partition_margin`, `cause_state_margin`, `effect_state_margin`,
+`effectively_tied` — see
+{doc}`Control tie-breaking <tie-breaking>`). The axes that did not vary
+appear as constant context columns (`formalism`, `subset`).
 
 States that cannot be reached from any previous state have no defined
 repertoire, so their $\Phi$ is undefined. When you enumerate an axis with
@@ -102,6 +108,21 @@ pyphi.sweep(substrate, states="all", compute="ces").df.round(6)
 `compute` also accepts any callable taking a `System`. The callable's return
 value is stored in `result.results` for every cell; reach into that list to
 work with whatever it returns.
+
+## Flag near-tied cells
+
+The margin columns make it a one-liner to find the cells whose selections
+were effectively tied at the configured `precision` — the results whose
+reported partitions or specified states are sensitive to tie-breaking rules
+(or, in a symmetric substrate, genuinely degenerate):
+
+```{code-cell} python
+tied = result.df[result.df.effectively_tied.astype(bool)]
+tied[["phi", "partition_margin", "cause_state_margin", "effect_state_margin"]].round(6)
+```
+
+Cells computed under a formalism without margin reporting (IIT 3.0) carry
+`None` in these columns.
 
 ## Running in parallel
 

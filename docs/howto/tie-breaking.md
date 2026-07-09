@@ -160,6 +160,70 @@ For a temporary change scoped to a single computation, prefer
 `config.override`, as in the example above — it restores the previous value
 even if the block raises.
 
+## Selection margins: how close was the call?
+
+A tie is the limiting case of a more general question: *by how much* did the
+winning candidate win? Every selection that can tie also reports its
+**margin** — the gap between the winner and the best competitor, in the units
+of the selection's own comparison key. A margin of zero is an exact tie; a
+small margin means the analysis is near a boundary where a different
+candidate would win, so the reported objects are sensitive to small changes
+in the substrate.
+
+At the system level, the SIA reports the margin of the system-partition
+selection (in normalized $\varphi$) and of the specified cause and effect
+states (in intrinsic information), along with which selections are
+effectively tied at the configured `precision`:
+
+```{code-cell} python
+sia = pyphi.examples.basic_system().sia()
+{
+    "partition_margin": round(float(sia.partition_margin), 6),
+    "cause_state_margin": round(float(sia.state_margins[pyphi.Direction.CAUSE]), 6),
+    "effect_state_margin": round(float(sia.state_margins[pyphi.Direction.EFFECT]), 6),
+    "tied_selections": sia.tied_selections,
+    "effectively_tied": sia.effectively_tied,
+}
+```
+
+A symmetric substrate shows the flag firing: the two best system partitions
+of the 3-unit grid are symmetry-related and tie exactly in normalized
+$\varphi$:
+
+```{code-cell} python
+grid_sia = pyphi.examples.grid3_system().sia()
+grid_sia.tied_selections, float(grid_sia.partition_margin)
+```
+
+Mechanism-level analyses report margins the same way. The purview tie from
+the worked example above is a purview margin of exactly zero:
+
+```{code-cell} python
+mie = system.mie((2,))
+float(mie.purview_margin), mie.effectively_tied
+```
+
+Margins also appear in `explain()` findings and, at `FULL` repr verbosity
+(`pyphi.config.repr_verbosity = 3`), as rows on the result cards:
+
+```{code-cell} python
+[
+    (finding.label, finding.value)
+    for finding in grid_sia.explain().findings
+    if "margin" in finding.kind or finding.kind == "effectively_tied"
+]
+```
+
+One caveat: when a partition sweep stops early because it detected
+reducibility ($\varphi_s = 0$), no exact margin exists and `partition_margin`
+is `None`. Setting `shortcircuit_sia=False` evaluates every partition, which
+makes margins exact everywhere (at the cost of exhaustive evaluation on
+reducible systems) without changing any computed $\varphi$ value.
+
+To move from margins in value units to distances in *parameter* units — how
+far a connection weight can move before a selection switches — see
+{doc}`Explore substrate parameter landscapes <landscape>`.
+
 ## Interaction with precision and presets
 
 Whether two candidates count as tied is decided up to `numerics.precision`
