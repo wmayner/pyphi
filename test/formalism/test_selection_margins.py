@@ -266,3 +266,59 @@ def test_fig1a_2023_state_margins_match_brute_force():
         assert float(margin) == pytest.approx(values[0] - values[1])
     # Its selections are near a boundary but not tied at the published point.
     assert not sia.effectively_tied
+
+
+def _fig1a_substrate(a_to_b=0.7):
+    """The IIT 4.0 (2023) Fig. 1A substrate with an adjustable A→B weight."""
+    import numpy as np
+
+    from pyphi.substrate_generator import build_substrate
+    from pyphi.substrate_generator import ising
+
+    weights = np.array(
+        [
+            [-0.2, a_to_b, 0.2],
+            [0.7, -0.2, 0.0],
+            [0.0, -0.8, 0.2],
+        ]
+    )
+    return build_substrate([ising.probability] * 3, weights, temperature=0.25)
+
+
+def test_partition_margin_none_when_sweep_shortcircuits():
+    """At A→B = 0.9 the raw integration is negative, every partition's clamped
+    φ is 0, and the sweep stops at the first reducible partition — the margin
+    over that truncated prefix is not the true margin, so ``None`` is
+    reported."""
+    sia = pyphi.analyze(_fig1a_substrate(0.9), (1, 0, 0), compute="sia")
+    assert float(sia.phi) == pytest.approx(0.0)
+    assert sia.partition_margin is None
+
+
+def test_partition_margin_exact_without_shortcircuit():
+    """With ``shortcircuit_sia=False`` the partition sweep is exhaustive, so
+    the margin matches a brute-force sweep even when φ_s = 0. (Here four
+    partitions clamp to zero, so the exact margin is an exact tie.)"""
+    substrate = _fig1a_substrate(0.9)
+    with pyphi.config.override(shortcircuit_sia=False):
+        sia = pyphi.analyze(substrate, (1, 0, 0), compute="sia")
+        values = _brute_force_partition_values(
+            pyphi.System(substrate, state=(1, 0, 0)), sia.system_state
+        )
+    assert sia.partition_margin is not None
+    assert float(sia.partition_margin) == pytest.approx(values[1] - values[0])
+    assert float(sia.partition_margin) == pytest.approx(0.0)
+    assert sia.effectively_tied
+
+
+def test_shortcircuit_off_preserves_values(basic_sia):
+    """Disabling the short-circuit changes no computed φ value."""
+    with pyphi.config.override(shortcircuit_sia=False):
+        exhaustive = examples.basic_system().sia()
+    assert float(exhaustive.phi) == pytest.approx(float(basic_sia.phi))
+    assert float(exhaustive.normalized_phi) == pytest.approx(
+        float(basic_sia.normalized_phi)
+    )
+    assert float(exhaustive.partition_margin) == pytest.approx(
+        float(basic_sia.partition_margin)
+    )

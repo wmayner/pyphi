@@ -60,6 +60,7 @@ from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
+from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
 from pyphi.partition import system_partitions
 from pyphi.provenance import HasProvenance
@@ -172,10 +173,11 @@ class SystemIrreducibilityAnalysis(
 
     ``partition_margin`` is the gap in (clamped) normalized φ between the
     MIP and the best competing partition, computed at selection (before
-    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties,
-    ``None`` when there was no competitor, and exact whenever φ_s > 0 (a
-    reducibility short-circuit stops the partition sweep early, in which
-    case the margin is over the evaluated subset).
+    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties and
+    ``None`` when there was no competitor or the partition sweep stopped
+    early on a reducible partition (in which case no exact margin exists).
+    Set ``shortcircuit_sia=False`` to evaluate every partition and obtain
+    an exact margin even when φ_s = 0.
     """
 
     phi: float | DistanceResult
@@ -1106,6 +1108,9 @@ def _find_mip_for_fixed_state(
         resolved_directions = Direction.both()
     resolved_directions = tuple(resolved_directions)
 
+    if not isinstance(partitions, (list, tuple)):
+        partitions = list(partitions)
+
     # ``intrinsic_differentiation`` depends only on (direction, system), not the
     # partition, so compute it once here and pass it to every partition rather
     # than rebuilding it in each ``evaluate_partition`` call.
@@ -1124,7 +1129,11 @@ def _find_mip_for_fixed_state(
             "directions": resolved_directions,
             "intrinsic_differentiation": precomputed_intrinsic_differentiation,
         },
-        shortcircuit_func=utils.is_falsy,
+        shortcircuit_func=(
+            utils.is_falsy
+            if config.formalism.iit.shortcircuit_sia
+            else _never_shortcircuit
+        ),
         desc="Evaluating partitions",
         **parallel_kwargs,
     )
@@ -1136,7 +1145,10 @@ def _find_mip_for_fixed_state(
     mip_sia = ties[0]
     mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
     others = [candidate for candidate in candidates if candidate is not mip_sia]
-    if others:
+    # The margin is only meaningful when every partition was evaluated: a
+    # short-circuited sweep yields a truncated prefix whose gap says nothing
+    # about the full partition set.
+    if others and len(candidates) == len(partitions):
         gap = min(float(c.normalized_phi) for c in others) - float(
             mip_sia.normalized_phi
         )

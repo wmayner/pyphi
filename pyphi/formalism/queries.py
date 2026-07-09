@@ -38,6 +38,7 @@ from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
 from pyphi.models.explanation import NullResultReason
+from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
 from pyphi.partition import mechanism_partitions
 
@@ -118,7 +119,11 @@ def _find_mip_single_state(
     candidate_mips = map_reduce(
         _eval,
         partitions,
-        shortcircuit_func=_utils.is_falsy,
+        shortcircuit_func=(
+            _utils.is_falsy
+            if config.formalism.iit.shortcircuit_sia
+            else _never_shortcircuit
+        ),
         desc="Evaluating mechanism partitions",
         **parallel_kwargs,
     )
