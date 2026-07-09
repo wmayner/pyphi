@@ -495,8 +495,7 @@ class TestMinDriver:
         # sanity: equals the committed both-on macro phi
         # (0.7883339770634886) at 1e-13.
         assert winner.units == (MacroUnit((0, 1), 1, (0, 0, 0, 1)),)
-        phis = {r.system: r.phi for r in result.records}
-        assert phis[winner] == pytest.approx(0.7883339770634884, abs=1e-13)
+        assert float(winner.phi) == pytest.approx(0.7883339770634884, abs=1e-13)
         assert result.ties == ()
 
     def test_records_contain_micro_pair_anchor(self):
@@ -550,8 +549,9 @@ class TestBuDriver:
             tuple(u.micro_constituents for u in s.units) for s in result.complexes
         }
         assert footprints == {((0,),), ((1,),)}
-        phis = {r.system: r.phi for r in result.records}
-        assert all(phis[s] == 1.0 for s in result.complexes)
+        assert all(
+            float(s.phi) == pytest.approx(1.0, abs=1e-13) for s in result.complexes
+        )
         assert result.ties == ()
 
     def test_empty_complexes_is_a_result_not_an_error(self):
@@ -567,26 +567,39 @@ class TestBuDriver:
 
 class TestTiePath:
     """Battery 5: the exactly-symmetric fixture. Every system on
-    footprint {A,B} has a permutation-identical twin on {B,C}; the top
-    pair (the (0,1,1,1)-mapped one-unit systems, measured at
-    ~0.3881829280978132 during planning) overlap at B and tie at
-    precision, so neither is a complex and nothing else can beat them."""
+    footprint {A,B} has a permutation-identical twin on {B,C}, so every
+    asymmetric-footprint clique ties at phi (and at big Phi under
+    Composition escalation, at precision) and fails exclusion. The
+    recursive walk continues past each failed clique -- their units stay
+    available -- and condenses onto the substrate's own symmetric
+    candidate: the three-singleton system, the only competitive
+    candidate that is its own mirror image."""
 
-    def test_no_complex_on_tie(self):
+    def test_tied_twins_fail_and_symmetric_complex_is_accepted(self):
         bounds = SearchBounds(max_constituents=2)
         with config.override(**presets.iit4_2023):
             result = complexes(tie_substrate(), (0, 0, 0), bounds)
-        assert result.complexes == ()
-        assert len(result.ties) == 1
-        a, b = result.ties[0]
-        assert {tuple(u.micro_constituents for u in s.units) for s in (a, b)} == {
+        # The top clique is the (0,1,1,1)-mapped mirror pair.
+        top = result.ties[0]
+        assert {tuple(u.micro_constituents for u in s.units) for s in top} == {
             ((0, 1),),
             ((1, 2),),
         }
-        assert all(s.units[0].mapping == (0, 1, 1, 1) for s in (a, b))
+        assert all(s.units[0].mapping == (0, 1, 1, 1) for s in top)
         phis = {r.system: r.phi for r in result.records}
+        a, b = top
         assert utils.eq(phis[a], phis[b])
         assert phis[a] == pytest.approx(0.3881829280978132, abs=1e-13)
+        # The accepted complex is the symmetric three-singleton system.
+        assert len(result.complexes) == 1
+        winner = result.complexes[0]
+        assert winner.node_indices == (0, 1, 2)
+        assert tuple(u.micro_constituents for u in winner.units) == (
+            (0,),
+            (1,),
+            (2,),
+        )
+        assert float(winner.phi) == pytest.approx(0.08449862433339383, abs=1e-13)
 
 
 @pytest.mark.slow
@@ -758,8 +771,9 @@ class TestParallelEquivalenceSweep:
                     tie_substrate(), (0, 0, 0), bounds, parallel_kwargs=enabled
                 )
         _results_equal(sequential, parallel)
-        assert parallel.complexes == ()
-        assert len(parallel.ties) == 1
+        assert len(parallel.complexes) == 1
+        assert parallel.complexes[0].node_indices == (0, 1, 2)
+        assert len(parallel.ties) == 6
 
 
 class TestParallelEquivalenceRecursion:
@@ -835,3 +849,73 @@ class TestParallelCostGuard:
         )
         phis = {r.system: r.phi for r in parallel.records}
         assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
+
+
+def decaying_chain_substrate():
+    """4 units, reciprocal couplings 0.6 (0-1), 0.3 (1-2), 0.15 (2-3).
+
+    The phi landscape is a chain: {A,B} > {B,C} > {C,D} with {B,C}
+    overlapping both. Recursive condensation yields {A,B} and {C,D};
+    a non-recursive local-maximum predicate would orphan {C,D}.
+    """
+    n = 4
+    weights = np.zeros((n, n))
+    weights[0, 1] = weights[1, 0] = 0.6
+    weights[1, 2] = weights[2, 1] = 0.3
+    weights[2, 3] = weights[3, 2] = 0.15
+    for i in range(n):
+        weights[i, i] = 0.05
+    tpm = np.zeros((2**n, n))
+    for row in range(2**n):
+        s = np.array([(row >> k) & 1 for k in range(n)])
+        tpm[row] = 0.05 + weights @ s
+    return Substrate(tpm, node_labels=("A", "B", "C", "D"))
+
+
+class TestRecursiveCondensation:
+    def test_chain_yields_both_disjoint_complexes(self):
+        substrate = decaying_chain_substrate()
+        with config.override(**presets.iit4_2023):
+            result = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+        footprints = {c.node_indices for c in result.complexes}
+        assert footprints == {(0, 1), (2, 3)}
+
+    def test_winners_are_complex_objects_with_units_and_records(self):
+        substrate = decaying_chain_substrate()
+        with config.override(**presets.iit4_2023):
+            result = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+        from pyphi.models.complex import Complex
+
+        top = result.complexes[0]
+        assert isinstance(top, Complex)
+        assert top.is_maximal
+        assert top.node_indices == (0, 1)
+        assert top.units is not None and len(top.units) == 2
+        assert any(e.node_indices == (1, 2) for e in top.excluded)
+        assert result.maximal_complex is top
+
+    def test_matches_micro_door_on_the_chain(self):
+        from pyphi.substrate import complexes as micro_complexes
+
+        substrate = decaying_chain_substrate()
+        with config.override(**presets.iit4_2023):
+            macro = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+            micro = micro_complexes(substrate, (0, 0, 0, 0))
+        assert {c.node_indices for c in macro.complexes} == {
+            c.node_indices for c in micro
+        }
+
+    def test_iit3_rejected_eagerly(self):
+        substrate = decaying_chain_substrate()
+        state = (0, 0, 0, 0)
+        with config.override(**presets.iit3):
+            with pytest.raises(ValueError, match="IIT_3_0"):
+                complexes(substrate, state, SearchBounds(max_depth=0))
+            with pytest.raises(ValueError, match="IIT_3_0"):
+                intrinsic_units(substrate, state, SearchBounds())
+            with pytest.raises(ValueError, match="IIT_3_0"):
+                valid_systems(substrate, state, SearchBounds())
+            with pytest.raises(ValueError, match="IIT_3_0"):
+                is_intrinsic_unit(substrate, micro_unit(0), state)
+            with pytest.raises(ValueError, match="IIT_3_0"):
+                competing_systems(substrate, micro_unit(0), state)

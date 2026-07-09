@@ -34,9 +34,9 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass
+from typing import Any
 
 from pyphi import exceptions
-from pyphi import utils
 from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import UnitVerdict
@@ -53,6 +53,18 @@ from pyphi.substrate import Substrate
 
 _MAPPING_POLICIES = ("FAMILIES", "EXHAUSTIVE")
 _APPORTIONMENT_POLICIES = ("NONE", "ENUMERATE")
+
+
+def _require_iit4() -> None:
+    """The intrinsic-units macro formalism is defined for IIT 4.0 only."""
+    from pyphi.conf import config as _config
+
+    version = _config.formalism.iit.version
+    if version == "IIT_3_0":
+        raise ValueError(
+            "the intrinsic-units macro framework is not defined for "
+            f"IIT_3_0; got config.formalism.iit.version={version!r}"
+        )
 
 
 @dataclass(frozen=True)
@@ -637,6 +649,7 @@ def competing_systems(
     parallel_kwargs: dict | None = None,
 ) -> tuple[MacroSystem, ...]:
     """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16)."""
+    _require_iit4()
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
     )
@@ -666,6 +679,7 @@ def is_intrinsic_unit(
     mapping-independent); the recursion is run restricted to the unit's
     footprint to build ``f(U^J, W^J)``.
     """
+    _require_iit4()
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
     )
@@ -714,6 +728,7 @@ def intrinsic_units(
     parallel_kwargs: dict | None = None,
 ) -> IntrinsicUnitsResult:
     """The recursion's fixed point: the valid-unit pool plus all verdicts."""
+    _require_iit4()
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
@@ -732,6 +747,7 @@ def valid_systems(
     """The bounded ``P(u)``: every Eq-18-compatible system of intrinsic
     units, evaluated over the full universe with everything else as
     background. Systems whose state is unreachable are dropped."""
+    _require_iit4()
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
@@ -756,25 +772,46 @@ class EvaluationRecord:
 
 @dataclass(frozen=True)
 class ComplexesResult:
-    """The Eq. 19 outcome over the bounded candidate space.
+    """The complexes of the bounded candidate space (Eq. 19, applied
+    recursively).
 
     Attributes
     ----------
-    complexes : tuple[MacroSystem, ...]
-        The winners -- members of ``P(u)`` that strictly beat every
-        other member with overlapping micro constituents. Mutually
-        disjoint by construction.
+    complexes : tuple[Complex, ...]
+        The complexes identified by the recursive exclusion cascade over
+        ``P(u)``, in descending-φₛ order, each carrying its macro unit
+        structure and exclusion records. Mutually disjoint in micro
+        footprint by construction.
     records : tuple[EvaluationRecord, ...]
         Every system evaluated during the run (criteria checks included)
         with its φₛ, in evaluation order.
-    ties : tuple[tuple[MacroSystem, MacroSystem], ...]
-        Pairs of overlapping systems that would each be a complex but for
-        their mutual tie at precision.
+    ties : tuple[tuple[MacroSystem, ...], ...]
+        Cliques of overlapping candidate systems that tied at φₛ and
+        still tied at Φ under Composition escalation, failing the
+        exclusion postulate; none of their members is a complex.
     """
 
-    complexes: tuple[MacroSystem, ...]
+    complexes: tuple[Any, ...]
     records: tuple[EvaluationRecord, ...]
-    ties: tuple[tuple[MacroSystem, MacroSystem], ...]
+    ties: tuple[tuple[MacroSystem, ...], ...]
+
+    @property
+    def maximal_complex(self):
+        """The φₛ-maximal complex, or a falsy null Complex when none exists."""
+        if self.complexes:
+            return self.complexes[0]
+        from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+        from pyphi.models.complex import Complex
+
+        substrate = self.records[0].system.micro_substrate if self.records else None
+        return Complex(
+            sia=NullSystemIrreducibilityAnalysis(),
+            substrate=substrate,
+            is_maximal=True,
+            excluded=(),
+            units=(),
+            node_indices=(),
+        )
 
 
 def complexes(
@@ -783,7 +820,23 @@ def complexes(
     bounds: SearchBounds = _DEFAULT_BOUNDS,
     parallel_kwargs: dict | None = None,
 ) -> ComplexesResult:
-    """Eq. 19 over the bounded candidate space -- the one-call driver."""
+    """Identify the complexes of the bounded candidate space -- the
+    one-call driver.
+
+    Every admissible system of intrinsic units (Eq. 18) is evaluated over
+    the full universe, then condensed by the recursive exclusion cascade:
+    Eq. 19's comparison is applied tier by tier, so a candidate excluded
+    by an accepted complex has no standing to exclude other candidates.
+    φₛ ties between overlapping candidates escalate to Composition (Φ);
+    cliques that still tie fail exclusion and are reported in ``ties``.
+    """
+    _require_iit4()
+    from pyphi import validate
+    from pyphi.condensation import Candidate
+    from pyphi.condensation import exclusion_cascade
+    from pyphi.condensation import exclusion_records
+    from pyphi.models.complex import Complex
+
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, PyPhiFloat] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
@@ -798,30 +851,38 @@ def complexes(
     evaluated: list[tuple[MacroSystem, PyPhiFloat]] = [
         (system, memo[system]) for system in sweep_systems if system is not None
     ]
-    footprints = [set(_system_micro_indices(system.units)) for system, _ in evaluated]
 
-    def overlapping(i):
-        return [
-            j for j in range(len(evaluated)) if j != i and footprints[i] & footprints[j]
-        ]
-
-    tops = [
-        i
-        for i, (_, phi) in enumerate(evaluated)
-        if all(
-            utils.eq(phi, evaluated[j][1]) or float(phi) > float(evaluated[j][1])
-            for j in overlapping(i)
+    candidates = [
+        Candidate(
+            footprint=frozenset(_system_micro_indices(system.units)),
+            phi=float(phi),
+            sia_provider=lambda system=system: system.sia(),
+            system_provider=lambda system=system: system,
+            units=system.units,
         )
+        for system, phi in evaluated
     ]
-    ties: list[tuple[MacroSystem, MacroSystem]] = []
-    tied: set[int] = set()
-    for a, b in itertools.combinations(tops, 2):
-        if footprints[a] & footprints[b] and utils.eq(evaluated[a][1], evaluated[b][1]):
-            ties.append((evaluated[a][0], evaluated[b][0]))
-            tied.add(a)
-            tied.add(b)
-    winners = tuple(evaluated[i][0] for i in tops if i not in tied)
+    by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
+    # Stable sort keeps the sweep's deterministic dispatch order within ties.
+    ordered = sorted(candidates, key=lambda c: -c.phi)
+    outcome = exclusion_cascade(ordered)
+    records_map = exclusion_records(outcome.accepted, ordered)
+    winners = tuple(
+        Complex(
+            sia=cand.sia_provider(),
+            substrate=substrate,
+            is_maximal=(i == 0),
+            excluded=records_map[tuple(sorted(cand.footprint))],
+            units=cand.units,
+            node_indices=tuple(sorted(cand.footprint)),
+        )
+        for i, cand in enumerate(outcome.accepted)
+    )
+    ties = tuple(
+        tuple(by_candidate[c] for c in clique) for clique in outcome.failed_cliques
+    )
     records = tuple(
         EvaluationRecord(system=system, phi=float(phi)) for system, phi in memo.items()
     )
-    return ComplexesResult(complexes=winners, records=records, ties=tuple(ties))
+    validate.non_overlapping(winners)
+    return ComplexesResult(complexes=winners, records=records, ties=ties)

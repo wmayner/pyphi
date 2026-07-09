@@ -108,3 +108,12 @@ def test_exclusion_records_key_on_footprints():
     records = exclusion_records(outcome.accepted, candidates)
     assert {r.node_indices for r in records[(0, 1)]} == {(1, 2)}
     assert {r.node_indices for r in records[(2, 3)]} == {(1, 2)}
+
+
+def test_noise_level_big_phi_difference_ties_at_precision():
+    """Φ differing only in the last ulps is a tie, not a resolution."""
+    a = _candidate({0, 1}, 1.0, big_phi=0.9726647808729815, fingerprint=b"x")
+    b = _candidate({1, 2}, 1.0, big_phi=0.9726647808729809, fingerprint=b"y")
+    outcome = exclusion_cascade([a, b])
+    assert outcome.accepted == ()
+    assert len(outcome.failed_cliques) == 1

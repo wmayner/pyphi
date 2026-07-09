@@ -154,16 +154,20 @@ def _resolve_clique_by_big_phi(clique: list[Candidate]) -> Candidate | None:
     at all.
     """
     from pyphi import resolve_ties
+    from pyphi.data_structures.pyphi_float import PyPhiFloat
 
     systems = [candidate.system_provider() for candidate in clique]
     keys = [_fingerprint_key(system) for system in systems]
     if len(set(keys)) == 1:
         return None
 
-    big_phis: dict[Any, float] = {}
+    # PyPhiFloat makes the cascade's argmax precision-aware: Φ values that
+    # differ only by floating-point summation order (e.g. between two
+    # relabelings of one system) tie instead of resolving arbitrarily.
+    big_phis: dict[Any, PyPhiFloat] = {}
     for system, key in zip(systems, keys, strict=True):
         if key not in big_phis:
-            big_phis[key] = float(system.ces().big_phi)
+            big_phis[key] = PyPhiFloat(system.ces().big_phi)
 
     @dataclass(frozen=True)
     class _CandidateProxy:
