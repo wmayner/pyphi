@@ -382,3 +382,109 @@ def test_grid3_mixture_acceptance(grid3_posterior):
     assert lo < 0.024666 < hi  # brackets the true phi
     identity = pp.complex_identity
     assert identity[(0,)] + identity.get((2,), 0.0) > 0.5
+
+
+# ---- selection-margin screening ----
+
+
+def _exact_mean_posterior(substrate, tightness=200.0):
+    """A posterior whose Beta means equal the substrate's true TPM exactly,
+    with spread controlled by ``tightness`` (larger = tighter)."""
+    from pyphi.provenance import Provenance
+
+    pon = _ground_truth_pon(substrate)
+    n = pon.shape[1]
+    return SubstratePosterior(
+        alpha_on=pon * tightness + 1e-9,
+        alpha_off=(1.0 - pon) * tightness + 1e-9,
+        regime="perturbational",
+        prior=0.0,
+        coverage=CoverageReport(
+            counts=np.full(pon.shape[0], 1, dtype=np.int64), n_units=n
+        ),
+        node_labels=substrate.node_labels,
+        provenance=Provenance.capture(estimator={"regime": "perturbational"}),
+    )
+
+
+def test_mean_substrate_matches_beta_means():
+    posterior = _exact_mean_posterior(examples.grid3_substrate())
+    mean = posterior.mean_substrate()
+    expected = posterior.alpha_on / (posterior.alpha_on + posterior.alpha_off)
+    np.testing.assert_allclose(_ground_truth_pon(mean), expected)
+    assert list(mean.node_labels) == list(posterior.node_labels)
+
+
+def test_screen_off_by_default(grid3_posterior):
+    pp = phi_posterior(grid3_posterior, (0, 0, 0), n_samples=3, seed=1)
+    assert pp.screen_margin is None
+    assert pp.screened is False
+    assert pp.reference_margins is None
+
+
+def test_screen_refuses_on_tied_grid3():
+    # grid3's true TPM has an exactly tied partition selection, so the
+    # screen must refuse for any positive threshold — and record why.
+    substrate = examples.grid3_substrate()
+    posterior = _exact_mean_posterior(substrate)
+    screened = phi_posterior(
+        posterior, (0, 0, 0), n_samples=5, seed=7, screen_margin=1e-6
+    )
+    unscreened = phi_posterior(posterior, (0, 0, 0), n_samples=5, seed=7)
+    assert screened.screened is False
+    assert screened.reference_margins is not None
+    assert screened.reference_margins["complex"] == pytest.approx(0.0, abs=1e-9)
+    np.testing.assert_array_equal(screened.samples, unscreened.samples)
+    assert screened.complex_samples == unscreened.complex_samples
+
+
+def test_screen_engages_and_matches_unscreened(monkeypatch):
+    # basic_substrate's selections are clearly untied; under a tight
+    # posterior the screen engages and reproduces the unscreened run.
+    substrate = examples.basic_substrate()
+    posterior = _exact_mean_posterior(substrate, tightness=500.0)
+    calls = {"n": 0}
+    from pyphi import estimate as estimate_mod
+
+    true_maximal_complex = estimate_mod.maximal_complex
+
+    def counting(*args, **kwargs):
+        calls["n"] += 1
+        return true_maximal_complex(*args, **kwargs)
+
+    monkeypatch.setattr(estimate_mod, "maximal_complex", counting)
+
+    screened = phi_posterior(
+        posterior, (1, 0, 0), n_samples=8, seed=11, screen_margin=1e-3
+    )
+    screened_calls = calls["n"]
+    calls["n"] = 0
+    unscreened = phi_posterior(posterior, (1, 0, 0), n_samples=8, seed=11)
+    unscreened_calls = calls["n"]
+
+    assert screened.screened is True
+    assert screened.screen_margin == 1e-3
+    assert screened_calls == 1  # the reference only
+    assert unscreened_calls == 8  # one per draw
+    np.testing.assert_array_equal(screened.samples, unscreened.samples)
+    assert screened.p_positive == pytest.approx(unscreened.p_positive)
+    np.testing.assert_allclose(
+        screened.quantiles([0.025, 0.5, 0.975]),
+        unscreened.quantiles([0.025, 0.5, 0.975]),
+    )
+    # Identity fixed at the reference's answer; the tight posterior makes
+    # the unscreened run agree.
+    assert screened.complex_identity == unscreened.complex_identity
+
+
+def test_screened_posterior_round_trips():
+    from pyphi import serialize
+
+    substrate = examples.basic_substrate()
+    posterior = _exact_mean_posterior(substrate, tightness=500.0)
+    pp = phi_posterior(posterior, (1, 0, 0), n_samples=3, seed=5, screen_margin=1e-3)
+    restored = serialize.loads(serialize.dumps(pp))
+    assert restored.screen_margin == pp.screen_margin
+    assert restored.screened == pp.screened
+    assert restored.reference_margins == pp.reference_margins
+    np.testing.assert_array_equal(restored.samples, pp.samples)

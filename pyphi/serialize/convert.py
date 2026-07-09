@@ -1000,6 +1000,11 @@ def _register_phi_posterior() -> None:
         regime=p.regime,
         coverage=to_schema(p.coverage),
         provenance=to_schema(p.provenance),
+        screen_margin=p.screen_margin,
+        screened=p.screened,
+        reference_margins=(
+            None if p.reference_margins is None else dict(p.reference_margins)
+        ),
     )
     _DECODERS[schema.PhiPosteriorSchema] = lambda s: PhiPosterior(
         samples=arrays.bytes_to_array(s.samples),
@@ -1010,6 +1015,11 @@ def _register_phi_posterior() -> None:
         regime=s.regime,
         coverage=from_schema(s.coverage),
         provenance=from_schema(s.provenance),
+        screen_margin=s.screen_margin,
+        screened=s.screened,
+        reference_margins=(
+            None if s.reference_margins is None else dict(s.reference_margins)
+        ),
     )
 
 

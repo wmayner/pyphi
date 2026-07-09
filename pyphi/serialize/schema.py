@@ -461,6 +461,9 @@ class PhiPosteriorSchema(msgspec.Struct, frozen=True, tag="phi_posterior"):
     regime: str
     coverage: CoverageReportSchema
     provenance: ProvenanceSchema
+    screen_margin: float | None = None
+    screened: bool = False
+    reference_margins: dict[str, float | None] | None = None
 
 
 # The tagged union grows one member per serializable type.
