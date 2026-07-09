@@ -2,6 +2,9 @@
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
 
 from pyphi import config
 from pyphi import utils
@@ -919,3 +922,105 @@ class TestRecursiveCondensation:
                 is_intrinsic_unit(substrate, micro_unit(0), state)
             with pytest.raises(ValueError, match="IIT_3_0"):
                 competing_systems(substrate, micro_unit(0), state)
+
+
+class TestCrossDoorEquivalence:
+    """substrate.complexes and the macro driver at max_depth=0 condense
+    the same candidate landscape: every subset of micro units, evaluated
+    as identity-unit systems (which reproduce System results exactly)."""
+
+    @settings(max_examples=8, deadline=None)
+    @given(st.integers(min_value=0, max_value=10**6))
+    def test_doors_agree_at_micro_grain(self, seed):
+        from pyphi.substrate import complexes as micro_complexes
+
+        rng = np.random.default_rng(seed)
+        n = 3
+        tpm = rng.uniform(0.05, 0.95, size=(2**n, n))
+        substrate = Substrate(tpm)
+        state = tuple(int(v) for v in rng.integers(0, 2, size=n))
+        with config.override(**presets.iit4_2023):
+            micro = micro_complexes(substrate, state)
+            macro = complexes(substrate, state, SearchBounds(max_depth=0))
+        assert {c.node_indices for c in macro.complexes} == {
+            c.node_indices for c in micro
+        }
+        micro_phis = {c.node_indices: float(c.phi) for c in micro}
+        for c in macro.complexes:
+            # identity macroing agrees with the direct System path at
+            # config precision, not bit-for-bit: the macro construction
+            # performs the same arithmetic in a different order, so the
+            # values can differ in the last ulps
+            assert float(c.phi) == pytest.approx(micro_phis[c.node_indices], abs=1e-13)
+
+    def test_fingerprint_dedupe_shadow_equality(self, monkeypatch):
+        """Forcing full escalation (unique fingerprints) changes nothing."""
+        substrate = tie_substrate()
+        state = (0, 0, 0)
+        bounds = SearchBounds(max_constituents=2)
+        with config.override(**presets.iit4_2023):
+            with_skip = complexes(substrate, state, bounds)
+
+        from pyphi import condensation
+
+        monkeypatch.setattr(condensation, "_fingerprint_key", lambda _system: object())
+        with config.override(**presets.iit4_2023):
+            without_skip = complexes(substrate, state, bounds)
+
+        assert {c.node_indices for c in with_skip.complexes} == {
+            c.node_indices for c in without_skip.complexes
+        }
+        assert [{tuple(s.units) for s in clique} for clique in with_skip.ties] == [
+            {tuple(s.units) for s in clique} for clique in without_skip.ties
+        ]
+
+    def test_complexes_parallel_equals_sequential_on_the_chain(self):
+        substrate = decaying_chain_substrate()
+        state = (0, 0, 0, 0)
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            sequential = complexes(substrate, state, SearchBounds(max_depth=0))
+            with config.override(parallel=True):
+                parallel = complexes(
+                    substrate,
+                    state,
+                    SearchBounds(max_depth=0),
+                    parallel_kwargs=enabled,
+                )
+        assert [c.node_indices for c in sequential.complexes] == [
+            c.node_indices for c in parallel.complexes
+        ]
+        assert [float(c.phi) for c in sequential.complexes] == [
+            float(c.phi) for c in parallel.complexes
+        ]
+
+    def test_exclusion_invariants_on_the_chain_sweep(self):
+        """Accepted complexes are disjoint; every exclusion record names an
+        overlapping, non-accepted candidate."""
+        substrate = decaying_chain_substrate()
+        with config.override(**presets.iit4_2023):
+            result = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+
+        footprints = [set(c.node_indices) for c in result.complexes]
+        for i, a in enumerate(footprints):
+            for b in footprints[i + 1 :]:
+                assert not (a & b)
+
+        accepted = {c.node_indices for c in result.complexes}
+        for c in result.complexes:
+            for record in c.excluded:
+                # every exclusion record names a candidate that overlaps
+                # this complex and was not itself accepted. NOTE: an
+                # excluded candidate may carry HIGHER phi than the complex
+                # whose record it appears in -- on the chain, {C,D}'s
+                # records include {B,C} (phi 0.104 > 0.037), which was
+                # carved away by {A,B}. That is the recursive semantics
+                # working as intended; do not assert record.phi <= c.phi.
+                assert set(record.node_indices) & set(c.node_indices)
+                assert record.node_indices not in accepted
+        # the chain makes the higher-phi-excluded case concrete:
+        by_units = {c.node_indices: c for c in result.complexes}
+        assert any(
+            record.phi > float(by_units[(2, 3)].phi)
+            for record in by_units[(2, 3)].excluded
+        )
