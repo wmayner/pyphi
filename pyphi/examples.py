@@ -12,7 +12,7 @@ import numpy as np
 
 from . import actual
 from .actual import Transition
-from .conf import config
+from .conf import config, iit3
 from .substrate import Substrate
 from .substrate_generator import build_substrate, ising
 from .system import System
@@ -1052,7 +1052,7 @@ fig14_substrate = fig1a_substrate
 
 @register_example
 def fig16_substrate():
-    """The substrate shown in Figure 5B of the 2014 IIT 3.0 paper."""
+    """The substrate shown in Figure 16B of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0, 0, 0],
@@ -1328,9 +1328,9 @@ def prevention_transition():
 @register_example
 @config.override(
     iit=replace(
-        config.formalism.iit,
+        iit3["iit"],
         mechanism_partition_scheme="WEDGE_TRIPARTITION",
-        mechanism_phi_measure="BLD",
+        mechanism_phi_measure="AID",
     ),
     validate_system_states=False,
     alpha_measure="WPMI",
@@ -1370,8 +1370,6 @@ def frog_example():
         input_nodes=None,
         input_modifier=None,
         node_labels=None,
-        substrate_name=None,
-        pickle_substrate=True,
     ):
         """
         Returns a pyphi substrate (with the specified activation function)
@@ -1388,17 +1386,15 @@ def frog_example():
         si
             Standard deviation (Gauss).
         exp
-            Exponent (NR or MvsG).
+            Exponent (NR).
         th
-            Threshold (NR) or curve steepness (MvsG).
+            Threshold (NR).
         x0
             Midpoint value (LogFunc).
         l
             Max value (LogFunc).
         k
             Growth rate (LogFunc).
-        gridsize
-            Number of substrate nodes in the grid excluded inputs.
         """
         weights = weights.T
         node_indices = [n for n in range(len(weights))]
