@@ -840,8 +840,8 @@ def complexes(
     from pyphi.models.complex import Complex
     from pyphi.system import System
 
-    all_sias = list(irreducible_sias(substrate, state, candidates, **kwargs))
-    if not all_sias:
+    candidate_sias = list(irreducible_sias(substrate, state, candidates, **kwargs))
+    if not candidate_sias:
         return ()
 
     def _as_candidate(sia: Any) -> Candidate:
@@ -855,7 +855,7 @@ def complexes(
             ),
         )
 
-    cascade_candidates = [_as_candidate(sia) for sia in all_sias]
+    cascade_candidates = [_as_candidate(sia) for sia in candidate_sias]
     cascade = (
         iit3_exclusion_cascade
         if _config_iit_version() == "IIT_3_0"
