@@ -127,6 +127,11 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     @property
     def ties(self) -> tuple[StateSpecification, ...]:
+        """The full family of states tied at maximum intrinsic information,
+        including this one — even those a later escalation (per-state φₛ, Φ)
+        separated. The whole family is retained because congruence checks
+        accept a match against any ii-tied state, so trimming it would
+        change the resulting φ-structure, not just the report."""
         return self._ties
 
     @property

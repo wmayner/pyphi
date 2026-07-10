@@ -666,7 +666,10 @@ class AcSystemIrreducibilityAnalysis(
     @property
     def ties(self) -> tuple[AcSystemIrreducibilityAnalysis, ...]:
         """System analyses tied with this one at the winning 𝒜, including
-        this one. A singleton when the minimum is unique."""
+        this one. A singleton when the minimum is unique. Records only
+        candidates equal up to ``config.numerics.precision`` — the
+        interchangeable final answers, separated at most by the canonical
+        partition ordering, never by a theoretical quantity."""
         return self._ties
 
     def set_ties(self, ties: Sequence[AcSystemIrreducibilityAnalysis]) -> None:
