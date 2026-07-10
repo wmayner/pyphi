@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from typing import Any
 
 from pyphi import exceptions
@@ -49,6 +50,9 @@ from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
 from pyphi.substrate import Substrate
+
+if TYPE_CHECKING:
+    from pyphi.macro.estimate import SearchEstimate
 
 _MAPPING_POLICIES = ("FAMILIES", "EXHAUSTIVE")
 _APPORTIONMENT_POLICIES = ("NONE", "ENUMERATE")
@@ -128,7 +132,7 @@ class SearchBounds:
         down the hierarchy)."""
         return self.max_update_grain**self.max_depth
 
-    def estimate(self, substrate, limit: int = 1_000_000):
+    def estimate(self, substrate, limit: int = 1_000_000) -> SearchEstimate:
         """Pre-flight estimate of the sweep these bounds define over
         ``substrate``, by pure counting; see
         :func:`pyphi.macro.estimate.estimate_search`. Only the

@@ -59,6 +59,21 @@ class TestCountingWalk:
         deep = estimate_search(SearchBounds(max_depth=1), 3)
         assert deep.distinct_systems_upper_bound >= shallow.distinct_systems_upper_bound
 
+    def test_partitions_capped_does_not_pollute_exactness(self):
+        with config.override(**presets.iit4_2023):
+            est = estimate_search(SearchBounds(max_depth=0), 10)
+        assert est.is_exact is True
+        assert est.truncated is False
+        assert est.partitions_capped is True
+        assert est.distinct_systems_upper_bound == 1023
+
+    def test_estimate_requires_iit4(self):
+        with (
+            config.override(**presets.iit3),
+            pytest.raises(ValueError, match="IIT_3_0"),
+        ):
+            estimate_search(SearchBounds(), 2)
+
 
 class TestAgainstRealSweeps:
     def test_min_defaults_estimate_equals_records(self):
@@ -185,3 +200,29 @@ class TestSurfaces:
 
         assert pyphi.macro.SearchEstimate is SearchEstimate
         assert pyphi.macro.estimate_search is estimate_search
+
+
+class TestPrimitiveAgreement:
+    @pytest.mark.parametrize("size", [1, 2, 3])
+    @pytest.mark.parametrize("max_grain", [1, 2, 3])
+    def test_variant_multiplicity_matches_variants(self, size, max_grain):
+        from pyphi.macro.estimate import _StandIn
+        from pyphi.macro.estimate import _variant_standins
+        from pyphi.macro.search import _variants
+        from pyphi.macro.units import micro_unit
+
+        bounds = SearchBounds(max_update_grain=max_grain)
+        V_real = tuple(micro_unit(i) for i in range(size))
+        V_standin = tuple(_StandIn((i,), 1, ()) for i in range(size))
+        real = len(_variants(V_real, (), bounds))
+        standins = _variant_standins(V_standin, (), bounds, base=1)
+        assert sum(s.multiplicity for s in standins) == real
+
+    def test_counts_monotone_in_limit(self):
+        estimates = [
+            estimate_search(SearchBounds(), 4, limit=lim)
+            for lim in (5, 50, 500, 1_000_000)
+        ]
+        counts = [e.distinct_systems_upper_bound for e in estimates]
+        assert counts == sorted(counts)
+        assert estimates[-1].truncated is False

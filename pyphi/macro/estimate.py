@@ -29,10 +29,16 @@ from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import _apportionments
 from pyphi.macro.search import _assemble_systems
 from pyphi.macro.search import _decompositions
+from pyphi.macro.search import _require_iit4
 from pyphi.macro.search import candidate_mappings
 from pyphi.models.pandas import ToPandasMixin
 
-_PARTITION_COUNT_CAP = 8
+_PARTITION_COUNT_CAP = 6
+
+# Partition counts keyed by (system partition scheme name, m). Enumerating
+# the partitions of m elements is the same regardless of substrate, so the
+# count is memoized across calls at module scope.
+_PARTITION_COUNT_MEMO: dict[tuple[str, int], int] = {}
 
 
 @dataclass(frozen=True)
@@ -154,8 +160,13 @@ class SearchEstimate(Displayable, ToPandasMixin):
         Whether the enumeration is exact rather than an upper bound
         (``max_depth == 0`` and not truncated).
     truncated : bool
-        The counting hit its ``limit`` (or a bucket exceeded the
-        partition-count cap); counts are then lower bounds of the bound.
+        The counting hit its ``limit``; counts are then lower bounds of
+        the bound.
+    partitions_capped : bool
+        At least one bucket has a macro unit count m above the
+        partition-count cap and so has no partition count;
+        ``partition_sweeps_upper_bound`` then covers only the counted
+        buckets. Independent of ``truncated`` and ``is_exact``.
     """
 
     n: int
@@ -170,6 +181,7 @@ class SearchEstimate(Displayable, ToPandasMixin):
     construction_keys_upper_bound: int
     is_exact: bool
     truncated: bool
+    partitions_capped: bool
 
     def _qualifier(self) -> str:
         if self.truncated:
@@ -185,14 +197,16 @@ class SearchEstimate(Displayable, ToPandasMixin):
             "construction_keys_upper_bound": self.construction_keys_upper_bound,
             "is_exact": self.is_exact,
             "truncated": self.truncated,
+            "partitions_capped": self.partitions_capped,
         }
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         q = self._qualifier()
+        sweeps_q = "≥" if self.partitions_capped else q
         rows = [
             Row("Candidate systems", f"{q} {self.distinct_systems_upper_bound}"),
             Row("Assembly sweep", f"{q} {self.assemblies_upper_bound}"),
-            Row("Partition sweeps", f"{q} {self.partition_sweeps_upper_bound}"),
+            Row("Partition sweeps", f"{sweeps_q} {self.partition_sweeps_upper_bound}"),
             Row("Construction keys", f"{q} {self.construction_keys_upper_bound}"),
             Row("Judgments by level", str(self.judgments_by_level)),
             Row("Pool by level", str(self.worst_case_pool_by_level)),
@@ -222,13 +236,21 @@ class SearchEstimate(Displayable, ToPandasMixin):
 
 
 def _partition_counts(ms) -> dict[int, int]:
+    from pyphi.conf import config
     from pyphi.partition import system_partitions
 
-    return {
-        m: sum(1 for _ in system_partitions(tuple(range(m))))
-        for m in ms
-        if m <= _PARTITION_COUNT_CAP
-    }
+    scheme = config.formalism.iit.system_partition_scheme
+    counts = {}
+    for m in ms:
+        if m > _PARTITION_COUNT_CAP:
+            continue
+        key = (scheme, m)
+        count = _PARTITION_COUNT_MEMO.get(key)
+        if count is None:
+            count = sum(1 for _ in system_partitions(tuple(range(m))))
+            _PARTITION_COUNT_MEMO[key] = count
+        counts[m] = count
+    return counts
 
 
 def estimate_search(
@@ -239,12 +261,17 @@ def estimate_search(
 
     Notes
     -----
-    The walk's own running time is proportional to the counts it
-    produces; ``limit`` bounds the total counted items and stops the walk
-    early (``truncated=True``) when exceeded. ``mappings="EXHAUSTIVE"``
-    above ``exhaustive_cap`` raises the same ``ValueError`` the search
-    itself would.
+    ``limit`` bounds the *reported counts* and stops the walk at
+    enumeration-phase granularity (``truncated=True``): one
+    ``_assemble_systems`` call completes before the limit is checked, so
+    wall time is not strictly bounded by ``limit``.
+
+    ``mappings="EXHAUSTIVE"`` above ``exhaustive_cap`` raises a
+    ``ValueError``. The search itself raises only when such a
+    decomposition passes judgment; the estimate assumes every
+    decomposition passes, so it raises unconditionally.
     """
+    _require_iit4()
     counter = _Counter(limit)
     truncated = False
 
@@ -275,12 +302,15 @@ def estimate_search(
     assemblies = 0
     sweep_buckets: dict[int, int] = {}
 
+    judged_this_level = 0
+    level_open = False
     try:
         for unit in pool:
             record_combo((unit,))
         for _level in range(bounds.max_depth):
             pool_prev = tuple(pool)
             judged_this_level = 0
+            level_open = True
             emitted_any = False
             for size in range(min_size, max_size + 1):
                 pool_at_class_start = tuple(pool)
@@ -324,6 +354,7 @@ def estimate_search(
                 emitted_any = emitted_any or bool(new_units)
             judgments_by_level.append(judged_this_level)
             pool_by_level.append(sum(u.multiplicity for u in pool))
+            level_open = False
             if not emitted_any:
                 break
         for combo in _assemble_systems(pool, bounds.max_background):
@@ -335,10 +366,14 @@ def estimate_search(
             sweep_buckets[m] = sweep_buckets.get(m, 0) + count
     except _LimitReached:
         truncated = True
+        # Flush the partial level's tallies so a mid-level cutoff still
+        # reports the judgments and pool it charged before stopping.
+        if level_open:
+            judgments_by_level.append(judged_this_level)
+            pool_by_level.append(sum(u.multiplicity for u in pool))
 
     partitions = _partition_counts(sorted(sweep_buckets))
-    if any(m > _PARTITION_COUNT_CAP for m in sweep_buckets):
-        truncated = True
+    partitions_capped = any(m > _PARTITION_COUNT_CAP for m in sweep_buckets)
     partition_sweeps = sum(
         count * partitions[m] for m, count in sweep_buckets.items() if m in partitions
     )
@@ -356,4 +391,5 @@ def estimate_search(
         construction_keys_upper_bound=construction_keys,
         is_exact=bounds.max_depth == 0 and not truncated,
         truncated=truncated,
+        partitions_capped=partitions_capped,
     )
