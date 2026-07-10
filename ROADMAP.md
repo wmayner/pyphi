@@ -244,7 +244,7 @@ New ideas surfaced by the 2026-06-13 audit (the roadmap "started as an engineeri
 
 *Correctness & rigor:* **(N1)** a comprehensive **paper-reproduction acceptance suite** as a CI gate — every worked example (IIT 4.0 Figs 1/2/4/6/7, Marshall 2024, AC 2019 Fig 11, Gómez p53) with pinned values, *including a network that exercises the 2026 ii-cap with non-zero φ*. **(N2)** a standing **`parallel ≡ sequential` Hypothesis invariant** in CI (the loky bug shows results can silently diverge/crash). **(N3)** recurring **mutation testing** as a scheduled gate so the golden+property net is proven to bite.
 
-*Performance / algorithmic:* **(N4)** a **disk-backed result cache** keyed on the P9.5 math-fingerprint, so notebook re-runs and paper reproductions skip recomputation. **(N5)** elevate the "**Rust/PyO3 kernel**" aside to a concrete, P17-gated item for the partition-enumeration + repertoire inner loops — the one lever that touches the O(2ⁿ) floor caching can't. **(N6)** a **lazy / top-K relations mode** (relations are the n≥6 bottleneck that OxiDD + analytical folds only partly address).
+*Performance / algorithmic:* **(N4)** a **disk-backed result cache** keyed on the P9.5 math-fingerprint, so notebook re-runs and paper reproductions skip recomputation. **(N5)** elevate the "**Rust/PyO3 kernel**" aside to a concrete, P17-gated item for the partition-enumeration + repertoire inner loops — the one lever that touches the O(2ⁿ) floor caching can't. **(N6 — explored, build-ready)** a **lazy / top-K relations mode** (relations are the n≥6 bottleneck that OxiDD + analytical folds only partly address). The 2026-07-07 relations exploration (`docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`) settled the design — the relation set is a deterministic view of a linear-size summary; exact/top-K/sampling query tiers verified at Fig-6D scale — and discharges this item (with N24) when its Tier 1–3 query surface lands.
 
 *API ergonomics / usability:* **(N7 — landed)** one high-level **`pyphi.analyze(substrate, state, formalism=…)`** entry point. **(N8)** a full **provenance stamp** on every result (pyphi version, git sha, seed, wall-time) extending the P10 config snapshot. **(N9 — landed)** the unified labeled-export (`to_pandas`/xarray) story — already a P14d follow-on, elevated because it interlocks with the freeze. **(N11 — landed)** **Bayesian-network / dynamic-BN interop** — render a substrate as a **2-timeslice DBN** (nodes_t → nodes_{t+1}) where the TPM becomes CPDs, enabling pgmpy / d-separation / Markov-blanket workflows. The static-BN view is **unfaithful** — substrates are cyclic by construction (feedback/self-loops); the 2-TBN unrolling is the correct acyclic target. Builds on B20's topology bridge.
 
@@ -301,13 +301,22 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
 
 *Empirical grounding & rigor:*
 
-- **N12 — Empirical TPM estimation.** *`research`.* A `pyphi.estimate` surface turning an
+- **N12 — Empirical TPM estimation.** *`research`; explored + minimal build landed.* The
+  2026-07-07 exploration (`docs/superpowers/specs/2026-07-07-tpm-from-data-and-uncertainty-design.md`)
+  settled the design, and the minimal build shipped as `pyphi.estimate` (see the "Uncertainty
+  pipeline" dashboard row): per-row Bayesian counts model with a required causal-regime
+  assertion. Remaining research: GLM/Ising fitting, state-binning/lag selection. Original scope: a `pyphi.estimate` surface turning an
   observed multivariate time series (binarized/discretized recordings) into a `Substrate` +
   `FactoredTPM`: maximum-likelihood transition counts, regularized / Bayesian estimators,
   state-binning and lag selection, with the inferred connectivity feeding the B19 consistency
   check. PyPhi computes Φ only on a hand-specified TPM; this is the missing path from the data
   a user actually has to a substrate. Interlocks with N13.
-- **N13 — Uncertainty quantification on Φ.** *`research`.* Propagate TPM-estimation error
+- **N13 — Uncertainty quantification on Φ.** *`research`; explored + minimal build landed.*
+  Same exploration and build as N12: `phi_posterior(...)` ships the mixture over Φ
+  (point mass at zero + conditional density; refuses bare-float coercion). The twin-substrate
+  proof pins that observational data cannot identify the needed object — the regime assertion
+  is an assumption, not an estimate. Remaining research: distribution-valued Φ threaded
+  through result types; distribution-over-structures summaries. Original scope: propagate TPM-estimation error
   (N12) and stochastic-substrate variance into a sampling distribution over Φ/φ/α — a
   bootstrap over transition counts, or a posterior over TPMs mapped to a posterior over Φ — so
   a result carries a confidence interval rather than a bare point value. Extends the N8
@@ -338,11 +347,16 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
 
 *Scale & operability:*
 
-- **N18 — Tractability pre-flight / cost oracle.** *`2.x`.* Turn P17's characterized
+- **N18 — Tractability pre-flight / cost oracle.** *`2.x`; in progress.* A grain-search
+  cost pre-flight is designed and being built
+  (`docs/superpowers/specs/2026-07-10-grain-cost-preflight-design.md`). Original scope: turn P17's characterized
   partition-count growth and the `iit4/bounds.py` module into a before-you-run estimate of
   cost and feasibility ("intractable at this size; use approximation or a cluster"),
   preventing the launch of an unknowingly intractable run.
-- **N19 — Long-horizon scaling narrative.** *`research`.* The very-large-substrate levers —
+- **N19 — Long-horizon scaling narrative.** *`research`.* The relations exploration changes
+  this story: the relation set is a deterministic view of a linear-size summary, so the n≥6
+  relations bottleneck is a query-surface problem, not an enumeration problem (see
+  `docs/superpowers/specs/2026-07-08-exploration-synthesis.md` §3g). The very-large-substrate levers —
   reduced-dimension factor storage (the 63-unit numpy-dimension ceiling), the Rust/PyO3 kernel
   (N5), batched/GPU kernels (B11), and the approximation framework (P16) — are parked
   independently. A single account of which compose, and in what order, to push past ~10 units.
@@ -362,14 +376,22 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
   states, so it is a strict generalization, and a two/three-qubit reference implementation
   exists to validate against. Extends IIT's compositional causal analysis from classical TPMs
   to finite-dimensional quantum systems (quantum logic gates, entangled states).
-- **N22 — Intrinsic differentiation / specification as first-class quantities.** *`2.x`.*
+- **N22 — Intrinsic differentiation / specification as first-class quantities.** *`2.x`;
+  partially concretized.* The grain exploration's ii-decomposition results
+  (`docs/superpowers/specs/2026-07-07-grain-discovery.md`: `min(ii_c, ii_e) ≥ φ_s`, 262/262
+  under GID) give this item its concrete content; the landed selection margins retain the
+  per-direction second-best ii.
   Expose the Mayner et al. 2026 decomposition — intrinsic information as `min(intrinsic
   differentiation, intrinsic specification)` — as named result fields rather than only the
   internal `INTRINSIC_INFORMATION` cap, and add the determinism/indeterminism tradeoff analysis
   (φ_s as a function of substrate determinism; the monad and inverse-temperature curves).
   Turns the cap the codebase already computes into an analyzable account of *why* a substrate
   has the intrinsic cause-effect power it does.
-- **N23 — Φ-explanatory diagnostics.** *`2.x`.* Surface the Marshall et al. 2023 system-φ
+- **N23 — Φ-explanatory diagnostics.** *`2.x`; partially landed.* The selection-margin
+  reporting (dashboard row) and `Complex.exclusion_margin` are landed concrete slices; the
+  substrate-landscape exploration (`docs/superpowers/specs/2026-07-07-substrate-parameter-landscapes.md`)
+  established margins as the IIT-native sensitivity analysis. Remaining: determinism/degeneracy
+  covariates, the integrated-fraction ratio, the φ_s landscape display. Original scope: surface the Marshall et al. 2023 system-φ
   covariates that explain a Φ value: per-(system, state) **determinism** (effect-state
   selectivity) and **degeneracy** (cause-state selectivity), the **integrated-fraction /
   fault-line** ratio (φ_s / ii, the fraction of intrinsic information that is integrated), and
@@ -377,7 +399,11 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
   landed `result.explain()` (B8) from "which partition won" to "what property of the substrate
   produced this Φ"; the landscape is also a natural display artifact. *(The recursive
   universe-to-complexes carving that paper also describes already landed as B16 `complexes()`.)*
-- **N24 — Distinction-importance / relation-removal sensitivity.** *`quick-win`.* Add
+- **N24 — Distinction-importance / relation-removal sensitivity.** *`quick-win`; explored,
+  build-ready.* Subsumed (with N6) by the relations exploration
+  (`docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`): the
+  linear-size relation summary yields exact per-distinction incidence/φ-share in closed form.
+  Discharged when the relations query surface lands. Original scope: add
   Zaeemzadeh's counting-relations §2 per-purview relation-incidence count and the closed-form
   `½·|Z|/N` fraction of relations that vanish when a distinction's purview is removed — an exact
   importance ranking over distinctions, computable from `bounds.py` without enumerating
