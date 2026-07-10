@@ -147,7 +147,10 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         """
         phi = float(self.phi)
         rivals = [
-            float(c.phi) for c in self.excluded if c.phi < phi or utils.eq(c.phi, phi)
+            float(c.phi)
+            for c in self.excluded
+            # numerics: exact — composed with eq into a tolerant ≤ for a reported margin
+            if c.phi < phi or numerics.eq(c.phi, phi)
         ]
         if not rivals:
             return None
@@ -160,7 +163,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         ``False`` when the margin is ``None`` (no beaten rival).
         """
         margin = self.exclusion_margin
-        return margin is not None and utils.eq(margin, 0.0)
+        return margin is not None and numerics.is_zero(margin)
 
     def _pandas_record(self) -> dict[str, Any]:
         record = dict(self.sia._pandas_record())
