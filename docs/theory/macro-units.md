@@ -131,9 +131,11 @@ This cascade is the same {mod}`pyphi.condensation` machinery the micro complex
 search uses; the macro search simply feeds it candidate systems at every grain.
 It returns a {class}`~pyphi.macro.ComplexesResult` whose winners are
 {class}`~pyphi.models.complex.Complex` objects. Each winner reports an
-{attr}`~pyphi.models.complex.Complex.exclusion_margin` — how far ahead of its
-strongest surviving competitor it finished, in $\varphi_s$ — and carries the
-candidates it excluded, shadows included. A margin of zero is an exact tie. For
+{attr}`~pyphi.models.complex.Complex.exclusion_margin` — the $\varphi_s$ gap to
+the best overlapping rival it beat — and carries the candidates it excluded,
+shadows included; shadows do not enter the margin. A margin of zero means a
+rival tied at the configured precision, so the selection was decided beyond
+$\varphi_s$. For
 how the recursion resolves overlapping candidates step by step, see the
 {doc}`recursive-exclusion tutorial <../tutorials/recursive-exclusion>`; for
 reading margins and controlling how ties are broken, see
