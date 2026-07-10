@@ -498,8 +498,8 @@ def resolve_ac_causal_link_tie[V: _AcRIALike](
     survivors = tuple(rias)
     if not survivors:
         raise ValueError("resolve_ac_causal_link_tie requires at least one AcRIA")
-    max_alpha = max(r.alpha for r in survivors)
-    info_tied = tuple(r for r in survivors if r.alpha == max_alpha)
+    alphas = [r.alpha for r in survivors]
+    info_tied = _tied_with_extremum(survivors, alphas, max(alphas))
     minimal = _ac_minimal_purviews(info_tied)
     if len(minimal) == 1:
         return CascadeOutcome(

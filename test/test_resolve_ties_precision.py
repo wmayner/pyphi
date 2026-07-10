@@ -136,3 +136,31 @@ def test_property_twins_always_coselected(base, n_twins, n_others, seed):
     rng.shuffle(pool)
     survivors = set(resolve_ties.partitions(pool))
     assert survivors == set(twins)  # twins are the min tier, all co-selected
+
+
+@dataclass(frozen=True)
+class FakeAcRIA:
+    alpha: float
+    purview: tuple
+    partition: FakePartition
+
+
+class TestAcCascades:
+    def test_causal_link_tie_clusters_alpha(self):
+        # Two purviews with alpha equal up to noise: both must appear in
+        # the tied set (over-determination), not one silently dropped.
+        a = FakeAcRIA(0.2, (0,), FakePartition(b"\x01"))
+        b = FakeAcRIA(0.2 + NOISE, (1,), FakePartition(b"\x02"))
+        ctx = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+        outcome = resolve_ties.resolve_ac_causal_link_tie([a, b], context=ctx)
+        assert set(outcome.tied_set) == {a, b}
+
+    def test_partition_tie_escalates_to_determinism_on_noise_tie(self):
+        # |alpha| tied up to noise -> the cascade must reach the
+        # Determinism (lex) level instead of resolving on the noise.
+        a = FakeAcRIA(0.2, (0,), FakePartition(b"\x02"))
+        b = FakeAcRIA(0.2 + NOISE, (0,), FakePartition(b"\x01"))
+        ctx = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+        outcome = resolve_ties.resolve_ac_partition_tie([a, b], context=ctx)
+        assert outcome.resolved is b  # lex-smallest partition
+        assert set(outcome.tied_set) == {a, b}

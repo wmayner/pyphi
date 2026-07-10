@@ -43,13 +43,6 @@ _acria_attributes = [
 ]
 
 
-def greater_than_zero(alpha):
-    """Return ``True`` if alpha is greater than zero, accounting for
-    numerical errors.
-    """
-    return bool(alpha > 0 and not numerics.eq(alpha, 0))
-
-
 class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMixin):
     """The irreducibility analysis of an actual cause or effect.
 
@@ -174,7 +167,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
         """An :class:`AcRepertoireIrreducibilityAnalysis` is ``True`` if it has
         α > 0.
         """
-        return greater_than_zero(self.alpha)
+        return numerics.is_positive(self.alpha)
 
     @property
     def phi(self):
@@ -415,7 +408,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
 
     def __bool__(self):
         """A :class:`CausalLink` is ``True`` if α > 0."""
-        return greater_than_zero(self.alpha)
+        return numerics.is_positive(self.alpha)
 
 
 class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
@@ -808,7 +801,7 @@ class AcSystemIrreducibilityAnalysis(
         """An :class:`AcSystemIrreducibilityAnalysis` is ``True`` if it has
         𝒜 > 0.
         """
-        return greater_than_zero(self.alpha)
+        return numerics.is_positive(self.alpha)
 
     def __hash__(self) -> int:
         return hash(
