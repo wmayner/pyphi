@@ -530,6 +530,26 @@ class TestMinDriver:
         for record in result.records:
             assert_eq18(record.system)
 
+    def test_excluded_records_and_margin_cover_same_footprint_rivals(self):
+        bounds = SearchBounds(mappings="EXHAUSTIVE")
+        with config.override(**presets.iit4_2023):
+            result = complexes(min_substrate(), (0, 0), bounds)
+        winner = result.complexes[0]
+        # The seven losing candidates on the winner's own footprint
+        # {0,1} (six rival mappings and the micro pair) plus the two
+        # singletons. Golden recorded at implementation time.
+        assert len(winner.excluded) == 9
+        assert any(
+            e.node_indices == (0, 1)
+            and e.units == (micro_unit(0), micro_unit(1))
+            and e.phi == pytest.approx(0.005106576483955726, abs=1e-13)
+            for e in winner.excluded
+        )
+        # The winning grain beat its best overlapping rival (the
+        # (0,1,0,1)/(0,0,1,1) mappings, phi 0.2532971079071088) by:
+        assert winner.exclusion_margin == pytest.approx(0.5350368691563798, abs=1e-13)
+        assert winner.effectively_tied is False
+
 
 class TestBuDriver:
     """Battery 3: micro-exemption under the consistent convention (see
@@ -923,6 +943,24 @@ class TestRecursiveCondensation:
             with pytest.raises(ValueError, match="IIT_3_0"):
                 competing_systems(substrate, micro_unit(0), state)
 
+    def test_chain_margins_count_beaten_rivals_only(self):
+        from pyphi.substrate import complexes as micro_complexes
+
+        substrate = decaying_chain_substrate()
+        with config.override(**presets.iit4_2023):
+            found = micro_complexes(substrate, (0, 0, 0, 0))
+        by_idx = {c.node_indices: c for c in found}
+        ab, cd = by_idx[(0, 1)], by_idx[(2, 3)]
+        # {A,B} beat the runner-up {B,C} (phi 0.1041...).
+        assert ab.exclusion_margin == pytest.approx(0.21581964583210878, abs=1e-13)
+        # {C,D} carries four higher-phi shadows ({B,C} among them); the
+        # margin ignores them and measures the gap to the best beaten
+        # rival, the singleton {C} (phi 0.0227...).
+        shadows = [e for e in cd.excluded if e.phi > float(cd.phi)]
+        assert len(shadows) == 4
+        assert cd.exclusion_margin == pytest.approx(0.01439865646353308, abs=1e-13)
+        assert cd.effectively_tied is False
+
 
 class TestCrossDoorEquivalence:
     """substrate.complexes and the macro driver at max_depth=0 condense
@@ -1016,6 +1054,10 @@ class TestCrossDoorEquivalence:
                 # records include {B,C} (phi 0.104 > 0.037), which was
                 # carved away by {A,B}. That is the recursive semantics
                 # working as intended; do not assert record.phi <= c.phi.
+                # (With grains in play a record MAY name an accepted
+                # complex's exact footprint -- a rival grain over the same
+                # micro units; this sweep is micro-only, so footprints are
+                # unique and the containment check below is valid.)
                 assert set(record.node_indices) & set(c.node_indices)
                 assert record.node_indices not in accepted
         # the chain makes the higher-phi-excluded case concrete:
