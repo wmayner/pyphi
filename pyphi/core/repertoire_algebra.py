@@ -26,7 +26,6 @@ from pyphi import validate as _validate
 from pyphi.cache.content import ContentCache
 from pyphi.core.tpm import _node_ops
 from pyphi.data_structures import FrozenMap
-from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import max_entropy_distribution
 from pyphi.distribution import repertoire_shape
@@ -641,7 +640,7 @@ def intrinsic_information(
     ranked = sorted(state_to_information.items(), key=lambda kv: kv[1], reverse=True)
     if len(ranked) > 1:
         runner_up_state, runner_up_value = ranked[1]
-        runner_up_information = PyPhiFloat(runner_up_value)
+        runner_up_information = float(runner_up_value)
     else:
         runner_up_state = runner_up_information = None
     ties = [
@@ -649,7 +648,7 @@ def intrinsic_information(
             direction=direction,
             purview=purview,
             state=state,
-            intrinsic_information=PyPhiFloat(information),
+            intrinsic_information=float(information),
             repertoire=rep,
             unconstrained_repertoire=unconstrained_rep,
             runner_up_state=runner_up_state,

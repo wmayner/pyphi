@@ -25,7 +25,6 @@ from numpy.typing import NDArray
 
 from pyphi import numerics
 from pyphi import utils
-from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -112,8 +111,8 @@ class RepertoireIrreducibilityAnalysis(
     ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
     """
 
-    _phi: PyPhiFloat
-    _signed_phi: PyPhiFloat | DistanceResult
+    _phi: float
+    _signed_phi: float | DistanceResult
     _direction: Direction
     _mechanism: tuple[int, ...]
     _purview: tuple[int, ...]
@@ -127,8 +126,8 @@ class RepertoireIrreducibilityAnalysis(
     _state_ties: tuple[RepertoireIrreducibilityAnalysis, ...]
     _selectivity: float | None
     _reasons: list[NullResultReason] | None
-    _normalized_phi: PyPhiFloat | None
-    _signed_normalized_phi: PyPhiFloat | None
+    _normalized_phi: float | None
+    _signed_normalized_phi: float | None
     _node_labels: NodeLabels | None
 
     def __init__(
@@ -159,11 +158,11 @@ class RepertoireIrreducibilityAnalysis(
         if isinstance(phi, DistanceResult):
             self._phi = type(phi)(clamped_phi, **phi._public_aux_data())  # type: ignore[assignment]
         else:
-            self._phi = PyPhiFloat(clamped_phi)
+            self._phi = float(clamped_phi)
         if isinstance(signed_phi, DistanceResult):
             self._signed_phi = signed_phi
         else:
-            self._signed_phi = PyPhiFloat(signed_phi)
+            self._signed_phi = float(signed_phi)
         self._direction = direction
         self._mechanism = mechanism
         self._purview = purview
@@ -197,15 +196,15 @@ class RepertoireIrreducibilityAnalysis(
                 signed_norm = float(signed_phi) * norm
             else:
                 signed_norm = signed_phi * norm
-            self._signed_normalized_phi = PyPhiFloat(signed_norm)
-            self._normalized_phi = PyPhiFloat(utils.positive_part(signed_norm))
+            self._signed_normalized_phi = float(signed_norm)
+            self._normalized_phi = float(utils.positive_part(signed_norm))
 
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
 
     @property
-    def phi(self) -> PyPhiFloat:  # type: ignore[override]
-        """PyPhiFloat: Canonical φ value (``|·|+`` clamped).
+    def phi(self) -> float:  # type: ignore[override]
+        """float: Canonical φ value (``|·|+`` clamped).
 
         This is ``positive_part(signed_phi)`` — the integrated information
         value with the ``|·|+`` positive-part operator applied. That operator
@@ -217,7 +216,7 @@ class RepertoireIrreducibilityAnalysis(
         return self._phi
 
     @property
-    def signed_phi(self) -> PyPhiFloat | DistanceResult:
+    def signed_phi(self) -> float | DistanceResult:
         """The raw φ before the ``|·|+`` clamp.
 
         When negative, flags preventative-cause structure that the

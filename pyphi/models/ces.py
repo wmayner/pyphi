@@ -52,7 +52,6 @@ from .distinctions import distinction_table_row
 from .pandas import ToPandasMixin
 
 if TYPE_CHECKING:
-    from pyphi.data_structures import PyPhiFloat
     from pyphi.relations import Relations
 
 
@@ -100,7 +99,7 @@ class CauseEffectStructure(
         """
         return True
 
-    def order_by(self) -> PyPhiFloat:
+    def order_by(self) -> float:
         return self.sia.phi
 
     def __hash__(self) -> int:
@@ -201,6 +200,7 @@ class CauseEffectStructure(
 
     @property
     def big_phi(self):
+        """float: Φ, the sum of distinction and relation φ."""
         return self.sum_phi_distinctions + self.sum_phi_relations
 
     def _resolve_members(self, items) -> list:

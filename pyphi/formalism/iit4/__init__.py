@@ -24,7 +24,6 @@ from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.core import repertoire_algebra as repertoire
-from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.display import FULL
 from pyphi.display import PROVENANCE
@@ -191,7 +190,7 @@ class SystemIrreducibilityAnalysis(
     intrinsic_differentiation: dict | None = None
     reasons: list | None = None
     runner_up: Any = None
-    partition_margin: PyPhiFloat | None = None
+    partition_margin: float | None = None
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
     config: ConfigSnapshot | None = None
@@ -213,25 +212,25 @@ class SystemIrreducibilityAnalysis(
         clamped_phi = utils.positive_part(self.signed_phi)
         clamped_normalized = utils.positive_part(self.signed_normalized_phi)
         if not isinstance(self.phi, DistanceResult):
-            self.phi = PyPhiFloat(clamped_phi)
+            self.phi = float(clamped_phi)
         else:
             # Clamp the numeric component while preserving the
             # DistanceResult's metadata.
             self.phi = type(self.phi)(clamped_phi, **self.phi._public_aux_data())
         if not isinstance(self.normalized_phi, DistanceResult):
-            self.normalized_phi = PyPhiFloat(clamped_normalized)
+            self.normalized_phi = float(clamped_normalized)
         else:
             self.normalized_phi = type(self.normalized_phi)(
                 clamped_normalized, **self.normalized_phi._public_aux_data()
             )
         if not isinstance(self.signed_phi, DistanceResult):
-            self.signed_phi = PyPhiFloat(self.signed_phi)
+            self.signed_phi = float(self.signed_phi)
         if not isinstance(self.signed_normalized_phi, DistanceResult):
-            self.signed_normalized_phi = PyPhiFloat(self.signed_normalized_phi)
+            self.signed_normalized_phi = float(self.signed_normalized_phi)
         if self.intrinsic_differentiation is None:
             self.intrinsic_differentiation = {
-                Direction.CAUSE: PyPhiFloat(0),
-                Direction.EFFECT: PyPhiFloat(0),
+                Direction.CAUSE: 0.0,
+                Direction.EFFECT: 0.0,
             }
 
     def order_by(self):
@@ -249,11 +248,11 @@ class SystemIrreducibilityAnalysis(
         self._ties = ties
 
     @property
-    def state_margins(self) -> dict[Direction, PyPhiFloat | None]:
+    def state_margins(self) -> dict[Direction, float | None]:
         """Per-direction intrinsic-information gap between the specified
         system state and the best competing state
         (:attr:`StateSpecification.state_margin`)."""
-        margins: dict[Direction, PyPhiFloat | None] = {}
+        margins: dict[Direction, float | None] = {}
         for direction in Direction.both():
             spec = (
                 self.system_state[direction] if self.system_state is not None else None
@@ -461,7 +460,7 @@ class SystemIrreducibilityAnalysis(
                 Finding(
                     kind="gap",
                     label="φ-gap to runner-up",
-                    value=PyPhiFloat(float(self.runner_up.phi) - float(self.phi)),
+                    value=float(self.runner_up.phi) - float(self.phi),
                 )
             )
         if self.partition_margin is not None:
@@ -800,10 +799,10 @@ def _apply_ii_cap(
     capped_signed = min(cap_terms)
     norm = normalization_factor(sia.partition)
     capped_norm = capped_signed * norm if norm is not None else capped_signed
-    sia.signed_phi = PyPhiFloat(capped_signed)
-    sia.phi = PyPhiFloat(utils.positive_part(capped_signed))
-    sia.signed_normalized_phi = PyPhiFloat(capped_norm)
-    sia.normalized_phi = PyPhiFloat(utils.positive_part(capped_norm))
+    sia.signed_phi = float(capped_signed)
+    sia.phi = float(utils.positive_part(capped_signed))
+    sia.signed_normalized_phi = float(capped_norm)
+    sia.normalized_phi = float(utils.positive_part(capped_norm))
     return sia
 
 
@@ -1145,7 +1144,7 @@ def _find_mip_for_fixed_state(
         gap = min(float(c.normalized_phi) for c in others) - float(
             mip_sia.normalized_phi
         )
-        mip_sia.partition_margin = PyPhiFloat(max(0.0, gap))
+        mip_sia.partition_margin = max(0.0, gap)
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)

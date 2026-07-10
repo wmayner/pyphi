@@ -536,7 +536,6 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         carries no :class:`ConfigSnapshot`, so ``config_diff`` is empty.
         """
         from pyphi import numerics
-        from pyphi.data_structures import PyPhiFloat
 
         if not isinstance(other, Account):
             raise TypeError(
@@ -565,7 +564,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         return ResultDiff(
             subject=f"ΔΣα ({len(self)} → {len(other)} links)",
             level="system",
-            delta_phi=PyPhiFloat(float(other._sum_alpha) - float(self._sum_alpha)),
+            delta_phi=float(other._sum_alpha) - float(self._sum_alpha),
             mip_changed=False,
             changes=tuple(changes),
             config_diff={},

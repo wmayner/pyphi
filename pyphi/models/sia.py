@@ -89,13 +89,12 @@ class IIT3SystemIrreducibilityAnalysis(
         if phi is None:
             self.phi = phi  # type: ignore[assignment]
         else:
-            from pyphi.data_structures.pyphi_float import PyPhiFloat
             from pyphi.measures.distribution import DistanceResult
 
             if isinstance(phi, DistanceResult):
                 self.phi = phi  # type: ignore[assignment]
             else:
-                self.phi = PyPhiFloat(phi)  # type: ignore[assignment]
+                self.phi = float(phi)  # type: ignore[assignment]
         self.distinctions = distinctions
         self.partitioned_distinctions = partitioned_distinctions
         self.partition = partition
@@ -179,8 +178,6 @@ class IIT3SystemIrreducibilityAnalysis(
                 )
             )
         if self.runner_up is not None:
-            from pyphi.data_structures.pyphi_float import PyPhiFloat
-
             findings.append(
                 Finding(
                     kind="runner_up",
@@ -192,7 +189,7 @@ class IIT3SystemIrreducibilityAnalysis(
                 Finding(
                     kind="gap",
                     label="Φ-gap to runner-up",
-                    value=PyPhiFloat(float(self.runner_up.phi) - float(self.phi)),
+                    value=float(self.runner_up.phi) - float(self.phi),
                 )
             )
         return tuple(findings)

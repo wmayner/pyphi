@@ -177,9 +177,7 @@ def _substrate_note(a: Any, b: Any) -> str | None:
 
 def _diff_common(a: Any, b: Any) -> dict[str, Any]:
     """Shared scalar deltas every result type's diff() reuses."""
-    from pyphi.data_structures import PyPhiFloat
-
-    delta = PyPhiFloat(float(_phi_of(b)) - float(_phi_of(a)))
+    delta = float(_phi_of(b)) - float(_phi_of(a))
     return {
         "delta_phi": delta,
         "mip_changed": _mip_changed(a, b),
