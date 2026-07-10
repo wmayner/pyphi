@@ -24,6 +24,10 @@ def to_schema(obj: Any) -> Any:
     _ensure_registered()
     encode = _ENCODERS.get(type(obj))
     if encode is None:
+        # A φ value stored as a native float serializes as-is (msgspec handles
+        # it), so it needs no schema Struct.
+        if type(obj) is float:
+            return obj
         raise TypeError(f"No serializer registered for {type(obj).__name__}")
     return encode(obj)
 
@@ -32,6 +36,9 @@ def from_schema(struct: Any) -> Any:
     _ensure_registered()
     decode = _DECODERS.get(type(struct))
     if decode is None:
+        # A native float decoded from a φ position round-trips unchanged.
+        if type(struct) is float:
+            return struct
         raise TypeError(f"No deserializer registered for {type(struct).__name__}")
     return decode(struct)
 
@@ -49,14 +56,6 @@ def _dec_optional(struct: Any) -> Any:
 def _register_direction() -> None:
     _ENCODERS[Direction] = lambda d: schema.DirectionSchema(name=d.name)
     _DECODERS[schema.DirectionSchema] = lambda s: Direction[s.name]
-
-
-def _register_pyphi_float() -> None:
-    from pyphi.data_structures import PyPhiFloat
-
-    _ENCODERS[PyPhiFloat] = lambda f: schema.PyPhiFloatSchema(value=float(f))
-    _ENCODERS[float] = lambda f: schema.PyPhiFloatSchema(value=f)
-    _DECODERS[schema.PyPhiFloatSchema] = lambda s: float(s.value)
 
 
 def _register_distance_result() -> None:
@@ -1069,7 +1068,6 @@ def _ensure_registered() -> None:
         return
     _REGISTERED = True
     _register_direction()
-    _register_pyphi_float()
     _register_distance_result()
     _register_node_labels()
     _register_state_specification()

@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-from pyphi.data_structures import PyPhiFloat
 from pyphi.measures import distribution
 from pyphi.measures.distribution import DistanceResult
 from test.conftest import skip_if_no_emd_backend
@@ -416,7 +415,7 @@ class TestDistanceResult:
         assert dr.method == "EMD"
         assert dr.direction == "CAUSE"
         assert dr.state == 1
-        assert isinstance(dr, PyPhiFloat)
+        assert isinstance(dr, float)
         assert isinstance(dr, DistanceResult)
 
     def test_distance_result_repr(self):
@@ -482,15 +481,15 @@ class TestDistanceResult:
         assert min_phi.direction == "EFFECT"
         assert min_phi.partition == "Y|Z"
 
-    def test_mixed_types_with_pyphi_float(self):
-        """Test behavior when mixing DistanceResult and PyPhiFloat."""
+    def test_mixed_types_with_plain_float(self):
+        """Test behavior when mixing DistanceResult and a plain float."""
         dr = DistanceResult(0.7, method="KLD", direction="CAUSE")
-        pf = PyPhiFloat(0.4)
+        pf = 0.4
 
-        # When PyPhiFloat wins, it should remain PyPhiFloat
+        # When the plain float wins, it stays a plain float.
         result_min = min(dr, pf)
-        assert isinstance(result_min, PyPhiFloat)
         assert not isinstance(result_min, DistanceResult)
+        assert type(result_min) is float
         assert float(result_min) == 0.4
 
         # When DistanceResult wins, it should remain DistanceResult

@@ -21,7 +21,6 @@ from pyphi import utils
 from pyphi import validate
 from pyphi.cache import joblib_memory
 from pyphi.conf import config
-from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import flatten
 from pyphi.distribution import marginal
@@ -51,17 +50,21 @@ def _any_alphabet(_alphabet_sizes: tuple[int, ...]) -> bool:
     return True
 
 
-class DistanceResult(PyPhiFloat):
-    """A numeric result that can carry auxiliary data about its computation.
+class DistanceResult(float):
+    """A :class:`float` that carries auxiliary data about its computation.
 
-    DistanceResult extends PyPhiFloat to attach arbitrary metadata to phi values,
-    enabling introspection of how values were computed. This is particularly useful
-    in scientific workflows where understanding the provenance of results is
-    important.
+    A distance or φ value with arbitrary metadata attached, so the provenance of
+    a result (the measure used, the direction, the winning partition, and so on)
+    remains inspectable after the number has been produced.
 
-    The class behaves like a PyPhiFloat for all mathematical operations (comparisons,
-    arithmetic, min/max) while preserving metadata. This allows transparent use in
-    existing code while providing rich information for analysis.
+    Comparison and arithmetic follow exact :class:`float` semantics. Metadata is
+    preserved through :func:`min` / :func:`max` and copying, but is dropped by
+    plain arithmetic, which returns an ordinary float. Tolerant comparison of φ
+    values at decision points — where two values equal to within
+    ``config.numerics.precision`` should be treated as equal — is performed
+    explicitly through :mod:`pyphi.numerics` and
+    :func:`pyphi.resolve_ties.resolve_ties`, not by the comparison operators of
+    this type.
 
     Parameters
     ----------
@@ -72,8 +75,8 @@ class DistanceResult(PyPhiFloat):
 
     Attributes
     ----------
-    All attributes from float and PyPhiFloat are available, plus any metadata
-    passed as keyword arguments.
+    All :class:`float` attributes are available, plus any metadata passed as
+    keyword arguments.
 
     Notes
     -----
@@ -163,8 +166,8 @@ class DistanceResult(PyPhiFloat):
     def _public_aux_data(self) -> dict:
         """Auxiliary data the user attached at construction or via setattr.
 
-        Excludes underscore-prefixed names (used internally — e.g., for
-        the precision snapshot inherited from :class:`PyPhiFloat`)."""
+        Excludes underscore-prefixed names, which are reserved for internal
+        use."""
         return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
     def __repr__(self):

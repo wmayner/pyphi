@@ -9,6 +9,7 @@ concrete implementations live in :mod:`pyphi.formalism.iit3` and
 ``config.formalism.iit.version``.
 """
 
+from . import actual_causation as actual_causation
 from .actual_causation import AC2019Formalism
 from .base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
 from .base import FORMALISM_REGISTRY

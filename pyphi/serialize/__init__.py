@@ -21,7 +21,9 @@ FORMAT_VERSION = 1
 
 class _Document(msgspec.Struct, frozen=True):
     format_version: int
-    payload: schema.Schema
+    # A φ value serialized on its own is a native float; every other domain
+    # object serializes to a tagged Struct in ``schema.Schema``.
+    payload: schema.Schema | float
 
 
 def _encoder(fmt: str):

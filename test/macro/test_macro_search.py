@@ -709,12 +709,11 @@ class TestEvaluateSystems:
         assert [memo[s] for s in systems] == reference
 
     def test_dedups_against_memo_and_within_batch(self):
-        from pyphi.data_structures.pyphi_float import PyPhiFloat
         from pyphi.macro.search import _evaluate_systems
 
         systems = self._min_systems()
         with config.override(**presets.iit4_2023):
-            memo = {systems[0]: PyPhiFloat(123.0)}  # sentinel: must not recompute
+            memo = {systems[0]: 123.0}  # sentinel: must not recompute
             _evaluate_systems([systems[0], systems[1], systems[1]], memo, None)
         assert memo[systems[0]] == 123.0  # untouched
         assert systems[1] in memo

@@ -19,10 +19,10 @@ class NumericsConfig:
     Attributes
     ----------
     precision : int
-        Decimal places of agreement required when comparing phi values via
-        :func:`pyphi.numerics.eq` and friends. Values smaller than
-        ``10**-precision`` are treated as zero. ``PyPhiFloat`` snapshots
-        this at construction so its hash is stable across config writes.
+        Decimal places of agreement required when comparing φ values via
+        :func:`pyphi.numerics.eq` and the other :mod:`pyphi.numerics`
+        predicates. Values smaller than ``10**-precision`` are treated as
+        zero.
     """
 
     precision: int = 13
