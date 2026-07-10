@@ -4,6 +4,13 @@ A comparison operator or min/max/sorted call whose operand is an
 attribute named like a φ magnitude must route through pyphi.numerics or
 pyphi.resolve_ties, or carry an explicit waiver comment
 (``# numerics: exact — <reason>``) on its line or the line above.
+
+Known blind spot: only attribute-named operands (e.g. ``x.phi``) are
+matched. A φ magnitude first bound to a local name — ``phi = float(x.phi)``
+and then compared as a bare ``phi`` — is invisible to this lint, since the
+comparison node no longer carries a matching ``ast.Attribute``. The guard
+is a backstop against the common attribute-comparison mistake, not a proof
+that every raw φ comparison has been routed through the tolerant layer.
 """
 
 import ast
