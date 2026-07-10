@@ -117,3 +117,16 @@ def test_noise_level_big_phi_difference_ties_at_precision():
     outcome = exclusion_cascade([a, b])
     assert outcome.accepted == ()
     assert len(outcome.failed_cliques) == 1
+
+
+def test_exclusion_records_include_same_footprint_rivals():
+    """A losing candidate on the winner's exact footprint is a genuinely
+    excluded rival (macro door: a rival grain over the same micro units)
+    and must appear in the winner's records."""
+    winner = _candidate({0, 1}, 2.0)
+    rival_grain = _candidate({0, 1}, 1.0)
+    candidates = [winner, rival_grain]
+    outcome = exclusion_cascade(candidates)
+    assert _footprints(outcome) == [(0, 1)]
+    records = exclusion_records(outcome.accepted, candidates)
+    assert [(r.node_indices, r.phi) for r in records[(0, 1)]] == [((0, 1), 1.0)]

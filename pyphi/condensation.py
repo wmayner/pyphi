@@ -275,21 +275,20 @@ def exclusion_records(
     A candidate that overlaps several accepted complexes appears in each of
     their exclusion sets. An excluded candidate may carry higher φₛ than a
     complex whose record it appears in, when it was carved away by a
-    different overlapping complex. Reads only values the cascade already
-    computed.
+    different overlapping complex. Accepted candidates are identified by
+    object identity, not footprint, so a losing candidate that shares an
+    accepted complex's exact footprint — a rival grain over the same micro
+    units — is recorded. Reads only values the cascade already computed.
     """
     from pyphi.models.complex import ExcludedCandidate
 
-    accepted_footprints = {tuple(sorted(c.footprint)) for c in accepted}
+    accepted_ids = {id(c) for c in accepted}
     records: dict[tuple[int, ...], tuple[Any, ...]] = {}
     for acc in accepted:
-        acc_idx = tuple(sorted(acc.footprint))
-        recs = []
-        for cand in candidates:
-            cand_idx = tuple(sorted(cand.footprint))
-            if cand_idx == acc_idx or cand_idx in accepted_footprints:
-                continue
-            if acc.footprint & cand.footprint:
-                recs.append(ExcludedCandidate(cand_idx, cand.phi, units=cand.units))
-        records[acc_idx] = tuple(recs)
+        recs = tuple(
+            ExcludedCandidate(tuple(sorted(cand.footprint)), cand.phi, units=cand.units)
+            for cand in candidates
+            if id(cand) not in accepted_ids and acc.footprint & cand.footprint
+        )
+        records[tuple(sorted(acc.footprint))] = recs
     return records

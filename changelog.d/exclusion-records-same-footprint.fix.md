@@ -1,0 +1,1 @@
+Fixed `exclusion_records` omitting excluded candidates that share an accepted complex's exact micro footprint (rival grains over the same units); accepted candidates are now identified by object identity.
