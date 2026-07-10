@@ -4,7 +4,9 @@
 the analysis under the active (or a named) formalism, and returns an
 :class:`Analysis` — a small bundle exposing the system irreducibility analysis,
 the cause-effect structure, and the scalar Φ uniformly across formalisms. A
-``compute`` argument selects a cheaper or custom result instead of the bundle.
+``compute`` argument selects a cheaper or custom result instead of the bundle;
+a ``grains`` argument runs the bounded intrinsic-unit search over the whole
+substrate instead, returning its complexes.
 """
 
 from __future__ import annotations
@@ -84,18 +86,24 @@ def analyze(
     subset: Any = None,
     formalism: str | None = None,
     compute: Any = None,
+    grains: Any = None,
+    parallel_kwargs: dict | None = None,
 ) -> Analysis | Any:
-    """Analyze one candidate system over ``substrate`` in ``state``.
+    """Analyze one candidate system over ``substrate`` in ``state``, or run
+    a grain search over the whole substrate.
 
     Parameters
     ----------
     substrate
         The substrate to analyze.
     state : tuple[int, ...]
-        The state of the substrate's nodes.
+        The state of the substrate's nodes. When ``grains`` admits update
+        grains above 1, a sequence of micro states (oldest first) of the
+        required length instead — see
+        :func:`pyphi.macro.complexes`.
     subset : optional
         Node indices of the candidate system; ``None`` uses the whole
-        substrate.
+        substrate. Incompatible with ``grains``.
     formalism : str or None, optional
         ``None`` uses the active config formalism; a version name
         (``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``) applies that
@@ -103,22 +111,65 @@ def analyze(
     compute : optional
         ``None`` returns an :class:`Analysis` bundle; ``"sia"`` or ``"ces"``
         returns the raw result object; a callable returns ``compute(system)``.
+        Incompatible with ``grains``.
+    grains : optional
+        ``None`` analyzes the single candidate system. ``True`` runs the
+        bounded intrinsic-unit search with default
+        :class:`~pyphi.macro.SearchBounds`; a
+        :class:`~pyphi.macro.SearchBounds` instance runs it with those
+        bounds. The search returns its
+        :class:`~pyphi.macro.ComplexesResult`.
+    parallel_kwargs : dict or None, optional
+        Forwarded to :func:`pyphi.macro.complexes`; meaningful only with
+        ``grains``.
 
     Returns
     -------
     Analysis
-        The full analysis bundle, or the raw result object when ``compute``
-        selects one.
+        The full analysis bundle; the raw result object when ``compute``
+        selects one; or the grain search's
+        :class:`~pyphi.macro.ComplexesResult` when ``grains`` is set.
 
     Raises
     ------
     ValueError
-        If ``formalism`` is not a known version name, or ``compute`` is not
-        ``"sia"``, ``"ces"``, a callable, or ``None``.
+        If ``formalism`` is not a known version name; if ``compute`` is not
+        ``"sia"``, ``"ces"``, a callable, or ``None``; if ``grains`` is not
+        ``True``, a :class:`~pyphi.macro.SearchBounds`, or ``None``; if
+        ``grains`` is combined with ``subset`` or ``compute``; or if
+        ``parallel_kwargs`` is given without ``grains``.
     """
     if formalism is not None and formalism not in presets.by_name:
         valid = ", ".join(sorted(presets.by_name))
         raise ValueError(f"unknown formalism {formalism!r}; expected one of: {valid}")
+
+    bounds: Any = None
+    if grains is None:
+        if parallel_kwargs is not None:
+            raise ValueError(
+                "parallel_kwargs applies only to a grain search; pass grains="
+            )
+    else:
+        from pyphi.macro.search import SearchBounds
+
+        if subset is not None:
+            raise ValueError(
+                "grains cannot be combined with subset: the grain search "
+                "assembles candidate systems over the whole universe"
+            )
+        if compute is not None:
+            raise ValueError(
+                "grains cannot be combined with compute: the grain search "
+                "returns its ComplexesResult"
+            )
+        if grains is True:
+            bounds = SearchBounds()
+        elif isinstance(grains, SearchBounds):
+            bounds = grains
+        else:
+            raise ValueError(
+                f"grains must be True or a SearchBounds instance; got {grains!r}"
+            )
 
     ctx = (
         config.override(**presets.by_name[formalism])
@@ -127,23 +178,30 @@ def analyze(
     )
     result: Any = None
     with ctx:
-        indices = substrate.node_indices if subset is None else subset
-        system = System.from_substrate(substrate, state, indices)
-        if callable(compute):
-            result = compute(system)
-        elif compute == "sia":
-            result = system.sia()
-        elif compute == "ces":
-            result = system.ces()
-        elif compute is not None:
-            raise ValueError(
-                f"unknown compute: {compute!r}; expected 'sia', 'ces', a "
-                "callable, or None for the full Analysis bundle"
+        if bounds is not None:
+            from pyphi.macro.search import complexes as grain_complexes
+
+            result = grain_complexes(
+                substrate, state, bounds, parallel_kwargs=parallel_kwargs
             )
         else:
-            ces = system.ces()
-            sia = getattr(ces, "sia", None)
-            if sia is None:
-                sia = system.sia()
-            result = Analysis(system=system, sia=sia, ces=ces)
+            indices = substrate.node_indices if subset is None else subset
+            system = System.from_substrate(substrate, state, indices)
+            if callable(compute):
+                result = compute(system)
+            elif compute == "sia":
+                result = system.sia()
+            elif compute == "ces":
+                result = system.ces()
+            elif compute is not None:
+                raise ValueError(
+                    f"unknown compute: {compute!r}; expected 'sia', 'ces', a "
+                    "callable, or None for the full Analysis bundle"
+                )
+            else:
+                ces = system.ces()
+                sia = getattr(ces, "sia", None)
+                if sia is None:
+                    sia = system.sia()
+                result = Analysis(system=system, sia=sia, ces=ces)
     return result

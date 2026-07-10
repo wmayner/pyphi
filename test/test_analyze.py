@@ -151,3 +151,62 @@ def test_analyze_unknown_compute_string_raises_valueerror():
     state = examples.basic_state()
     with pytest.raises(ValueError, match="SIA"):
         analyze(substrate, state, formalism="IIT_4_0_2023", compute="SIA")
+
+
+def test_analyze_grains_matches_macro_complexes():
+    from pyphi.macro.search import ComplexesResult
+    from pyphi.macro.search import SearchBounds
+    from pyphi.macro.search import complexes
+    from test.macro.test_macro_criteria import min_substrate
+
+    substrate = min_substrate()
+    with config.override(**presets.iit4_2023):
+        via_analyze = analyze(substrate, (0, 0), grains=True)
+        direct = complexes(substrate, (0, 0), SearchBounds())
+    assert isinstance(via_analyze, ComplexesResult)
+    assert via_analyze.maximal_complex.units == direct.maximal_complex.units
+    assert float(via_analyze.maximal_complex.phi) == pytest.approx(
+        float(direct.maximal_complex.phi), abs=1e-13
+    )
+    assert len(via_analyze.records) == len(direct.records)
+
+
+def test_analyze_grains_accepts_bounds_instance():
+    from pyphi.macro.search import SearchBounds
+    from pyphi.models.complex import Complex
+    from test.macro.test_macro_criteria import min_substrate
+
+    substrate = min_substrate()
+    with config.override(**presets.iit4_2023):
+        result = analyze(substrate, (0, 0), grains=SearchBounds(max_depth=0))
+    assert len(result.complexes) == 1
+    assert all(isinstance(c, Complex) for c in result.complexes)
+
+
+def test_analyze_grains_iit3_raises():
+    from test.macro.test_macro_criteria import min_substrate
+
+    substrate = min_substrate()
+    with pytest.raises(ValueError, match="IIT_3_0"):
+        analyze(substrate, (0, 0), formalism="IIT_3_0", grains=True)
+
+
+def test_analyze_grains_mutual_exclusions():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with pytest.raises(ValueError, match="subset"):
+        analyze(substrate, state, grains=True, subset=(0,))
+    with pytest.raises(ValueError, match="compute"):
+        analyze(substrate, state, grains=True, compute="sia")
+    with pytest.raises(ValueError, match="parallel_kwargs"):
+        analyze(substrate, state, parallel_kwargs={})
+
+
+def test_analyze_grains_rejects_non_bounds():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with pytest.raises(ValueError, match="grains"):
+        analyze(substrate, state, grains=0.5)
+    # False is a confusion signal, not "no search".
+    with pytest.raises(ValueError, match="grains"):
+        analyze(substrate, state, grains=False)
