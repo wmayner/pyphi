@@ -863,10 +863,8 @@ def complexes(
         for system, phi in evaluated
     ]
     by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
-    # Stable sort keeps the sweep's deterministic dispatch order within ties.
-    ordered = sorted(candidates, key=lambda c: -c.phi)
-    outcome = exclusion_cascade(ordered)
-    records_map = exclusion_records(outcome.accepted, ordered)
+    outcome = exclusion_cascade(candidates)
+    records_map = exclusion_records(outcome.accepted, candidates)
     winners = tuple(
         Complex(
             sia=cand.sia_provider(),
