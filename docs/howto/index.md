@@ -9,6 +9,7 @@ cache
 save-load
 export
 sweep
+grain-search
 landscape
 tie-breaking
 mcp-server
