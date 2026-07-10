@@ -96,6 +96,7 @@ Each complex records the overlapping candidates excluded in its favor:
 ```{code-cell} python
 from pyphi import utils
 
+cd = found[1]
 phi = float(cd.phi)
 for record in sorted(cd.excluded, key=lambda r: -r.phi):
     beaten = record.phi < phi or utils.eq(record.phi, phi)
