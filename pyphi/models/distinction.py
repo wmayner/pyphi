@@ -152,7 +152,8 @@ class Distinction(
         assert self.effect is not None
         binding = (
             self.cause
-            if float(self.cause.phi) <= float(self.effect.phi)
+            if numerics.eq(float(self.cause.phi), float(self.effect.phi))
+            or float(self.cause.phi) < float(self.effect.phi)
             else self.effect
         )
         findings = [

@@ -517,10 +517,14 @@ class SystemIrreducibilityAnalysis(
             or other.effect is None
         ):
             return None
-        a_dir = "cause" if float(self.cause.phi) <= float(self.effect.phi) else "effect"
-        b_dir = (
-            "cause" if float(other.cause.phi) <= float(other.effect.phi) else "effect"
-        )
+
+        def _direction(cause_phi: float, effect_phi: float) -> str:
+            if numerics.eq(float(cause_phi), float(effect_phi)):
+                return "tied"
+            return "cause" if float(cause_phi) < float(effect_phi) else "effect"
+
+        a_dir = _direction(self.cause.phi, self.effect.phi)
+        b_dir = _direction(other.cause.phi, other.effect.phi)
         return a_dir != b_dir
 
     def diff(self, other) -> ResultDiff:

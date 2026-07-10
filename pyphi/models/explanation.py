@@ -85,17 +85,24 @@ def runner_up_from_candidates(candidates: Any, mip_phi: Any) -> RunnerUp | None:
 
     Candidates that tie the MIP (within :func:`pyphi.numerics.eq`) are tied peers,
     not runners-up, so they are excluded. Returns ``None`` when the MIP is the
-    unique phi value. Each candidate must expose ``.phi`` and ``.partition``.
+    unique phi value. Candidates whose phi tie for lowest are ordered by
+    ``partition.lex_key()`` so the choice does not depend on iteration order.
+    Each candidate must expose ``.phi`` and ``.partition``.
     """
     mip = float(mip_phi)
     best = None
     for candidate in candidates:
         phi = float(candidate.phi)
-        if (
-            phi > mip
-            and not numerics.eq(phi, mip)
-            and (best is None or phi < float(best.phi))
-        ):
+        if phi <= mip or numerics.eq(phi, mip):
+            continue  # the MIP itself or a tied peer, not a runner-up
+        if best is None:
+            best = candidate
+            continue
+        best_phi = float(best.phi)
+        if numerics.eq(phi, best_phi):
+            if candidate.partition.lex_key() < best.partition.lex_key():
+                best = candidate
+        elif phi < best_phi:
             best = candidate
     if best is None:
         return None
@@ -121,14 +128,24 @@ class Finding:
 
 
 def binding_direction_finding(cause_phi: Any, effect_phi: Any) -> Finding:
-    """The Finding naming which direction binds ``min(phi_c, phi_e)``."""
-    is_cause = float(cause_phi) <= float(effect_phi)
+    """The Finding naming which direction binds ``min(φ_c, φ_e)``.
+
+    Reports ``"TIED"`` (with no display tone) when the two values are equal up
+    to ``config.numerics.precision``; otherwise ``"CAUSE"`` or ``"EFFECT"`` for
+    the strictly smaller side.
+    """
+    if numerics.eq(float(cause_phi), float(effect_phi)):
+        value, tone = "TIED", None
+    elif float(cause_phi) < float(effect_phi):
+        value, tone = "CAUSE", "cause"
+    else:
+        value, tone = "EFFECT", "effect"
     return Finding(
         kind="binding_direction",
         label="Binding direction",
-        value="CAUSE" if is_cause else "EFFECT",
+        value=value,
         detail=(("φ_cause", cause_phi), ("φ_effect", effect_phi)),
-        tone="cause" if is_cause else "effect",
+        tone=tone,
     )
 
 
