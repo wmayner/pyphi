@@ -149,6 +149,39 @@ to the top-level `Analysis` wrapper. The format is inferred from the extension:
 is a **format break with no standalone converter**: results saved in the old
 `jsonify` format cannot be loaded and must be recomputed.
 
+## Precision and φ comparison
+
+**[both]** The φ, Φ, and α values on results (`.phi`, `.alpha`, and the small-φ
+of distinctions) are plain Python floats. A direct `==` or `<` between two of
+them is an **exact** floating-point comparison, so two values that differ only
+by summation noise below `config.numerics.precision` compare as unequal. To
+compare tolerantly at the configured precision, use the scalar predicates in the
+new `pyphi.numerics` module:
+
+```python
+from pyphi import numerics
+
+numerics.eq(a.phi, b.phi)     # tolerant equality up to config.numerics.precision
+numerics.is_zero(a.phi)       # tolerant test against 0
+numerics.is_positive(a.phi)
+```
+
+The precision-aware comparison helpers moved from `pyphi.utils` to
+`pyphi.numerics`: `pyphi.utils.eq`, `is_positive`, and `is_nonpositive` are now
+`pyphi.numerics.eq` / `is_positive` / `is_nonpositive`, alongside the new
+`is_zero`, `positive_mask`, and `round_to_precision`. Update imports
+accordingly.
+
+The `PyPhiFloat` wrapper type is removed. Values that previously carried metadata
+alongside a float (repertoire distances) are now `DistanceResult`, which *is* a
+float subtype: it compares and arithmetic-combines exactly like the number it
+holds, so no unwrapping is needed.
+
+Because tie resolution now clusters candidate values tolerantly, a reported tie
+set may include members that earlier versions silently dropped when two
+candidates differed only by sub-precision noise. Selection is deterministic and
+order-independent.
+
 ## Changed defaults
 
 **[both]** The default formalism changed from IIT 3.0 (1.x) to IIT 4.0 (2023).
