@@ -634,8 +634,8 @@ class TestCostGuard:
             MacroUnit((0, 1), 1, (0, 0, 0, 1)),
             MacroUnit((2, 3), 1, (0, 0, 0, 1)),
         )
-        phis = {r.system: r.phi for r in result.records}
-        assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
+        phis = {r.system.units: r.phi for r in result.records}
+        assert phis[winner.units] == pytest.approx(1.0040208141253277, abs=1e-13)
         assert result.ties == ()
 
 
@@ -849,8 +849,8 @@ class TestParallelCostGuard:
             MacroUnit((0, 1), 1, (0, 0, 0, 1)),
             MacroUnit((2, 3), 1, (0, 0, 0, 1)),
         )
-        phis = {r.system: r.phi for r in parallel.records}
-        assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
+        phis = {r.system.units: r.phi for r in parallel.records}
+        assert phis[winner.units] == pytest.approx(1.0040208141253277, abs=1e-13)
 
 
 def decaying_chain_substrate():
