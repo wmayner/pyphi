@@ -128,9 +128,39 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         """The Φ value of this complex."""
         return self.sia.phi
 
+    @property
+    def exclusion_margin(self) -> float | None:
+        """The gap in φₛ between this complex and the best overlapping
+        rival it beat, or ``None`` when it beat none.
+
+        Rivals are the excluded candidates whose φₛ is less than or
+        precision-equal to this complex's own. Because condensation is
+        recursive, ``excluded`` may also contain overlapping candidates
+        with higher φₛ — carved away by a different complex before this
+        one was accepted — and those do not enter the margin. A margin
+        of zero means an overlapping rival tied at ``precision``: the
+        selection was decided beyond φₛ, either by escalation within the
+        tie clique or by the rival's overlap with another complex.
+        """
+        phi = float(self.phi)
+        rivals = [
+            float(c.phi) for c in self.excluded if c.phi < phi or utils.eq(c.phi, phi)
+        ]
+        if not rivals:
+            return None
+        return max(0.0, phi - max(rivals))
+
+    @property
+    def effectively_tied(self) -> bool:
+        """Whether the exclusion margin is within ``precision`` of zero."""
+        margin = self.exclusion_margin
+        return margin is not None and utils.eq(margin, 0.0)
+
     def _pandas_record(self) -> dict[str, Any]:
         record = dict(self.sia._pandas_record())
         record["is_maximal"] = self.is_maximal
+        record["exclusion_margin"] = self.exclusion_margin
+        record["effectively_tied"] = self.effectively_tied
         return record
 
     def order_by(self) -> Any:
@@ -164,6 +194,10 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
             Row("Is maximal", self.is_maximal),
             Row("Excluded candidates", num_excluded),
         ]
+        margin = self.exclusion_margin
+        if margin is not None:
+            rows.append(Row("Selection margin", margin))
+            rows.append(Row("Effectively tied", self.effectively_tied))
         if self.units is not None:
             rows.insert(2, Row("Units", len(self.units)))
         return Description(
