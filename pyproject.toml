@@ -76,6 +76,7 @@ docs = [
     "myst-nb",
     "pydata-sphinx-theme",
     "sphinx",
+    "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
 ]
