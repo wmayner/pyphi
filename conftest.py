@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import re
 from pathlib import Path
 
 import pytest
@@ -36,6 +37,19 @@ def pytest_addoption(parser):
     parser.addoption("--outdated", action="store_true", help="run outdated tests")
     parser.addoption("--slow", action="store_true", help="run slow tests")
     parser.addoption("--veryslow", action="store_true", help="run very slow tests")
+
+
+def pytest_configure(config):
+    # ``-m slow`` alone selects slow-marked tests and then skips every one
+    # (the setup hook below requires ``--slow``), which reads as a green
+    # run. Fail loudly instead of silently skipping the whole selection.
+    markexpr = getattr(config.option, "markexpr", "") or ""
+    for mark, flag in (("slow", "--slow"), ("veryslow", "--veryslow")):
+        if re.search(rf"(?<!not )\b{mark}\b", markexpr) and not config.getoption(flag):
+            raise pytest.UsageError(
+                f"'-m {mark}' selects {mark}-marked tests, but they are "
+                f"skipped unless {flag} is also given; add {flag}"
+            )
 
 
 def pytest_runtest_setup(item):
