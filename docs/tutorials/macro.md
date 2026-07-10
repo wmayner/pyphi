@@ -257,6 +257,131 @@ for unit in result.complexes[0].units:
 The unique complex is exactly the paper's macro system: both-ON
 coarse-grainings over `(A, B)` and `(C, D)`.
 
+## Blackboxing
+
+Coarse-graining and blackboxing are the two mapping families the default
+search enumerates, and they read a group's joint state in opposite ways.
+Coarse-graining pools the constituents by how many are ON, so every joint
+state with the same ON-count collapses to the same macro state. Blackboxing
+instead reads out a chosen subset of *output* constituents and discards the
+rest. Only blackboxing extends cleanly to update grains above one: reading a
+designated output at the final micro update of a window is exactly what a unit
+spanning several updates does, so the temporal search in the next section is
+built on this family.
+
+The two helpers make the contrast concrete. Each returns a mapping — a truth
+table over the group's joint states — for a two-constituent group:
+
+```{code-cell} python
+print("coarse_grain(2, (0, 2)):", coarse_grain(2, (0, 2)))
+print("blackbox(2, 1, (0,)):   ", blackbox(2, 1, (0,)))
+```
+
+The coarse-graining `(1, 0, 0, 1)` is ON for the joint states `00` and `11`
+(ON-counts 0 and 2) and OFF for `10` and `01`; it reports whether the two
+constituents agree. The blackboxing `(0, 1, 0, 1)` copies constituent `0` and
+ignores constituent `1`: its macro state is ON exactly when `A` is ON,
+whatever `B` does.
+
+A blackboxed unit drops into the same pipeline as a coarse-grained one. Here
+is the blackboxing of the tutorial's two-unit substrate that reads out `A`,
+built into a `MacroUnit` and analyzed exactly as `alpha` was:
+
+```{code-cell} python
+boxed = MacroUnit(
+    constituents=(0, 1),
+    update_grain=1,
+    mapping=blackbox(2, 1, (0,)),
+)
+boxed_macro = MacroSystem.from_micro(substrate, (boxed,), state)
+with config.override(**presets.iit4_2023):
+    boxed_phi = boxed_macro.sia().phi
+
+boxed_macro.state, round(float(boxed_phi), 6)
+```
+
+## Temporal grains
+
+A macro unit may exist over several micro updates as well as over several
+micro units. A unit with update grain τ = 2 has a state defined by a mapping
+over two-step sequences of its constituents, so searching a substrate for such
+units requires a micro history of two states — the two most recent universe
+states, oldest first — rather than a single current state.
+
+The following substrate rewards a temporal unit. It is a three-unit
+deterministic system given as a function table: entry `i` is the index of the
+state the system moves to from state `i`, with states written in little-endian
+order (`A` is bit 0). A short loop turns the table into an 8 × 3
+state-by-node TPM:
+
+```{code-cell} python
+# state index -> next-state index; little-endian, A = bit 0
+fn_table = [2, 3, 4, 3, 0, 0, 5, 0]
+
+tpm = np.zeros((8, 3))
+for state_index, next_index in enumerate(fn_table):
+    for bit in range(3):
+        tpm[state_index, bit] = (next_index >> bit) & 1
+
+substrate = Substrate(tpm, node_labels=("A", "B", "C"))
+history = [(0, 0, 1), (0, 0, 0)]
+```
+
+Searching with `max_update_grain=2` lets the driver build units that span two
+micro updates. Each complex reports its footprint, its φₛ, and the update
+grain of each of its units:
+
+```{code-cell} python
+with config.override(**presets.iit4_2023):
+    result = pyphi.analyze(
+        substrate, history, grains=SearchBounds(max_update_grain=2)
+    )
+
+for complex_ in result.complexes:
+    grains = [unit.micro_grain for unit in complex_.units]
+    print(complex_.node_indices, f"{float(complex_.phi):.4f}", grains)
+```
+
+Both complexes are temporal: each is a single update-grain-2 unit — `{A}` with
+φₛ ≈ 0.5083 and `{B, C}` with φₛ ≈ 0.4630. The winner is the temporal unit
+over `A`:
+
+```{code-cell} python
+winner = result.maximal_complex
+winner.units[0], round(winner.exclusion_margin, 6)
+```
+
+Its `exclusion_margin` is how far it beats the strongest overlapping
+alternative. That margin is against a strong field: the whole substrate
+`{A, B, C}` evaluated at micro time (every unit at update grain 1) is itself
+integrated, and it appears in the winner's `excluded` record:
+
+```{code-cell} python
+micro_universe = max(
+    (
+        candidate
+        for candidate in winner.excluded
+        if candidate.node_indices == (0, 1, 2)
+        and all(unit.update_grain == 1 for unit in candidate.units)
+    ),
+    key=lambda candidate: candidate.phi,
+)
+print(micro_universe.node_indices, round(micro_universe.phi, 4))
+```
+
+The full micro universe reaches φₛ ≈ 0.2075, yet the temporal unit over `A`
+alone reaches 0.5083. That unit reads `A` every second step, and that view of
+the substrate holds more than twice the integrated information of the whole
+system read update by update.
+
+Temporal wins are not automatic. On a symmetric substrate — a deterministic
+rotation, say — the integration criterion rejects a pair decomposition before
+any temporal variant of it is ever built, so no unit longer than one update
+survives. Asymmetric substrates are what make temporal units win outright: a
+seeded random search over such substrates found temporal complexes in roughly
+one run in five. The mixed-grain case occurs too, where a single complex holds
+units of the same system at different grains.
+
 ## Bounding the search
 
 The space of groupings, mappings, and grains grows combinatorially, so the
