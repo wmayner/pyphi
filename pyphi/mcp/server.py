@@ -1,0 +1,496 @@
+"""The PyPhi Model Context Protocol server.
+
+Defines the FastMCP application, the tools that wrap PyPhi's public API, and the
+``main`` entry point for the ``pyphi-mcp`` console script. The teaching
+resources and prompts are registered from :mod:`pyphi.mcp.resources` and
+:mod:`pyphi.mcp.prompts`.
+
+The server holds built substrates and analysis results in an in-process
+registry keyed by short handles, so a substrate is built once and then explored
+across many states and formalism versions without resending its transition
+probability matrix.
+"""
+
+from __future__ import annotations
+
+import itertools
+import tempfile
+import uuid
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+from mcp.server.fastmcp import FastMCP
+
+import pyphi
+from pyphi import examples
+from pyphi import serialize
+
+from . import content
+
+# A full cause-effect structure unfolds distinctions and relations, whose count
+# grows doubly-exponentially in the number of units, so a larger request is
+# refused unless the caller confirms it. System integrated information alone is
+# cheaper. These are soft guards against accidental hours-long runs, not hard
+# limits on what PyPhi can compute.
+_CES_NODE_LIMIT = 7
+_SIA_NODE_LIMIT = 9
+
+_INSTRUCTIONS = content.load("primer")
+
+mcp = FastMCP("pyphi", instructions=_INSTRUCTIONS)
+
+_substrates: dict[str, Any] = {}
+_results: dict[str, Any] = {}
+_substrate_counter = itertools.count(1)
+_result_counter = itertools.count(1)
+
+
+def _register_substrate(substrate: Any) -> str:
+    handle = f"sub{next(_substrate_counter)}"
+    _substrates[handle] = substrate
+    return handle
+
+
+def _register_result(result: Any) -> str:
+    ref = f"res{next(_result_counter)}"
+    _results[ref] = result
+    return ref
+
+
+def _get_substrate(handle: str) -> Any:
+    try:
+        return _substrates[handle]
+    except KeyError:
+        known = ", ".join(_substrates) or "none"
+        raise KeyError(
+            f"Unknown substrate handle {handle!r}. Build or load one first. "
+            f"Known handles: {known}."
+        ) from None
+
+
+def _substrate_summary(substrate: Any) -> dict[str, Any]:
+    return {
+        "num_nodes": substrate.size,
+        "node_labels": list(map(str, substrate.node_labels)),
+        "num_states": int(np.prod(substrate.tpm.shape[:-1]))
+        if hasattr(substrate, "tpm")
+        else None,
+        "connectivity_matrix": np.asarray(substrate.cm).astype(int).tolist(),
+    }
+
+
+def _result_summary(result: Any) -> dict[str, Any]:
+    """Build a compact, JSON-safe summary of an analysis result.
+
+    Reads only the scalar fields (φ, φₛ, counts) so the summary stays small
+    even when the underlying result serializes to megabytes. Tolerant of the
+    different result types ``analyze`` can return (a full analysis, a system
+    irreducibility analysis, or a cause-effect structure) across all three
+    formalism versions.
+    """
+    summary: dict[str, Any] = {"type": type(result).__name__}
+
+    def add_float(key: str, obj: Any, attr: str) -> None:
+        value = getattr(obj, attr, None)
+        if value is not None:
+            summary[key] = float(value)
+
+    add_float("phi", result, "phi")
+    sia = getattr(result, "sia", result)
+    add_float("system_phi", sia, "phi")
+    add_float("cause_phi", getattr(sia, "cause", None), "phi")
+    add_float("effect_phi", getattr(sia, "effect", None), "phi")
+    if getattr(sia, "partition", None) is not None:
+        summary["mip"] = str(sia.partition)
+
+    # A full analysis carries its cause-effect structure on ``.ces``; a bare
+    # cause-effect structure result is one itself (it has ``big_phi``).
+    ces = getattr(result, "ces", None)
+    if ces is None and hasattr(result, "big_phi"):
+        ces = result
+    if ces is not None:
+        add_float("big_phi", ces, "big_phi")
+        add_float("sum_phi_distinctions", ces, "sum_phi_distinctions")
+        add_float("sum_phi_relations", ces, "sum_phi_relations")
+        if hasattr(ces, "distinctions"):
+            summary["num_distinctions"] = len(ces.distinctions)
+        if hasattr(ces, "relations"):
+            summary["num_relations"] = len(ces.relations)
+    return summary
+
+
+@mcp.tool()
+def list_examples() -> dict[str, str]:
+    """List the built-in example substrates that ``load_example`` can load.
+
+    Returns a mapping from each example's name to a one-line description. These
+    are the standard networks from the IIT literature (XOR, the basic 3-node
+    logic-gate system, the IIT 4.0 paper figures, and more).
+    """
+    out = {}
+    for name, func in sorted(examples.EXAMPLES["substrate"].items()):
+        doc = (func.__doc__ or "").strip().splitlines()
+        out[name] = doc[0].strip() if doc else "(no description)"
+    return out
+
+
+@mcp.tool()
+def load_example(name: str) -> dict[str, Any]:
+    """Load a built-in example substrate and return a handle for it.
+
+    Parameters
+    ----------
+    name : str
+        An example name from ``list_examples`` (e.g. ``"basic"``, ``"xor"``).
+
+    Returns
+    -------
+    dict
+        The substrate ``handle`` (pass it to ``analyze``/``describe_substrate``)
+        and a summary of its nodes and connectivity.
+    """
+    try:
+        func = examples.EXAMPLES["substrate"][name]
+    except KeyError:
+        known = ", ".join(sorted(examples.EXAMPLES["substrate"]))
+        raise KeyError(f"Unknown example {name!r}. Available: {known}.") from None
+    substrate = func()
+    handle = _register_substrate(substrate)
+    return {"handle": handle, **_substrate_summary(substrate)}
+
+
+@mcp.tool()
+def build_substrate(
+    tpm: list,
+    cm: list | None = None,
+    node_labels: list[str] | None = None,
+    alphabet: list[int] | None = None,
+) -> dict[str, Any]:
+    """Build a substrate from a transition probability matrix and return a handle.
+
+    Parameters
+    ----------
+    tpm : list
+        The transition probability matrix, as nested lists. State-by-node form
+        (one row per system state, one column per node, giving each node's
+        probability of turning on) is the usual input. States are ordered
+        little-endian: the FIRST node is the least-significant bit, so state
+        (0, 0, 1) is row index 4 in a 3-node system, not row 1.
+    cm : list, optional
+        The connectivity matrix (``cm[i][j] == 1`` means node i is an input to
+        node j). If omitted, full connectivity is assumed — always correct, but
+        slower. A *wrong* connectivity matrix produces a wrong Φ, so omit it
+        when unsure rather than guessing.
+    node_labels : list of str, optional
+        Labels for the nodes; defaults to A, B, C, ….
+    alphabet : list of int, optional
+        The number of states per node, for multi-valued (k-ary) units. Defaults
+        to binary. Note that more states does not necessarily mean more Φ.
+
+    Returns
+    -------
+    dict
+        The substrate ``handle`` and a summary of its nodes and connectivity.
+    """
+    kwargs: dict[str, Any] = {}
+    if cm is not None:
+        kwargs["cm"] = np.asarray(cm)
+    if node_labels is not None:
+        kwargs["node_labels"] = node_labels
+    if alphabet is not None:
+        kwargs["alphabet"] = alphabet
+    substrate = pyphi.Substrate(np.asarray(tpm, dtype=float), **kwargs)
+    handle = _register_substrate(substrate)
+    return {"handle": handle, **_substrate_summary(substrate)}
+
+
+@mcp.tool()
+def describe_substrate(handle: str) -> dict[str, Any]:
+    """Describe a substrate previously loaded or built.
+
+    Parameters
+    ----------
+    handle : str
+        A substrate handle from ``load_example`` or ``build_substrate``.
+
+    Returns
+    -------
+    dict
+        The substrate's nodes, labels, connectivity, state count, and a
+        reminder of the little-endian state-index convention.
+    """
+    substrate = _get_substrate(handle)
+    return {
+        "handle": handle,
+        **_substrate_summary(substrate),
+        "state_convention": (
+            "States are little-endian: the first node is the "
+            "least-significant bit. A state is a tuple of node states, e.g. "
+            "(1, 1, 0) means node A on, B on, C off."
+        ),
+    }
+
+
+@mcp.tool()
+def analyze(
+    handle: str,
+    state: list[int],
+    formalism: str | None = None,
+    compute: str = "full",
+    detail: str = "summary",
+    confirm_large: bool = False,
+) -> dict[str, Any]:
+    """Run an IIT analysis of a substrate in a state.
+
+    Parameters
+    ----------
+    handle : str
+        A substrate handle from ``load_example`` or ``build_substrate``.
+    state : list of int
+        The current state, one entry per node, in node order (little-endian).
+    formalism : str, optional
+        ``"IIT_4_0_2023"`` (default), ``"IIT_4_0_2026"``, or ``"IIT_3_0"``. Each
+        defines integrated information differently, so the same substrate and
+        state give different values under each. IIT 3.0 has no relations; the
+        2026 variant drives a fully deterministic system's φₛ to zero.
+    compute : str
+        ``"full"`` (default: system integrated information φₛ *and* the full
+        Φ-structure), ``"sia"`` (φₛ only — cheaper, no relations), or ``"ces"``
+        (the cause-effect structure).
+    detail : str
+        ``"summary"`` (default: a readable card plus scalar values) or
+        ``"full"`` (also embeds the complete serialized result, which can be
+        megabytes for a Φ-structure — prefer ``inspect`` to drill in instead).
+    confirm_large : bool
+        Full/CES analyses are refused above a soft node-count threshold unless
+        this is set, to avoid accidentally starting an hours-long computation.
+
+    Returns
+    -------
+    dict
+        A ``card`` (human-readable text), a ``summary`` of scalar quantities,
+        and a ``result_ref`` for ``inspect``. Φ=0 means the system is
+        *reducible*, not that it has no structure.
+    """
+    substrate = _get_substrate(handle)
+    size = substrate.size
+    unfolds_structure = compute in ("full", "ces")
+    limit = _CES_NODE_LIMIT if unfolds_structure else _SIA_NODE_LIMIT
+    if size > limit and not confirm_large:
+        raise ValueError(
+            f"This substrate has {size} nodes; a '{compute}' analysis at this "
+            f"size may run for a very long time (cost grows exponentially, and "
+            f"relations doubly-exponentially). Pass confirm_large=true to "
+            f"proceed anyway, or use compute='sia' for a cheaper system-level "
+            f"result."
+        )
+
+    compute_arg = None if compute == "full" else compute
+    result = pyphi.analyze(
+        substrate, tuple(state), formalism=formalism, compute=compute_arg
+    )
+    ref = _register_result(result)
+
+    out: dict[str, Any] = {
+        "result_ref": ref,
+        "card": str(result),
+        "summary": _result_summary(result),
+    }
+    if detail == "full":
+        target = getattr(result, "ces", result)
+        out["serialized"] = serialize.dumps(target).decode("utf-8")
+    return out
+
+
+@mcp.tool()
+def inspect(result_ref: str, path: str = "") -> dict[str, Any]:
+    """Inspect one part of a stored analysis result in full detail.
+
+    Parameters
+    ----------
+    result_ref : str
+        A ``result_ref`` returned by ``analyze``.
+    path : str
+        Which slice to inspect. Empty returns the top-level summary. Otherwise
+        a dotted/indexed path into the result, e.g. ``"sia"``, ``"ces"``,
+        ``"ces.distinctions[0]"``, ``"ces.relations"``.
+
+    Returns
+    -------
+    dict
+        The compact repr of the selected object and, when the object supports
+        it, its full serialization. Relation aggregates (counts, Σφ_r) come
+        from PyPhi's analytical path, which does not enumerate every relation.
+    """
+    try:
+        result = _results[result_ref]
+    except KeyError:
+        known = ", ".join(_results) or "none"
+        raise KeyError(
+            f"Unknown result_ref {result_ref!r}. Run analyze first. Known refs: {known}."
+        ) from None
+
+    obj = _resolve_path(result, path) if path else result
+    out: dict[str, Any] = {"path": path or "(root)", "type": type(obj).__name__}
+    compact = getattr(obj, "_compact_repr", None)
+    out["repr"] = compact() if callable(compact) else repr(obj)
+    try:
+        out["serialized"] = serialize.dumps(obj).decode("utf-8")
+    except TypeError:
+        out["serialized"] = None
+        out["note"] = "This object has no full serialization; see 'repr'."
+    return out
+
+
+def _resolve_path(obj: Any, path: str) -> Any:
+    """Resolve a dotted, optionally indexed path into a result object."""
+    for part in path.split("."):
+        name, _, index = part.partition("[")
+        obj = getattr(obj, name)
+        if index:
+            obj = obj[int(index.rstrip("]"))]
+    return obj
+
+
+# The visualizations PyPhi already provides, and what each one needs.
+_PLOT_KINDS = {
+    "ces": "the cause-effect structure (Φ-structure) — needs a result_ref",
+    "repertoires": "the cause and effect repertoires — needs a result_ref",
+    "connectivity": "the substrate's causal connectivity graph — needs a handle",
+    "tpm": "the state-by-state transition probability matrix — needs a handle",
+}
+
+
+def _get_result(result_ref: str) -> Any:
+    try:
+        return _results[result_ref]
+    except KeyError:
+        known = ", ".join(_results) or "none"
+        raise KeyError(
+            f"Unknown result_ref {result_ref!r}. Run analyze first. Known refs: {known}."
+        ) from None
+
+
+def _state_by_state(substrate: Any) -> Any:
+    """Return a substrate's 2-D state-by-state transition probability matrix.
+
+    Slices the on-probability out of the multidimensional state-by-node TPM,
+    reshapes it in little-endian (Fortran) state order, then converts to
+    state-by-state form, which is what ``visualize.plot_tpm`` expects.
+    """
+    from pyphi import convert
+
+    n = substrate.size
+    on = np.asarray(substrate.tpm.to_joint())[..., 1]
+    state_by_node = on.reshape(-1, n, order="F")
+    return convert.state_by_node2state_by_state(state_by_node)
+
+
+@mcp.tool()
+def plot(target: str, kind: str = "ces") -> Any:
+    """Render one of PyPhi's built-in visualizations.
+
+    Requires the ``visualize`` extra (``pip install pyphi[visualize]``). PyPhi
+    already provides these figures, so this exposes them rather than
+    reconstructing anything. The interactive ``"ces"`` plot is returned as a
+    path to a self-contained HTML file to open in a browser (it cannot be shown
+    inline); the static figures are returned as an inline PNG.
+
+    Parameters
+    ----------
+    target : str
+        A ``result_ref`` from ``analyze`` for ``"ces"`` and ``"repertoires"``,
+        or a substrate handle for ``"connectivity"`` and ``"tpm"``.
+    kind : str
+        ``"ces"`` — the cause-effect structure (Φ-structure), interactive.
+        ``"repertoires"`` — the cause and effect repertoires of the analysis.
+        ``"connectivity"`` — the substrate's causal connectivity graph.
+        ``"tpm"`` — the state-by-state transition probability matrix.
+
+    Returns
+    -------
+    For ``"ces"``, a message with the path to the interactive HTML file. For
+    the static figures, a message with the PNG path plus an inline preview.
+    """
+    try:
+        from pyphi import visualize
+    except Exception as error:  # surface the install hint
+        return (
+            "Visualization requires the optional dependency. Install it with "
+            f"'pip install pyphi[visualize]'. ({error})"
+        )
+
+    import matplotlib
+
+    matplotlib.use("Agg", force=True)
+    import matplotlib.pyplot as plt
+
+    if kind == "ces":
+        result = _get_result(target)
+        fig = visualize.plot_ces(getattr(result, "ces", result))
+    elif kind == "repertoires":
+        result = _get_result(target)
+        fig = visualize.plot_repertoires(result.system, result.sia)[0]
+    elif kind == "connectivity":
+        substrate = _get_substrate(target)
+        fig = plt.figure()
+        visualize.plot_graph(substrate.to_networkx())
+    elif kind == "tpm":
+        substrate = _get_substrate(target)
+        fig = visualize.plot_tpm(_state_by_state(substrate))[0]
+    else:
+        kinds = ", ".join(_PLOT_KINDS)
+        raise ValueError(f"Unknown plot kind {kind!r}; use one of: {kinds}.")
+
+    return _render_figure(fig, kind, plt)
+
+
+def _render_figure(fig: Any, kind: str, plt: Any) -> Any:
+    """Write a plotly or matplotlib figure to disk and return it for the client.
+
+    Interactive (plotly) figures are returned as an HTML path only, with no
+    inline image: a static snapshot of a figure meant to be rotated and hovered
+    is misleading, and an inline preview would let a reader mistake it for the
+    real thing and never open the interactive file. Static (matplotlib) figures
+    have no interactive form, so they are returned as an inline PNG.
+    """
+    from mcp.server.fastmcp import Image
+
+    out_dir = Path(tempfile.gettempdir()) / "pyphi-mcp"
+    out_dir.mkdir(exist_ok=True)
+    stem = f"{kind}-{uuid.uuid4().hex[:8]}"
+
+    if hasattr(fig, "write_html"):  # plotly: interactive, HTML only
+        html_path = out_dir / f"{stem}.html"
+        fig.write_html(str(html_path), include_plotlyjs="inline")
+        return (
+            f"The {kind} plot is interactive — you rotate, zoom, and hover over "
+            "its distinctions and relations — so it cannot be shown inline. "
+            f"Open this file in a browser to explore it:\n{html_path}"
+        )
+
+    # matplotlib: a static PNG, previewed inline
+    png_path = out_dir / f"{stem}.png"
+    fig.savefig(str(png_path), dpi=120, bbox_inches="tight")
+    data = png_path.read_bytes()
+    plt.close(fig)
+    return [f"Plot written to {png_path}.", Image(data=data, format="png")]
+
+
+def main() -> None:
+    """Run the PyPhi MCP server over stdio (the ``pyphi-mcp`` entry point)."""
+    mcp.run()
+
+
+# Assemble the rest of the application. These modules receive ``mcp`` through
+# ``register`` rather than importing it, so there is no import cycle.
+from . import prompts as _prompts  # noqa: E402
+from . import resources as _resources  # noqa: E402
+
+_resources.register(mcp)
+_prompts.register(mcp)
+
+
+if __name__ == "__main__":
+    main()

@@ -52,6 +52,11 @@ caching = ["redis>=2.10.5"]
 # PyPhi's Hamming-ground-metric EMD (binary and k-ary).
 emd = ["pot>=0.9.5"]
 xarray = ["xarray>=2024.1"]
+# Model Context Protocol server exposing PyPhi to AI agents (`pyphi-mcp`).
+mcp = ["mcp>=1.2"]
+
+[project.scripts]
+pyphi-mcp = "pyphi.mcp.server:main"
 
 [dependency-groups]
 dev = [

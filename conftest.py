@@ -15,6 +15,13 @@ collect_ignore = ["setup.py", ".pythonrc.py"]
 with open(Path(__file__).parent / ".gitignore") as f:
     collect_ignore += list(filter(None, f.read().split("\n")))
 
+# The MCP server package imports the optional ``mcp`` dependency at module
+# level, so exclude it from doctest-module collection when that extra is absent.
+try:
+    import mcp  # noqa: F401
+except ImportError:
+    collect_ignore.append("pyphi/mcp")
+
 
 IIT_3_CONFIG = "pyphi_config_3.0.yml"
 

@@ -7,6 +7,14 @@ html[data-theme="dark"]  { --phi-mark: url(phi-mark-white.svg); }
 @media (prefers-color-scheme: light) { html[data-theme="auto"] { --phi-mark: url(phi-mark-black.svg); } }
 @media (prefers-color-scheme: dark)  { html[data-theme="auto"] { --phi-mark: url(phi-mark-white.svg); } }
 
+/* PyPhi rich-object cards style themselves for both themes, so suppress the
+   light backdrop pydata-sphinx-theme adds behind generic HTML cell outputs in
+   dark mode (a readability heuristic for reprs that assume a light background).
+   Scoped to cards via :has(), leaving other HTML outputs' backdrop intact. */
+html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi-card) {
+  background-color: transparent;
+}
+
 /* ponytail: single 768px breakpoint; nudge if the wordmark crowds the navbar. */
 @media (max-width: 767.98px) {
   .navbar-brand.logo .logo__image { display: none; }

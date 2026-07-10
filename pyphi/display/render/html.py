@@ -18,42 +18,75 @@ from pyphi.display.description import Section
 from pyphi.display.description import Table
 from pyphi.display.numbers import format_value
 
-_STYLE = """\
+# Neutral palette as CSS variables so a single set of rules serves both themes.
+# The cause/effect tone colors are colorblind-safe on either background and are
+# NOT themed. Light is the default; dark is applied by the theme selectors below.
+_LIGHT = (
+    "--pc-bg:#fff;--pc-fg:#1f2328;--pc-line:#d0d7de;--pc-soft:#eef0f2;"
+    "--pc-head:#f6f8fa;--pc-muted:#57606a;--pc-faint:#8b949e;"
+    "--pc-badge-bg:#eef2ff;--pc-badge-fg:#3538cd;--pc-shadow:rgba(0,0,0,.07)"
+)
+_DARK = (
+    "--pc-bg:#1c2128;--pc-fg:#e6edf3;--pc-line:#30363d;--pc-soft:#262b31;"
+    "--pc-head:#22272e;--pc-muted:#9da7b1;--pc-faint:#6e7681;"
+    "--pc-badge-bg:#1f2544;--pc-badge-fg:#b3bbff;--pc-shadow:rgba(0,0,0,.4)"
+)
+
+# Ancestor markers that known front-ends stamp for their own theme. Matching one
+# (specificity beats the media query) makes the app's local theme win over the OS
+# setting; absent any match, the media query falls back to it. pydata-sphinx-theme
+# (the docs) writes the resolved theme into html[data-theme], including auto→OS.
+_DARK_HOSTS = (
+    'body[data-jp-theme-light="false"] .pyphi-card,'  # JupyterLab / Notebook 7
+    ".vscode-dark .pyphi-card,"  # VS Code notebooks
+    'html[data-theme="dark"] .pyphi-card'  # pydata-sphinx-theme (docs)
+)
+_LIGHT_HOSTS = (
+    'body[data-jp-theme-light="true"] .pyphi-card,'
+    ".vscode-light .pyphi-card,"
+    'html[data-theme="light"] .pyphi-card'
+)
+
+_STYLE = f"""\
 <style>
-.pyphi-card{display:inline-block;background:#fff;color:#1f2328;
- border:1px solid #d0d7de;border-radius:10px;overflow:hidden;
- box-shadow:0 1px 3px rgba(0,0,0,.07);font-size:13px;
- font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.pyphi-leaf{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
- font-size:13px}
-.pyphi-head{display:flex;align-items:baseline;justify-content:space-between;
- gap:18px;padding:7px 14px;background:#f6f8fa;border-bottom:1px solid #e4e8ec}
-.pyphi-title{font-weight:600}
-.pyphi-badge{background:#eef2ff;color:#3538cd;border-radius:6px;
- padding:2px 8px;font-size:12px;white-space:nowrap;
- font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.pyphi-body{display:block}
-.pyphi-section{padding:8px 14px;border-top:1px solid #eef0f2}
-.pyphi-label{font-weight:600;color:#57606a;font-size:10px;
- text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.pyphi-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px}
-.pyphi-k{color:#8b949e}
-.pyphi-v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.pyphi-extra{color:#8b949e;margin-left:10px;font-size:12px}
-table.pyphi-table{border-collapse:collapse;width:100%;font-size:12px}
-table.pyphi-table th{text-align:left;color:#57606a;font-weight:600;
- border-bottom:1px solid #d0d7de;padding:3px 12px 3px 0}
-table.pyphi-table td{text-align:left;padding:3px 12px 3px 0;
- border-bottom:1px solid #f0f2f4;
- font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.pyphi-scroll{max-height:26em;overflow:auto}
-.pyphi-more{color:#8b949e;font-size:12px;padding:3px 0}
-.pyphi-cause{color:#D55C00}
-.pyphi-effect{color:#009E73}
-table.pyphi-grid{width:auto}
-table.pyphi-grid th,table.pyphi-grid td{text-align:center;padding:3px 9px}
-table.pyphi-grid th:first-child,table.pyphi-grid td:first-child{
- text-align:right;color:#57606a;font-weight:600}
+.pyphi-card{{{_LIGHT};display:inline-block;background:var(--pc-bg);
+ color:var(--pc-fg);border:1px solid var(--pc-line);border-radius:10px;
+ overflow:hidden;box-shadow:0 1px 3px var(--pc-shadow);font-size:13px;
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}}
+@media (prefers-color-scheme:dark){{.pyphi-card{{{_DARK}}}}}
+{_DARK_HOSTS}{{{_DARK}}}
+{_LIGHT_HOSTS}{{{_LIGHT}}}
+.pyphi-leaf{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ font-size:13px}}
+.pyphi-head{{display:flex;align-items:baseline;justify-content:space-between;
+ gap:18px;padding:7px 14px;background:var(--pc-head);
+ border-bottom:1px solid var(--pc-soft)}}
+.pyphi-title{{font-weight:600}}
+.pyphi-badge{{background:var(--pc-badge-bg);color:var(--pc-badge-fg);
+ border-radius:6px;padding:2px 8px;font-size:12px;white-space:nowrap;
+ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
+.pyphi-body{{display:block}}
+.pyphi-section{{padding:8px 14px;border-top:1px solid var(--pc-soft)}}
+.pyphi-label{{font-weight:600;color:var(--pc-muted);font-size:10px;
+ text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}}
+.pyphi-kv{{display:grid;grid-template-columns:auto 1fr;gap:3px 14px}}
+.pyphi-k{{color:var(--pc-faint)}}
+.pyphi-v{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
+.pyphi-extra{{color:var(--pc-faint);margin-left:10px;font-size:12px}}
+table.pyphi-table{{border-collapse:collapse;width:100%;font-size:12px}}
+table.pyphi-table th{{text-align:left;color:var(--pc-muted);font-weight:600;
+ border-bottom:1px solid var(--pc-line);padding:3px 12px 3px 0}}
+table.pyphi-table td{{text-align:left;padding:3px 12px 3px 0;
+ border-bottom:1px solid var(--pc-soft);
+ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
+.pyphi-scroll{{max-height:26em;overflow:auto}}
+.pyphi-more{{color:var(--pc-faint);font-size:12px;padding:3px 0}}
+.pyphi-cause{{color:#D55C00}}
+.pyphi-effect{{color:#009E73}}
+table.pyphi-grid{{width:auto}}
+table.pyphi-grid th,table.pyphi-grid td{{text-align:center;padding:3px 9px}}
+table.pyphi-grid th:first-child,table.pyphi-grid td:first-child{{
+ text-align:right;color:var(--pc-muted);font-weight:600}}
 </style>"""
 
 

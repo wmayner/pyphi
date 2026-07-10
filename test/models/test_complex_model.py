@@ -158,3 +158,94 @@ def test_excluded_candidate_units_default_none():
     e2 = ExcludedCandidate((1, 2), 0.5, units=("u",))
     assert e2.units == ("u",)
     assert e2 == ExcludedCandidate((1, 2), 0.5)  # units not part of identity
+
+
+def test_exclusion_margin_none_when_unopposed():
+    c = Complex(sia=_StubSIA(), substrate=None)
+    assert c.exclusion_margin is None
+    assert c.effectively_tied is False
+
+
+def test_exclusion_margin_is_gap_to_best_beaten_rival():
+    c = Complex(
+        sia=_StubSIA(),  # phi = 1.0
+        substrate=None,
+        excluded=(
+            ExcludedCandidate((0,), 0.25),
+            ExcludedCandidate((1,), 0.75),
+        ),
+    )
+    assert c.exclusion_margin == pytest.approx(0.25)
+    assert c.effectively_tied is False
+
+
+def test_exclusion_margin_zero_for_precision_equal_rival():
+    # A rival within PRECISION of the complex's own phi counts as beaten
+    # (the selection was decided beyond phi) and clamps the margin to 0.
+    c = Complex(
+        sia=_StubSIA(),
+        substrate=None,
+        excluded=(ExcludedCandidate((1, 2), 1.0 + 1e-15),),
+    )
+    assert c.exclusion_margin == 0.0
+    assert c.effectively_tied is True
+
+
+def test_exclusion_margin_ignores_shadows():
+    # A higher-phi overlapping candidate (carved away by a different
+    # complex under the recursive cascade) is not a beaten rival.
+    c = Complex(
+        sia=_StubSIA(),
+        substrate=None,
+        excluded=(ExcludedCandidate((1, 2), 2.0),),
+    )
+    assert c.exclusion_margin is None
+    assert c.effectively_tied is False
+
+
+def test_exclusion_margin_mixed_shadows_and_rivals():
+    c = Complex(
+        sia=_StubSIA(),
+        substrate=None,
+        excluded=(
+            ExcludedCandidate((1, 2), 2.0),  # shadow
+            ExcludedCandidate((0,), 0.4),  # beaten
+        ),
+    )
+    assert c.exclusion_margin == pytest.approx(0.6)
+    assert c.effectively_tied is False
+
+
+def test_pandas_record_includes_margin_fields():
+    c = Complex(
+        sia=_StubSIA(),
+        substrate=None,
+        excluded=(ExcludedCandidate((0,), 0.4),),
+    )
+    record = c._pandas_record()
+    assert record["exclusion_margin"] == pytest.approx(0.6)
+    assert record["effectively_tied"] is False
+
+
+def test_describe_margin_rows_present_only_when_margin_exists():
+    with_margin = Complex(
+        sia=_StubSIA(),
+        substrate=None,
+        excluded=(ExcludedCandidate((0,), 0.4),),
+    )
+    labels = [
+        row.label
+        for section in with_margin._describe(verbosity=2).sections
+        for row in section.rows
+    ]
+    assert "Selection margin" in labels
+    assert "Effectively tied" in labels
+
+    without = Complex(sia=_StubSIA(), substrate=None)
+    labels = [
+        row.label
+        for section in without._describe(verbosity=2).sections
+        for row in section.rows
+    ]
+    assert "Selection margin" not in labels
+    assert "Effectively tied" not in labels
