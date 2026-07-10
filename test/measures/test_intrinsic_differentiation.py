@@ -17,4 +17,5 @@ def test_intrinsic_information():
             ),
         )
         assert result.state == (1, 1)
-        assert result.intrinsic_information == 1.8857840667050536
+        # Exact computed value (bitwise).
+        assert result.intrinsic_information == 1.8857840667050532

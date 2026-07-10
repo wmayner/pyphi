@@ -28,11 +28,11 @@ def make_state_spec(direction=Direction.CAUSE):
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
-def test_pyphi_float_round_trips(fmt):
-    obj = PyPhiFloat(0.375)
+@pytest.mark.parametrize("obj", [0.375, PyPhiFloat(0.375)])
+def test_phi_value_round_trips_as_float(obj, fmt):
     restored = round_trip(obj, fmt)
-    assert restored == obj
-    assert type(restored) is PyPhiFloat
+    assert restored == 0.375
+    assert type(restored) is float
 
 
 @pytest.mark.parametrize("fmt", FORMATS)

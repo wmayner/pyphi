@@ -55,7 +55,8 @@ def _register_pyphi_float() -> None:
     from pyphi.data_structures import PyPhiFloat
 
     _ENCODERS[PyPhiFloat] = lambda f: schema.PyPhiFloatSchema(value=float(f))
-    _DECODERS[schema.PyPhiFloatSchema] = lambda s: PyPhiFloat(s.value)
+    _ENCODERS[float] = lambda f: schema.PyPhiFloatSchema(value=f)
+    _DECODERS[schema.PyPhiFloatSchema] = lambda s: float(s.value)
 
 
 def _register_distance_result() -> None:
