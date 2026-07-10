@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -62,7 +62,9 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ExcludedCandidate):
             return NotImplemented
-        return self.node_indices == other.node_indices and utils.eq(self.phi, other.phi)
+        return self.node_indices == other.node_indices and numerics.eq(
+            self.phi, other.phi
+        )
 
     def __ne__(self, other: object) -> bool:
         return not self == other
@@ -145,7 +147,10 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         """
         phi = float(self.phi)
         rivals = [
-            float(c.phi) for c in self.excluded if c.phi < phi or utils.eq(c.phi, phi)
+            float(c.phi)
+            for c in self.excluded
+            # numerics: exact — composed with eq into a tolerant ≤ for a reported margin
+            if c.phi < phi or numerics.eq(c.phi, phi)
         ]
         if not rivals:
             return None
@@ -158,7 +163,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         ``False`` when the margin is ``None`` (no beaten rival).
         """
         margin = self.exclusion_margin
-        return margin is not None and utils.eq(margin, 0.0)
+        return margin is not None and numerics.is_zero(margin)
 
     def _pandas_record(self) -> dict[str, Any]:
         record = dict(self.sia._pandas_record())
@@ -172,7 +177,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     def __bool__(self) -> bool:
         """``True`` iff Φ > 0 (a null complex is falsy)."""
-        return not utils.eq(self.phi, 0)
+        return not numerics.eq(self.phi, 0)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Complex):

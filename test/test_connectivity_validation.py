@@ -18,7 +18,7 @@ from pyphi import Substrate
 from pyphi import System
 from pyphi import config
 from pyphi import examples
-from pyphi import utils
+from pyphi import numerics
 from pyphi.core.tpm.factored import FactoredTPM
 
 # ============== Substrate builders (convention-safe via update functions) ==============
@@ -81,9 +81,9 @@ def test_under_specified_cm_undercounts_phi():
         phi_under = System(under, state, under.node_indices).sia().phi
 
         # Over-specification does not change φ: all-ones == true CM.
-        assert utils.eq(phi_all_ones, phi_true)
+        assert numerics.eq(phi_all_ones, phi_true)
         # Under-specification strictly under-counts φ.
-        assert utils.is_positive(phi_true - phi_under)
+        assert numerics.is_positive(phi_true - phi_under)
 
 
 # ============== Over-specification stays legal ==============

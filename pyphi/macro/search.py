@@ -37,7 +37,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from pyphi import exceptions
-from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import UnitVerdict
 from pyphi.macro.criteria import _as_unit
@@ -255,7 +254,7 @@ def _phi(substrate, units, micro_history, memo, system_cache):
     if system is None:
         return None, None
     if system not in memo:
-        memo[system] = PyPhiFloat(system.sia().phi)
+        memo[system] = float(system.sia().phi)
     return system, memo[system]
 
 
@@ -312,7 +311,7 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
     else:
         phis = [float(system.sia().phi) for system in pending]
     for system, phi in zip(pending, phis, strict=True):
-        memo[system] = PyPhiFloat(phi)
+        memo[system] = phi
 
 
 def _as_constituent(unit: MacroUnit) -> MacroUnit | int:
@@ -655,7 +654,7 @@ def competing_systems(
     )
     if _is_micro(unit):
         return ()
-    memo: dict[MacroSystem, PyPhiFloat] = {}
+    memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     V = canonical_units(_as_unit(c) for c in unit.constituents)
     return tuple(
@@ -683,7 +682,7 @@ def is_intrinsic_unit(
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
     )
-    memo: dict[MacroSystem, PyPhiFloat] = {}
+    memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     if _is_micro(unit):
         _, phi = _phi(substrate, (unit,), history, memo, system_cache)
@@ -730,7 +729,7 @@ def intrinsic_units(
     """The recursion's fixed point: the valid-unit pool plus all verdicts."""
     _require_iit4()
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
-    memo: dict[MacroSystem, PyPhiFloat] = {}
+    memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     units, verdicts = _derive_units(
         substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
@@ -749,7 +748,7 @@ def valid_systems(
     background. Systems whose state is unreachable are dropped."""
     _require_iit4()
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
-    memo: dict[MacroSystem, PyPhiFloat] = {}
+    memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     units, _ = _derive_units(
         substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
@@ -838,7 +837,7 @@ def complexes(
     from pyphi.models.complex import Complex
 
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
-    memo: dict[MacroSystem, PyPhiFloat] = {}
+    memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     units, _ = _derive_units(
         substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
@@ -848,14 +847,14 @@ def complexes(
         for combo in _assemble_systems(list(units), bounds.max_background)
     ]
     _evaluate_systems(sweep_systems, memo, parallel_kwargs)
-    evaluated: list[tuple[MacroSystem, PyPhiFloat]] = [
+    evaluated: list[tuple[MacroSystem, float]] = [
         (system, memo[system]) for system in sweep_systems if system is not None
     ]
 
     candidates = [
         Candidate(
             footprint=frozenset(_system_micro_indices(system.units)),
-            phi=float(phi),
+            phi=phi,
             sia_provider=lambda system=system: system.sia(),
             system_provider=lambda system=system: system,
             units=system.units,
@@ -863,10 +862,8 @@ def complexes(
         for system, phi in evaluated
     ]
     by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
-    # Stable sort keeps the sweep's deterministic dispatch order within ties.
-    ordered = sorted(candidates, key=lambda c: -c.phi)
-    outcome = exclusion_cascade(ordered)
-    records_map = exclusion_records(outcome.accepted, ordered)
+    outcome = exclusion_cascade(candidates)
+    records_map = exclusion_records(outcome.accepted, candidates)
     winners = tuple(
         Complex(
             sia=cand.sia_provider(),
@@ -882,7 +879,7 @@ def complexes(
         tuple(by_candidate[c] for c in clique) for clique in outcome.failed_cliques
     )
     records = tuple(
-        EvaluationRecord(system=system, phi=float(phi)) for system, phi in memo.items()
+        EvaluationRecord(system=system, phi=phi) for system, phi in memo.items()
     )
     validate.non_overlapping(winners)
     return ComplexesResult(complexes=winners, records=records, ties=ties)

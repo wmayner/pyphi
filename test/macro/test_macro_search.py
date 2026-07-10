@@ -7,7 +7,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi import config
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import judge_candidate
@@ -242,7 +242,7 @@ class TestGrainRaisedSingleton:
         with config.override(**presets.iit4_2023):
             verdict = is_intrinsic_unit(_asymmetric_substrate(), unit, history, bounds)
         assert verdict.num_competitors == 0
-        assert verdict.valid == utils.is_positive(verdict.phi)
+        assert verdict.valid == numerics.is_positive(verdict.phi)
         assert verdict.reason in (Reason.VALID, Reason.NOT_INTEGRATED)
 
 
@@ -611,7 +611,7 @@ class TestTiePath:
         assert all(s.units[0].mapping == (0, 1, 1, 1) for s in top)
         phis = {r.system: r.phi for r in result.records}
         a, b = top
-        assert utils.eq(phis[a], phis[b])
+        assert numerics.eq(phis[a], phis[b])
         assert phis[a] == pytest.approx(0.3881829280978132, abs=1e-13)
         # The accepted complex is the symmetric three-singleton system.
         assert len(result.complexes) == 1
@@ -654,8 +654,8 @@ class TestCostGuard:
             MacroUnit((0, 1), 1, (0, 0, 0, 1)),
             MacroUnit((2, 3), 1, (0, 0, 0, 1)),
         )
-        phis = {r.system: r.phi for r in result.records}
-        assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
+        phis = {r.system.units: r.phi for r in result.records}
+        assert phis[winner.units] == pytest.approx(1.0040208141253277, abs=1e-13)
         assert result.ties == ()
 
 
@@ -729,12 +729,11 @@ class TestEvaluateSystems:
         assert [memo[s] for s in systems] == reference
 
     def test_dedups_against_memo_and_within_batch(self):
-        from pyphi.data_structures.pyphi_float import PyPhiFloat
         from pyphi.macro.search import _evaluate_systems
 
         systems = self._min_systems()
         with config.override(**presets.iit4_2023):
-            memo = {systems[0]: PyPhiFloat(123.0)}  # sentinel: must not recompute
+            memo = {systems[0]: 123.0}  # sentinel: must not recompute
             _evaluate_systems([systems[0], systems[1], systems[1]], memo, None)
         assert memo[systems[0]] == 123.0  # untouched
         assert systems[1] in memo
@@ -870,8 +869,8 @@ class TestParallelCostGuard:
             MacroUnit((0, 1), 1, (0, 0, 0, 1)),
             MacroUnit((2, 3), 1, (0, 0, 0, 1)),
         )
-        phis = {r.system: r.phi for r in parallel.records}
-        assert phis[winner] == pytest.approx(1.0040208141253277, abs=1e-13)
+        phis = {r.system.units: r.phi for r in parallel.records}
+        assert phis[winner.units] == pytest.approx(1.0040208141253277, abs=1e-13)
 
 
 def decaying_chain_substrate():

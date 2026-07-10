@@ -15,10 +15,9 @@ from tqdm.auto import tqdm
 
 from . import combinatorics
 from . import conf
-from . import utils
+from . import numerics
 from .conf import config
 from .conf import fallback
-from .data_structures import PyPhiFloat
 from .direction import Direction
 from .display import Description
 from .display import Displayable
@@ -49,18 +48,20 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
         if phi is None:
             raise ValueError("phi keyword argument is required")
 
-        # Preserve DistanceResult type if possible, otherwise convert to PyPhiFloat
-        from pyphi.data_structures.pyphi_float import PyPhiFloat
+        # Preserve DistanceResult type if possible, otherwise convert to float
         from pyphi.measures.distribution import DistanceResult
 
         if isinstance(phi, DistanceResult):
             self.phi = phi  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
         else:
-            self.phi = PyPhiFloat(phi)  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
+            self.phi = float(phi)  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
         return self
 
     @total_ordering  # type: ignore[arg-type]  # total_ordering expects a class not instance
     def __lt__(self, other):
+        # Exact total order for deterministic sorted(); selection among
+        # relations goes through resolve_ties.
+        # numerics: exact — total order for sorting, not a selection.
         return self.phi < other.phi  # type: ignore[attr-defined]  # phi is set in __new__
 
     @cached_property
@@ -192,8 +193,8 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
         return set.intersection(*(distinction.purview_union for distinction in self))
 
     @cached_property
-    def phi(self) -> PyPhiFloat:  # type: ignore[override]  # Overrides OrderableByPhi.phi with cached_property
-        return PyPhiFloat(
+    def phi(self) -> float:  # type: ignore[override]  # Overrides OrderableByPhi.phi with cached_property
+        return float(
             len(self.purview) * min(self.distinction_phi_per_unique_purview_unit())
         )
 
@@ -201,7 +202,7 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
         return (relatum.phi / len(relatum.purview_union) for relatum in self)
 
     def __bool__(self):
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Relation):

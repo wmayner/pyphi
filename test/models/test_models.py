@@ -825,18 +825,14 @@ class TestRepertoireIrreducibilityAnalysisDistanceResult:
         assert test_ria.phi.direction == "CAUSE"
         assert test_ria.phi.state == 1
 
-    def test_ria_converts_float_to_pyphi_float(self):
-        """Test that RIA converts regular float to PyPhiFloat."""
-        from pyphi.data_structures import PyPhiFloat
-
-        # Create RIA with regular float phi
+    def test_ria_stores_phi_as_float(self):
+        """Test that RIA stores a Python float phi as a plain float."""
         test_ria = ria(
             phi=0.25, direction=Direction.EFFECT, mechanism=(1,), purview=(0, 1)
         )
 
-        # Verify that phi is converted to PyPhiFloat
-        assert isinstance(test_ria.phi, PyPhiFloat)
-        assert float(test_ria.phi) == 0.25
+        assert type(test_ria.phi) is float
+        assert test_ria.phi == 0.25
 
     def test_multiple_rias_with_distance_results_min_comparison(self):
         """Test min() comparison across multiple RIAs with DistanceResults."""

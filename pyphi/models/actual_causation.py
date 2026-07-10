@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections import namedtuple
 from collections.abc import Sequence
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.direction import Direction
 from pyphi.display import PROVENANCE
 from pyphi.display import Description
@@ -41,13 +41,6 @@ _acria_attributes = [
     "probability",
     "partitioned_probability",
 ]
-
-
-def greater_than_zero(alpha):
-    """Return ``True`` if alpha is greater than zero, accounting for
-    numerical errors.
-    """
-    return bool(alpha > 0 and not utils.eq(alpha, 0))
 
 
 class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMixin):
@@ -166,15 +159,15 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
             return False
         if self.purview != other.purview:
             return False
-        if not utils.eq(self.alpha, other.alpha):
+        if not numerics.eq(self.alpha, other.alpha):
             return False
-        return utils.eq(self.probability, other.probability)
+        return numerics.eq(self.probability, other.probability)
 
     def __bool__(self):
         """An :class:`AcRepertoireIrreducibilityAnalysis` is ``True`` if it has
         α > 0.
         """
-        return greater_than_zero(self.alpha)
+        return numerics.is_positive(self.alpha)
 
     @property
     def phi(self):
@@ -415,7 +408,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
 
     def __bool__(self):
         """A :class:`CausalLink` is ``True`` if α > 0."""
-        return greater_than_zero(self.alpha)
+        return numerics.is_positive(self.alpha)
 
 
 class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
@@ -542,8 +535,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         present in both is *changed* when its α differs. An account
         carries no :class:`ConfigSnapshot`, so ``config_diff`` is empty.
         """
-        from pyphi import utils
-        from pyphi.data_structures import PyPhiFloat
+        from pyphi import numerics
 
         if not isinstance(other, Account):
             raise TypeError(
@@ -567,12 +559,12 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         changes.extend(
             Change("link_changed", k, a_by[k].alpha, b_by[k].alpha)
             for k in a_by.keys() & b_by.keys()
-            if not utils.eq(a_by[k].alpha, b_by[k].alpha)
+            if not numerics.eq(a_by[k].alpha, b_by[k].alpha)
         )
         return ResultDiff(
             subject=f"ΔΣα ({len(self)} → {len(other)} links)",
             level="system",
-            delta_phi=PyPhiFloat(float(other._sum_alpha) - float(self._sum_alpha)),
+            delta_phi=float(other._sum_alpha) - float(self._sum_alpha),
             mip_changed=False,
             changes=tuple(changes),
             config_diff={},
@@ -669,6 +661,22 @@ class AcSystemIrreducibilityAnalysis(
 
             provenance = Provenance.capture()
         self.provenance = provenance
+        self._ties: tuple[AcSystemIrreducibilityAnalysis, ...] = (self,)
+
+    @property
+    def ties(self) -> tuple[AcSystemIrreducibilityAnalysis, ...]:
+        """System analyses tied with this one at the winning 𝒜, including
+        this one. A singleton when the minimum is unique."""
+        return self._ties
+
+    def set_ties(self, ties: Sequence[AcSystemIrreducibilityAnalysis]) -> None:
+        """Attach the tied analysis set, shared by reference among peers."""
+        tied = tuple(ties)
+        if len(tied) <= 1:
+            self._ties = (self,)
+            return
+        for member in tied:
+            member._ties = tied
 
     def _pandas_record(self):
         return {
@@ -802,13 +810,13 @@ class AcSystemIrreducibilityAnalysis(
             return False
         if self.node_labels != other.node_labels:
             return False
-        return utils.eq(self.alpha, other.alpha)
+        return numerics.eq(self.alpha, other.alpha)
 
     def __bool__(self):
         """An :class:`AcSystemIrreducibilityAnalysis` is ``True`` if it has
         𝒜 > 0.
         """
-        return greater_than_zero(self.alpha)
+        return numerics.is_positive(self.alpha)
 
     def __hash__(self) -> int:
         return hash(

@@ -8,12 +8,12 @@ from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field
-from itertools import tee
 from typing import Any
 from typing import Literal
 from typing import Protocol
 from typing import TypeVar
 
+from . import numerics
 from .conf import config
 from .conf import fallback
 from .registry import Registry
@@ -167,6 +167,36 @@ class ResolutionContext:
 OnUnresolved = Literal["fail", "defer", "warn"]
 
 
+def _tied_with_extremum[U](
+    objects: Sequence[U], keys: Sequence[Any], extremum: Any
+) -> tuple[U, ...]:
+    """Return the objects whose key ties the extremum.
+
+    Float keys tie up to ``config.numerics.precision`` (via
+    :func:`pyphi.numerics.eq`); all other key types (integers, bytes,
+    tuples) compare exactly.
+
+    Parameters
+    ----------
+    objects : Sequence
+        The candidate objects, aligned with ``keys``.
+    keys : Sequence
+        The comparison key of each object.
+    extremum : Any
+        The extremal key against which each object's key is compared.
+
+    Returns
+    -------
+    tuple
+        The objects whose key ties ``extremum``.
+    """
+    if isinstance(extremum, float):
+        return tuple(
+            o for o, k in zip(objects, keys, strict=True) if numerics.eq(k, extremum)
+        )
+    return tuple(o for o, k in zip(objects, keys, strict=True) if k == extremum)
+
+
 def _apply_level[U](
     candidates: Sequence[U],
     level: CascadeLevel,
@@ -175,11 +205,8 @@ def _apply_level[U](
     if level.op == "filter":
         return tuple(c for c in candidates if level.key(c))
     keys = [level.key(c) for c in candidates]
-    if level.op == "argmax":
-        extremum = max(keys)
-    else:  # argmin
-        extremum = min(keys)
-    return tuple(c for c, k in zip(candidates, keys, strict=True) if k == extremum)
+    extremum = max(keys) if level.op == "argmax" else min(keys)
+    return _tied_with_extremum(candidates, keys, extremum)
 
 
 def cascade[U](
@@ -471,8 +498,8 @@ def resolve_ac_causal_link_tie[V: _AcRIALike](
     survivors = tuple(rias)
     if not survivors:
         raise ValueError("resolve_ac_causal_link_tie requires at least one AcRIA")
-    max_alpha = max(r.alpha for r in survivors)
-    info_tied = tuple(r for r in survivors if r.alpha == max_alpha)
+    alphas = [r.alpha for r in survivors]
+    info_tied = _tied_with_extremum(survivors, alphas, max(alphas))
     minimal = _ac_minimal_purviews(info_tied)
     if len(minimal) == 1:
         return CascadeOutcome(
@@ -487,6 +514,91 @@ def resolve_ac_causal_link_tie[V: _AcRIALike](
         tied_set=minimal,
         cascade_level="Exclusion",
         outcome="UNRESOLVED_WITHIN_BUDGET",
+    )
+
+
+class _AcSIALike(Protocol):
+    """Structural type for an AC system-irreducibility analysis."""
+
+    @property
+    def alpha(self) -> float: ...
+
+    @property
+    def size(self) -> int: ...
+
+    @property
+    def partition(self) -> Any: ...
+
+
+def resolve_ac_sia_tie[V: _AcSIALike](
+    sias: "Iterable[V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[V]:
+    """Resolve a tie among per-partition AC system analyses at min 𝒜.
+
+    The system-level MIP is the partition of minimum 𝒜 (Albantakis et
+    al. 2019, Eq. 20); tie-break behavior is unspecified by the paper.
+    The cascade walks Integration (argmin 𝒜) and falls through to a
+    pyphi-specific Determinism level (lex-canonical partition) so
+    equal-𝒜 partitions resolve reproducibly across iteration orderings.
+    """
+    return cascade(
+        sias,
+        levels=[
+            CascadeLevel(
+                postulate="Integration",
+                op="argmin",
+                key=lambda s: s.alpha,
+            ),
+            CascadeLevel(
+                postulate="Determinism",
+                op="argmin",
+                key=lambda s: s.partition.lex_key(),
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
+    )
+
+
+def resolve_ac_nexus_tie[V: _AcSIALike](
+    sias: "Iterable[V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[V]:
+    """Resolve a tie among candidate transitions for the causal nexus.
+
+    The causal nexus is the transition of maximal 𝒜. Ties escalate to
+    the larger transition, then to a pyphi-specific Determinism level
+    (lex-smallest cause/effect index sets) for reproducibility.
+    """
+    return cascade(
+        sias,
+        levels=[
+            CascadeLevel(
+                postulate="Integration",
+                op="argmax",
+                key=lambda s: s.alpha,
+            ),
+            CascadeLevel(
+                postulate="Integration",
+                op="argmax",
+                key=lambda s: s.size,
+            ),
+            CascadeLevel(
+                postulate="Determinism",
+                op="argmin",
+                key=lambda s: (
+                    tuple(sorted(s.cause_indices)),
+                    tuple(sorted(s.effect_indices)),
+                ),
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
     )
 
 
@@ -650,53 +762,57 @@ def _(m):
     return m.partition.lex_key()
 
 
-def _strategies_to_key_function(strategies):
-    """Convert a tie resolution strategy to a key function."""
-    if isinstance(strategies, str):
-        # Allow a single strategy to be specified as a bare string
-        strategies = [strategies]
-    return lambda obj: tuple(
-        phi_object_tie_resolution_strategies[s](obj) for s in strategies
-    )
-
-
-# TODO: docstring
-# TODO: fix this implementation so we only need one pass; currently,
-# all_maxima only works if equality semantics are correct for this purpose, and
-# RIA equality checks purview equality, so they are not.
-# def resolve(objects, strategy, operation=all_maxima, default=NO_DEFAULT):
-#     """Filter phi-objects according to a strategy."""
-#     if strategy == "NONE":
-#         yield from iter_with_default(objects, default=default)
-#         return
-#     sort_key = _strategies_to_key_function(strategy)
-#     key_args, objects = tee(objects)
-#     keys = map(sort_key, key_args)
-#     if default is not NO_DEFAULT:
-#         default = (sort_key(default), default)
-#     ties = operation(zip(keys, objects), default=default)
-#     for _, obj in ties:
-#         yield obj
-
-
 def resolve[T](
     objects: Iterable[T],
     strategy: str | list[str],
     operation: Callable[..., Any],
     default: Any = NO_DEFAULT,
 ) -> Iterator[T]:
-    """Filter phi-objects according to a strategy."""
+    """Filter φ-objects to those extremal under ``strategy``.
+
+    Strategy components apply lexicographically: for each component in
+    order, the exact extremum of the component's key is computed over
+    the surviving objects, and every object whose key ties it survives
+    (float keys tie up to ``config.numerics.precision``; other key
+    types compare exactly). Later components only see the survivors of
+    earlier ones. The surviving set is independent of input order.
+
+    Parameters
+    ----------
+    objects : Iterable
+        The φ-objects to filter.
+    strategy : str or list of str
+        A tie-resolution strategy name, or a list of names applied
+        lexicographically. The special value ``"NONE"`` disables
+        filtering and yields every object.
+    operation : callable
+        The extremum function applied per component — :func:`max` or
+        :func:`min`.
+    default : Any, optional
+        Yielded when ``objects`` is empty.
+
+    Yields
+    ------
+    object
+        Each φ-object extremal under ``strategy``.
+    """
     if strategy == "NONE":
         yield from iter_with_default(objects, default=default)
         return
-    sort_key = _strategies_to_key_function(strategy)
-    objects, to_transform = tee(objects)
-    values = list(map(sort_key, to_transform))
-    extremum = operation(values, default=default)
-    ties = (
-        obj for obj, value in zip(objects, values, strict=False) if value == extremum
-    )
-    yield from iter_with_default(ties, default=default)
+    if isinstance(strategy, str):
+        strategy = [strategy]
+    survivors = list(objects)
+    if not survivors:
+        yield from iter_with_default(survivors, default=default)
+        return
+    for name in strategy:
+        if len(survivors) == 1:
+            break
+        key_function = phi_object_tie_resolution_strategies[name]
+        keys = [key_function(obj) for obj in survivors]
+        extremum = operation(keys)
+        survivors = list(_tied_with_extremum(survivors, keys, extremum))
+    yield from survivors
 
 
 def states[T](

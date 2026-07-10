@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-from pyphi.data_structures import PyPhiFloat
 from pyphi.measures import distribution
 from pyphi.measures.distribution import DistanceResult
 from test.conftest import skip_if_no_emd_backend
@@ -416,7 +415,7 @@ class TestDistanceResult:
         assert dr.method == "EMD"
         assert dr.direction == "CAUSE"
         assert dr.state == 1
-        assert isinstance(dr, PyPhiFloat)
+        assert isinstance(dr, float)
         assert isinstance(dr, DistanceResult)
 
     def test_distance_result_repr(self):
@@ -482,15 +481,15 @@ class TestDistanceResult:
         assert min_phi.direction == "EFFECT"
         assert min_phi.partition == "Y|Z"
 
-    def test_mixed_types_with_pyphi_float(self):
-        """Test behavior when mixing DistanceResult and PyPhiFloat."""
+    def test_mixed_types_with_plain_float(self):
+        """Test behavior when mixing DistanceResult and a plain float."""
         dr = DistanceResult(0.7, method="KLD", direction="CAUSE")
-        pf = PyPhiFloat(0.4)
+        pf = 0.4
 
-        # When PyPhiFloat wins, it should remain PyPhiFloat
+        # When the plain float wins, it stays a plain float.
         result_min = min(dr, pf)
-        assert isinstance(result_min, PyPhiFloat)
         assert not isinstance(result_min, DistanceResult)
+        assert type(result_min) is float
         assert float(result_min) == 0.4
 
         # When DistanceResult wins, it should remain DistanceResult
@@ -583,3 +582,23 @@ class TestDistanceResult:
         arr_float32 = np.array(results, dtype=np.float32)
         assert arr_float32.dtype == np.float32
         np.testing.assert_array_almost_equal(arr_float32, [0.5, 0.3, 0.7], decimal=6)
+
+
+class TestIntrinsicDifferentiationPrecision:
+    def test_certain_node_noise_surprisal_is_excluded(self):
+        # A probability of 1 up to floating-point noise has surprisal
+        # ~3e-16 — mathematically zero. It must not be selected as the
+        # "smallest positive surprisal".
+        p = np.array([0.9999999999999998, 0.5])
+        result = distribution.intrinsic_differentiation(p, (slice(None),))
+        assert float(result) == pytest.approx(1.0)  # -log2(0.5), not 3e-16
+
+    def test_exactly_certain_node_still_excluded(self):
+        p = np.array([1.0, 0.25])
+        result = distribution.intrinsic_differentiation(p, (slice(None),))
+        assert float(result) == pytest.approx(2.0)
+
+    def test_all_certain_returns_zero(self):
+        p = np.array([1.0, 0.9999999999999998])
+        result = distribution.intrinsic_differentiation(p, (slice(None),))
+        assert float(result) == 0.0

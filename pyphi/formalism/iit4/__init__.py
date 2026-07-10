@@ -16,6 +16,7 @@ from typing import Any
 from pyphi import conf
 from pyphi import connectivity
 from pyphi import measures
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi import utils
 from pyphi import validate
@@ -23,7 +24,6 @@ from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.core import repertoire_algebra as repertoire
-from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.display import FULL
 from pyphi.display import PROVENANCE
@@ -134,7 +134,7 @@ def _optional_eq(
     """Tolerance-equal comparison that handles ``None`` operands."""
     if a is None or b is None:
         return a is b
-    return utils.eq(a, b)
+    return numerics.eq(a, b)
 
 
 def _optional_float(x: Any) -> float | None:
@@ -152,7 +152,7 @@ def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
         return a is b
     if set(a.keys()) != set(b.keys()):
         return False
-    return all(utils.eq(a[k], b[k]) for k in a)
+    return all(numerics.eq(a[k], b[k]) for k in a)
 
 
 @dataclass(repr=False)
@@ -190,7 +190,7 @@ class SystemIrreducibilityAnalysis(
     intrinsic_differentiation: dict | None = None
     reasons: list | None = None
     runner_up: Any = None
-    partition_margin: PyPhiFloat | None = None
+    partition_margin: float | None = None
     signed_phi: float | DistanceResult | None = None
     signed_normalized_phi: float | DistanceResult | None = None
     config: ConfigSnapshot | None = None
@@ -212,25 +212,25 @@ class SystemIrreducibilityAnalysis(
         clamped_phi = utils.positive_part(self.signed_phi)
         clamped_normalized = utils.positive_part(self.signed_normalized_phi)
         if not isinstance(self.phi, DistanceResult):
-            self.phi = PyPhiFloat(clamped_phi)
+            self.phi = float(clamped_phi)
         else:
             # Clamp the numeric component while preserving the
             # DistanceResult's metadata.
             self.phi = type(self.phi)(clamped_phi, **self.phi._public_aux_data())
         if not isinstance(self.normalized_phi, DistanceResult):
-            self.normalized_phi = PyPhiFloat(clamped_normalized)
+            self.normalized_phi = float(clamped_normalized)
         else:
             self.normalized_phi = type(self.normalized_phi)(
                 clamped_normalized, **self.normalized_phi._public_aux_data()
             )
         if not isinstance(self.signed_phi, DistanceResult):
-            self.signed_phi = PyPhiFloat(self.signed_phi)
+            self.signed_phi = float(self.signed_phi)
         if not isinstance(self.signed_normalized_phi, DistanceResult):
-            self.signed_normalized_phi = PyPhiFloat(self.signed_normalized_phi)
+            self.signed_normalized_phi = float(self.signed_normalized_phi)
         if self.intrinsic_differentiation is None:
             self.intrinsic_differentiation = {
-                Direction.CAUSE: PyPhiFloat(0),
-                Direction.EFFECT: PyPhiFloat(0),
+                Direction.CAUSE: 0.0,
+                Direction.EFFECT: 0.0,
             }
 
     def order_by(self):
@@ -248,11 +248,11 @@ class SystemIrreducibilityAnalysis(
         self._ties = ties
 
     @property
-    def state_margins(self) -> dict[Direction, PyPhiFloat | None]:
+    def state_margins(self) -> dict[Direction, float | None]:
         """Per-direction intrinsic-information gap between the specified
         system state and the best competing state
         (:attr:`StateSpecification.state_margin`)."""
-        margins: dict[Direction, PyPhiFloat | None] = {}
+        margins: dict[Direction, float | None] = {}
         for direction in Direction.both():
             spec = (
                 self.system_state[direction] if self.system_state is not None else None
@@ -268,7 +268,7 @@ class SystemIrreducibilityAnalysis(
         precision."""
         margins = [self.partition_margin, *self.state_margins.values()]
         return any(
-            margin is not None and utils.eq(float(margin), 0.0) for margin in margins
+            margin is not None and numerics.eq(float(margin), 0.0) for margin in margins
         )
 
     def resolve_system_state(self) -> None:
@@ -311,9 +311,9 @@ class SystemIrreducibilityAnalysis(
             return False
         if self.node_indices != other.node_indices:
             return False
-        if not utils.eq(self.phi, other.phi):
+        if not numerics.eq(self.phi, other.phi):
             return False
-        if not utils.eq(self.normalized_phi, other.normalized_phi):
+        if not numerics.eq(self.normalized_phi, other.normalized_phi):
             return False
         if not _optional_eq(self.signed_phi, other.signed_phi):
             return False
@@ -325,7 +325,7 @@ class SystemIrreducibilityAnalysis(
 
     def __bool__(self):
         """Whether φ_s > 0."""
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def __hash__(self) -> int:
         return hash(
@@ -460,7 +460,7 @@ class SystemIrreducibilityAnalysis(
                 Finding(
                     kind="gap",
                     label="φ-gap to runner-up",
-                    value=PyPhiFloat(float(self.runner_up.phi) - float(self.phi)),
+                    value=float(self.runner_up.phi) - float(self.phi),
                 )
             )
         if self.partition_margin is not None:
@@ -516,10 +516,14 @@ class SystemIrreducibilityAnalysis(
             or other.effect is None
         ):
             return None
-        a_dir = "cause" if float(self.cause.phi) <= float(self.effect.phi) else "effect"
-        b_dir = (
-            "cause" if float(other.cause.phi) <= float(other.effect.phi) else "effect"
-        )
+
+        def _direction(cause_phi: float, effect_phi: float) -> str:
+            if numerics.eq(float(cause_phi), float(effect_phi)):
+                return "tied"
+            return "cause" if float(cause_phi) < float(effect_phi) else "effect"
+
+        a_dir = _direction(self.cause.phi, self.effect.phi)
+        b_dir = _direction(other.cause.phi, other.effect.phi)
         return a_dir != b_dir
 
     def diff(self, other) -> ResultDiff:
@@ -725,6 +729,7 @@ def evaluate_partition(
     # ``SystemIrreducibilityAnalysis.__post_init__`` via the |·|+ operator.
     # ``min`` and ``positive_part`` commute, so the clamped result is the
     # same as taking the min of clamped values.
+    # numerics: exact — φ_s is defined as the minimum over directions.
     phi = min(integration[direction].signed_phi for direction in directions)
 
     # The Eq. 23 ii(s) cap is deliberately NOT applied here. Per the 2026
@@ -763,6 +768,11 @@ def _has_no_cause_or_effect(system_state):
         [NullResultReason.NO_CAUSE, NullResultReason.NO_EFFECT],
         strict=False,
     ):
+        # Short-circuit for a direction with no cause/effect. Non-positive
+        # ii(s) forces φ_s = min over directions to zero, so this boundary
+        # coincides with the full computation's φ_s → 0; a near-boundary
+        # misclassification only ever concerns a ~0-φ_s result.
+        # numerics: exact — short-circuit boundary coincides with φ_s → 0.
         if system_state[direction].intrinsic_information <= 0:
             reasons.append(reason)
     return reasons
@@ -795,10 +805,10 @@ def _apply_ii_cap(
     capped_signed = min(cap_terms)
     norm = normalization_factor(sia.partition)
     capped_norm = capped_signed * norm if norm is not None else capped_signed
-    sia.signed_phi = PyPhiFloat(capped_signed)
-    sia.phi = PyPhiFloat(utils.positive_part(capped_signed))
-    sia.signed_normalized_phi = PyPhiFloat(capped_norm)
-    sia.normalized_phi = PyPhiFloat(utils.positive_part(capped_norm))
+    sia.signed_phi = float(capped_signed)
+    sia.phi = float(utils.positive_part(capped_signed))
+    sia.signed_normalized_phi = float(capped_norm)
+    sia.normalized_phi = float(utils.positive_part(capped_norm))
     return sia
 
 
@@ -1137,10 +1147,13 @@ def _find_mip_for_fixed_state(
     mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
     others = [candidate for candidate in candidates if candidate is not mip_sia]
     if others:
+        # Reports the margin to the nearest competitor; the MIP was already
+        # selected above via resolve_ties.sias.
+        # numerics: exact — reported margin, not a selection.
         gap = min(float(c.normalized_phi) for c in others) - float(
             mip_sia.normalized_phi
         )
-        mip_sia.partition_margin = PyPhiFloat(max(0.0, gap))
+        mip_sia.partition_margin = max(0.0, gap)
     for tied_mip in ties:
         tied_mip.resolve_system_state()
         tied_mip.set_ties(ties)

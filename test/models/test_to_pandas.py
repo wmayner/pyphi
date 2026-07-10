@@ -155,14 +155,13 @@ def _make_state_spec(direction, purview):
     # full-shape repertoire over 2 binary nodes; purview drives the cardinality
     repertoire = np.array([[0.1, 0.4], [0.2, 0.3]])
     unconstrained = np.full((2, 2), 0.25)
-    from pyphi.data_structures.pyphi_float import PyPhiFloat
     from pyphi.models.state_specification import StateSpecification
 
     return StateSpecification(
         direction=direction,
         purview=purview,
         state=(0, 0),
-        intrinsic_information=PyPhiFloat(0.5),
+        intrinsic_information=0.5,
         repertoire=repertoire,
         unconstrained_repertoire=unconstrained,
     )

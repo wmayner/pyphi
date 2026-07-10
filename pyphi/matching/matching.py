@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from pyphi import utils
+from pyphi import numerics
 
 from .differentiation import Differentiation
 
@@ -91,7 +91,7 @@ class MatchingAnalysis:
         if any(p < 0 for p in probabilities):
             raise ValueError("world probabilities must be nonnegative")
         total = float(sum(probabilities))
-        if not utils.eq(total, 1.0):
+        if not numerics.eq(total, 1.0):
             raise ValueError(f"world probabilities must sum to 1 (got {total})")
 
     @property

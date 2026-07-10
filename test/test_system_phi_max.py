@@ -12,7 +12,7 @@ from pyphi.formalism import phi_max
 from pyphi.models import DirectedBipartition
 from pyphi.models import MaximallyIrreducibleCauseOrEffect
 from pyphi.models import _null_ria
-from pyphi.utils import eq
+from pyphi.numerics import eq
 
 from . import example_substrates
 

@@ -3,7 +3,7 @@ import pytest
 
 from pyphi import Direction
 from pyphi import config
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import presets
 from pyphi.models import JointBipartition
 from pyphi.models import Part
@@ -351,7 +351,7 @@ def test_phi_effect_mip_reducible(s):
 def test_phi(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert utils.eq(0, s.phi(mechanism, purview))
+    assert numerics.eq(0, s.phi(mechanism, purview))
 
 
 # }}}

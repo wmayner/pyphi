@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi import validate
 from pyphi.direction import Direction
 from pyphi.display import Description
@@ -142,6 +142,7 @@ class Distinction(
         """
         assert self.cause is not None
         assert self.effect is not None
+        # numerics: exact — φ is the minimum of the MIC and MIE φ.
         return min(self.cause.phi, self.effect.phi)
 
     def explain(self) -> Explanation:
@@ -152,7 +153,8 @@ class Distinction(
         assert self.effect is not None
         binding = (
             self.cause
-            if float(self.cause.phi) <= float(self.effect.phi)
+            if numerics.eq(float(self.cause.phi), float(self.effect.phi))
+            or float(self.cause.phi) < float(self.effect.phi)
             else self.effect
         )
         findings = [
@@ -273,7 +275,7 @@ class Distinction(
             return False
         if self.effect_purview != other.effect_purview:
             return False
-        if not utils.eq(self.phi, other.phi):
+        if not numerics.eq(self.phi, other.phi):
             return False
         if not cmp.numpy_aware_eq(self.cause_repertoire, other.cause_repertoire):
             return False
@@ -294,7 +296,7 @@ class Distinction(
 
     def __bool__(self):
         """A distinction is ``True`` if φ > 0."""
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def is_congruent(self, system_state):
         return all(
@@ -357,6 +359,9 @@ class Distinction(
         an EMD calculation.
         """
         return (
+            # Structural identity for EMD grouping: bitwise-equal φ alongside
+            # identical mechanism and repertoires, not a magnitude selection.
+            # numerics: exact — structural identity, not a selection.
             self.phi == other.phi
             and self.mechanism == other.mechanism
             and self.eq_repertoires(other)

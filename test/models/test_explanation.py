@@ -3,6 +3,8 @@
 import pytest
 
 from pyphi.models.explanation import NullResultReason
+from pyphi.models.explanation import binding_direction_finding
+from pyphi.models.explanation import runner_up_from_candidates
 
 
 def test_every_reason_has_a_structural_level():
@@ -175,7 +177,7 @@ def test_ac_explain():
     null_t = actual.Transition(substrate, (1, 1), (0, 0), (0,), (1,))
     null_expl = actual.sia(null_t, Direction.CAUSE).explain()
     assert null_expl.level == "system"
-    assert null_expl.subject.startswith("α")  # noqa: RUF001
+    assert null_expl.subject.startswith("α")
     assert any(f.kind == "null_result" for f in null_expl.findings)
 
     # An account explains its causal links.
@@ -222,3 +224,44 @@ def test_explain_is_total(s):
         assert expl.level in {"system", "mechanism"}, name
         assert repr(expl)  # renders without error
         expl.to_pandas()  # exports without error
+
+
+NOISE = 5.6e-16
+
+
+class TestBindingDirectionTies:
+    def test_finding_reports_tie(self):
+        finding = binding_direction_finding(0.3, 0.3 + NOISE)
+        assert finding.value == "TIED"
+
+    def test_finding_reports_cause_when_strictly_smaller(self):
+        finding = binding_direction_finding(0.2, 0.3)
+        assert finding.value == "CAUSE"
+
+    def test_finding_reports_effect_when_strictly_smaller(self):
+        finding = binding_direction_finding(0.3, 0.2)
+        assert finding.value == "EFFECT"
+
+
+class TestRunnerUpTieBreak:
+    def test_equal_runner_ups_pick_lex_smallest_partition(self):
+        from dataclasses import dataclass
+
+        @dataclass(frozen=True)
+        class P:
+            key: bytes
+
+            def lex_key(self):
+                return self.key
+
+        @dataclass(frozen=True)
+        class C:
+            phi: float
+            partition: P
+
+        mip = C(0.1, P(b"\x00"))
+        r1 = C(0.5 + NOISE, P(b"\x02"))
+        r2 = C(0.5, P(b"\x01"))
+        out_a = runner_up_from_candidates([mip, r1, r2], mip.phi)
+        out_b = runner_up_from_candidates([mip, r2, r1], mip.phi)
+        assert out_a.partition == out_b.partition == P(b"\x01")

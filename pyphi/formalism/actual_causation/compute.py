@@ -20,6 +20,7 @@ import numpy as np
 
 from pyphi import conf
 from pyphi import connectivity
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi import utils
 from pyphi import validate
@@ -268,7 +269,7 @@ def _find_mip(
         # disallowed) means the mechanism is reducible against this
         # partition; no need to keep searching since min |alpha| can't
         # go lower.
-        if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
+        if numerics.eq(alpha, 0) or (alpha < 0 and not allow_neg):
             return _null_ac_ria(
                 transition.mechanism_state(direction),
                 direction,
@@ -295,8 +296,14 @@ def _find_mip(
     context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
     outcome = resolve_ties.resolve_ac_partition_tie(candidates, context=context)
     winner = outcome.resolved
-    if winner is not None and len(outcome.tied_set) > 1:
-        winner.set_partition_ties(outcome.tied_set)
+    # Record only the |α|-cluster around the winning minimum; the cascade's
+    # tied_set carries every candidate entering the resolving level.
+    abs_alphas = [abs(r.alpha) for r in candidates]
+    alpha_ties = resolve_ties._tied_with_extremum(
+        candidates, abs_alphas, min(abs_alphas)
+    )
+    if winner is not None and len(alpha_ties) > 1:
+        winner.set_partition_ties(alpha_ties)
     return winner
 
 
@@ -517,7 +524,7 @@ def _evaluate_partition(
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcSystemIrreducibilityAnalysis(
-        alpha=round(alpha, config.numerics.precision),
+        alpha=numerics.round_to_precision(alpha),
         direction=direction,
         account=unpartitioned_account,
         partitioned_account=partitioned_account,
@@ -625,7 +632,7 @@ def _sia(
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )
-    result = map_reduce(
+    candidates = map_reduce(
         _evaluate_partition,
         cuts,
         map_kwargs={
@@ -635,13 +642,24 @@ def _sia(
             "alpha_measure": alpha_measure,
             "partitioned_repertoire_scheme": partitioned_repertoire_scheme,
         },
-        reduce_func=min,
-        reduce_kwargs={
-            "default": _null_ac_sia(transition, direction, alpha=float("inf"))
-        },
         shortcircuit_func=utils.is_falsy,
         **parallel_kwargs,
     )
+    if not candidates:
+        log.info("No partitions to evaluate; returning null AC SIA.")
+        return _null_ac_sia(
+            transition, direction, reasons=[NullResultReason.NO_VALID_PARTITIONS]
+        )
+    context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+    outcome = resolve_ties.resolve_ac_sia_tie(candidates, context=context)
+    result = outcome.resolved
+    assert result is not None, "AC SIA cascade returned no winner"
+    # Record only the α-cluster around the winning minimum; the cascade's
+    # tied_set carries every candidate entering the resolving level.
+    alphas = [c.alpha for c in candidates]
+    alpha_ties = resolve_ties._tied_with_extremum(candidates, alphas, min(alphas))
+    if len(alpha_ties) > 1:
+        result.set_ties(alpha_ties)
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result

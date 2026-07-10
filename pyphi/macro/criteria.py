@@ -20,8 +20,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from pyphi import exceptions
-from pyphi import utils
-from pyphi.data_structures.pyphi_float import PyPhiFloat
+from pyphi import numerics
 from pyphi.macro.system import MacroSystem
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import micro_unit
@@ -83,11 +82,11 @@ def judge_candidate(
         ``(system, φₛ)`` pairs for ``f(U^J, W^J)``.
     """
     competitors = tuple(competitors)
-    if not utils.is_positive(phi):
+    if not numerics.is_positive(phi):
         return UnitVerdict(
             valid=False,
             reason=Reason.NOT_INTEGRATED,
-            phi=float(phi),
+            phi=phi,
             witness=None,
             witness_phi=None,
             num_competitors=len(competitors),
@@ -95,24 +94,24 @@ def judge_candidate(
     best_system: MacroSystem | None = None
     best_phi = float("-inf")
     for system, competitor_phi in competitors:
-        if best_system is None or float(competitor_phi) > best_phi:
+        if best_system is None or competitor_phi > best_phi:
             best_system = system
-            best_phi = float(competitor_phi)
+            best_phi = competitor_phi
     if best_system is not None:
-        if utils.eq(phi, best_phi):
+        if numerics.eq(phi, best_phi):
             return UnitVerdict(
                 valid=False,
                 reason=Reason.TIED,
-                phi=float(phi),
+                phi=phi,
                 witness=best_system,
                 witness_phi=best_phi,
                 num_competitors=len(competitors),
             )
-        if best_phi > float(phi):
+        if best_phi > phi:
             return UnitVerdict(
                 valid=False,
                 reason=Reason.NOT_MAXIMAL,
-                phi=float(phi),
+                phi=phi,
                 witness=best_system,
                 witness_phi=best_phi,
                 num_competitors=len(competitors),
@@ -120,7 +119,7 @@ def judge_candidate(
     return UnitVerdict(
         valid=True,
         reason=Reason.VALID,
-        phi=float(phi),
+        phi=phi,
         witness=None,
         witness_phi=None,
         num_competitors=len(competitors),
@@ -187,7 +186,7 @@ def unit_integration(
     substrate: Substrate,
     constituents: Iterable[MacroUnit | int],
     micro_history,
-) -> PyPhiFloat:
+) -> float:
     """φₛ(v^J): the constituent system's integrated information (Eq. 15).
 
     A constituent system whose state is unreachable specifies no cause
@@ -196,5 +195,5 @@ def unit_integration(
     try:
         system = constituent_system(substrate, constituents, micro_history)
     except exceptions.StateUnreachableError:
-        return PyPhiFloat(0.0)
-    return PyPhiFloat(system.sia().phi)
+        return 0.0
+    return float(system.sia().phi)

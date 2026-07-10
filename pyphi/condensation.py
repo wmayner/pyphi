@@ -93,18 +93,28 @@ def _config_iit_version() -> str:
     return _config.formalism.iit.version
 
 
-def _phi_groups(candidates: Sequence[Candidate]):
-    """Yield contiguous groups of candidates sharing the same φₛ value
-    (precision-aware), assuming the input is sorted by φₛ descending."""
-    from pyphi import utils as _utils
+def _phi_tiers(candidates: Sequence[Candidate]):
+    """Yield φₛ tiers in descending order.
 
+    Tier membership is tolerant: a candidate joins the tier when its φₛ
+    equals the tier head's up to ``config.numerics.precision``. Within a
+    tier, candidates keep their input order, so the caller's dispatch
+    order — not floating-point noise — breaks presentation ties.
+    """
+    from pyphi import numerics as _numerics
+
+    # The sort only orders candidates; tolerant tier membership is decided by
+    # numerics.eq in the loop below.
+    # numerics: exact — ordering only; tier ties resolved by numerics.eq.
+    indexed = sorted(enumerate(candidates), key=lambda pair: -pair[1].phi)
     i = 0
-    while i < len(candidates):
-        tier_phi = candidates[i].phi
+    while i < len(indexed):
+        tier_phi = indexed[i][1].phi
         j = i + 1
-        while j < len(candidates) and _utils.eq(candidates[j].phi, tier_phi):
+        while j < len(indexed) and _numerics.eq(indexed[j][1].phi, tier_phi):
             j += 1
-        yield list(candidates[i:j])
+        tier = sorted(indexed[i:j], key=lambda pair: pair[0])
+        yield [candidate for _, candidate in tier]
         i = j
 
 
@@ -154,20 +164,16 @@ def _resolve_clique_by_big_phi(clique: list[Candidate]) -> Candidate | None:
     at all.
     """
     from pyphi import resolve_ties
-    from pyphi.data_structures.pyphi_float import PyPhiFloat
 
     systems = [candidate.system_provider() for candidate in clique]
     keys = [_fingerprint_key(system) for system in systems]
     if len(set(keys)) == 1:
         return None
 
-    # PyPhiFloat makes the cascade's argmax precision-aware: Φ values that
-    # differ only by floating-point summation order (e.g. between two
-    # relabelings of one system) tie instead of resolving arbitrarily.
-    big_phis: dict[Any, PyPhiFloat] = {}
+    big_phis: dict[Any, float] = {}
     for system, key in zip(systems, keys, strict=True):
         if key not in big_phis:
-            big_phis[key] = PyPhiFloat(system.ces().big_phi)
+            big_phis[key] = float(system.ces().big_phi)
 
     @dataclass(frozen=True)
     class _CandidateProxy:
@@ -188,17 +194,18 @@ def _resolve_clique_by_big_phi(clique: list[Candidate]) -> Candidate | None:
 def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
     """Condense candidates into complexes by the recursive exclusion cascade.
 
-    ``candidates`` must be sorted by φₛ descending (a stable sort — ties
-    keep their input order). Within each φₛ tier, candidates overlapping an
-    accepted complex are dropped; survivors group into overlap cliques;
-    multi-member cliques escalate to Composition (Φ). A Φ-tied clique fails
-    exclusion: its members are removed, but their units stay available to
-    lower-φₛ candidates in later tiers.
+    ``candidates`` may arrive in any order; they are grouped into φₛ tiers
+    (descending) with tolerant membership. Within each tier, candidates
+    overlapping an accepted complex are dropped; survivors group into
+    overlap cliques; multi-member cliques escalate to Composition (Φ). A
+    Φ-tied clique fails exclusion: its members are removed, but their units
+    stay available to lower-φₛ candidates in later tiers. Within-tier
+    presentation order follows the input order.
     """
     accepted: list[Candidate] = []
     covered: set[int] = set()
     failed: list[tuple[Candidate, ...]] = []
-    for tier in _phi_groups(candidates):
+    for tier in _phi_tiers(candidates):
         survivors = [c for c in tier if not (c.footprint & covered)]
         if not survivors:
             continue
@@ -242,16 +249,18 @@ def iit3_exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutco
     """Condense candidates under IIT 3.0: the recursive tier walk with no
     Composition escalation.
 
-    Within a tier, candidates overlapping an accepted complex are dropped
-    and survivors group into overlap cliques; a clique with one member is
-    accepted directly, and a multi-member clique is indeterminate (IIT 3.0
-    has no paper-canonical system-level tie-break) — it fails exclusion and
-    the walk continues.
+    ``candidates`` may arrive in any order; they are grouped into φₛ tiers
+    (descending) with tolerant membership. Within a tier, candidates
+    overlapping an accepted complex are dropped and survivors group into
+    overlap cliques; a clique with one member is accepted directly, and a
+    multi-member clique is indeterminate (IIT 3.0 has no paper-canonical
+    system-level tie-break) — it fails exclusion and the walk continues.
+    Within-tier presentation order follows the input order.
     """
     accepted: list[Candidate] = []
     covered: set[int] = set()
     failed: list[tuple[Candidate, ...]] = []
-    for tier in _phi_groups(candidates):
+    for tier in _phi_tiers(candidates):
         survivors = [c for c in tier if not (c.footprint & covered)]
         if not survivors:
             continue

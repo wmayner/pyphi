@@ -66,7 +66,6 @@ class TestPhiValues:
         """
         result = s.sia()
         expected_phi = EXPECTED_PHI_VALUES["s"]
-        # Convert to float for comparison (result.phi is PyPhiFloat)
         actual_phi = float(result.phi)
         assert actual_phi == pytest.approx(expected_phi, rel=1e-13), (
             f"Standard example phi changed:\n"

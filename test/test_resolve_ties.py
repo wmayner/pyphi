@@ -372,6 +372,11 @@ def test_iit3_find_mip_consults_mip_tie_resolution():
     KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
     which selects argmin raw phi (paper-canonical IIT 3.0 mechanism
     MIP).
+
+    The probed mechanism/purview must yield more than one candidate
+    partition. resolve() short-circuits before consulting the strategy
+    when only a single candidate survives (there is no tie to break),
+    so a single-candidate probe would never look up the strategy name.
     """
     from dataclasses import replace
 
@@ -387,7 +392,7 @@ def test_iit3_find_mip_consults_mip_tie_resolution():
     with config.override(**bad):
         sys = System.from_substrate(substrate, state, substrate.node_indices)
         with pytest.raises(KeyError):
-            sys.find_mip(Direction.CAUSE, (1,), (2,))
+            sys.find_mip(Direction.CAUSE, (0,), (1, 2))
 
 
 def test_iit3_default_mip_tie_resolution_is_raw_phi():

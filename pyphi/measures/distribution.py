@@ -16,11 +16,11 @@ from scipy.spatial.distance import cdist
 from scipy.special import entr
 from scipy.special import rel_entr
 
+from pyphi import numerics
 from pyphi import utils
 from pyphi import validate
 from pyphi.cache import joblib_memory
 from pyphi.conf import config
-from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.distribution import flatten
 from pyphi.distribution import marginal
@@ -50,17 +50,21 @@ def _any_alphabet(_alphabet_sizes: tuple[int, ...]) -> bool:
     return True
 
 
-class DistanceResult(PyPhiFloat):
-    """A numeric result that can carry auxiliary data about its computation.
+class DistanceResult(float):
+    """A :class:`float` that carries auxiliary data about its computation.
 
-    DistanceResult extends PyPhiFloat to attach arbitrary metadata to phi values,
-    enabling introspection of how values were computed. This is particularly useful
-    in scientific workflows where understanding the provenance of results is
-    important.
+    A distance or φ value with arbitrary metadata attached, so the provenance of
+    a result (the measure used, the direction, the winning partition, and so on)
+    remains inspectable after the number has been produced.
 
-    The class behaves like a PyPhiFloat for all mathematical operations (comparisons,
-    arithmetic, min/max) while preserving metadata. This allows transparent use in
-    existing code while providing rich information for analysis.
+    Comparison and arithmetic follow exact :class:`float` semantics. Metadata is
+    preserved through :func:`min` / :func:`max` and copying, but is dropped by
+    plain arithmetic, which returns an ordinary float. Tolerant comparison of φ
+    values at decision points — where two values equal to within
+    ``config.numerics.precision`` should be treated as equal — is performed
+    explicitly through :mod:`pyphi.numerics` and
+    :func:`pyphi.resolve_ties.resolve_ties`, not by the comparison operators of
+    this type.
 
     Parameters
     ----------
@@ -71,8 +75,8 @@ class DistanceResult(PyPhiFloat):
 
     Attributes
     ----------
-    All attributes from float and PyPhiFloat are available, plus any metadata
-    passed as keyword arguments.
+    All :class:`float` attributes are available, plus any metadata passed as
+    keyword arguments.
 
     Notes
     -----
@@ -162,8 +166,8 @@ class DistanceResult(PyPhiFloat):
     def _public_aux_data(self) -> dict:
         """Auxiliary data the user attached at construction or via setattr.
 
-        Excludes underscore-prefixed names (used internally — e.g., for
-        the precision snapshot inherited from :class:`PyPhiFloat`)."""
+        Excludes underscore-prefixed names, which are reserved for internal
+        use."""
         return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
     def __repr__(self):
@@ -1076,6 +1080,8 @@ def approximate_specified_state(
 
         # TODO: nonbinary states.
         # If discriminant < tmp_inform, select the state that gives p < q.
+        # Exact comparison is intended: this is a documented approximation, so a
+        # sub-precision tie degrades an explicit guess, not an exact result.
         if discriminant < tmp_inform:
             specified_state = int(not informative_state(nonfixed_node)[0])
         else:
@@ -1305,13 +1311,14 @@ def pointwise_intrinsic_differentiation(p):
 
 @state_aware_measures.register("INTRINSIC_DIFFERENTIATION")
 def intrinsic_differentiation(p, state):
-    r"""Smallest strictly positive surprisal in a repertoire slice.
+    r"""Smallest positive surprisal in a repertoire slice.
 
     Selects ``p.squeeze()[state]``, takes its pointwise intrinsic
     differentiation (the surprisal :math:`-\log_2 p_i`; see
     :func:`pointwise_intrinsic_differentiation`), and returns the minimum
-    over the strictly positive entries. If no entry is strictly positive
-    (every selected probability equals ``1``), the result is ``0.0``.
+    over the entries that are positive up to ``config.numerics.precision``.
+    If no entry is positive (every selected probability equals ``1`` up to
+    floating-point noise), the result is ``0.0``.
 
     Parameters
     ----------
@@ -1327,9 +1334,8 @@ def intrinsic_differentiation(p, state):
         ``method="INTRINSIC_DIFFERENTIATION"``.
     """
     p = p.squeeze()[state]
-    positive_entries = pointwise_intrinsic_differentiation(p)[
-        pointwise_intrinsic_differentiation(p) > 0
-    ]
+    surprisal = pointwise_intrinsic_differentiation(p)
+    positive_entries = surprisal[numerics.positive_mask(surprisal)]
     return DistanceResult(
         np.min(positive_entries) if positive_entries.size > 0 else 0.0,
         method="INTRINSIC_DIFFERENTIATION",
@@ -1464,6 +1470,9 @@ def pointwise_mutual_information(p: float, q: float) -> float:
     float
         the pointwise mutual information.
     """
+    # Exact comparison is intended: probabilities from the transition plumbing
+    # are exactly 0 or bounded away from 0; see
+    # test/measures/test_precision_confirmations.py
     if p == 0.0 or q == 0.0:
         return 0.0
     return log2(p / q)

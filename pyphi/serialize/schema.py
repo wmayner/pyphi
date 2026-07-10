@@ -18,18 +18,14 @@ class DirectionSchema(msgspec.Struct, frozen=True, tag="direction"):
 # --- Simple value types -------------------------------------------------------
 
 
-class PyPhiFloatSchema(msgspec.Struct, frozen=True, tag="pyphi_float"):
-    value: float
-
-
 class DistanceResultSchema(msgspec.Struct, frozen=True, tag="distance_result"):
     value: float
     aux: dict[str, Any] = msgspec.field(default_factory=dict)
 
 
-# A phi value is either a plain float or a distance result with auxiliary data;
-# the Struct tag preserves which type to reconstruct.
-PhiSchema = PyPhiFloatSchema | DistanceResultSchema
+# A φ value is either a native float or a distance result with auxiliary data;
+# the Struct tag distinguishes the latter, so a bare number decodes as a float.
+PhiSchema = float | DistanceResultSchema
 
 
 class NodeLabelsSchema(msgspec.Struct, frozen=True, tag="node_labels"):
@@ -472,7 +468,6 @@ class PhiPosteriorSchema(msgspec.Struct, frozen=True, tag="phi_posterior"):
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
-    | PyPhiFloatSchema
     | DistanceResultSchema
     | NodeLabelsSchema
     | StateSpecificationSchema

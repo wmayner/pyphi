@@ -52,7 +52,6 @@ from .distinctions import distinction_table_row
 from .pandas import ToPandasMixin
 
 if TYPE_CHECKING:
-    from pyphi.data_structures import PyPhiFloat
     from pyphi.relations import Relations
 
 
@@ -100,7 +99,7 @@ class CauseEffectStructure(
         """
         return True
 
-    def order_by(self) -> PyPhiFloat:
+    def order_by(self) -> float:
         return self.sia.phi
 
     def __hash__(self) -> int:
@@ -201,6 +200,7 @@ class CauseEffectStructure(
 
     @property
     def big_phi(self):
+        """float: Φ, the sum of distinction and relation φ."""
         return self.sum_phi_distinctions + self.sum_phi_relations
 
     def _resolve_members(self, items) -> list:
@@ -363,7 +363,7 @@ class CauseEffectStructure(
         return relabel_ces(self, mapping, node_labels=node_labels)
 
     def _changes(self, other) -> tuple[Change, ...]:
-        from pyphi import utils
+        from pyphi import numerics
 
         changes: list[Change] = []
         a_by_mech = {d.mechanism: d for d in self.distinctions}
@@ -379,7 +379,7 @@ class CauseEffectStructure(
         for mech in a_by_mech.keys() & b_by_mech.keys():
             da, db = a_by_mech[mech], b_by_mech[mech]
             changed = (
-                not utils.eq(float(da.phi), float(db.phi))
+                not numerics.eq(float(da.phi), float(db.phi))
                 or da.cause.purview != db.cause.purview
                 or da.effect.purview != db.effect.purview
             )

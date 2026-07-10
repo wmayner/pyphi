@@ -4,7 +4,7 @@
 from fractions import Fraction
 from typing import Any
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import config
 
 # Unicode symbols
@@ -48,7 +48,7 @@ def fmt_number(p: Any) -> str:
     return (
         str(nice)
         if (
-            utils.eq(float(fraction), float(nice))
+            numerics.eq(float(fraction), float(nice))
             and nice.denominator in NICE_DENOMINATORS
         )
         else formatted

@@ -18,9 +18,8 @@ from typing import Any
 import pandas as pd
 from numpy.typing import ArrayLike
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import config
-from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -89,7 +88,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     state : tuple[int, ...]
         The specified purview state: the state that maximizes the intrinsic
         information over ``purview``.
-    intrinsic_information : PyPhiFloat or DistanceResult
+    intrinsic_information : float or DistanceResult
         The intrinsic information of the specified state.
     repertoire : ArrayLike
         The constrained cause or effect repertoire over ``purview``.
@@ -98,7 +97,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         maximum uncertainty about the mechanism).
     runner_up_state : tuple[int, ...] or None
         The best competing purview state, if any.
-    runner_up_intrinsic_information : PyPhiFloat or DistanceResult or None
+    runner_up_intrinsic_information : float or DistanceResult or None
         The intrinsic information of ``runner_up_state``; ``None`` when there
         was no competing state.
     """
@@ -106,20 +105,20 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     direction: Direction
     purview: tuple[int, ...]
     state: tuple[int, ...]
-    intrinsic_information: PyPhiFloat | DistanceResult
+    intrinsic_information: float | DistanceResult
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
     _ties: tuple[StateSpecification, ...] = ()
     runner_up_state: tuple[int, ...] | None = None
-    runner_up_intrinsic_information: PyPhiFloat | DistanceResult | None = None
+    runner_up_intrinsic_information: float | DistanceResult | None = None
 
     def __post_init__(self):
         if not isinstance(self.intrinsic_information, DistanceResult):
-            self.intrinsic_information = PyPhiFloat(self.intrinsic_information)
+            self.intrinsic_information = float(self.intrinsic_information)
         if self.runner_up_intrinsic_information is not None and not isinstance(
             self.runner_up_intrinsic_information, DistanceResult
         ):
-            self.runner_up_intrinsic_information = PyPhiFloat(
+            self.runner_up_intrinsic_information = float(
                 self.runner_up_intrinsic_information
             )
 
@@ -131,7 +130,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         return self._ties
 
     @property
-    def state_margin(self) -> PyPhiFloat | None:
+    def state_margin(self) -> float | None:
         """The intrinsic-information gap between this specified state and the
         best competing state over the same purview.
 
@@ -141,12 +140,13 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         """
         if self.runner_up_intrinsic_information is None:
             return None
-        return PyPhiFloat(
-            max(
-                0.0,
-                float(self.intrinsic_information)
-                - float(self.runner_up_intrinsic_information),
-            )
+        # Clamps the reported ii gap to non-negative; the winning state was
+        # already selected upstream.
+        # numerics: exact — reported margin, not a selection.
+        return max(
+            0.0,
+            float(self.intrinsic_information)
+            - float(self.runner_up_intrinsic_information),
         )
 
     def __getitem__(self, i: int) -> int:
@@ -161,7 +161,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
             return False
         if self.state != other.state:
             return False
-        if not utils.eq(self.intrinsic_information, other.intrinsic_information):
+        if not numerics.eq(self.intrinsic_information, other.intrinsic_information):
             return False
         if not cmp.numpy_aware_eq(self.repertoire, other.repertoire):
             return False
