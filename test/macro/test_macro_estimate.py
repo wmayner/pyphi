@@ -131,3 +131,28 @@ class TestAgainstRealSweeps:
         # (if any) are discarded at run time, so records may be fewer.
         assert est.distinct_systems_upper_bound == 15
         assert est.distinct_systems_upper_bound >= len(result.records)
+
+
+class TestPartitionWeights:
+    def test_partition_counts_pinned(self):
+        # Measured values under DIRECTED_SET_PARTITION.
+        with config.override(**presets.iit4_2023):
+            est = estimate_search(SearchBounds(max_depth=0), 5)
+        assert est.partitions_by_unit_count == {
+            1: 1,
+            2: 3,
+            3: 22,
+            4: 150,
+            5: 1061,
+        }
+
+    def test_partition_sweeps_are_weighted_sum(self):
+        with config.override(**presets.iit4_2023):
+            est = estimate_search(SearchBounds(max_depth=0), 3)
+        expected = sum(
+            est.systems_by_unit_count[m] * est.partitions_by_unit_count[m]
+            for m in est.systems_by_unit_count
+        )
+        assert est.partition_sweeps_upper_bound == expected
+        # n=3 subsets: 3 singletons + 3 pairs + 1 triple.
+        assert expected == 3 * 1 + 3 * 3 + 1 * 22
