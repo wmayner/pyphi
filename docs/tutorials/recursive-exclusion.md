@@ -20,7 +20,7 @@ kernelspec:
 The exclusion postulate says that candidate systems sharing units cannot
 both exist: among overlapping candidates, only one specifies its
 cause–effect structure. PyPhi applies the postulate *recursively*
-(Marshall, Albantakis, and Tononi, 2023): candidates are walked in
+(Marshall et al., 2023): candidates are walked in
 descending order of system integrated information $\varphi_s$, each
 accepted complex claims its units, and — crucially — a candidate excluded
 by an accepted complex no longer exists, so it cannot exclude anything
@@ -29,7 +29,7 @@ else in turn.
 This recursion has a consequence that surprises many readers: **a complex
 can coexist with an overlapping candidate of higher $\varphi_s$**, as long
 as that candidate was itself excluded by some other complex. This tutorial
-builds the smallest substrate where that happens, finds its complexes, and
+builds a small substrate where that happens, finds its complexes, and
 reads the exclusion records and selection margins that document who beat
 whom.
 
@@ -94,10 +94,12 @@ the candidates that remain.
 Each complex records the overlapping candidates excluded in its favor:
 
 ```{code-cell} python
-cd = found[1]
+from pyphi import utils
+
+phi = float(cd.phi)
 for record in sorted(cd.excluded, key=lambda r: -r.phi):
-    marker = "shadow" if record.phi > float(cd.phi) else "beaten"
-    print(f"{record.node_indices}  φₛ={record.phi:.4f}  [{marker}]")
+    beaten = record.phi < phi or utils.eq(record.phi, phi)
+    print(f"{record.node_indices}  φₛ={record.phi:.4f}  [{'beaten' if beaten else 'shadow'}]")
 ```
 
 $\{C,D\}$'s records contain candidates with **higher** $\varphi_s$ than
@@ -131,7 +133,7 @@ configured precision and the selection was decided beyond $\varphi_s$; see
 
 ## References
 
-- Marshall W, Albantakis L, Tononi G (2023). System integrated information.
+- Marshall W, et al. (2023). System integrated information.
   *Entropy* 25(2):334, Algorithm A1.
 - Albantakis L et al. (2023). Integrated information theory (IIT) 4.0.
   *PLoS Computational Biology* 19(10):e1011465 (the exclusion postulate).

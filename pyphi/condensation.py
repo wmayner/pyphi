@@ -1,8 +1,8 @@
 # condensation.py
 """Condensation of candidate systems into complexes.
 
-Implements the recursive exclusion cascade (Marshall, Albantakis, Tononi
-2023, Algorithm A1; Albantakis et al. 2023, Exclusion): walk candidates in
+Implements the recursive exclusion cascade (Marshall et al. 2023,
+Algorithm A1; Albantakis et al. 2023, Exclusion): walk candidates in
 descending φₛ tiers, accept each tier's overlap-clique winners, and drop
 candidates that overlap an accepted complex. Ties within a clique escalate
 to Composition (big Φ) per the S1 tie-resolution supplement; a clique whose

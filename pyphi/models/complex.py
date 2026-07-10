@@ -138,9 +138,10 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         recursive, ``excluded`` may also contain overlapping candidates
         with higher φₛ — carved away by a different complex before this
         one was accepted — and those do not enter the margin. A margin
-        of zero means an overlapping rival tied at ``precision``: the
-        selection was decided beyond φₛ, either by escalation within the
-        tie clique or by the rival's overlap with another complex.
+        of zero indicates an overlapping rival within ``precision`` of
+        this complex's own φₛ: the selection was decided beyond φₛ,
+        either by escalation within the tie clique or by the rival's
+        overlap with another complex.
         """
         phi = float(self.phi)
         rivals = [
@@ -152,7 +153,10 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     @property
     def effectively_tied(self) -> bool:
-        """Whether the exclusion margin is within ``precision`` of zero."""
+        """Whether the exclusion margin is within ``precision`` of zero.
+
+        ``False`` when the margin is ``None`` (no beaten rival).
+        """
         margin = self.exclusion_margin
         return margin is not None and utils.eq(margin, 0.0)
 
