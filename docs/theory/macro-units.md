@@ -27,16 +27,17 @@ bounding the search see {doc}`Search across grains <../howto/grain-search>`.
 ## Units at a grain
 
 A macro unit is a coarser unit built from finer ones. Formally it is a tuple of
-its direct constituents, an update grain, and a mapping (Marshall et al., 2024,
-Eq. 11): the constituents $V$ are the finer units it is composed of; the update
+its direct constituents, an update grain, and a mapping — the core of the unit
+tuple of Eq. 11 (Marshall et al., 2024): the constituents $V$ are the finer
+units it is composed of; the update
 grain $\tau'$ is the number of micro updates over which those constituents are
 read; and the mapping $g'$ is a truth table that assigns a binary macro state to
 each joint sequence-state of the constituents over the window (Eq. 13),
 
-$$ g' : \Omega^{V} \to \{0, 1\}. $$
+$$ g' : \Omega^{\tau'}_{V} \to \{0, 1\}. $$
 
 At update grain 1 the mapping reads a single joint state of the constituents. At
-grain $\tau' > 1$ it reads a *sequence* of $\tau'$ successive micro states, so
+grain $\tau' > 1$ it reads a *sequence* of $\tau'$ successive constituent states, so
 the macro state depends on the trajectory, not only on the final micro state.
 
 Two mapping families cover the common cases. A **coarse-graining** groups the
@@ -45,7 +46,8 @@ chosen set of counts, at update grain 1. A **blackboxing** reads out a
 designated subset of *output* constituents at the final update of the window,
 and admits any update grain. These are the two families the default search
 enumerates; the full space is every non-constant mapping. The number of possible
-mappings for a unit with $|V|$ constituents at update grain $\tau'$ is
+mappings for a unit with $|V|$ constituents at update grain $\tau'$, counted up
+to complementation of the two macro state labels, is
 
 $$ 2^{\,2^{\tau'|V|} - 1} - 1 $$
 

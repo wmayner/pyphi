@@ -145,8 +145,8 @@ for complex_ in result.complexes:
     print(complex_.node_indices, round(complex_.phi, 6), grains)
 ```
 
-Every winner reports its `exclusion_margin` — how far ahead of its best
-competitor it finished, in φₛ — and whether that margin is small enough to
+Every winner reports its `exclusion_margin` — how far it finished ahead of the
+best rival it beat, in φₛ — and whether that margin is small enough to
 count as an effective tie at the configured precision:
 
 ```{code-cell} python
@@ -154,18 +154,21 @@ winner = result.maximal_complex
 round(winner.exclusion_margin, 6), winner.effectively_tied
 ```
 
-Each winner also carries the candidates it excluded, in `excluded`. A
-candidate can be excluded even though its own φₛ is substantial — a *shadow*.
-Here the winner is a coarse-graining of both units, and its strongest shadow is
-a different coarse-graining over the same two units:
+Each winner also carries the candidates it excluded, in `excluded`. Here the
+winner is a coarse-graining of both units, and its strongest beaten rival is a
+*blackboxing* of the same two units:
 
 ```{code-cell} python
-shadow = max(winner.excluded, key=lambda candidate: candidate.phi)
-shadow.node_indices, round(shadow.phi, 6)
+rival = max(winner.excluded, key=lambda candidate: candidate.phi)
+rival.node_indices, round(rival.phi, 6)
 ```
 
-Exclusion is recursive: an excluded candidate cannot in turn exclude anything.
-For how the cascade resolves overlapping candidates, see the
+In a condensation with several complexes, `excluded` can also hold *shadows* —
+candidates whose own φₛ is *higher* than the complex they appear under, kept out
+not by it but by a different complex that carved their footprint away. There is
+a single complex here, so no shadows arise. Exclusion is recursive: an excluded
+candidate cannot in turn exclude anything. For how the cascade resolves
+overlapping candidates, see the
 {doc}`recursive-exclusion tutorial <../tutorials/recursive-exclusion>`.
 
 `records` holds every system the search actually evaluated, so its length is
@@ -176,8 +179,9 @@ case of eight candidate systems was reached exactly.
 len(result.records), estimate.distinct_systems_upper_bound
 ```
 
-`ties` holds any winners that finished exactly tied and so were all kept. It is
-empty when the maximal complex is unique:
+`ties` holds cliques of overlapping candidates that stayed tied even through Φ
+escalation and so failed exclusion — none of them is a complex. It is empty
+here:
 
 ```{code-cell} python
 result.ties

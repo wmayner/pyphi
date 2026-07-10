@@ -268,7 +268,8 @@ count.
   set-partition growth of the earlier table (Bell numbers), with each group capped
   at `max_constituents` units.
 - *Mappings.* Each group of $|V|$ constituents read over an update grain $\tau'$
-  admits $2^{\,2^{\tau'|V|} - 1} - 1$ non-constant state mappings (Marshall et al.,
+  admits $2^{\,2^{\tau'|V|} - 1} - 1$ state mappings, counted up to complementation
+  of the macro state labels (Marshall et al.,
   2024, given after Eq. 13), doubly exponential in $\tau'|V|$: a pair at grain 1
   already admits 7, three constituents 127, four constituents 32 767. This is why
   the default search enumerates only the coarse-graining and blackboxing families
@@ -291,8 +292,8 @@ al., 2024, Fig. 3E).
 
 **What one candidate costs.** Two separate costs attach to each candidate.
 Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ per
-distinct (footprint, grain) key, and is memoized, so grained and mapped variants
-over the same micro footprint share the work. Evaluating its $\varphi_s$ is a full
+candidate; the estimate's `construction_keys_upper_bound` counts the distinct
+(footprint, grain) keys this work factors over. Evaluating its $\varphi_s$ is a full
 IIT 4.0 system analysis over the candidate's $m$ macro units, so it sweeps the same
 `DIRECTED_SET_PARTITION` system cuts as the previous section, now counted in the
 macro unit count $m$:
@@ -347,10 +348,12 @@ estimate.distinct_systems_upper_bound
 ```
 
 The count is an exact worst case: it assumes every judged decomposition passes the
-criteria, so the search can only do less work than reported, never more. Its
-first-level judgments are exact, since the micro units are given, while deeper
-levels assume all-pass and are upper bounds — which is why `is_exact` is `True`
-only at `max_depth=0`. The counting walk stops if it exceeds an internal `limit`
+criteria, so the search can only do less work than reported, never more. The
+first-level judgment counts are exact, since the micro units are given, but the
+mapped and grained variants those judgments spawn already assume every candidate
+passes, so any macroing level makes the totals a worst case — which is why
+`is_exact` is `True` only at `max_depth=0`, where no judgment happens at all. The
+counting walk stops if it exceeds an internal `limit`
 (`truncated`), reporting lower bounds when it does. Comparing
 `distinct_systems_upper_bound` against `len(result.records)` after a run shows how
 much of the worst case the substrate actually forced.
