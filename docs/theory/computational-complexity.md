@@ -249,6 +249,112 @@ enough to sever into independent parts is by the same token one for which
 $\varphi_s = 0$. Connectivity thus determines the practical ceiling at least as
 much as unit count does.
 
+## The cost of the grain search
+
+The sections above cost a *single* IIT 4.0 analysis, evaluated at the micro
+grain. When the units that exist for a substrate are not its smallest parts, the
+analysis must instead search over grains — grouping micro units into macro units,
+reading them over windows of several updates, and asking which grouping maximizes
+$\varphi_s$ (Marshall et al., 2024). This search wraps a full system-$\varphi_s$
+computation inside a further combinatorial sweep, so its cost is the per-candidate
+cost of the previous sections multiplied by the number of candidates the sweep
+visits. The theory is on the {doc}`macro-units page <macro-units>`; running and
+bounding the search is covered in {doc}`../howto/grain-search`.
+
+**The axes of the sweep.** Four combinatorial choices compound into the candidate
+count.
+
+- *Decompositions.* Partitioning the micro units into groups follows the
+  set-partition growth of the earlier table (Bell numbers), with each group capped
+  at `max_constituents` units.
+- *Mappings.* Each group of $|V|$ constituents read over an update grain $\tau'$
+  admits $2^{\,2^{\tau'|V|} - 1} - 1$ non-constant state mappings (Marshall et al.,
+  2024, given after Eq. 13), doubly exponential in $\tau'|V|$: a pair at grain 1
+  already admits 7, three constituents 127, four constituents 32 767. This is why
+  the default search enumerates only the coarse-graining and blackboxing families
+  and bounds the exhaustive alternative with `exhaustive_cap`.
+- *Update grains.* Each macroing level contributes its own temporal window, and the
+  grains multiply down a hierarchy of depth `max_depth`; the product
+  `max_update_grain ** max_depth` is the length of micro history the search then
+  requires.
+- *Assemblies.* Valid units combine into a candidate system only when their micro
+  footprints and backgrounds are disjoint (Marshall et al., 2024, Eq. 18).
+
+One structural fact keeps this short of the full product of the four axes. The
+intrinsic-unit criteria (Marshall et al., 2024, Eqs. 15–16) are properties of a
+decomposition and its background alone — a candidate's mapping and update grain
+enter neither inequality — so the search judges each decomposition *once*, and that
+single verdict covers all of its mapped and grained variants. Building a unit on
+meso constituents rather than in one shot on the micro units narrows the mapping
+axis further, because the meso units' own mappings are already fixed (Marshall et
+al., 2024, Fig. 3E).
+
+**What one candidate costs.** Two separate costs attach to each candidate.
+Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ per
+distinct (footprint, grain) key, and is memoized, so grained and mapped variants
+over the same micro footprint share the work. Evaluating its $\varphi_s$ is a full
+IIT 4.0 system analysis over the candidate's $m$ macro units, so it sweeps the same
+`DIRECTED_SET_PARTITION` system cuts as the previous section, now counted in the
+macro unit count $m$:
+
+| macro units $m$ | directed set partitions |
+|---|---|
+| 1 | 1 |
+| 2 | 3 |
+| 3 | 22 |
+| 4 | 150 |
+| 5 | 1 061 |
+| 6 | 7 896 |
+
+The $\varphi_s$ evaluations dominate: macro-TPM construction is polynomial in the
+fixed micro size $n$, while the partition sweep grows with $m$ and is paid for
+every candidate.
+
+**Measured shape.** On the four-unit substrate of Example 1 from Marshall et al.
+(2024) — the coarse-graining example rediscovered in the
+{doc}`intrinsic-units tutorial <../tutorials/macro>` — the default bounds (one
+macroing level, update grain 1, the coarse-graining and blackboxing families)
+evaluate about eighty candidate systems and finish in on the order of a second on
+this hardware, almost all of it in the $\varphi_s$ evaluations rather than in
+constructing the macro TPMs.
+
+**Pre-flight before running.** Because the candidate count can grow quickly,
+`SearchBounds.estimate` counts the systems a set of bounds would visit — walking the
+search's own enumerators with lightweight stand-in units — before any macro TPM is
+built or any $\varphi_s$ computed:
+
+```{code-cell} python
+import numpy as np
+
+import pyphi
+from pyphi.conf import presets
+from pyphi.macro import SearchBounds
+from pyphi.substrate import Substrate
+
+tpm = np.array(
+    [
+        [0.05, 0.05],
+        [0.05, 0.06],
+        [0.06, 0.05],
+        [0.95, 0.95],
+    ]
+)
+substrate = Substrate(tpm, node_labels=("A", "B"))
+
+with pyphi.config.override(**presets.iit4_2023):
+    estimate = SearchBounds().estimate(substrate)
+estimate.distinct_systems_upper_bound
+```
+
+The count is an exact worst case: it assumes every judged decomposition passes the
+criteria, so the search can only do less work than reported, never more. Its
+first-level judgments are exact, since the micro units are given, while deeper
+levels assume all-pass and are upper bounds — which is why `is_exact` is `True`
+only at `max_depth=0`. The counting walk stops if it exceeds an internal `limit`
+(`truncated`), reporting lower bounds when it does. Comparing
+`distinct_systems_upper_bound` against `len(result.records)` after a run shows how
+much of the worst case the substrate actually forced.
+
 ## Reducing the cost
 
 Several options change how much of the search PyPhi actually performs. They fall
@@ -449,6 +555,8 @@ account fits a base of 2.3 after dividing out $n^5$ over the measured range.
   Biology* 14(7): e1006343.
 - Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023). Integrated
   information theory (IIT) 4.0. *PLOS Computational Biology* 19(10): e1011465.
+- Marshall W, Findlay G, Albantakis L, Tononi G (2024). Intrinsic units:
+  identifying a system's causal grain. *bioRxiv* 2024.04.12.589163.
 - Zaeemzadeh A, Tononi G (2024). Upper bounds for integrated information.
   *PLOS Computational Biology* 20(8): e1012323.
 - Hanson JR, Walker SI (2023). On the non-uniqueness problem in integrated
