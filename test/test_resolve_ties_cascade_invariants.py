@@ -17,6 +17,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi import config
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi.resolve_ties import CascadeLevel
 from pyphi.resolve_ties import NotAComplex
@@ -91,6 +92,10 @@ class TestCascadeStructuralInvariants:
     @settings(max_examples=80, deadline=None, suppress_health_check=_HEALTH_CHECKS)
     @given(candidates=_candidate_list_strategy)
     def test_resolved_winner_attains_max_phi(self, candidates):
+        """The winner (and any unresolved survivor) attains the maximum
+        phi up to ``config.numerics.precision``: cascade levels cluster
+        float keys via ``numerics.eq``, so within-tolerance candidates
+        form a genuine tie."""
         ctx = ResolutionContext(max_escalation_level="Integration")
         outcome = cascade(
             candidates,
@@ -100,12 +105,12 @@ class TestCascadeStructuralInvariants:
         )
         max_phi = max(c.phi for c in candidates)
         if outcome.resolved is not None:
-            assert outcome.resolved.phi == max_phi
+            assert numerics.eq(outcome.resolved.phi, max_phi)
         if outcome.outcome == "UNRESOLVED_WITHIN_BUDGET":
-            # When unresolved, every survivor must attain max phi at the
-            # final processed level.
+            # When unresolved, every survivor must attain max phi (up to
+            # precision) at the final processed level.
             for member in outcome.tied_set:
-                assert member.phi == max_phi
+                assert numerics.eq(member.phi, max_phi)
 
     @settings(max_examples=80, deadline=None, suppress_health_check=_HEALTH_CHECKS)
     @given(
@@ -200,7 +205,8 @@ class TestCascadeMonotonicity:
     @given(candidates=st.lists(_candidate_strategy, min_size=2, max_size=8))
     def test_resolution_at_composition_implies_phi_tied(self, candidates):
         """When the cascade reports ``cascade_level='Composition'``, all
-        survivors up to that level were tied at the Integration key."""
+        survivors up to that level were tied at the Integration key up to
+        ``config.numerics.precision``."""
         ctx = ResolutionContext(max_escalation_level="Composition")
         outcome = cascade(
             candidates,
@@ -209,10 +215,11 @@ class TestCascadeMonotonicity:
             on_unresolved="defer",
         )
         if outcome.outcome == "RESOLVED" and outcome.cascade_level == "Composition":
-            phi_values = {c.phi for c in outcome.tied_set}
-            assert len(phi_values) == 1, (
+            phi_values = [c.phi for c in outcome.tied_set]
+            max_phi = max(phi_values)
+            assert all(numerics.eq(phi, max_phi) for phi in phi_values), (
                 "Composition-level resolution requires all tied-set members "
-                f"to share a phi value; got {phi_values}"
+                f"to share a phi value up to precision; got {phi_values}"
             )
 
 
