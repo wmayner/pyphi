@@ -94,12 +94,12 @@ the candidates that remain.
 Each complex records the overlapping candidates excluded in its favor:
 
 ```{code-cell} python
-from pyphi import utils
+from pyphi import numerics
 
 cd = found[1]
 phi = float(cd.phi)
 for record in sorted(cd.excluded, key=lambda r: -r.phi):
-    beaten = record.phi < phi or utils.eq(record.phi, phi)
+    beaten = record.phi < phi or numerics.eq(record.phi, phi)
     print(f"{record.node_indices}  φₛ={record.phi:.4f}  [{'beaten' if beaten else 'shadow'}]")
 ```
 
