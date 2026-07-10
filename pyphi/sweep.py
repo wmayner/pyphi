@@ -17,6 +17,7 @@ from typing import Any
 import pandas as pd
 
 from pyphi import exceptions
+from pyphi import numerics
 from pyphi import utils
 from pyphi.conf import config
 from pyphi.conf import presets
@@ -119,7 +120,7 @@ def _row_sia(result: Any) -> dict[str, Any]:
     return {
         "phi": float(result.phi),
         "normalized_phi": float(getattr(result, "normalized_phi", float("nan"))),
-        "is_irreducible": utils.is_positive(result.phi),
+        "is_irreducible": numerics.is_positive(result.phi),
     }
 
 

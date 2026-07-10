@@ -363,7 +363,7 @@ class CauseEffectStructure(
         return relabel_ces(self, mapping, node_labels=node_labels)
 
     def _changes(self, other) -> tuple[Change, ...]:
-        from pyphi import utils
+        from pyphi import numerics
 
         changes: list[Change] = []
         a_by_mech = {d.mechanism: d for d in self.distinctions}
@@ -379,7 +379,7 @@ class CauseEffectStructure(
         for mech in a_by_mech.keys() & b_by_mech.keys():
             da, db = a_by_mech[mech], b_by_mech[mech]
             changed = (
-                not utils.eq(float(da.phi), float(db.phi))
+                not numerics.eq(float(da.phi), float(db.phi))
                 or da.cause.purview != db.cause.purview
                 or da.effect.purview != db.effect.purview
             )

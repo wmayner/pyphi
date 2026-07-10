@@ -4,7 +4,7 @@
 from typing import Any
 
 from pyphi.conf import config
-from pyphi.utils import eq
+from pyphi.numerics import eq
 
 _NUMERIC_TYPES = (int, float)
 
@@ -28,7 +28,7 @@ class PyPhiFloat(float):
     Notes
     -----
     Comparisons read ``config.numerics.precision`` at call time, through
-    :func:`pyphi.utils.eq`. Hashing, in contrast, uses the precision captured
+    :func:`pyphi.numerics.eq`. Hashing, in contrast, uses the precision captured
     when the instance was constructed (stored in the private ``_precision``
     attribute): ``__hash__`` returns ``hash(round(self, _precision))``, so two
     values equal to that many digits share a hash. Snapshotting the precision at

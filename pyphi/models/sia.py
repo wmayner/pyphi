@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.display import PROVENANCE
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -242,11 +242,11 @@ class IIT3SystemIrreducibilityAnalysis(
             return False
         if self.current_state != other.current_state:
             return False
-        return utils.eq(self.phi, other.phi)
+        return numerics.eq(self.phi, other.phi)
 
     def __bool__(self):
         """A SystemIrreducibilityAnalysis is ``True`` if it has Φ > 0."""
-        return not utils.eq(self.phi, 0)
+        return not numerics.eq(self.phi, 0)
 
     def __hash__(self) -> int:
         return hash(

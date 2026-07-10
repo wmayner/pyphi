@@ -23,6 +23,7 @@ from more_itertools import unique_everseen
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
+from pyphi import numerics
 from pyphi import utils
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -439,13 +440,13 @@ class RepertoireIrreducibilityAnalysis(
             return False
         if self.specified_state != other.specified_state:
             return False
-        if not utils.eq(self.phi, other.phi):
+        if not numerics.eq(self.phi, other.phi):
             return False
         return cmp.numpy_aware_eq(self.repertoire, other.repertoire)
 
     def __bool__(self):
         """A RepertoireIrreducibilityAnalysis is ``True`` if it has φ > 0."""
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def __hash__(self) -> int:
         # specified_state must be in __hash__ (not just __eq__): RIA.ties uses

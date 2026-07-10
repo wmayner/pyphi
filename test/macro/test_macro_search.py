@@ -7,7 +7,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi import config
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import judge_candidate
@@ -242,7 +242,7 @@ class TestGrainRaisedSingleton:
         with config.override(**presets.iit4_2023):
             verdict = is_intrinsic_unit(_asymmetric_substrate(), unit, history, bounds)
         assert verdict.num_competitors == 0
-        assert verdict.valid == utils.is_positive(verdict.phi)
+        assert verdict.valid == numerics.is_positive(verdict.phi)
         assert verdict.reason in (Reason.VALID, Reason.NOT_INTEGRATED)
 
 
@@ -591,7 +591,7 @@ class TestTiePath:
         assert all(s.units[0].mapping == (0, 1, 1, 1) for s in top)
         phis = {r.system: r.phi for r in result.records}
         a, b = top
-        assert utils.eq(phis[a], phis[b])
+        assert numerics.eq(phis[a], phis[b])
         assert phis[a] == pytest.approx(0.3881829280978132, abs=1e-13)
         # The accepted complex is the symmetric three-singleton system.
         assert len(result.complexes) == 1

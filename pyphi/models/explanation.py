@@ -16,7 +16,7 @@ from enum import auto
 from enum import unique
 from typing import Any
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -83,7 +83,7 @@ class RunnerUp:
 def runner_up_from_candidates(candidates: Any, mip_phi: Any) -> RunnerUp | None:
     """The lowest-phi candidate whose phi is *strictly* greater than ``mip_phi``.
 
-    Candidates that tie the MIP (within :func:`pyphi.utils.eq`) are tied peers,
+    Candidates that tie the MIP (within :func:`pyphi.numerics.eq`) are tied peers,
     not runners-up, so they are excluded. Returns ``None`` when the MIP is the
     unique phi value. Each candidate must expose ``.phi`` and ``.partition``.
     """
@@ -93,7 +93,7 @@ def runner_up_from_candidates(candidates: Any, mip_phi: Any) -> RunnerUp | None:
         phi = float(candidate.phi)
         if (
             phi > mip
-            and not utils.eq(phi, mip)
+            and not numerics.eq(phi, mip)
             and (best is None or phi < float(best.phi))
         ):
             best = candidate

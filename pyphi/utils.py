@@ -18,7 +18,7 @@ from typing import Any
 import numpy as np
 from scipy.special import comb
 
-from .conf import config
+from . import numerics
 
 
 # TODO(states) refactor
@@ -135,26 +135,6 @@ class np_hashable:
 
     def __repr__(self) -> str:
         return repr(self._array)
-
-
-def eq(x: float, y: float) -> bool:
-    """Compare two values for equality up to ``config.numerics.precision``."""
-    # TODO: just use float value in config
-    precision = int(config.numerics.precision)
-    epsilon = 10 ** (-precision)
-    return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
-
-
-def is_positive(x: float) -> bool:
-    """Return whether ``x`` is positive up to ``config.numerics.precision``."""
-    # Need `bool` to cast from numpy to native Boolean
-    return not eq(x, 0) and bool(x > 0)
-
-
-def is_nonpositive(x: float) -> bool:
-    """Return True if x is a nonpositive value."""
-    # Need `bool` to cast from numpy to native Boolean
-    return bool(x <= 0)
 
 
 def is_falsy(x: object) -> bool:
@@ -443,8 +423,11 @@ def all_same(comparison: Callable, seq: Generator | list) -> bool:
     return all(comparison(first, other) for other in seq)
 
 
-# Compare equality up to precision
-all_are_equal = functools.partial(all_same, eq)
+def all_are_equal(seq: Generator | list) -> bool:
+    """Return whether all elements are equal up to ``config.numerics.precision``."""
+    return all_same(numerics.eq, seq)
+
+
 all_are_identical = functools.partial(all_same, operator.is_)
 
 

@@ -4,7 +4,7 @@ import pytest
 
 import pyphi
 from pyphi import examples
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import config
 from pyphi.core import repertoire_algebra as ra
 from pyphi.direction import Direction
@@ -134,15 +134,15 @@ def test_partition_margin_zero_for_symmetric_substrate():
 
 
 def test_effectively_tied_fires_on_state_tie(xor_sia):
-    assert utils.eq(float(xor_sia.state_margins[Direction.CAUSE]), 0.0)
+    assert numerics.eq(float(xor_sia.state_margins[Direction.CAUSE]), 0.0)
     assert xor_sia.effectively_tied
 
 
 def test_untied_system_is_not_flagged(basic_sia):
     assert basic_sia.partition_margin is not None
-    assert not utils.eq(float(basic_sia.partition_margin), 0.0)
+    assert not numerics.eq(float(basic_sia.partition_margin), 0.0)
     assert all(
-        margin is None or not utils.eq(float(margin), 0.0)
+        margin is None or not numerics.eq(float(margin), 0.0)
         for margin in basic_sia.state_margins.values()
     )
     assert not basic_sia.effectively_tied

@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from pyphi import exceptions
-from pyphi import utils
+from pyphi import numerics
 from pyphi.data_structures.pyphi_float import PyPhiFloat
 from pyphi.macro.system import MacroSystem
 from pyphi.macro.units import MacroUnit
@@ -83,7 +83,7 @@ def judge_candidate(
         ``(system, φₛ)`` pairs for ``f(U^J, W^J)``.
     """
     competitors = tuple(competitors)
-    if not utils.is_positive(phi):
+    if not numerics.is_positive(phi):
         return UnitVerdict(
             valid=False,
             reason=Reason.NOT_INTEGRATED,
@@ -99,7 +99,7 @@ def judge_candidate(
             best_system = system
             best_phi = float(competitor_phi)
     if best_system is not None:
-        if utils.eq(phi, best_phi):
+        if numerics.eq(phi, best_phi):
             return UnitVerdict(
                 valid=False,
                 reason=Reason.TIED,

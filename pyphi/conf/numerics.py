@@ -20,7 +20,7 @@ class NumericsConfig:
     ----------
     precision : int
         Decimal places of agreement required when comparing phi values via
-        :func:`pyphi.utils.eq` and friends. Values smaller than
+        :func:`pyphi.numerics.eq` and friends. Values smaller than
         ``10**-precision`` are treated as zero. ``PyPhiFloat`` snapshots
         this at construction so its hash is stable across config writes.
     """

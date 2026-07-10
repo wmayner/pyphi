@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -62,7 +62,9 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ExcludedCandidate):
             return NotImplemented
-        return self.node_indices == other.node_indices and utils.eq(self.phi, other.phi)
+        return self.node_indices == other.node_indices and numerics.eq(
+            self.phi, other.phi
+        )
 
     def __ne__(self, other: object) -> bool:
         return not self == other
@@ -138,7 +140,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     def __bool__(self) -> bool:
         """``True`` iff Φ > 0 (a null complex is falsy)."""
-        return not utils.eq(self.phi, 0)
+        return not numerics.eq(self.phi, 0)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Complex):

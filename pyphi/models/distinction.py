@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi import validate
 from pyphi.direction import Direction
 from pyphi.display import Description
@@ -273,7 +273,7 @@ class Distinction(
             return False
         if self.effect_purview != other.effect_purview:
             return False
-        if not utils.eq(self.phi, other.phi):
+        if not numerics.eq(self.phi, other.phi):
             return False
         if not cmp.numpy_aware_eq(self.cause_repertoire, other.cause_repertoire):
             return False
@@ -294,7 +294,7 @@ class Distinction(
 
     def __bool__(self):
         """A distinction is ``True`` if φ > 0."""
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def is_congruent(self, system_state):
         return all(

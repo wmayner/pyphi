@@ -18,7 +18,7 @@ from typing import Any
 import pandas as pd
 from numpy.typing import ArrayLike
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import config
 from pyphi.data_structures import PyPhiFloat
 from pyphi.direction import Direction
@@ -161,7 +161,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
             return False
         if self.state != other.state:
             return False
-        if not utils.eq(self.intrinsic_information, other.intrinsic_information):
+        if not numerics.eq(self.intrinsic_information, other.intrinsic_information):
             return False
         if not cmp.numpy_aware_eq(self.repertoire, other.repertoire):
             return False

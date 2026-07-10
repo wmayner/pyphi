@@ -529,14 +529,14 @@ with pyphi.config.override(precision=10):
 if phi == 0.0:  # May fail due to floating point error
 
 # Good
-from pyphi import utils
-if utils.is_zero(phi):  # Respects config.PRECISION
+from pyphi import numerics
+if numerics.is_zero(phi):  # Respects config.PRECISION
 ```
 
 **Key functions**:
-- `utils.is_zero(x)`
-- `utils.is_positive(x)`
-- `utils.eq(x, y)`
+- `numerics.is_zero(x)`
+- `numerics.is_positive(x)`
+- `numerics.eq(x, y)`
 
 ### 2. Configuration Not in Working Directory
 

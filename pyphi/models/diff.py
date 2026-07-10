@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -156,7 +156,7 @@ def _mip_changed(a: Any, b: Any) -> bool:
     # Fallback: a real change only if the partition differs AND phi differs.
     if b_part.lex_key() == a_part.lex_key():
         return False
-    return not utils.eq(float(_phi_of(a)), float(_phi_of(b)))
+    return not numerics.eq(float(_phi_of(a)), float(_phi_of(b)))
 
 
 def _config_diff(a: Any, b: Any) -> dict[str, tuple[Any, Any]]:

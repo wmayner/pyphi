@@ -3,6 +3,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from pyphi import config
+from pyphi import numerics
 from pyphi import utils
 
 from .hypothesis_utils import anything
@@ -54,32 +55,32 @@ def test_eq():
     epsilon = 10 ** (-config.numerics.precision)
     close_enough = phi - epsilon / 2
     not_quite = phi - epsilon * 2
-    assert utils.eq(phi, close_enough)
-    assert not utils.eq(phi, not_quite)
-    assert not utils.eq(phi, (phi - phi))
+    assert numerics.eq(phi, close_enough)
+    assert not numerics.eq(phi, not_quite)
+    assert not numerics.eq(phi, (phi - phi))
 
 
 @given(finite_floats())
 def test_eq_reflexive(x):
-    assert utils.eq(x, x)
+    assert numerics.eq(x, x)
 
 
 @given(finite_floats(), finite_floats())
 def test_eq_symmetric(x, y):
-    assert utils.eq(x, y) == utils.eq(y, x)
+    assert numerics.eq(x, y) == numerics.eq(y, x)
 
 
 @given(finite_floats())
 def test_is_positive_matches_sign(x):
-    if utils.eq(x, 0):
-        assert not utils.is_positive(x)
+    if numerics.eq(x, 0):
+        assert not numerics.is_positive(x)
     else:
-        assert utils.is_positive(x) == (x > 0)
+        assert numerics.is_positive(x) == (x > 0)
 
 
 @given(finite_floats())
 def test_is_nonpositive_matches_sign(x):
-    assert utils.is_nonpositive(x) == (x <= 0)
+    assert numerics.is_nonpositive(x) == (x <= 0)
 
 
 def test_combs_for_1D_input():

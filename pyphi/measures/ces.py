@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from numpy.typing import NDArray
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import config
 from pyphi.registry import Registry
 from pyphi.types import Repertoire
@@ -268,7 +268,7 @@ def _emd(
     d1[-1] = total - sum1
     d2[-1] = total - sum2
     # The sum of the two signatures should be the same.
-    assert utils.eq(sum(d1), sum(d2))
+    assert numerics.eq(sum(d1), sum(d2))
     # Calculate!
     return distribution.EMD.compute(np.array(d1), np.array(d2), distance_matrix)
 

@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 
 from pyphi import config
-from pyphi import utils
+from pyphi import numerics
 from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
@@ -34,7 +34,7 @@ def compare_phi_values(
     if tolerance is None:
         tolerance = config.numerics.precision
 
-    equal = utils.eq(actual, expected)
+    equal = numerics.eq(actual, expected)
     if not equal:
         diff = abs(actual - expected)
         msg = (

@@ -15,7 +15,7 @@ from tqdm.auto import tqdm
 
 from . import combinatorics
 from . import conf
-from . import utils
+from . import numerics
 from .conf import config
 from .conf import fallback
 from .data_structures import PyPhiFloat
@@ -201,7 +201,7 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
         return (relatum.phi / len(relatum.purview_union) for relatum in self)
 
     def __bool__(self):
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Relation):

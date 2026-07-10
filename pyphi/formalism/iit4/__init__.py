@@ -16,6 +16,7 @@ from typing import Any
 from pyphi import conf
 from pyphi import connectivity
 from pyphi import measures
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi import utils
 from pyphi import validate
@@ -134,7 +135,7 @@ def _optional_eq(
     """Tolerance-equal comparison that handles ``None`` operands."""
     if a is None or b is None:
         return a is b
-    return utils.eq(a, b)
+    return numerics.eq(a, b)
 
 
 def _optional_float(x: Any) -> float | None:
@@ -152,7 +153,7 @@ def _intrinsic_differentiation_eq(a: dict | None, b: dict | None) -> bool:
         return a is b
     if set(a.keys()) != set(b.keys()):
         return False
-    return all(utils.eq(a[k], b[k]) for k in a)
+    return all(numerics.eq(a[k], b[k]) for k in a)
 
 
 @dataclass(repr=False)
@@ -268,7 +269,7 @@ class SystemIrreducibilityAnalysis(
         precision."""
         margins = [self.partition_margin, *self.state_margins.values()]
         return any(
-            margin is not None and utils.eq(float(margin), 0.0) for margin in margins
+            margin is not None and numerics.eq(float(margin), 0.0) for margin in margins
         )
 
     def resolve_system_state(self) -> None:
@@ -311,9 +312,9 @@ class SystemIrreducibilityAnalysis(
             return False
         if self.node_indices != other.node_indices:
             return False
-        if not utils.eq(self.phi, other.phi):
+        if not numerics.eq(self.phi, other.phi):
             return False
-        if not utils.eq(self.normalized_phi, other.normalized_phi):
+        if not numerics.eq(self.normalized_phi, other.normalized_phi):
             return False
         if not _optional_eq(self.signed_phi, other.signed_phi):
             return False
@@ -325,7 +326,7 @@ class SystemIrreducibilityAnalysis(
 
     def __bool__(self):
         """Whether φ_s > 0."""
-        return utils.is_positive(self.phi)
+        return numerics.is_positive(self.phi)
 
     def __hash__(self) -> int:
         return hash(

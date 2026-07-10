@@ -96,13 +96,13 @@ def _config_iit_version() -> str:
 def _phi_groups(candidates: Sequence[Candidate]):
     """Yield contiguous groups of candidates sharing the same φₛ value
     (precision-aware), assuming the input is sorted by φₛ descending."""
-    from pyphi import utils as _utils
+    from pyphi import numerics as _numerics
 
     i = 0
     while i < len(candidates):
         tier_phi = candidates[i].phi
         j = i + 1
-        while j < len(candidates) and _utils.eq(candidates[j].phi, tier_phi):
+        while j < len(candidates) and _numerics.eq(candidates[j].phi, tier_phi):
             j += 1
         yield list(candidates[i:j])
         i = j

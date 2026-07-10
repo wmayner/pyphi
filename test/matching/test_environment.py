@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import pyphi
-from pyphi import utils
+from pyphi import numerics
 from pyphi.matching import MatchingAnalysis
 from pyphi.matching import Perception
 from pyphi.matching import PerceptualSystem
@@ -12,7 +12,7 @@ from pyphi.matching import environment as env
 
 
 def _sums_to_one(dist):
-    return utils.eq(sum(dist.values()), 1.0)
+    return numerics.eq(sum(dist.values()), 1.0)
 
 
 def test_segment_hand_computed():

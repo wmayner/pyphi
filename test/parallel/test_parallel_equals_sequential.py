@@ -28,7 +28,7 @@ import pytest
 
 from pyphi import System
 from pyphi import examples
-from pyphi import utils
+from pyphi import numerics
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.formalism import iit3
@@ -102,7 +102,7 @@ def test_iit3_sia_and_ces_parallel_equals_sequential(name: str) -> None:
         par_sia = iit3.sia(System(factory(), state))
         par_ces = _ces_signature(iit3.ces(System(factory(), state)).distinctions)
 
-    assert utils.eq(seq_sia.phi, par_sia.phi), (
+    assert numerics.eq(seq_sia.phi, par_sia.phi), (
         f"{name}: IIT 3.0 SIA φ diverged under loky — sequential "
         f"{seq_sia.phi} vs parallel {par_sia.phi}"
     )

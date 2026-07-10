@@ -115,7 +115,7 @@ drift in float64 arithmetic on IIT measures while distinguishing real
 math regressions. Used by `numpy_aware_eq` (model `__eq__`) and by
 golden-fixture comparisons in the test suite. Independent of
 `config.numerics.precision`, which governs user-configurable phi
-comparison via `utils.eq`."""
+comparison via `numerics.eq`."""
 
 
 def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911

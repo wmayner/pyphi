@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections import namedtuple
 from collections.abc import Sequence
 
-from pyphi import utils
+from pyphi import numerics
 from pyphi.direction import Direction
 from pyphi.display import PROVENANCE
 from pyphi.display import Description
@@ -47,7 +47,7 @@ def greater_than_zero(alpha):
     """Return ``True`` if alpha is greater than zero, accounting for
     numerical errors.
     """
-    return bool(alpha > 0 and not utils.eq(alpha, 0))
+    return bool(alpha > 0 and not numerics.eq(alpha, 0))
 
 
 class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMixin):
@@ -166,9 +166,9 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
             return False
         if self.purview != other.purview:
             return False
-        if not utils.eq(self.alpha, other.alpha):
+        if not numerics.eq(self.alpha, other.alpha):
             return False
-        return utils.eq(self.probability, other.probability)
+        return numerics.eq(self.probability, other.probability)
 
     def __bool__(self):
         """An :class:`AcRepertoireIrreducibilityAnalysis` is ``True`` if it has
@@ -542,7 +542,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         present in both is *changed* when its α differs. An account
         carries no :class:`ConfigSnapshot`, so ``config_diff`` is empty.
         """
-        from pyphi import utils
+        from pyphi import numerics
         from pyphi.data_structures import PyPhiFloat
 
         if not isinstance(other, Account):
@@ -567,7 +567,7 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
         changes.extend(
             Change("link_changed", k, a_by[k].alpha, b_by[k].alpha)
             for k in a_by.keys() & b_by.keys()
-            if not utils.eq(a_by[k].alpha, b_by[k].alpha)
+            if not numerics.eq(a_by[k].alpha, b_by[k].alpha)
         )
         return ResultDiff(
             subject=f"ΔΣα ({len(self)} → {len(other)} links)",
@@ -802,7 +802,7 @@ class AcSystemIrreducibilityAnalysis(
             return False
         if self.node_labels != other.node_labels:
             return False
-        return utils.eq(self.alpha, other.alpha)
+        return numerics.eq(self.alpha, other.alpha)
 
     def __bool__(self):
         """An :class:`AcSystemIrreducibilityAnalysis` is ``True`` if it has

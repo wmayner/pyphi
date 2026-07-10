@@ -30,6 +30,7 @@ import pytest
 
 from pyphi import Substrate
 from pyphi import System
+from pyphi import numerics
 from pyphi import utils
 from pyphi.conf import config
 from pyphi.conf import presets
@@ -102,7 +103,7 @@ def test_independent_i_diff_matches_production(name: str) -> None:
         for direction in (Direction.CAUSE, Direction.EFFECT):
             production = float(sia.intrinsic_differentiation[direction])
             independent = _independent_i_diff(system, direction)
-            assert utils.eq(production, independent), (
+            assert numerics.eq(production, independent), (
                 f"{name} {direction.name}: production i_diff {production} != "
                 f"independent -log2 P(state) {independent}"
             )
@@ -124,7 +125,7 @@ def test_cap_composition_identity(name: str) -> None:
         terms.append(float(sia26.system_state[direction].intrinsic_information))
         terms.append(float(sia26.intrinsic_differentiation[direction]))
     recomposed = utils.positive_part(min(terms))
-    assert utils.eq(recomposed, float(sia26.phi)), (
+    assert numerics.eq(recomposed, float(sia26.phi)), (
         f"{name}: cap composition {recomposed} != production phi_2026 "
         f"{float(sia26.phi)} (terms={[round(t, 4) for t in terms]})"
     )

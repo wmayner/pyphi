@@ -20,6 +20,7 @@ import numpy as np
 
 from pyphi import conf
 from pyphi import connectivity
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi import utils
 from pyphi import validate
@@ -268,7 +269,7 @@ def _find_mip(
         # disallowed) means the mechanism is reducible against this
         # partition; no need to keep searching since min |alpha| can't
         # go lower.
-        if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
+        if numerics.eq(alpha, 0) or (alpha < 0 and not allow_neg):
             return _null_ac_ria(
                 transition.mechanism_state(direction),
                 direction,

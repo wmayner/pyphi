@@ -37,7 +37,7 @@ from numpy.typing import NDArray
 from tqdm.auto import tqdm
 
 from . import convert
-from . import utils
+from . import numerics
 from .analyze import analyze
 from .conf import config
 from .provenance import Provenance
@@ -291,7 +291,7 @@ class PhiPosterior(Serializable):
     @property
     def p_positive(self) -> float:
         """Posterior probability that Φ is positive (the system is integrated)."""
-        return sum(utils.is_positive(phi) for phi in self.samples) / len(self.samples)
+        return sum(numerics.is_positive(phi) for phi in self.samples) / len(self.samples)
 
     def quantiles(self, qs: Sequence[float]) -> NDArray[np.float64]:
         """Quantiles of the full mixture (zeros included)."""
@@ -302,7 +302,7 @@ class PhiPosterior(Serializable):
 
         Returns ``None`` when no sample is positive.
         """
-        positive = self.samples[[utils.is_positive(phi) for phi in self.samples]]
+        positive = self.samples[[numerics.is_positive(phi) for phi in self.samples]]
         if positive.size == 0:
             return None
         return np.quantile(positive, qs)
