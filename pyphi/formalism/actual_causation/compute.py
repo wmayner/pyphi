@@ -296,8 +296,14 @@ def _find_mip(
     context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
     outcome = resolve_ties.resolve_ac_partition_tie(candidates, context=context)
     winner = outcome.resolved
-    if winner is not None and len(outcome.tied_set) > 1:
-        winner.set_partition_ties(outcome.tied_set)
+    # Record only the |α|-cluster around the winning minimum; the cascade's
+    # tied_set carries every candidate entering the resolving level.
+    abs_alphas = [abs(r.alpha) for r in candidates]
+    alpha_ties = resolve_ties._tied_with_extremum(
+        candidates, abs_alphas, min(abs_alphas)
+    )
+    if winner is not None and len(alpha_ties) > 1:
+        winner.set_partition_ties(alpha_ties)
     return winner
 
 
@@ -648,8 +654,12 @@ def _sia(
     outcome = resolve_ties.resolve_ac_sia_tie(candidates, context=context)
     result = outcome.resolved
     assert result is not None, "AC SIA cascade returned no winner"
-    if len(outcome.tied_set) > 1:
-        result.set_ties(outcome.tied_set)
+    # Record only the α-cluster around the winning minimum; the cascade's
+    # tied_set carries every candidate entering the resolving level.
+    alphas = [c.alpha for c in candidates]
+    alpha_ties = resolve_ties._tied_with_extremum(candidates, alphas, min(alphas))
+    if len(alpha_ties) > 1:
+        result.set_ties(alpha_ties)
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result

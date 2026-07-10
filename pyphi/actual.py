@@ -920,8 +920,12 @@ def causal_nexus(
         outcome = resolve_ties.resolve_ac_nexus_tie(result, context=context)
         winner = outcome.resolved
         assert winner is not None, "causal-nexus cascade returned no winner"
-        if len(outcome.tied_set) > 1:
-            winner.set_ties(outcome.tied_set)
+        # Record only the α-cluster around the winning maximum; the cascade's
+        # tied_set carries every candidate entering the resolving level.
+        alphas = [s.alpha for s in result]
+        alpha_ties = resolve_ties._tied_with_extremum(result, alphas, max(alphas))
+        if len(alpha_ties) > 1:
+            winner.set_ties(alpha_ties)
         result = winner
     else:
         null_transition = Transition(substrate, before_state, after_state, (), ())

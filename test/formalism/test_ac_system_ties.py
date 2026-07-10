@@ -3,9 +3,13 @@
 from dataclasses import dataclass
 
 import pyphi
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi.conf import presets
+from pyphi.direction import Direction
 from pyphi.examples import actual_causation_substrate
+from pyphi.formalism.actual_causation import compute
+from pyphi.models import AcSystemIrreducibilityAnalysis
 
 NOISE = 5.6e-16
 
@@ -70,18 +74,122 @@ class TestResolveAcNexusTie:
         assert outcome.outcome == "RESOLVED"
 
 
+def _or_and_transition():
+    substrate = actual_causation_substrate()
+    return pyphi.actual.Transition(substrate, (1, 0), (1, 0), (0, 1), (0, 1))
+
+
+def _sia_with_alphas(monkeypatch, make_alphas):
+    """Run the real ``_sia`` with per-partition α values injected.
+
+    ``make_alphas(n_cuts)`` returns the α assigned to each evaluated
+    partition, in evaluation order.
+    """
+    with pyphi.config.override(**presets.iit3):
+        transition = _or_and_transition()
+        cuts = list(compute._get_partitions(transition, Direction.BIDIRECTIONAL))
+        alphas = make_alphas(len(cuts))
+        assert len(alphas) == len(cuts)
+        it = iter(alphas)
+
+        def fake_evaluate(partition, **kwargs):
+            return AcSystemIrreducibilityAnalysis(
+                alpha=next(it),
+                partition=partition,
+                size=len(transition),
+                cause_indices=transition.cause_indices,
+                effect_indices=transition.effect_indices,
+            )
+
+        monkeypatch.setattr(compute, "_evaluate_partition", fake_evaluate)
+        return compute._sia(transition), alphas
+
+
+class TestSiaTiesAreAlphaCluster:
+    def test_unique_minimum_yields_singleton_ties(self, monkeypatch):
+        sia, _ = _sia_with_alphas(
+            monkeypatch, lambda n: [0.2] + [0.3 + 0.1 * i for i in range(n - 1)]
+        )
+        assert sia.alpha == 0.2
+        # No false tie: every non-winning candidate had a distinct α.
+        assert sia.ties == (sia,)
+
+    def test_tied_minimum_yields_exact_alpha_cluster(self, monkeypatch):
+        sia, alphas = _sia_with_alphas(
+            monkeypatch,
+            lambda n: [0.2, 0.2 + NOISE] + [0.9 + 0.1 * i for i in range(n - 2)],
+        )
+        assert len(alphas) > 2  # cluster must be a strict subset of candidates
+        assert len(sia.ties) == 2
+        assert sorted(t.alpha for t in sia.ties) == [0.2, 0.2 + NOISE]
+        assert sia in sia.ties
+
+
+class _StubAlphaMeasure:
+    """DistributionMeasure stub yielding preset α values per partition."""
+
+    name = "stub"
+    asymmetric = True
+
+    def __init__(self, alphas):
+        self._it = iter(alphas)
+
+    def __call__(self, p, q):  # noqa: ARG002
+        return next(self._it)
+
+
+def _find_mip_with_alphas(make_alphas):
+    """Run the real ``_find_mip`` with per-partition α values injected."""
+    with pyphi.config.override(**presets.iit3):
+        transition = _or_and_transition()
+        mechanism = (0, 1)
+        purview = (0, 1)
+        n = len(
+            list(
+                compute.mechanism_partitions(mechanism, purview, transition.node_labels)
+            )
+        )
+        alphas = make_alphas(n)
+        assert len(alphas) == n
+        ria = compute._find_mip(
+            transition,
+            Direction.CAUSE,
+            mechanism,
+            purview,
+            alpha_measure=_StubAlphaMeasure(alphas),
+        )
+        return ria, alphas
+
+
+class TestFindMipPartitionTies:
+    def test_unique_minimum_yields_no_partition_ties(self):
+        ria, _ = _find_mip_with_alphas(
+            lambda n: [0.2] + [0.3 + 0.1 * i for i in range(n - 1)]
+        )
+        assert ria.alpha == 0.2
+        assert ria.partition_ties is None
+
+    def test_tied_minimum_yields_exact_alpha_cluster(self):
+        ria, alphas = _find_mip_with_alphas(
+            lambda n: [0.2, 0.2] + [0.9 + 0.1 * i for i in range(n - 2)]
+        )
+        assert len(alphas) > 2  # cluster must be a strict subset of candidates
+        assert ria.partition_ties is not None
+        assert len(ria.partition_ties) == 2
+        assert all(t.alpha == 0.2 for t in ria.partition_ties)
+        assert ria in ria.partition_ties
+
+
 class TestAcSiaEndToEnd:
     def test_sia_populates_ties(self):
         # The canonical OR-AND example; ties may or may not exist, but the
         # attribute must be populated and consistent.
-        substrate = actual_causation_substrate()
         with pyphi.config.override(**presets.iit3):
-            transition = pyphi.actual.Transition(
-                substrate, (1, 0), (1, 0), (0, 1), (0, 1)
-            )
-            sia = pyphi.actual.sia(transition)
+            sia = pyphi.actual.sia(_or_and_transition())
         assert isinstance(sia.ties, tuple)
         assert sia in sia.ties or sia.ties == (sia,)
+        # Every recorded tie is at the winning α, within tolerance.
+        assert all(numerics.eq(t.alpha, sia.alpha) for t in sia.ties)
 
     def test_causal_nexus_deterministic(self):
         substrate = actual_causation_substrate()
@@ -95,3 +203,5 @@ class TestAcSiaEndToEnd:
         )
         assert a.alpha == b.alpha
         assert a == b
+        # Every recorded tie is at the winning α, within tolerance.
+        assert all(numerics.eq(t.alpha, a.alpha) for t in a.ties)
