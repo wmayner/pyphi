@@ -16,6 +16,7 @@ from scipy.spatial.distance import cdist
 from scipy.special import entr
 from scipy.special import rel_entr
 
+from pyphi import numerics
 from pyphi import utils
 from pyphi import validate
 from pyphi.cache import joblib_memory
@@ -1305,13 +1306,14 @@ def pointwise_intrinsic_differentiation(p):
 
 @state_aware_measures.register("INTRINSIC_DIFFERENTIATION")
 def intrinsic_differentiation(p, state):
-    r"""Smallest strictly positive surprisal in a repertoire slice.
+    r"""Smallest positive surprisal in a repertoire slice.
 
     Selects ``p.squeeze()[state]``, takes its pointwise intrinsic
     differentiation (the surprisal :math:`-\log_2 p_i`; see
     :func:`pointwise_intrinsic_differentiation`), and returns the minimum
-    over the strictly positive entries. If no entry is strictly positive
-    (every selected probability equals ``1``), the result is ``0.0``.
+    over the entries that are positive up to ``config.numerics.precision``.
+    If no entry is positive (every selected probability equals ``1`` up to
+    floating-point noise), the result is ``0.0``.
 
     Parameters
     ----------
@@ -1327,9 +1329,8 @@ def intrinsic_differentiation(p, state):
         ``method="INTRINSIC_DIFFERENTIATION"``.
     """
     p = p.squeeze()[state]
-    positive_entries = pointwise_intrinsic_differentiation(p)[
-        pointwise_intrinsic_differentiation(p) > 0
-    ]
+    surprisal = pointwise_intrinsic_differentiation(p)
+    positive_entries = surprisal[numerics.positive_mask(surprisal)]
     return DistanceResult(
         np.min(positive_entries) if positive_entries.size > 0 else 0.0,
         method="INTRINSIC_DIFFERENTIATION",

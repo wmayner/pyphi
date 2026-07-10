@@ -583,3 +583,23 @@ class TestDistanceResult:
         arr_float32 = np.array(results, dtype=np.float32)
         assert arr_float32.dtype == np.float32
         np.testing.assert_array_almost_equal(arr_float32, [0.5, 0.3, 0.7], decimal=6)
+
+
+class TestIntrinsicDifferentiationPrecision:
+    def test_certain_node_noise_surprisal_is_excluded(self):
+        # A probability of 1 up to floating-point noise has surprisal
+        # ~3e-16 — mathematically zero. It must not be selected as the
+        # "smallest positive surprisal".
+        p = np.array([0.9999999999999998, 0.5])
+        result = distribution.intrinsic_differentiation(p, (slice(None),))
+        assert float(result) == pytest.approx(1.0)  # -log2(0.5), not 3e-16
+
+    def test_exactly_certain_node_still_excluded(self):
+        p = np.array([1.0, 0.25])
+        result = distribution.intrinsic_differentiation(p, (slice(None),))
+        assert float(result) == pytest.approx(2.0)
+
+    def test_all_certain_returns_zero(self):
+        p = np.array([1.0, 0.9999999999999998])
+        result = distribution.intrinsic_differentiation(p, (slice(None),))
+        assert float(result) == 0.0
