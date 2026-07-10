@@ -169,9 +169,13 @@ verdict.valid, verdict.phi
 
 {func}`pyphi.macro.complexes` is the one-call driver: it derives every
 intrinsic unit within the search bounds, assembles every admissible system of
-them (Eq. 18), evaluates each over the full universe, and returns the
-*complexes* — the systems that strictly beat every overlapping rival
-(Eq. 19) — together with the full evaluation record:
+them (Eq. 18), evaluates each over the full universe, and condenses the
+candidates into the *complexes* by the recursive exclusion cascade — accept
+the φₛ-maximal candidate, exclude everything overlapping it, and continue on
+the remainder (Eq. 19 applied tier by tier; a candidate excluded by an
+accepted complex has no standing to exclude others). The winners are
+{class}`~pyphi.models.complex.Complex` objects, returned together with the
+full evaluation record:
 
 ```{code-cell} python
 from pyphi.macro import SearchBounds, complexes
@@ -188,19 +192,20 @@ winner.units
 ```
 
 The search, given every possible 2-constituent mapping, finds exactly the
-both-ON coarse-graining we built by hand. The record holds every evaluated
-system and its $\varphi_s$:
+both-ON coarse-graining we built by hand. The winner carries its own φₛ and
+the record holds every evaluated system:
 
 ```{code-cell} python
-phis = {r.system: r.phi for r in result.records}
-round(phis[winner], 6), len(result.records)
+round(float(winner.phi), 6), len(result.records)
 ```
 
 Candidate mappings are enumerated up to state-label complementation (a
 mapping and its complement describe the same physical unit, with the two
 macro state labels swapped), and ties at the configured precision are
-respected: systems that tie their strongest overlapping rival are not
-complexes, and `result.ties` reports the tied pairs.
+respected: overlapping candidates that tie on φₛ escalate to Φ
+(Composition), and a clique that still ties fails exclusion — none of its
+members is a complex, the clique is reported in `result.ties`, and the
+cascade continues past it.
 
 ## Rediscovering the paper's coarse-graining example
 
