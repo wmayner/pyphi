@@ -128,6 +128,16 @@ class SearchBounds:
         down the hierarchy)."""
         return self.max_update_grain**self.max_depth
 
+    def estimate(self, substrate, limit: int = 1_000_000):
+        """Pre-flight estimate of the sweep these bounds define over
+        ``substrate``, by pure counting; see
+        :func:`pyphi.macro.estimate.estimate_search`. Only the
+        substrate's size is read — no TPM is constructed and no φₛ is
+        computed."""
+        from pyphi.macro.estimate import estimate_search
+
+        return estimate_search(self, substrate.size, limit=limit)
+
 
 _DEFAULT_BOUNDS = SearchBounds()
 
