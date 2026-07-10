@@ -1077,7 +1077,9 @@ def approximate_specified_state(
 
         # TODO: nonbinary states.
         # If discriminant < tmp_inform, select the state that gives p < q.
-        if discriminant < tmp_inform:
+        if discriminant < tmp_inform:  # numerics: exact — documented
+            # approximation; a sub-precision tie degrades an explicit
+            # guess, not an exact result
             specified_state = int(not informative_state(nonfixed_node)[0])
         else:
             specified_state = informative_state(nonfixed_node)[0]
@@ -1465,7 +1467,9 @@ def pointwise_mutual_information(p: float, q: float) -> float:
     float
         the pointwise mutual information.
     """
-    if p == 0.0 or q == 0.0:
+    if p == 0.0 or q == 0.0:  # numerics: exact — probabilities from the
+        # transition plumbing are exactly 0 or bounded away from 0; see
+        # test/measures/test_precision_confirmations.py
         return 0.0
     return log2(p / q)
 
