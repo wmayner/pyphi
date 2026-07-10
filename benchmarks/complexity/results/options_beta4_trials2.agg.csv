@@ -1,0 +1,33 @@
+knob,config,stage,n,seconds_median
+mechanism scheme,JOINT_BIPARTITION,ces,2,0.008961957995779812
+mechanism scheme,JOINT_BIPARTITION,ces,3,0.06480285455472767
+mechanism scheme,JOINT_BIPARTITION,ces,4,0.43687068758299574
+mechanism scheme,JOINT_BIPARTITION,ces,5,3.3011986250057817
+mechanism scheme,JOINT_BIPARTITION,ces,6,27.922250354429707
+mechanism scheme,JOINT_BIPARTITION,ces,7,250.0544831249863
+mechanism scheme,JOINT_PARTITION_ALL,ces,2,0.010766833496745676
+mechanism scheme,JOINT_PARTITION_ALL,ces,3,0.1409619590267539
+mechanism scheme,JOINT_PARTITION_ALL,ces,4,1.4887366665061563
+mechanism scheme,JOINT_PARTITION_ALL,ces,5,48.21542999998201
+mechanism scheme,WEDGE_TRIPARTITION,ces,2,0.009669250051956624
+mechanism scheme,WEDGE_TRIPARTITION,ces,3,0.07705693697789684
+mechanism scheme,WEDGE_TRIPARTITION,ces,4,0.7505033335182816
+mechanism scheme,WEDGE_TRIPARTITION,ces,5,8.748389791464433
+mechanism scheme,WEDGE_TRIPARTITION,ces,6,107.24911962496117
+relations,analytical,ces,2,0.010387812508270144
+relations,analytical,ces,3,0.0841870210133493
+relations,analytical,ces,4,1.3243089379975572
+relations,analytical,ces,5,41.49743849999504
+relations,concrete,ces,2,0.03344575053779408
+relations,concrete,ces,3,0.08245272951899096
+relations,concrete,ces,4,1.3945008955197409
+relations,concrete,ces,5,50.34607650001999
+system cuts,cut-one 2n,sia,2,0.028152854007203132
+system cuts,cut-one 2n,sia,3,0.26234793750336394
+system cuts,cut-one 2n,sia,4,2.2422074585338123
+system cuts,cut-one 2n,sia,5,21.686233686981723
+system cuts,cut-one 2n,sia,6,215.4236620409647
+system cuts,full 2**n,sia,2,0.148424104496371
+system cuts,full 2**n,sia,3,0.26370741694699973
+system cuts,full 2**n,sia,4,3.959872458537575
+system cuts,full 2**n,sia,5,55.80290537502151

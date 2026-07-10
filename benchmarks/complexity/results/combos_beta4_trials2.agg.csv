@@ -1,0 +1,37 @@
+knob,config,stage,n,seconds_median
+IIT 3.0 big Φ,+ cut-one,sia,2,0.03310318756848574
+IIT 3.0 big Φ,+ cut-one,sia,3,0.2973368124803528
+IIT 3.0 big Φ,+ cut-one,sia,4,2.4602343749720603
+IIT 3.0 big Φ,+ cut-one,sia,5,23.748158708505798
+IIT 3.0 big Φ,+ cut-one,sia,6,225.20836699998472
+IIT 3.0 big Φ,+ no-new-concepts,sia,2,0.01825191651005298
+IIT 3.0 big Φ,+ no-new-concepts,sia,3,0.2925109585048631
+IIT 3.0 big Φ,+ no-new-concepts,sia,4,3.7676399375195615
+IIT 3.0 big Φ,+ no-new-concepts,sia,5,60.6265306660207
+IIT 3.0 big Φ,cut-one + no-new-concepts,sia,2,0.02695508353644982
+IIT 3.0 big Φ,cut-one + no-new-concepts,sia,3,0.2692465625004843
+IIT 3.0 big Φ,cut-one + no-new-concepts,sia,4,2.3421394585166126
+IIT 3.0 big Φ,cut-one + no-new-concepts,sia,5,22.503987749980297
+IIT 3.0 big Φ,cut-one + no-new-concepts,sia,6,227.90457466698717
+IIT 3.0 big Φ,default (full cuts),sia,2,0.18165527103701606
+IIT 3.0 big Φ,default (full cuts),sia,3,0.2605989584699273
+IIT 3.0 big Φ,default (full cuts),sia,4,3.9485402500722557
+IIT 3.0 big Φ,default (full cuts),sia,5,57.59993222897174
+IIT 4.0 CES,+ analytical relations,ces,2,0.010097958496771753
+IIT 4.0 CES,+ analytical relations,ces,3,0.0859333750559017
+IIT 4.0 CES,+ analytical relations,ces,4,1.442066417017486
+IIT 4.0 CES,+ analytical relations,ces,5,47.8390977709787
+IIT 4.0 CES,+ bipartitions,ces,2,0.010179979028180242
+IIT 4.0 CES,+ bipartitions,ces,3,0.07501193747157231
+IIT 4.0 CES,+ bipartitions,ces,4,0.7618579170084558
+IIT 4.0 CES,+ bipartitions,ces,5,13.201543708506506
+IIT 4.0 CES,bipartitions + analytical,ces,2,0.008746416482608765
+IIT 4.0 CES,bipartitions + analytical,ces,3,0.05880804150365293
+IIT 4.0 CES,bipartitions + analytical,ces,4,0.40780164598254487
+IIT 4.0 CES,bipartitions + analytical,ces,5,3.2516310834907927
+IIT 4.0 CES,bipartitions + analytical,ces,6,27.8188249374507
+IIT 4.0 CES,bipartitions + analytical,ces,7,268.5743945420254
+IIT 4.0 CES,default (all-partitions + concrete),ces,2,0.04315235448302701
+IIT 4.0 CES,default (all-partitions + concrete),ces,3,0.09348360454896465
+IIT 4.0 CES,default (all-partitions + concrete),ces,4,1.4217807080131024
+IIT 4.0 CES,default (all-partitions + concrete),ces,5,51.928181666939054

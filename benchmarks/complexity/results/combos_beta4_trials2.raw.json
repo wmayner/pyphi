@@ -1,0 +1,554 @@
+{
+  "meta": {
+    "beta": 4.0,
+    "trials": 2,
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.13"
+  },
+  "trials": [
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.07559545896947384
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.010709249996580184
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.09377333405427635
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.09319387504365295
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.4310576660791412
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.4125037499470636
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 52.219750416930765
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "default (all-partitions + concrete)",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 51.63661291694734
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.010567291988991201
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.009628625004552305
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.08694962505251169
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.08491712505929172
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.3548669170122594
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.5292659170227125
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 48.98091316700447
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ analytical relations",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 46.69728237495292
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.010542916017584503
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.00981704203877598
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.07634920801501721
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.07367466692812741
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.5174098340794444
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.0063059999374673
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 14.51860312500503
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "+ bipartitions",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 11.884484292007983
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.009388832957483828
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.008104000007733703
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.05911083298269659
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.05850525002460927
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.41137274994980544
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.4042305420152843
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 3.2702175829326734
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 3.233044584048912
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 6,
+      "trial": 0,
+      "seconds": 27.728169291978702
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 6,
+      "trial": 1,
+      "seconds": 27.909480582922697
+    },
+    {
+      "knob": "IIT 4.0 CES",
+      "config": "bipartitions + analytical",
+      "stage": "ces",
+      "n": 7,
+      "trial": 0,
+      "seconds": 268.5743945420254
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.34683220798615366
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.016478334087878466
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.2607741249958053
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.2604237919440493
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 3.99274179211352
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 3.9043387080309913
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 55.35526054096408
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "default (full cuts)",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 59.844603916979395
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.036080375080928206
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.030126000056043267
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.31668270903173834
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.2779909159289673
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 2.4570220420137048
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 2.463446707930416
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 23.87929420801811
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 23.617023208993487
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ cut-one",
+      "stage": "sia",
+      "n": 6,
+      "trial": 0,
+      "seconds": 225.20836699998472
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.020275790942832828
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.01622804207727313
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.27044816699344665
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.3145737500162795
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 3.776268833084032
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 3.759011041955091
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "+ no-new-concepts",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 60.6265306660207
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.028267250047065318
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.025642917025834322
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.2733326660236344
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.2651604589773342
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 2.367763709044084
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 2.3165152079891413
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 22.127592957927845
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 22.88038254203275
+    },
+    {
+      "knob": "IIT 3.0 big \u03a6",
+      "config": "cut-one + no-new-concepts",
+      "stage": "sia",
+      "n": 6,
+      "trial": 0,
+      "seconds": 227.90457466698717
+    }
+  ]
+}

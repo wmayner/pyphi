@@ -1,0 +1,474 @@
+{
+  "meta": {
+    "beta": 4.0,
+    "trials": 2,
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.13"
+  },
+  "trials": [
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.057309083989821374
+    },
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.009582417085766792
+    },
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.08370633400045335
+    },
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.08119912503752857
+    },
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.4025227080564946
+    },
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.3864790829829872
+    },
+    {
+      "knob": "relations",
+      "config": "concrete",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 50.34607650001999
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.011394749977625906
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.009380875038914382
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.08402408403344452
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.08434995799325407
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.3234955839579925
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.325122292037122
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 41.066105625010096
+    },
+    {
+      "knob": "relations",
+      "config": "analytical",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 41.92877137497999
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.28204983402974904
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.014798374962992966
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.26196054194588214
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.2654542919481173
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 4.011885458021425
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 3.907859459053725
+    },
+    {
+      "knob": "system cuts",
+      "config": "full 2**n",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 55.80290537502151
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.03099724999628961
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.025308458018116653
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.26254962501116097
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.2621462499955669
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 2.2657295420067385
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 2.218685375060886
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 21.844982040929608
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 21.527485333033837
+    },
+    {
+      "knob": "system cuts",
+      "config": "cut-one 2n",
+      "stage": "sia",
+      "n": 6,
+      "trial": 0,
+      "seconds": 215.4236620409647
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.009582499973475933
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.008341416018083692
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.06528075004462153
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.06432495906483382
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.4669865000760183
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.4067548750899732
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 3.3310687500052154
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 3.271328500006348
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 6,
+      "trial": 0,
+      "seconds": 27.53859549993649
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 6,
+      "trial": 1,
+      "seconds": 28.305905208922923
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_BIPARTITION",
+      "stage": "ces",
+      "n": 7,
+      "trial": 0,
+      "seconds": 250.0544831249863
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.010452667018398643
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.008885833085514605
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.07888683304190636
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.07522704091388732
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.7518387919990346
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.7491678750375286
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 8.760821957956068
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 8.735957624972798
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "WEDGE_TRIPARTITION",
+      "stage": "ces",
+      "n": 6,
+      "trial": 0,
+      "seconds": 107.24911962496117
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.011833250056952238
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.009700416936539114
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.09452595899347216
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.18739795906003565
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.4547252909978852
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.5227480420144275
+    },
+    {
+      "knob": "mechanism scheme",
+      "config": "JOINT_PARTITION_ALL",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 48.21542999998201
+    }
+  ]
+}

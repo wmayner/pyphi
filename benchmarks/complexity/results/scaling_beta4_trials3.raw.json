@@ -1,0 +1,922 @@
+{
+  "meta": {
+    "beta": 4.0,
+    "trials": 3,
+    "construction": "stochastic majority ring (deterministic in n, beta)",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "processor": "arm",
+    "python": "3.13.13",
+    "pyphi_version": "unknown"
+  },
+  "trials": [
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.3392495419830084,
+      "n_distinctions": 3,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.015020624967291951,
+      "n_distinctions": 3,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.01513454201631248,
+      "n_distinctions": 3,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.2997899999609217,
+      "n_distinctions": 7,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.26990349998231977,
+      "n_distinctions": 7,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.2694665000308305,
+      "n_distinctions": 7,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 3.831641416065395,
+      "n_distinctions": 15,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 3.9401723340852186,
+      "n_distinctions": 15,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 4,
+      "trial": 2,
+      "seconds": 3.8549831670243293,
+      "n_distinctions": 15,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 58.6033671250334,
+      "n_distinctions": 31,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 57.34095366601832,
+      "n_distinctions": 31,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 5,
+      "trial": 2,
+      "seconds": 57.098844708059914,
+      "n_distinctions": 31,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "sia",
+      "n": 6,
+      "trial": 0,
+      "seconds": 915.712216291111,
+      "n_distinctions": 60,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.004777375026606023,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.004299415973946452,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.0058423340087756515,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.05341258295811713,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.03648999996948987,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.03656554198823869,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.304618833004497,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.28930233395658433,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 4,
+      "trial": 2,
+      "seconds": 0.2888987089972943,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 2.479561625048518,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 2.6177530420245603,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 5,
+      "trial": 2,
+      "seconds": 2.5072774589061737,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 6,
+      "trial": 0,
+      "seconds": 23.43035612499807,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 6,
+      "trial": 1,
+      "seconds": 21.965825082967058,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 6,
+      "trial": 2,
+      "seconds": 21.824015666963533,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_3_0",
+      "stage": "ces",
+      "n": 7,
+      "trial": 0,
+      "seconds": 234.08964566595387,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.016386374947614968,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.0059929590206593275,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.006545500014908612,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.017047708039171994,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.017370917019434273,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.017337291967123747,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.11684241599868983,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.12513341603334993,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 4,
+      "trial": 2,
+      "seconds": 0.11851483397185802,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 1.1426455830223858,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 0.9687452499056235,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 5,
+      "trial": 2,
+      "seconds": 1.098849792033434,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 6,
+      "trial": 0,
+      "seconds": 8.299310458009131,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 6,
+      "trial": 1,
+      "seconds": 7.429784290958196,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 6,
+      "trial": 2,
+      "seconds": 7.368565291981213,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "sia",
+      "n": 7,
+      "trial": 0,
+      "seconds": 66.95211929199286,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.010762915946543217,
+      "n_distinctions": 3,
+      "n_relations": 5
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.008878750028088689,
+      "n_distinctions": 3,
+      "n_relations": 5
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.008796332986094058,
+      "n_distinctions": 3,
+      "n_relations": 5
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.0848457079846412,
+      "n_distinctions": 7,
+      "n_relations": 127
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.08336645795498043,
+      "n_distinctions": 7,
+      "n_relations": 127
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.08345045801252127,
+      "n_distinctions": 7,
+      "n_relations": 127
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.7462230840465054,
+      "n_distinctions": 15,
+      "n_relations": 6879
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.3602815000340343,
+      "n_distinctions": 15,
+      "n_relations": 6879
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 4,
+      "trial": 2,
+      "seconds": 1.436916249920614,
+      "n_distinctions": 15,
+      "n_relations": 6879
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 48.0442245840095,
+      "n_distinctions": 31,
+      "n_relations": 1413375
+    },
+    {
+      "formalism": "IIT_4_0_2023",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 83.28590595896821,
+      "n_distinctions": 31,
+      "n_relations": 1413375
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.0061995829455554485,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.00303145800717175,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.002800000016577542,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.016432208009064198,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.01582966698333621,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.01587029208894819,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.11200258298777044,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.11183825007174164,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 4,
+      "trial": 2,
+      "seconds": 0.1188322079833597,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 5,
+      "trial": 0,
+      "seconds": 0.890933542046696,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 5,
+      "trial": 1,
+      "seconds": 0.8538228339748457,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 5,
+      "trial": 2,
+      "seconds": 0.8640450420789421,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 6,
+      "trial": 0,
+      "seconds": 7.454431583057158,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 6,
+      "trial": 1,
+      "seconds": 7.245510165928863,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 6,
+      "trial": 2,
+      "seconds": 7.52444812504109,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "sia",
+      "n": 7,
+      "trial": 0,
+      "seconds": 66.98830891598482,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.013433000072836876,
+      "n_distinctions": 3,
+      "n_relations": 5
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.00954841694328934,
+      "n_distinctions": 3,
+      "n_relations": 5
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.009190708049573004,
+      "n_distinctions": 3,
+      "n_relations": 5
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.08800395904108882,
+      "n_distinctions": 7,
+      "n_relations": 127
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.11258275003638119,
+      "n_distinctions": 7,
+      "n_relations": 127
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.09470824990421534,
+      "n_distinctions": 7,
+      "n_relations": 127
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 4,
+      "trial": 0,
+      "seconds": 1.4370364169590175,
+      "n_distinctions": 15,
+      "n_relations": 6879
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 4,
+      "trial": 1,
+      "seconds": 1.9852057920070365,
+      "n_distinctions": 15,
+      "n_relations": 6879
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 4,
+      "trial": 2,
+      "seconds": 1.5984153329627588,
+      "n_distinctions": 15,
+      "n_relations": 6879
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 5,
+      "trial": 0,
+      "seconds": 49.24981545901392,
+      "n_distinctions": 31,
+      "n_relations": 1413375
+    },
+    {
+      "formalism": "IIT_4_0_2026",
+      "stage": "ces",
+      "n": 5,
+      "trial": 1,
+      "seconds": 78.95088470797054,
+      "n_distinctions": 31,
+      "n_relations": 1413375
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 2,
+      "trial": 0,
+      "seconds": 0.0028450420359149575,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 2,
+      "trial": 1,
+      "seconds": 0.0017225410556420684,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 2,
+      "trial": 2,
+      "seconds": 0.0017115409718826413,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 3,
+      "trial": 0,
+      "seconds": 0.013752499944530427,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 3,
+      "trial": 1,
+      "seconds": 0.015652041998691857,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 3,
+      "trial": 2,
+      "seconds": 0.012551916996017098,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 4,
+      "trial": 0,
+      "seconds": 0.07355254201684147,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 4,
+      "trial": 1,
+      "seconds": 0.06667820806615055,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 4,
+      "trial": 2,
+      "seconds": 0.06628749996889383,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 5,
+      "trial": 0,
+      "seconds": 0.4191597090102732,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 5,
+      "trial": 1,
+      "seconds": 0.4228787920437753,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 5,
+      "trial": 2,
+      "seconds": 0.4212852909695357,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 6,
+      "trial": 0,
+      "seconds": 2.9980392090510577,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 6,
+      "trial": 1,
+      "seconds": 3.3161123329773545,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 6,
+      "trial": 2,
+      "seconds": 3.11099141696468,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 7,
+      "trial": 0,
+      "seconds": 24.82413404097315,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 7,
+      "trial": 1,
+      "seconds": 23.67956541699823,
+      "n_distinctions": -1,
+      "n_relations": -1
+    },
+    {
+      "formalism": "AC_2019",
+      "stage": "account",
+      "n": 7,
+      "trial": 2,
+      "seconds": 23.865519874962047,
+      "n_distinctions": -1,
+      "n_relations": -1
+    }
+  ]
+}
