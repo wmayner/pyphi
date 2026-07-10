@@ -662,6 +662,22 @@ class AcSystemIrreducibilityAnalysis(
 
             provenance = Provenance.capture()
         self.provenance = provenance
+        self._ties: tuple[AcSystemIrreducibilityAnalysis, ...] = (self,)
+
+    @property
+    def ties(self) -> tuple[AcSystemIrreducibilityAnalysis, ...]:
+        """System analyses tied with this one at the winning 𝒜, including
+        this one. A singleton when the minimum is unique."""
+        return self._ties
+
+    def set_ties(self, ties: Sequence[AcSystemIrreducibilityAnalysis]) -> None:
+        """Attach the tied analysis set, shared by reference among peers."""
+        tied = tuple(ties)
+        if len(tied) <= 1:
+            self._ties = (self,)
+            return
+        for member in tied:
+            member._ties = tied
 
     def _pandas_record(self):
         return {

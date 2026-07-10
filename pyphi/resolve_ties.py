@@ -517,6 +517,91 @@ def resolve_ac_causal_link_tie[V: _AcRIALike](
     )
 
 
+class _AcSIALike(Protocol):
+    """Structural type for an AC system-irreducibility analysis."""
+
+    @property
+    def alpha(self) -> float: ...
+
+    @property
+    def size(self) -> int: ...
+
+    @property
+    def partition(self) -> Any: ...
+
+
+def resolve_ac_sia_tie[V: _AcSIALike](
+    sias: "Iterable[V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[V]:
+    """Resolve a tie among per-partition AC system analyses at min 𝒜.
+
+    The system-level MIP is the partition of minimum 𝒜 (Albantakis et
+    al. 2019, Eq. 20); tie-break behavior is unspecified by the paper.
+    The cascade walks Integration (argmin 𝒜) and falls through to a
+    pyphi-specific Determinism level (lex-canonical partition) so
+    equal-𝒜 partitions resolve reproducibly across iteration orderings.
+    """
+    return cascade(
+        sias,
+        levels=[
+            CascadeLevel(
+                postulate="Integration",
+                op="argmin",
+                key=lambda s: s.alpha,
+            ),
+            CascadeLevel(
+                postulate="Determinism",
+                op="argmin",
+                key=lambda s: s.partition.lex_key(),
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
+    )
+
+
+def resolve_ac_nexus_tie[V: _AcSIALike](
+    sias: "Iterable[V]",
+    *,
+    context: ResolutionContext,
+    on_unresolved: OnUnresolved = "defer",
+) -> CascadeOutcome[V]:
+    """Resolve a tie among candidate transitions for the causal nexus.
+
+    The causal nexus is the transition of maximal 𝒜. Ties escalate to
+    the larger transition, then to a pyphi-specific Determinism level
+    (lex-smallest cause/effect index sets) for reproducibility.
+    """
+    return cascade(
+        sias,
+        levels=[
+            CascadeLevel(
+                postulate="Integration",
+                op="argmax",
+                key=lambda s: s.alpha,
+            ),
+            CascadeLevel(
+                postulate="Integration",
+                op="argmax",
+                key=lambda s: s.size,
+            ),
+            CascadeLevel(
+                postulate="Determinism",
+                op="argmin",
+                key=lambda s: (
+                    tuple(sorted(s.cause_indices)),
+                    tuple(sorted(s.effect_indices)),
+                ),
+            ),
+        ],
+        context=context,
+        on_unresolved=on_unresolved,
+    )
+
+
 class _IIT3SiaLike(Protocol):
     """Structural type for an IIT 3.0 SIA consumed by the cross-subsystem cascade."""
 

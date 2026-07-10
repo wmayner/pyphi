@@ -30,6 +30,7 @@ from typing import Any
 import numpy as np
 
 from . import exceptions
+from . import resolve_ties
 from . import utils
 from . import validate
 from .conf import config
@@ -915,7 +916,13 @@ def causal_nexus(
     log.info("Calculating causal nexus...")
     result = nexus(substrate, before_state, after_state, direction)
     if result:
-        result = max(result)
+        context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+        outcome = resolve_ties.resolve_ac_nexus_tie(result, context=context)
+        winner = outcome.resolved
+        assert winner is not None, "causal-nexus cascade returned no winner"
+        if len(outcome.tied_set) > 1:
+            winner.set_ties(outcome.tied_set)
+        result = winner
     else:
         null_transition = Transition(substrate, before_state, after_state, (), ())
         result = _null_ac_sia(null_transition, direction)

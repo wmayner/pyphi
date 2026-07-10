@@ -518,7 +518,7 @@ def _evaluate_partition(
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcSystemIrreducibilityAnalysis(
-        alpha=round(alpha, config.numerics.precision),
+        alpha=numerics.round_to_precision(alpha),
         direction=direction,
         account=unpartitioned_account,
         partitioned_account=partitioned_account,
@@ -626,7 +626,7 @@ def _sia(
     parallel_kwargs = conf.parallel_kwargs(
         dict(config.infrastructure.parallel_partition_evaluation), **kwargs
     )
-    result = map_reduce(
+    candidates = map_reduce(
         _evaluate_partition,
         cuts,
         map_kwargs={
@@ -636,13 +636,20 @@ def _sia(
             "alpha_measure": alpha_measure,
             "partitioned_repertoire_scheme": partitioned_repertoire_scheme,
         },
-        reduce_func=min,
-        reduce_kwargs={
-            "default": _null_ac_sia(transition, direction, alpha=float("inf"))
-        },
         shortcircuit_func=utils.is_falsy,
         **parallel_kwargs,
     )
+    if not candidates:
+        log.info("No partitions to evaluate; returning null AC SIA.")
+        return _null_ac_sia(
+            transition, direction, reasons=[NullResultReason.NO_VALID_PARTITIONS]
+        )
+    context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
+    outcome = resolve_ties.resolve_ac_sia_tie(candidates, context=context)
+    result = outcome.resolved
+    assert result is not None, "AC SIA cascade returned no winner"
+    if len(outcome.tied_set) > 1:
+        result.set_ties(outcome.tied_set)
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result
