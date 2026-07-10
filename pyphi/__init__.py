@@ -104,6 +104,11 @@ from .core.tpm import JointTPM as JointTPM
 from .direction import Direction
 from .estimate import estimate_substrate as estimate_substrate
 from .estimate import phi_posterior as phi_posterior
+from .landscape import LandscapeSection as LandscapeSection
+from .landscape import Perturbation as Perturbation
+from .landscape import landscape_section as landscape_section
+from .landscape import perturb as perturb
+from .landscape import weight_axis as weight_axis
 from .log import enable_logging as enable_logging
 from .serialize import load
 from .serialize import save
@@ -161,9 +166,12 @@ __all__ = [
     "iit3",
     "iit4_2023",
     "iit4_2026",
+    "landscape_section",
     "load",
+    "perturb",
     "phi_posterior",
     "save",
+    "weight_axis",
 ] + [name for name in sorted(_SUBMODULE_NAMES) if not name.startswith("_")]
 
 

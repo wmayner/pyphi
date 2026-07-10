@@ -142,6 +142,12 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         Zero when another state ties exactly; ``None`` when there was no
         competing state. A margin within ``config.numerics.precision`` of
         zero means the state selection is effectively tied.
+
+        System-level analyses aggregate this per-direction as
+        ``SystemIrreducibilityAnalysis.state_margins`` (alongside
+        ``partition_margin`` and ``tied_selections``); mechanism-level
+        analyses surface it as
+        ``RepertoireIrreducibilityAnalysis.state_margin``.
         """
         if self.runner_up_intrinsic_information is None:
             return None

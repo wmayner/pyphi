@@ -9,6 +9,7 @@ cache
 save-load
 export
 sweep
+landscape
 tie-breaking
 mcp-server
 ```

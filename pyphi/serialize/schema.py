@@ -149,18 +149,22 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     node_labels: NodeLabelsSchema | None
     partition_tie_peers: tuple["RIASchema", ...] = ()
     state_tie_peers: tuple["RIASchema", ...] = ()
+    partition_margin: PhiSchema | None = None
 
 
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):
     ria: RIASchema
+    purview_margin: PhiSchema | None = None
 
 
 class MICECauseSchema(msgspec.Struct, frozen=True, tag="mice_cause"):
     ria: RIASchema
+    purview_margin: PhiSchema | None = None
 
 
 class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
     ria: RIASchema
+    purview_margin: PhiSchema | None = None
 
 
 MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema
@@ -463,6 +467,9 @@ class PhiPosteriorSchema(msgspec.Struct, frozen=True, tag="phi_posterior"):
     regime: str
     coverage: CoverageReportSchema
     provenance: ProvenanceSchema
+    screen_margin: float | None = None
+    screened: bool = False
+    reference_margins: dict[str, float | None] | None = None
 
 
 # The tagged union grows one member per serializable type.

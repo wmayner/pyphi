@@ -129,6 +129,7 @@ class RepertoireIrreducibilityAnalysis(
     _normalized_phi: float | None
     _signed_normalized_phi: float | None
     _node_labels: NodeLabels | None
+    _partition_margin: float | None
 
     def __init__(
         self,
@@ -146,6 +147,7 @@ class RepertoireIrreducibilityAnalysis(
         selectivity: float | None = None,
         reasons: list[NullResultReason] | None = None,
         signed_phi: float | DistanceResult | None = None,
+        partition_margin: float | None = None,
     ) -> None:
         # ``signed_phi`` is the raw integration value, possibly negative
         # under preventative-cause semantics. ``phi`` exposes the ``|·|+``
@@ -182,6 +184,9 @@ class RepertoireIrreducibilityAnalysis(
         self._state_ties = (self,)
         self._selectivity = selectivity
         self._reasons = reasons
+        self._partition_margin = (
+            None if partition_margin is None else float(partition_margin)
+        )
 
         # ``norm`` is None only for a null/unconstrained analysis (no
         # partition); such an analysis has no normalized phi.
@@ -308,6 +313,42 @@ class RepertoireIrreducibilityAnalysis(
         """Reasons why the computation short-circuited."""
         return self._reasons
 
+    @property
+    def partition_margin(self) -> float | None:
+        """The gap in (clamped) normalized φ between this MIP and the best
+        competing mechanism partition.
+
+        Zero when a competitor ties exactly; ``None`` when there was no
+        competitor or the partition sweep stopped early on a reducible
+        partition. Set ``shortcircuit_sia=False`` to evaluate every
+        partition and obtain an exact margin even when φ = 0. Excluded
+        from equality and hashing.
+        """
+        return self._partition_margin
+
+    @partition_margin.setter
+    def partition_margin(self, value: float | None) -> None:
+        self._partition_margin = None if value is None else float(value)
+
+    @property
+    def state_margin(self) -> float | None:
+        """The intrinsic-information gap between the specified purview state
+        and the best competing state
+        (:attr:`~pyphi.models.state_specification.StateSpecification.state_margin`).
+        """
+        if self.specified_state is None:
+            return None
+        return self.specified_state.state_margin
+
+    @property
+    def effectively_tied(self) -> bool:
+        """Whether the partition or specified-state selection is within
+        ``config.numerics.precision`` of a tie."""
+        return any(
+            margin is not None and numerics.eq(float(margin), 0.0)
+            for margin in (self.partition_margin, self.state_margin)
+        )
+
     def _findings(self) -> tuple[Finding, ...]:
         findings = [
             Finding(kind="null_result", label="Null result", value=reason)
@@ -321,6 +362,31 @@ class RepertoireIrreducibilityAnalysis(
                     kind="winning_partition",
                     label="MIP",
                     value=concise_partition(self.partition),
+                )
+            )
+        if self.partition_margin is not None:
+            findings.append(
+                Finding(
+                    kind="partition_margin",
+                    label="MIP selection margin (normalized φ)",
+                    value=self.partition_margin,
+                )
+            )
+        if self.state_margin is not None:
+            findings.append(
+                Finding(
+                    kind="state_margin",
+                    label="Specified-state margin (ii)",
+                    value=self.state_margin,
+                    tone=tone_of(self.direction),
+                )
+            )
+        if self.partition_margin is not None or self.state_margin is not None:
+            findings.append(
+                Finding(
+                    kind="effectively_tied",
+                    label="Selection effectively tied",
+                    value=self.effectively_tied,
                 )
             )
         return tuple(findings)
@@ -483,6 +549,8 @@ class RepertoireIrreducibilityAnalysis(
             ss = self.specified_state
             summary.append(Row("Specified state", ss.state))
             summary.append(Row("Intrinsic information", ss.intrinsic_information))
+            if verbosity >= FULL and ss.state_margin is not None:
+                summary.append(Row("State margin", ss.state_margin))
         if self.selectivity is not None:
             summary.append(Row("Selectivity", self.selectivity))
         sections = [Section(rows=tuple(summary))]
@@ -496,6 +564,11 @@ class RepertoireIrreducibilityAnalysis(
         mip_rows = [Row("Partition", partition_str)]
         if self.reasons is not None:
             mip_rows.append(Row("Reasons", ", ".join(map(str, self.reasons))))
+        if verbosity >= FULL:
+            if self.partition_margin is not None:
+                mip_rows.append(Row("Selection margin", self.partition_margin))
+            if self.partition_margin is not None or self.state_margin is not None:
+                mip_rows.append(Row("Effectively tied", self.effectively_tied))
         mip_body = (
             (_cut_grid(self.partition),)
             if verbosity >= FULL
@@ -561,6 +634,13 @@ class RepertoireIrreducibilityAnalysis(
                 None if self.purview_state is None else tuple(self.purview_state)
             ),
             "specified_state": self.specified_state,
+            "partition_margin": (
+                None if self.partition_margin is None else float(self.partition_margin)
+            ),
+            "state_margin": (
+                None if self.state_margin is None else float(self.state_margin)
+            ),
+            "effectively_tied": self.effectively_tied,
         }
 
 

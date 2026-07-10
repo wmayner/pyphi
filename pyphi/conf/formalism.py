@@ -64,6 +64,19 @@ class IITConfig:
         background, so the setting affects neither. Actual-causation
         analyses are unaffected: the AC background rule is set by
         ``ActualCausationConfig.background_scheme``.
+
+    Reducibility short-circuiting (``shortcircuit_sia``)
+        When ``True`` (default), IIT 4.0 analyses stop early on detected
+        reducibility: a system whose specified state has no cause or no
+        effect returns a null SIA without a partition search, and the
+        system- and mechanism-level partition sweeps stop at the first
+        partition with zero integrated information. Early stops leave
+        selection margins undefined (``partition_margin`` is ``None``)
+        because the remaining partitions were never evaluated. When
+        ``False``, every partition is evaluated: reducible cases cost the
+        full sweep, computed φ values are unchanged, and selection
+        margins are exact everywhere. Does not gate IIT 3.0's early-exit
+        logic.
     """
 
     version: str = "IIT_4_0_2023"

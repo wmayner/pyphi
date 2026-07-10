@@ -30,6 +30,7 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -43,6 +44,7 @@ from .conf import config
 from .provenance import Provenance
 from .serializable import Serializable
 from .substrate import Substrate
+from .substrate import irreducible_sias
 from .substrate import maximal_complex
 
 REGIMES = ("perturbational", "observational")
@@ -186,6 +188,21 @@ class SubstratePosterior(Serializable):
             tpm=convert.to_multidimensional(p_on), node_labels=self.node_labels
         )
 
+    def mean_substrate(self) -> Substrate:
+        """The posterior-mean substrate: every TPM cell at its Beta mean.
+
+        A reference point, not an estimator: Φ of the mean substrate
+        conflates epistemic uncertainty with the substrate's own
+        indeterminism (see the module docstring), so it must not be
+        reported as an estimate of Φ. Its role is to anchor reference
+        computations such as the selection-margin screen in
+        :func:`phi_posterior`.
+        """
+        p_on = self.alpha_on / (self.alpha_on + self.alpha_off)
+        return Substrate(
+            tpm=convert.to_multidimensional(p_on), node_labels=self.node_labels
+        )
+
     def edge_probability(
         self, *, n_samples: int, seed: int, threshold: float
     ) -> NDArray[np.float64]:
@@ -277,6 +294,20 @@ class PhiPosterior(Serializable):
     provenance
         Environment record captured at computation time; its
         ``estimator`` field carries the substrate posterior's record.
+    screen_margin
+        The margin threshold passed to :func:`phi_posterior`;
+        ``None`` when screening was off.
+    screened
+        Whether the margin screen actually engaged (the reference
+        margins all cleared the threshold), fixing the per-draw complex
+        identity at the posterior mean's answer.
+    reference_margins
+        The selection margins of the reference maximal complex at the
+        posterior mean, recorded whenever a threshold was given — the
+        audit trail for why the screen engaged or refused. Keys:
+        ``"partition"``, ``"cause_state"``, ``"effect_state"``, and
+        ``"complex"`` (the φ_s gap between the top two irreducible
+        candidate systems — the margin of the complex identity itself).
     """
 
     samples: NDArray[np.float64]
@@ -287,6 +318,9 @@ class PhiPosterior(Serializable):
     regime: str
     coverage: CoverageReport
     provenance: Provenance
+    screen_margin: float | None = None
+    screened: bool = False
+    reference_margins: dict[str, float | None] | None = None
 
     @property
     def p_positive(self) -> float:
@@ -333,6 +367,21 @@ class PhiPosterior(Serializable):
         )
 
 
+def _reference_margins(sia: Any) -> dict[str, float | None]:
+    """The selection margins of a reference SIA, as plain floats."""
+    from .direction import Direction
+
+    def _opt(value: Any) -> float | None:
+        return None if value is None else float(value)
+
+    state_margins = sia.state_margins
+    return {
+        "partition": _opt(sia.partition_margin),
+        "cause_state": _opt(state_margins[Direction.CAUSE]),
+        "effect_state": _opt(state_margins[Direction.EFFECT]),
+    }
+
+
 def phi_posterior(
     posterior: SubstratePosterior,
     state: tuple[int, ...],
@@ -340,6 +389,7 @@ def phi_posterior(
     n_samples: int,
     seed: int,
     subset: Sequence[int] | None = None,
+    screen_margin: float | None = None,
 ) -> PhiPosterior:
     """Propagate a substrate posterior through the SIA by Monte Carlo.
 
@@ -363,14 +413,71 @@ def phi_posterior(
     subset
         Unit indices of the candidate system; ``None`` uses the
         whole substrate.
+    screen_margin
+        Margin threshold for the complex-identity screen; ``None``
+        (default) disables it. When given, the maximal complex of the
+        posterior-mean substrate is computed once, and if that reference
+        complex exists and the complex-identity margin — the φ_s gap
+        between the top two irreducible candidate systems at the mean —
+        is either undefined (no competitor) or strictly greater than the
+        threshold, the per-draw maximal-complex search is skipped and
+        the reference identity is reused for every draw. The reference
+        SIA's internal margins are recorded on the result for audit but
+        do not gate the screen: a tied partition or specified state
+        within the winner does not contest which units win. The per-draw
+        SIA (and hence every Φ sample) is always computed in full, and
+        the draw stream is identical to the unscreened run.
 
     Returns
     -------
     A :class:`PhiPosterior` over the per-draw Φ values and complex
     identities.
+
+    Notes
+    -----
+    The screen is a compute heuristic, not a bound: margins at the
+    posterior mean say nothing about a draw far from the mean, so under a
+    diffuse posterior a screened ``complex_identity`` degenerates to a
+    point mass that the unscreened run would not show. The threshold is a
+    modeling assertion about the scale at which a selection counts as
+    safely untied — it is deliberately required from the caller. Use
+    screening after the posterior is tight, or after an unscreened pilot.
     """
     if n_samples < 1:
         raise ValueError(f"n_samples must be at least 1, got {n_samples}")
+
+    screened = False
+    reference_margins = None
+    reference_units: tuple[int, ...] | None = None
+    if screen_margin is not None:
+        mean = posterior.mean_substrate()
+        reference = maximal_complex(mean, state)
+        reference_margins = _reference_margins(reference.sia)
+        # The identity the screen fixes is *which candidate system* is the
+        # maximal complex, so the gate must also cover that selection: the
+        # φ_s gap between the top two irreducible candidates (overlapping
+        # candidates included — any of them coming within the threshold of
+        # the winner contests the identity).
+        # numerics: exact — reported margin (caller-owned raw threshold).
+        candidate_phis = sorted(
+            (float(sia.phi) for sia in irreducible_sias(mean, state)), reverse=True
+        )
+        reference_margins["complex"] = (
+            max(0.0, candidate_phis[0] - candidate_phis[1])
+            if len(candidate_phis) > 1
+            else None
+        )
+        # Only the complex-identity margin gates the screen: the reused
+        # object is the winning unit set, and internal ties within the
+        # winner (a tied MIP or specified state) do not contest which
+        # units win. The winner's own margins are recorded for audit.
+        complex_margin = reference_margins["complex"]
+        if bool(reference) and (
+            complex_margin is None or complex_margin > screen_margin
+        ):
+            screened = True
+            reference_units = tuple(reference.node_indices)
+
     rng = np.random.default_rng(seed)
     draws = range(n_samples)
     if config.infrastructure.progress_bars:
@@ -381,8 +488,11 @@ def phi_posterior(
         sample = posterior.sample(rng=rng)
         sia = analyze(sample, state, subset=subset, compute="sia")
         phis.append(float(sia.phi))
-        complex_ = maximal_complex(sample, state)
-        complexes.append(tuple(complex_.node_indices))
+        if screened:
+            complexes.append(reference_units)
+        else:
+            complex_ = maximal_complex(sample, state)
+            complexes.append(tuple(complex_.node_indices))
     return PhiPosterior(
         samples=np.array(phis, dtype=np.float64),
         complex_samples=tuple(complexes),
@@ -394,6 +504,9 @@ def phi_posterior(
         provenance=Provenance.capture(
             seed=seed, estimator=posterior.provenance.estimator
         ),
+        screen_margin=screen_margin,
+        screened=screened,
+        reference_margins=reference_margins,
     )
 
 

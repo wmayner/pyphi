@@ -60,6 +60,7 @@ from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
+from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
 from pyphi.partition import system_partitions
 from pyphi.provenance import HasProvenance
@@ -172,10 +173,11 @@ class SystemIrreducibilityAnalysis(
 
     ``partition_margin`` is the gap in (clamped) normalized φ between the
     MIP and the best competing partition, computed at selection (before
-    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties,
-    ``None`` when there was no competitor, and exact whenever φ_s > 0 (a
-    reducibility short-circuit stops the partition sweep early, in which
-    case the margin is over the evaluated subset).
+    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties and
+    ``None`` when there was no competitor or the partition sweep stopped
+    early on a reducible partition (in which case no exact margin exists).
+    Set ``shortcircuit_sia=False`` to evaluate every partition and obtain
+    an exact margin even when φ_s = 0.
     """
 
     phi: float | DistanceResult
@@ -261,15 +263,31 @@ class SystemIrreducibilityAnalysis(
         return margins
 
     @property
+    def tied_selections(self) -> tuple[str, ...]:
+        """The selections whose margin is within ``config.numerics.precision``
+        of zero — a subset of ``("partition", "cause_state", "effect_state")``.
+
+        Empty when every selection has a clear winner. See also the
+        per-direction :attr:`StateSpecification.state_margin` on
+        ``system_state`` and :attr:`partition_margin`.
+        """
+        named = {
+            "partition": self.partition_margin,
+            "cause_state": self.state_margins[Direction.CAUSE],
+            "effect_state": self.state_margins[Direction.EFFECT],
+        }
+        return tuple(
+            name
+            for name, margin in named.items()
+            if margin is not None and numerics.eq(float(margin), 0.0)
+        )
+
+    @property
     def effectively_tied(self) -> bool:
         """Whether any selection margin is within
-        ``config.numerics.precision`` of zero — i.e. the partition or
-        specified-state selection is effectively tied at the configured
-        precision."""
-        margins = [self.partition_margin, *self.state_margins.values()]
-        return any(
-            margin is not None and numerics.eq(float(margin), 0.0) for margin in margins
-        )
+        ``config.numerics.precision`` of zero — i.e.
+        :attr:`tied_selections` is non-empty."""
+        return bool(self.tied_selections)
 
     def resolve_system_state(self) -> None:
         """Update system_state to reflect the specified states resolved by the MIP.
@@ -492,6 +510,7 @@ class SystemIrreducibilityAnalysis(
                     kind="effectively_tied",
                     label="Selection effectively tied",
                     value=self.effectively_tied,
+                    detail=(("tied_selections", self.tied_selections),),
                 )
             )
         if self.cause is not None and self.effect is not None:
@@ -1116,6 +1135,9 @@ def _find_mip_for_fixed_state(
         resolved_directions = Direction.both()
     resolved_directions = tuple(resolved_directions)
 
+    if not isinstance(partitions, (list, tuple)):
+        partitions = list(partitions)
+
     # ``intrinsic_differentiation`` depends only on (direction, system), not the
     # partition, so compute it once here and pass it to every partition rather
     # than rebuilding it in each ``evaluate_partition`` call.
@@ -1134,7 +1156,11 @@ def _find_mip_for_fixed_state(
             "directions": resolved_directions,
             "intrinsic_differentiation": precomputed_intrinsic_differentiation,
         },
-        shortcircuit_func=utils.is_falsy,
+        shortcircuit_func=(
+            utils.is_falsy
+            if config.formalism.iit.shortcircuit_sia
+            else _never_shortcircuit
+        ),
         desc="Evaluating partitions",
         **parallel_kwargs,
     )
@@ -1146,7 +1172,10 @@ def _find_mip_for_fixed_state(
     mip_sia = ties[0]
     mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
     others = [candidate for candidate in candidates if candidate is not mip_sia]
-    if others:
+    # The margin is only meaningful when every partition was evaluated: a
+    # short-circuited sweep yields a truncated prefix whose gap says nothing
+    # about the full partition set.
+    if others and len(candidates) == len(partitions):
         # Reports the margin to the nearest competitor; the MIP was already
         # selected above via resolve_ties.sias.
         # numerics: exact — reported margin, not a selection.

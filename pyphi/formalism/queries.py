@@ -38,6 +38,7 @@ from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
 from pyphi.models.explanation import NullResultReason
+from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
 from pyphi.partition import mechanism_partitions
 
@@ -99,8 +100,8 @@ def _find_mip_single_state(
     mechanism partitions for a (state, direction, mechanism, purview)
     combination.
     """
-    partitions = fallback(
-        partitions, mechanism_partitions(mechanism, purview, cs.node_labels)
+    partitions = list(
+        fallback(partitions, mechanism_partitions(mechanism, purview, cs.node_labels))
     )
 
     def _eval(partition: Any) -> Any:
@@ -118,15 +119,20 @@ def _find_mip_single_state(
     candidate_mips = map_reduce(
         _eval,
         partitions,
-        shortcircuit_func=_utils.is_falsy,
+        shortcircuit_func=(
+            _utils.is_falsy
+            if config.formalism.iit.shortcircuit_sia
+            else _never_shortcircuit
+        ),
         desc="Evaluating mechanism partitions",
         **parallel_kwargs,
     )
     assert candidate_mips is not None, "map_reduce() should not return None"
+    candidates = list(candidate_mips)
 
     ties = tuple(
         resolve_ties.partitions(
-            candidate_mips,  # type: ignore[arg-type]
+            candidates,  # type: ignore[arg-type]
             default=_null_ria(
                 direction,
                 mechanism,
@@ -138,7 +144,21 @@ def _find_mip_single_state(
     )
     for tie in ties:
         tie.set_partition_ties(ties)
-    return ties[0]
+    winner = ties[0]
+    # The margin is only meaningful when every partition was evaluated: a
+    # short-circuited sweep yields a truncated prefix whose gap says nothing
+    # about the full partition set.
+    others = [c for c in candidates if c is not winner]
+    if (
+        others
+        and len(candidates) == len(partitions)
+        and winner.normalized_phi is not None
+        and all(c.normalized_phi is not None for c in others)
+    ):
+        # numerics: exact — reported margin, not a selection.
+        gap = min(float(c.normalized_phi) for c in others) - float(winner.normalized_phi)
+        winner.partition_margin = max(0.0, gap)
+    return winner
 
 
 # ---- mechanism MIP search ----
@@ -298,11 +318,19 @@ def find_mice(
         **parallel_kwargs,
     )
 
-    all_mice = map(mice_class, mip_results)  # type: ignore[arg-type]
+    all_mice = [mice_class(result) for result in mip_results]  # type: ignore[arg-type]
     ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]
     for tie in ties:
         tie.set_purview_ties(ties)
     winner = ties[0]
+    # The purview sweep is always exhaustive, so the margin is exact
+    # whenever a competing purview exists.
+    other_mice = [m for m in all_mice if m is not winner]
+    if other_mice:
+        # numerics: exact — reported margin, not a selection.
+        best_rival_phi = max(float(m.phi) for m in other_mice)
+        # numerics: exact — reported margin, not a selection.
+        winner.purview_margin = max(0.0, float(winner.phi) - best_rival_phi)
     if config.infrastructure.validate_phi_bounds and winner.purview:
         from pyphi.formalism.iit4 import bounds
 
