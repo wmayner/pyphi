@@ -101,10 +101,17 @@ Frozen dataclass in `pyphi/macro/estimate.py`, `Displayable` +
   the partition-count cap excluded and flagged via `truncated`).
 - `construction_keys_upper_bound : int` — distinct (footprint, grain)
   construction keys (the Θ(τ·4ⁿ) axis).
-- `is_exact : bool` — `True` iff the whole estimate is exact rather than
-  an upper bound: `max_depth == 0`, where no judgment happens and the
-  sweep over micro units is fully determined. (Level-1 judgment counts
-  are exact regardless; adaptivity begins with the level-1 verdicts.)
+- `is_exact : bool` — `True` iff the candidate enumeration is exact
+  rather than an upper bound: `max_depth == 0`, where no judgment happens
+  and the sweep over micro units is fully determined. (Level-1 judgment
+  counts are exact regardless; adaptivity begins with the level-1
+  verdicts.) Even an exact enumeration can exceed
+  `len(ComplexesResult.records)`: a candidate system whose state is
+  unreachable under its own TPM is discarded at run time
+  (`StateUnreachableError` → no record), and reachability cannot be
+  predicted without constructing the TPM — which the pre-flight never
+  does. Counts are therefore bounds on candidates *enumerated*, met with
+  equality by records only when every candidate's state is reachable.
 - `truncated : bool` — the counting walk hit its `limit` (or a partition
   bucket exceeded the partition-count cap); all counts are then lower
   bounds of the upper bound ("at least").
@@ -143,12 +150,15 @@ class SearchBounds:
 
 ## Testing
 
-- **Fixture invariants** (`test/macro/`): on the min-substrate
-  (`mappings="EXHAUSTIVE"`), bu-substrate, and decaying-chain fixtures,
-  run the real `complexes()` and assert
-  `estimate.distinct_systems_upper_bound >= len(result.records)`; at
-  `max_depth=0` assert **equality** (`is_exact`, no adaptivity) on both
-  counts and `systems_by_unit_count`.
+- **Fixture invariants** (`test/macro/`): on the min-substrate (defaults
+  and `mappings="EXHAUSTIVE"`), bu-substrate, and decaying-chain
+  fixtures, run the real `complexes()` and assert
+  `estimate.distinct_systems_upper_bound >= len(result.records)`.
+  **Equality pins** where verified live: min-substrate defaults
+  (8 = 8 — the worst case is achieved because its only candidate
+  decomposition passes), min EXHAUSTIVE (10 = 10), min at `max_depth=0`
+  (3 = 3, `is_exact`). The bu-substrate at `max_depth=0` pins the
+  unreachable-state gap: estimate 7, records 6.
 - **Primitive agreement**: the stand-in walk's level-1 judgment count
   equals a direct enumeration of footprints × `_decompositions` ×
   `_apportionments` on hand-built micro pools; variant multiplicities
