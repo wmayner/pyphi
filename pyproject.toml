@@ -208,6 +208,7 @@ max-statements = 100
 "profiling/**/*.py" = ["T201"]
 "benchmarks/**/*.py" = ["T201"]
 "scripts/**/*.py" = ["T201", "E501", "C408"]
+"grain_tau_experiments/**/*.py" = ["T201", "E501"]
 # Allow print and magic values in examples
 "docs/examples/**/*.py" = ["T201", "PLR2004"]
 # Allow explicit re-exports in __init__ files (PEP 484 style)
