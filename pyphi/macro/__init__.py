@@ -13,6 +13,8 @@ from pyphi.macro.criteria import UnitVerdict
 from pyphi.macro.criteria import constituent_system
 from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.criteria import unit_integration
+from pyphi.macro.estimate import SearchEstimate
+from pyphi.macro.estimate import estimate_search
 from pyphi.macro.search import ComplexesResult
 from pyphi.macro.search import DecompositionVerdict
 from pyphi.macro.search import EvaluationRecord
@@ -40,6 +42,7 @@ __all__ = [
     "MacroUnit",
     "Reason",
     "SearchBounds",
+    "SearchEstimate",
     "UnitVerdict",
     "blackbox",
     "candidate_mappings",
@@ -47,6 +50,7 @@ __all__ = [
     "competing_systems",
     "complexes",
     "constituent_system",
+    "estimate_search",
     "intrinsic_units",
     "is_intrinsic_unit",
     "judge_candidate",

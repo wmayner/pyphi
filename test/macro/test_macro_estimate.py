@@ -4,6 +4,7 @@ import pytest
 
 from pyphi import config
 from pyphi.conf import presets
+from pyphi.macro.estimate import SearchEstimate
 from pyphi.macro.estimate import estimate_search
 from pyphi.macro.search import SearchBounds
 
@@ -156,3 +157,31 @@ class TestPartitionWeights:
         assert est.partition_sweeps_upper_bound == expected
         # n=3 subsets: 3 singletons + 3 pairs + 1 triple.
         assert expected == 3 * 1 + 3 * 3 + 1 * 22
+
+
+class TestSurfaces:
+    def test_display_card_headline_rows(self):
+        est = estimate_search(SearchBounds(), 2)
+        desc = est._describe(verbosity=2)
+        labels = [row.label for section in desc.sections for row in section.rows]
+        assert "Candidate systems" in labels
+        assert "Partition sweeps" in labels
+        assert "m = 1" in labels  # bucket section
+
+    def test_qualifier_tracks_exactness(self):
+        exact = estimate_search(SearchBounds(max_depth=0), 2)
+        bound = estimate_search(SearchBounds(), 2)
+        assert "= 3" in exact._describe(2).compact
+        assert "≤ 8" in bound._describe(2).compact
+
+    def test_pandas_record_scalars(self):
+        est = estimate_search(SearchBounds(), 2)
+        record = est._pandas_record()
+        assert record["distinct_systems_upper_bound"] == 8
+        assert record["is_exact"] is False
+
+    def test_package_exports(self):
+        import pyphi.macro
+
+        assert pyphi.macro.SearchEstimate is SearchEstimate
+        assert pyphi.macro.estimate_search is estimate_search
