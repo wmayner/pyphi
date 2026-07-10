@@ -46,7 +46,10 @@ represents a system of a substrate. Φ is a function of systems.
 The :func:`~pyphi.analyze.analyze` function is the main entry point for the
 library. It computes a system's cause-effect structure and its system
 integrated information (Φ). See its documentation for details. To search a
-substrate for its complexes, use :func:`~pyphi.substrate.complexes`.
+substrate for its complexes, use :func:`~pyphi.substrate.complexes`. To search
+across macro grains — which units, at which grain, are intrinsic — pass
+``grains=True`` (or a :class:`~pyphi.macro.SearchBounds`) to
+:func:`~pyphi.analyze.analyze`, or call :func:`pyphi.macro.complexes` directly.
 
 
 Configuration (optional)

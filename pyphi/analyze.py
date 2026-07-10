@@ -1,4 +1,4 @@
-"""One high-level entry point for a single system's IIT analysis.
+"""One high-level entry point for IIT analysis.
 
 ``analyze`` takes a substrate and a state, builds the candidate system, runs
 the analysis under the active (or a named) formalism, and returns an
@@ -97,9 +97,9 @@ def analyze(
     substrate
         The substrate to analyze.
     state : tuple[int, ...]
-        The state of the substrate's nodes. When ``grains`` admits update
-        grains above 1, a sequence of micro states (oldest first) of the
-        required length instead — see
+        The state of the substrate's nodes. When the bounds' maximum micro
+        grain (``max_update_grain ** max_depth``) exceeds 1, a sequence of
+        that many micro states (oldest first) instead — see
         :func:`pyphi.macro.complexes`.
     subset : optional
         Node indices of the candidate system; ``None`` uses the whole

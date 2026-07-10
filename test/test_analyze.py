@@ -205,8 +205,8 @@ def test_analyze_grains_mutual_exclusions():
 def test_analyze_grains_rejects_non_bounds():
     substrate = examples.basic_substrate()
     state = examples.basic_state()
-    with pytest.raises(ValueError, match="grains"):
+    with pytest.raises(ValueError, match="must be True or a SearchBounds"):
         analyze(substrate, state, grains=0.5)
     # False is a confusion signal, not "no search".
-    with pytest.raises(ValueError, match="grains"):
+    with pytest.raises(ValueError, match="must be True or a SearchBounds"):
         analyze(substrate, state, grains=False)

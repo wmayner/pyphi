@@ -173,7 +173,9 @@ them (Eq. 18), evaluates each over the full universe, and condenses the
 candidates into the *complexes* by the recursive exclusion cascade — accept
 the φₛ-maximal candidate, exclude everything overlapping it, and continue on
 the remainder (Eq. 19 applied tier by tier; a candidate excluded by an
-accepted complex has no standing to exclude others). The winners are
+accepted complex has no standing to exclude others). The same search is
+reachable from the front door as `pyphi.analyze(substrate, state,
+grains=True)`. The winners are
 {class}`~pyphi.models.complex.Complex` objects, returned together with the
 full evaluation record:
 
