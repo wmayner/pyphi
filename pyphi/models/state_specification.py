@@ -140,6 +140,9 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         """
         if self.runner_up_intrinsic_information is None:
             return None
+        # Clamps the reported ii gap to non-negative; the winning state was
+        # already selected upstream.
+        # numerics: exact — reported margin, not a selection.
         return max(
             0.0,
             float(self.intrinsic_information)

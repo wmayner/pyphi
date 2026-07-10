@@ -103,6 +103,9 @@ def _phi_tiers(candidates: Sequence[Candidate]):
     """
     from pyphi import numerics as _numerics
 
+    # The sort only orders candidates; tolerant tier membership is decided by
+    # numerics.eq in the loop below.
+    # numerics: exact — ordering only; tier ties resolved by numerics.eq.
     indexed = sorted(enumerate(candidates), key=lambda pair: -pair[1].phi)
     i = 0
     while i < len(indexed):

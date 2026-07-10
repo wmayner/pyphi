@@ -332,6 +332,7 @@ def mie(cs: System, mechanism: tuple[int, ...], **kwargs: Any) -> Any:
 
 
 def phi_max(cs: System, mechanism: tuple[int, ...]) -> float:
+    # numerics: exact — φ is the minimum of the MIC and MIE φ.
     return min(mic(cs, mechanism).phi, mie(cs, mechanism).phi)
 
 

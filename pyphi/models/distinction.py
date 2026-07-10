@@ -142,6 +142,7 @@ class Distinction(
         """
         assert self.cause is not None
         assert self.effect is not None
+        # numerics: exact — φ is the minimum of the MIC and MIE φ.
         return min(self.cause.phi, self.effect.phi)
 
     def explain(self) -> Explanation:
@@ -358,6 +359,9 @@ class Distinction(
         an EMD calculation.
         """
         return (
+            # Structural identity for EMD grouping: bitwise-equal φ alongside
+            # identical mechanism and repertoires, not a magnitude selection.
+            # numerics: exact — structural identity, not a selection.
             self.phi == other.phi
             and self.mechanism == other.mechanism
             and self.eq_repertoires(other)

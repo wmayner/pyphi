@@ -729,6 +729,7 @@ def evaluate_partition(
     # ``SystemIrreducibilityAnalysis.__post_init__`` via the |·|+ operator.
     # ``min`` and ``positive_part`` commute, so the clamped result is the
     # same as taking the min of clamped values.
+    # numerics: exact — φ_s is defined as the minimum over directions.
     phi = min(integration[direction].signed_phi for direction in directions)
 
     # The Eq. 23 ii(s) cap is deliberately NOT applied here. Per the 2026
@@ -767,6 +768,11 @@ def _has_no_cause_or_effect(system_state):
         [NullResultReason.NO_CAUSE, NullResultReason.NO_EFFECT],
         strict=False,
     ):
+        # Short-circuit for a direction with no cause/effect. Non-positive
+        # ii(s) forces φ_s = min over directions to zero, so this boundary
+        # coincides with the full computation's φ_s → 0; a near-boundary
+        # misclassification only ever concerns a ~0-φ_s result.
+        # numerics: exact — short-circuit boundary coincides with φ_s → 0.
         if system_state[direction].intrinsic_information <= 0:
             reasons.append(reason)
     return reasons
@@ -1141,6 +1147,9 @@ def _find_mip_for_fixed_state(
     mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
     others = [candidate for candidate in candidates if candidate is not mip_sia]
     if others:
+        # Reports the margin to the nearest competitor; the MIP was already
+        # selected above via resolve_ties.sias.
+        # numerics: exact — reported margin, not a selection.
         gap = min(float(c.normalized_phi) for c in others) - float(
             mip_sia.normalized_phi
         )

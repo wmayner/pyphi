@@ -218,6 +218,9 @@ def structure_signature(ces, mapping=None):
     )
     try:
         relation_records = tuple(
+            # Canonicalizes relation records for the structure signature; φ is
+            # rounded to a fixed resolution and ordered, not selected on.
+            # numerics: exact — canonical ordering, not a selection.
             sorted(
                 (
                     tuple(
@@ -254,7 +257,11 @@ def are_structures_isomorphic(ces1, ces2) -> bool:
         return False
     if len(ces1.distinctions) != len(ces2.distinctions):
         return False
+    # Builds the rounded-φ isomorphism signature; the two sorted multisets are
+    # compared for equality, not used to select a winner.
+    # numerics: exact — signature multiset, not a selection.
     phis1 = sorted(round(float(d.phi), _ROUND) for d in ces1.distinctions)
+    # numerics: exact — signature multiset, not a selection.
     phis2 = sorted(round(float(d.phi), _ROUND) for d in ces2.distinctions)
     if phis1 != phis2:
         return False

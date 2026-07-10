@@ -59,6 +59,9 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
 
     @total_ordering  # type: ignore[arg-type]  # total_ordering expects a class not instance
     def __lt__(self, other):
+        # Exact total order for deterministic sorted(); selection among
+        # relations goes through resolve_ties.
+        # numerics: exact — total order for sorting, not a selection.
         return self.phi < other.phi  # type: ignore[attr-defined]  # phi is set in __new__
 
     @cached_property
