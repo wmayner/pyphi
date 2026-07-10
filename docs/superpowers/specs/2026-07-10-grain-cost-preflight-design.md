@@ -94,11 +94,18 @@ Frozen dataclass in `pyphi/macro/estimate.py`, `Displayable` +
   bucketed by macro unit count m (the SIA-cost axis).
 - `partitions_by_unit_count : dict[int, int]` — partitions per SIA at each
   m present in the buckets, counted live under the current
-  `system_partition_scheme` for m up to a small cap (8); buckets above
-  the cap omit their partition count and set `truncated`.
+  `system_partition_scheme` for m up to a small cap (6; the m = 6 count
+  is 7,896 and enumerates in ~0.25 s, while m = 8 is ~510k and ~16 s) and
+  memoized at module scope per (scheme, m); buckets above the cap omit
+  their partition count and set `partitions_capped`.
 - `partition_sweeps_upper_bound : int` — Σ over m of
   `systems_by_unit_count[m] × partitions_by_unit_count[m]` (buckets above
-  the partition-count cap excluded and flagged via `truncated`).
+  the partition-count cap excluded and flagged via `partitions_capped`;
+  the display renders that row with "≥" when capped).
+- `partitions_capped : bool` — some bucket's m exceeds the
+  partition-count cap. Independent of `truncated` and `is_exact`: an
+  exact enumeration at `max_depth=0` stays exact even when its largest
+  buckets have no partition count.
 - `construction_keys_upper_bound : int` — distinct (footprint, grain)
   construction keys (the Θ(τ·4ⁿ) axis).
 - `is_exact : bool` — `True` iff the candidate enumeration is exact
@@ -112,9 +119,12 @@ Frozen dataclass in `pyphi/macro/estimate.py`, `Displayable` +
   predicted without constructing the TPM — which the pre-flight never
   does. Counts are therefore bounds on candidates *enumerated*, met with
   equality by records only when every candidate's state is reachable.
-- `truncated : bool` — the counting walk hit its `limit` (or a partition
-  bucket exceeded the partition-count cap); all counts are then lower
-  bounds of the upper bound ("at least").
+- `truncated : bool` — the counting walk hit its `limit`; all counts are
+  then lower bounds of the upper bound ("at least"). The limit bounds the
+  *reported counts*, checked at enumeration-phase granularity — one
+  `_assemble_systems` call completes before the check, so wall time is
+  not strictly bounded. A partial macroing level's judgment and pool
+  tallies are flushed so the report stays coherent.
 
 Display card (B21 conventions): headline rows (distinct systems ≤,
 assemblies ≤, partition sweeps ≤, construction keys ≤, exact-through
@@ -132,9 +142,14 @@ class SearchBounds:
   never touches its TPM.
 - `limit` caps the total items the counting walk may enumerate; on hitting
   it the walk stops and returns a `SearchEstimate` with `truncated=True`.
-- `mappings="EXHAUSTIVE"` above `exhaustive_cap` raises the same
-  `ValueError` the search itself would — the pre-flight surfaces
-  configuration errors without running anything.
+- `mappings="EXHAUSTIVE"` above `exhaustive_cap` raises a `ValueError`.
+  The search itself raises only when such a decomposition passes
+  judgment; the estimate assumes every decomposition passes, so it raises
+  unconditionally — the conservative pre-flight reading.
+- The estimate requires IIT 4.0, exactly as the search drivers do
+  (`ValueError` under IIT 3.0) — a search that would refuse to run gets a
+  pre-flight that refuses identically rather than weights from the wrong
+  partition scheme.
 - The method delegates to `pyphi.macro.estimate.estimate_search(bounds,
   n, limit=...)`, the testable core.
 
