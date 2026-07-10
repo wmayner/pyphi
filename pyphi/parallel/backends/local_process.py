@@ -263,8 +263,15 @@ class LocalMapReduce:
         ]
         self._futures = futures
 
-        # Collect results in order of completion (or original order if ordered=True)
-        if self.ordered:
+        # Collect results in order of completion, unless the caller asked for
+        # original order or a short-circuit predicate is active. When
+        # short-circuiting, the collected subset is truncated at the first
+        # triggering result, so completion order would make that subset — and
+        # any order-sensitive reduction over it (e.g. tie resolution among the
+        # surviving candidates) — depend on worker scheduling. Collecting in
+        # submission order instead yields the same prefix as sequential
+        # evaluation, keeping the parallel result deterministic.
+        if self.ordered or self.shortcircuit_func is not false:
             for future in futures:
                 chunk_results = future.result()
                 results.extend(chunk_results)
