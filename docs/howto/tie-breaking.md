@@ -18,16 +18,22 @@ partition that defines $\varphi_s$. When two or more candidates are equal up to 
 configured numerical `precision`, the comparison is a **tie**, and PyPhi must
 choose one. This page shows how to control which one it chooses.
 
-Ties are not rare curiosities. Deterministic systems with symmetric inputs and
-outputs are especially prone to them, and different tie-resolution rules can
-change *which* object is returned — and therefore the reported purviews and, in
-some cases, the composition of the cause-effect structure. The scalar $\varphi$
-and $\varphi_s$ values are unaffected by tie-breaking (all tied candidates share
-the same value by definition); what changes is which representative object
-carries that value forward.
+In theoretical research on IIT, we often use deterministic systems with
+symmetric inputs and outputs. These are especially prone to ties, and different
+tie-resolution rules can change which object is returned — and therefore the
+reported purviews and, in some cases, the composition of the cause-effect
+structure. The scalar $\varphi$ and $\varphi_s$ values are unaffected by
+tie-breaking (all tied candidates share the same value by definition); what
+changes is which representative object carries that value forward.
 
-For background on the role of ties in the formalism, see Krohn & Ostwald
-(2017), Moon (2019), and Hanson & Walker (2021).
+```{note}
+In contrast to the examples often used in the literature, realistic systems are often noisy and lack exact symmetry, so ties are less important in empirical practice.
+```
+
+The PyPhi authors have been aware of ties since this project was conceived, but
+earlier versions did not implement a principled method for breaking them. For
+others' treatment of ties in the formalism, see Krohn & Ostwald (2017), Moon
+(2019), and Hanson & Walker (2021).
 
 ```{code-cell} python
 import pyphi

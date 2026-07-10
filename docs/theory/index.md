@@ -13,6 +13,7 @@ substrate-and-system
 system-integration
 distinctions-and-relations
 phi-structure
+computational-complexity
 formalism-versions
 conditional-independence
 iit-3.0
