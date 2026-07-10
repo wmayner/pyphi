@@ -619,3 +619,37 @@ class TestPaperExamples:
                 )
             )
             assert i_diff == pytest.approx(i_diff_expected, abs=1e-5)
+
+
+class TestNoCauseOrEffectShortCircuit:
+    """The ii(s) short-circuit treats noise-level values as zero."""
+
+    @staticmethod
+    def _system_state(cause_ii, effect_ii):
+        from types import SimpleNamespace
+
+        from pyphi.direction import Direction
+
+        return {
+            Direction.CAUSE: SimpleNamespace(intrinsic_information=cause_ii),
+            Direction.EFFECT: SimpleNamespace(intrinsic_information=effect_ii),
+        }
+
+    def test_noise_level_ii_is_no_cause(self):
+        from pyphi.formalism.iit4 import _has_no_cause_or_effect
+        from pyphi.models.explanation import NullResultReason
+
+        reasons = _has_no_cause_or_effect(self._system_state(3.2e-16, 0.5))
+        assert reasons == [NullResultReason.NO_CAUSE]
+
+    def test_negative_noise_is_no_effect(self):
+        from pyphi.formalism.iit4 import _has_no_cause_or_effect
+        from pyphi.models.explanation import NullResultReason
+
+        reasons = _has_no_cause_or_effect(self._system_state(0.5, -3.2e-16))
+        assert reasons == [NullResultReason.NO_EFFECT]
+
+    def test_genuinely_positive_ii_passes(self):
+        from pyphi.formalism.iit4 import _has_no_cause_or_effect
+
+        assert _has_no_cause_or_effect(self._system_state(0.5, 0.25)) == []

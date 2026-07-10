@@ -768,12 +768,12 @@ def _has_no_cause_or_effect(system_state):
         [NullResultReason.NO_CAUSE, NullResultReason.NO_EFFECT],
         strict=False,
     ):
-        # Short-circuit for a direction with no cause/effect. Non-positive
-        # ii(s) forces φ_s = min over directions to zero, so this boundary
-        # coincides with the full computation's φ_s → 0; a near-boundary
-        # misclassification only ever concerns a ~0-φ_s result.
-        # numerics: exact — short-circuit boundary coincides with φ_s → 0.
-        if system_state[direction].intrinsic_information <= 0:
+        # Short-circuit for a direction with no cause/effect. Intrinsic
+        # information that is zero up to ``config.numerics.precision`` —
+        # including a floating-point residue of a mathematically-zero
+        # ii(s) — specifies nothing, and forces φ_s = min over directions
+        # to zero.
+        if not numerics.is_positive(system_state[direction].intrinsic_information):
             reasons.append(reason)
     return reasons
 
