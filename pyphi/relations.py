@@ -1176,6 +1176,138 @@ class AnalyticalFoldRelations(AnalyticalRelations):
             self._share_weighted_cached = result
         return self._share_weighted_cached
 
+    def _difference(self, query, *args, **kwargs):
+        """Evaluate an additive query as full − complement.
+
+        A relation either touches the seed set or it does not, so any
+        quantity that is a sum over relations restricts to the incident set
+        by differencing the parent total against the seed-free total.
+        Self-relations of non-seed distinctions cancel; the seeds' survive.
+        """
+        return getattr(self._full, query)(*args, **kwargs) - getattr(
+            self._complement, query
+        )(*args, **kwargs)
+
+    def sum_phi_moment(self, k: int = 2) -> float:
+        """Return Σφ_r^k over the incident relations."""
+        return self._difference("sum_phi_moment", k)
+
+    def num_relations_of_degree(self, degree: int) -> int:
+        """Return the number of incident relations with exactly ``degree``
+        relata."""
+        return self._difference("num_relations_of_degree", degree)
+
+    def sum_phi_of_degree(self, degree: int) -> float:
+        """Return Σφ_r over incident relations with exactly ``degree``
+        relata."""
+        return self._difference("sum_phi_of_degree", degree)
+
+    def num_faces(self) -> int:
+        """Return the total face count over the incident relations."""
+        return self._difference("num_faces")
+
+    def phi_histogram(self) -> dict[float, int]:
+        """Return ``{φ_r: count}`` over the incident relations.
+
+        Bucket-wise difference of the parent and seed-free histograms;
+        bucket keys align because both are grouped at the configured
+        precision from the same underlying densities.
+        """
+        histogram = Counter(self._full.phi_histogram())
+        histogram.subtract(self._complement.phi_histogram())
+        return {phi: count for phi, count in histogram.items() if count}
+
+    def binding_matrix(self) -> pd.DataFrame:
+        """Return the atom-pair binding matrix of the incident relations.
+
+        Entry-wise difference of the parent and seed-free matrices, on the
+        parent's atom index (rows for atoms bound only by seed-free
+        relations go to zero).
+        """
+        full = self._full.binding_matrix()
+        complement = self._complement.binding_matrix()
+        aligned = complement.reindex(
+            index=full.index, columns=full.columns, fill_value=0.0
+        )
+        return full - aligned
+
+    def max_phi(self) -> float:
+        """Return the maximum φ_r over the incident relations.
+
+        Notes
+        -----
+        The incident maximum is attained at an incident pair or a seed's
+        self-relation: for any incident relation ``S``, its
+        minimum-density member ``d*`` paired with any seed in ``S`` is an
+        incident pair with overlap containing ``O(S)`` and the same minimum
+        density.
+        """
+        seed_set = set(self._seeds)
+        ds = list(self.distinctions)
+        unions = [frozenset(d.purview_union) for d in ds]
+        densities = [self._density(d) for d in ds]
+        best = max(
+            (
+                float(relation.phi)
+                for relation in self.self_relations
+                if not seed_set.isdisjoint(relation)
+            ),
+            default=0.0,
+        )
+        for i, j in itertools.combinations(range(len(ds)), 2):
+            if ds[i] not in seed_set and ds[j] not in seed_set:
+                continue
+            overlap = unions[i] & unions[j]
+            if overlap:
+                # numerics: exact — running max; callers compare tolerantly.
+                best = max(best, len(overlap) * min(densities[i], densities[j]))
+        return best
+
+    def strongest(
+        self,
+        k: int | None = None,
+        min_phi: float | None = None,
+        max_degree: int | None = None,
+    ) -> Iterator[Relation]:
+        """Yield the incident relations in descending φ_r order.
+
+        Filters the parent's descending stream by seed incidence, so the
+        order is exact; non-incident relations are popped and discarded, so
+        the cost tracks the parent stream's, not the incident count.
+        """
+        seed_set = set(self._seeds)
+        yielded = 0
+        for relation in self._full.strongest(
+            k=None, min_phi=min_phi, max_degree=max_degree
+        ):
+            if seed_set.isdisjoint(relation):
+                continue
+            yield relation
+            yielded += 1
+            if k is not None and yielded >= k:
+                return
+
+    def materialize(
+        self, max_degree: int | None = None, min_phi: float | None = None
+    ) -> ConcreteRelations:
+        """Return the incident relations as an explicit
+        :class:`ConcreteRelations`."""
+        seed_set = set(self._seeds)
+        return ConcreteRelations(
+            relation
+            for relation in self._full.materialize(max_degree, min_phi)
+            if not seed_set.isdisjoint(relation)
+        )
+
+    def sample(self, n: int, *, seed: int) -> RelationSample:
+        """Not supported on folds: sample the parent structure and restrict
+        the summand to incident relations instead."""
+        raise NotImplementedError(
+            "sampling a fold is not supported; sample the parent "
+            "AnalyticalRelations and restrict the estimated summand to "
+            "relations touching the seeds"
+        )
+
 
 def relations(
     distinctions: ResolvedDistinctions,

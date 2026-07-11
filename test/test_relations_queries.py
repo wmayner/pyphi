@@ -355,3 +355,88 @@ def test_analytical_materialize_bounds(structures):
         float(r.phi) > threshold or numerics.eq(float(r.phi), threshold) for r in top
     )
     assert len(top) >= min(1, concrete.num_relations())
+
+
+# --- Folds: every query restricted to incident relations ---
+
+
+@pytest.fixture(scope="module")
+def fold_structures(structures):
+    name, distinctions, concrete, _ = structures
+    seeds = [next(iter(distinctions))]
+    seed_set = set(seeds)
+    fold = relations.AnalyticalFoldRelations(distinctions, seeds)
+    incident_concrete = relations.ConcreteRelations(
+        r for r in concrete if not seed_set.isdisjoint(r)
+    )
+    return name, seeds, fold, incident_concrete
+
+
+def test_fold_moments_match_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    for k in (1, 2):
+        assert fold.sum_phi_moment(k) == pytest.approx(incident.sum_phi_moment(k))
+
+
+def test_fold_phi_mean_std_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    if incident.num_relations() == 0:
+        with pytest.raises(ValueError):
+            fold.phi_mean_std()
+        return
+    assert fold.phi_mean_std() == pytest.approx(incident.phi_mean_std())
+
+
+def test_fold_degree_spectrum_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    fold_spectrum = fold.degree_spectrum()
+    incident_spectrum = incident.degree_spectrum()
+    assert fold_spectrum.keys() == incident_spectrum.keys()
+    for degree in incident_spectrum:
+        assert fold_spectrum[degree][0] == incident_spectrum[degree][0]
+        assert fold_spectrum[degree][1] == pytest.approx(incident_spectrum[degree][1])
+
+
+def test_fold_max_phi_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    assert fold.max_phi() == pytest.approx(incident.max_phi())
+
+
+def test_fold_phi_histogram_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    _assert_histograms_match(fold.phi_histogram(), incident.phi_histogram())
+
+
+def test_fold_num_faces_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    assert fold.num_faces() == incident.num_faces()
+
+
+def test_fold_binding_matrix_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    fold_matrix = fold.binding_matrix()
+    incident_matrix = incident.binding_matrix()
+    aligned = incident_matrix.reindex(
+        index=fold_matrix.index, columns=fold_matrix.columns, fill_value=0.0
+    )
+    assert np.allclose(fold_matrix.to_numpy(), aligned.to_numpy(), atol=1e-10)
+
+
+def test_fold_strongest_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    stream = list(fold.strongest())
+    assert [float(r.phi) for r in stream] == pytest.approx(
+        sorted((float(r.phi) for r in incident), reverse=True)
+    )
+    assert set(stream) == set(incident)
+
+
+def test_fold_materialize_matches_incident_concrete(fold_structures):
+    _, _, fold, incident = fold_structures
+    assert fold.materialize() == incident
+
+
+def test_fold_sample_not_implemented(fold_structures):
+    _, _, fold, _ = fold_structures
+    with pytest.raises(NotImplementedError):
+        fold.sample(10, seed=0)
