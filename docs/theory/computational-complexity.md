@@ -537,14 +537,15 @@ single-unit cuts rather than all $2^n$ (an upper bound on Φ), and
 measured under *Reducing the cost*, above).
 
 [^hw]: Hanson & Walker (2023) derive $O(13^m)$ for the major complex by counting
-    earth-mover's-distance evaluations. That count is exact, but it treats each
-    evaluation as a constant-time elementary operation. An evaluation compares
-    two distributions over the $2^p$ states of a $p$-unit purview and is not
-    constant-time — the general earth mover's distance is $O(p^2\,3^p)$ (Mayner et
-    al. 2018), so its cost belongs inside the sum, not as a unit weight. Folding
-    it back in raises the base well above 13 (to roughly 21–69 depending on the
-    distance measure), so $O(13^m)$ understates the worst-case operation count by
-    a factor that grows exponentially in $m$.
+    "elementary distance calculations". Their analysis is erroneous because it
+    treats each distance evaluation as a constant-time operation, yet a distance
+    evaluation compares two distributions over the $2^p$ states of a $p$-unit
+    purview and is not constant-time — the general earth mover's distance is
+    $O(p^2\,3^p)$ (Mayner et al. 2018), so its cost belongs inside the sum, not
+    as a unit weight. The largest purviews reach $p \approx m$, so the dominant
+    evaluation alone costs $O(m^2\,3^m)$; folding this back in raises the base
+    well above 13, so $O(13^m)$ understates the worst-case operation count by a
+    factor that grows exponentially in $m$.
 
 ## Actual causation
 
