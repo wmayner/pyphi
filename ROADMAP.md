@@ -175,15 +175,23 @@ complex unification, CES algebra operations, the uncertainty pipeline,
 `pyphi.landscape`, and the macro-construction intermediate cache. The open
 remainder, each with its gate verdict:
 
-- **Anytime certified Φ bracket** *(open build)*. Gate **discharged**: the
-  empirical S(o) Eq. 15 upper bound on Σφ_r is proved a certified bound when
-  keyed on unit states (`experiments/so_certificate_experiments/FINDINGS.md`; index-keying
-  is proven unsound by a witnessed violation, so state-keying is mandatory).
-  Scope correction from the proof: with a complete distinction set an exact
-  identity computes Σφ_r in O(|D|·n), superseding the bracket there — its
-  genuine scope is partial or truncated distinction sets. The build is the
-  two-sided bracket in `pyphi/formalism/iit4/bounds.py`, its lower endpoint
-  rising as the landed relations `strongest()` streams relations (Tier 2).
+- **Anytime certified Φ bracket** *(resolved negative — not built)*. The
+  partial-distinction bracket was designed, built, and confirmed by experiment
+  (`experiments/certified_bracket_experiments/FINDINGS.md`): the Approach-A
+  bracket is **sound** (0 violations over 5570 truncation points on 624
+  systems) but **useless for early-stopping** — median fraction of distinctions
+  that must be computed before the interval closes to within 2× of the true Φ
+  is 1.000, because a single un-evaluated distinction inflates the width from a
+  median 0.21× to 34.7× via the exponential incidence term `g(|𝒵(o)|)`. It
+  closes only when the CES is complete, where the exact state-keyed identity
+  (`experiments/so_certificate_experiments/FINDINGS.md`; index-keying proven
+  unsound, so state-keying is mandatory) already gives Σφ_r in O(|D|·n) and
+  supersedes it. Approach B (density-budget LP) is not pursued — the looseness
+  is in the incidence count, which a mass budget cannot cap. No
+  `bounds.py` change. *Still open, distinct from the bracket:* exposing the
+  measured **complete**-distinction state-keyed certificate (~100–1000× tighter
+  than the shipped `GENERAL` bound) as a certified measured bound in
+  `bounds.py`.
 - **ii-gated grain scheduling** *(open build; 2026-cap arm only)*. The GID arm
   is dead: `min(ii_c, ii_e) ≥ φ_s` is **refuted** under the 2023/GID measure
   (`experiments/ii_phi_inequality_experiments/FINDINGS.md`; minimal n=2 witness, margin
