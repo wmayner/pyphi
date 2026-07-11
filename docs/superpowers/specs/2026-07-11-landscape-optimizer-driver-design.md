@@ -176,13 +176,13 @@ logging.
 
 - **Unreachable candidate.** A parameter vector whose `state` is dynamically
   unreachable (`StateUnreachableForwardsError` / `StateUnreachableBackwardsError`)
-  is caught, logged with `reachable=False`, and assigned a penalty objective:
-  the worst *finite* objective observed in the run so far, or — if none has been
-  observed yet (an unreachable candidate in the first batch) — a fixed sentinel,
-  a large value in the unfavorable direction. Never a crash, and never
-  `inf`/`nan`, which DE handles poorly. Mirrors how `landscape_section` records
-  rather than raises for unreachable points, but as a penalty because DE needs a
-  comparable value.
+  is caught, logged with `reachable=False`, and assigned a fixed penalty
+  objective — a large finite value in the unfavorable direction, worse than any
+  real φ. Differential evolution's selection is rank-based, so a sentinel that
+  simply compares worse than every real candidate is sufficient and stable;
+  never a crash, and never `inf`/`nan`, which DE handles poorly. Mirrors how
+  `landscape_section` records rather than raises for unreachable points, but as a
+  penalty because DE needs a comparable value.
 - **Reducible candidate.** A null SIA (φ = 0) is a real landscape value, logged
   as a normal row, not an error.
 - **Bad `objective` name.** `ValueError` listing the valid names, matching
