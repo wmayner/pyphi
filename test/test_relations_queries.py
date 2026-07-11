@@ -287,3 +287,54 @@ def test_analytical_strongest_min_phi_and_max_degree(structures):
         (float(r.phi) for r in concrete if len(r) <= 2), reverse=True
     )
     assert [float(r.phi) for r in pairs] == pytest.approx(expected_pairs)
+
+
+# --- Sampling ---
+
+
+def test_sample_is_seed_reproducible(structures):
+    _, _, _, analytical = structures
+    first = analytical.sample(200, seed=42)
+    second = analytical.sample(200, seed=42)
+    assert first.sum_phi() == second.sum_phi()
+    assert first.num_relations() == second.num_relations()
+    assert analytical.sample(200, seed=7).relations != first.relations or (
+        analytical.num_relations() <= 1
+    )
+
+
+def test_sample_estimates_are_accurate(structures):
+    _, _, concrete, analytical = structures
+    sample = analytical.sample(2000, seed=42)
+    exact_count = concrete.num_relations()
+    exact_sum = concrete.sum_phi()
+    count_estimate, count_stderr = sample.num_relations()
+    sum_estimate, sum_stderr = sample.sum_phi()
+    # Deterministic given the seed; generous but meaningful bounds.
+    assert abs(count_estimate - exact_count) <= max(5 * count_stderr, 0.05 * exact_count)
+    assert abs(sum_estimate - exact_sum) <= max(5 * sum_stderr, 0.05 * exact_sum)
+
+
+def test_sample_estimate_of_predicate(structures):
+    _, _, concrete, analytical = structures
+    sample = analytical.sample(2000, seed=42)
+    exact = sum(1 for r in concrete if not r.is_self_relation and len(r) == 2)
+    estimate, stderr = sample.estimate(lambda r: 1.0 if len(r) == 2 else 0.0)
+    assert abs(estimate - exact) <= max(5 * stderr, 0.05 * exact + 1.0)
+
+
+def test_sample_metadata(structures):
+    _, _, _, analytical = structures
+    sample = analytical.sample(50, seed=3)
+    assert sample.seed == 3
+    # A structure with no non-self relations has normalization 0 and draws
+    # nothing.
+    assert len(sample) == (50 if sample.normalization > 0 else 0)
+    assert all(len(r) >= 2 for r in sample)
+    assert isinstance(sample.normalization, int)
+
+
+def test_sample_requires_seed_keyword(structures):
+    _, _, _, analytical = structures
+    with pytest.raises(TypeError):
+        analytical.sample(10, 42)  # seed must be keyword-only

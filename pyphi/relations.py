@@ -6,6 +6,8 @@ from __future__ import annotations
 import heapq
 import itertools
 import math
+import random
+import statistics
 from collections import Counter
 from collections import defaultdict
 from collections.abc import Iterable
@@ -536,7 +538,7 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             if _passes(relation, max_degree, min_phi)
         )
 
-    def sample(self, n: int, *, seed: int):
+    def sample(self, n: int, *, seed: int) -> RelationSample:
         """Draw a coverage-weighted sample of relations.
 
         Implemented on backends that hold the distinction set; see
@@ -627,6 +629,94 @@ class ConcreteRelations(frozenset, Relations):
         return dict(faces)
 
 
+class RelationSample:
+    """An i.i.d., coverage-weighted sample of non-self relations.
+
+    Relations are drawn with probability proportional to the size of their
+    congruent overlap ``|O(S)|`` — the number of atoms covering them — which
+    is known exactly per sample, so any sum over non-self relations is
+    estimable without bias by Horvitz-Thompson reweighting (the union-of-sets
+    sampling scheme of Karp & Luby (1983)). Self-relations are never sampled:
+    there are at most ``|D|`` of them, and their exact totals are carried on
+    the sample so the convenience estimators cover all relations.
+
+    Attributes
+    ----------
+    relations : tuple[Relation, ...]
+        The sampled relations, drawn with replacement.
+    normalization : int
+        The exact coverage-weighted total ``Σ_S |O(S)|`` over all non-self
+        relations.
+    seed : int
+        The seed of the isolated random generator that produced the sample.
+    num_self_relations : int
+        The exact number of self-relations in the structure.
+    sum_phi_self_relations : float
+        The exact Σφ_r over the self-relations.
+    """
+
+    def __init__(
+        self,
+        relations,
+        normalization,
+        seed,
+        num_self_relations,
+        sum_phi_self_relations,
+    ):
+        self.relations = tuple(relations)
+        self.normalization = normalization
+        self.seed = seed
+        self.num_self_relations = num_self_relations
+        self.sum_phi_self_relations = sum_phi_self_relations
+
+    def __len__(self):
+        return len(self.relations)
+
+    def __iter__(self):
+        return iter(self.relations)
+
+    def __repr__(self):
+        return (
+            f"{type(self).__name__}(n={len(self.relations)}, "
+            f"normalization={self.normalization}, seed={self.seed})"
+        )
+
+    def estimate(self, f) -> tuple[float, float]:
+        """Return an unbiased estimate and standard error of ``Σ f(S)`` over
+        all non-self relations.
+
+        Parameters
+        ----------
+        f : Callable[[Relation], float]
+            The per-relation summand.
+        """
+        if not self.relations:
+            return 0.0, 0.0
+        values = [
+            self.normalization * float(f(relation)) / len(relation.purview)
+            for relation in self.relations
+        ]
+        mean = math.fsum(values) / len(values)
+        stderr = (
+            statistics.stdev(values) / math.sqrt(len(values))
+            if len(values) > 1
+            else float("nan")
+        )
+        return mean, stderr
+
+    def num_relations(self) -> tuple[float, float]:
+        """Return an estimate and standard error of the total relation
+        count, including the exact self-relation count."""
+        estimate, stderr = self.estimate(lambda _: 1.0)
+        return estimate + self.num_self_relations, stderr
+
+    def sum_phi(self) -> tuple[float, float]:
+        """Return an estimate and standard error of Σφ_r over all
+        relations, including the exact self-relation total."""
+        estimate, stderr = self.estimate(lambda relation: float(relation.phi))
+        return estimate + self.sum_phi_self_relations, stderr
+
+
 class AnalyticalRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions
@@ -656,6 +746,56 @@ class AnalyticalRelations(Relations):
     def _density(distinction) -> float:
         """The distinction's φ per unique purview unit."""
         return float(distinction.phi) / len(distinction.purview_union)
+
+    def sample(self, n: int, *, seed: int) -> RelationSample:
+        """Draw ``n`` non-self relations, coverage-weighted, i.i.d.
+
+        Sampling walks the atom incidence: an atom is drawn with probability
+        proportional to the number of relations inside its distinction
+        group (``2**m − m − 1`` for a group of ``m``), then a subset of size
+        ≥ 2 of that group is drawn uniformly. The resulting relation is
+        drawn with probability proportional to its overlap size ``|O(S)|``,
+        which is known per sample, so the returned
+        :class:`RelationSample` yields unbiased estimates with standard
+        errors for any per-relation sum. No burn-in; exact normalization.
+
+        Parameters
+        ----------
+        n : int
+            The number of draws (with replacement).
+        seed : int
+            Seed for the isolated random generator. Required.
+        """
+        rng = random.Random(seed)
+        index = self._atom_index
+        atoms = sorted(index)
+        weights = [2 ** len(index[a]) - len(index[a]) - 1 for a in atoms]
+        normalization = sum(weights)
+        sampled = []
+        if normalization > 0:
+            for _ in range(n):
+                atom = rng.choices(atoms, weights=weights)[0]
+                group = index[atom]
+                while True:
+                    mask = rng.getrandbits(len(group))
+                    if mask.bit_count() >= 2:
+                        break
+                sampled.append(
+                    Relation(
+                        distinction
+                        for i, distinction in enumerate(group)
+                        if mask >> i & 1
+                    )
+                )
+        return RelationSample(
+            relations=sampled,
+            normalization=normalization,
+            seed=seed,
+            num_self_relations=len(self.self_relations),
+            sum_phi_self_relations=math.fsum(
+                float(relation.phi) for relation in self.self_relations
+            ),
+        )
 
     def sum_phi_moment(self, k: int = 2) -> float:
         """Return Σφ_r^k over all relations, in closed form.
