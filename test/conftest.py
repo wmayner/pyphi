@@ -46,14 +46,9 @@ pyphi.config.validate_phi_bounds = True
 # library's documented preset cannot drift apart.
 IIT_3_CONFIG = config.override(**presets.iit3)
 
-# IIT 4.0 configuration (current defaults, made explicit for clarity)
-# Use this when you want to explicitly test IIT 4.0 behavior
-IIT_4_CONFIG = config.override(
-    {"iit.version": "IIT_4_0_2023"},
-    mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    system_partition_scheme="DIRECTED_SET_PARTITION",
-)
+# IIT 4.0 (2023) configuration, complete and preset-sourced. Use this to pin a
+# test to the 2023/GID formalism explicitly, independent of the ambient default.
+IIT_4_CONFIG = config.override(**presets.iit4_2023)
 
 # Pytest configuration
 # =============================================================================

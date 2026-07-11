@@ -138,26 +138,15 @@ def _logistic_3node_k8() -> Substrate:
 
 
 # IIT 4.0 (2023) — Albantakis et al. 2023, GID measure, no ii(s) cap.
-IIT_4_2023_CONFIG = {
-    "iit.version": "IIT_4_0_2023",
-    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "system_partition_scheme": "DIRECTED_SET_PARTITION",
-    "progress_bars": False,
-    "parallel": False,
-}
+# Sourced from the canonical preset so every formalism field comes as a unit
+# (a hand-listed subset silently inherits the rest from the ambient default —
+# the partial-pin trap). ``progress_bars`` / ``parallel`` are test-runtime
+# knobs, not formalism fields.
+IIT_4_2023_CONFIG = {**presets.iit4_2023, "progress_bars": False, "parallel": False}
 
 # IIT 4.0 (2026) — Mayner, Marshall, Tononi 2026. ii(s) = min(i_diff, i_spec)
-# cap on system phi. INTRINSIC_INFORMATION is a system-level mode flag in this
-# regime: mechanism phi still uses GID (Eqs. 19-20), but system phi is capped
-# by min_d(min(i_diff_d, i_spec_d)). ``system_phi_measure`` selects the cap
-# at the system level; ``mechanism_phi_measure`` stays at GID per the 2026
-# spec. User config is authoritative (formalism ClassVars are only no-config
-# fallbacks).
-IIT_4_2026_CONFIG = {
-    **IIT_4_2023_CONFIG,
-    "iit.version": "IIT_4_0_2026",
-    "system_phi_measure": "INTRINSIC_INFORMATION",
-}
+# cap on system phi (INTRINSIC_INFORMATION); mechanism phi stays GID.
+IIT_4_2026_CONFIG = {**presets.iit4_2026, "progress_bars": False, "parallel": False}
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
 # Sourced from ``presets.iit3`` so this and the library's canonical preset
