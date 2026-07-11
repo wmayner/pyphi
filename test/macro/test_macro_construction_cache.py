@@ -127,3 +127,51 @@ class TestSweepReuse:
             assert on_record.phi == off_record.phi
         assert result_on.complexes == result_off.complexes
         assert result_on.ties == result_off.ties
+
+
+def _factor_bytes(factored_pair):
+    """All factor arrays of a (T_c, T_e) pair as bytes, order-stable."""
+    return tuple(
+        (tpm.factor(i) + 0.0).tobytes()
+        for tpm in factored_pair
+        for i in range(tpm.n_nodes)
+    )
+
+
+BBX_APPORTIONED_UNIT = MacroUnit(
+    BBX_UNITS[0].constituents,
+    BBX_UNITS[0].update_grain,
+    BBX_UNITS[0].mapping,
+    background_apportionment=(4, 5, 6, 7),
+)
+
+CONSTRUCTION_CASES = {
+    "cg": (lambda: Substrate(CG_TPM), CG_UNITS, (CG_STATE,)),
+    "bbx_grain2": (
+        lambda: Substrate(_bbx_micro_tpm()),
+        BBX_UNITS,
+        (BBX_ONES, BBX_ONES),
+    ),
+    "bbx_apportioned": (
+        lambda: Substrate(_bbx_micro_tpm()),
+        (BBX_APPORTIONED_UNIT,),
+        (BBX_ONES, BBX_ONES),
+    ),
+}
+
+
+class TestByteIdentity:
+    @pytest.mark.parametrize("name", sorted(CONSTRUCTION_CASES))
+    def test_cache_on_off_and_hit_paths_agree_exactly(self, name):
+        make_substrate, units, history = CONSTRUCTION_CASES[name]
+        cache = macro_tpm_module._CONSTRUCTION_CACHE
+        with config.override(**presets.iit4_2023):
+            with config.override(cache_macro_construction=False):
+                off = _factor_bytes(macro_tpms(make_substrate(), units, history))
+            substrate = make_substrate()
+            cold = _factor_bytes(macro_tpms(substrate, units, history))
+            hits_before = cache.hits
+            warm = _factor_bytes(macro_tpms(substrate, units, history))
+            assert cache.hits > hits_before  # the second build hit the cache
+        assert cold == off
+        assert warm == off
