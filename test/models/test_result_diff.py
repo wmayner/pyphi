@@ -202,6 +202,27 @@ def test_ces_diff_with_differing_relation_sets():
         assert change.key == tuple(sorted(change.key))
 
 
+def test_ces_diff_relation_statistic_deltas_on_analytical():
+    """Analytical relations produce relation statistic deltas (Σφ_r, count,
+    per-degree) even though they cannot be enumerated for gained/lost rows."""
+    from pyphi import examples
+    from pyphi.relations import AnalyticalRelations
+
+    substrate = examples.basic_substrate()
+    state_a = examples.basic_state()
+    state_b = tuple(1 - v if i == 0 else v for i, v in enumerate(state_a))
+    with pyphi.config.override(**presets.iit4_2023, relation_computation="ANALYTICAL"):
+        a = substrate.ces(state_a)
+        b = substrate.ces(state_b)
+    assert isinstance(a.relations, AnalyticalRelations)  # precondition
+    rd = a.diff(b)
+    kinds = {c.kind for c in rd.changes}
+    # At least one statistic delta is present, and no per-relation rows (the
+    # analytical backend is not enumerable).
+    assert kinds & {"relation_sum_phi", "relation_count", "relation_degree"}
+    assert not (kinds & {"relation_gained", "relation_lost"})
+
+
 def test_mip_reshuffle_and_genuine_change_branches():
     """Exercise both _mip_changed branches with genuinely different partitions.
 
