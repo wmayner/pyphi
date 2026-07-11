@@ -129,7 +129,9 @@ def test_distinctions_to_pandas_dataframe(basic_ces):
         "phi",
         "mechanism_state",
         "cause_purview",
+        "cause_state",
         "effect_purview",
+        "effect_state",
     ]
     assert len(frame) == len(distinctions)
     # the index holds labeled mechanisms (tuples of label strings)
@@ -146,7 +148,9 @@ def test_empty_distinctions_to_pandas_has_schema():
         "phi",
         "mechanism_state",
         "cause_purview",
+        "cause_state",
         "effect_purview",
+        "effect_state",
     ]
     assert len(frame) == 0
 

@@ -402,27 +402,36 @@ class Distinction(
     _dict_attrs = _distinction_attributes
 
     def _pandas_record(self):
+        # Structured data for analysis: node sets as plain label tuples and
+        # every state as its own column. Display formatting (state casing) is
+        # the card's job, not the DataFrame's — see ``_describe`` and
+        # ``distinction_table_row``.
         labels = self.node_labels
 
-        def purview_label(mice, purview):
-            if purview is None:
+        def labelled(nodes):
+            if nodes is None:
                 return None
-            if labels is None:
-                return tuple(purview)
-            return getattr(mice, "purview_label", None) or tuple(purview)
+            return (
+                tuple(labels.coerce_to_labels(nodes))
+                if labels is not None
+                else (tuple(nodes))
+            )
+
+        def specified_state(mice):
+            spec = getattr(mice, "specified_state", None)
+            state = getattr(spec, "state", None)
+            return None if state is None else tuple(state)
 
         return {
             "phi": float(self.phi),
-            "mechanism": (
-                self.mechanism_label
-                if labels is not None
-                else (None if self.mechanism is None else tuple(self.mechanism))
-            ),
+            "mechanism": labelled(self.mechanism),
             "mechanism_state": (
                 None if self.mechanism_state is None else tuple(self.mechanism_state)
             ),
-            "cause_purview": purview_label(self.cause, self.cause_purview),
-            "effect_purview": purview_label(self.effect, self.effect_purview),
+            "cause_purview": labelled(self.cause_purview),
+            "cause_state": specified_state(self.cause),
+            "effect_purview": labelled(self.effect_purview),
+            "effect_state": specified_state(self.effect),
         }
 
     def __setstate__(self, state):

@@ -157,9 +157,14 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
         return len(self) == 1
 
     @property
+    def _ordered_relata(self):
+        """The relatum distinctions, ordered by mechanism index."""
+        return sorted(self, key=lambda d: tuple(d.mechanism))
+
+    @property
     def labeled_mechanisms(self):
         """The state-labeled mechanism of each relatum, ordered by mechanism
-        index.
+        index — for display.
 
         Each relatum is rendered as its distinction's ``mechanism_label`` (node
         labels cased by the mechanism state), falling back to the raw index
@@ -168,12 +173,21 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
         return tuple(
             getattr(distinction, "mechanism_label", None)
             or str(tuple(distinction.mechanism))
-            for distinction in sorted(self, key=lambda d: tuple(d.mechanism))
+            for distinction in self._ordered_relata
         )
 
+    def _relatum_labels(self, distinction):
+        node_labels = getattr(distinction, "node_labels", None)
+        mechanism = distinction.mechanism
+        if node_labels is None:
+            return tuple(mechanism)
+        return tuple(node_labels.coerce_to_labels(mechanism))
+
     def _pandas_record(self):
+        # Structured data for analysis: each relatum is a plain label tuple,
+        # not a display string. Card formatting lives in ``relations_table``.
         return {
-            "relata": self.labeled_mechanisms,
+            "relata": tuple(self._relatum_labels(d) for d in self._ordered_relata),
             "phi": float(self.phi),
             "degree": len(self),
         }

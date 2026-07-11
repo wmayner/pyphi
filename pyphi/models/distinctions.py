@@ -55,7 +55,9 @@ _DISTINCTION_COLUMNS = [
     "mechanism",
     "mechanism_state",
     "cause_purview",
+    "cause_state",
     "effect_purview",
+    "effect_state",
 ]
 
 
