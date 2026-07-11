@@ -16,6 +16,7 @@ pytest.importorskip("mcp")
 
 from pyphi.mcp import content
 from pyphi.mcp import server as srv
+from test.conftest import IIT_4_CONFIG
 
 HAS_EMD = importlib.util.find_spec("ot") is not None
 HAS_VIZ = importlib.util.find_spec("matplotlib") is not None and (
@@ -30,7 +31,7 @@ BASIC_BIG_PHI = 1.8567666647435832
 
 @pytest.fixture(autouse=True)
 def _quiet():
-    with pyphi.config.override(progress_bars=False):
+    with IIT_4_CONFIG, pyphi.config.override(progress_bars=False):
         yield
 
 

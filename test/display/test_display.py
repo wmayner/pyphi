@@ -17,6 +17,16 @@ from pyphi.display.description import Table
 from pyphi.display.numbers import format_value
 from pyphi.display.render import ascii as ascii_backend
 from pyphi.display.render import html as html_backend
+from test.conftest import IIT_4_CONFIG
+
+
+@pytest.fixture(autouse=True)
+def _pin_iit4_2023():
+    """Pin the 2023/GID formalism for this module, so φ assertions do not
+    depend on the ambient default. Tests that need another formalism override
+    it locally with a ``with`` block, which nests inside this pin."""
+    with IIT_4_CONFIG:
+        yield
 
 
 def test_format_value_rounds_floats_to_6_sig_figs():

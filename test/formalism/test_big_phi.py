@@ -37,12 +37,22 @@ from pyphi.conf import presets
 from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 from test.conftest import IIT_3_CONFIG
+from test.conftest import IIT_4_CONFIG
 from test.conftest import skip_if_no_emd_backend
 
 # pylint: disable=unused-argument
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+@pytest.fixture(autouse=True)
+def _pin_iit4_2023():
+    """Pin the 2023/GID formalism for this module, so φ assertions do not
+    depend on the ambient default. Tests that need another formalism override
+    it locally with a ``with`` block, which nests inside this pin."""
+    with IIT_4_CONFIG:
+        yield
 
 
 def test_clear_system_caches_after_computing_sia_config_option(s):
