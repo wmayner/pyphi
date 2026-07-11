@@ -11,6 +11,7 @@ export
 sweep
 grain-search
 landscape
+query-relations
 tie-breaking
 mcp-server
 ```
