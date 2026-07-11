@@ -107,43 +107,66 @@ formalism, so retaining this coverage is correct.
 
 ## The root fix
 
-The defect is not "some tests forgot to pin." It is that **pinning is done by
-hand-rolled partial dicts that can drift out of sync with the formalism they
-name.** Two such dicts exist — `conftest.IIT_4_CONFIG` and
-`zoo.IIT_4_2023_CONFIG` — each independently listing formalism fields, and one
-of them omitted a field.
+The defect is not "some tests forgot to pin." It is that a formalism pin has
+**two coexisting representations**, one of which invites partial specification:
 
-The fix is to source every formalism pin from the canonical presets in
-`pyphi/conf/presets.py`, which define each formalism as a whole `IITConfig`
-namespace. Overriding with a preset replaces the entire `iit` sub-namespace as a
-unit, so no individual field can be forgotten:
+- **Dotted-flat form** — `{"iit.version": "IIT_4_0_2023", "mechanism_phi_measure":
+  "...", ...}` — the fields are hand-listed. `zoo.IIT_4_2023_CONFIG` uses this.
+- **Nested-preset form** — `{"iit": IITConfig(...), "progress_bars": False}` — the
+  whole `iit` namespace is handed over as one object. `zoo.IIT_3_CONFIG` and the
+  `pyphi/conf/presets.py` presets use this.
+
+Both are valid `config.override(**...)` inputs, so both "work" — but they are not
+interchangeable, and the two shapes carry the bug and its fix respectively. The
+dotted form lets a caller list a *subset* of the formalism fields and silently
+inherit the rest from the ambient default; that is exactly how
+`IIT_4_2023_CONFIG` came to omit `system_phi_measure`. The nested-preset form is
+complete by construction — you cannot forget a field, because the entire
+`IITConfig` comes as a unit. The dual representation is also a latent
+introspection hazard: code that asks "what formalism does this fixture use?"
+(for example `test_canonical_iit3_preset_is_exercised`, which reads
+`config_overrides["iit"].version`) only understands the nested form.
+
+The fix is to unify every formalism pin onto the nested-preset form, mirroring
+the `IIT_3_CONFIG` definition that already lives in `zoo.py`:
 
 ```python
-with pyphi.config.override(**presets.iit4_2023):
-    ...  # version=2023, sys=GID, mech=GID, spec=GID, partition=DIRECTED_SET_PARTITION
+IIT_4_2023_CONFIG = {**presets.iit4_2023, "progress_bars": False, "parallel": False}
+IIT_4_2026_CONFIG = {**presets.iit4_2026, "progress_bars": False, "parallel": False}
 ```
 
-Verified from a 2026 ambient (the leaky scenario): the override resets all three
-measures to GID and the partition scheme to `DIRECTED_SET_PARTITION`, and
-restores the 2026 ambient on exit. `IITConfig()` defaults
-(`system_phi_measure=GID`, `system_partition_scheme=DIRECTED_SET_PARTITION`)
-match exactly what `IIT_4_2023_CONFIG` currently hand-sets, so replacing the
-hand-rolled dict with a preset source is provably value-neutral.
+This is less code than the hand-rolled dicts, closes the leak by construction,
+and makes the representation uniform. Infrastructure knobs (`progress_bars`,
+`parallel`) layer on top; they are not formalism fields.
 
-Infrastructure knobs used only for test runtime (`progress_bars`, `parallel`)
-are layered on top of the preset separately; they are not formalism fields.
+Verified value-neutral: from a 2026 ambient, `config.override(**presets.iit4_2023)`
+resets all three measures to GID and the partition scheme to
+`DIRECTED_SET_PARTITION` (restoring the ambient on exit), and `IITConfig()`
+defaults match what the dotted `IIT_4_2023_CONFIG` resolved to under the current
+2023/GID default — so the computed golden values are unchanged.
+
+Two concerns checked and cleared: (1) `test_canonical_iit3_preset_is_exercised`
+filters by `version == iit3.version`, so giving the 4.0 fixtures nested-form
+`config_overrides` (with 4.0 versions) leaves it matching exactly the same IIT
+3.0 fixtures. (2) `config_overrides` is written into the golden JSON header but
+excluded from the value comparison (`fixture.py` `_assert_matches`), and no
+golden is regenerated, so stored fixtures are untouched.
 
 This removes the entire partial-pin class at the root rather than patching
-individual symptoms.
+individual symptoms. The inline dotted `config_overrides` dicts elsewhere in
+`zoo.py` are audited and converted in the same pass.
 
 ## Work items
 
-1. **Consolidate the pins onto presets.**
-   Redefine `conftest.IIT_4_CONFIG`, `zoo.IIT_4_2023_CONFIG`, and
-   `zoo.IIT_4_2026_CONFIG` to derive from `presets.iit4_2023` / `presets.iit4_2026`
-   (with the infrastructure layer applied separately). Confirm value-neutrality
-   by checking `IITConfig` defaults against the fields the dicts currently set.
-   This fixes Group 1.
+1. **Unify the pins onto the nested-preset form.**
+   Redefine `zoo.IIT_4_2023_CONFIG` and `zoo.IIT_4_2026_CONFIG` as
+   `{**presets.iit4_2023, ...infra}` / `{**presets.iit4_2026, ...infra}`,
+   mirroring the existing `IIT_3_CONFIG`. Audit the inline dotted
+   `config_overrides` dicts elsewhere in `zoo.py` and convert any partial
+   formalism dicts. Source `conftest.IIT_4_CONFIG` from `presets.iit4_2023` for
+   the same reason (it is already complete, but the uniform representation is the
+   point). Confirm value-neutrality via the golden regression (no regen). This
+   fixes Group 1.
 
 2. **Pin Group 2 to 2023.**
    Add autouse fixtures applying the complete 2023 pin, at the narrowest scope
