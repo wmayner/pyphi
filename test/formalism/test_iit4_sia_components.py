@@ -25,6 +25,7 @@ from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
 from pyphi.models.partitions import NullCut
+from test.conftest import IIT_4_CONFIG
 from test.conftest import skip_if_no_emd_backend
 
 # Expected phi values extracted from JSON fixtures in test/data/sia/
@@ -53,6 +54,11 @@ class TestPhiValues:
     without depending on how SIA objects are serialized. They're fast and
     provide clear regression detection.
     """
+
+    @pytest.fixture(autouse=True)
+    def _pin_iit4_2023(self):
+        with IIT_4_CONFIG:
+            yield
 
     def test_sia_standard_example_phi_value(self, s):
         """Standard example computes correct phi value.
@@ -229,6 +235,11 @@ class TestPartitionTypes:
     Different systems should have different kinds of partitions depending
     on their reducibility and structure.
     """
+
+    @pytest.fixture(autouse=True)
+    def _pin_iit4_2023(self):
+        with IIT_4_CONFIG:
+            yield
 
     def test_sia_standard_example_partition_type(self, s):
         """Standard example uses expected partition type.
@@ -501,19 +512,20 @@ class TestEq23IntrinsicInformationCap:
         The ii(s) cap and GID-only partition override only activate when
         repertoire_distance=INTRINSIC_INFORMATION.
         """
-        from pyphi.formalism.iit4 import sia
+        with IIT_4_CONFIG:
+            from pyphi.formalism.iit4 import sia
 
-        # Default config uses GENERALIZED_INTRINSIC_DIFFERENCE
-        result = sia(
-            s,
-            system_measure=resolve_system_measure(
-                config.formalism.iit.system_phi_measure
-            ),
-            specification_measure=resolve_mechanism_measure(
-                config.formalism.iit.specification_measure
-            ),
-        )
-        assert float(result.phi) == pytest.approx(EXPECTED_PHI_VALUES["s"], abs=1e-9)
+            # Default config uses GENERALIZED_INTRINSIC_DIFFERENCE
+            result = sia(
+                s,
+                system_measure=resolve_system_measure(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_measure=resolve_mechanism_measure(
+                    config.formalism.iit.specification_measure
+                ),
+            )
+            assert float(result.phi) == pytest.approx(EXPECTED_PHI_VALUES["s"], abs=1e-9)
 
 
 # ============================================================================
