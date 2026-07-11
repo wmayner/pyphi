@@ -15,6 +15,7 @@ from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
 
+import pandas as pd
 from tqdm.auto import tqdm
 
 from . import combinatorics
@@ -455,6 +456,34 @@ class Relations(Displayable, ToPandasMixin, Serializable):
         """Return the total number of faces across all relations."""
         return sum(relation.num_faces for relation in self)  # type: ignore[attr-defined]  # iterable in subclasses
 
+    def binding_matrix(self) -> pd.DataFrame:
+        """Return the atom-pair binding matrix of the relational structure.
+
+        Entry ``(a, b)`` is the total minimum density (``φ_r / |O|``) of the
+        non-self relations whose congruent overlap contains both atoms — the
+        strength with which the two unit-states are jointly bound by
+        relations. The diagonal decomposes the apportioned relation strength
+        per atom. Index and columns are the atoms (state-tagged units)
+        incident to at least one non-self relation, sorted. Self-relations
+        are excluded: the matrix measures binding between distinctions.
+        """
+        weights: defaultdict[tuple, float] = defaultdict(float)
+        atoms = set()
+        for relation in self:  # type: ignore[attr-defined]  # iterable in subclasses
+            if relation.is_self_relation:
+                continue
+            purview = sorted(relation.purview)
+            atoms.update(purview)
+            weight = float(relation.phi) / len(purview)
+            for a in purview:
+                for b in purview:
+                    weights[a, b] += weight
+        ordered = sorted(atoms)
+        matrix = pd.DataFrame(0.0, index=pd.Index(ordered), columns=pd.Index(ordered))
+        for (a, b), weight in weights.items():
+            matrix.loc[a, b] = weight
+        return matrix
+
     def strongest(
         self,
         k: int | None = None,
@@ -708,6 +737,26 @@ class AnalyticalRelations(Relations):
                 # numerics: exact — running max; callers compare tolerantly.
                 best = max(best, len(overlap) * min(densities[i], densities[j]))
         return best
+
+    def binding_matrix(self) -> pd.DataFrame:
+        """Return the atom-pair binding matrix, in closed form.
+
+        Each entry is one sum-of-minimum over the distinctions shared by the
+        atom pair — ``O(A²)`` sorted dot products for ``A`` atoms, never
+        touching a relation.
+        """
+        index = self._atom_index
+        atoms = sorted(a for a in index if len(index[a]) >= 2)
+        matrix = pd.DataFrame(0.0, index=pd.Index(atoms), columns=pd.Index(atoms))
+        for a in atoms:
+            members = set(index[a])
+            for b in atoms:
+                group = [d for d in index[b] if d in members]
+                if len(group) >= 2:
+                    matrix.loc[a, b] = combinatorics.sum_of_minimum_among_subsets(
+                        [self._density(d) for d in group]
+                    )
+        return matrix
 
     def phi_histogram(self) -> dict[float, int]:
         """Return ``{φ_r: count}`` over all relations, in closed form.

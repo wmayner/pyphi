@@ -7,6 +7,7 @@ small enough to enumerate.
 
 import math
 
+import numpy as np
 import pytest
 
 from pyphi import config
@@ -224,3 +225,21 @@ def test_analytical_phi_histogram_totals(structures):
     assert math.fsum(phi * count for phi, count in hist.items()) == pytest.approx(
         analytical.sum_phi()
     )
+
+
+def test_binding_matrix_parity(structures):
+    _, _, concrete, analytical = structures
+    concrete_matrix = concrete.binding_matrix()
+    analytical_matrix = analytical.binding_matrix()
+    assert list(concrete_matrix.index) == list(analytical_matrix.index)
+    assert np.allclose(
+        concrete_matrix.to_numpy(), analytical_matrix.to_numpy(), atol=1e-10
+    )
+
+
+def test_binding_matrix_is_symmetric_with_positive_diagonal(structures):
+    _, _, _, analytical = structures
+    matrix = analytical.binding_matrix()
+    values = matrix.to_numpy()
+    assert np.allclose(values, values.T, atol=1e-12)
+    assert (np.diag(values) > 0).all()
