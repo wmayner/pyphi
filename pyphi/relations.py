@@ -383,6 +383,8 @@ class Relations(Displayable, ToPandasMixin, Serializable):
 
     def sum_phi_moment(self, k: int = 2) -> float:
         """Return Σφ_r^k over all relations, including self-relations."""
+        if k < 1:
+            raise ValueError(f"moment order must be a positive integer: {k}")
         return math.fsum(float(relation.phi) ** k for relation in self)  # type: ignore[attr-defined]  # iterable in subclasses
 
     def phi_mean_std(self) -> tuple[float, float]:
@@ -508,6 +510,8 @@ class Relations(Displayable, ToPandasMixin, Serializable):
         max_degree : int, optional
             Skip relations with more than this many relata.
         """
+        if k is not None and k <= 0:
+            return
         # Descending sort for a stream; the min_phi threshold below is tolerant.
         # numerics: exact — total order for streaming, not a tolerant selection.
         candidates = sorted(self, key=lambda r: float(r.phi), reverse=True)  # type: ignore[attr-defined]  # iterable in subclasses
@@ -826,6 +830,8 @@ class AnalyticalRelations(Relations):
     def num_relations_of_degree(self, degree: int) -> int:
         """Return the number of relations with exactly ``degree`` relata,
         by inclusion-exclusion over shared purview subsets."""
+        if degree < 1:
+            return 0
         if degree == 1:
             return len(self.self_relations)
         count = 0
@@ -914,6 +920,8 @@ class AnalyticalRelations(Relations):
             Do not yield or expand relations with more than this many
             relata.
         """
+        if k is not None and k <= 0:
+            return
         ds = list(self.distinctions)
         unions = [frozenset(d.purview_union) for d in ds]
         densities = [self._density(d) for d in ds]
@@ -1211,12 +1219,23 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     def phi_histogram(self) -> dict[float, int]:
         """Return ``{φ_r: count}`` over the incident relations.
 
-        Bucket-wise difference of the parent and seed-free histograms;
-        bucket keys align because both are grouped at the configured
-        precision from the same underlying densities.
+        Bucket-wise difference of the parent and seed-free histograms. Each
+        bucket key is ``overlap size × density`` rounded to the configured
+        precision, where the density is a raw representative of a
+        precision-rounded group of distinctions. The parent and seed-free
+        histograms share bucket keys when these representatives are
+        seed-independent, so the difference is well defined. A representative
+        that is a seed can shift a key between the two histograms; that
+        misalignment surfaces as a negative count and is raised rather than
+        returned.
         """
         histogram = Counter(self._full.phi_histogram())
         histogram.subtract(self._complement.phi_histogram())
+        if any(count < 0 for count in histogram.values()):
+            raise ValueError(
+                "bucket keys failed to align between the parent and seed-free "
+                "histograms; materialize the fold to enumerate exact values"
+            )
         return {phi: count for phi, count in histogram.items() if count}
 
     def binding_matrix(self) -> pd.DataFrame:
@@ -1278,6 +1297,8 @@ class AnalyticalFoldRelations(AnalyticalRelations):
         order is exact; non-incident relations are popped and discarded, so
         the cost tracks the parent stream's, not the incident count.
         """
+        if k is not None and k <= 0:
+            return
         seed_set = set(self._seeds)
         yielded = 0
         for relation in self._full.strongest(

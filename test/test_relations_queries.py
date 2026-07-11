@@ -144,8 +144,11 @@ def test_null_relations_query_defaults():
     nr = relations.NullRelations()
     assert nr.sum_phi_moment(2) == 0.0
     assert nr.degree_spectrum() == {}
+    assert nr.num_relations_of_degree(2) == 0
+    assert nr.sum_phi_of_degree(2) == 0.0
     assert nr.max_phi() == 0.0
     assert nr.phi_histogram() == {}
+    assert nr.binding_matrix().empty
     assert nr.num_faces() == 0
     assert list(nr.strongest()) == []
     assert nr.materialize() == relations.ConcreteRelations(())
@@ -357,13 +360,42 @@ def test_analytical_materialize_bounds(structures):
     assert len(top) >= min(1, concrete.num_relations())
 
 
+def test_degree_guard_parity(structures):
+    _, _, concrete, analytical = structures
+    for degree in (0, -1):
+        assert (
+            analytical.num_relations_of_degree(degree)
+            == concrete.num_relations_of_degree(degree)
+            == 0
+        )
+        assert (
+            analytical.sum_phi_of_degree(degree)
+            == concrete.sum_phi_of_degree(degree)
+            == 0.0
+        )
+
+
+def test_sum_phi_moment_zero_raises(structures):
+    _, _, concrete, analytical = structures
+    for backend in (concrete, analytical):
+        with pytest.raises(ValueError):
+            backend.sum_phi_moment(0)
+
+
+def test_strongest_k_zero_yields_nothing(structures):
+    _, _, concrete, analytical = structures
+    for backend in (concrete, analytical):
+        assert list(backend.strongest(k=0)) == []
+
+
 # --- Folds: every query restricted to incident relations ---
 
 
-@pytest.fixture(scope="module")
-def fold_structures(structures):
+@pytest.fixture(scope="module", params=[1, 2])
+def fold_structures(structures, request):
     name, distinctions, concrete, _ = structures
-    seeds = [next(iter(distinctions))]
+    all_distinctions = list(distinctions)
+    seeds = all_distinctions[: min(request.param, len(all_distinctions))]
     seed_set = set(seeds)
     fold = relations.AnalyticalFoldRelations(distinctions, seeds)
     incident_concrete = relations.ConcreteRelations(
@@ -416,6 +448,7 @@ def test_fold_binding_matrix_matches_incident_concrete(fold_structures):
     _, _, fold, incident = fold_structures
     fold_matrix = fold.binding_matrix()
     incident_matrix = incident.binding_matrix()
+    assert set(incident_matrix.index) <= set(fold_matrix.index)
     aligned = incident_matrix.reindex(
         index=fold_matrix.index, columns=fold_matrix.columns, fill_value=0.0
     )
