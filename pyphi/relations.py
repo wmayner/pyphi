@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import math
+from collections import Counter
 from collections import defaultdict
 from collections.abc import Iterable
+from collections.abc import Iterator
 from functools import cached_property
 from functools import total_ordering
 from itertools import product
@@ -249,6 +252,17 @@ def _relation_size_func(purview_unions):
     return cost
 
 
+def _passes(relation, max_degree, min_phi):
+    """Filter predicate shared by ``materialize`` and ``strongest``."""
+    if max_degree is not None and len(relation) > max_degree:
+        return False
+    if min_phi is not None:
+        phi = float(relation.phi)
+        if not (phi > min_phi or numerics.eq(phi, min_phi)):
+            return False
+    return True
+
+
 def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     """Yield causal relations among a set of distinctions."""
     # Self relations
@@ -361,6 +375,145 @@ class Relations(Displayable, ToPandasMixin, Serializable):
         if self._num_relations_cached is None:
             self._num_relations_cached = self._num_relations()  # type: ignore[attr-defined]  # Defined in subclass
         return self._num_relations_cached
+
+    def sum_phi_moment(self, k: int = 2) -> float:
+        """Return Σφ_r^k over all relations, including self-relations."""
+        return math.fsum(float(relation.phi) ** k for relation in self)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def phi_mean_std(self) -> tuple[float, float]:
+        """Return the population mean and standard deviation of φ_r.
+
+        Derived from the count, Σφ_r, and Σφ_r², so it is exact on any
+        backend that answers those queries without enumeration.
+
+        Raises
+        ------
+        ValueError
+            If there are no relations.
+        """
+        n = self.num_relations()
+        if n == 0:
+            raise ValueError("no relations to summarize")
+        mean = self.sum_phi() / n
+        variance = self.sum_phi_moment(2) / n - mean**2
+        return mean, math.sqrt(max(variance, 0.0))
+
+    def num_relations_of_degree(self, degree: int) -> int:
+        """Return the number of relations with exactly ``degree`` relata.
+
+        Degree 1 counts the self-relations.
+        """
+        return sum(1 for relation in self if len(relation) == degree)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def sum_phi_of_degree(self, degree: int) -> float:
+        """Return Σφ_r over relations with exactly ``degree`` relata."""
+        return math.fsum(
+            float(relation.phi)
+            for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
+            if len(relation) == degree
+        )
+
+    def degree_spectrum(self) -> dict[int, tuple[int, float]]:
+        """Return ``{degree: (count, Σφ_r)}`` over all relations.
+
+        Degrees with no relations are omitted. The counts sum to
+        ``num_relations()`` and the φ sums to ``sum_phi()``.
+        """
+        counts: Counter[int] = Counter()
+        sums: defaultdict[int, list[float]] = defaultdict(list)
+        for relation in self:  # type: ignore[attr-defined]  # iterable in subclasses
+            counts[len(relation)] += 1
+            sums[len(relation)].append(float(relation.phi))
+        return {
+            degree: (counts[degree], math.fsum(sums[degree]))
+            for degree in sorted(counts)
+        }
+
+    def max_phi(self) -> float:
+        """Return the maximum φ_r over all relations, or ``0.0`` if empty."""
+        return max(
+            (float(relation.phi) for relation in self),  # type: ignore[attr-defined]  # iterable in subclasses
+            default=0.0,
+        )
+
+    def phi_histogram(self) -> dict[float, int]:
+        """Return ``{φ_r: count}`` over all relations.
+
+        Keys are grouped at the configured precision
+        (:func:`pyphi.numerics.round_to_precision`), so mathematically equal
+        values that differ by float noise share a bucket. Counts sum to
+        ``num_relations()``.
+        """
+        histogram: Counter[float] = Counter(
+            numerics.round_to_precision(float(relation.phi))
+            for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
+        )
+        return dict(histogram)
+
+    def num_faces(self) -> int:
+        """Return the total number of faces across all relations."""
+        return sum(relation.num_faces for relation in self)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def strongest(
+        self,
+        k: int | None = None,
+        min_phi: float | None = None,
+        max_degree: int | None = None,
+    ) -> Iterator[Relation]:
+        """Yield relations in descending φ_r order.
+
+        Ties in φ_r yield in an unspecified but deterministic order.
+
+        Parameters
+        ----------
+        k : int, optional
+            Yield at most this many relations. If None, yield all.
+        min_phi : float, optional
+            Stop once φ_r falls below this threshold (compared tolerantly
+            at the configured precision).
+        max_degree : int, optional
+            Skip relations with more than this many relata.
+        """
+        # numerics: exact — descending sort for a stream; the min_phi
+        # threshold below is tolerant.
+        candidates = sorted(self, key=lambda r: float(r.phi), reverse=True)  # type: ignore[attr-defined]  # iterable in subclasses
+        yielded = 0
+        for relation in candidates:
+            if min_phi is not None:
+                phi = float(relation.phi)
+                if not (phi > min_phi or numerics.eq(phi, min_phi)):
+                    return
+            if max_degree is not None and len(relation) > max_degree:
+                continue
+            yield relation
+            yielded += 1
+            if k is not None and yielded >= k:
+                return
+
+    def materialize(
+        self, max_degree: int | None = None, min_phi: float | None = None
+    ) -> ConcreteRelations:
+        """Return the relations as an explicit :class:`ConcreteRelations`.
+
+        The one deliberately loud way to obtain enumerable relation objects
+        from a non-enumerating backend. ``max_degree`` and ``min_phi``
+        (tolerant ``≥``) bound what is materialized.
+        """
+        return ConcreteRelations(
+            relation
+            for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
+            if _passes(relation, max_degree, min_phi)
+        )
+
+    def sample(self, n: int, *, seed: int):
+        """Draw a coverage-weighted sample of relations.
+
+        Implemented on backends that hold the distinction set; see
+        :meth:`AnalyticalRelations.sample`.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support sampling; use AnalyticalRelations"
+        )
 
     def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
