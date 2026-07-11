@@ -86,7 +86,8 @@ zero cost.
 
 ## Consequences
 
-- **The Wave-7c certified-bracket gate is discharged.** The anytime bracket
+- **The certified-bracket gate is discharged** (ROADMAP "Wave 7 — Exploration
+  builds", the anytime certified Φ bracket entry). The anytime bracket
   is now fully proved: lower endpoint Σφ_d + exact self sum + any partial
   relation sum (φ_r ≥ 0 termwise); upper endpoint the state-keyed empirical
   Eq. 15. Paired with best-first descending-φ_r enumeration (the relations

@@ -63,9 +63,10 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · **P6a** (free-threaded 3.14t CI lane +
 | Grain-search documentation | ✅ landed | — | The grain search across the Diátaxis framework: `docs/howto/grain-search.md` (pre-flight → run → micro history for τ>1 → read winners/margins/records/ties → parallelize → bound); `docs/theory/macro-units.md` (unit definition, intrinsic-unit criteria, recursive exclusion across grains, type map — first macro coverage in the theory section; citations verified against the 2024 PDF); blackboxing + temporal-grain tutorial sections in `docs/tutorials/macro.md` — the temporal specimen is a prospected three-unit substrate whose maximal complex is a τ=2 unit (φₛ 0.5083, margin 0.30, excluding the micro universe at 0.2075; provenance in `grain_tau_experiments/`, seeded, 23/120 hit rate; the exploration's 4-cycle demo does NOT survive the integration criterion and its 32,727 was a digit transposition of 2¹⁵−1); grain cost section in `docs/theory/computational-complexity.md` with a live `estimate()` cell. Also migrated `docs/tutorials/recursive-exclusion.md` off removed `pyphi.utils.eq` (docs builds on main were broken). Grain-exposure item 4. Spec: `2026-07-10-grain-search-docs-design.md` |
 | Macro-construction intermediate cache | ✅ landed | — | The macro TPM construction's mapping-independent Steps 1–2 intermediates (the discounted transition matrix and the sequence-class distributions, Marshall et al. 2024 Eqs. 26–31) are cached per substrate content fingerprint, keyed on (footprint, composed micro grain, apportionment structure) — grain-search candidates differing only in their mapping reuse the expensive construction prefix, so Step 1 runs once per distinct key instead of once per construction (the design measurement found 27× key redundancy on the default Example 1 sweep). Result-preserving: byte-identity pinned across the golden constructions with cache off/cold/warm, sweep records and complexes exactly equal, goldens and perf-counter pins unchanged. Module-level `ContentCache` beneath the search's per-run system cache; entries evicted with the substrate via GC; substrate isolation, nested-unit sharing, and thread-safety tested. `cache_macro_construction` infrastructure option (default on; off = no reads or writes). Grain-exposure item 5. Plan: `2026-07-08-grain-construction-cache.md` |
 | Complex unification | ✅ landed | 7 | One exclusion semantics, one winner type: the macro driver's literal Eq. 19 predicate computed only the first condensation layer (already-excluded candidates could veto others — complexes on chain topologies were missing), ruled a bug against the recursive reading (Marshall 2023 Alg. A1 / IIT 4.0 "assessed recursively"). Shared recursive cascade in `pyphi/condensation.py` (`Candidate` records: micro-footprint overlap currency + SIA/system providers) consumed by both `substrate.complexes` and `macro.complexes`; macro ties escalate through the S1 Composition cascade with Φ computed once per content fingerprint (single-fingerprint cliques skip CES entirely, certified by bit-identity) and compared as `PyPhiFloat` — fixing a latent raw-float argmax that resolved isomorphic-twin cliques on summation noise; `ComplexesResult.complexes` → `tuple[Complex]` (`units` + micro-footprint `node_indices` + `excluded`), `.ties` → Φ-tied cliques, `.maximal_complex` null-object; `Complex`/`ExcludedCandidate` gained `units` (serialized, recursive `MacroUnitSchema`); macro drivers reject IIT 3.0 eagerly. Chain regression + cross-door Hypothesis equivalence at `max_depth=0` + tie shadow-equality + parallel≡sequential. Fast-lane goldens byte-stable. Spec: `2026-07-09-complex-unification-design.md` |
-| `pyphi.landscape` | ✅ landed | — | Continuous-parameter analysis over substrate space (spec §7 item 1): `landscape_section` (1-D SIA sections as tidy DataFrames with selection identities, margins, and regime boundaries), `perturb` (central-difference derivatives, one-sided derivatives, margin derivatives, and `switch_distances` — linearized distance in parameter units to each selection switch; validated to ~1% against a bisected switch on the Fig-1A substrate), `weight_axis` (single-weight axis for `substrate_generator` substrates). Sequential-only; the black-box optimizer driver stays gated on an n=5–6 roughness replication (exploration synthesis Wave 2). Docs: `docs/howto/landscape.md`. |
+| `pyphi.landscape` | ✅ landed | — | Continuous-parameter analysis over substrate space (spec §7 item 1): `landscape_section` (1-D SIA sections as tidy DataFrames with selection identities, margins, and regime boundaries), `perturb` (central-difference derivatives, one-sided derivatives, margin derivatives, and `switch_distances` — linearized distance in parameter units to each selection switch; validated to ~1% against a bisected switch on the Fig-1A substrate), `weight_axis` (single-weight axis for `substrate_generator` substrates). Sequential-only. The n=5 roughness replication that gated the black-box optimizer driver has run (`substrate_landscape_experiments/FINDINGS.md`): signed normalized φₛ stays empirically smooth across MIP switches, so the driver is unblocked and ships population-first — now an open Wave-7 build (with the caveat that smoothness is of the objective value, not of selection identity). Docs: `docs/howto/landscape.md`. |
 | CES algebra operations | ✅ landed | 7 | Operations over cause-effect structures as first-class objects: `Distinctions.filter`; `CauseEffectStructure.induce`/`meet` (relation-closed `InducedSubstructure` views with a same-frame check; `project_ces`/`plot_ces` accept any relation-closed object); share-weighted fold contributions — `PhiFold.big_phi_contribution` weights each incident relation by the seeds' share `\|r ∩ F\|/\|r\|`, so the folds of **any** partition of the distinctions (multi-seed included) tile Φ exactly, with a closed-form analytical path; `pyphi.automorphism.structure_signature` + `are_structures_isomorphic` (structure equality up to unit relabeling); `CauseEffectStructure.relabel` through node-index bijections. Spec: `docs/superpowers/specs/2026-07-07-ces-algebra-exploration.md` |
 | B22 raw-float φ-comparison audit | ✅ landed | 1 | Eight raw-float φ/α comparison sites found and fixed. `PyPhiFloat` deleted — tolerant comparison (up to `config.numerics.precision`) consolidated at decision sites: the scalar predicates in the new `pyphi.numerics` module and `resolve_ties`' tolerant float-key clustering, so candidates tied up to precision co-select regardless of iteration order. `DistanceResult` is now a plain-float metadata carrier. Actual causation gains a system-level tie cascade (`resolve_ac_sia_tie`/`resolve_ac_nexus_tie`) plus tie bookkeeping (`AcSystemIrreducibilityAnalysis.ties`). An AST lint (`test/test_precision_lint.py`) gates recurrence of raw-float φ/α comparison. Spec: `docs/superpowers/specs/2026-07-10-precision-comparison-architecture-design.md` |
+| Relations query surface | ✅ landed | 7 | Tier 1–3 relation queries as a deterministic view over the linear-size relation summary, so the relation set need not be materialized (spec: `docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`). Tier 1 closed-form on `AnalyticalRelations` — moments (`sum_phi_moment`), degree spectrum (`degree_spectrum`/`num_relations_of_degree`), `phi_histogram`, `binding_matrix`, Möbius `num_faces`, `max_phi`; Tier 2 lazy exact-descending `strongest(k)` (best-first over the antitone φ_r bound); Tier 3 seeded Karp–Luby `sample()` → Horvitz–Thompson `RelationSample.estimate`; bounded `materialize()` escape hatch; fold-restricted overrides on `AnalyticalFoldRelations`; `CauseEffectStructure.distinction_importance`. Concrete/analytical parity tested at Fig-6D scale. Discharges N6 + N24. |
 | Uncertainty pipeline (minimal) | ✅ landed | 7 | `pyphi.estimate`: `estimate_substrate(data, regime=…)` fits a per-row Bayesian counts model (Jeffreys `Beta(½,½)` default prior) over the state-by-node `P(on)` matrix; the required `regime` assertion (`"perturbational"`/`"observational"`, no default — the library cannot infer causal access from data) is stamped into a structured `Provenance.estimator` slot. `SubstratePosterior.sample(seed=…)` draws an ordinary `Substrate` and reuses the whole compute stack; `phi_posterior(...)` returns the mixture over Φ (`p_positive`, conditional quantiles, raw per-draw samples, and a categorical `complex_identity`) and **refuses bare-float coercion** (`float()` raises, naming the honest summaries — the posterior is a point mass at zero plus a continuous density, whose mean describes no possible system). First-class `CoverageReport` (headline in the observational regime: unvisited rows are unidentified, not merely unsampled); `SubstratePosterior.edge_probability(...)` replaces the saturating `infer_cm` on estimated TPMs with a graded edge view. The three identifiability demonstrations (twin non-identifiability, `infer_cm` saturation, ε-boundary) and the grid3 mixture end-to-end run ship as reproducible tests (`test/test_estimate.py`); `estimate_substrate`/`phi_posterior` lifted to the package root. **Out of scope (deliberate):** no distribution-valued Φ threaded through existing result types/display/schemas; no GLM/Ising fitting (counts model only — `model="glm"` raises); no ensemble axis on `sweep`. `pyphi/estimate.py`. |
 
 ### ⛔ Deferred — out of 2.0 (genuine blocker)
@@ -164,6 +165,53 @@ and dropped `ordered-set`; migrated `toolz` to `itertools.chain.from_iterable`,
 - **P17 — perf characterization (Wave A complete; Wave B server-gated; Wave C closed).** Extend the cross-temporal benchmark beyond 5 nodes, find the interactive/batch size thresholds, characterize the mechanism behind the IIT 4.0 speedup, and exercise the 2026 ii-cap with non-zero φ. **Correction (2026-06-26):** the earlier "19–43× IIT 4.0 speedup" was a measurement artifact — it compared pre-refactor `phi_structure` (full structure) against post-refactor `sia` (system-φ only). The de-confounded, like-for-like result is a **~18–20× faster SIA partition evaluation and ~2× faster CES**, driven by the `core/repertoire_algebra.py` kernel rewrite; the cap variant is computationally free. The hot-path config-behavior sweep (`config_sweep.py`) found no documented-versus-actual mismatch and confirmed both pre-2.0 config bugs are fixed (`PARALLEL=False` now truly disables subprocesses via the `parallel_kwargs` global gate; incompatible version/measure combinations raise a clean `ConfigurationError` instead of a raw crash). A seeded 6–7 node Ising generator (`harness._synth_system`, ferromagnetic coupling so the all-off state integrates and the SIA runs the full search rather than short-circuiting) plus committed fixtures land the Part 3 construction; n=6 sizing is ~24 s/trial profiled and the partition count grows ~7.8×/node, so n=7 is batch-only and deferred to the lab server. Wave C (one targeted optimization) is closed with a negative result — no bounded ~1-week win, since the ~18× gain is already realized by the repertoire-algebra rewrite (the remaining lever is the larger N5 Rust-kernel item). Remaining: the Wave B 6–7 node server matrix (blocked on lab SSH). `benchmarks/iit_3_vs_4/README.md`.
 - **P18 (+B6) — sparse / treewidth-dispatched exact inference — regime-limited negative result, then cause side landed (2026-07-06).** Task 1 (confirm the bottleneck binds) ran on the seeded 6-node sparse ferromagnetic Ising fixture (density 0.35, seed 6001): a **full-substrate** IIT 4.0 SIA spends ~94% of wall time in the partition search (`evaluate_partition` over the full `DIRECTED_SET_PARTITION` set) and ~6% in `_cause_marginal_factored`. The inversion is **recomputed for every partition of the cut system** (7,897 calls for 7,896 partitions) and builds `pr_joint` over the **full substrate** dimensions, which splits the conclusion by regime. (1) *Full-substrate systems* (system = substrate): growing the system multiplies the partition count ~7.8×/node while the joint grows only `aⁿ` (2×/node binary), so the inversion share shrinks as the analysis grows — the bottleneck does not bind, and no junction-tree inference was built for 2.0. (2) *Fixed system in a growing substrate* (the standard workflow): the search size is constant while each per-partition inversion grows `aᴺ` with substrate size `N`; measured shares for a 6-node system are 6.2% (`N=6`) → 8.2% (`N=8`) → 10.3% (`N=10`) → 17.1% (`N=12`), extrapolating to parity with the search near `N≈16`. **Resolution (2026-07-06): the cause side landed** — `apply_cut` shares/materializes the partition-independent marginals (one inversion per SIA) and `_cause_marginal_factored` is a greedy sum-product contraction over the factored dependence structure (no `aᴺ` joint; post-fix shares ~0% in every measured regime). See the dashboard row and `docs/superpowers/specs/2026-07-06-reduced-cause-inversion-design.md`. Runner + raw profiles: `benchmarks/iit_3_vs_4/p18_inversion_share.py`, `results/p18_inversion_share_seed6001.json` (pre-fix), `results/p18_inversion_share_seed6001_post_reduction_v2.json` (post-fix). **Correction (2026-07-06):** an earlier version of this note described the run as `n=7` on `synth_n7_sparse` with a share that "shrinks toward zero as `n` grows"; that fixture was not strongly connected (its SIA short-circuits with `NO_STRONG_CONNECTIVITY` and never enters the partition search — the generator now redraws seeds until strongly connected), and the shrinking-share argument holds only in the full-substrate regime. *(This was the sole "P18"; the cluster-backend deferral that once shared the label is folded into Wave 4 / P11.)*
 
+### Wave 7 — Exploration builds *(2026-07-07 explorations; see `docs/superpowers/specs/2026-07-08-exploration-synthesis.md`)*
+
+The synthesis (§4a) scheduled the exploration builds into 2.0 as one deliberate,
+batched reopening of the frozen surface. The Wave-1 builds have landed — see the
+dashboard rows for the relations query surface, selection-margin reporting,
+complex unification, CES algebra operations, the uncertainty pipeline,
+`pyphi.landscape`, and the macro-construction intermediate cache. The open
+remainder, each with its gate verdict:
+
+- **Anytime certified Φ bracket** *(open build)*. Gate **discharged**: the
+  empirical S(o) Eq. 15 upper bound on Σφ_r is proved a certified bound when
+  keyed on unit states (`so_certificate_experiments/FINDINGS.md`; index-keying
+  is proven unsound by a witnessed violation, so state-keying is mandatory).
+  Scope correction from the proof: with a complete distinction set an exact
+  identity computes Σφ_r in O(|D|·n), superseding the bracket there — its
+  genuine scope is partial or truncated distinction sets. The build is the
+  two-sided bracket in `pyphi/formalism/iit4/bounds.py`, its lower endpoint
+  rising as the landed relations `strongest()` streams relations (Tier 2).
+- **ii-gated grain scheduling** *(open build; 2026-cap arm only)*. The GID arm
+  is dead: `min(ii_c, ii_e) ≥ φ_s` is **refuted** under the 2023/GID measure
+  (`ii_phi_inequality_experiments/FINDINGS.md`; minimal n=2 witness, margin
+  −0.054). Under the 2026 Eq. 23 cap the inequality holds by construction, so
+  `prune="certified"` is available only under
+  `system_phi_measure="INTRINSIC_INFORMATION"`; any GID-mode gating is
+  heuristic and must be labeled approximate.
+- **Landscape optimizer driver** *(open build)*. Gate **passed**: the n=5
+  roughness replication ran (`substrate_landscape_experiments/FINDINGS.md`) —
+  signed normalized φₛ stays empirically smooth across MIP switches, so the
+  optimizer ships population-first. Caveat: the smoothness is of the objective
+  value only; selection identity flips between near-tied set partitions at
+  single-grid-point frequency, so the driver must not depend on a stable MIP
+  identity.
+- **Relations follow-ups** *(open, small)*. (a) Switch visualization to
+  `strongest(k)` — `pyphi/visualize/projection/__init__.py` still iterates
+  `ces.relations` directly, so `AnalyticalRelations` structures cannot be
+  visualized. (b) Move the CES `diff` from the relation-level set diff in
+  `pyphi/models/ces.py` to statistic deltas.
+- **Theory ledger remainder** *(research / 2.x)*: the TV-distance → φₛ lemma
+  (would enable a hard τ-cap in grain search); the macro ceiling extension and
+  m=1 singleton correction (the `bounds.py` certificates currently exclude
+  `MacroSystem`); fold-content optimization heuristics (supermodular);
+  the IIT 3.0 error-certificate decision — a transport-level bound, or an
+  explicit ruling that 3.0 gets no certificate (not yet decided);
+  distribution-over-structures summaries (label-switching/matching); and the
+  quantum-object question (whether the mechanism-level unification extends to
+  the quantum object or forks again).
+
 ### Documentation overhaul (2.0 / IIT 4.0)
 
 A first-class documentation project, distinct from the minimal docs slice baked
@@ -236,7 +284,7 @@ The release is gated on completing the roadmap, not a partial ship — every ⬜
 2. Goldens (fast + slow) green; Hypothesis suite green at default seed and on the 1000-run nightly; `test_actual.py` **and** `test_macro_system.py` unskipped; perf budget green; **no parallel-only golden left silently skipped** (the loky intermittent resolved or made a loud xfail).
 3. Public surface frozen: jsonify retired for msgspec; layered YAML auto-load (legacy flat YAML rejected with a rename map); `_conf_legacy` gone; `cause_tpm`/`effect_tpm` renamed; no `TODO(4.0)` / `TODO(nonbinary)` and **no project-stage markers** (`P`-numbers, "Phase A") surviving in `pyphi/`.
 4. `import pyphi; pyphi.examples.basic_system().ces()` runs clean (no internal `DeprecationWarning`); version namespaces are `pyphi.iit4_2023` / `pyphi.iit4_2026` (no bare `pyphi.iit4`).
-5. Sphinx site rebuilt ✅; `docs/migration/migration-2.0.md` ships ✅ (the tutorials/how-tos content is the remaining docs-overhaul sub-project).
+5. Sphinx site rebuilt ✅; `docs/migration/migration-2.0.md` ships ✅; the tutorials and how-tos ship ✅ — the documentation overhaul is complete (see the dashboard row).
 
 **Out of 2.0** (genuine blockers): P14c, P16, the AC default-flip, and P11.95c case (b) implementation — see the dashboard.
 
@@ -351,12 +399,14 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
 
 *Scale & operability:*
 
-- **N18 — Tractability pre-flight / cost oracle.** *`2.x`; in progress.* A grain-search
-  cost pre-flight is designed and being built
-  (`docs/superpowers/specs/2026-07-10-grain-cost-preflight-design.md`). Original scope: turn P17's characterized
-  partition-count growth and the `iit4/bounds.py` module into a before-you-run estimate of
-  cost and feasibility ("intractable at this size; use approximation or a cluster"),
-  preventing the launch of an unknowingly intractable run.
+- **N18 — Tractability pre-flight / cost oracle.** *`2.x`; grain-search slice landed.* The
+  grain-search cost pre-flight has landed (`SearchBounds.estimate`; see the dashboard row and
+  `docs/superpowers/specs/2026-07-10-grain-cost-preflight-design.md`): an analytic count of what a
+  `pyphi.macro.complexes` sweep would evaluate, with no TPM construction. Original scope: turn
+  P17's characterized partition-count growth and the `iit4/bounds.py` module into a
+  before-you-run estimate of cost and feasibility ("intractable at this size; use approximation
+  or a cluster"), preventing the launch of an unknowingly intractable run. Remaining: the same
+  pre-flight for the single-system φ-structure path (the landed slice covers grain search only).
 - **N19 — Long-horizon scaling narrative.** *`research`.* The relations exploration changes
   this story: the relation set is a deterministic view of a linear-size summary, so the n≥6
   relations bottleneck is a query-surface problem, not an enumeration problem (see
@@ -381,10 +431,13 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
   exists to validate against. Extends IIT's compositional causal analysis from classical TPMs
   to finite-dimensional quantum systems (quantum logic gates, entangled states).
 - **N22 — Intrinsic differentiation / specification as first-class quantities.** *`2.x`;
-  partially concretized.* The grain exploration's ii-decomposition results
-  (`docs/superpowers/specs/2026-07-07-grain-discovery.md`: `min(ii_c, ii_e) ≥ φ_s`, 262/262
-  under GID) give this item its concrete content; the landed selection margins retain the
-  per-direction second-best ii.
+  partially concretized.* The grain exploration's ii-decomposition
+  (`docs/superpowers/specs/2026-07-07-grain-discovery.md`) gives this item its concrete
+  content; the landed selection margins retain the per-direction second-best ii. Note that the
+  inequality `min(ii_c, ii_e) ≥ φ_s` the exploration conjectured (262/262 on a sample of
+  structured fixtures) is **refuted** under the 2023/GID measure — a minimal n=2 witness with
+  margin −0.054 (`ii_phi_inequality_experiments/FINDINGS.md`); it holds by construction only
+  under the 2026 Eq. 23 cap, so a suite-wide `φ_s ≤ ii` assertion must not be added.
   Expose the Mayner et al. 2026 decomposition — intrinsic information as `min(intrinsic
   differentiation, intrinsic specification)` — as named result fields rather than only the
   internal `INTRINSIC_INFORMATION` cap, and add the determinism/indeterminism tradeoff analysis

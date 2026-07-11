@@ -1,7 +1,7 @@
 # Synthesis of the six 2026-07-07 design explorations
 
-**Status: reviewed 2026-07-08 — decisions settled (see §4a); the schedule now
-lives in ROADMAP.md Wave 7. Not committed.**
+**Status: reviewed 2026-07-08 — decisions settled (see §4a); the schedule
+lives in ROADMAP.md under "Wave 7 — Exploration builds".**
 
 Reconciles the six parallel explorations run 2026-07-07, checks them for
 contradictions, extracts the places where they compose, collects the decisions

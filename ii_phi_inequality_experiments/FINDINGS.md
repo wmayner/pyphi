@@ -61,7 +61,8 @@ both directions cut) and n(θ) = Σᵢ|S⁽ⁱ⁾||X⁽ⁱ⁾| for a partition's
 ## Consequences
 
 - **Grain search ii-gating** (`docs/superpowers/specs/2026-07-07-grain-discovery.md`
-  lever 2, ROADMAP Wave 7c): the ii-gated prune is **unsound as a certified
+  lever 2; ROADMAP "Wave 7 — Exploration builds", the ii-gated grain scheduling
+  entry): the ii-gated prune is **unsound as a certified
   prune under 2023/GID** — an ii below the incumbent does not imply φ_s below
   the incumbent. It remains **sound by construction under the 2026 cap**.
   Disposition: `prune="certified"` is available only under

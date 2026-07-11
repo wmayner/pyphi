@@ -654,6 +654,14 @@ same change** (and any matching detail in "Remaining 2.0 Work"). The document ha
 verify an item's status against the code, `changelog.d/`, and git history before trusting prose
 elsewhere in the file. If you do substantial work that isn't on the roadmap, add it.
 
+**A commit that settles a gate — a confirmation experiment, a proof, or a refutation — must
+update the gated item's ROADMAP row in the same change.** A verdict that lives only in a commit
+message or a `FINDINGS.md` will not be found by the next person reading the dashboard, and the
+roadmap will keep describing the item as blocked or open long after the blocker is gone. This has
+already happened: three theory gates were settled experimentally but left the dashboard describing
+them as still-gated. When an experiment discharges (or kills) a gate, propagate the outcome to the
+row, and to any wishlist entry or `PAPER-IDEAS.md` idea that cited the open question.
+
 ## Final Notes
 
 PyPhi implements a complex mathematical theory with real-world scientific applications. Changes to this codebase can affect research results. Approach all modifications with care, test thoroughly, and when in doubt, consult the theoretical papers and existing tests.
