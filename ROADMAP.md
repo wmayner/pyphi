@@ -409,7 +409,7 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
   fold-restricted query surface. Subsumed (with N6) by the relations exploration
   (`docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`): the
   linear-size relation summary yields exact per-distinction incidence/φ-share in closed form.
-  Discharged when the relations query surface lands. Original scope: add
+  Discharged by the landed relations query surface. Original scope: add
   Zaeemzadeh's counting-relations §2 per-purview relation-incidence count and the closed-form
   `½·|Z|/N` fraction of relations that vanish when a distinction's purview is removed — an exact
   importance ranking over distinctions, computable from `bounds.py` without enumerating
