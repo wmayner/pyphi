@@ -68,8 +68,10 @@ class UnitState(Displayable, ToPandasMixin):
         return {"unit": label, "state": self.state}
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        from pyphi.labels import label_with_state
+
         label = str(self.index) if self.label is None else self.label
-        compact = label.lower() if self.state == 0 else label.upper()
+        compact = label_with_state(label, self.state)
         return Description(title="UnitState", compact=compact)
 
 
@@ -111,6 +113,10 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
     _ties: tuple[StateSpecification, ...] = ()
     runner_up_state: tuple[int, ...] | None = None
     runner_up_intrinsic_information: float | DistanceResult | None = None
+    # Display-only node labels, stamped by the substrate/system layer (the
+    # kernel that builds this value stays label-free). Excluded from equality,
+    # hashing, to_dict, and serialization by the leading-underscore convention.
+    _node_labels: Any = None
 
     def __post_init__(self):
         if not isinstance(self.intrinsic_information, DistanceResult):
@@ -124,6 +130,25 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     def set_ties(self, ties: Iterable[StateSpecification]) -> None:
         object.__setattr__(self, "_ties", tuple(ties))
+
+    @property
+    def node_labels(self) -> Any:
+        """The substrate node labels, if the labeled layer stamped them; else
+        ``None``. Display-only — the kernel builds this value without labels."""
+        return self._node_labels
+
+    @node_labels.setter
+    def node_labels(self, value: Any) -> None:
+        object.__setattr__(self, "_node_labels", value)
+
+    @property
+    def purview_label(self) -> Any:
+        """The purview node labels cased by the specified state (see
+        :meth:`pyphi.labels.NodeLabels.label_string`), or the bare purview
+        indices when no labels are attached."""
+        if self._node_labels is None:
+            return self.purview
+        return self._node_labels.label_string(self.purview, self.state)
 
     @property
     def ties(self) -> tuple[StateSpecification, ...]:
@@ -203,7 +228,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
                 Section(
                     rows=(
                         Row("Direction", direction_label, tone=tone),
-                        Row("Purview", self.purview),
+                        Row("Purview", self.purview_label),
                         Row("Specified state", self.state),
                         Row("Intrinsic information", self.intrinsic_information),
                     ),
@@ -305,7 +330,7 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
                         label=direction,
                         tone=tone,
                         rows=(
-                            Row("Purview", spec.purview),
+                            Row("Purview", spec.purview_label),
                             Row("Specified state", spec.state),
                             Row("Intrinsic information", spec.intrinsic_information),
                         ),

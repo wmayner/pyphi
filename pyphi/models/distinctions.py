@@ -109,8 +109,9 @@ def distinction_table_row(d: Any) -> tuple[Any, ...]:
     return (
         getattr(d, "mechanism_label", None) or str(getattr(d, "mechanism", "")),
         getattr(d, "phi", None),
-        str(getattr(d, "cause_purview", "")),
-        str(getattr(d, "effect_purview", "")),
+        getattr(d, "cause_purview_label", None) or str(getattr(d, "cause_purview", "")),
+        getattr(d, "effect_purview_label", None)
+        or str(getattr(d, "effect_purview", "")),
     )
 
 

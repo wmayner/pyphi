@@ -110,11 +110,18 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
     __slots__ = ()
 
     def _pandas_record(self):
+        labels = self.node_labels
+
+        def labelled(nodes):
+            if labels is None:
+                return tuple(nodes)
+            return tuple(labels.coerce_to_labels(nodes))
+
         return {
             "alpha": float(self.alpha),
             "direction": str(self.direction),
-            "mechanism": tuple(self.mechanism),
-            "purview": tuple(self.purview),
+            "mechanism": labelled(self.mechanism),
+            "purview": labelled(self.purview),
         }
 
     @property
@@ -317,11 +324,18 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
         return self._ria.purview
 
     def _pandas_record(self):
+        labels = self.node_labels
+
+        def labelled(nodes):
+            if labels is None:
+                return tuple(nodes)
+            return tuple(labels.coerce_to_labels(nodes))
+
         return {
             "alpha": float(self.alpha),
             "direction": str(self.direction),
-            "mechanism": tuple(self.mechanism),
-            "purview": tuple(self.purview),
+            "mechanism": labelled(self.mechanism),
+            "purview": labelled(self.purview),
         }
 
     @property

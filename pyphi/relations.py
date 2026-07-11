@@ -156,9 +156,24 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
     def is_self_relation(self):
         return len(self) == 1
 
+    @property
+    def labeled_mechanisms(self):
+        """The state-labeled mechanism of each relatum, ordered by mechanism
+        index.
+
+        Each relatum is rendered as its distinction's ``mechanism_label`` (node
+        labels cased by the mechanism state), falling back to the raw index
+        tuple when a relatum carries no labels.
+        """
+        return tuple(
+            getattr(distinction, "mechanism_label", None)
+            or str(tuple(distinction.mechanism))
+            for distinction in sorted(self, key=lambda d: tuple(d.mechanism))
+        )
+
     def _pandas_record(self):
         return {
-            "relata": tuple(sorted(self.mechanisms)),
+            "relata": self.labeled_mechanisms,
             "phi": float(self.phi),
             "degree": len(self),
         }
@@ -346,7 +361,7 @@ def relations_table(relations: Relations) -> Table | None:
     return capped_table(
         ("Relata (mechanisms)", "φ_r", "Degree"),
         relations,  # type: ignore[arg-type]  # iterability guarded above
-        lambda r: (str(sorted(r.mechanisms)), r.phi, len(r)),
+        lambda r: (", ".join(r.labeled_mechanisms), r.phi, len(r)),
         total=relations.num_relations(),
     )
 

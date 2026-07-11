@@ -739,7 +739,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.intrinsic_information(
+        spec = ra.intrinsic_information(
             self,
             direction,
             mechanism,
@@ -747,6 +747,15 @@ class System(Displayable, ToPandasMixin, Serializable):
             specification_measure=specification_measure,
             **kwargs,
         )
+        # Stamp display labels here, at the labeled layer; the kernel that
+        # builds the specification stays label-free. Cover the tie family so
+        # tied-state cards are labeled too.
+        labels = self.node_labels
+        if labels is not None and hasattr(spec, "node_labels"):
+            for tied in {spec, *getattr(spec, "ties", ())}:
+                if tied.node_labels is None:
+                    tied.node_labels = labels
+        return spec
 
     # ---- formalism queries ----
     #

@@ -91,8 +91,6 @@ class Distinction(
         mechanism_label = getattr(self, "mechanism_label", None) or str(
             getattr(self, "mechanism", "")
         )
-        cause_purview = getattr(self, "cause_purview", None)
-        effect_purview = getattr(self, "effect_purview", None)
         cause_phi = getattr(self.cause, "phi", None) if self.cause is not None else None
         effect_phi = (
             getattr(self.effect, "phi", None) if self.effect is not None else None
@@ -135,7 +133,7 @@ class Distinction(
                     label="Cause",
                     tone="cause",
                     rows=(
-                        Row("Purview", str(cause_purview)),
+                        Row("Purview", self.cause_purview_label),
                         Row("φ", cause_phi),
                         Row("Specified state", str(cause_state)),
                         *_margin_rows(self.cause),
@@ -145,7 +143,7 @@ class Distinction(
                     label="Effect",
                     tone="effect",
                     rows=(
-                        Row("Purview", str(effect_purview)),
+                        Row("Purview", self.effect_purview_label),
                         Row("φ", effect_phi),
                         Row("Specified state", str(effect_state)),
                         *_margin_rows(self.effect),
@@ -228,6 +226,18 @@ class Distinction(
     def effect_purview(self):
         """tuple[int]: The effect purview."""
         return getattr(self.effect, "purview", None)
+
+    @property
+    def cause_purview_label(self):
+        """str: The cause purview node labels, cased by the specified cause
+        state (see :meth:`pyphi.labels.NodeLabels.label_string`)."""
+        return getattr(self.cause, "purview_label", None) or str(self.cause_purview)
+
+    @property
+    def effect_purview_label(self):
+        """str: The effect purview node labels, cased by the specified effect
+        state."""
+        return getattr(self.effect, "purview_label", None) or str(self.effect_purview)
 
     @cached_property
     def both_purview_unit_sets(self):
@@ -394,21 +404,25 @@ class Distinction(
     def _pandas_record(self):
         labels = self.node_labels
 
-        def labelled(nodes):
-            if nodes is None:
+        def purview_label(mice, purview):
+            if purview is None:
                 return None
             if labels is None:
-                return tuple(nodes)
-            return tuple(labels.coerce_to_labels(nodes))
+                return tuple(purview)
+            return getattr(mice, "purview_label", None) or tuple(purview)
 
         return {
             "phi": float(self.phi),
-            "mechanism": labelled(self.mechanism),
+            "mechanism": (
+                self.mechanism_label
+                if labels is not None
+                else (None if self.mechanism is None else tuple(self.mechanism))
+            ),
             "mechanism_state": (
                 None if self.mechanism_state is None else tuple(self.mechanism_state)
             ),
-            "cause_purview": labelled(self.cause_purview),
-            "effect_purview": labelled(self.effect_purview),
+            "cause_purview": purview_label(self.cause, self.cause_purview),
+            "effect_purview": purview_label(self.effect, self.effect_purview),
         }
 
     def __setstate__(self, state):
