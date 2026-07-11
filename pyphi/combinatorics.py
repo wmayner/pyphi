@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import itertools
+import math
 from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -138,6 +139,67 @@ def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
         if a > 0:
             coefficients[i] = (2 ** (a + 1) - 1 - (a + 1)) / (a + 1)
     return float(np.sum(sorted_values * coefficients))
+
+
+def sum_of_minimum_of_size_among_subsets(values: Sequence[float], size: int) -> float:
+    """Return the sum of ``min(S)`` over all subsets ``S`` with ``|S| == size``.
+
+    For values sorted ascending, the ``i``-th smallest value is the minimum of
+    exactly ``C(n − 1 − i, size − 1)`` subsets of size ``size`` (its
+    companions must all come from the larger positions), so the result is a
+    sorted dot product with binomial coefficients. This is the
+    fixed-degree analogue of :func:`sum_of_minimum_among_subsets`.
+    """
+    if size < 1 or size > len(values):
+        return 0.0
+    ordered = sorted(values)
+    n = len(ordered)
+    return math.fsum(
+        value * math.comb(n - 1 - i, size - 1) for i, value in enumerate(ordered)
+    )
+
+
+def intersection_closure(sets: Iterable[frozenset]) -> set[frozenset]:
+    """Return every nonempty intersection of a nonempty subfamily of ``sets``.
+
+    The closure is computed by repeatedly intersecting the frontier with the
+    base family until no new element appears. Its size is bounded by ``2``
+    raised to the size of the union of all sets, but is typically far smaller
+    for structured families.
+    """
+    base = [frozenset(s) for s in sets if s]
+    closure: set[frozenset] = set()
+    frontier = set(base)
+    while frontier:
+        closure |= frontier
+        frontier = {
+            intersection
+            for p in frontier
+            for s in base
+            if (intersection := p & s) and intersection not in closure
+        }
+    return closure
+
+
+def exact_intersection_counts(sets: Sequence[frozenset]) -> dict[frozenset, int]:
+    """Map each intersection-closure element to the number of subfamilies
+    whose intersection is exactly that element.
+
+    Subfamilies are index-subsets of ``sets`` of size ≥ 2 (duplicates in
+    ``sets`` are distinct members). For a closure element ``P`` with ``m``
+    supersets among ``sets``, ``2**m − m − 1`` subfamilies intersect to at
+    least ``P``; Möbius inversion down the closure (subtracting the exact
+    counts of every strict superset of ``P``) leaves the exact count. Closure
+    elements that are never the exact intersection of a size-≥2 subfamily have
+    an exact count of zero and are omitted from the result. All counts are
+    Python ints.
+    """
+    closure = sorted(intersection_closure(sets), key=len, reverse=True)
+    exact: dict[frozenset, int] = {}
+    for p in closure:
+        m = sum(1 for s in sets if p <= s)
+        exact[p] = (2**m - m - 1) - sum(count for q, count in exact.items() if p < q)
+    return {p: count for p, count in exact.items() if count}
 
 
 def sum_of_ratio_of_minima_among_subsets(
