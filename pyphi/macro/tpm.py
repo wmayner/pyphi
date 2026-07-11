@@ -10,6 +10,11 @@ preimages and the sequence-proportion weights ``r(u^S, s)``
 (Eqs. 35-40). Steps 2 and 4 are fused: sequence probabilities are
 accumulated per chaining step into per-update state classes of the
 unit's micro constituents, never materializing the full sequence tensor.
+Steps 1-2 read neither the unit's mapping nor the micro history, so
+their intermediates are cached per substrate content fingerprint,
+keyed on the unit's footprint, update grain, and apportionment
+structure; units differing only in their mapping reuse the cached
+prefix.
 """
 
 from __future__ import annotations
@@ -17,6 +22,8 @@ from __future__ import annotations
 import numpy as np
 
 from pyphi import exceptions
+from pyphi import utils
+from pyphi.cache.content import ContentCache
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import _mixed_radix_digits
@@ -37,6 +44,76 @@ def _patron_units(units) -> dict[int, int]:
         for w in unit.background_apportionment:
             out[w] = k
     return out
+
+
+_CONSTRUCTION_CACHE = ContentCache("macro.construction")
+
+
+def _apportionment_key(units) -> tuple:
+    """The patron structure Step 1 reads (Eq. 29), as a canonical key.
+
+    For each apportioned background index, its patron unit's keep-set
+    (the patron's micro constituents plus its apportionment), sorted by
+    background index. Empty when no unit is apportioned — Step 1 then
+    depends only on the substrate and the updating unit's footprint.
+    """
+    key = []
+    for unit in units:
+        if unit.background_apportionment:
+            keep = tuple(
+                sorted(set(unit.micro_constituents) | set(unit.background_apportionment))
+            )
+            key.extend((w, keep) for w in unit.background_apportionment)
+    return tuple(sorted(key))
+
+
+def _sequence_distributions_of(substrate, units, j, patron) -> np.ndarray:
+    """Steps 1-2 for updating unit ``j`` (Eqs. 26-31, 35-36), cached.
+
+    These intermediates do not read the unit's mapping or the micro
+    history: Step 1 depends on the substrate TPM, the unit's footprint,
+    and the patron structure; Step 2 adds only the micro grain. They are
+    cached per substrate content fingerprint under
+    ``(footprint, micro_grain, apportionment key)`` — the discounted
+    transition matrix separately under ``(footprint, apportionment key)``
+    so different grains share it — and reused by every unit variant with
+    the same key. Entries are evicted when the last live substrate
+    carrying the fingerprint is garbage-collected. Cached arrays are
+    immutable. Disabled (no reads or writes) when
+    ``config.infrastructure.cache_macro_construction`` is off.
+    """
+    from pyphi.conf import config as _config
+
+    unit = units[j]
+    factored = substrate.factored_tpm
+
+    def compute_transition():
+        return utils.np_immutable(
+            _full_transition_matrix(
+                _discounted_on_probabilities(factored, units, j, patron)
+            )
+        )
+
+    if not _config.infrastructure.cache_macro_construction:
+        return _unit_sequence_distributions(compute_transition(), unit)
+
+    fingerprint = substrate._fingerprint
+    app_key = _apportionment_key(units)
+    _CONSTRUCTION_CACHE.observe(substrate, fingerprint)
+
+    def compute_sequence():
+        transition = _CONSTRUCTION_CACHE.get_or_compute(
+            fingerprint,
+            ("transition", unit.micro_constituents, app_key),
+            compute_transition,
+        )
+        return utils.np_immutable(_unit_sequence_distributions(transition, unit))
+
+    return _CONSTRUCTION_CACHE.get_or_compute(
+        fingerprint,
+        ("sequence", unit.micro_constituents, unit.micro_grain, app_key),
+        compute_sequence,
+    )
 
 
 def _discounted_on_probabilities(
@@ -142,15 +219,17 @@ def _unit_sequence_distributions(transition: np.ndarray, unit: MacroUnit) -> np.
     raise AssertionError("unreachable: tau >= 1 returns inside the loop")
 
 
-def _unit_macro_probabilities(transition: np.ndarray, unit: MacroUnit) -> np.ndarray:
+def _unit_macro_probabilities(sequence_dist: np.ndarray, unit: MacroUnit) -> np.ndarray:
     """Eq. 35: probability of each macro state of ``J`` per starting state.
+
+    Compresses the ``U^J`` sequence-class distribution through the
+    unit's composed truth table ``g_J``.
 
     Returns
     -------
     np.ndarray
         ``(2**n, 2)``.
     """
-    sequence_dist = _unit_sequence_distributions(transition, unit)
     table = np.asarray(unit.micro_mapping)
     return np.stack(
         [
@@ -331,9 +410,8 @@ def macro_tpms(substrate, units, micro_history):
     ]
 
     for j, unit in enumerate(units):
-        on_probabilities = _discounted_on_probabilities(factored, units, j, patron)
-        transition = _full_transition_matrix(on_probabilities)
-        macro_prob_full = _unit_macro_probabilities(transition, unit)
+        sequence_dist = _sequence_distributions_of(substrate, units, j, patron)
+        macro_prob_full = _unit_macro_probabilities(sequence_dist, unit)
         earliest = micro_history[len(micro_history) - unit.micro_grain]
         cause_weights = _background_weights_cause(factored, system_indices, earliest)
         unit_factors = []

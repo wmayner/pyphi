@@ -3,7 +3,34 @@
 import pytest
 
 import pyphi
+from pyphi import config
+from pyphi.conf import presets
 from pyphi.conf.infrastructure import InfrastructureConfig
+from pyphi.macro import tpm as macro_tpm_module
+from pyphi.macro.tpm import macro_tpms
+from pyphi.macro.units import MacroUnit
+from pyphi.macro.units import coarse_grain
+from pyphi.substrate import Substrate
+from test.macro.test_macro_goldens import BBX_UNITS
+from test.macro.test_macro_goldens import CG_UNITS
+from test.macro.test_macro_tpm import CG_TPM
+from test.macro.test_macro_tpm import _bbx_micro_tpm
+
+CG_STATE = (0, 0, 0, 0)
+BBX_ONES = (1,) * 8
+
+# Same footprints as CG_UNITS, different mapping.
+CG_VARIANT_UNITS = tuple(
+    MacroUnit(unit.constituents, 1, coarse_grain(2, on_counts={1, 2}))
+    for unit in CG_UNITS
+)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_cache():
+    macro_tpm_module._CONSTRUCTION_CACHE.clear()
+    yield
+    macro_tpm_module._CONSTRUCTION_CACHE.clear()
 
 
 class TestConfigOption:
@@ -19,3 +46,84 @@ class TestConfigOption:
         with pyphi.config.override(cache_macro_construction=False):
             assert pyphi.config.infrastructure.cache_macro_construction is False
         assert pyphi.config.infrastructure.cache_macro_construction is True
+
+
+class TestReuse:
+    def test_mapped_variants_share_the_prefix(self):
+        cache = macro_tpm_module._CONSTRUCTION_CACHE
+        substrate = Substrate(CG_TPM)
+        with config.override(**presets.iit4_2023):
+            macro_tpms(substrate, CG_UNITS, (CG_STATE,))
+            # 2 units, each: sequence miss + transition miss.
+            assert (cache.misses, cache.hits) == (4, 0)
+            assert cache.size == 4
+            macro_tpms(substrate, CG_VARIANT_UNITS, (CG_STATE,))
+            # Same footprints and grain: both sequence lookups hit;
+            # Step 1 never reruns.
+            assert (cache.misses, cache.hits) == (4, 2)
+
+    def test_apportionment_separates_keys(self):
+        cache = macro_tpm_module._CONSTRUCTION_CACHE
+        substrate = Substrate(_bbx_micro_tpm())
+        plain = BBX_UNITS[0]
+        apportioned = MacroUnit(
+            plain.constituents,
+            plain.update_grain,
+            plain.mapping,
+            background_apportionment=(4, 5, 6, 7),
+        )
+        with config.override(**presets.iit4_2023):
+            macro_tpms(substrate, (plain,), (BBX_ONES, BBX_ONES))
+            misses_after_plain = cache.misses
+            macro_tpms(substrate, (apportioned,), (BBX_ONES, BBX_ONES))
+        # Same footprint and grain, different patron structure: the
+        # apportioned construction must NOT reuse the plain entries.
+        assert cache.misses == misses_after_plain + 2
+        assert cache.hits == 0
+
+    def test_flag_off_bypasses_cache_entirely(self):
+        cache = macro_tpm_module._CONSTRUCTION_CACHE
+        substrate = Substrate(CG_TPM)
+        with config.override(**presets.iit4_2023, cache_macro_construction=False):
+            macro_tpms(substrate, CG_UNITS, (CG_STATE,))
+            macro_tpms(substrate, CG_VARIANT_UNITS, (CG_STATE,))
+        assert cache.size == 0
+        assert (cache.misses, cache.hits) == (0, 0)
+
+
+class TestSweepReuse:
+    def test_default_sweep_shares_across_variants(self, monkeypatch):
+        """Mirrors the measured redundancy: the default complexes() sweep on
+        the Example 1 substrate performs ~162 per-unit constructions over 6
+        distinct (footprint, grain) keys."""
+        from pyphi.macro.search import SearchBounds
+        from pyphi.macro.search import complexes
+
+        calls = {"n": 0}
+        real = macro_tpm_module._discounted_on_probabilities
+
+        def counting(*args, **kwargs):
+            calls["n"] += 1
+            return real(*args, **kwargs)
+
+        monkeypatch.setattr(macro_tpm_module, "_discounted_on_probabilities", counting)
+        with config.override(**presets.iit4_2023, progress_bars=False):
+            with config.override(cache_macro_construction=False):
+                result_off = complexes(Substrate(CG_TPM), CG_STATE, SearchBounds())
+            off_calls = calls["n"]
+            calls["n"] = 0
+            macro_tpm_module._CONSTRUCTION_CACHE.clear()
+            result_on = complexes(Substrate(CG_TPM), CG_STATE, SearchBounds())
+            on_calls = calls["n"]
+        # Step 1 runs once per distinct key instead of once per construction.
+        assert 0 < on_calls < off_calls
+        assert off_calls >= 5 * on_calls
+        # And the sweep outcome is identical, exactly.
+        assert len(result_on.records) == len(result_off.records)
+        for on_record, off_record in zip(
+            result_on.records, result_off.records, strict=True
+        ):
+            assert on_record.system == off_record.system
+            assert on_record.phi == off_record.phi
+        assert result_on.complexes == result_off.complexes
+        assert result_on.ties == result_off.ties
