@@ -1,5 +1,9 @@
 """Tests for the macro-construction intermediate cache."""
 
+import gc
+from concurrent.futures import ThreadPoolExecutor
+
+import numpy as np
 import pytest
 
 import pyphi
@@ -175,3 +179,74 @@ class TestByteIdentity:
             assert cache.hits > hits_before  # the second build hit the cache
         assert cold == off
         assert warm == off
+
+
+def _perturbed_cg_tpm(value):
+    tpm = np.array(CG_TPM, copy=True)
+    tpm[0, 0] = value
+    return tpm
+
+
+class TestIsolation:
+    def test_substrates_with_identical_unit_keys_never_share(self):
+        """Two substrates, same units/footprint/grain/apportionment — the
+        only key difference is the substrate fingerprint."""
+        a = Substrate(CG_TPM)
+        b = Substrate(_perturbed_cg_tpm(0.123))
+        assert a._fingerprint != b._fingerprint
+        with config.override(**presets.iit4_2023):
+            macro_tpms(a, CG_UNITS, (CG_STATE,))
+            b_cached = _factor_bytes(macro_tpms(b, CG_UNITS, (CG_STATE,)))
+            with config.override(cache_macro_construction=False):
+                b_fresh = _factor_bytes(
+                    macro_tpms(
+                        Substrate(_perturbed_cg_tpm(0.123)), CG_UNITS, (CG_STATE,)
+                    )
+                )
+                a_fresh = _factor_bytes(
+                    macro_tpms(Substrate(CG_TPM), CG_UNITS, (CG_STATE,))
+                )
+        assert b_cached == b_fresh  # b never picked up a's entries
+        assert b_cached != a_fresh  # the perturbation is visible through it
+
+
+class TestLifetime:
+    def test_entries_evicted_when_substrate_dies(self):
+        cache = macro_tpm_module._CONSTRUCTION_CACHE
+        # A fingerprint unique to this test, so no fixture keeps it alive.
+        substrate = Substrate(_perturbed_cg_tpm(0.321))
+        with config.override(**presets.iit4_2023):
+            macro_tpms(substrate, CG_UNITS, (CG_STATE,))
+        assert cache.size > 0
+        del substrate
+        for _ in range(5):
+            gc.collect()
+            if cache.size == 0:
+                break
+        assert cache.size == 0
+
+
+class TestConcurrency:
+    def test_concurrent_variant_construction_is_consistent(self):
+        """Concurrent constructions sharing cache keys produce the same
+        bytes as a cache-off build (exercised under the free-threaded CI
+        lane; a benign double-compute is allowed, corruption is not)."""
+        substrate = Substrate(CG_TPM)
+        variant_sets = [CG_UNITS, CG_VARIANT_UNITS] * 4
+        with config.override(**presets.iit4_2023):
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                results = list(
+                    pool.map(
+                        lambda units: _factor_bytes(
+                            macro_tpms(substrate, units, (CG_STATE,))
+                        ),
+                        variant_sets,
+                    )
+                )
+            with config.override(cache_macro_construction=False):
+                expected = {
+                    id(units): _factor_bytes(macro_tpms(substrate, units, (CG_STATE,)))
+                    for units in (CG_UNITS, CG_VARIANT_UNITS)
+                }
+        for units, result in zip(variant_sets, results, strict=True):
+            assert result == expected[id(units)]
