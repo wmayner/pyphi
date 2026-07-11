@@ -3,17 +3,7 @@
 import pytest
 
 from pyphi.visualize.projection import InclusionOrder
-from pyphi.visualize.projection import RelationEdge
 from pyphi.visualize.projection import _inclusion_order
-from pyphi.visualize.projection import _sum_phi_relations
-
-
-def test_sum_phi_relations_exact():
-    edges = (
-        RelationEdge(relata=(0, 1), degree=2, phi=0.5, overlap=(2,)),
-        RelationEdge(relata=(0, 1, 2), degree=3, phi=1.0, overlap=(0, 1)),
-    )
-    assert _sum_phi_relations(4, edges) == (1.5, 1.5, 1.0, 0.0)
 
 
 def test_inclusion_order_exact():
@@ -245,3 +235,51 @@ def test_project_rejects_fold_accepts_induced():
     induced = ces.induce(list(ces.distinctions)[:3])
     projection = project_ces(induced)
     assert len(projection.nodes) == 3
+
+
+def _xor_ces(analytical):
+    import pyphi
+    from pyphi import examples
+
+    if not analytical:
+        return examples.xor_system().ces()
+    with pyphi.config.override(relation_computation="ANALYTICAL"):
+        return examples.xor_system().ces()
+
+
+def test_project_ces_carries_degree_spectrum():
+    from pyphi.visualize.projection import project_ces
+
+    ces = _xor_ces(analytical=False)
+    proj = project_ces(ces)
+    assert proj.degree_spectrum == ces.relations.degree_spectrum()
+
+
+def test_project_ces_analytical_requires_cap():
+    from pyphi.relations import AnalyticalRelations
+    from pyphi.visualize.projection import project_ces
+
+    ces = _xor_ces(analytical=True)
+    assert isinstance(ces.relations, AnalyticalRelations)  # precondition
+    with pytest.raises(ValueError, match="max_relations"):
+        project_ces(ces)
+
+
+def test_project_ces_analytical_matches_concrete_and_sizes_faithfully():
+    from pyphi.visualize.projection import project_ces
+
+    concrete = project_ces(_xor_ces(analytical=False))
+    n = len(concrete.edges)
+    analytical = project_ces(_xor_ces(analytical=True), max_relations=n)
+    # Same rendered relations (as relata sets) when the cap covers all.
+    assert {e.relata for e in analytical.edges} == {e.relata for e in concrete.edges}
+    # Node sizing is faithful: identical to the concrete incident Σφ_r.
+    assert [node.sum_phi_relations for node in analytical.nodes] == pytest.approx(
+        [node.sum_phi_relations for node in concrete.nodes]
+    )
+    # And independent of the cap: a tight cap does not change node sizes.
+    capped = project_ces(_xor_ces(analytical=True), max_relations=1)
+    assert [node.sum_phi_relations for node in capped.nodes] == pytest.approx(
+        [node.sum_phi_relations for node in analytical.nodes]
+    )
+    assert len(capped.edges) <= 1
