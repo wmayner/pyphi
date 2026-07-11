@@ -13,6 +13,36 @@ from .conf import config
 from .conf import fallback
 from .models import cmp
 
+_SUBSCRIPT_DIGITS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
+
+def subscript(n: int) -> str:
+    """Render a non-negative integer as Unicode subscript digits."""
+    return str(n).translate(_SUBSCRIPT_DIGITS)
+
+
+def label_with_state(label: str | int, state: int) -> str:
+    """Render one node label together with its state.
+
+    State ``0`` lowercases the label and state ``1`` uppercases it (the
+    binary on/off convention). Any state ``≥ 2`` uppercases the label and
+    appends the state value as a Unicode subscript, so the representation
+    stays unambiguous for k-ary units: ``a`` (0), ``A`` (1), ``A₂`` (2),
+    ``A₃`` (3).
+
+    Notes
+    -----
+    Binary substrates render exactly as the plain upper/lower casing does;
+    the subscript appears only where casing alone cannot distinguish the
+    state.
+    """
+    text = str(label)
+    if state == 0:
+        return text.lower()
+    if state == 1:
+        return text.upper()
+    return text.upper() + subscript(state)
+
 
 def default_label(index: int) -> str:
     """Default label for a node."""
@@ -153,6 +183,6 @@ class NodeLabels(Sequence[str]):
     ) -> list[str]:
         """Return a list of labels with case set by the corresponding state."""
         return [
-            str(label).upper() if state else str(label).lower()
+            label_with_state(label, state)
             for label, state in zip(labels, states, strict=True)
         ]
