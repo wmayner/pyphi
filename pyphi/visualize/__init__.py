@@ -59,6 +59,7 @@ def plot_ces(
     show=None,
     degrees=None,
     star_min_degree=None,
+    max_relations=None,
 ):
     """Plot a :class:`~pyphi.models.ces.CauseEffectStructure`.
 
@@ -135,6 +136,11 @@ def plot_ces(
         (degree-2 lines, degree-3 triangles). Must be 2, 3, or 4. ``2`` (the
         default) draws every face as a star; ``4`` keeps degree-2 lines and
         degree-3 triangles.
+    max_relations : int, optional
+        Render only the strongest ``max_relations`` relations by φ_r. Required
+        when the structure's relations are computed analytically (the set is
+        not enumerable); node sizes and the spectrum view remain exact
+        regardless. If None, every relation is rendered.
 
     Raises
     ------
@@ -151,7 +157,7 @@ def plot_ces(
             "use highlight_phi_fold(fold) to render a fold against its parent "
             "structure"
         )
-    projection = project_ces(ces_, node_labels=node_labels)
+    projection = project_ces(ces_, node_labels=node_labels, max_relations=max_relations)
     if view == "lattice":
         from .render.lattice import render_lattice
 
@@ -208,6 +214,7 @@ def highlight_phi_fold(
     fig=None,
     geometry=None,
     show=None,
+    max_relations=None,
 ):
     """Plot a cause-effect structure dimmed, highlighting a phi-fold.
 
@@ -235,6 +242,9 @@ def highlight_phi_fold(
         Layout knobs.
     show : tuple of str, optional
         Element classes to draw.
+    max_relations : int, optional
+        Render only the strongest ``max_relations`` relations by φ_r; required
+        for analytically-computed relations.
 
     Raises
     ------
@@ -254,7 +264,7 @@ def highlight_phi_fold(
         phi_fold = ces_
         ces_ = phi_fold.parent
 
-    projection = project_ces(ces_, node_labels=node_labels)
+    projection = project_ces(ces_, node_labels=node_labels, max_relations=max_relations)
     dimmed = dataclasses.replace(
         theme,
         colorscale="Greys",

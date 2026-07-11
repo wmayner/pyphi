@@ -283,3 +283,17 @@ def test_project_ces_analytical_matches_concrete_and_sizes_faithfully():
         [node.sum_phi_relations for node in analytical.nodes]
     )
     assert len(capped.edges) <= 1
+
+
+def test_plot_ces_forwards_max_relations():
+    pytest.importorskip("plotly")
+    import pyphi
+    from pyphi import examples
+    from pyphi.visualize import plot_ces
+
+    with pyphi.config.override(relation_computation="ANALYTICAL"):
+        ces = examples.xor_system().ces()
+        with pytest.raises(ValueError, match="max_relations"):
+            plot_ces(ces)
+        fig = plot_ces(ces, max_relations=2)
+    assert fig is not None
