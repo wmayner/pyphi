@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import heapq
 import itertools
 import math
 from collections import Counter
@@ -737,6 +738,87 @@ class AnalyticalRelations(Relations):
                 # numerics: exact — running max; callers compare tolerantly.
                 best = max(best, len(overlap) * min(densities[i], densities[j]))
         return best
+
+    def strongest(
+        self,
+        k: int | None = None,
+        min_phi: float | None = None,
+        max_degree: int | None = None,
+    ) -> Iterator[Relation]:
+        """Yield relations in descending φ_r order, lazily.
+
+        Best-first search over the subset lattice: φ_r never increases when
+        a relatum is added (the overlap shrinks and the minimum density can
+        only fall), so seeding a max-heap with all valid pairs and the
+        self-relations, and expanding each popped combination by
+        larger-index distinctions only, yields relations in exact descending
+        order. The first ``K`` yields cost ``O(|D|²)`` seeding plus
+        ``O(K·|D|)`` heap pushes, independent of the total relation count.
+
+        Ties in φ_r yield in an unspecified but deterministic order. The
+        heap can grow to ``O(yielded · |D|)`` entries when the stream is
+        consumed deeply; full enumeration is better served by
+        :meth:`materialize`.
+
+        Parameters
+        ----------
+        k : int, optional
+            Yield at most this many relations. If None, yield all.
+        min_phi : float, optional
+            Stop once φ_r falls below this threshold (compared tolerantly
+            at the configured precision). Sound as an early exit because
+            the stream is globally descending.
+        max_degree : int, optional
+            Do not yield or expand relations with more than this many
+            relata.
+        """
+        ds = list(self.distinctions)
+        unions = [frozenset(d.purview_union) for d in ds]
+        densities = [self._density(d) for d in ds]
+
+        def phi_of(indices):
+            overlap = frozenset.intersection(*(unions[i] for i in indices))
+            if not overlap:
+                return None
+            return len(overlap) * min(densities[i] for i in indices)
+
+        heap: list = []
+        counter = itertools.count()
+
+        def push(phi, payload):
+            # numerics: exact — heap ordering is a total order over floats;
+            # the min_phi threshold at yield time is tolerant.
+            heapq.heappush(heap, (-phi, next(counter), payload))
+
+        if max_degree is None or max_degree >= 1:
+            for relation in self.self_relations:
+                push(float(relation.phi), relation)
+        if max_degree is None or max_degree >= 2:
+            for i, j in itertools.combinations(range(len(ds)), 2):
+                phi = phi_of((i, j))
+                if phi is not None:
+                    push(phi, (i, j))
+
+        yielded = 0
+        while heap:
+            negative_phi, _, payload = heapq.heappop(heap)
+            phi = -negative_phi
+            if min_phi is not None and not (phi > min_phi or numerics.eq(phi, min_phi)):
+                return
+            if isinstance(payload, Relation):
+                relation = payload
+            else:
+                relation = Relation(ds[i] for i in payload)
+                if max_degree is None or len(payload) < max_degree:
+                    for nxt in range(payload[-1] + 1, len(ds)):
+                        extended = (*payload, nxt)
+                        extended_phi = phi_of(extended)
+                        if extended_phi is not None:
+                            push(extended_phi, extended)
+            yield relation
+            yielded += 1
+            if k is not None and yielded >= k:
+                return
 
     def binding_matrix(self) -> pd.DataFrame:
         """Return the atom-pair binding matrix, in closed form.

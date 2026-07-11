@@ -248,3 +248,42 @@ def test_binding_matrix_is_symmetric_with_positive_diagonal(structures):
 def test_analytical_num_faces_matches_concrete(structures):
     _, _, concrete, analytical = structures
     assert analytical.num_faces() == concrete.num_faces()
+
+
+def test_analytical_strongest_matches_sorted_concrete(structures):
+    _, _, concrete, analytical = structures
+    analytical_stream = list(analytical.strongest())
+    concrete_sorted = sorted(concrete, key=lambda r: float(r.phi), reverse=True)
+    assert [float(r.phi) for r in analytical_stream] == pytest.approx(
+        [float(r.phi) for r in concrete_sorted]
+    )
+    assert set(analytical_stream) == set(concrete)
+
+
+def test_analytical_strongest_top_k(structures):
+    _, _, concrete, analytical = structures
+    k = 5
+    top = list(analytical.strongest(k=k))
+    assert len(top) == min(k, concrete.num_relations())
+    concrete_top_phis = sorted((float(r.phi) for r in concrete), reverse=True)[
+        : len(top)
+    ]
+    assert [float(r.phi) for r in top] == pytest.approx(concrete_top_phis)
+
+
+def test_analytical_strongest_min_phi_and_max_degree(structures):
+    _, _, concrete, analytical = structures
+    if concrete.num_relations() == 0:
+        assert list(analytical.strongest()) == []
+        return
+    phis = sorted((float(r.phi) for r in concrete), reverse=True)
+    threshold = phis[len(phis) // 2]
+    above = list(analytical.strongest(min_phi=threshold))
+    expected = [p for p in phis if p > threshold or numerics.eq(p, threshold)]
+    assert [float(r.phi) for r in above] == pytest.approx(expected)
+    pairs = list(analytical.strongest(max_degree=2))
+    assert all(len(r) <= 2 for r in pairs)
+    expected_pairs = sorted(
+        (float(r.phi) for r in concrete if len(r) <= 2), reverse=True
+    )
+    assert [float(r.phi) for r in pairs] == pytest.approx(expected_pairs)
