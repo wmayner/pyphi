@@ -853,6 +853,26 @@ class AnalyticalRelations(Relations):
         count += len(self.self_relations)
         return count
 
+    def num_faces(self) -> int:
+        """Return the total number of faces across all relations, in closed
+        form.
+
+        A face is a set of two or more causes/effects (one per direction
+        choice per relatum) with nonempty state-tagged overlap, so the total
+        face count is the same subfamily count that
+        :meth:`num_relations` computes over distinctions, run instead over
+        the individual causes and effects — Möbius inversion over the
+        intersection closure of the per-side purviews. Faces of
+        self-relations (a distinction's cause paired with its own effect)
+        are included, matching enumeration.
+        """
+        mice_purviews = [
+            frozenset(side.purview_units)
+            for distinction in self.distinctions
+            for side in (distinction.cause, distinction.effect)
+        ]
+        return sum(combinatorics.exact_intersection_counts(mice_purviews).values())
+
     def __len__(self):
         return self.num_relations()
 

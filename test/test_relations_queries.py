@@ -243,3 +243,8 @@ def test_binding_matrix_is_symmetric_with_positive_diagonal(structures):
     values = matrix.to_numpy()
     assert np.allclose(values, values.T, atol=1e-12)
     assert (np.diag(values) > 0).all()
+
+
+def test_analytical_num_faces_matches_concrete(structures):
+    _, _, concrete, analytical = structures
+    assert analytical.num_faces() == concrete.num_faces()
