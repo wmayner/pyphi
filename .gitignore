@@ -59,3 +59,6 @@ docs/reference/_autosummary/
 # Demo artifact the save-load / getting-started docs pages and the IIT 4.0 demo
 # notebook write when they call `pyphi.save(..., "ces.json")` at build time.
 ces.json
+
+# Local research notes; must never be committed (was accidentally tracked, then purged from history).
+PAPER-IDEAS.md
