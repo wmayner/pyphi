@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import itertools
 import math
 from collections import Counter
 from collections import defaultdict
@@ -604,6 +605,109 @@ class AnalyticalRelations(Relations):
     @cached_property
     def self_relations(self):
         return tuple(_self_relations(self.distinctions))
+
+    @cached_property
+    def _atom_index(self):
+        """Map each atom (a state-tagged unit) to the distinctions whose
+        purview-union contains it.
+
+        This incidence, together with each distinction's φ density, generates
+        the entire relational structure (Albantakis et al. 2023, S3
+        Appendix); every closed-form query below is computed from it. Groups
+        are deterministically ordered by mechanism.
+        """
+        index = {}
+        for purview, group in self.distinctions.purview_inclusion(max_order=1):
+            (atom,) = purview
+            index[atom] = tuple(sorted(group, key=lambda d: tuple(d.mechanism)))
+        return index
+
+    @staticmethod
+    def _density(distinction) -> float:
+        """The distinction's φ per unique purview unit."""
+        return float(distinction.phi) / len(distinction.purview_union)
+
+    def sum_phi_moment(self, k: int = 2) -> float:
+        """Return Σφ_r^k over all relations, in closed form.
+
+        Since ``φ_r = |O(S)| · min q`` and ``|O(S)|^k`` counts the ordered
+        k-tuples of atoms covering ``S``, the k-th moment decomposes over
+        atom k-tuples, each contributing a sum-of-minimum of ``q^k`` over the
+        distinctions shared by the tuple. Cost is ``O(N^k)`` inner sums for
+        ``N`` atoms.
+        """
+        if k < 1:
+            raise ValueError(f"moment order must be a positive integer: {k}")
+        index = self._atom_index
+        atoms = sorted(index)
+        total = 0.0
+        for combo in itertools.product(atoms, repeat=k):
+            group = set(index[combo[0]])
+            for atom in combo[1:]:
+                group &= set(index[atom])
+            if len(group) >= 2:
+                total += combinatorics.sum_of_minimum_among_subsets(
+                    [self._density(d) ** k for d in group]
+                )
+        total += math.fsum(float(relation.phi) ** k for relation in self.self_relations)
+        return total
+
+    def num_relations_of_degree(self, degree: int) -> int:
+        """Return the number of relations with exactly ``degree`` relata,
+        by inclusion-exclusion over shared purview subsets."""
+        if degree == 1:
+            return len(self.self_relations)
+        count = 0
+        for purview, group in self.distinctions.purview_inclusion(max_order=None):
+            count += (-1) ** (len(purview) - 1) * math.comb(len(group), degree)
+        return count
+
+    def sum_phi_of_degree(self, degree: int) -> float:
+        """Return Σφ_r over relations with exactly ``degree`` relata, as a
+        per-atom sorted dot product with binomial coefficients."""
+        if degree == 1:
+            return math.fsum(float(r.phi) for r in self.self_relations)
+        return math.fsum(
+            combinatorics.sum_of_minimum_of_size_among_subsets(
+                [self._density(d) for d in group], degree
+            )
+            for group in self._atom_index.values()
+        )
+
+    def degree_spectrum(self) -> dict[int, tuple[int, float]]:
+        """Return ``{degree: (count, Σφ_r)}``, in closed form per degree."""
+        num_distinctions = sum(1 for _ in self.distinctions)
+        spectrum = {}
+        for degree in range(1, num_distinctions + 1):
+            count = self.num_relations_of_degree(degree)
+            if count:
+                spectrum[degree] = (count, self.sum_phi_of_degree(degree))
+        return spectrum
+
+    def max_phi(self) -> float:
+        """Return the maximum φ_r, scanning only pairs and self-relations.
+
+        Notes
+        -----
+        The maximum over relations of degree ≥ 2 is always attained at
+        degree 2: for any relation ``S`` with minimum-density member ``d*``
+        and any other member ``d'``, the pair ``{d*, d'}`` has overlap
+        containing ``O(S)`` and the same minimum density, so its φ_r is at
+        least ``φ_r(S)``. The scan is ``O(D^2)``.
+        """
+        ds = list(self.distinctions)
+        unions = [frozenset(d.purview_union) for d in ds]
+        densities = [self._density(d) for d in ds]
+        best = max(
+            (float(relation.phi) for relation in self.self_relations),
+            default=0.0,
+        )
+        for i, j in itertools.combinations(range(len(ds)), 2):
+            overlap = unions[i] & unions[j]
+            if overlap:
+                # numerics: exact — running max; callers compare tolerantly.
+                best = max(best, len(overlap) * min(densities[i], densities[j]))
+        return best
 
     def _sum_phi(self):
         sum_phi = 0

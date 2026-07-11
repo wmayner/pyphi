@@ -150,3 +150,49 @@ def test_null_relations_query_defaults():
     assert nr.materialize() == relations.ConcreteRelations(())
     with pytest.raises(ValueError):
         nr.phi_mean_std()
+
+
+# --- Analytical closed forms: parity with concrete enumeration ---
+
+
+@pytest.mark.parametrize("k", [1, 2, 3])
+def test_analytical_moments_match_concrete(structures, k):
+    _, _, concrete, analytical = structures
+    assert analytical.sum_phi_moment(k) == pytest.approx(concrete.sum_phi_moment(k))
+
+
+def test_analytical_phi_mean_std_matches_concrete(structures):
+    _, _, concrete, analytical = structures
+    if concrete.num_relations() == 0:
+        with pytest.raises(ValueError):
+            analytical.phi_mean_std()
+        return
+    assert analytical.phi_mean_std() == pytest.approx(concrete.phi_mean_std())
+
+
+def test_analytical_degree_queries_match_concrete(structures):
+    _, _, concrete, analytical = structures
+    for degree in range(1, max((len(r) for r in concrete), default=0) + 2):
+        assert analytical.num_relations_of_degree(
+            degree
+        ) == concrete.num_relations_of_degree(degree)
+        assert analytical.sum_phi_of_degree(degree) == pytest.approx(
+            concrete.sum_phi_of_degree(degree)
+        )
+
+
+def test_analytical_degree_spectrum_matches_concrete(structures):
+    _, _, concrete, analytical = structures
+    analytical_spectrum = analytical.degree_spectrum()
+    concrete_spectrum = concrete.degree_spectrum()
+    assert analytical_spectrum.keys() == concrete_spectrum.keys()
+    for degree in concrete_spectrum:
+        assert analytical_spectrum[degree][0] == concrete_spectrum[degree][0]
+        assert analytical_spectrum[degree][1] == pytest.approx(
+            concrete_spectrum[degree][1]
+        )
+
+
+def test_analytical_max_phi_matches_concrete(structures):
+    _, _, concrete, analytical = structures
+    assert analytical.max_phi() == pytest.approx(concrete.max_phi())
