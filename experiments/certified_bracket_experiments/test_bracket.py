@@ -66,3 +66,27 @@ def test_partial_upper_brackets_true_sum_on_grid3_with_one_dropped():
         profile, uncomputed_sizes=[len(dropped.mechanism)], n=n
     )
     assert upper >= float(ces.sum_phi_relations) - 1e-9
+
+
+def test_full_bracket_contains_true_phi_on_grid3():
+    pyphi.config.progress_bars = False
+    system = pyphi.examples.grid3_system()
+    ces = system.ces()
+    true_phi = float(ces.sum_phi_distinctions) + float(ces.sum_phi_relations)
+    br = B.phi_bracket(list(ces.distinctions), uncomputed_sizes=[], n=3)
+    assert br.lower <= true_phi + 1e-9
+    assert br.upper >= true_phi - 1e-9
+
+
+def test_bracket_tightens_when_more_distinctions_are_computed():
+    pyphi.config.progress_bars = False
+    system = pyphi.examples.grid3_system()
+    ces = system.ces()
+    distinctions = list(ces.distinctions)
+    n = 3
+    # Fewer computed → at most as tight.
+    half = len(distinctions) // 2
+    sizes_rest = [len(d.mechanism) for d in distinctions[half:]]
+    wide = B.phi_bracket(distinctions[:half], sizes_rest, n)
+    narrow = B.phi_bracket(distinctions, [], n)
+    assert (narrow.upper - narrow.lower) <= (wide.upper - wide.lower) + 1e-9

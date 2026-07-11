@@ -115,3 +115,41 @@ def sum_phi_relations_partial_upper(
 
     cross = min(cross, _general_cross(n))
     return self_upper + cross
+
+
+@dataclass
+class Bracket:
+    """A certified two-sided interval on Φ for a partial distinction set."""
+
+    lower: float
+    upper: float
+    sum_phi_d_lower: float
+    sum_phi_d_upper: float
+    sum_phi_r_lower: float
+    sum_phi_r_upper: float
+
+
+def phi_bracket(computed_distinctions, uncomputed_sizes: list[int], n: int) -> Bracket:
+    """Certified [lower, upper] on Φ from a computed distinction subset.
+
+    ``computed_distinctions`` are the resolved distinctions ``D_c``;
+    ``uncomputed_sizes`` are the mechanism sizes of the un-evaluated
+    candidate mechanisms ``M_u``.
+    """
+    computed = list(computed_distinctions)
+    profile = profile_from_distinctions(computed)
+
+    sum_phi_d_lower = sum(float(d.phi) for d in computed)
+    sum_phi_d_upper = sum_phi_d_lower + sum(size * n for size in uncomputed_sizes)
+
+    sum_phi_r_lower = sum_phi_relations_lower(profile)
+    sum_phi_r_upper = sum_phi_relations_partial_upper(profile, uncomputed_sizes, n)
+
+    return Bracket(
+        lower=sum_phi_d_lower + sum_phi_r_lower,
+        upper=sum_phi_d_upper + sum_phi_r_upper,
+        sum_phi_d_lower=sum_phi_d_lower,
+        sum_phi_d_upper=sum_phi_d_upper,
+        sum_phi_r_lower=sum_phi_r_lower,
+        sum_phi_r_upper=sum_phi_r_upper,
+    )
