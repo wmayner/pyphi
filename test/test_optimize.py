@@ -1,5 +1,7 @@
 """Tests for pyphi.optimize: black-box optimization over substrate weights."""
 
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -178,3 +180,40 @@ def test_parallel_matches_sequential_best():
     par = optimize(axis, STATE, bounds, parallel=True, **kwargs)
     assert par.best_objective == pytest.approx(seq.best_objective)
     np.testing.assert_allclose(par.best_params, seq.best_params)
+
+
+def test_optimize_callable_objective_and_minimize():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    result = optimize(
+        axis,
+        STATE,
+        [(0.2, 1.2)],
+        seed=3,
+        objective=lambda sia: float(sia.phi),
+        direction="minimize",
+        popsize=5,
+        maxiter=5,
+        parallel=False,
+    )
+    assert result.objective_name == "<callable>"
+    assert result.direction == "minimize"
+    # Minimizing φ: the best is the smallest logged objective.
+    assert result.best_objective == pytest.approx(result.trajectory["objective"].min())
+
+
+def test_result_save_and_to_pandas_roundtrip(tmp_path):
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    result = optimize(
+        axis, STATE, [(0.2, 1.2)], seed=5, popsize=4, maxiter=3, parallel=False
+    )
+    assert result.to_pandas() is result.trajectory
+    path = tmp_path / "run_seed5.json"
+    result.save(path)
+    payload = json.loads(path.read_text())
+    assert payload["seed"] == 5
+    assert len(payload["trajectory"]) == result.n_evaluations
+    assert payload["best_objective"] == pytest.approx(result.best_objective)
