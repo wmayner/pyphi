@@ -4,6 +4,9 @@ import numpy as np
 import pytest
 
 import pyphi
+from pyphi import examples
+from pyphi.optimize import _eval_one
+from pyphi.optimize import _objective_value
 from pyphi.optimize import weight_axes
 from pyphi.substrate_generator import ising
 
@@ -40,3 +43,54 @@ def test_weight_axes_sets_indexed_entries_without_mutating():
     two = np.asarray(other.joint_tpm())
     assert one.shape == two.shape
     assert not np.array_equal(one, two)
+
+
+def test_objective_value_named_and_callable():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    sia = pyphi.analyze(axis(np.array([0.7])), STATE, compute="sia")
+    assert _objective_value(sia, "signed_normalized_phi") == pytest.approx(
+        float(sia.signed_normalized_phi)
+    )
+    assert _objective_value(sia, lambda s: 2.0 * float(s.phi)) == pytest.approx(
+        2.0 * float(sia.phi)
+    )
+
+
+def test_eval_one_reachable_row_carries_margins_and_sia():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    row = _eval_one(
+        np.array([0.7]),
+        builder=axis,
+        state=STATE,
+        subset=None,
+        formalism=None,
+        objective="signed_normalized_phi",
+    )
+    assert row["reachable"] is True
+    assert row["_sia"] is not None
+    assert np.isfinite(row["objective"])
+    assert row["cause_state"] == tuple(row["_sia"].system_state.cause.state)
+    assert np.isfinite(row["partition_margin"])
+
+
+def test_eval_one_unreachable_row_is_penalized_not_raised():
+    substrate = examples.basic_substrate()  # deterministic; (0,1,1) never reached
+
+    def build(_theta):
+        return substrate
+
+    row = _eval_one(
+        np.array([0.0]),
+        builder=build,
+        state=(0, 1, 1),
+        subset=None,
+        formalism=None,
+        objective="signed_normalized_phi",
+    )
+    assert row["reachable"] is False
+    assert row["_sia"] is None
+    assert np.isnan(row["objective"])
