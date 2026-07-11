@@ -441,6 +441,24 @@ def test_distinction_effectively_tied():
     assert distinction.effectively_tied
 
 
+def test_purview_margin_survives_congruence_resolution():
+    # A distinction reached through the full cause-effect structure carries the
+    # same purview-selection margin as the directly computed MICE. Congruence
+    # resolution selects a state-tie peer over the winning purview, which does
+    # not itself carry the margin; the margin is a property of the purview
+    # choice and must propagate to the selected peer.
+    with pyphi.config.override(progress_bars=False):
+        system = examples.pqr_system()
+        direct = queries.find_mice(system, Direction.CAUSE, (2,))
+        ces = system.ces()
+    resolved = {tuple(d.mechanism): d for d in ces.distinctions}[(2,)].cause
+    assert direct.num_state_ties >= 1
+    assert direct.purview_margin is not None
+    assert resolved.purview == direct.purview
+    assert resolved.purview_margin is not None
+    assert float(resolved.purview_margin) == pytest.approx(float(direct.purview_margin))
+
+
 def test_mechanism_margins_round_trip(basic_mice_cause):
     from pyphi import serialize
 

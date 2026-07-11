@@ -14,7 +14,7 @@ and the ROADMAP B13 row.
 The B13 eager config-combination validator (`pyphi/conf/constraints.py`) ships
 one constraint (measure ↔ version) and explicitly defers two others pending
 confirmation experiments. Those experiments have now run (see
-`b13_experiments/FINDINGS.md`, seed 20260618, raw data saved):
+`experiments/b13_experiments/FINDINGS.md`, seed 20260618, raw data saved):
 
 **Q1 — does EMD require `precision ≤ 6`?** No. 2.0 uses POT (`ot.emd2`, an exact
 network-simplex LP). Over 5000 random repertoire pairs the EMD identity

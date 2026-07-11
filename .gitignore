@@ -5,6 +5,8 @@
 .agignore
 .tox
 .coverage
+coverage.json
+coverage.xml
 .pytest_cache
 .mypy_cache
 .virtual_documents
@@ -25,6 +27,7 @@ profiling
 benchmarks/pyphi_config.yml
 benchmarks/env
 benchmarks/results
+benchmarks/html
 ignore
 matplotlibrc
 dump.rdb

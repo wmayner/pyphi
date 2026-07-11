@@ -17,9 +17,9 @@ as JSON with the seed and parameters in the filename; existing files are
 never overwritten (a _v2/_v3 suffix is appended instead).
 
 Usage:
-    uv run python ii_phi_inequality_experiments/hunt.py --arm random --seed 20260708 --trials 300
-    uv run python ii_phi_inequality_experiments/hunt.py --arm driver --seed 20260708
-    uv run python ii_phi_inequality_experiments/hunt.py --arm adversarial --seed 20260708 --restarts 6 --steps 250
+    uv run python experiments/ii_phi_inequality_experiments/hunt.py --arm random --seed 20260708 --trials 300
+    uv run python experiments/ii_phi_inequality_experiments/hunt.py --arm driver --seed 20260708
+    uv run python experiments/ii_phi_inequality_experiments/hunt.py --arm adversarial --seed 20260708 --restarts 6 --steps 250
 """
 
 import argparse

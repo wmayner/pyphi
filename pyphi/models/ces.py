@@ -103,7 +103,7 @@ class CauseEffectStructure(
         return self.sia.phi
 
     def __hash__(self) -> int:
-        return hash((self.distinctions, self.relations))
+        return hash((self.sia, self.distinctions, self.relations))
 
     def __bool__(self) -> bool:
         return bool(self.sia)

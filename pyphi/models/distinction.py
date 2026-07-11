@@ -351,11 +351,13 @@ class Distinction(
         from pyphi.resolve_ties import resolve_distinction_tie
 
         context = ResolutionContext(max_escalation_level="Composition")
+        winners: dict[Direction, Any] = {}
         chosen: dict[Direction, Any] = {}
         for direction in Direction.both():
             mice = self.mice(direction)
             if mice is None:
                 return None
+            winners[direction] = mice
             chosen[direction] = resolve_distinction_tie(
                 state_ties=mice.state_ties,
                 purview_ties=mice.purview_ties,
@@ -364,6 +366,16 @@ class Distinction(
             )
         if chosen[Direction.CAUSE] is None or chosen[Direction.EFFECT] is None:
             return None
+        for direction in Direction.both():
+            winner = winners[direction]
+            selected = chosen[direction]
+            # The purview-selection margin describes the purview choice and is
+            # shared across the tie set at the winning purview's φ; congruence
+            # may select a tied peer that never carried the winner's margin, so
+            # propagate it. The partition and state margins belong to the peer's
+            # own RIA and are already correct.
+            if selected is not winner and selected.purview_margin is None:
+                selected.purview_margin = winner.purview_margin
         return type(self)(
             mechanism=self.mechanism,
             cause=chosen[Direction.CAUSE],

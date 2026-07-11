@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Python 3.12+ only; no backward-compatibility shims; no new dependency.
-- Validation only — **no computed value changes**. The accepted set is exactly what already computes (confirmed by `b13_experiments/FINDINGS.md`).
+- Validation only — **no computed value changes**. The accepted set is exactly what already computes (confirmed by `experiments/b13_experiments/FINDINGS.md`).
 - IIT 4.0 stays unconstrained on the system scheme (encoded as `None`, not a branch).
 - Single source of truth: the reactive `sia_partitions()` raise and the eager constraint must read the same `compatible_system_partition_schemes` attribute.
 - Constraint message names both conflicting fields (`formalism.iit.system_partition_scheme`, `formalism.iit.version`) and a concrete fix, like `_measure_compatible_with_version`.

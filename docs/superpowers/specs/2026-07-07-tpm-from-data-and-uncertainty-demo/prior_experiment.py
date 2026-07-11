@@ -1,7 +1,7 @@
 """Confirmation experiment: which prior recovers Phi best near the deterministic boundary?
 
 Paired design: for each (system, state, seed, N) we draw ONE set of per-row
-next-state counts and feed the SAME counts to all three priors, so the prior is
+next-state counts and feed the SAME counts to all four priors, so the prior is
 the only thing that varies (shared-data pairing). Deterministic systems only, so
 every row is visited under per-row sampling and the unvisited-row problem is
 excluded -- this isolates the prior's boundary behavior.

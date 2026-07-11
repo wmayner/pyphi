@@ -22,7 +22,7 @@ identity residual beyond 1e-9 or bound violation is flagged. Results JSON is
 seeded and never overwritten.
 
 Usage:
-    uv run python so_certificate_experiments/verify_so_certificate.py --seed 20260708 --trials 150
+    uv run python experiments/so_certificate_experiments/verify_so_certificate.py --seed 20260708 --trials 150
 """
 
 import argparse

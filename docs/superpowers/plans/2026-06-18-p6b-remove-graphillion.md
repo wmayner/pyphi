@@ -413,7 +413,7 @@ relations no-GIL blocker P6a/P11 were gated on is now closed."
 - Roadmap + changelog (spec 4.5) → Task 4.
 - Breaking-change note for removed public helpers (spec 5) → Task 4 changelog fragment.
 
-**Cleanup of investigation scratch:** the `p6b_spike/` directory is throwaway. It is referenced by the spec for reproducibility but is not part of the shipped change — leave it untracked (do not `git add` it). The user can delete it after landing.
+**Cleanup of investigation scratch:** the `experiments/p6b_spike/` directory is throwaway. It is referenced by the spec for reproducibility but is not part of the shipped change — leave it untracked (do not `git add` it). The user can delete it after landing.
 
 **Type consistency:** `combinations_with_nonempty_intersection` yields `frozenset[int]` in Task 1 and is consumed as index iterables (`distinctions[i] for i in combination`) in Task 2 — compatible. `_combinations_with_nonempty_congruent_overlap` returns the generator directly; `all_relations`'s `MapReduce` iterates it.
 

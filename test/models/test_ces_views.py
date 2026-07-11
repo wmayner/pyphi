@@ -134,6 +134,23 @@ def test_meet_is_commutative_on_aggregates(xor_ces):
     assert a.relations.sum_phi() == pytest.approx(b.relations.sum_phi())
 
 
+def test_meet_is_associative_on_aggregates(grid3_ces):
+    # Meet is intersection of distinction sets restricted to incident
+    # relations, so it inherits associativity from set intersection. Three
+    # induced views with nonempty pairwise and triple overlaps exercise it.
+    ds = list(grid3_ces.distinctions)
+    left = grid3_ces.induce(ds[:5])
+    middle = grid3_ces.induce(ds[2:])
+    right = grid3_ces.induce(ds[1:4] + ds[6:])
+    grouped_left = left.meet(middle).meet(right)
+    grouped_right = left.meet(middle.meet(right))
+    assert set(grouped_left.distinctions) == set(grouped_right.distinctions)
+    assert grouped_left.relations.sum_phi() == pytest.approx(
+        grouped_right.relations.sum_phi()
+    )
+    assert frozenset(grouped_left.relations) == frozenset(grouped_right.relations)
+
+
 def test_meet_requires_same_frame(xor_ces):
     # a structure over a different candidate system (proper subsystem) is a
     # detectable frame mismatch; structures from a different substrate with

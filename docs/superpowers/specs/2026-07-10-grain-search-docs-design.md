@@ -19,7 +19,7 @@ The exploration's promised temporal demo (deterministic 4-cycle, τ=2 at
 criterion (Eq. 15) rejects every pair decomposition on the 4-cycle
 (`NOT_INTEGRATED`), so no temporal variant is ever built — the exploration
 measured raw mapped variants bypassing the criteria. A seeded prospecting
-sweep (`grain_tau_experiments/prospect.py --seed 42 --n 3 --trials 60`)
+sweep (`experiments/grain_tau_experiments/prospect.py --seed 42 --n 3 --trials 60`)
 found τ-wins are common in asymmetric substrates (23/120 runs). The
 tutorial's specimen, verified end-to-end via
 `pyphi.analyze(substrate, history, grains=SearchBounds(max_update_grain=2))`
@@ -38,7 +38,7 @@ under `presets.iit4_2023`:
   **mixed-grain** system (A, C at grain 1; B at grain 2), φₛ = 0.314099
   vs the all-micro universe's 0.276692.
 
-Provenance: commit `grain_tau_experiments/README.md` and `prospect.py`
+Provenance: commit `experiments/grain_tau_experiments/README.md` and `prospect.py`
 (seeded, saves raw per-candidate records, no-clobber filenames); the
 results JSON stays untracked (496K, regenerable from the seed).
 
