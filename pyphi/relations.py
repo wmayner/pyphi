@@ -709,6 +709,54 @@ class AnalyticalRelations(Relations):
                 best = max(best, len(overlap) * min(densities[i], densities[j]))
         return best
 
+    def phi_histogram(self) -> dict[float, int]:
+        """Return ``{φ_r: count}`` over all relations, in closed form.
+
+        φ_r takes at most ``A × D`` distinct values, for ``A`` purview atoms
+        and ``D`` distinctions (overlap size times minimum density). The
+        histogram is computed by sweeping density thresholds from high to
+        low: at each threshold, relations among the distinctions at or above
+        it are counted by exact overlap size via Möbius inversion over the
+        intersection closure of their purview-unions; differencing
+        consecutive sweeps assigns counts to ``overlap × density`` buckets.
+        Distinctions are grouped by density at the configured precision
+        (:func:`pyphi.numerics.round_to_precision`), so mathematically equal
+        densities that differ by float noise share a threshold, and each
+        bucket key is rounded to that same precision.
+
+        Notes
+        -----
+        The intersection closure is bounded by ``2 ** A`` for ``A`` purview
+        atoms but is small for structured systems; if it grows
+        pathologically, materialization or sampling are the fallbacks.
+        """
+        histogram: Counter[float] = Counter()
+        groups: defaultdict[float, list] = defaultdict(list)
+        for distinction in self.distinctions:
+            groups[numerics.round_to_precision(self._density(distinction))].append(
+                distinction
+            )
+        cumulative: list = []
+        previous: Counter[int] = Counter()
+        # numerics: exact — iteration over precision-rounded representatives.
+        for threshold in sorted(groups, reverse=True):
+            cumulative.extend(groups[threshold])
+            density = min(self._density(d) for d in groups[threshold])
+            counts: Counter[int] = Counter()
+            exact = combinatorics.exact_intersection_counts(
+                [frozenset(d.purview_union) for d in cumulative]
+            )
+            for overlap, count in exact.items():
+                counts[len(overlap)] += count
+            for size in counts.keys() | previous.keys():
+                delta = counts[size] - previous[size]
+                if delta:
+                    histogram[numerics.round_to_precision(size * density)] += delta
+            previous = counts
+        for relation in self.self_relations:
+            histogram[numerics.round_to_precision(float(relation.phi))] += 1
+        return dict(histogram)
+
     def _sum_phi(self):
         sum_phi = 0
         # Sum of phi excluding self-relations

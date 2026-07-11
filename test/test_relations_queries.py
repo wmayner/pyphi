@@ -196,3 +196,31 @@ def test_analytical_degree_spectrum_matches_concrete(structures):
 def test_analytical_max_phi_matches_concrete(structures):
     _, _, concrete, analytical = structures
     assert analytical.max_phi() == pytest.approx(concrete.max_phi())
+
+
+def _assert_histograms_match(left, right):
+    """Histograms match if their sorted (key, count) sequences align with
+    approx-equal keys and equal counts (keys are precision-rounded floats,
+    so the two backends may differ by one unit in the last rounded place)."""
+    left_items = sorted(left.items())
+    right_items = sorted(right.items())
+    assert len(left_items) == len(right_items)
+    for (left_phi, left_count), (right_phi, right_count) in zip(
+        left_items, right_items, strict=True
+    ):
+        assert left_phi == pytest.approx(right_phi, abs=1e-12)
+        assert left_count == right_count
+
+
+def test_analytical_phi_histogram_matches_concrete(structures):
+    _, _, concrete, analytical = structures
+    _assert_histograms_match(analytical.phi_histogram(), concrete.phi_histogram())
+
+
+def test_analytical_phi_histogram_totals(structures):
+    _, _, _, analytical = structures
+    hist = analytical.phi_histogram()
+    assert sum(hist.values()) == analytical.num_relations()
+    assert math.fsum(phi * count for phi, count in hist.items()) == pytest.approx(
+        analytical.sum_phi()
+    )
