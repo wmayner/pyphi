@@ -271,6 +271,33 @@ class CauseEffectStructure(
         for distinction in self.distinctions:
             yield self.fold([distinction])
 
+    def distinction_importance(self):
+        """Rank the distinctions by their additive contribution to Φ.
+
+        Each distinction's importance is its single-distinction Φ-fold
+        contribution: its own φ plus its share of each incident relation's
+        φ (``φ_r / |r|`` per bound seed). These contributions tile Φ —
+        summing over all distinctions recovers ``big_phi`` exactly.
+
+        Returns
+        -------
+        list[tuple[Distinction, float]]
+            ``(distinction, contribution)`` pairs, sorted by descending
+            contribution; ties are broken by mechanism for determinism. The
+            removal cost of a distinction (everything its relations carry,
+            not just its share) is the ``big_phi`` of its fold:
+            ``self.fold([distinction]).big_phi``.
+        """
+        pairs = [
+            (distinction, fold.big_phi_contribution)
+            for distinction, fold in zip(
+                self.distinctions, self.distinction_folds(), strict=True
+            )
+        ]
+        # numerics: exact — deterministic total order for a ranking display;
+        # selection among near-ties is the caller's concern.
+        return sorted(pairs, key=lambda pair: (-pair[1], tuple(pair[0].mechanism)))
+
     def induce(self, distinctions) -> InducedSubstructure:
         """Return the induced substructure on the given distinctions: those
         distinctions plus exactly the relations whose relata are all among

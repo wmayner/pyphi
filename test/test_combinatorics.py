@@ -1,4 +1,6 @@
 import itertools
+import math
+import random
 from itertools import chain
 
 import pytest
@@ -215,3 +217,57 @@ def test_sum_of_minimum_over_size_known_value():
     assert combinatorics.sum_of_minimum_over_size_among_subsets(
         [1.0, 2.0, 3.0]
     ) == pytest.approx(0.5 + 0.5 + 1.0 + 1.0 / 3.0)
+
+
+def _brute_force_min_of_size(values, size):
+    return math.fsum(min(subset) for subset in itertools.combinations(values, size))
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2])
+@pytest.mark.parametrize("size", [1, 2, 3, 5])
+def test_sum_of_minimum_of_size_among_subsets(seed, size):
+    rng = random.Random(seed)
+    values = [rng.uniform(0.0, 2.0) for _ in range(7)]
+    assert combinatorics.sum_of_minimum_of_size_among_subsets(
+        values, size
+    ) == pytest.approx(_brute_force_min_of_size(values, size))
+
+
+def test_sum_of_minimum_of_size_out_of_range():
+    values = [1.0, 2.0]
+    assert combinatorics.sum_of_minimum_of_size_among_subsets(values, 0) == 0.0
+    assert combinatorics.sum_of_minimum_of_size_among_subsets(values, 3) == 0.0
+
+
+def _random_set_family(rng, num_sets=5, universe=6):
+    return [
+        frozenset(i for i in range(universe) if rng.random() < 0.5)
+        for _ in range(num_sets)
+    ]
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_intersection_closure_matches_brute_force(seed):
+    rng = random.Random(seed)
+    sets = _random_set_family(rng)
+    base = [s for s in sets if s]
+    expected = set()
+    for r in range(1, len(base) + 1):
+        for family in itertools.combinations(base, r):
+            intersection = frozenset.intersection(*family)
+            if intersection:
+                expected.add(intersection)
+    assert combinatorics.intersection_closure(sets) == expected
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_exact_intersection_counts_match_brute_force(seed):
+    rng = random.Random(seed)
+    sets = _random_set_family(rng)
+    expected = {}
+    for r in range(2, len(sets) + 1):
+        for indices in itertools.combinations(range(len(sets)), r):
+            intersection = frozenset.intersection(*(sets[i] for i in indices))
+            if intersection:
+                expected[intersection] = expected.get(intersection, 0) + 1
+    assert combinatorics.exact_intersection_counts(sets) == expected

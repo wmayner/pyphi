@@ -3,14 +3,22 @@
 
 from __future__ import annotations
 
+import heapq
+import itertools
+import math
+import random
+import statistics
+from collections import Counter
 from collections import defaultdict
 from collections.abc import Iterable
+from collections.abc import Iterator
 from functools import cached_property
 from functools import total_ordering
 from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
 
+import pandas as pd
 from tqdm.auto import tqdm
 
 from . import combinatorics
@@ -249,6 +257,17 @@ def _relation_size_func(purview_unions):
     return cost
 
 
+def _passes(relation, max_degree, min_phi):
+    """Filter predicate shared by ``materialize`` and ``strongest``."""
+    if max_degree is not None and len(relation) > max_degree:
+        return False
+    if min_phi is not None:
+        phi = float(relation.phi)
+        if not (phi > min_phi or numerics.eq(phi, min_phi)):
+            return False
+    return True
+
+
 def all_relations(distinctions, min_degree=2, max_degree=None, **kwargs):
     """Yield causal relations among a set of distinctions."""
     # Self relations
@@ -362,6 +381,178 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             self._num_relations_cached = self._num_relations()  # type: ignore[attr-defined]  # Defined in subclass
         return self._num_relations_cached
 
+    def sum_phi_moment(self, k: int = 2) -> float:
+        """Return Σφ_r^k over all relations, including self-relations."""
+        if k < 1:
+            raise ValueError(f"moment order must be a positive integer: {k}")
+        return math.fsum(float(relation.phi) ** k for relation in self)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def phi_mean_std(self) -> tuple[float, float]:
+        """Return the population mean and standard deviation of φ_r.
+
+        Derived from the count, Σφ_r, and Σφ_r², so it is exact on any
+        backend that answers those queries without enumeration.
+
+        Raises
+        ------
+        ValueError
+            If there are no relations.
+        """
+        n = self.num_relations()
+        if n == 0:
+            raise ValueError("no relations to summarize")
+        mean = self.sum_phi() / n
+        variance = self.sum_phi_moment(2) / n - mean**2
+        return mean, math.sqrt(max(variance, 0.0))
+
+    def num_relations_of_degree(self, degree: int) -> int:
+        """Return the number of relations with exactly ``degree`` relata.
+
+        Degree 1 counts the self-relations.
+        """
+        return sum(1 for relation in self if len(relation) == degree)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def sum_phi_of_degree(self, degree: int) -> float:
+        """Return Σφ_r over relations with exactly ``degree`` relata."""
+        return math.fsum(
+            float(relation.phi)
+            for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
+            if len(relation) == degree
+        )
+
+    def degree_spectrum(self) -> dict[int, tuple[int, float]]:
+        """Return ``{degree: (count, Σφ_r)}`` over all relations.
+
+        Degrees with no relations are omitted. The counts sum to
+        ``num_relations()`` and the φ sums to ``sum_phi()``.
+        """
+        counts: Counter[int] = Counter()
+        sums: defaultdict[int, list[float]] = defaultdict(list)
+        for relation in self:  # type: ignore[attr-defined]  # iterable in subclasses
+            counts[len(relation)] += 1
+            sums[len(relation)].append(float(relation.phi))
+        return {
+            degree: (counts[degree], math.fsum(sums[degree]))
+            for degree in sorted(counts)
+        }
+
+    def max_phi(self) -> float:
+        """Return the maximum φ_r over all relations, or ``0.0`` if empty."""
+        # numerics: exact — the reported maximum, not a tolerant selection.
+        return max(
+            (float(relation.phi) for relation in self),  # type: ignore[attr-defined]  # iterable in subclasses
+            default=0.0,
+        )
+
+    def phi_histogram(self) -> dict[float, int]:
+        """Return ``{φ_r: count}`` over all relations.
+
+        Keys are grouped at the configured precision
+        (:func:`pyphi.numerics.round_to_precision`), so mathematically equal
+        values that differ by float noise share a bucket. Counts sum to
+        ``num_relations()``.
+        """
+        histogram: Counter[float] = Counter(
+            numerics.round_to_precision(float(relation.phi))
+            for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
+        )
+        return dict(histogram)
+
+    def num_faces(self) -> int:
+        """Return the total number of faces across all relations."""
+        return sum(relation.num_faces for relation in self)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def binding_matrix(self) -> pd.DataFrame:
+        """Return the atom-pair binding matrix of the relational structure.
+
+        Entry ``(a, b)`` is the total minimum density (``φ_r / |O|``) of the
+        non-self relations whose congruent overlap contains both atoms — the
+        strength with which the two unit-states are jointly bound by
+        relations. The diagonal decomposes the apportioned relation strength
+        per atom. Index and columns are the atoms (state-tagged units)
+        incident to at least one non-self relation, sorted. Self-relations
+        are excluded: the matrix measures binding between distinctions.
+        """
+        weights: defaultdict[tuple, float] = defaultdict(float)
+        atoms = set()
+        for relation in self:  # type: ignore[attr-defined]  # iterable in subclasses
+            if relation.is_self_relation:
+                continue
+            purview = sorted(relation.purview)
+            atoms.update(purview)
+            weight = float(relation.phi) / len(purview)
+            for a in purview:
+                for b in purview:
+                    weights[a, b] += weight
+        ordered = sorted(atoms)
+        matrix = pd.DataFrame(0.0, index=pd.Index(ordered), columns=pd.Index(ordered))
+        for (a, b), weight in weights.items():
+            matrix.loc[a, b] = weight
+        return matrix
+
+    def strongest(
+        self,
+        k: int | None = None,
+        min_phi: float | None = None,
+        max_degree: int | None = None,
+    ) -> Iterator[Relation]:
+        """Yield relations in descending φ_r order.
+
+        Ties in φ_r yield in an unspecified but deterministic order.
+
+        Parameters
+        ----------
+        k : int, optional
+            Yield at most this many relations. If None, yield all.
+        min_phi : float, optional
+            Stop once φ_r falls below this threshold (compared tolerantly
+            at the configured precision).
+        max_degree : int, optional
+            Skip relations with more than this many relata.
+        """
+        if k is not None and k <= 0:
+            return
+        # Descending sort for a stream; the min_phi threshold below is tolerant.
+        # numerics: exact — total order for streaming, not a tolerant selection.
+        candidates = sorted(self, key=lambda r: float(r.phi), reverse=True)  # type: ignore[attr-defined]  # iterable in subclasses
+        yielded = 0
+        for relation in candidates:
+            if min_phi is not None:
+                phi = float(relation.phi)
+                if not (phi > min_phi or numerics.eq(phi, min_phi)):
+                    return
+            if max_degree is not None and len(relation) > max_degree:
+                continue
+            yield relation
+            yielded += 1
+            if k is not None and yielded >= k:
+                return
+
+    def materialize(
+        self, max_degree: int | None = None, min_phi: float | None = None
+    ) -> ConcreteRelations:
+        """Return the relations as an explicit :class:`ConcreteRelations`.
+
+        The one deliberately loud way to obtain enumerable relation objects
+        from a non-enumerating backend. ``max_degree`` and ``min_phi``
+        (tolerant ``≥``) bound what is materialized.
+        """
+        return ConcreteRelations(
+            relation
+            for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
+            if _passes(relation, max_degree, min_phi)
+        )
+
+    def sample(self, n: int, *, seed: int) -> RelationSample:
+        """Draw a coverage-weighted sample of relations.
+
+        Implemented on backends that hold the distinction set; see
+        :meth:`AnalyticalRelations.sample`.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support sampling; use AnalyticalRelations"
+        )
+
     def _describe(self, verbosity: int) -> Description:
         cls = type(self).__name__
         num_r = self.num_relations()
@@ -443,6 +634,94 @@ class ConcreteRelations(frozenset, Relations):
         return dict(faces)
 
 
+class RelationSample:
+    """An i.i.d., coverage-weighted sample of non-self relations.
+
+    Relations are drawn with probability proportional to the size of their
+    congruent overlap ``|O(S)|`` — the number of atoms covering them — which
+    is known exactly per sample, so any sum over non-self relations is
+    estimable without bias by Horvitz-Thompson reweighting (the union-of-sets
+    sampling scheme of Karp & Luby (1983)). Self-relations are never sampled:
+    there are at most ``|D|`` of them, and their exact totals are carried on
+    the sample so the convenience estimators cover all relations.
+
+    Attributes
+    ----------
+    relations : tuple[Relation, ...]
+        The sampled relations, drawn with replacement.
+    normalization : int
+        The exact coverage-weighted total ``Σ_S |O(S)|`` over all non-self
+        relations.
+    seed : int
+        The seed of the isolated random generator that produced the sample.
+    num_self_relations : int
+        The exact number of self-relations in the structure.
+    sum_phi_self_relations : float
+        The exact Σφ_r over the self-relations.
+    """
+
+    def __init__(
+        self,
+        relations,
+        normalization,
+        seed,
+        num_self_relations,
+        sum_phi_self_relations,
+    ):
+        self.relations = tuple(relations)
+        self.normalization = normalization
+        self.seed = seed
+        self.num_self_relations = num_self_relations
+        self.sum_phi_self_relations = sum_phi_self_relations
+
+    def __len__(self):
+        return len(self.relations)
+
+    def __iter__(self):
+        return iter(self.relations)
+
+    def __repr__(self):
+        return (
+            f"{type(self).__name__}(n={len(self.relations)}, "
+            f"normalization={self.normalization}, seed={self.seed})"
+        )
+
+    def estimate(self, f) -> tuple[float, float]:
+        """Return an unbiased estimate and standard error of ``Σ f(S)`` over
+        all non-self relations.
+
+        Parameters
+        ----------
+        f : Callable[[Relation], float]
+            The per-relation summand.
+        """
+        if not self.relations:
+            return 0.0, 0.0
+        values = [
+            self.normalization * float(f(relation)) / len(relation.purview)
+            for relation in self.relations
+        ]
+        mean = math.fsum(values) / len(values)
+        stderr = (
+            statistics.stdev(values) / math.sqrt(len(values))
+            if len(values) > 1
+            else float("nan")
+        )
+        return mean, stderr
+
+    def num_relations(self) -> tuple[float, float]:
+        """Return an estimate and standard error of the total relation
+        count, including the exact self-relation count."""
+        estimate, stderr = self.estimate(lambda _: 1.0)
+        return estimate + self.num_self_relations, stderr
+
+    def sum_phi(self) -> tuple[float, float]:
+        """Return an estimate and standard error of Σφ_r over all
+        relations, including the exact self-relation total."""
+        estimate, stderr = self.estimate(lambda relation: float(relation.phi))
+        return estimate + self.sum_phi_self_relations, stderr
+
+
 class AnalyticalRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions
@@ -451,6 +730,331 @@ class AnalyticalRelations(Relations):
     @cached_property
     def self_relations(self):
         return tuple(_self_relations(self.distinctions))
+
+    @cached_property
+    def _atom_index(self):
+        """Map each atom (a state-tagged unit) to the distinctions whose
+        purview-union contains it.
+
+        This incidence, together with each distinction's φ density, generates
+        the entire relational structure (Albantakis et al. 2023, S3
+        Appendix); every closed-form query below is computed from it. Groups
+        are deterministically ordered by mechanism.
+        """
+        index = {}
+        for purview, group in self.distinctions.purview_inclusion(max_order=1):
+            (atom,) = purview
+            index[atom] = tuple(sorted(group, key=lambda d: tuple(d.mechanism)))
+        return index
+
+    @staticmethod
+    def _density(distinction) -> float:
+        """The distinction's φ per unique purview unit."""
+        return float(distinction.phi) / len(distinction.purview_union)
+
+    def sample(self, n: int, *, seed: int) -> RelationSample:
+        """Draw ``n`` non-self relations, coverage-weighted, i.i.d.
+
+        Sampling walks the atom incidence: an atom is drawn with probability
+        proportional to the number of relations inside its distinction
+        group (``2**m − m − 1`` for a group of ``m``), then a subset of size
+        ≥ 2 of that group is drawn uniformly. The resulting relation is
+        drawn with probability proportional to its overlap size ``|O(S)|``,
+        which is known per sample, so the returned
+        :class:`RelationSample` yields unbiased estimates with standard
+        errors for any per-relation sum. No burn-in; exact normalization.
+
+        Parameters
+        ----------
+        n : int
+            The number of draws (with replacement).
+        seed : int
+            Seed for the isolated random generator. Required.
+        """
+        rng = random.Random(seed)
+        index = self._atom_index
+        atoms = sorted(index)
+        weights = [2 ** len(index[a]) - len(index[a]) - 1 for a in atoms]
+        normalization = sum(weights)
+        sampled = []
+        if normalization > 0:
+            for _ in range(n):
+                atom = rng.choices(atoms, weights=weights)[0]
+                group = index[atom]
+                while True:
+                    mask = rng.getrandbits(len(group))
+                    if mask.bit_count() >= 2:
+                        break
+                sampled.append(
+                    Relation(
+                        distinction
+                        for i, distinction in enumerate(group)
+                        if mask >> i & 1
+                    )
+                )
+        return RelationSample(
+            relations=sampled,
+            normalization=normalization,
+            seed=seed,
+            num_self_relations=len(self.self_relations),
+            sum_phi_self_relations=math.fsum(
+                float(relation.phi) for relation in self.self_relations
+            ),
+        )
+
+    def sum_phi_moment(self, k: int = 2) -> float:
+        """Return Σφ_r^k over all relations, in closed form.
+
+        Since ``φ_r = |O(S)| · min q`` and ``|O(S)|^k`` counts the ordered
+        k-tuples of atoms covering ``S``, the k-th moment decomposes over
+        atom k-tuples, each contributing a sum-of-minimum of ``q^k`` over the
+        distinctions shared by the tuple. Cost is ``O(N^k)`` inner sums for
+        ``N`` atoms.
+        """
+        if k < 1:
+            raise ValueError(f"moment order must be a positive integer: {k}")
+        index = self._atom_index
+        atoms = sorted(index)
+        total = 0.0
+        for combo in itertools.product(atoms, repeat=k):
+            group = set(index[combo[0]])
+            for atom in combo[1:]:
+                group &= set(index[atom])
+            if len(group) >= 2:
+                total += combinatorics.sum_of_minimum_among_subsets(
+                    [self._density(d) ** k for d in group]
+                )
+        total += math.fsum(float(relation.phi) ** k for relation in self.self_relations)
+        return total
+
+    def num_relations_of_degree(self, degree: int) -> int:
+        """Return the number of relations with exactly ``degree`` relata,
+        by inclusion-exclusion over shared purview subsets."""
+        if degree < 1:
+            return 0
+        if degree == 1:
+            return len(self.self_relations)
+        count = 0
+        for purview, group in self.distinctions.purview_inclusion(max_order=None):
+            count += (-1) ** (len(purview) - 1) * math.comb(len(group), degree)
+        return count
+
+    def sum_phi_of_degree(self, degree: int) -> float:
+        """Return Σφ_r over relations with exactly ``degree`` relata, as a
+        per-atom sorted dot product with binomial coefficients."""
+        if degree == 1:
+            return math.fsum(float(r.phi) for r in self.self_relations)
+        return math.fsum(
+            combinatorics.sum_of_minimum_of_size_among_subsets(
+                [self._density(d) for d in group], degree
+            )
+            for group in self._atom_index.values()
+        )
+
+    def degree_spectrum(self) -> dict[int, tuple[int, float]]:
+        """Return ``{degree: (count, Σφ_r)}``, in closed form per degree."""
+        num_distinctions = sum(1 for _ in self.distinctions)
+        spectrum = {}
+        for degree in range(1, num_distinctions + 1):
+            count = self.num_relations_of_degree(degree)
+            if count:
+                spectrum[degree] = (count, self.sum_phi_of_degree(degree))
+        return spectrum
+
+    def max_phi(self) -> float:
+        """Return the maximum φ_r, scanning only pairs and self-relations.
+
+        Notes
+        -----
+        The maximum over relations of degree ≥ 2 is always attained at
+        degree 2: for any relation ``S`` with minimum-density member ``d*``
+        and any other member ``d'``, the pair ``{d*, d'}`` has overlap
+        containing ``O(S)`` and the same minimum density, so its φ_r is at
+        least ``φ_r(S)``. The scan is ``O(D^2)``.
+        """
+        ds = list(self.distinctions)
+        unions = [frozenset(d.purview_union) for d in ds]
+        densities = [self._density(d) for d in ds]
+        # numerics: exact — seeds a running max; callers compare tolerantly.
+        best = max(
+            (float(relation.phi) for relation in self.self_relations),
+            default=0.0,
+        )
+        for i, j in itertools.combinations(range(len(ds)), 2):
+            overlap = unions[i] & unions[j]
+            if overlap:
+                # numerics: exact — running max; callers compare tolerantly.
+                best = max(best, len(overlap) * min(densities[i], densities[j]))
+        return best
+
+    def strongest(
+        self,
+        k: int | None = None,
+        min_phi: float | None = None,
+        max_degree: int | None = None,
+    ) -> Iterator[Relation]:
+        """Yield relations in descending φ_r order, lazily.
+
+        Best-first search over the subset lattice: φ_r never increases when
+        a relatum is added (the overlap shrinks and the minimum density can
+        only fall), so seeding a max-heap with all valid pairs and the
+        self-relations, and expanding each popped combination by
+        larger-index distinctions only, yields relations in exact descending
+        order. The first ``K`` yields cost ``O(|D|²)`` seeding plus
+        ``O(K·|D|)`` heap pushes, independent of the total relation count.
+
+        Ties in φ_r yield in an unspecified but deterministic order. The
+        heap can grow to ``O(yielded · |D|)`` entries when the stream is
+        consumed deeply; full enumeration is better served by
+        :meth:`materialize`.
+
+        Parameters
+        ----------
+        k : int, optional
+            Yield at most this many relations. If None, yield all.
+        min_phi : float, optional
+            Stop once φ_r falls below this threshold (compared tolerantly
+            at the configured precision). Sound as an early exit because
+            the stream is globally descending.
+        max_degree : int, optional
+            Do not yield or expand relations with more than this many
+            relata.
+        """
+        if k is not None and k <= 0:
+            return
+        ds = list(self.distinctions)
+        unions = [frozenset(d.purview_union) for d in ds]
+        densities = [self._density(d) for d in ds]
+
+        def phi_of(indices):
+            overlap = frozenset.intersection(*(unions[i] for i in indices))
+            if not overlap:
+                return None
+            return len(overlap) * min(densities[i] for i in indices)
+
+        heap: list = []
+        counter = itertools.count()
+
+        def push(phi, payload):
+            # numerics: exact — heap ordering is a total order over floats;
+            # the min_phi threshold at yield time is tolerant.
+            heapq.heappush(heap, (-phi, next(counter), payload))
+
+        if max_degree is None or max_degree >= 1:
+            for relation in self.self_relations:
+                push(float(relation.phi), relation)
+        if max_degree is None or max_degree >= 2:
+            for i, j in itertools.combinations(range(len(ds)), 2):
+                phi = phi_of((i, j))
+                if phi is not None:
+                    push(phi, (i, j))
+
+        yielded = 0
+        while heap:
+            negative_phi, _, payload = heapq.heappop(heap)
+            phi = -negative_phi
+            if min_phi is not None and not (phi > min_phi or numerics.eq(phi, min_phi)):
+                return
+            if isinstance(payload, Relation):
+                relation = payload
+            else:
+                relation = Relation(ds[i] for i in payload)
+                if max_degree is None or len(payload) < max_degree:
+                    for nxt in range(payload[-1] + 1, len(ds)):
+                        extended = (*payload, nxt)
+                        extended_phi = phi_of(extended)
+                        if extended_phi is not None:
+                            push(extended_phi, extended)
+            yield relation
+            yielded += 1
+            if k is not None and yielded >= k:
+                return
+
+    def materialize(
+        self, max_degree: int | None = None, min_phi: float | None = None
+    ) -> ConcreteRelations:
+        """Enumerate the relations as an explicit
+        :class:`ConcreteRelations`.
+
+        The one deliberately loud way to obtain relation objects from this
+        backend — the output is exponential in the number of distinctions,
+        so ``max_degree`` and ``min_phi`` (tolerant ``≥``) exist to bound
+        it. Self-relations are always included (they have degree 1 and
+        there are at most ``|D|`` of them).
+        """
+        return ConcreteRelations(
+            relation
+            for relation in all_relations(self.distinctions, max_degree=max_degree)
+            if _passes(relation, max_degree, min_phi)
+        )
+
+    def binding_matrix(self) -> pd.DataFrame:
+        """Return the atom-pair binding matrix, in closed form.
+
+        Each entry is one sum-of-minimum over the distinctions shared by the
+        atom pair — ``O(A²)`` sorted dot products for ``A`` atoms, never
+        touching a relation.
+        """
+        index = self._atom_index
+        atoms = sorted(a for a in index if len(index[a]) >= 2)
+        matrix = pd.DataFrame(0.0, index=pd.Index(atoms), columns=pd.Index(atoms))
+        for a in atoms:
+            members = set(index[a])
+            for b in atoms:
+                group = [d for d in index[b] if d in members]
+                if len(group) >= 2:
+                    matrix.loc[a, b] = combinatorics.sum_of_minimum_among_subsets(
+                        [self._density(d) for d in group]
+                    )
+        return matrix
+
+    def phi_histogram(self) -> dict[float, int]:
+        """Return ``{φ_r: count}`` over all relations, in closed form.
+
+        φ_r takes at most ``A × D`` distinct values, for ``A`` purview atoms
+        and ``D`` distinctions (overlap size times minimum density). The
+        histogram is computed by sweeping density thresholds from high to
+        low: at each threshold, relations among the distinctions at or above
+        it are counted by exact overlap size via Möbius inversion over the
+        intersection closure of their purview-unions; differencing
+        consecutive sweeps assigns counts to ``overlap × density`` buckets.
+        Distinctions are grouped by density at the configured precision
+        (:func:`pyphi.numerics.round_to_precision`), so mathematically equal
+        densities that differ by float noise share a threshold, and each
+        bucket key is rounded to that same precision.
+
+        Notes
+        -----
+        The intersection closure is bounded by ``2 ** A`` for ``A`` purview
+        atoms but is small for structured systems; if it grows
+        pathologically, materialization or sampling are the fallbacks.
+        """
+        histogram: Counter[float] = Counter()
+        groups: defaultdict[float, list] = defaultdict(list)
+        for distinction in self.distinctions:
+            groups[numerics.round_to_precision(self._density(distinction))].append(
+                distinction
+            )
+        cumulative: list = []
+        previous: Counter[int] = Counter()
+        # numerics: exact — iteration over precision-rounded representatives.
+        for threshold in sorted(groups, reverse=True):
+            cumulative.extend(groups[threshold])
+            density = min(self._density(d) for d in groups[threshold])
+            counts: Counter[int] = Counter()
+            exact = combinatorics.exact_intersection_counts(
+                [frozenset(d.purview_union) for d in cumulative]
+            )
+            for overlap, count in exact.items():
+                counts[len(overlap)] += count
+            for size in counts.keys() | previous.keys():
+                delta = counts[size] - previous[size]
+                if delta:
+                    histogram[numerics.round_to_precision(size * density)] += delta
+            previous = counts
+        for relation in self.self_relations:
+            histogram[numerics.round_to_precision(float(relation.phi))] += 1
+        return dict(histogram)
 
     def _sum_phi(self):
         sum_phi = 0
@@ -498,6 +1102,26 @@ class AnalyticalRelations(Relations):
         # Count self-relations
         count += len(self.self_relations)
         return count
+
+    def num_faces(self) -> int:
+        """Return the total number of faces across all relations, in closed
+        form.
+
+        A face is a set of two or more causes/effects (one per direction
+        choice per relatum) with nonempty state-tagged overlap, so the total
+        face count is the same subfamily count that
+        :meth:`num_relations` computes over distinctions, run instead over
+        the individual causes and effects — Möbius inversion over the
+        intersection closure of the per-side purviews. Faces of
+        self-relations (a distinction's cause paired with its own effect)
+        are included, matching enumeration.
+        """
+        mice_purviews = [
+            frozenset(side.purview_units)
+            for distinction in self.distinctions
+            for side in (distinction.cause, distinction.effect)
+        ]
+        return sum(combinatorics.exact_intersection_counts(mice_purviews).values())
 
     def __len__(self):
         return self.num_relations()
@@ -561,6 +1185,152 @@ class AnalyticalFoldRelations(AnalyticalRelations):
                 result += total - AnalyticalRelations(others).apportioned_sum_phi()
             self._share_weighted_cached = result
         return self._share_weighted_cached
+
+    def _difference(self, query, *args, **kwargs):
+        """Evaluate an additive query as full − complement.
+
+        A relation either touches the seed set or it does not, so any
+        quantity that is a sum over relations restricts to the incident set
+        by differencing the parent total against the seed-free total.
+        Self-relations of non-seed distinctions cancel; the seeds' survive.
+        """
+        return getattr(self._full, query)(*args, **kwargs) - getattr(
+            self._complement, query
+        )(*args, **kwargs)
+
+    def sum_phi_moment(self, k: int = 2) -> float:
+        """Return Σφ_r^k over the incident relations."""
+        return self._difference("sum_phi_moment", k)
+
+    def num_relations_of_degree(self, degree: int) -> int:
+        """Return the number of incident relations with exactly ``degree``
+        relata."""
+        return self._difference("num_relations_of_degree", degree)
+
+    def sum_phi_of_degree(self, degree: int) -> float:
+        """Return Σφ_r over incident relations with exactly ``degree``
+        relata."""
+        return self._difference("sum_phi_of_degree", degree)
+
+    def num_faces(self) -> int:
+        """Return the total face count over the incident relations."""
+        return self._difference("num_faces")
+
+    def phi_histogram(self) -> dict[float, int]:
+        """Return ``{φ_r: count}`` over the incident relations.
+
+        Bucket-wise difference of the parent and seed-free histograms. Each
+        bucket key is ``overlap size × density`` rounded to the configured
+        precision, where the density is a raw representative of a
+        precision-rounded group of distinctions. The parent and seed-free
+        histograms share bucket keys when these representatives are
+        seed-independent, so the difference is well defined. A representative
+        that is a seed can shift a key between the two histograms; that
+        misalignment surfaces as a negative count and is raised rather than
+        returned.
+        """
+        histogram = Counter(self._full.phi_histogram())
+        histogram.subtract(self._complement.phi_histogram())
+        if any(count < 0 for count in histogram.values()):
+            raise ValueError(
+                "bucket keys failed to align between the parent and seed-free "
+                "histograms; materialize the fold to enumerate exact values"
+            )
+        return {phi: count for phi, count in histogram.items() if count}
+
+    def binding_matrix(self) -> pd.DataFrame:
+        """Return the atom-pair binding matrix of the incident relations.
+
+        Entry-wise difference of the parent and seed-free matrices, on the
+        parent's atom index (rows for atoms bound only by seed-free
+        relations go to zero).
+        """
+        full = self._full.binding_matrix()
+        complement = self._complement.binding_matrix()
+        aligned = complement.reindex(
+            index=full.index, columns=full.columns, fill_value=0.0
+        )
+        return full - aligned
+
+    def max_phi(self) -> float:
+        """Return the maximum φ_r over the incident relations.
+
+        Notes
+        -----
+        The incident maximum is attained at an incident pair or a seed's
+        self-relation: for any incident relation ``S``, its
+        minimum-density member ``d*`` paired with any seed in ``S`` is an
+        incident pair with overlap containing ``O(S)`` and the same minimum
+        density.
+        """
+        seed_set = set(self._seeds)
+        ds = list(self.distinctions)
+        unions = [frozenset(d.purview_union) for d in ds]
+        densities = [self._density(d) for d in ds]
+        # numerics: exact — seeds a running max; callers compare tolerantly.
+        best = max(
+            (
+                float(relation.phi)
+                for relation in self.self_relations
+                if not seed_set.isdisjoint(relation)
+            ),
+            default=0.0,
+        )
+        for i, j in itertools.combinations(range(len(ds)), 2):
+            if ds[i] not in seed_set and ds[j] not in seed_set:
+                continue
+            overlap = unions[i] & unions[j]
+            if overlap:
+                # numerics: exact — running max; callers compare tolerantly.
+                best = max(best, len(overlap) * min(densities[i], densities[j]))
+        return best
+
+    def strongest(
+        self,
+        k: int | None = None,
+        min_phi: float | None = None,
+        max_degree: int | None = None,
+    ) -> Iterator[Relation]:
+        """Yield the incident relations in descending φ_r order.
+
+        Filters the parent's descending stream by seed incidence, so the
+        order is exact; non-incident relations are popped and discarded, so
+        the cost tracks the parent stream's, not the incident count.
+        """
+        if k is not None and k <= 0:
+            return
+        seed_set = set(self._seeds)
+        yielded = 0
+        for relation in self._full.strongest(
+            k=None, min_phi=min_phi, max_degree=max_degree
+        ):
+            if seed_set.isdisjoint(relation):
+                continue
+            yield relation
+            yielded += 1
+            if k is not None and yielded >= k:
+                return
+
+    def materialize(
+        self, max_degree: int | None = None, min_phi: float | None = None
+    ) -> ConcreteRelations:
+        """Return the incident relations as an explicit
+        :class:`ConcreteRelations`."""
+        seed_set = set(self._seeds)
+        return ConcreteRelations(
+            relation
+            for relation in self._full.materialize(max_degree, min_phi)
+            if not seed_set.isdisjoint(relation)
+        )
+
+    def sample(self, n: int, *, seed: int) -> RelationSample:
+        """Not supported on folds: sample the parent structure and restrict
+        the summand to incident relations instead."""
+        raise NotImplementedError(
+            "sampling a fold is not supported; sample the parent "
+            "AnalyticalRelations and restrict the estimated summand to "
+            "relations touching the seeds"
+        )
 
 
 def relations(

@@ -170,3 +170,26 @@ def test_analytical_fold_partition_tiles_big_phi(xor_ces_analytical):
         for block in (ds[:2], ds[2:])
     )
     assert total == pytest.approx(xor_ces_analytical.big_phi)
+
+
+def test_distinction_importance_ranks_and_tiles(xor_ces):
+    ranking = xor_ces.distinction_importance()
+    assert len(ranking) == len(xor_ces.distinctions)
+    contributions = [contribution for _, contribution in ranking]
+    assert contributions == sorted(contributions, reverse=True)
+    assert sum(contributions) == pytest.approx(xor_ces.big_phi)
+    mechanisms = {tuple(d.mechanism) for d, _ in ranking}
+    assert mechanisms == {tuple(d.mechanism) for d in xor_ces.distinctions}
+
+
+def test_distinction_importance_matches_folds(xor_ces):
+    by_mechanism = {
+        tuple(d.mechanism): contribution
+        for d, contribution in xor_ces.distinction_importance()
+    }
+    for distinction, fold in zip(
+        xor_ces.distinctions, xor_ces.distinction_folds(), strict=True
+    ):
+        assert by_mechanism[tuple(distinction.mechanism)] == pytest.approx(
+            fold.big_phi_contribution
+        )

@@ -248,7 +248,7 @@ New ideas surfaced by the 2026-06-13 audit (the roadmap "started as an engineeri
 
 *Correctness & rigor:* **(N1)** a comprehensive **paper-reproduction acceptance suite** as a CI gate — every worked example (IIT 4.0 Figs 1/2/4/6/7, Marshall 2024, AC 2019 Fig 11, Gómez p53) with pinned values, *including a network that exercises the 2026 ii-cap with non-zero φ*. **(N2)** a standing **`parallel ≡ sequential` Hypothesis invariant** in CI (the loky bug shows results can silently diverge/crash). **(N3)** recurring **mutation testing** as a scheduled gate so the golden+property net is proven to bite.
 
-*Performance / algorithmic:* **(N4)** a **disk-backed result cache** keyed on the P9.5 math-fingerprint, so notebook re-runs and paper reproductions skip recomputation. **(N5)** elevate the "**Rust/PyO3 kernel**" aside to a concrete, P17-gated item for the partition-enumeration + repertoire inner loops — the one lever that touches the O(2ⁿ) floor caching can't. **(N6 — explored, build-ready)** a **lazy / top-K relations mode** (relations are the n≥6 bottleneck that OxiDD + analytical folds only partly address). The 2026-07-07 relations exploration (`docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`) settled the design — the relation set is a deterministic view of a linear-size summary; exact/top-K/sampling query tiers verified at Fig-6D scale — and discharges this item (with N24) when its Tier 1–3 query surface lands.
+*Performance / algorithmic:* **(N4)** a **disk-backed result cache** keyed on the P9.5 math-fingerprint, so notebook re-runs and paper reproductions skip recomputation. **(N5)** elevate the "**Rust/PyO3 kernel**" aside to a concrete, P17-gated item for the partition-enumeration + repertoire inner loops — the one lever that touches the O(2ⁿ) floor caching can't. **(N6 — landed 2026-07-11)** a **lazy / top-K relations mode** (relations are the n≥6 bottleneck that OxiDD + analytical folds only partly address). The 2026-07-07 relations exploration (`docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`) settled the design — the relation set is a deterministic view of a linear-size summary; exact/top-K/sampling query tiers verified at Fig-6D scale — and its query surface is landed on ``pyphi/relations.py`` (closed-form moments/degrees/histogram/binding/faces, lazy top-K ``strongest()``, seeded sampling, bounded ``materialize()``), discharging this item together with N24.
 
 *API ergonomics / usability:* **(N7 — landed)** one high-level **`pyphi.analyze(substrate, state, formalism=…)`** entry point. **(N8)** a full **provenance stamp** on every result (pyphi version, git sha, seed, wall-time) extending the P10 config snapshot. **(N9 — landed)** the unified labeled-export (`to_pandas`/xarray) story — already a P14d follow-on, elevated because it interlocks with the freeze. **(N11 — landed)** **Bayesian-network / dynamic-BN interop** — render a substrate as a **2-timeslice DBN** (nodes_t → nodes_{t+1}) where the TPM becomes CPDs, enabling pgmpy / d-separation / Markov-blanket workflows. The static-BN view is **unfaithful** — substrates are cyclic by construction (feedback/self-loops); the 2-TBN unrolling is the correct acyclic target. Builds on B20's topology bridge.
 
@@ -404,11 +404,12 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
   landed `result.explain()` (B8) from "which partition won" to "what property of the substrate
   produced this Φ"; the landscape is also a natural display artifact. *(The recursive
   universe-to-complexes carving that paper also describes already landed as B16 `complexes()`.)*
-- **N24 — Distinction-importance / relation-removal sensitivity.** *`quick-win`; explored,
-  build-ready.* Subsumed (with N6) by the relations exploration
+- **N24 — Distinction-importance / relation-removal sensitivity.** *`quick-win`; landed
+  2026-07-11.* Landed as ``CauseEffectStructure.distinction_importance()`` plus the
+  fold-restricted query surface. Subsumed (with N6) by the relations exploration
   (`docs/superpowers/specs/2026-07-07-relations-without-materialization-design.md`): the
   linear-size relation summary yields exact per-distinction incidence/φ-share in closed form.
-  Discharged when the relations query surface lands. Original scope: add
+  Discharged by the landed relations query surface. Original scope: add
   Zaeemzadeh's counting-relations §2 per-purview relation-incidence count and the closed-form
   `½·|Z|/N` fraction of relations that vanish when a distinction's purview is removed — an exact
   importance ranking over distinctions, computable from `bounds.py` without enumerating
