@@ -40,6 +40,13 @@ pyphi.config.validate_phi_bounds = True
 #
 #         def test_something(self):
 #             ...
+#
+# ``IIT_3_CONFIG`` and ``IIT_4_CONFIG`` are preset-sourced and complete: each
+# carries every ``iit.*`` field the formalism needs, not just ``iit.version``.
+# Any test that asserts a φ value must apply one of these — never hand-list
+# ``iit.version`` alone, which leaves the remaining fields on the ambient
+# default and can silently recompute under a different formalism once that
+# default changes.
 
 # IIT 3.0 configuration for regression tests.
 # Sourced from the canonical ``presets.iit3`` so the test config and the
