@@ -49,6 +49,8 @@ infrastructure:
   # Repertoire and purview caches.
   cache_repertoires: true
   cache_potential_purviews: true
+  # Reuse mapping-independent macro TPM construction intermediates per substrate.
+  cache_macro_construction: true
   # Clear subsystem caches after each SIA computation.
   clear_system_caches_after_computing_sia: false
   # Suppress the welcome message.

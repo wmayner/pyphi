@@ -86,6 +86,13 @@ class InfrastructureConfig:
     maximum_cache_memory_percentage: int = 50
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True
+    # When True (default), the macro TPM construction caches its
+    # mapping-independent Steps 1-2 intermediates (the discounted transition
+    # matrix and the per-grain sequence-class distributions) per substrate, so
+    # candidate units sharing a footprint, update grain, and apportionment
+    # structure reuse them. Results are identical either way; set False to
+    # disable the cache entirely (no reads or writes).
+    cache_macro_construction: bool = True
     clear_system_caches_after_computing_sia: bool = False
     disk_cache_results: bool = False
 
@@ -138,6 +145,7 @@ class InfrastructureConfig:
         )
         _check_bool("cache_repertoires", self.cache_repertoires)
         _check_bool("cache_potential_purviews", self.cache_potential_purviews)
+        _check_bool("cache_macro_construction", self.cache_macro_construction)
         _check_bool(
             "clear_system_caches_after_computing_sia",
             self.clear_system_caches_after_computing_sia,
