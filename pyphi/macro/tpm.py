@@ -12,7 +12,7 @@ accumulated per chaining step into per-update state classes of the
 unit's micro constituents, never materializing the full sequence tensor.
 Steps 1-2 read neither the unit's mapping nor the micro history, so
 their intermediates are cached per substrate content fingerprint,
-keyed on the unit's footprint, update grain, and apportionment
+keyed on the unit's footprint, micro grain, and apportionment
 structure; units differing only in their mapping reuse the cached
 prefix.
 """

@@ -292,10 +292,11 @@ al., 2024, Fig. 3E).
 
 **What one candidate costs.** Two separate costs attach to each candidate.
 Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ work,
-paid once per distinct (footprint, update grain, apportionment) combination rather
-than once per candidate: the construction's mapping-independent intermediates are
-cached per substrate (the `cache_macro_construction` option, on by default), so
-candidates that differ only in their mapping reuse them. The estimate's
+whose dominant, mapping-independent share is paid once per distinct
+(footprint, grain, apportionment) combination rather than once per candidate:
+those intermediates are cached per substrate (the `cache_macro_construction`
+option, on by default), so candidates that differ only in their mapping reuse
+them. The estimate's
 `construction_keys_upper_bound` counts the distinct (footprint, grain) keys; under
 the default `apportionment="NONE"` these are exactly the cached combinations.
 Evaluating its $\varphi_s$ is a full
