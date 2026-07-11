@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
 
+from pyphi.formalism.iit4 import bounds as _bounds
+
 
 def g(k: int) -> float:
     """The Eq. 14 per-o linear-program maximum weight, (2^k − 1 − k)/k."""
@@ -76,3 +78,40 @@ def measured_cross_certificate(profile: Profile) -> float:
 
 def sum_phi_relations_lower(profile: Profile) -> float:
     return profile.self_sum + identity_cross(profile)
+
+
+def _general_cross(n: int) -> float:
+    total = float(_bounds.sum_phi_relations_upper_bound(n, "GENERAL").value)
+    self_ceiling = float(_bounds.sum_phi_distinctions_upper_bound(n, "I").value)
+    return total - self_ceiling
+
+
+def sum_phi_relations_partial_upper(
+    profile: Profile, uncomputed_sizes: list[int], n: int
+) -> float:
+    """Certified upper bound on Σφ_r for a partial distinction set.
+
+    Parameters
+    ----------
+    profile : Profile
+        The measured incidence profile of the computed distinctions ``D_c``.
+    uncomputed_sizes : list of int
+        Mechanism sizes ``|m|`` of the un-evaluated candidate mechanisms
+        ``M_u``. Empty for a complete distinction set.
+    n : int
+        Number of binary units.
+    """
+    u_mass = float(sum(size * n for size in uncomputed_sizes))
+    num_u = len(uncomputed_sizes)
+    self_upper = profile.self_sum + u_mass
+
+    cross = 0.0
+    for densities in profile.state_groups.values():
+        s_c = sum(densities)
+        k_c = len(densities)
+        cross += (s_c + u_mass) * g(k_c + num_u)
+    extra_empty = max(0, 2 * n - len(profile.state_groups))
+    cross += extra_empty * u_mass * g(num_u)
+
+    cross = min(cross, _general_cross(n))
+    return self_upper + cross
