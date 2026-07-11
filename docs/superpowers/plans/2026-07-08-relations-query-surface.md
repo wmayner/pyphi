@@ -68,7 +68,7 @@ congruence is enforced at candidate generation
 `sum_phi()`, `apportioned_sum_phi()`, `num_relations()`.
 
 Two facts make the whole surface possible (spec §2, independently re-verified
-in `so_certificate_experiments/FINDINGS.md` on 801 random systems):
+in `experiments/so_certificate_experiments/FINDINGS.md` on 801 random systems):
 
 1. The relation set is a deterministic view of the linear-size summary
    {(purview_union_d, q_d)}: every query is a function of the UnitState-keyed

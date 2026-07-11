@@ -26,7 +26,7 @@
 - **Bare-state error** under τ > 1 bounds: `ValueError: micro_history must be a sequence of 2 universe states (oldest first); got a bare state`.
 - **Temporal specimen (tutorial):** fn_table `[2, 3, 4, 3, 0, 0, 5, 0]` (state index → next state index, little-endian, A = bit 0), history `[(0, 0, 1), (0, 0, 0)]`, `SearchBounds(max_update_grain=2)`. Result: exactly two complexes, both temporal — `{A}` at τ=2, mapping `(0, 0, 1, 1)`, φₛ = 0.508305 (6 s.f.), `exclusion_margin` = 0.300787, with the full micro universe (φₛ = 0.2075) in its `excluded`; `{B, C}` at τ=2, φₛ = 0.462996, margin = 0.199962.
 - **Mixed-grain mention:** fn_table `[3, 1, 1, 7, 1, 2, 2, 7]`, history `[(1, 0, 0), (1, 0, 0)]` → whole-universe winner with grains (1, 2, 1), φₛ = 0.314099 vs all-micro 0.276692.
-- **Hit rate:** 23 of 120 seeded random runs (`grain_tau_experiments/README.md`).
+- **Hit rate:** 23 of 120 seeded random runs (`experiments/grain_tau_experiments/README.md`).
 - **Partition counts** (`DIRECTED_SET_PARTITION`): m = 1 → 1, 2 → 3, 3 → 22, 4 → 150, 5 → 1,061, 6 → 7,896.
 - **Mapping counts:** surjective tables for |V| constituents at update grain τ′: 2^(2^(τ′·|V|)−1) − 1. The paper's Fig. 3E numbers MUST be re-verified against the PDF in Task 2/4 before citing.
 - **Measured anatomy** (exploration §2.2, n = 4 Example-1 substrate, default bounds): 80 systems, ≈ 0.85 s, ≈ 92% SIA / 8% construction — re-verify order of magnitude in Task 4 before citing wall-clock.

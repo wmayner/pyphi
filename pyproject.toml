@@ -132,7 +132,7 @@ exclude = [
     "htmlcov",
     "benchmarks",
     # One-off research experiment scripts with committed seeded outputs.
-    "*_experiments",
+    "experiments",
     # Vendored third-party tool (gprof2dot); not maintained here.
     "profiling",
     # Pre-2.0 oracle reproducer: deliberately imports pre-refactor API that
@@ -208,7 +208,7 @@ max-statements = 100
 "profiling/**/*.py" = ["T201"]
 "benchmarks/**/*.py" = ["T201"]
 "scripts/**/*.py" = ["T201", "E501", "C408"]
-"grain_tau_experiments/**/*.py" = ["T201", "E501"]
+"experiments/**/*.py" = ["T201", "E501"]
 # Allow print and magic values in examples
 "docs/examples/**/*.py" = ["T201", "PLR2004"]
 # Allow explicit re-exports in __init__ files (PEP 484 style)
@@ -307,7 +307,7 @@ directory = "htmlcov"
 
 [tool.pyright]
 include = ["pyphi"]
-exclude = ["**/__pycache__", "test", "docs", "benchmarks", "*_experiments", "profiling"]
+exclude = ["**/__pycache__", "test", "docs", "benchmarks", "experiments", "profiling"]
 pythonVersion = "3.13"
 typeCheckingMode = "standard"                                           # Start at standard, not basic
 reportMissingImports = false

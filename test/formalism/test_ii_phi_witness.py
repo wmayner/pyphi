@@ -8,7 +8,7 @@ cap removes the violation by construction.
 
 The witness is a two-unit substrate found by random search over asymmetric
 transition probability matrices; see
-``ii_phi_inequality_experiments/FINDINGS.md`` for the derivation and the raw
+``experiments/ii_phi_inequality_experiments/FINDINGS.md`` for the derivation and the raw
 data (``hunt_random_seed20260708.json.gz``). Its margin is three orders of
 magnitude beyond ``config.numerics.precision``, so the violation is not a
 tie-resolution artifact.

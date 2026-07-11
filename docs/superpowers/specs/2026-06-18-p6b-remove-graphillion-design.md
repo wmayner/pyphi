@@ -11,7 +11,7 @@
 
 The roadmap's P6b item was framed as "reimplement the `setset` family algebra behind a
 `ZDDFamily` Protocol with OxiDD as default and graphillion retained as a one-release fallback."
-A pre-design spike (`p6b_spike/`) changed the conclusion.
+A pre-design spike (`experiments/p6b_spike/`) changed the conclusion.
 
 **The graphillion footprint is tiny and single-purpose.** The only use of graphillion/`setset`
 anywhere in the library is the *concrete* relations candidate generation:
@@ -29,7 +29,7 @@ into a `MapReduce` that evaluates each combination into a `Relation` (a φ compu
 only real feature — compact symbolic representation of an astronomically large family — is never
 exploited, because every element is materialized and evaluated either way.
 
-**Spike findings (`p6b_spike/spike.py`, seed 20260618).** The family the ZDD path produces is
+**Spike findings (`experiments/p6b_spike/spike.py`, seed 20260618).** The family the ZDD path produces is
 exactly the set of distinction-combinations that share a common purview unit — which is precisely
 `combinations_with_nonempty_intersection` over each distinction's purview-union set. Measured:
 

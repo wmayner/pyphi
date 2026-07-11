@@ -13,7 +13,7 @@ verified against the code in `pyphi/core/repertoire_algebra.py`,
 empirically against the library. All experiments below ran on this working
 tree under the default `IIT_4_0_2023` configuration (GID measure,
 `DIRECTED_SET_PARTITION`, precision 13); scripts and raw data are in
-`substrate_landscape_experiments/` (untracked).
+`experiments/substrate_landscape_experiments/` (untracked).
 
 ## Summary of conclusions
 
@@ -509,7 +509,7 @@ Smallest useful increment, in order:
 ## 9. Reproducibility
 
 ```
-cd substrate_landscape_experiments
+cd experiments/substrate_landscape_experiments
 uv run python exp1_sweep.py           # E1: sweeps + selection segments (~12 s)
 uv run python exp2_derivatives.py     # E2/E3: FD stability + switch anatomy (~30 s)
 uv run python exp3_ces_sweep.py       # E4: CES/relations sweep (~12 s)
