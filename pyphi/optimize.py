@@ -27,6 +27,8 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from pyphi import exceptions
+from pyphi.conf import config
+from pyphi.conf import fallback
 
 _UNREACHABLE = (
     exceptions.StateUnreachableForwardsError,
@@ -267,3 +269,265 @@ class OptimizationResult:
             "trajectory": self.trajectory.to_dict(orient="records"),
         }
         Path(path).write_text(json.dumps(payload, indent=2, default=str))
+
+
+def _eval_batch(
+    builder: Callable[[NDArray[Any]], Any],
+    thetas: list[NDArray[Any]],
+    state: tuple[int, ...],
+    subset: Sequence[int] | None,
+    formalism: str | None,
+    objective: Any,
+    parallel: bool,
+    progress: bool,
+) -> list[dict[str, Any]]:
+    """Evaluate a whole population, sequentially or through ``map_reduce``.
+
+    The parallel branch mirrors ``pyphi.sweep._run_cells_parallel``: one level
+    of parallelism (``parallel=True`` on the outer ``map_reduce``, inner
+    ``parallel=False`` in the worker config snapshot), one candidate per cell.
+    """
+    if not parallel or len(thetas) <= 1:
+        return [
+            _eval_one(
+                theta,
+                builder=builder,
+                state=state,
+                subset=subset,
+                formalism=formalism,
+                objective=objective,
+            )
+            for theta in thetas
+        ]
+
+    from functools import partial
+
+    from pyphi.conf import presets
+    from pyphi.parallel import map_reduce
+
+    preset = presets.by_name[formalism] if formalism is not None else {}
+    # partial binds the fixed args as keywords; theta stays the one positional,
+    # so cell_fn is a picklable one-argument worker.
+    cell_fn = partial(
+        _eval_one,
+        builder=builder,
+        state=state,
+        subset=subset,
+        formalism=formalism,
+        objective=objective,
+    )
+    results: list[Any] = []
+    with config.override(parallel=False, **preset):
+        results = map_reduce(
+            cell_fn,
+            thetas,
+            parallel=True,
+            ordered=True,
+            reduce_func=list,
+            progress=progress,
+            desc="optimize population",
+            chunksize=1,
+        )
+    if len(results) != len(thetas):
+        raise AssertionError("map_reduce flattened population results")
+    return results
+
+
+def optimize(
+    builder: Callable[[NDArray[Any]], Any],
+    state: tuple[int, ...],
+    bounds: Sequence[tuple[float, float]],
+    *,
+    seed: int,
+    objective: Any = "signed_normalized_phi",
+    direction: str = "maximize",
+    x0: NDArray[Any] | None = None,
+    popsize: int = 15,
+    maxiter: int = 100,
+    tol: float = 0.01,
+    subset: Sequence[int] | None = None,
+    formalism: str | None = None,
+    parallel: bool | None = None,
+    progress: bool | None = None,
+) -> OptimizationResult:
+    """Search a substrate's weights for a maximizer of an IIT quantity.
+
+    Runs a seeded, population-based black-box optimizer
+    (:func:`scipy.optimize.differential_evolution`) over a bounded box of
+    parameters, evaluating each candidate as one system irreducibility
+    analysis. The default objective, signed normalized φₛ, is continuous across
+    minimum-information-partition switches, so the gradient-free search sees no
+    discontinuities (``experiments/substrate_landscape_experiments/FINDINGS.md``).
+
+    Parameters
+    ----------
+    builder : Callable[[NDArray], Substrate]
+        The parameter axis: a vector → substrate map. :func:`weight_axes` builds
+        one for the single-substrate weight case.
+    state : tuple[int, ...]
+        The substrate state analyzed at every candidate.
+    bounds : Sequence[tuple[float, float]]
+        ``(low, high)`` per parameter dimension. ``len(bounds)`` fixes the
+        search dimension.
+    seed : int
+        Seeds an isolated ``np.random.default_rng`` driving the optimizer, and
+        is recorded on the result. Required — reproducibility is not optional.
+    objective : str or Callable
+        ``"signed_normalized_phi"`` (default), ``"phi"``, ``"signed_phi"``, or
+        ``"normalized_phi"`` by name, or a callable ``SIA → float`` for
+        objectives the roughness gate did not validate.
+    direction : str
+        ``"maximize"`` (default) or ``"minimize"``.
+    x0 : NDArray, optional
+        Seeds one member of the initial population, e.g. a known-good
+        substrate's weights.
+    popsize : int
+        Differential-evolution population multiplier.
+    maxiter : int
+        Maximum number of generations.
+    tol : float
+        Relative convergence tolerance.
+    subset : Sequence[int], optional
+        Candidate system node indices; ``None`` uses the whole substrate.
+    formalism : str, optional
+        A formalism preset applied for these evaluations only.
+    parallel : bool, optional
+        Evaluate each generation's population through ``map_reduce``; defaults to
+        ``config.infrastructure.parallel``. Requires ``builder`` and a callable
+        ``objective`` to be picklable (:func:`weight_axes` and the named string
+        objectives are).
+    progress : bool, optional
+        Show a progress bar; defaults to ``config.infrastructure.progress_bars``.
+
+    Returns
+    -------
+    OptimizationResult
+
+    Raises
+    ------
+    ValueError
+        If ``objective`` is a name that is not one of the four φₛ variants, or
+        ``direction`` is neither ``"maximize"`` nor ``"minimize"``.
+
+    Notes
+    -----
+    The driver reads only the scalar objective to choose a move; it never
+    branches on a selection identity, which flips between near-tied selections
+    at single-grid-point frequency even where the objective is smooth (the gate
+    caveat). Selection identities and margins are logged for inspection only.
+
+    With ``parallel=True`` the ``builder`` and ``objective`` are sent to worker
+    processes, so both must be picklable. A closure builder or a lambda
+    objective must be run with ``parallel=False``.
+    """
+    from scipy.optimize import differential_evolution
+
+    if isinstance(objective, str) and objective not in _QUANTITIES:
+        raise ValueError(
+            f"unknown objective {objective!r}; expected one of "
+            f"{', '.join(sorted(_QUANTITIES))}, or a callable"
+        )
+    if direction not in ("maximize", "minimize"):
+        raise ValueError(
+            f"direction must be 'maximize' or 'minimize', got {direction!r}"
+        )
+
+    box = [(float(lo), float(hi)) for lo, hi in bounds]
+    sign = -1.0 if direction == "maximize" else 1.0  # DE minimizes sign*objective
+    show = fallback(progress, config.infrastructure.progress_bars)
+    use_parallel = fallback(parallel, config.infrastructure.parallel)
+    objective_name = objective if isinstance(objective, str) else "<callable>"
+
+    rows: list[dict[str, Any]] = []
+    sias: list[Any] = []
+    generation = 0
+
+    def batch_objective(population: NDArray[Any]) -> NDArray[Any]:
+        nonlocal generation
+        # scipy hands a (D, S) matrix under vectorized=True.
+        thetas = [population[:, i] for i in range(population.shape[1])]
+        evaluated = _eval_batch(
+            builder, thetas, state, subset, formalism, objective, use_parallel, show
+        )
+        scores = np.empty(len(evaluated))
+        for member, (theta, row) in enumerate(zip(thetas, evaluated, strict=True)):
+            record = {
+                "eval": len(rows),
+                "generation": generation,
+                **{f"p{d}": float(theta[d]) for d in range(len(theta))},
+                "objective": row["objective"],
+                "reachable": row["reachable"],
+                "partition": row["partition"],
+                "cause_state": row["cause_state"],
+                "effect_state": row["effect_state"],
+                "partition_margin": row["partition_margin"],
+                "cause_state_margin": row["cause_state_margin"],
+                "effect_state_margin": row["effect_state_margin"],
+            }
+            rows.append(record)
+            sias.append(row["_sia"])
+            if row["reachable"]:
+                scores[member] = sign * row["objective"]
+            else:
+                scores[member] = _UNREACHABLE_PENALTY
+        generation += 1
+        return scores
+
+    outcome = differential_evolution(
+        batch_objective,
+        box,
+        rng=np.random.default_rng(seed),
+        maxiter=maxiter,
+        popsize=popsize,
+        tol=tol,
+        x0=x0,
+        vectorized=True,
+        updating="deferred",
+        polish=False,
+        workers=1,
+    )
+
+    trajectory = pd.DataFrame(rows)
+    # Derive the best from the logged trajectory (not `outcome`) so best_params /
+    # best_sia / best_objective stay mutually consistent and match the table.
+    # nanargmax/nanargmin skip NaN (unreachable) rows; the default RangeIndex
+    # makes the returned position line up with the `sias` list.
+    values = trajectory["objective"].to_numpy(dtype=float)
+    param_cols = [f"p{d}" for d in range(len(box))]
+    if np.isfinite(values).any():
+        best_row = int(
+            np.nanargmax(values) if direction == "maximize" else np.nanargmin(values)
+        )
+        best_objective = float(values[best_row])
+        best_params = trajectory.iloc[best_row][param_cols].to_numpy(dtype=float)
+        best_sia = sias[best_row]
+    else:
+        # Every candidate was dynamically unreachable — no meaningful optimum.
+        best_objective = math.nan
+        best_params = np.asarray(outcome.x, dtype=float)
+        best_sia = None
+    best_substrate = builder(best_params)
+
+    return OptimizationResult(
+        best_params=best_params,
+        best_objective=float(best_objective),
+        best_substrate=best_substrate,
+        best_sia=best_sia,
+        trajectory=trajectory,
+        bounds=box,
+        seed=int(seed),
+        direction=direction,
+        objective_name=objective_name,
+        settings={
+            "backend": "scipy.differential_evolution",
+            "popsize": popsize,
+            "maxiter": maxiter,
+            "tol": tol,
+        },
+        config_snapshot={
+            "precision": config.numerics.precision,
+            "formalism": formalism,
+        },
+        n_evaluations=len(trajectory),
+        n_unreachable=int(np.count_nonzero(~trajectory["reachable"].to_numpy())),
+    )

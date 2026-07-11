@@ -1,12 +1,14 @@
 """Tests for pyphi.optimize: black-box optimization over substrate weights."""
 
 import numpy as np
+import pandas as pd
 import pytest
 
 import pyphi
 from pyphi import examples
 from pyphi.optimize import _eval_one
 from pyphi.optimize import _objective_value
+from pyphi.optimize import optimize
 from pyphi.optimize import weight_axes
 from pyphi.substrate_generator import ising
 
@@ -94,3 +96,85 @@ def test_eval_one_unreachable_row_is_penalized_not_raised():
     assert row["reachable"] is False
     assert row["_sia"] is None
     assert np.isnan(row["objective"])
+
+
+def test_optimize_concentrates_above_random_mean():
+    # The optimizer returns a point better than a typical blind draw. Beating a
+    # same-budget random *max* is not a reliable claim at small n (random search
+    # is competitive there — see the substrate-landscape FINDINGS); beating the
+    # random *mean* is the robust, meaningful baseline.
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1), (1, 0)], temperature=0.25
+    )
+    bounds = [(0.1, 1.3), (0.1, 1.3)]
+    result = optimize(
+        axis, STATE, bounds, seed=20260711, popsize=6, maxiter=8, parallel=False
+    )
+    rng = np.random.default_rng(20260711)
+    n = result.n_evaluations
+    baseline_mean = np.mean(
+        [
+            _eval_one(
+                rng.uniform([0.1, 0.1], [1.3, 1.3]),
+                builder=axis,
+                state=STATE,
+                subset=None,
+                formalism=None,
+                objective="signed_normalized_phi",
+            )["objective"]
+            for _ in range(n)
+        ]
+    )
+    assert result.best_objective >= baseline_mean
+    assert result.direction == "maximize"
+    assert result.seed == 20260711
+    assert len(result.trajectory) == result.n_evaluations
+    # The best row's objective matches best_objective.
+    assert result.trajectory["objective"].max() == pytest.approx(result.best_objective)
+
+
+def test_optimize_is_reproducible():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    bounds = [(0.2, 1.2)]
+    kwargs = {"seed": 7, "popsize": 5, "maxiter": 5, "parallel": False}
+    r1 = optimize(axis, STATE, bounds, **kwargs)
+    r2 = optimize(axis, STATE, bounds, **kwargs)
+    pd.testing.assert_frame_equal(r1.trajectory, r2.trajectory)
+    np.testing.assert_array_equal(r1.best_params, r2.best_params)
+
+
+def test_optimize_logs_unreachable_not_raised():
+    substrate = examples.basic_substrate()
+    result = optimize(
+        lambda _t: substrate,
+        (0, 1, 1),
+        [(0.0, 1.0)],
+        seed=1,
+        popsize=4,
+        maxiter=3,
+        parallel=False,
+    )
+    assert result.n_unreachable == result.n_evaluations
+    assert not result.trajectory["reachable"].any()
+
+
+def test_optimize_rejects_unknown_objective_name():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    with pytest.raises(ValueError, match="unknown objective"):
+        optimize(axis, STATE, [(0.2, 1.2)], seed=1, objective="not_a_quantity")
+
+
+def test_parallel_matches_sequential_best():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1), (1, 0)], temperature=0.25
+    )
+    bounds = [(0.1, 1.3), (0.1, 1.3)]
+    kwargs = {"seed": 99, "popsize": 5, "maxiter": 5}
+    seq = optimize(axis, STATE, bounds, parallel=False, **kwargs)
+    par = optimize(axis, STATE, bounds, parallel=True, **kwargs)
+    assert par.best_objective == pytest.approx(seq.best_objective)
+    np.testing.assert_allclose(par.best_params, seq.best_params)
