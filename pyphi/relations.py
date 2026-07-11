@@ -436,6 +436,7 @@ class Relations(Displayable, ToPandasMixin, Serializable):
 
     def max_phi(self) -> float:
         """Return the maximum φ_r over all relations, or ``0.0`` if empty."""
+        # numerics: exact — the reported maximum, not a tolerant selection.
         return max(
             (float(relation.phi) for relation in self),  # type: ignore[attr-defined]  # iterable in subclasses
             default=0.0,
@@ -507,8 +508,8 @@ class Relations(Displayable, ToPandasMixin, Serializable):
         max_degree : int, optional
             Skip relations with more than this many relata.
         """
-        # numerics: exact — descending sort for a stream; the min_phi
-        # threshold below is tolerant.
+        # Descending sort for a stream; the min_phi threshold below is tolerant.
+        # numerics: exact — total order for streaming, not a tolerant selection.
         candidates = sorted(self, key=lambda r: float(r.phi), reverse=True)  # type: ignore[attr-defined]  # iterable in subclasses
         yielded = 0
         for relation in candidates:
@@ -868,6 +869,7 @@ class AnalyticalRelations(Relations):
         ds = list(self.distinctions)
         unions = [frozenset(d.purview_union) for d in ds]
         densities = [self._density(d) for d in ds]
+        # numerics: exact — seeds a running max; callers compare tolerantly.
         best = max(
             (float(relation.phi) for relation in self.self_relations),
             default=0.0,
@@ -1246,6 +1248,7 @@ class AnalyticalFoldRelations(AnalyticalRelations):
         ds = list(self.distinctions)
         unions = [frozenset(d.purview_union) for d in ds]
         densities = [self._density(d) for d in ds]
+        # numerics: exact — seeds a running max; callers compare tolerantly.
         best = max(
             (
                 float(relation.phi)
