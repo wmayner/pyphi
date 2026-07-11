@@ -126,6 +126,33 @@ after = pyphi.analyze(axis(0.704), (1, 0, 0), compute="sia")
 )
 ```
 
+## Optimizing over weights
+
+`landscape_section` shows $\varphi_s$ *along* an axis; `pyphi.optimize`
+*searches* over one. Give it a builder mapping a parameter vector to a
+substrate — `weight_axes` builds one, the vector analogue of `weight_axis` —
+a box of bounds, and a seed. The optimizer is population-based and
+gradient-free, so it is untroubled by the selection switches that make the
+landscape piecewise-smooth; it maximizes signed normalized $\varphi_s$ by
+default, the quantity that stays continuous across those switches.
+
+```{code-cell} python
+box_axis = pyphi.weight_axes(
+    [ising.probability] * 3, weights, [(0, 1), (1, 0)], temperature=0.25
+)
+result = pyphi.optimize(
+    box_axis, (1, 0, 0), [(0.1, 1.3), (0.1, 1.3)], seed=20260711, popsize=6, maxiter=8
+)
+float(result.best_objective), result.best_params
+```
+
+Every evaluation is logged to `result.to_pandas()`, and
+`result.save("run_seed20260711.json")` persists the trajectory and metadata.
+
+```{code-cell} python
+result.to_pandas().head()
+```
+
 ## Notes
 
 - Setting a weight to exactly 0 removes the connection from the derived

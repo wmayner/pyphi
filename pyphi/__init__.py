@@ -110,6 +110,9 @@ from .landscape import landscape_section as landscape_section
 from .landscape import perturb as perturb
 from .landscape import weight_axis as weight_axis
 from .log import enable_logging as enable_logging
+from .optimize import OptimizationResult as OptimizationResult
+from .optimize import optimize as optimize
+from .optimize import weight_axes as weight_axes
 from .serialize import load
 from .serialize import save
 from .substrate import Substrate
@@ -155,6 +158,7 @@ __all__ = [
     "Direction",
     "FactoredTPM",
     "JointTPM",
+    "OptimizationResult",
     "Substrate",
     "System",
     "Transition",
@@ -168,9 +172,11 @@ __all__ = [
     "iit4_2026",
     "landscape_section",
     "load",
+    "optimize",
     "perturb",
     "phi_posterior",
     "save",
+    "weight_axes",
     "weight_axis",
 ] + [name for name in sorted(_SUBMODULE_NAMES) if not name.startswith("_")]
 
