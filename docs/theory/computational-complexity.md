@@ -291,9 +291,14 @@ axis further, because the meso units' own mappings are already fixed (Marshall e
 al., 2024, Fig. 3E).
 
 **What one candidate costs.** Two separate costs attach to each candidate.
-Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ per
-candidate; the estimate's `construction_keys_upper_bound` counts the distinct
-(footprint, grain) keys this work factors over. Evaluating its $\varphi_s$ is a full
+Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ work,
+paid once per distinct (footprint, update grain, apportionment) combination rather
+than once per candidate: the construction's mapping-independent intermediates are
+cached per substrate (the `cache_macro_construction` option, on by default), so
+candidates that differ only in their mapping reuse them. The estimate's
+`construction_keys_upper_bound` counts the distinct (footprint, grain) keys; under
+the default `apportionment="NONE"` these are exactly the cached combinations.
+Evaluating its $\varphi_s$ is a full
 IIT 4.0 system analysis over the candidate's $m$ macro units, so it sweeps the same
 `DIRECTED_SET_PARTITION` system cuts as the previous section, now counted in the
 macro unit count $m$:
