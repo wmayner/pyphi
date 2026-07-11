@@ -338,3 +338,20 @@ def test_sample_requires_seed_keyword(structures):
     _, _, _, analytical = structures
     with pytest.raises(TypeError):
         analytical.sample(10, 42)  # seed must be keyword-only
+
+
+def test_analytical_materialize_equals_concrete(structures):
+    _, _, concrete, analytical = structures
+    assert analytical.materialize() == concrete
+
+
+def test_analytical_materialize_bounds(structures):
+    _, _, concrete, analytical = structures
+    capped = analytical.materialize(max_degree=2)
+    assert capped == relations.ConcreteRelations(r for r in concrete if len(r) <= 2)
+    threshold = concrete.max_phi()
+    top = analytical.materialize(min_phi=threshold)
+    assert all(
+        float(r.phi) > threshold or numerics.eq(float(r.phi), threshold) for r in top
+    )
+    assert len(top) >= min(1, concrete.num_relations())

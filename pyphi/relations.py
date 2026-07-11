@@ -960,6 +960,24 @@ class AnalyticalRelations(Relations):
             if k is not None and yielded >= k:
                 return
 
+    def materialize(
+        self, max_degree: int | None = None, min_phi: float | None = None
+    ) -> ConcreteRelations:
+        """Enumerate the relations as an explicit
+        :class:`ConcreteRelations`.
+
+        The one deliberately loud way to obtain relation objects from this
+        backend — the output is exponential in the number of distinctions,
+        so ``max_degree`` and ``min_phi`` (tolerant ``≥``) exist to bound
+        it. Self-relations are always included (they have degree 1 and
+        there are at most ``|D|`` of them).
+        """
+        return ConcreteRelations(
+            relation
+            for relation in all_relations(self.distinctions, max_degree=max_degree)
+            if _passes(relation, max_degree, min_phi)
+        )
+
     def binding_matrix(self) -> pd.DataFrame:
         """Return the atom-pair binding matrix, in closed form.
 
