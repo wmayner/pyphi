@@ -10,11 +10,12 @@ from pyphi.estimate import PhiPosterior
 from pyphi.estimate import SubstratePosterior
 from pyphi.estimate import estimate_substrate
 from pyphi.estimate import phi_posterior
+from test.conftest import IIT_4_CONFIG
 
 
 @pytest.fixture(autouse=True)
 def _quiet():
-    with pyphi.config.override(progress_bars=False):
+    with IIT_4_CONFIG, pyphi.config.override(progress_bars=False):
         yield
 
 
@@ -204,7 +205,7 @@ def grid3_posterior():
 
 @pytest.fixture(scope="module")
 def grid3_phi_posterior(grid3_posterior):
-    with pyphi.config.override(progress_bars=False):
+    with IIT_4_CONFIG, pyphi.config.override(progress_bars=False):
         return phi_posterior(grid3_posterior, (0, 0, 0), n_samples=40, seed=99)
 
 

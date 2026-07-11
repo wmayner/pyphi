@@ -15,23 +15,24 @@ from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
 from pyphi.partition import mechanism_partitions
 from pyphi.partition import system_partitions
+from test.conftest import IIT_4_CONFIG
 
 
 @pytest.fixture(autouse=True)
 def _quiet():
-    with pyphi.config.override(progress_bars=False):
+    with IIT_4_CONFIG, pyphi.config.override(progress_bars=False):
         yield
 
 
 @pytest.fixture(scope="module")
 def basic_sia():
-    with pyphi.config.override(progress_bars=False):
+    with IIT_4_CONFIG, pyphi.config.override(progress_bars=False):
         return examples.basic_system().sia()
 
 
 @pytest.fixture(scope="module")
 def xor_sia():
-    with pyphi.config.override(progress_bars=False):
+    with IIT_4_CONFIG, pyphi.config.override(progress_bars=False):
         return examples.xor_system().sia()
 
 
