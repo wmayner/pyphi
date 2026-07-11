@@ -80,6 +80,23 @@ aligned to the given distinction order.
 
 The projector calls this for node sizing, so it needs no `isinstance` branch.
 
+### Spectrum view
+
+`project_ces` is called for every view, including `"spectrum"`, whose renderer
+(`render/spectrum.py`) currently builds its per-degree count/Σφ bars by iterating
+`projection.edges`. Under a relation cap those bars would show only the top-k —
+a silently truncated census, the same failure mode faithful sizing avoids. The
+spectrum is a closed-form statistic, so:
+
+- `CESProjection` gains a `degree_spectrum: dict[int, tuple[int, float]]` field,
+  populated from `ces.relations.degree_spectrum()` (closed-form on both
+  backends).
+- `render/spectrum.py` reads `projection.degree_spectrum` instead of iterating
+  edges, making the spectrum exact and independent of `max_relations`.
+
+The lattice, scatter, matrix, and hypergraph views legitimately render the
+strongest relations, so they are unchanged beyond consuming the capped edge set.
+
 ## 2. Diff
 
 `CauseEffectStructure._changes` (`pyphi/models/ces.py`) replaces the
@@ -104,16 +121,19 @@ change to `models/diff.py` is required.
 ## Interfaces touched
 
 - `pyphi/visualize/projection/__init__.py` — `project_ces` signature + edge/face
-  construction; `_faces` reworked to take relations from `strongest(k)`.
+  construction; `_faces` reworked to take relations from `strongest(k)`;
+  `CESProjection` gains `degree_spectrum`; the now-dead `_sum_phi_relations`
+  helper is removed.
 - `pyphi/visualize/__init__.py` — `plot_ces` and `highlight_phi_fold` gain and
   forward `max_relations`.
+- `pyphi/visualize/render/spectrum.py` — reads `projection.degree_spectrum`.
 - `pyphi/models/ces.py` — `_changes` relation block.
 - `pyphi/relations.py` — new `Relations.sum_phi_by_distinction` (base, iterating)
   and `AnalyticalRelations.sum_phi_by_distinction` (closed-form override).
 
-`models/diff.py` and the renderers (`render/*.py`) are unchanged; they already
-provide the generic `Change` rendering and consume the projection dataclasses,
-whose shape does not change.
+`models/diff.py` and the other renderers (lattice, scatter, matrix, hypergraph)
+are unchanged; they already provide the generic `Change` rendering and consume
+the capped edge set as intended.
 
 ## Testing
 
@@ -124,6 +144,9 @@ whose shape does not change.
   of the concrete edge set for the same CES; and analytical
   `sum_phi_by_distinction` equals the concrete per-distinction incident Σφ_r,
   distinction by distinction, on a small network.
+- **Spectrum:** `project_ces` carries a `degree_spectrum` equal to
+  `ces.relations.degree_spectrum()`; the value is identical whether or not a cap
+  is applied, and matches between the concrete and analytical backends.
 - **Diff:** two cause-effect structures computed under `ANALYTICAL` config now
   produce nonzero `relation_sum_phi` / `relation_count` / `relation_degree`
   deltas where they differ (zero today). A concrete diff still lists per-relation
@@ -132,7 +155,8 @@ whose shape does not change.
 
 ## Out of scope
 
-- Any change to the renderers (`render/*.py`) or the projection dataclass shapes.
+- Any change to the lattice, scatter, matrix, or hypergraph renderers (only
+  `render/spectrum.py` changes, to read the closed-form spectrum).
 - Any change to relation computation beyond the additive
   `sum_phi_by_distinction` query.
 - ROADMAP N6/N24 are already landed; this is a follow-up, not a new roadmap row.
