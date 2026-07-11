@@ -473,3 +473,17 @@ def test_fold_sample_not_implemented(fold_structures):
     _, _, fold, _ = fold_structures
     with pytest.raises(NotImplementedError):
         fold.sample(10, seed=0)
+
+
+def test_sum_phi_by_distinction_parity(structures):
+    """Per-distinction incident Σφ_r agrees between the iterating and
+    closed-form backends, and the iterating sum conserves Σ_r φ_r·degree(r)."""
+    _, distinctions, concrete, analytical = structures
+    dl = list(distinctions)
+    conc = concrete.sum_phi_by_distinction(dl)
+    anal = analytical.sum_phi_by_distinction(dl)
+    assert len(conc) == len(dl)
+    for c, a in zip(conc, anal, strict=True):
+        assert c == pytest.approx(a)
+    # Independent oracle: each relation contributes φ_r to each of its relata.
+    assert sum(conc) == pytest.approx(sum(float(r.phi) * len(r) for r in concrete))

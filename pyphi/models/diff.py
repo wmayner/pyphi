@@ -28,7 +28,8 @@ class Change:
 
     ``kind`` is a stable machine key (``"distinction_gained"`` /
     ``"distinction_lost"`` / ``"distinction_changed"`` / ``"relation_gained"`` /
-    ``"relation_lost"`` / ``"link_gained"`` / ``"link_lost"`` /
+    ``"relation_lost"`` / ``"relation_sum_phi"`` / ``"relation_count"`` /
+    ``"relation_degree"`` / ``"link_gained"`` / ``"link_lost"`` /
     ``"link_changed"`` / ``"purview_changed"``); ``key`` identifies the element
     (mechanism, relata, or link); ``a_value`` / ``b_value`` are the per-side
     quantities (``None`` on the side where the element is absent); ``tone`` is

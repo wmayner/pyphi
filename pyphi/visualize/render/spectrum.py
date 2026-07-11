@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-
 import plotly.graph_objects as go
 
 from pyphi.visualize.projection import CESProjection
@@ -15,16 +13,15 @@ def render_relation_spectrum(
 ) -> go.Figure:
     """A 2-D bar panel of relation count and sum of phi per relation degree.
 
-    Computed from the projection's relation-level ``edges`` (which carry every
-    relation's degree and phi), so the high-degree structure that is hard to
-    read in the 3-D hypergraph view is summarized at a glance.
+    Reads the projection's closed-form ``degree_spectrum`` (count and Σφ_r per
+    degree), so the high-degree structure that is hard to read in the 3-D
+    hypergraph view is summarized exactly, whatever relation cap the other
+    views use.
     """
-    count: dict[int, int] = defaultdict(int)
-    sum_phi: dict[int, float] = defaultdict(float)
-    for edge in projection.edges:
-        count[edge.degree] += 1
-        sum_phi[edge.degree] += edge.phi
-    degrees = sorted(count)
+    spectrum = projection.degree_spectrum
+    degrees = sorted(spectrum)
+    count = {d: spectrum[d][0] for d in degrees}
+    sum_phi = {d: spectrum[d][1] for d in degrees}
     figure = go.Figure() if fig is None else fig
     figure.add_trace(
         go.Bar(

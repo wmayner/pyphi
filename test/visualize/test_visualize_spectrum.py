@@ -40,3 +40,18 @@ def test_plot_ces_spectrum_view_runs():
     fig = plot_ces(examples.xor_system().ces(), view="spectrum")
     assert isinstance(fig, go.Figure)
     assert any(isinstance(t, go.Bar) for t in fig.data)
+
+
+def test_spectrum_is_cap_independent_on_analytical():
+    import pyphi
+    from pyphi import examples
+    from pyphi.visualize import plot_ces
+
+    with pyphi.config.override(relation_computation="ANALYTICAL"):
+        ces = examples.xor_system().ces()
+        spectrum = ces.relations.degree_spectrum()
+        fig = plot_ces(ces, view="spectrum", max_relations=1)
+    # Bars reflect the full closed-form spectrum, not the single rendered edge.
+    (bar,) = fig.data
+    assert list(bar.x) == sorted(spectrum)
+    assert list(bar.y) == pytest.approx([spectrum[d][1] for d in sorted(spectrum)])

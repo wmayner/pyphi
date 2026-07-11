@@ -414,20 +414,47 @@ class CauseEffectStructure(
                 changes.append(
                     Change("distinction_changed", mech, a_value=da.phi, b_value=db.phi)
                 )
-        a_rels = (
-            set(self.relations)  # pyright: ignore[reportArgumentType]
-            if hasattr(self.relations, "__iter__")
-            else set()
-        )
-        b_rels = set(other.relations) if hasattr(other.relations, "__iter__") else set()
-        changes.extend(
-            Change("relation_lost", tuple(sorted(r.mechanisms)), a_value=r.phi)
-            for r in a_rels - b_rels
-        )
-        changes.extend(
-            Change("relation_gained", tuple(sorted(r.mechanisms)), b_value=r.phi)
-            for r in b_rels - a_rels
-        )
+        a_rels, b_rels = self.relations, other.relations
+        if not numerics.eq(float(a_rels.sum_phi()), float(b_rels.sum_phi())):
+            changes.append(
+                Change(
+                    "relation_sum_phi",
+                    None,
+                    a_value=a_rels.sum_phi(),
+                    b_value=b_rels.sum_phi(),
+                )
+            )
+        if a_rels.num_relations() != b_rels.num_relations():
+            changes.append(
+                Change(
+                    "relation_count",
+                    None,
+                    a_value=a_rels.num_relations(),
+                    b_value=b_rels.num_relations(),
+                )
+            )
+        a_spec, b_spec = a_rels.degree_spectrum(), b_rels.degree_spectrum()
+        for degree in sorted(a_spec.keys() | b_spec.keys()):
+            av, bv = a_spec.get(degree), b_spec.get(degree)
+            same = (
+                av is not None
+                and bv is not None
+                and av[0] == bv[0]
+                and numerics.eq(av[1], bv[1])
+            )
+            if not same:
+                changes.append(Change("relation_degree", degree, a_value=av, b_value=bv))
+        if hasattr(a_rels, "__iter__") and hasattr(b_rels, "__iter__"):
+            a_set = set(a_rels)  # pyright: ignore[reportArgumentType]  # iterability guarded above
+            b_set = set(b_rels)  # pyright: ignore[reportArgumentType]  # iterability guarded above
+            changes.extend(
+                Change("relation_lost", tuple(sorted(r.mechanisms)), a_value=r.phi)
+                for r in a_set - b_set
+            )
+            changes.extend(
+                Change("relation_gained", tuple(sorted(r.mechanisms)), b_value=r.phi)
+                for r in b_set - a_set
+            )
         return tuple(changes)
 
     def diff(self, other) -> ResultDiff:

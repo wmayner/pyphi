@@ -465,6 +465,24 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             for degree in sorted(counts)
         }
 
+    def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
+        """Return each distinction's incident Σφ_r, aligned to ``distinctions``.
+
+        A distinction's incident Σφ_r is the sum of φ_r over every relation
+        that contains it, including its self-relation. The result is a tuple
+        parallel to ``distinctions``; a distinction that no relation reaches
+        contributes ``0.0``.
+        """
+        position = {tuple(d.mechanism): i for i, d in enumerate(distinctions)}
+        sums = [0.0] * len(position)
+        for relation in self:  # type: ignore[attr-defined]  # iterable in subclasses
+            phi = float(relation.phi)
+            for mechanism in relation.mechanisms:
+                index = position.get(tuple(mechanism))
+                if index is not None:
+                    sums[index] += phi
+        return tuple(sums)
+
     def max_phi(self) -> float:
         """Return the maximum φ_r over all relations, or ``0.0`` if empty."""
         # numerics: exact — the reported maximum, not a tolerant selection.
@@ -889,6 +907,26 @@ class AnalyticalRelations(Relations):
             if count:
                 spectrum[degree] = (count, self.sum_phi_of_degree(degree))
         return spectrum
+
+    def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
+        """Return each distinction's incident Σφ_r in closed form.
+
+        A relation either contains a given distinction or does not, so its
+        incident Σφ_r is ``total − Σφ_r(relations avoiding it)``: the full
+        total differenced against the total over the remaining distinctions.
+        No relations are enumerated. The result is parallel to ``distinctions``.
+        """
+        from pyphi.models.distinctions import ResolvedDistinctions
+
+        total = self.sum_phi()
+        result = []
+        for distinction in distinctions:
+            mechanism = tuple(distinction.mechanism)
+            others = ResolvedDistinctions(
+                d for d in self.distinctions if tuple(d.mechanism) != mechanism
+            )
+            result.append(total - AnalyticalRelations(others).sum_phi())
+        return tuple(result)
 
     def max_phi(self) -> float:
         """Return the maximum φ_r, scanning only pairs and self-relations.

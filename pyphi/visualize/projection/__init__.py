@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from dataclasses import field
 
 from pyphi.labels import NodeLabels
 
@@ -114,6 +115,7 @@ class CESProjection:
     node_labels: NodeLabels
     endpoints: tuple[EndpointNode, ...] = ()
     faces: tuple[RelationFaceEdge, ...] = ()
+    degree_spectrum: dict[int, tuple[int, float]] = field(default_factory=dict)
 
     def inclusion(self, order: str) -> InclusionOrder:
         """The inclusion order named by ``order``.
@@ -137,15 +139,6 @@ class CESProjection:
         if order == "purview_union":
             return self.purview_union_inclusion
         raise ValueError(f"unknown order {order!r}")
-
-
-def _sum_phi_relations(n_nodes: int, edges: Sequence[RelationEdge]) -> tuple[float, ...]:
-    """Per-node sum of relation phi over the edges involving each node."""
-    sums = [0.0] * n_nodes
-    for edge in edges:
-        for i in edge.relata:
-            sums[i] += edge.phi
-    return tuple(sums)
 
 
 def _inclusion_order(unit_sets: Sequence[frozenset]) -> InclusionOrder:
@@ -211,10 +204,9 @@ def _endpoints(distinctions, node_labels) -> tuple[EndpointNode, ...]:
 
 
 def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
-    by_degree = relations.faces_by_degree
     faces = []
-    for degree in sorted(by_degree):
-        for face in by_degree.get(degree, ()):
+    for relation in relations:
+        for face in relation.faces:
             endpoint_ids = tuple(
                 sorted(
                     2 * mechanism_to_id[tuple(relatum.mechanism)]
@@ -225,7 +217,7 @@ def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
             faces.append(
                 RelationFaceEdge(
                     endpoints=endpoint_ids,
-                    degree=degree,
+                    degree=len(face),
                     phi=float(face.phi),
                     overlap=_unit_indices(face.overlap),
                 )
@@ -234,7 +226,7 @@ def _faces(relations, mechanism_to_id) -> tuple[RelationFaceEdge, ...]:
     return tuple(faces)
 
 
-def project_ces(ces, node_labels=None) -> CESProjection:
+def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
     """Project a :class:`~pyphi.models.ces.CauseEffectStructure` into plot-ready data.
 
     Parameters
@@ -244,6 +236,12 @@ def project_ces(ces, node_labels=None) -> CESProjection:
     node_labels : NodeLabels, optional
         Labels for substrate units. Defaults to the labels carried by the first
         distinction.
+    max_relations : int, optional
+        Render only the ``max_relations`` strongest relations (and their faces),
+        in descending φ_r order. If None, render every relation; a relation set
+        that cannot be enumerated (the analytical backend) then raises, since
+        "every relation" is unbounded. Node marker sizes and the degree spectrum
+        are always computed over the full structure, independent of this cap.
 
     Returns
     -------
@@ -254,6 +252,8 @@ def project_ces(ces, node_labels=None) -> CESProjection:
     TypeError
         If ``ces`` is not relation-closed (e.g. a :class:`PhiFold`, whose
         relations may reference distinctions outside it).
+    ValueError
+        If ``max_relations`` is None and ``ces.relations`` is not enumerable.
     """
     if not getattr(ces, "relation_closed", True):
         raise TypeError(
@@ -266,6 +266,15 @@ def project_ces(ces, node_labels=None) -> CESProjection:
     if node_labels is None:
         node_labels = distinctions[0].node_labels
     mechanism_to_id = {tuple(d.mechanism): i for i, d in enumerate(distinctions)}
+    if max_relations is None:
+        try:
+            iter(ces.relations)
+        except TypeError:
+            raise ValueError(
+                "relations are not enumerable (analytical backend); pass "
+                "max_relations=N to render the strongest N relations by φ_r"
+            ) from None
+    top = list(ces.relations.strongest(k=max_relations))
     edges = tuple(
         RelationEdge(
             relata=tuple(sorted(mechanism_to_id[tuple(m)] for m in relation.mechanisms)),
@@ -273,7 +282,7 @@ def project_ces(ces, node_labels=None) -> CESProjection:
             phi=float(relation.phi),
             overlap=_unit_indices(relation.purview),
         )
-        for relation in ces.relations
+        for relation in top
     )
     mechanism_inclusion = _inclusion_order(
         tuple(frozenset(d.mechanism) for d in distinctions)
@@ -282,7 +291,7 @@ def project_ces(ces, node_labels=None) -> CESProjection:
         frozenset(getattr(u, "index", u) for u in d.purview_union) for d in distinctions
     )
     purview_union_inclusion = _inclusion_order(unions)
-    sums = _sum_phi_relations(len(distinctions), edges)
+    sums = ces.relations.sum_phi_by_distinction(distinctions)
     nodes = tuple(
         DistinctionNode(
             id=i,
@@ -305,5 +314,6 @@ def project_ces(ces, node_labels=None) -> CESProjection:
         purview_union_inclusion=purview_union_inclusion,
         node_labels=node_labels,
         endpoints=_endpoints(distinctions, node_labels),
-        faces=_faces(ces.relations, mechanism_to_id),
+        faces=_faces(top, mechanism_to_id),
+        degree_spectrum=ces.relations.degree_spectrum(),
     )
