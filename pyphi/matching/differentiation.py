@@ -13,8 +13,10 @@ if TYPE_CHECKING:
 
 def _component_perceptions(perception):
     """Yield (component, perception) for each component of one structure."""
+    from pyphi.relations import AnalyticalRelations
+
     relations = perception.ces.relations
-    if not hasattr(relations, "__iter__"):
+    if isinstance(relations, AnalyticalRelations):
         raise TypeError(
             "concrete differentiation requires iterable (materialized) "
             f"relations; got {type(relations).__name__}. Use "

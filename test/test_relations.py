@@ -122,3 +122,28 @@ def test_analytical_relations_sum_matches_concrete(case_name):
     concrete_sum = sum(float(r.phi) for r in relations.relations(distinctions))
     analytical_sum = float(relations.AnalyticalRelations(distinctions).sum_phi())
     assert analytical_sum == pytest.approx(concrete_sum)
+
+
+@config.override(parallel=False)
+def test_analytical_relations_iteration_raises_guided_error():
+    """Iterating or indexing ``AnalyticalRelations`` raises a ``TypeError`` that
+    points to the enumerable alternatives, instead of a bare "not iterable"."""
+    distinctions = new_big_phi.ces(
+        examples.basic_system(),
+        system_measure=resolve_system_measure(config.formalism.iit.system_phi_measure),
+        specification_measure=resolve_mechanism_measure(
+            config.formalism.iit.specification_measure
+        ),
+    ).distinctions
+    rels = relations.AnalyticalRelations(distinctions)
+
+    for op in (lambda: list(rels), lambda: iter(rels), lambda: rels[0]):
+        with pytest.raises(TypeError) as excinfo:
+            op()
+        message = str(excinfo.value)
+        assert "strongest" in message
+        assert "materialize" in message
+        assert "CONCRETE" in message
+
+    # The closed-form count still works — only enumeration is unavailable.
+    assert isinstance(len(rels), int)

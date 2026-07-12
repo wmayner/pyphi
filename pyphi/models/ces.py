@@ -444,9 +444,13 @@ class CauseEffectStructure(
             )
             if not same:
                 changes.append(Change("relation_degree", degree, a_value=av, b_value=bv))
-        if hasattr(a_rels, "__iter__") and hasattr(b_rels, "__iter__"):
-            a_set = set(a_rels)  # pyright: ignore[reportArgumentType]  # iterability guarded above
-            b_set = set(b_rels)  # pyright: ignore[reportArgumentType]  # iterability guarded above
+        from pyphi.relations import AnalyticalRelations
+
+        if not isinstance(a_rels, AnalyticalRelations) and not isinstance(
+            b_rels, AnalyticalRelations
+        ):
+            a_set = set(a_rels)  # pyright: ignore[reportArgumentType]  # non-analytical relations are iterable
+            b_set = set(b_rels)  # pyright: ignore[reportArgumentType]  # non-analytical relations are iterable
             changes.extend(
                 Change("relation_lost", tuple(sorted(r.mechanisms)), a_value=r.phi)
                 for r in a_set - b_set

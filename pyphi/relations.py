@@ -17,6 +17,7 @@ from functools import total_ordering
 from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import NoReturn
 
 import pandas as pd
 from tqdm.auto import tqdm
@@ -773,6 +774,22 @@ class AnalyticalRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions
         super().__init__()
+
+    def _not_enumerable(self, verb: str) -> NoReturn:
+        raise TypeError(
+            f"AnalyticalRelations is a closed-form summary and cannot be {verb}: "
+            "it does not enumerate the relation set. Use .strongest(k) for the "
+            "top-k relations by φ_r, .materialize() to enumerate all of them "
+            "(may be expensive on large structures), or set "
+            "config.formalism.iit.relation_computation = 'CONCRETE' to compute "
+            "the full concrete relation set."
+        )
+
+    def __iter__(self) -> NoReturn:
+        self._not_enumerable("iterated")
+
+    def __getitem__(self, index: object) -> NoReturn:
+        self._not_enumerable("indexed")
 
     @cached_property
     def self_relations(self):
