@@ -403,6 +403,27 @@ in testpaths even though `--doctest-glob=*.rst` would match. Treat
 `docs/*.rst` doctests as documentation that users can copy — verify by
 reading, not by pytest.
 
+#### Formalism pinning (tests that assert φ values)
+
+A φ value is only meaningful relative to a formalism. Any test that asserts a
+φ value must **pin its formalism explicitly** — never rely on the ambient
+default. Pin with the complete preset-sourced context managers
+(`IIT_3_CONFIG`, `IIT_4_CONFIG` in `test/conftest.py`, sourced from
+`pyphi.conf.presets`), not a hand-listed subset of `iit.*` fields: setting
+`iit.version` alone leaves the measures on the ambient default — the
+partial-pin trap that silently recomputes under a different formalism when the
+default changes. Tests that compute φ at module-fixture setup must pin inside
+the fixture (a function-scoped autouse pin does not wrap module-fixture setup).
+
+Exactly one test — `test_default_formalism_is_iit4_2023` — asserts the shipping
+default; it is intentionally unpinned. To flip the default formalism: change
+the default in `pyphi/conf/formalism.py`, update that assertion plus the two
+default-dependent facade tests (`TestGlobalConfigFacade.test_layered_reads_work`
+in `test/conf/test_config_layers.py` and `test_2023_omitted_metric_uses_default`
+in `test/formalism/test_formalism_measure_threading.py`), and regenerate only
+the `docs/` tutorial examples that demonstrate default behavior (CI doctests in
+`pyphi/` compute no cap-sensitive φ).
+
 ### Running tests in parallel for faster feedback
 
 The full suite takes a while. For faster signal, split into independent test

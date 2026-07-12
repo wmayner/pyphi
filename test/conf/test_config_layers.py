@@ -611,3 +611,18 @@ def test_distinction_phi_normalization_warning_states_transition():
     assert len(messages) == 2
     assert f"{old!r} -> {new!r}" in messages[0]
     assert f"{new!r} -> {old!r}" in messages[1]
+
+
+def test_default_formalism_is_iit4_2023():
+    """The library default formalism. This is the single canonical assertion
+    of the shipping default; flipping the default is a deliberate edit here
+    (plus the two default-dependent facade tests ``test_layered_reads_work``
+    and ``test_2023_omitted_metric_uses_default``). Do NOT pin a formalism in
+    this test — it must observe the real default."""
+    from pyphi.conf import config
+
+    iit = config.formalism.iit
+    assert iit.version == "IIT_4_0_2023"
+    assert iit.system_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+    assert iit.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+    assert iit.specification_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"

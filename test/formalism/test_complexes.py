@@ -10,6 +10,7 @@ from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
 from pyphi.substrate import possible_complexes
 from test.conftest import IIT_3_CONFIG
+from test.conftest import IIT_4_CONFIG
 
 
 def test_possible_complexes(s):
@@ -197,6 +198,11 @@ class TestCauseEffectStructureIIT40:
     These tests validate the phi_structure function under IIT 4.0 defaults.
     """
 
+    @pytest.fixture(autouse=True)
+    def _pin_iit4_2023(self):
+        with IIT_4_CONFIG:
+            yield
+
     def _measure_kwargs(self):
         return {
             "system_measure": resolve_system_measure(
@@ -241,6 +247,11 @@ class TestSubstrateMethodsIIT40:
     ``irreducible_sias``, ``complexes``, ``maximal_complex``) which
     previously had no IIT 4.0 condensation entry point.
     """
+
+    @pytest.fixture(autouse=True)
+    def _pin_iit4_2023(self):
+        with IIT_4_CONFIG:
+            yield
 
     @staticmethod
     def _indices(sia):
@@ -383,6 +394,11 @@ def test_iit3_ces_reuses_sia_distinctions(s):
 class TestComplexWrapperIIT40:
     """B16: complexes() returns Complex objects under IIT 4.0."""
 
+    @pytest.fixture(autouse=True)
+    def _pin_iit4_2023(self):
+        with IIT_4_CONFIG:
+            yield
+
     def test_complexes_are_complex_objects(self, s):
         from pyphi.models.complex import Complex
 
@@ -410,6 +426,11 @@ class TestComplexWrapperIIT40:
 
 class TestMaximalComplexWrapperIIT40:
     """B16: maximal_complex() returns a Complex (null-object when empty)."""
+
+    @pytest.fixture(autouse=True)
+    def _pin_iit4_2023(self):
+        with IIT_4_CONFIG:
+            yield
 
     def test_maximal_complex_is_complex(self, s):
         from pyphi.models.complex import Complex

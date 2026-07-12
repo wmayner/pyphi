@@ -48,6 +48,17 @@ from pyphi.examples import EXAMPLES
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
+from test.conftest import IIT_4_CONFIG
+
+
+@pytest.fixture(autouse=True)
+def _pin_iit4_2023():
+    """Pin the 2023/GID formalism for this module, so φ assertions do not
+    depend on the ambient default. Tests that need another formalism override
+    it locally with a ``with`` block, which nests inside this pin."""
+    with IIT_4_CONFIG:
+        yield
+
 
 EXAMPLE_NAMES = [
     "basic",

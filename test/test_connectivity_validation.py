@@ -20,6 +20,17 @@ from pyphi import config
 from pyphi import examples
 from pyphi import numerics
 from pyphi.core.tpm.factored import FactoredTPM
+from test.conftest import IIT_4_CONFIG
+
+
+@pytest.fixture(autouse=True)
+def _pin_iit4_2023():
+    """Pin the 2023/GID formalism for this module, so φ assertions do not
+    depend on the ambient default. Tests that need another formalism override
+    it locally with a ``with`` block, which nests inside this pin."""
+    with IIT_4_CONFIG:
+        yield
+
 
 # ============== Substrate builders (convention-safe via update functions) ==============
 

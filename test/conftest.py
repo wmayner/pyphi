@@ -40,20 +40,22 @@ pyphi.config.validate_phi_bounds = True
 #
 #         def test_something(self):
 #             ...
+#
+# ``IIT_3_CONFIG`` and ``IIT_4_CONFIG`` are preset-sourced and complete: each
+# carries every ``iit.*`` field the formalism needs, not just ``iit.version``.
+# Any test that asserts a φ value must apply one of these — never hand-list
+# ``iit.version`` alone, which leaves the remaining fields on the ambient
+# default and can silently recompute under a different formalism once that
+# default changes.
 
 # IIT 3.0 configuration for regression tests.
 # Sourced from the canonical ``presets.iit3`` so the test config and the
 # library's documented preset cannot drift apart.
 IIT_3_CONFIG = config.override(**presets.iit3)
 
-# IIT 4.0 configuration (current defaults, made explicit for clarity)
-# Use this when you want to explicitly test IIT 4.0 behavior
-IIT_4_CONFIG = config.override(
-    {"iit.version": "IIT_4_0_2023"},
-    mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    system_partition_scheme="DIRECTED_SET_PARTITION",
-)
+# IIT 4.0 (2023) configuration, complete and preset-sourced. Use this to pin a
+# test to the 2023/GID formalism explicitly, independent of the ambient default.
+IIT_4_CONFIG = config.override(**presets.iit4_2023)
 
 # Pytest configuration
 # =============================================================================

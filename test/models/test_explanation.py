@@ -5,6 +5,16 @@ import pytest
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import binding_direction_finding
 from pyphi.models.explanation import runner_up_from_candidates
+from test.conftest import IIT_4_CONFIG
+
+
+@pytest.fixture(autouse=True)
+def _pin_iit4_2023():
+    """Pin the 2023/GID formalism for this module, so φ assertions do not
+    depend on the ambient default. Tests that need another formalism override
+    it locally with a ``with`` block, which nests inside this pin."""
+    with IIT_4_CONFIG:
+        yield
 
 
 def test_every_reason_has_a_structural_level():
