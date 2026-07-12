@@ -309,11 +309,16 @@ def _iit4_2023_dbi_sia(tpm: list, cm: list, state: tuple[int, ...]):
     scheme — the current-code analogue of the oracle's config."""
     substrate = Substrate(np.array(tpm), cm=np.array(cm))
     override = {
-        # All non-listed fields default to the oracle's values (GID measures,
-        # precision 13, shortcircuit on); only the partition scheme is pinned
-        # to the preserved DIRECTED_BIPARTITION (== oracle's DIRECTED_BI).
+        # The oracle is IIT 4.0 (2023): GID at every level, no cap. The measures
+        # are pinned explicitly rather than inherited from the IITConfig
+        # defaults, which now encode the 2026 cap
+        # (``system_phi_measure="INTRINSIC_INFORMATION"``). The partition scheme
+        # is the preserved DIRECTED_BIPARTITION (== oracle's DIRECTED_BI).
         "iit": IITConfig(
             version="IIT_4_0_2023",
+            mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+            system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+            specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
             system_partition_scheme="DIRECTED_BIPARTITION",
         ),
         "validate_system_states": False,

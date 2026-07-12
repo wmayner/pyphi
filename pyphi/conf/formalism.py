@@ -79,9 +79,9 @@ class IITConfig:
         logic.
     """
 
-    version: str = "IIT_4_0_2023"
+    version: str = "IIT_4_0_2026"
     mechanism_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
-    system_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    system_phi_measure: str = "INTRINSIC_INFORMATION"
     specification_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
     ces_measure: str = "SUM_SMALL_PHI"
     mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"

@@ -134,15 +134,17 @@ class TestIIT4_2023Settings:
     def test_no_precision_override(self):
         assert "precision" not in iit4_2023
 
-    def test_matches_iitconfig_defaults_apart_from_version(self):
-        # The 2023 paper's settings are the IITConfig defaults; the preset
-        # exists to give a named entry point and a reset-to-canonical
-        # semantics regardless of prior overrides.
+    def test_pins_uncapped_2023_measures_absolutely(self):
+        # The preset is an absolute IIT 4.0 (2023) formalism: GID at every
+        # level, set explicitly so it never inherits the IITConfig defaults
+        # (which now encode the 2026 cap, system_phi_measure=INTRINSIC_INFORMATION).
+        # The partition schemes are formalism-independent and match the defaults.
         defaults = IITConfig()
         preset = iit4_2023["iit"]
-        assert preset.version == "IIT_4_0_2023" == defaults.version
-        assert preset.mechanism_phi_measure == defaults.mechanism_phi_measure
-        assert preset.system_phi_measure == defaults.system_phi_measure
+        assert preset.version == "IIT_4_0_2023"
+        assert preset.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert preset.system_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert preset.specification_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
         assert preset.mechanism_partition_scheme == defaults.mechanism_partition_scheme
         assert preset.system_partition_scheme == defaults.system_partition_scheme
 

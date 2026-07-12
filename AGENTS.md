@@ -415,7 +415,7 @@ partial-pin trap that silently recomputes under a different formalism when the
 default changes. Tests that compute φ at module-fixture setup must pin inside
 the fixture (a function-scoped autouse pin does not wrap module-fixture setup).
 
-Exactly one test — `test_default_formalism_is_iit4_2023` — asserts the shipping
+Exactly one test — `test_default_formalism_is_iit4_2026` — asserts the shipping
 default; it is intentionally unpinned. To flip the default formalism: change
 the default in `pyphi/conf/formalism.py`, update that assertion plus the two
 default-dependent facade tests (`TestGlobalConfigFacade.test_layered_reads_work`

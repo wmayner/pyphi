@@ -1,9 +1,10 @@
 # Migrating to PyPhi 2.0
 
-PyPhi 2.0 is a breaking release. It implements IIT 4.0 (Albantakis et al., 2023)
-as its default formalism, while retaining IIT 3.0 through configuration. There
-are no deprecation shims: code written against pre-2.0 PyPhi must be updated to
-run.
+PyPhi 2.0 is a breaking release. Its default formalism is IIT 4.0 in the 2026
+revision with the intrinsic-information cap (Mayner, Marshall & Tononi, 2026),
+with IIT 4.0 (2023, Albantakis et al.) and IIT 3.0 retained through
+configuration. There are no deprecation shims: code written against pre-2.0
+PyPhi must be updated to run.
 
 This guide documents the changes a pre-2.0 user hits, organized by topic. Each
 topic is tagged with who it affects:
@@ -67,7 +68,7 @@ subset rather than searching for the complex, construct a `System` directly:
 
 **[both]** In 1.x a single `IIT_VERSION` config toggle selected the formalism,
 defaulting to IIT 3.0. In 2.0 the formalism is chosen per call, and **the default
-is now IIT 4.0 (2023)**:
+is now IIT 4.0 (2026)** (the intrinsic-information cap):
 
 Before:
 
@@ -82,7 +83,7 @@ After:
 analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
 
 # or via configuration
-pyphi.config.formalism.iit.version   # "IIT_4_0_2023" by default
+pyphi.config.formalism.iit.version   # "IIT_4_0_2026" by default
 ```
 
 The available formalisms are `"IIT_3_0"`, `"IIT_4_0_2023"`, and `"IIT_4_0_2026"`.
@@ -184,7 +185,8 @@ order-independent.
 
 ## Changed defaults
 
-**[both]** The default formalism changed from IIT 3.0 (1.x) to IIT 4.0 (2023).
+**[both]** The default formalism changed from IIT 3.0 (1.x) to IIT 4.0 (2026)
+— the intrinsic-information cap (`system_phi_measure="INTRINSIC_INFORMATION"`).
 This silently changes computed values relative to a 1.x default run, so a
 migration that expects IIT 3.0 numbers must request `formalism="IIT_3_0"`
-explicitly.
+explicitly; request `formalism="IIT_4_0_2023"` for the uncapped IIT 4.0 system φ.

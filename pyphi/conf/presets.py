@@ -68,6 +68,10 @@ iit3: dict[str, Any] = {
         # only mass flow; see ``pyphi/measures/ces.py:194-213``.
         mechanism_phi_measure="EMD",
         ces_measure="EMD",
+        # IIT 3.0's system Φ is the CES-distance, not a 4.0 system measure;
+        # pin GID explicitly so the default's ``INTRINSIC_INFORMATION`` cap is
+        # never inherited here.
+        system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
         # IIT 3.0 partition schemes.
         mechanism_partition_scheme="JOINT_BIPARTITION",
         system_partition_scheme="DIRECTED_BIPARTITION",
@@ -102,17 +106,28 @@ iit3: dict[str, Any] = {
     "precision": 6,
 }
 
+# The measure fields are set explicitly, not left to the ``IITConfig`` dataclass
+# defaults: those defaults encode the *default* formalism (IIT 4.0 2026, whose
+# ``system_phi_measure`` is the ``INTRINSIC_INFORMATION`` cap), so a non-default
+# preset that omitted a measure would silently inherit the cap. A preset is an
+# absolute formalism, independent of what the current default happens to be.
 iit4_2023: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_4_0_2023",
+        # Uncapped IIT 4.0 system φ: GID at every level.
+        mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+        system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+        specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     ),
 }
 
 iit4_2026: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_4_0_2026",
+        mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
         # System phi caps differentiation with specification per Eq. 23.
         system_phi_measure="INTRINSIC_INFORMATION",
+        specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     ),
 }
 

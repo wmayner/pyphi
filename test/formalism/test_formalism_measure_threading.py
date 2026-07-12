@@ -86,10 +86,13 @@ def test_2026_omitted_metric_uses_config(noisy_copy_system):
 
 
 def test_2023_omitted_metric_uses_default(noisy_copy_system):
-    """IIT 4.0 (2023) formalism: default config -> default GID -> no cap.
+    """IIT 4.0 (2023) formalism inherits the config default system measure.
 
-    With default config ``system_phi_measure=GENERALIZED_INTRINSIC_DIFFERENCE``
-    the 2023 formalism applies no cap: phi = GID(MIP) ~ 0.868.
+    The library default ``system_phi_measure`` is ``INTRINSIC_INFORMATION``
+    (the 2026 cap). With the metric omitted, the 2023 formalism reads that
+    default and applies the ii(s) cap — ``IIT_4_0_2023`` paired with
+    ``INTRINSIC_INFORMATION`` is a valid, cap-applying combination (the cap is
+    keyed on the measure, not the version): phi = min(GID(MIP), ii) ~ 0.644.
     """
     formalism = IIT4_2023Formalism()
     spec_metric = composite_measures["INTRINSIC_SPECIFICATION"]
@@ -99,4 +102,4 @@ def test_2023_omitted_metric_uses_default(noisy_copy_system):
         specification_measure=spec_metric,
     )
 
-    assert float(result.phi) == pytest.approx(0.868, abs=0.001)
+    assert float(result.phi) == pytest.approx(0.644, abs=0.001)

@@ -7,6 +7,7 @@ option-by-option reference, loaded only when working with this directory.
 ## Computational Behavior (`config.formalism.iit`)
 
 - **`version`**: `"IIT_3_0"` / `"IIT_4_0_2023"` / `"IIT_4_0_2026"`
+  (default: `"IIT_4_0_2026"`)
 - **`shortcircuit_sia`**: Short-circuit if reducibility detected (default: true)
 - **`background_conditioning`**: cause-side background handling —
   `"CAUSAL_MARGINALIZATION"` (IIT 4.0 Eq. 4; default) or
@@ -41,8 +42,9 @@ option-by-option reference, loaded only when working with this directory.
 - **`mechanism_phi_measure`**: Mechanism-level repertoire-distance measure
   (default: `"GENERALIZED_INTRINSIC_DIFFERENCE"`)
 - **`system_phi_measure`**: System-level phi measure
-  (default: `"GENERALIZED_INTRINSIC_DIFFERENCE"`; `"INTRINSIC_INFORMATION"`
-  enables the Eq. 23 cap in IIT 4.0 2026)
+  (default: `"INTRINSIC_INFORMATION"`, which applies the Eq. 23 cap of IIT 4.0
+  2026; `"GENERALIZED_INTRINSIC_DIFFERENCE"` selects the uncapped IIT 4.0 2023
+  system φ)
 - **`ces_measure`**: Cause-effect-structure distance measure
   (default: `"SUM_SMALL_PHI"`)
 - **`config.formalism.actual_causation.alpha_measure`**: AC alpha measure

@@ -46,8 +46,9 @@ class TestNumericsConfig:
 class TestIITConfig:
     def test_defaults(self):
         cfg = IITConfig()
-        assert cfg.version == "IIT_4_0_2023"
+        assert cfg.version == "IIT_4_0_2026"
         assert cfg.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+        assert cfg.system_phi_measure == "INTRINSIC_INFORMATION"
         assert cfg.mechanism_partition_scheme == "JOINT_PARTITION_ALL"
         assert cfg.system_partition_scheme == "DIRECTED_SET_PARTITION"
         assert cfg.shortcircuit_sia is True
@@ -108,7 +109,7 @@ class TestFormalismConfig:
 
     def test_iit_defaults_visible_through_formalism(self):
         cfg = FormalismConfig()
-        assert cfg.iit.version == "IIT_4_0_2023"
+        assert cfg.iit.version == "IIT_4_0_2026"
         assert cfg.iit.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
 
     def test_ac_defaults_visible_through_formalism(self):
@@ -182,7 +183,7 @@ class TestConfigSnapshot:
             numerics=NumericsConfig(),
         )
         assert snap.numerics.precision == 13
-        assert snap.formalism.iit.version == "IIT_4_0_2023"
+        assert snap.formalism.iit.version == "IIT_4_0_2026"
 
     def test_is_frozen(self):
         snap = ConfigSnapshot(
@@ -277,7 +278,7 @@ class TestFieldRouting:
 class TestGlobalConfigFacade:
     def test_layered_reads_work(self):
         assert config.numerics.precision == 13
-        assert config.formalism.iit.version == "IIT_4_0_2023"
+        assert config.formalism.iit.version == "IIT_4_0_2026"
         assert config.formalism.actual_causation.alpha_measure == "PMI"
         assert config.infrastructure.parallel is False
 
@@ -613,7 +614,7 @@ def test_distinction_phi_normalization_warning_states_transition():
     assert f"{new!r} -> {old!r}" in messages[1]
 
 
-def test_default_formalism_is_iit4_2023():
+def test_default_formalism_is_iit4_2026():
     """The library default formalism. This is the single canonical assertion
     of the shipping default; flipping the default is a deliberate edit here
     (plus the two default-dependent facade tests ``test_layered_reads_work``
@@ -622,7 +623,7 @@ def test_default_formalism_is_iit4_2023():
     from pyphi.conf import config
 
     iit = config.formalism.iit
-    assert iit.version == "IIT_4_0_2023"
-    assert iit.system_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+    assert iit.version == "IIT_4_0_2026"
+    assert iit.system_phi_measure == "INTRINSIC_INFORMATION"
     assert iit.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
     assert iit.specification_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"

@@ -12,6 +12,16 @@
 # default values defined on the layer dataclasses.
 ---
 formalism:
+  # The default IIT formalism is IIT 4.0 (2026): version "IIT_4_0_2026" with
+  # system_phi_measure "INTRINSIC_INFORMATION", which applies the Eq. 23
+  # intrinsic-information cap φ_s = min{φ_c, φ_e, ii(s)}. Mechanism and
+  # specification measures are GENERALIZED_INTRINSIC_DIFFERENCE.
+  #
+  # Leaving ``iit`` empty inherits these defaults from the layer dataclass
+  # (the single source of truth). For another formalism prefer a preset via
+  # ``pyphi.config.override(**pyphi.presets.iit4_2023)`` / ``.iit3`` rather than
+  # setting an active override here — an active ``version:`` in this file would
+  # shadow the dataclass default during in-repo runs.
   iit: {}
   actual_causation: {}
 infrastructure: {}
