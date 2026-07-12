@@ -616,8 +616,9 @@ def test_distinction_phi_normalization_warning_states_transition():
 def test_default_formalism_is_iit4_2023():
     """The library default formalism. This is the single canonical assertion
     of the shipping default; flipping the default is a deliberate edit here
-    (plus the default-dependent facade tests it points to). Do NOT pin a
-    formalism in this test — it must observe the real default."""
+    (plus the two default-dependent facade tests ``test_layered_reads_work``
+    and ``test_2023_omitted_metric_uses_default``). Do NOT pin a formalism in
+    this test — it must observe the real default."""
     from pyphi.conf import config
 
     iit = config.formalism.iit

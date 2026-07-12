@@ -417,10 +417,12 @@ the fixture (a function-scoped autouse pin does not wrap module-fixture setup).
 
 Exactly one test — `test_default_formalism_is_iit4_2023` — asserts the shipping
 default; it is intentionally unpinned. To flip the default formalism: change
-the default in `pyphi/conf/formalism.py`, update that assertion and the
-default-dependent facade tests it names, and regenerate only the `docs/`
-tutorial examples that demonstrate default behavior (CI doctests in `pyphi/`
-compute no cap-sensitive φ).
+the default in `pyphi/conf/formalism.py`, update that assertion plus the two
+default-dependent facade tests (`TestGlobalConfigFacade.test_layered_reads_work`
+in `test/conf/test_config_layers.py` and `test_2023_omitted_metric_uses_default`
+in `test/formalism/test_formalism_measure_threading.py`), and regenerate only
+the `docs/` tutorial examples that demonstrate default behavior (CI doctests in
+`pyphi/` compute no cap-sensitive φ).
 
 ### Running tests in parallel for faster feedback
 
