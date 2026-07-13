@@ -65,6 +65,7 @@ Moving to PyPhi 2.0 from earlier versions and related tools.
 :maxdepth: 1
 
 getting-started/index
+whats-new-in-2.0
 tutorials/index
 howto/index
 theory/index
