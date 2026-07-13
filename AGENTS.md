@@ -444,6 +444,17 @@ get notified when the slow lane finishes via Monitor's `until` loop.
 Don't bundle slow + fast into a single `pytest` invocation — pytest's
 sequential collection means the fast result is gated on the slow one.
 
+**Exit codes and pipes — read the summary, not the exit code.** Never pipe a
+test run through `tail`/`head`/`grep` when the result matters: the pipeline's
+exit code is the *last* command's, so `pytest … | tail -3` reports success
+even when pytest fails or errors out. Redirect to a file instead
+(`uv run pytest -q > log 2>&1`, exit code stays pytest's own), then read the
+file's summary line before claiming green. This exact trap has shipped a
+regression: two "exit 0" background runs each contained a real test failure
+that went unread. Related: the slow lane is `uv run pytest -m slow --slow` —
+the root conftest errors loudly if `--slow` is missing, so a bare `-m slow`
+can never silently skip-and-pass, but only if that error is actually seen.
+
 ---
 
 ## Configuration System
