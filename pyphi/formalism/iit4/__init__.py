@@ -1033,30 +1033,59 @@ def sia(
         ctx = resolve_ties.ResolutionContext(max_escalation_level="Integration")
         outcome = resolve_ties.resolve_state_tie(per_pair_sias, context=ctx)
         chosen_key = outcome.resolved
+        tied_keys: list = list(outcome.tied_set or ())
+        information_violation = False
         if chosen_key is None:
-            assert outcome.tied_set, "cascade outcome has neither winner nor ties"
-            # The canonical tie-break makes per-direction φ reporting invariant
-            # under substrate relabeling. The specified states are indexed over
-            # ``system.node_indices``, so canonicalization only aligns with the
-            # substrate's node space when the system spans it; for proper
-            # subsystems (e.g. candidates in ``complexes()``) we keep the
-            # deterministic enumeration-order representative.
-            spans_substrate = len(system.node_indices) == system.substrate.tpm.n_nodes
-            if spans_substrate:
-                chosen_key = min(
-                    outcome.tied_set,
-                    key=lambda key: _canonical_tie_break_key(system.substrate, key),
+            assert tied_keys, "cascade outcome has neither winner nor ties"
+            # S1: readings tied at φ_s escalate to Composition (Φ) — but only
+            # among readings that exist. When every tied reading has φ_s = 0
+            # the system is not a complex under any of them; nothing remains
+            # for Φ to adjudicate, and the choice below is presentational.
+            if numerics.is_positive(float(per_pair_sias[tied_keys[0]].phi)):
+                winners, violation = _escalate_state_tie_to_composition(
+                    system, per_pair_sias, tied_keys
                 )
-            else:
-                chosen_key = outcome.tied_set[0]
-        mip_sia = per_pair_sias[chosen_key]
+                if violation:
+                    # Φ-tied readings with genuinely distinct structures: the
+                    # system does not comply with the information postulate
+                    # and does not qualify as a complex (S1).
+                    information_violation = True
+                elif len(winners) == 1:
+                    chosen_key = winners[0]
+                else:
+                    # Extrinsic Φ tie (intrinsically identical structures):
+                    # any representative is legitimate; fall through to the
+                    # canonical tie-break over the Φ-maximal subset.
+                    tied_keys = winners
+        if information_violation:
+            mip_sia = _null_sia(reasons=[NullResultReason.NONUNIQUE_SYSTEM_STATE])
+        else:
+            if chosen_key is None:
+                # The canonical tie-break makes per-direction φ reporting
+                # invariant under substrate relabeling. The specified states
+                # are indexed over ``system.node_indices``, so
+                # canonicalization only aligns with the substrate's node
+                # space when the system spans it; for proper subsystems
+                # (e.g. candidates in ``complexes()``) we keep the
+                # deterministic enumeration-order representative.
+                spans_substrate = (
+                    len(system.node_indices) == system.substrate.tpm.n_nodes
+                )
+                if spans_substrate:
+                    chosen_key = min(
+                        tied_keys,
+                        key=lambda key: _canonical_tie_break_key(system.substrate, key),
+                    )
+                else:
+                    chosen_key = tied_keys[0]
+            mip_sia = per_pair_sias[chosen_key]
 
-        _restore_tie_metadata(
-            mip_sia,
-            original_cause=system_state.cause,
-            original_effect=system_state.effect,
-        )
-        mip_sia.set_ties(tuple(per_pair_sias.values()))
+            _restore_tie_metadata(
+                mip_sia,
+                original_cause=system_state.cause,
+                original_effect=system_state.effect,
+            )
+            mip_sia.set_ties(tuple(per_pair_sias.values()))
 
     if config.infrastructure.clear_system_caches_after_computing_sia:
         system.clear_caches()
@@ -1079,6 +1108,59 @@ def sia(
 
 
 _sia = sia
+
+
+def _escalate_state_tie_to_composition(
+    system: System,
+    per_pair_sias: dict,
+    tied_keys: list,
+) -> tuple[list, bool]:
+    """Composition escalation for specified-state readings tied at φ_s > 0.
+
+    Per Albantakis et al. (2023) S1, states tied at φ_s "need to be resolved
+    in order to determine the system\'s cause-effect structure": the reading
+    that maximizes the structure integrated information Φ is selected. The
+    mechanism sweep is computed once and shared; each tied reading pays only
+    its congruence resolution plus the closed-form relation sum.
+
+    A Φ tie among readings whose structures are "actually identical from the
+    intrinsic perspective" (isomorphic up to unit relabeling) is extrinsic
+    and not a violation of the information postulate; a Φ tie among genuinely
+    distinct structures is a violation, and the system does not qualify as a
+    complex.
+
+    Returns ``(winners, violation)``: ``winners`` is the Φ-maximal subset of
+    ``tied_keys`` (a single key when Φ resolves the tie; the extrinsically
+    tied subset otherwise), and ``violation`` is True for the strict
+    non-isomorphic Φ tie.
+    """
+    from pyphi import automorphism
+    from pyphi.relations import AnalyticalRelations
+
+    unresolved_distinctions = iit3._compute_distinctions(system)
+    structures: dict = {}
+    big_phis: dict = {}
+    for key in tied_keys:
+        pair_sia = per_pair_sias[key]
+        resolved = unresolved_distinctions.resolve_congruence(pair_sia.system_state)
+        structure = CauseEffectStructure(
+            sia=pair_sia,
+            distinctions=resolved,
+            relations=AnalyticalRelations(resolved),
+        )
+        structures[key] = structure
+        big_phis[key] = float(structure.big_phi)
+    best = max(big_phis.values())
+    # numerics: tolerant — Φ-tier membership is a selection.
+    winners = [key for key in tied_keys if numerics.eq(big_phis[key], best)]
+    if len(winners) == 1:
+        return winners, False
+    first = structures[winners[0]]
+    extrinsic = all(
+        automorphism.are_structures_isomorphic(first, structures[key])
+        for key in winners[1:]
+    )
+    return winners, not extrinsic
 
 
 def _spec_candidates(state_spec: StateSpecification | None) -> tuple:

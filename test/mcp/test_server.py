@@ -24,9 +24,11 @@ HAS_VIZ = importlib.util.find_spec("matplotlib") is not None and (
 )
 
 # Known values for basic_substrate in state (1, 1, 0) under IIT 4.0 (2023).
+# Phi reflects the S1 state-tie resolution: among specified-state readings
+# tied at phi_s, Composition selects the Phi-maximal reading.
 BASIC_STATE = [1, 1, 0]
 BASIC_PHI_S = 0.20751874963942188
-BASIC_BIG_PHI = 1.8567666647435832
+BASIC_BIG_PHI = 2.0501249975961455
 
 
 @pytest.fixture(autouse=True)
@@ -62,7 +64,7 @@ def test_analyze_basic_known_phi(basic_handle):
     assert summary["system_phi"] == pytest.approx(BASIC_PHI_S)
     assert summary["big_phi"] == pytest.approx(BASIC_BIG_PHI)
     assert summary["num_distinctions"] == 3
-    assert summary["num_relations"] == 2
+    assert summary["num_relations"] == 4
     assert result["result_ref"].startswith("res")
     assert "Φ" in result["card"]
 

@@ -36,6 +36,7 @@ class NullResultReason(Enum):
     NO_VALID_PARTITIONS = auto()
     NO_CAUSE = auto()
     NO_EFFECT = auto()
+    NONUNIQUE_SYSTEM_STATE = auto()
     EMPTY_CAUSE_EFFECT_STRUCTURE = auto()
     # Mechanism level
     NO_PURVIEWS = auto()

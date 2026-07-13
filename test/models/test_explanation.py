@@ -32,6 +32,7 @@ def test_level_partition_is_correct():
         NullResultReason.NO_VALID_PARTITIONS,
         NullResultReason.NO_CAUSE,
         NullResultReason.NO_EFFECT,
+        NullResultReason.NONUNIQUE_SYSTEM_STATE,
         NullResultReason.EMPTY_CAUSE_EFFECT_STRUCTURE,
     }
     mechanism = {
