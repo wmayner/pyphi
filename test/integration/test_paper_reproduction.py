@@ -13,8 +13,9 @@ only if PyPhi agrees with the published result.
 Currently covered
 -----------------
 * **IIT 4.0 (2023), Albantakis et al., Fig 1 -- "Identifying substrates of
-  consciousness".** The logistic substrate of Fig 1A in state ``aBC`` and the
-  system integrated information ``phi_s`` of its candidate systems (Fig 1E).
+  consciousness".** The logistic substrate of Fig 1A (``pyphi.examples.
+  iit4_2023_fig1a_substrate``) in state ``aBC`` and the system integrated
+  information ``phi_s`` of its candidate systems (Fig 1E).
   Five published values reproduce to two decimals: ``phi_s`` for a / aB / aBC
   (Fig 1E) and the cause/effect split ``phi_c = 0.24`` / ``phi_e = 0.17`` of aB
   (Fig 1D). Cross-checked against paper-era PyPhi 1.2.0 (commit 75d0c411): both
@@ -63,10 +64,11 @@ Currently covered
   wedge tripartition + ``SUM_SMALL_PHI``): ``Phi = 0.44`` over 3 mechanisms. The
   suite's first k>2 (ternary-unit) reproduction.
 
-The IIT 4.0 Fig 6 (A/B/D/E) and Fig 7 weight matrices -- given only graphically in
-the paper -- were supplied by the authors and now ship as the
-``iit4_2023_fig6*``/``iit4_2023_fig7`` example substrates, completing the N1
-acceptance suite.
+The IIT 4.0 Fig 1A substrate is read directly from the figure and self-validated
+against the published ``phi_s`` values. The Fig 6 (A/B/D/E) and Fig 7 weight
+matrices -- given only graphically in the paper -- were supplied by the authors.
+All three now ship as the ``iit4_2023_fig1a``/``iit4_2023_fig6*``/
+``iit4_2023_fig7`` example substrates, completing the N1 acceptance suite.
 """
 
 from __future__ import annotations
@@ -74,49 +76,24 @@ from __future__ import annotations
 import itertools
 from dataclasses import replace
 
-import numpy as np
 import pytest
 
 from pyphi import actual
 from pyphi import examples
 from pyphi.conf import config
 from pyphi.conf import presets
-from pyphi.convert import le_index2state
 from pyphi.direction import Direction
 from pyphi.relations import AnalyticalRelations
 from pyphi.relations import relations as concrete_relations
-from pyphi.substrate import Substrate
 from pyphi.system import System
 
 # --------------------------------------------------------------------------- #
 # IIT 4.0 (2023) -- Albantakis et al., PLoS Comput Biol 19(10): e1011465, Fig 1
 # --------------------------------------------------------------------------- #
-# Fig 1A defines a 3-unit logistic substrate (units A, B, C). The activation
-# function (paper Eq 60) is a sigmoid of the weighted inputs in {-1, +1}:
-#
-#     p(unit_j = ON) = 1 / (1 + exp(-k * sum_i w[i, j] * s_i)),   s_i in {-1, +1}
-#
-# with slope k = 4.0. The connection weights are read from the Fig 1A causal
-# model (black = excitatory, orange = inhibitory; the dot marks the inhibited
-# unit):
-#
-#     A->A = -0.2   A->B = +0.7   A->C = +0.2
-#     B->A = +0.7   B->B = -0.2   (no B->C)
-#     (no C->A)     C->B = -0.8   C->C = +0.2
-#
-# This reading is self-validating: the three published phi_s values of Fig 1E
-# (below) all reproduce to the paper's two-decimal precision, which they would
-# not if any weight were misread.
-_FIG1_K = 4.0
-_FIG1_WEIGHTS = np.array(
-    [
-        [-0.2, 0.7, 0.2],
-        [0.7, -0.2, 0.0],
-        [0.0, -0.8, 0.2],
-    ]
-)
 # Fig 1A: the substrate is shown in state aBC = (a off, B on, C on). Lowercase
-# denotes state "-1" (PyPhi 0), uppercase "+1" (PyPhi 1).
+# denotes state "-1" (PyPhi 0), uppercase "+1" (PyPhi 1). The substrate itself
+# ships as a public example.
+_fig1_substrate = examples.iit4_2023_fig1a_substrate
 _FIG1_STATE = (0, 1, 1)
 
 # Fig 1E ("Exclusion"): published system integrated information phi_s for three
@@ -140,19 +117,6 @@ _FIG2_DISTINCTIONS = {
     (1,): (0.32, (0,), (0, 1)),  # d(B): cause A, effect Ab
     (0, 1): (0.07, (1,), (0, 1)),  # d(aB): cause b, effect Ab
 }
-
-
-def _fig1_substrate() -> Substrate:
-    """Build the IIT 4.0 (2023) Fig 1A logistic substrate."""
-    n = _FIG1_WEIGHTS.shape[0]
-    tpm = np.zeros((2**n, n))
-    for row in range(2**n):
-        s = np.array([2 * b - 1 for b in le_index2state(row, n)])  # {0,1} -> {-1,+1}
-        for j in range(n):
-            net_input = float(_FIG1_WEIGHTS[:, j] @ s)
-            tpm[row, j] = 1.0 / (1.0 + np.exp(-_FIG1_K * net_input))
-    cm = (_FIG1_WEIGHTS != 0).astype(int)
-    return Substrate(tpm, cm=cm, node_labels=("A", "B", "C"))
 
 
 @pytest.fixture
