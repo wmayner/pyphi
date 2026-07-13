@@ -52,7 +52,10 @@ substrate = Substrate(tpm, node_labels=("A", "B"))
 ```
 
 Every computation below runs under the configuration preset that reproduces
-the settings of Marshall et al. (2024).
+the settings of Marshall et al. (2024). (The pin also matters for the
+numbers: several specimens here are deterministic or near-deterministic, and
+the 2026 default's intrinsic-information cap would zero them — see
+{doc}`../theory/intrinsic-information`.)
 
 ## Pre-flight the cost
 

@@ -36,7 +36,10 @@ pyphi.config.progress_bars = False
 ```
 
 Throughout we use the configuration preset that reproduces the paper's
-settings:
+settings. (The pin also matters for the numbers: several specimens here are
+deterministic or near-deterministic, and the 2026 default's
+intrinsic-information cap would zero them — see
+{doc}`../theory/intrinsic-information`.)
 
 ```{code-cell} python
 import numpy as np

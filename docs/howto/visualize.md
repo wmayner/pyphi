@@ -51,6 +51,10 @@ the relations among them. Compute one first:
 ces = examples.xor_system().ces()
 ```
 
+(The XOR system's *system-level* φₛ is 0 under the default formalism — see
+{doc}`../theory/intrinsic-information` — but its cause-effect structure is
+rich, which is what the plots show.)
+
 `plot_ces` offers five views of the same structure, chosen with `view`. The
 **lattice** view is a 2-D Hasse diagram of the distinctions ordered by inclusion;
 marker size encodes each distinction's total relation φ (Σφ_r), color its own φ.

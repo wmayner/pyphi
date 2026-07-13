@@ -33,8 +33,8 @@ pyphi.config.progress_bars = False
 A parameter axis is any callable mapping a float to a `Substrate`. For
 substrates built from a weight matrix, `weight_axis` varies a single
 connection. Here we use the three-unit substrate of Figure 1A of the IIT 4.0
-paper (Albantakis et al. 2023), taking its A→B coupling — published value
-0.7 — as the axis:
+paper — the same network as {func}`pyphi.examples.iit4_2023_fig1a_substrate`
+— taking its A→B coupling (published value 0.7) as the axis:
 
 ```{code-cell} python
 from pyphi.substrate_generator import ising

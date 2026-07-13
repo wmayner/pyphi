@@ -71,6 +71,11 @@ By construction the $\varphi_s$ landscape is a chain:
 $\{A,B\} > \{B,C\} > \{C,D\}$, with $\{B,C\}$ overlapping both of its
 neighbors.
 
+The φₛ values in this tutorial are computed under the 2023 formalism, pinned
+explicitly below: the chain's φₛ ladder was constructed for the uncapped
+measure, and the exclusion mechanics being demonstrated are identical under
+both formalisms.
+
 ## Finding the complexes
 
 ```{code-cell} python

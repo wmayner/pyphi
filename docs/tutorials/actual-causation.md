@@ -40,7 +40,9 @@ from pyphi import actual, Direction
 
 Unlike the integrated-information computations elsewhere in the documentation,
 actual causation uses its own formalism, configured by default to reproduce the
-2019 paper. No special configuration is needed.
+2019 paper. No special configuration is needed — in particular, the IIT
+formalism version (and the 2026 intrinsic-information cap) does not affect
+actual causation.
 
 ## The example network
 
