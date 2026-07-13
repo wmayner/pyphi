@@ -361,6 +361,121 @@ def _combinations_with_nonempty_congruent_overlap(
     )
 
 
+def _atom_groups(distinctions, atoms=None):
+    """Map each atom (a state-tagged unit) to the distinctions whose
+    purview-union contains it.
+
+    This is the incidence Z(n) of the S3 Appendix. When ``atoms`` is given,
+    only those atoms are indexed.
+    """
+    groups = defaultdict(set)
+    for distinction in distinctions:
+        for atom in distinction.purview_union:
+            if atoms is None or atom in atoms:
+                groups[atom].add(distinction)
+    return groups
+
+
+def _maximal_sets(sets):
+    """Return the maximal elements of a family of sets under inclusion."""
+    distinct = sorted(set(sets), key=len, reverse=True)
+    maximal = []
+    for candidate in distinct:
+        if not any(candidate < kept for kept in maximal):
+            maximal.append(candidate)
+    return maximal
+
+
+def maximal_relations(distinctions, atoms=None):
+    """Return the relations maximal under set inclusion of their relata.
+
+    These are the facets of the relation complex: the relations (degree
+    ≥ 2) form a downward-closed family, so every relation's relata are a
+    subset of some maximal relation's. A set of distinctions is a relation
+    exactly when it is contained in some Z(n) — the distinctions whose
+    purview-union contains the state-tagged unit n — and each Z(n) is
+    itself a relation, so the maximal relations are the inclusion-maximal
+    elements of {Z(n)}. No relations are enumerated; cost is quadratic in
+    the number of atoms. Self-relations are excluded: the family is not
+    downward-closed into degree 1 (a self-relation's overlap is the
+    congruent intersection of one distinction's cause and effect purviews,
+    which can be empty even when the distinction relates strongly to
+    others). For φ_r-ranked relations see :meth:`Relations.strongest`.
+
+    Parameters
+    ----------
+    distinctions : Iterable
+        The distinctions generating the relation complex.
+    atoms : collection, optional
+        If given, only relations whose overlap contains one of these atoms
+        are considered. If None, all atoms count.
+
+    Returns
+    -------
+    ConcreteRelations
+        The maximal relations, as lazy :class:`Relation` objects.
+
+    References
+    ----------
+    .. [1] Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023).
+       Integrated information theory (IIT) 4.0. PLoS Computational Biology
+       19(10): e1011465, S3 Appendix.
+    """
+    groups = _atom_groups(distinctions, atoms)
+    candidates = [frozenset(group) for group in groups.values() if len(group) >= 2]
+    return ConcreteRelations(Relation(group) for group in _maximal_sets(candidates))
+
+
+def maximal_faces(distinctions, atoms=None):
+    """Return the relation faces maximal under set inclusion of their
+    relata (causes/effects), across all relations.
+
+    The face at atom n is M(n), the causes and effects whose purview
+    contains n; every face of every relation is contained in some M(n),
+    and M(n) is itself a face of the relation Z(n) (the distinctions whose
+    purview-union contains n), so the maximal faces are the
+    inclusion-maximal elements of {M(n)}. Each face carries the φ_r of the
+    relation it is a face of. A maximal face's parent relation need not be
+    a maximal relation, so the maximal faces are not obtainable from
+    :func:`maximal_relations`.
+
+    Parameters
+    ----------
+    distinctions : Iterable
+        The distinctions generating the relation complex.
+    atoms : collection, optional
+        If given, only faces whose overlap contains one of these atoms are
+        considered. If None, all atoms count.
+
+    Returns
+    -------
+    frozenset[RelationFace]
+        The maximal faces.
+
+    References
+    ----------
+    .. [1] Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023).
+       Integrated information theory (IIT) 4.0. PLoS Computational Biology
+       19(10): e1011465, S3 Appendix.
+    """
+    groups = _atom_groups(distinctions, atoms)
+    candidates = {}
+    for atom, group in groups.items():
+        if len(group) < 2:
+            continue
+        sides = frozenset(
+            side
+            for distinction in group
+            for side in (distinction.cause, distinction.effect)
+            if atom in side.purview_units
+        )
+        candidates.setdefault(sides, frozenset(group))
+    return frozenset(
+        RelationFace(sides, phi=Relation(candidates[sides]).phi)
+        for sides in _maximal_sets(candidates)
+    )
+
+
 def relations_table(relations: Relations) -> Table | None:
     """Capped display table of relations (relata, ``φ_r``, degree).
 

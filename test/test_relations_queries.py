@@ -501,3 +501,92 @@ def test_fold_sum_phi_by_distinction_matches_incident_concrete(
     actual = fold.sum_phi_by_distinction(dl)
     for a, e in zip(actual, expected, strict=True):
         assert a == pytest.approx(e)
+
+
+# --- Maximal relations and maximal faces (facets of the relation complex) ---
+
+
+class _StubMICE:
+    """Minimal stand-in for a cause/effect side: a parent and purview units."""
+
+    def __init__(self, label, parent, purview_units):
+        self._label = label
+        self.parent = parent
+        self.purview_units = frozenset(purview_units)
+
+    def __repr__(self):
+        return self._label
+
+
+class _StubDistinction:
+    """Minimal stand-in for a distinction, enough for Relation/RelationFace."""
+
+    def __init__(self, mechanism, phi, cause_units, effect_units):
+        self.mechanism = mechanism
+        self.phi = phi
+        self.cause = _StubMICE(f"{mechanism}.cause", self, cause_units)
+        self.effect = _StubMICE(f"{mechanism}.effect", self, effect_units)
+
+    @property
+    def purview_union(self):
+        return set(self.cause.purview_units | self.effect.purview_units)
+
+    def __repr__(self):
+        return f"D{self.mechanism}"
+
+
+@pytest.fixture
+def stub_distinctions():
+    """Three overlapping distinctions plus one isolated one.
+
+    Z(x) = {A, B, C}, Z(y) = {A, B}, Z(z) = {E} (isolated).
+    The maximal face at atom y has parents {A, B} — a NON-maximal relation —
+    because A's cause side (the only side of A containing y) does not
+    contain x, so M(y) is not a subset of M(x).
+    """
+    a = _StubDistinction((0,), 1.0, cause_units={"y"}, effect_units={"x"})
+    b = _StubDistinction((1,), 1.0, cause_units={"x", "y"}, effect_units={"x"})
+    c = _StubDistinction((2,), 1.0, cause_units={"x"}, effect_units={"x"})
+    e = _StubDistinction((3,), 1.0, cause_units={"z"}, effect_units={"z"})
+    return a, b, c, e
+
+
+def test_maximal_relations_stub(stub_distinctions):
+    a, b, c, e = stub_distinctions
+    result = relations.maximal_relations([a, b, c, e])
+    assert isinstance(result, relations.ConcreteRelations)
+    assert {frozenset(r) for r in result} == {frozenset({a, b, c})}
+    (facet,) = result
+    # φ_r(ABC) = |{x}| · min(1/2, 1/2, 1)
+    assert float(facet.phi) == pytest.approx(0.5)
+
+
+def test_maximal_faces_stub_parent_relation_may_be_non_maximal(stub_distinctions):
+    a, b, c, e = stub_distinctions
+    faces = relations.maximal_faces([a, b, c, e])
+    m_x = frozenset({a.effect, b.cause, b.effect, c.cause, c.effect})
+    m_y = frozenset({a.cause, b.cause})
+    assert {frozenset(f) for f in faces} == {m_x, m_y}
+    by_content = {frozenset(f): f for f in faces}
+    # M(x) carries φ_r(Z(x)) = φ_r({A,B,C}); M(y) carries φ_r(Z(y)) = φ_r({A,B}).
+    assert float(by_content[m_x].phi) == pytest.approx(0.5)
+    assert float(by_content[m_y].phi) == pytest.approx(1.0)
+    # The key property: M(y)'s parents {A, B} are NOT a maximal relation.
+    maximal_relata = {frozenset(r) for r in relations.maximal_relations([a, b, c, e])}
+    assert frozenset({a, b}) not in maximal_relata
+
+
+def test_maximal_functions_empty_and_isolated(stub_distinctions):
+    *_, e = stub_distinctions
+    assert set(relations.maximal_relations([])) == set()
+    assert relations.maximal_faces([]) == frozenset()
+    # A lone distinction relates to nothing: no degree-2 group exists.
+    assert set(relations.maximal_relations([e])) == set()
+    assert relations.maximal_faces([e]) == frozenset()
+
+
+def test_maximal_relations_atom_filter(stub_distinctions):
+    a, b, c, e = stub_distinctions
+    # Restricting to atom y keeps only Z(y) = {A, B}.
+    result = relations.maximal_relations([a, b, c, e], atoms={"y"})
+    assert {frozenset(r) for r in result} == {frozenset({a, b})}
