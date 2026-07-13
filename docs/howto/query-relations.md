@@ -217,6 +217,41 @@ plt.tight_layout()
 plt.show()
 ```
 
+### Maximal relations: the facets of the complex
+
+The relations of degree ≥ 2 are **downward-closed**: every subset (with at
+least two members) of a relation's relata is itself a relation, with equal
+or larger overlap and equal or larger φ_r. The whole family is therefore
+determined by its inclusion-**maximal** members — the facets of the relation
+complex — and these are closed-form: a set of distinctions relates exactly
+when some atom is shared by all its members, so the facets are the maximal
+atom groups. There are at most as many facets as atoms.
+
+`maximal_relations()` returns them as an ordinary `ConcreteRelations`, so
+the whole query surface applies to the facet set. Note that facets are a
+*topological* skeleton, not a φ summary: φ_r never increases along a chain
+of nested relations, so the facets are the φ_r-weakest members of their
+chains, and Σφ_r lives mostly in their sub-relations.
+
+```{code-cell} python
+facets = analytical.maximal_relations()
+facets.to_pandas()
+```
+
+```{code-cell} python
+# Every non-self relation is contained in some facet.
+non_self = [r for r in concrete if not r.is_self_relation]
+assert all(
+    any(frozenset(r) <= frozenset(f) for f in facets) for r in non_self
+)
+print(f"{len(non_self)} relations covered by {facets.num_relations()} facets")
+```
+
+`maximal_relations_by_distinction()` maps each distinction to the facets
+containing it (an isolated distinction gets an empty tuple), and
+`maximal_faces()` gives the analogous maximal elements one level down, over
+individual causes and effects.
+
 ## 4. The strongest relations, lazily
 
 `strongest(k)` yields relations one at a time in exact descending φ_r order, and

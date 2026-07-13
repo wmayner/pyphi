@@ -120,7 +120,7 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
 
     def _pandas_record(self):
         return {
-            "relata": tuple(sorted(self.purview)),
+            "purview": tuple(sorted(self.purview)),
             "phi": float(self.phi),
             "degree": len(self),
         }
@@ -191,6 +191,7 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
             "relata": tuple(self._relatum_labels(d) for d in self._ordered_relata),
             "phi": float(self.phi),
             "degree": len(self),
+            "purview": tuple(sorted(self.purview)),
         }
 
     def _faces(self):
@@ -361,6 +362,121 @@ def _combinations_with_nonempty_congruent_overlap(
     )
 
 
+def _atom_groups(distinctions, atoms=None):
+    """Map each atom (a state-tagged unit) to the distinctions whose
+    purview-union contains it.
+
+    This is the incidence Z(n) of the S3 Appendix. When ``atoms`` is given,
+    only those atoms are indexed.
+    """
+    groups = defaultdict(set)
+    for distinction in distinctions:
+        for atom in distinction.purview_union:
+            if atoms is None or atom in atoms:
+                groups[atom].add(distinction)
+    return groups
+
+
+def _maximal_sets(sets):
+    """Return the maximal elements of a family of sets under inclusion."""
+    distinct = sorted(set(sets), key=len, reverse=True)
+    maximal = []
+    for candidate in distinct:
+        if not any(candidate < kept for kept in maximal):
+            maximal.append(candidate)
+    return maximal
+
+
+def maximal_relations(distinctions, atoms=None):
+    """Return the relations maximal under set inclusion of their relata.
+
+    These are the facets of the relation complex: the relations (degree
+    ≥ 2) form a downward-closed family, so every relation's relata are a
+    subset of some maximal relation's. A set of distinctions is a relation
+    exactly when it is contained in some Z(n) — the distinctions whose
+    purview-union contains the state-tagged unit n [1]_ — and each Z(n) is
+    itself a relation, so the maximal relations are the inclusion-maximal
+    elements of {Z(n)}. No relations are enumerated; cost is quadratic in
+    the number of atoms. Self-relations are excluded: the family is not
+    downward-closed into degree 1 (a self-relation's overlap is the
+    congruent intersection of one distinction's cause and effect purviews,
+    which can be empty even when the distinction relates strongly to
+    others). For φ_r-ranked relations see :meth:`Relations.strongest`.
+
+    Parameters
+    ----------
+    distinctions : Iterable
+        The distinctions generating the relation complex.
+    atoms : collection, optional
+        If given, only relations whose overlap contains one of these atoms
+        are considered. If None, all atoms count.
+
+    Returns
+    -------
+    ConcreteRelations
+        The maximal relations, as lazy :class:`Relation` objects.
+
+    References
+    ----------
+    .. [1] Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023).
+       Integrated information theory (IIT) 4.0. PLoS Computational Biology
+       19(10): e1011465, S3 Appendix.
+    """
+    groups = _atom_groups(distinctions, atoms)
+    candidates = [frozenset(group) for group in groups.values() if len(group) >= 2]
+    return ConcreteRelations(Relation(group) for group in _maximal_sets(candidates))
+
+
+def maximal_faces(distinctions, atoms=None):
+    """Return the relation faces maximal under set inclusion of their
+    relata (causes/effects), across all relations.
+
+    The face at atom n is M(n), the causes and effects whose purview
+    contains n; every face of every relation is contained in some M(n),
+    and M(n) is itself a face of the relation Z(n) (the distinctions whose
+    purview-union contains n [1]_), so the maximal faces are the
+    inclusion-maximal elements of {M(n)}. Each face carries the φ_r of the
+    relation it is a face of. A maximal face's parent relation need not be
+    a maximal relation, so the maximal faces are not obtainable from
+    :func:`maximal_relations`.
+
+    Parameters
+    ----------
+    distinctions : Iterable
+        The distinctions generating the relation complex.
+    atoms : collection, optional
+        If given, only faces whose overlap contains one of these atoms are
+        considered. If None, all atoms count.
+
+    Returns
+    -------
+    frozenset[RelationFace]
+        The maximal faces.
+
+    References
+    ----------
+    .. [1] Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023).
+       Integrated information theory (IIT) 4.0. PLoS Computational Biology
+       19(10): e1011465, S3 Appendix.
+    """
+    groups = _atom_groups(distinctions, atoms)
+    candidates = {}
+    for atom, group in groups.items():
+        if len(group) < 2:
+            continue
+        sides = frozenset(
+            side
+            for distinction in group
+            for side in (distinction.cause, distinction.effect)
+            if atom in side.purview_units
+        )
+        candidates.setdefault(sides, frozenset(group))
+    return frozenset(
+        RelationFace(sides, phi=Relation(candidates[sides]).phi)
+        for sides in _maximal_sets(candidates)
+    )
+
+
 def relations_table(relations: Relations) -> Table | None:
     """Capped display table of relations (relata, ``φ_r``, degree).
 
@@ -394,7 +510,7 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             r._pandas_record()
             for r in self  # type: ignore[attr-defined]  # iterable in subclasses
         ]
-        return records_to_frame(rows, columns=["relata", "phi", "degree"])
+        return records_to_frame(rows, columns=["relata", "phi", "degree", "purview"])
 
     def sum_phi(self):
         if self._sum_phi_cached is None:
@@ -589,6 +705,49 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             relation
             for relation in self  # type: ignore[attr-defined]  # iterable in subclasses
             if _passes(relation, max_degree, min_phi)
+        )
+
+    def _facet_context(self) -> tuple[Iterable, frozenset | None]:
+        """Return ``(distinctions, atoms)`` generating this set's relation
+        complex: the participating distinctions and the atom filter (None
+        means all atoms)."""
+        return ({d for relation in self for d in relation}, None)  # type: ignore[attr-defined]  # iterable in subclasses
+
+    def maximal_relations(self) -> ConcreteRelations:
+        """Return the relations maximal under set inclusion of their relata.
+
+        The facets of the relation complex: every relation's relata are a
+        subset of some maximal relation's. Degree ≥ 2 only; self-relations
+        are excluded. Computed in closed form from the distinctions — on a
+        filtered set (e.g. from :meth:`materialize` with bounds) the result
+        is the facets of the complex generated by the participating
+        distinctions, not of the filtered subset. For φ_r-ranked relations
+        see :meth:`strongest`.
+        """
+        distinctions, atoms = self._facet_context()
+        return maximal_relations(distinctions, atoms=atoms)
+
+    def maximal_faces(self) -> frozenset:
+        """Return the relation faces maximal under set inclusion of their
+        relata (causes/effects), across all relations; see
+        :func:`maximal_faces`."""
+        distinctions, atoms = self._facet_context()
+        return maximal_faces(distinctions, atoms=atoms)
+
+    def maximal_relations_by_distinction(self, distinctions) -> tuple:
+        """Return, for each distinction, the maximal relations containing it.
+
+        Parallel to ``distinctions``; a distinction contained in no maximal
+        relation (an isolated distinction) gets an empty tuple. Within each
+        tuple, facets are ordered by their sorted mechanism tuples.
+        """
+        facets = sorted(
+            self.maximal_relations(),
+            key=lambda r: tuple(sorted(tuple(d.mechanism) for d in r)),
+        )
+        return tuple(
+            tuple(facet for facet in facets if distinction in facet)
+            for distinction in distinctions
         )
 
     def sample(self, n: int, *, seed: int) -> RelationSample:
@@ -815,6 +974,9 @@ class AnalyticalRelations(Relations):
     def _density(distinction) -> float:
         """The distinction's φ per unique purview unit."""
         return float(distinction.phi) / len(distinction.purview_union)
+
+    def _facet_context(self) -> tuple[Iterable, frozenset | None]:
+        return (self.distinctions, None)
 
     def sample(self, n: int, *, seed: int) -> RelationSample:
         """Draw ``n`` non-self relations, coverage-weighted, i.i.d.
@@ -1235,6 +1397,13 @@ class AnalyticalFoldRelations(AnalyticalRelations):
             d for d in parent_distinctions if tuple(d.mechanism) not in seed_mechanisms
         )
         self._complement = AnalyticalRelations(complement)
+
+    def _facet_context(self) -> tuple[Iterable, frozenset | None]:
+        """Every incident relation lies inside an incident Z(n) with n in a
+        seed's purview union, so fold facets restrict the atoms to the
+        seeds' purview unions."""
+        atoms = frozenset().union(*(seed.purview_union for seed in self._seeds))
+        return (self.distinctions, atoms)
 
     def _sum_phi(self):
         return self._full.sum_phi() - self._complement.sum_phi()
