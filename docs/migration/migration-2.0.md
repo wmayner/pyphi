@@ -190,3 +190,11 @@ order-independent.
 This silently changes computed values relative to a 1.x default run, so a
 migration that expects IIT 3.0 numbers must request `formalism="IIT_3_0"`
 explicitly; request `formalism="IIT_4_0_2023"` for the uncapped IIT 4.0 system φ.
+
+A practical consequence: **deterministic networks compute φ_s = 0 under the
+2026 default.** The classic examples (`xor`, `basic`, the cellular-automaton
+rules) are all deterministic, so analyses ported from 1.x or from the
+literature will show 0 where papers print nonzero values. This is the 2026
+formalism's intrinsic-information cap, not a regression; pin
+`formalism="IIT_4_0_2023"` to reproduce published 2023 numbers. See
+{doc}`../theory/intrinsic-information`.

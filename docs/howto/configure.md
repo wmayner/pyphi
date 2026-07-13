@@ -106,9 +106,9 @@ A preset is a bundle of options that reproduces the settings of a specific
 IIT paper. Three are provided:
 
 - `iit3` — IIT 3.0 (Oizumi et al. 2014)
-- `iit4_2023` — IIT 4.0 (Albantakis et al. 2023), the default formalism
+- `iit4_2023` — IIT 4.0 (Albantakis et al. 2023), uncapped
 - `iit4_2026` — IIT 4.0 with the intrinsic-information cap (Mayner,
-  Marshall, Tononi 2026)
+  Marshall, Tononi 2026), the default formalism
 
 Each preset is a dictionary, so you apply it by unpacking it into
 `override`. Applying `iit3`, for example, switches the version, the distance

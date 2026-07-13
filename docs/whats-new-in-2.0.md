@@ -6,7 +6,6 @@ capability; the complete list of changes is in the changelog.
 <!--
 Candidate sections to add as they land / get written up:
 - Precision architecture: tolerance at decision sites, tie reporting (.ties, margins)
-- Formalism objects: IIT 3.0 / IIT 4.0 (2023, 2026) / Actual Causation as first-class, switchable strategies
 - k-ary (multi-valued) units end to end
 - pyphi.analyze(): one entry point for substrate → complexes → structure
 - Macro/grain search: intrinsic units, blackboxing, temporal grains, cost pre-flight
@@ -15,6 +14,18 @@ Candidate sections to add as they land / get written up:
 - Repertoire-algebra kernel rewrite: ~18-20x faster SIA partition evaluation
 - Substrate landscape tools (pyphi.landscape)
 -->
+
+## IIT 4.0 (2026) is the default formalism
+
+PyPhi 2.0 computes the 2026 refinement of IIT 4.0 by default: system
+integrated information is capped by the system's intrinsic information
+(Mayner, Marshall, Tononi 2026), so a system must furnish itself a repertoire
+of alternatives, not merely specify one state. One consequence to know before
+comparing against published numbers: **deterministic systems compute
+φ_s = 0** under the default. The 2023 formulation and IIT 3.0 remain fully
+supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the presets in
+`pyphi.conf.presets` reproduce published values exactly. See the theory page
+[The intrinsic-information cap](theory/intrinsic-information.md).
 
 ## Query the relational structure without enumerating it
 
