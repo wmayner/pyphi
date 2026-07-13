@@ -9,6 +9,7 @@ from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
+from test.conftest import IIT_4_CONFIG
 
 
 def test_only_nonsubsets():
@@ -63,6 +64,16 @@ def test_null_relations_len_is_zero():
     from pyphi.relations import NullRelations
 
     assert len(NullRelations()) == 0
+
+
+@pytest.fixture(autouse=True)
+def _pin_formalism():
+    """Pin IIT 4.0 (2023): the golden CES/relation files in this module are
+    2023-sourced, so the comparisons must not depend on the ambient default.
+    (Under the 2026 default, deterministic fixtures cap to φ_s = 0 and their
+    congruence-resolved structures are empty.)"""
+    with IIT_4_CONFIG:
+        yield
 
 
 NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
