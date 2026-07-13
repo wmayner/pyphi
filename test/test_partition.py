@@ -313,3 +313,21 @@ def test_partition_types():
         "WEDGE_TRIPARTITION",
         "JOINT_PARTITION_ALL",
     }
+
+
+def test_bidirectional_cut_matrices_symmetric_and_complete():
+    """Every yielded bidirectional cut matrix is symmetric, and the family
+    covers all 2^(n(n-1)/2) - 1 nonzero symmetric matrices exactly once."""
+    import numpy as np
+
+    from pyphi.partition import _cut_matrices
+
+    for n in range(2, 6):
+        matrices = list(_cut_matrices(n, symmetric=True))
+        assert all(np.array_equal(m, m.T) for m in matrices), (
+            f"n={n}: asymmetric matrix in the bidirectional family"
+        )
+        distinct = {m.tobytes() for m in matrices}
+        expected = 2 ** (n * (n - 1) // 2) - 1
+        assert len(matrices) == expected, (n, len(matrices), expected)
+        assert len(distinct) == expected, (n, len(distinct), expected)

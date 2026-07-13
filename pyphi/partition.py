@@ -879,12 +879,15 @@ def _cut_matrices(n, symmetric=False):
     for combination in itertools.islice(product([0, 1], repeat=repeat), 1, None):
         cm = np.zeros([n, n], dtype=int)
         if symmetric:
-            triu = tril = combination
+            # Fill the upper triangle and mirror it: ``triu_indices`` and
+            # ``tril_indices`` enumerate mirror-image cells at the same flat
+            # position only for n <= 3, so assigning the same combination to
+            # both would produce asymmetric matrices from n = 4 on.
+            cm[np.triu_indices(n, k=1)] = combination
+            cm += cm.T
         else:
-            triu = combination[:mid]
-            tril = combination[mid:]
-        cm[np.triu_indices(n, k=1)] = triu
-        cm[np.tril_indices(n, k=-1)] = tril
+            cm[np.triu_indices(n, k=1)] = combination[:mid]
+            cm[np.tril_indices(n, k=-1)] = combination[mid:]
         yield cm
 
 
