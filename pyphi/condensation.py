@@ -152,43 +152,80 @@ def _fingerprint_key(system: Any):
     return key if key is not None else object()
 
 
-def _resolve_clique_by_big_phi(clique: list[Candidate]) -> Candidate | None:
-    """Pick the Φ-maximal member of a φₛ-tied overlap clique, or ``None``
-    when Φ also ties — the exclusion postulate is violated for that clique
-    and none of its members qualifies as a complex.
+def _resolve_phi_tied_group(
+    survivors: list[Candidate],
+) -> tuple[list[Candidate], list[tuple[Candidate, ...]]]:
+    """Recursive exclusion among the φₛ-tied survivors of one tier.
+
+    Per Marshall et al. 2023 (Algorithm A1, tied branch) and the Albantakis
+    et al. 2023 S1 tie supplement: a tied candidate that overlaps no other
+    tied candidate is a complex outright. Among candidates that do overlap
+    another tied candidate, Φ (Composition) escalates the tie: the Φ-maximal
+    candidates win — unless two Φ-maximal candidates overlap *each other*,
+    in which case that clique fails the exclusion postulate and none of its
+    members is a complex. Accepting a winner removes only the candidates
+    overlapping it; everything else (including candidates that overlapped
+    only excluded or failed rivals) re-enters the walk.
 
     Φ is computed once per distinct system content fingerprint: equal
     fingerprints denote byte-identical kernel computations, so their Φ
-    values tie exactly, and a clique whose members all share one
+    values tie exactly, and a conflicted group whose members all share one
     fingerprint fails exclusion with no cause-effect-structure computation
     at all.
     """
-    from pyphi import resolve_ties
+    from pyphi import numerics as _numerics
 
-    systems = [candidate.system_provider() for candidate in clique]
-    keys = [_fingerprint_key(system) for system in systems]
-    if len(set(keys)) == 1:
-        return None
+    accepted: list[Candidate] = []
+    failed: list[tuple[Candidate, ...]] = []
+    remaining = list(survivors)
+    while remaining:
+        conflicted_ids = {
+            id(c)
+            for c in remaining
+            if any(
+                c.footprint & other.footprint for other in remaining if other is not c
+            )
+        }
+        accepted.extend(c for c in remaining if id(c) not in conflicted_ids)
+        remaining = [c for c in remaining if id(c) in conflicted_ids]
+        if not remaining:
+            break
 
-    big_phis: dict[Any, float] = {}
-    for system, key in zip(systems, keys, strict=True):
-        if key not in big_phis:
-            big_phis[key] = float(system.ces().big_phi)
+        systems = [candidate.system_provider() for candidate in remaining]
+        keys = [_fingerprint_key(system) for system in systems]
+        if len(set(keys)) == 1:
+            tier = list(remaining)
+        else:
+            big_phis: dict[Any, float] = {}
+            for system, key in zip(systems, keys, strict=True):
+                if key not in big_phis:
+                    big_phis[key] = float(system.ces().big_phi)
+            values = [big_phis[key] for key in keys]
+            best = max(values)
+            # numerics: tolerant — Φ-tier membership is a selection.
+            tier = [
+                c
+                for c, value in zip(remaining, values, strict=True)
+                if _numerics.eq(value, best)
+            ]
 
-    @dataclass(frozen=True)
-    class _CandidateProxy:
-        candidate: Candidate
-        big_phi: float
-
-    proxies = [
-        _CandidateProxy(candidate=candidate, big_phi=big_phis[key])
-        for candidate, key in zip(clique, keys, strict=True)
-    ]
-    ctx = resolve_ties.ResolutionContext(max_escalation_level="Composition")
-    outcome = resolve_ties.resolve_complex_tie(proxies, context=ctx)
-    if outcome.outcome == "RESOLVED" and outcome.resolved is not None:
-        return outcome.resolved.candidate
-    return None
+        tier_ids = {id(c) for c in tier}
+        conflicted_tier = [
+            c
+            for c in tier
+            if any(c.footprint & other.footprint for other in tier if other is not c)
+        ]
+        conflicted_tier_ids = {id(c) for c in conflicted_tier}
+        winners = [c for c in tier if id(c) not in conflicted_tier_ids]
+        failed.extend(tuple(clique) for clique in _find_overlap_cliques(conflicted_tier))
+        accepted.extend(winners)
+        remaining = [
+            c
+            for c in remaining
+            if id(c) not in tier_ids
+            and not any(c.footprint & winner.footprint for winner in winners)
+        ]
+    return accepted, failed
 
 
 def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
@@ -196,11 +233,12 @@ def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
 
     ``candidates`` may arrive in any order; they are grouped into φₛ tiers
     (descending) with tolerant membership. Within each tier, candidates
-    overlapping an accepted complex are dropped; survivors group into
-    overlap cliques; multi-member cliques escalate to Composition (Φ). A
-    Φ-tied clique fails exclusion: its members are removed, but their units
-    stay available to lower-φₛ candidates in later tiers. Within-tier
-    presentation order follows the input order.
+    overlapping an accepted complex are dropped, and the φₛ-tied survivors
+    are resolved recursively (see :func:`_resolve_phi_tied_group`): tied
+    candidates with no overlap conflict are complexes; overlap conflicts
+    escalate to Composition (Φ); Φ-tied *overlapping* candidates fail
+    exclusion — their units stay available to lower-φₛ candidates in later
+    tiers. Within-tier presentation order follows the input order.
     """
     accepted: list[Candidate] = []
     covered: set[int] = set()
@@ -209,16 +247,13 @@ def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
         survivors = [c for c in tier if not (c.footprint & covered)]
         if not survivors:
             continue
-        for clique in _find_overlap_cliques(survivors):
-            if len(clique) == 1:
-                winner = clique[0]
-            else:
-                winner = _resolve_clique_by_big_phi(clique)
-                if winner is None:
-                    failed.append(tuple(clique))
-                    continue
-            accepted.append(winner)
-            covered |= winner.footprint
+        tier_accepted, tier_failed = _resolve_phi_tied_group(survivors)
+        position = {id(c): i for i, c in enumerate(survivors)}
+        tier_accepted.sort(key=lambda c: position[id(c)])
+        accepted.extend(tier_accepted)
+        failed.extend(tier_failed)
+        for complex_candidate in tier_accepted:
+            covered |= complex_candidate.footprint
     return CondensationOutcome(tuple(accepted), tuple(failed))
 
 

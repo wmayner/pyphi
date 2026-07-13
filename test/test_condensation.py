@@ -130,3 +130,72 @@ def test_exclusion_records_include_same_footprint_rivals():
     assert _footprints(outcome) == [(0, 1)]
     records = exclusion_records(outcome.accepted, candidates)
     assert [(r.node_indices, r.phi) for r in records[(0, 1)]] == [((0, 1), 1.0)]
+
+
+def test_tied_chain_accepts_disjoint_end_beaten_only_by_excluded_rival():
+    """φ-tied chain: the Φ-max end wins its conflicts; the far end overlaps
+    only the excluded middle and must be accepted (Marshall et al. 2023,
+    Alg. A1 tied branch)."""
+    candidates = [
+        _candidate({0, 1}, 1.0, big_phi=5.0),
+        _candidate({1, 2}, 1.0, big_phi=4.0),
+        _candidate({2, 3}, 1.0, big_phi=3.0),
+    ]
+    outcome = exclusion_cascade(candidates)
+    assert _footprints(outcome) == [(0, 1), (2, 3)]
+    assert outcome.failed_cliques == ()
+
+
+def test_tied_chain_middle_winner_excludes_both_ends():
+    """φ-tied chain where the middle is Φ-max: both ends overlap the winner."""
+    candidates = [
+        _candidate({0, 1}, 1.0, big_phi=2.0),
+        _candidate({1, 2}, 1.0, big_phi=9.0),
+        _candidate({2, 3}, 1.0, big_phi=2.0),
+    ]
+    outcome = exclusion_cascade(candidates)
+    assert _footprints(outcome) == [(1, 2)]
+    assert outcome.failed_cliques == ()
+
+
+def test_tied_chain_disjoint_phi_max_pair_both_accepted():
+    """A Φ tie between candidates that do NOT overlap each other is not an
+    exclusion conflict: both are complexes; only the overlapping loser falls."""
+    candidates = [
+        _candidate({0, 1}, 1.0, big_phi=9.0),
+        _candidate({1, 2}, 1.0, big_phi=2.0),
+        _candidate({2, 3}, 1.0, big_phi=9.0),
+    ]
+    outcome = exclusion_cascade(candidates)
+    assert _footprints(outcome) == [(0, 1), (2, 3)]
+    assert outcome.failed_cliques == ()
+
+
+def test_tied_isolated_candidates_never_escalate_to_big_phi():
+    """φ-tied candidates with no overlap conflict are accepted without any
+    cause-effect-structure computation."""
+
+    class _ExplodingSystem:
+        _fingerprint = b"exploding"
+
+        def ces(self):
+            raise AssertionError("Φ escalation must not run for isolated candidates")
+
+    exploding = _ExplodingSystem()
+    candidates = [
+        Candidate(
+            footprint=frozenset({0, 1}),
+            phi=1.0,
+            sia_provider=lambda: None,
+            system_provider=lambda: exploding,
+        ),
+        Candidate(
+            footprint=frozenset({2, 3}),
+            phi=1.0,
+            sia_provider=lambda: None,
+            system_provider=lambda: exploding,
+        ),
+    ]
+    outcome = exclusion_cascade(candidates)
+    assert _footprints(outcome) == [(0, 1), (2, 3)]
+    assert outcome.failed_cliques == ()
