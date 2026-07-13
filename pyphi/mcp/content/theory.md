@@ -82,12 +82,16 @@ computes φₛ, and unfolds the Φ-structure. The MCP `analyze` tool wraps this.
 
 ## Formalism versions
 
-- **IIT 4.0 (2023)** — the default. φₛ = min(φ_c, φ_e); the cause–effect
-  structure has distinctions and relations; the distance measure is the
-  **intrinsic difference**.
-- **IIT 4.0 (2026)** — refines φₛ to require **intrinsic differentiation**: the
-  system must also provide itself with a repertoire of alternatives. A fully
-  deterministic system provides none, so its φₛ falls to 0 under this version.
+- **IIT 4.0 (2026)** — the default. φₛ = min{φ_c, φ_e, ii(s)}: system
+  integrated information is capped by the system's **intrinsic information**
+  ii(s), which requires the system to provide itself with a repertoire of
+  alternatives, not just specify an irreducible state. A fully deterministic
+  system provides none, so its φₛ falls to 0 under this version. The
+  cause–effect structure has distinctions and relations; the distance measure
+  is the **intrinsic difference**.
+- **IIT 4.0 (2023)** — the uncapped formulation: φₛ = min(φ_c, φ_e), without
+  the intrinsic-information cap. Same distinctions, relations, and intrinsic
+  difference as 2026; use it to reproduce published 2023 numbers.
 - **IIT 3.0 (2014)** — the earlier formalism. It computes *concepts* (not
   distinctions and relations — 3.0 has **no relations**), uses the **earth
   mover's distance** rather than the intrinsic difference, and defines its

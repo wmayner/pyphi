@@ -76,16 +76,20 @@ network where A is an OR, B a COPY, and C an XOR of the others.
 
 The assistant calls `analyze` with the state `(1, 1, 0)` and reports:
 
-- **φₛ = 0.208** — the system integrated information, which says the network
-  exists as one integrated whole (a positive value; zero would mean it is
-  reducible).
+- **φₛ = 0.0** — the system integrated information. PyPhi's default formalism,
+  IIT 4.0 (2026), requires a system to do more than specify an irreducible
+  cause–effect state: it must also provide itself with a repertoire of
+  alternatives (see {doc}`../theory/intrinsic-information`). "Basic" is fully
+  deterministic — nothing else could have happened — so it provides itself
+  none, and φₛ falls to 0.
 - **Φ = 1.857** — the structure integrated information, summed over the
   network's **3 distinctions** and **2 relations**.
 
-Because φₛ and Φ are different quantities — one is about existing as a whole, the
-other about how much structure is specified — a good assistant keeps them
-distinct rather than reporting "the phi value." The bundled reference is what
-teaches it to do that (see below).
+φₛ = 0 does not mean the network has no structure — it still specifies a rich
+Φ-structure. Because φₛ and Φ are different quantities — one is about
+existing as a whole, the other about how much structure is specified — a good
+assistant keeps them distinct rather than reporting "the phi value." The
+bundled reference is what teaches it to do that (see below).
 
 **You:** *Which mechanism contributes the most, and why?*
 
@@ -94,14 +98,15 @@ full — its mechanism, its cause and effect purviews, and its φ value — with
 dragging the entire (potentially very large) structure back into the
 conversation.
 
-**You:** *How would this change under IIT 3.0, or the 2026 formalism?*
+**You:** *How would this change under IIT 3.0, or under the 2023 formalism?*
 
 The assistant re-runs `analyze` with a different `formalism`. The same network
-gives **0.208** under IIT 4.0 (2023), **0.0** under the 2026 formalism (which
-requires a system to provide itself a repertoire of alternatives — a fully
-deterministic network provides none), and **0.188** under IIT 3.0 (which uses a
-different distance measure and has no relations). Same system, three theories,
-correctly different answers.
+gives **0.208** under IIT 4.0 (2023) — the uncapped formulation, which stops at
+specifying an irreducible cause–effect state and does not require
+alternatives — and **0.188** under IIT 3.0 (which uses a different distance
+measure and has no relations). Together with the 2026 default above, that's
+three formalisms and three different answers for the same system in the same
+state, each correct on its own terms.
 
 **You:** *Show me the cause-effect structure.*
 

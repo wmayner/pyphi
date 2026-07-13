@@ -250,7 +250,7 @@ def analyze(
     state : list of int
         The current state, one entry per node, in node order (little-endian).
     formalism : str, optional
-        ``"IIT_4_0_2023"`` (default), ``"IIT_4_0_2026"``, or ``"IIT_3_0"``. Each
+        ``"IIT_4_0_2026"`` (default), ``"IIT_4_0_2023"``, or ``"IIT_3_0"``. Each
         defines integrated information differently, so the same substrate and
         state give different values under each. IIT 3.0 has no relations; the
         2026 variant drives a fully deterministic system's φₛ to zero.
