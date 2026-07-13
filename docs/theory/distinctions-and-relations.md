@@ -22,8 +22,8 @@ import pyphi
 
 pyphi.config.progress_bars = False
 
-substrate = pyphi.examples.basic_substrate()
-analysis = pyphi.analyze(substrate, (1, 1, 0))
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
+analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))
 ces = analysis.ces
 ```
 
@@ -52,7 +52,7 @@ the full detail — the mechanism, the two purviews, and the cause and effect
 repertoires (the probability distributions over purview states it specifies):
 
 ```{code-cell} python
-ces.distinctions[1]  # the mechanism-(2,) distinction, φ_d = 0.5
+ces.distinctions[1]  # the mechanism-B distinction, φ_d ≈ 0.32
 ```
 
 The distinctions' $\varphi_d$ values sum to the structure's distinction total:
@@ -70,7 +70,9 @@ state — that overlap is itself an irreducible fact about the complex, a
 and, like everything else, has an integrated information $\varphi_r$ measuring
 its irreducibility (Albantakis et al., 2023).
 
-The worked example has two relations:
+A relation can also bind a *single* distinction with itself, where its own
+cause and effect purviews overlap congruently — a self-relation. Counting
+these, the worked example has seven relations:
 
 ```{code-cell} python
 [(round(float(r.phi), 3), r.purview) for r in ces.relations]
@@ -83,7 +85,7 @@ with its $\varphi_r$. Their values sum to the structure's relation total:
 round(float(ces.sum_phi_relations), 3)
 ```
 
-Together, the three distinctions and the two relations *are* the $\Phi$-structure
+Together, the three distinctions and the seven relations *are* the $\Phi$-structure
 of this complex. The [next page](phi-structure.md) assembles them, defines the
 structure integrated information $\Phi$ that measures the whole, and gives the
 complete map from the paper's symbols to PyPhi's types.

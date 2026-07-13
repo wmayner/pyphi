@@ -28,7 +28,7 @@ import pyphi
 
 pyphi.config.progress_bars = False
 
-analysis = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 1, 0))
+analysis = pyphi.analyze(pyphi.examples.iit4_2023_fig1a_substrate(), (0, 1, 1), subset=(0, 1))
 ces = analysis.ces
 
 (round(float(ces.sum_phi_distinctions), 3),
@@ -36,8 +36,8 @@ ces = analysis.ces
  round(float(ces.big_phi), 3))
 ```
 
-The three distinction $\varphi_d$ values sum to $1.330$, the two relation
-$\varphi_r$ values to $0.527$, and their total is $\Phi \approx 1.857$. The whole
+The three distinction $\varphi_d$ values sum to $0.728$, the seven relation
+$\varphi_r$ values to $0.835$, and their total is $\Phi \approx 1.563$. The whole
 structure can be viewed as a table:
 
 ```{code-cell} python
@@ -45,27 +45,27 @@ ces.to_pandas()
 ```
 
 This is the complete answer to the two questions from the [overview](overview.md):
-the complex exists with system integrated information $\varphi_s \approx 0.208$,
+the complex exists with system integrated information $\varphi_s \approx 0.172$,
 and the experience it specifies has the $\Phi$-structure above, of quantity
-$\Phi \approx 1.857$.
+$\Phi \approx 1.563$.
 
 ## The paper-to-code map
 
 Every named quantity of IIT 4.0 corresponds to a type or attribute in PyPhi. The
 table maps the symbols of Albantakis et al. (2023) to where they live in the
-code, using the worked example (`analysis = pyphi.analyze(substrate, (1, 1, 0))`).
+code, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))`).
 
 | Symbol | Quantity | In PyPhi |
 | --- | --- | --- |
-| $U$ | substrate (units and their interactions) | `Substrate`, e.g. `pyphi.examples.basic_substrate()` |
+| $U$ | substrate (units and their interactions) | `Substrate`, e.g. `pyphi.examples.iit4_2023_fig1a_substrate()` |
 | $\mathcal{T}_U$ | transition probability matrix (Eq. 1) | `substrate.tpm`, `substrate.factored_tpm` |
 | $S$ | candidate system in a state | `System`; analyzed via `pyphi.analyze` |
-| $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | selected inside `analyze`; carried on `analysis.sia` |
+| $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | `analysis.sia.system_state` (per-direction `intrinsic_information`) |
 | $\varphi_c,\ \varphi_e$ | cause- and effect-side integrated information | `analysis.sia.cause.phi`, `analysis.sia.effect.phi` |
 | MIP | minimum information partition | `analysis.sia.partition` |
-| $\varphi_s$ | system integrated information, $\min(\varphi_c,\varphi_e)$ | `analysis.phi` (`analysis.sia.phi`) |
+| $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e)$, capped by $\mathit{ii}(s)$ under the 2026 default (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
 | $\varphi_s^{\ast}$ | maximal system integrated information (the complex's) | the $\varphi_s$ of the complex `analyze` returns |
-| complex | maximal substrate | `analysis.system` |
+| complex | maximal substrate | `Substrate.complexes`; the analyzed candidate is `analysis.system` |
 | mechanism | subset specifying a distinction | `distinction.mechanism` |
 | purview | subset a mechanism constrains | `distinction.cause_purview`, `distinction.effect_purview` |
 | distinction | mechanism with its cause and effect state | `Distinction`; `analysis.ces.distinctions` |

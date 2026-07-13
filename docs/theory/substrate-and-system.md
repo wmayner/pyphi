@@ -34,14 +34,15 @@ This factorization is the causal-model assumption the whole framework rests on;
 see [conditional independence](conditional-independence.md) for what it means
 and how PyPhi enforces it.
 
-In PyPhi a substrate is a `Substrate`. The worked example is a three-unit one:
+In PyPhi a substrate is a `Substrate`. The worked example is the paper's
+three-unit logistic network:
 
 ```{code-cell} python
 import pyphi
 
 pyphi.config.progress_bars = False
 
-substrate = pyphi.examples.basic_substrate()
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 substrate
 ```
 
@@ -69,16 +70,17 @@ of the system. PyPhi enforces this by **causally marginalizing** the background
 units — conditioning on their current state and averaging them out, so they
 become causally inert (Albantakis et al., 2023, Fig 1B).
 
-A `System` is a candidate subset of a substrate in a definite state:
+A `System` is a candidate subset of a substrate in a definite state. The worked
+example's candidate is the pair $\{A, B\}$, so unit $C$ is background:
 
 ```{code-cell} python
-system = pyphi.System(substrate, (1, 1, 0), node_indices=(0, 1, 2))
+system = pyphi.System(substrate, (0, 1, 1), node_indices=(0, 1))
 system
 ```
 
-Here the system is the whole substrate, so there is no background to marginalize;
-in general `node_indices` selects the subset $S$, and everything else becomes
-background.
+Here `node_indices` selects the subset $S = \{A, B\}$; the remaining unit $C$
+is causally marginalized, so the analysis sees $A$ and $B$ from their own
+intrinsic perspective, with $C$'s influence averaged out.
 
 From the system's intrinsic point of view, IIT builds two derived transition
 matrices — a **cause TPM** and an **effect TPM** — by marginalizing the

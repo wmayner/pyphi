@@ -81,35 +81,39 @@ enforces.
 
 ## The worked example
 
-One substrate carries this section: the three-unit example system from the IIT
-4.0 paper, available as `pyphi.examples.basic_substrate()`.
+One substrate carries this section: the three-unit logistic network the IIT
+4.0 paper itself uses to introduce the theory (Figs 1, 2 and 4), available as
+`pyphi.examples.iit4_2023_fig1a_substrate()`.
 
 ```{code-cell} python
 import pyphi
 
 pyphi.config.progress_bars = False
 
-substrate = pyphi.examples.basic_substrate()
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 substrate
 ```
 
-Analyzing it in the state $(1, 1, 0)$ runs the whole pipeline:
+The paper analyzes the candidate system $\{A, B\}$ — written "aB" — in the
+state where $A$ is off and $B$ and $C$ are on. Analyzing it runs the whole
+pipeline:
 
 ```{code-cell} python
-analysis = pyphi.analyze(substrate, (1, 1, 0))
+analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))
 analysis.phi  # the system integrated information, φ_s
 ```
 
-This value, $\varphi_s$, answers the first question: the units form a complex,
-and $\varphi_s \approx 0.208$ measures how irreducible it is. The second
-question — the structure — is answered by the $\Phi$-structure it specifies:
+This value, $\varphi_s \approx 0.172$, answers the first question: aB is a
+complex (the paper's Fig 1E reports it as $0.17$), and $\varphi_s$ measures
+how irreducible it is. The second question — the structure — is answered by
+the $\Phi$-structure it specifies:
 
 ```{code-cell} python
-(len(analysis.ces.distinctions), len(analysis.ces.relations), analysis.ces.big_phi)
+(len(analysis.ces.distinctions), len(analysis.ces.relations), round(float(analysis.ces.big_phi), 3))
 ```
 
-Three distinctions, two relations, and a structure integrated information
-$\Phi \approx 1.857$. The pages ahead unpack each of these: the [substrate and
+Three distinctions, seven relations, and a structure integrated information
+$\Phi \approx 1.563$. The pages ahead unpack each of these: the [substrate and
 system](substrate-and-system.md) it starts from, the [system integrated
 information](system-integration.md) $\varphi_s$ that finds the complex, the
 [distinctions and relations](distinctions-and-relations.md) that compose the
