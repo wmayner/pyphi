@@ -19,9 +19,9 @@ why, mapping each quantity of the theory to the type or function that computes
 it, and following one small example the whole way through.
 
 For a broad orientation to the theory itself, see the [IIT wiki](https://iit.wiki);
-the authoritative source for the formalism is Albantakis et al. (2023). This
-section is self-contained — it does not assume you have read either — but it
-cites the paper for the full derivations it does not repeat.
+the authoritative source for the formalism is Albantakis et al. (2023). You
+don't need to have read either to follow this section, but the paper is cited
+for the full derivations that aren't repeated here.
 
 ## What PyPhi computes
 
@@ -76,14 +76,14 @@ physical counterpart of a property of experience (Albantakis et al., 2023):
   the **distinctions** — which overlap in **relations**, together forming the
   $\Phi$-structure.
 
-Each page that follows takes one step of the pipeline and names the postulate it
+Each page that follows covers one step of the pipeline and the postulate it
 enforces.
 
 ## The worked example
 
-One substrate carries this section: the three-unit logistic network the IIT
-4.0 paper itself uses to introduce the theory (Figs 1, 2 and 4), available as
-`pyphi.examples.iit4_2023_fig1a_substrate()`.
+We use one substrate throughout this section: the three-unit logistic network
+the IIT 4.0 paper itself uses to introduce the theory (Figs 1, 2 and 4),
+available as `pyphi.examples.iit4_2023_fig1a_substrate()`.
 
 ```{code-cell} python
 import pyphi
@@ -113,7 +113,7 @@ the $\Phi$-structure it specifies:
 ```
 
 Three distinctions, seven relations, and a structure integrated information
-$\Phi \approx 1.563$. The pages ahead unpack each of these: the [substrate and
+$\Phi \approx 1.563$. The following pages cover each of these: the [substrate and
 system](substrate-and-system.md) it starts from, the [system integrated
 information](system-integration.md) $\varphi_s$ that finds the complex, the
 [distinctions and relations](distinctions-and-relations.md) that compose the

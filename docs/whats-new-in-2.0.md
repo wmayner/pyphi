@@ -17,15 +17,16 @@ Candidate sections to add as they land / get written up:
 
 ## IIT 4.0 (2026) is the default formalism
 
-PyPhi 2.0 computes the 2026 refinement of IIT 4.0 by default: system
-integrated information is capped by the system's intrinsic information
-(Mayner, Marshall, Tononi 2026), so a system must furnish itself a repertoire
-of alternatives, not merely specify one state. One consequence to know before
-comparing against published numbers: **deterministic systems compute
-φ_s = 0** under the default. The 2023 formulation and IIT 3.0 remain fully
-supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the presets in
-`pyphi.conf.presets` reproduce published values exactly. See the theory page
-[The intrinsic-information cap](theory/intrinsic-information.md).
+PyPhi 2.0 computes the 2026 refinement of IIT 4.0 by default: the system's
+intrinsic information enters the minimum that defines system integrated
+information (Mayner, Marshall, Tononi 2026), so a system must both furnish
+itself a repertoire of alternatives and specify one of them. One consequence
+to know before comparing against published numbers: **deterministic systems
+compute φ_s = 0** under the default. The 2023 formulation and IIT 3.0 remain
+fully supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the
+presets in `pyphi.conf.presets` reproduce published values exactly. See the
+theory page
+[The intrinsic-information requirement](theory/intrinsic-information.md).
 
 ## Query the relational structure without enumerating it
 
@@ -63,9 +64,9 @@ Three more tools cover what closed forms can't:
   show the strongest few.
 - `relations.sample(n, seed=...)` draws an unbiased sample of relations
   and returns estimates with standard errors for any per-relation
-  quantity you define — including questions no closed form reaches.
-- `relations.materialize(max_degree=..., min_phi=...)` is the explicit
-  escape hatch back to concrete `Relation` objects, with bounds so you
+  quantity you define — including questions with no closed form.
+- `relations.materialize(max_degree=..., min_phi=...)` builds concrete
+  `Relation` objects again when you need them, with bounds so you
   can't accidentally ask for all 2^27 of them.
 
 The same queries work on Φ-folds (restricted to the relations touching a

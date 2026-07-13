@@ -34,6 +34,6 @@ Part 2 reproduces Figures 1, 2, and 4 on the nondeterministic Ising network
 used in the main text, going deeper into the algorithmic computation of
 complexes, distinctions, and relations.
 
-The notebook is a standalone download-and-run artifact rather than an executed
-documentation page. For the theory behind each step, see the
+The notebook is meant to be downloaded and run, rather than executed as part
+of the documentation build. For the theory behind each step, see the
 {doc}`../theory/index`; for a shorter hands-on tour, see {doc}`worked-example`.

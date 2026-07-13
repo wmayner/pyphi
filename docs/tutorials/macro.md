@@ -37,8 +37,8 @@ pyphi.config.progress_bars = False
 
 Throughout we use the configuration preset that reproduces the paper's
 settings. (The pin also matters for the numbers: several specimens here are
-deterministic or near-deterministic, and the 2026 default's
-intrinsic-information cap would zero them — see
+deterministic or near-deterministic, so under the 2026 default's
+intrinsic-information requirement they would compute $\varphi_s = 0$ — see
 {doc}`../theory/intrinsic-information`.)
 
 ```{code-cell} python
@@ -137,11 +137,11 @@ magnitude — the framework's central phenomenon.
 
 ## Is the macro unit intrinsic?
 
-Existing as one unit must be earned. A candidate is an *intrinsic unit* only
-if its constituent system is integrated (Eq. 15) and strictly more
-irreducible than every competing system that could be built within its
-footprint (Eq. 16). {func}`pyphi.macro.is_intrinsic_unit` returns a verdict
-carrying the evidence:
+A grouping does not automatically count as one unit. A candidate is an
+*intrinsic unit* only if its constituent system is integrated (Eq. 15) and
+strictly more irreducible than every competing system that could be built
+within its footprint (Eq. 16). {func}`pyphi.macro.is_intrinsic_unit` returns
+a verdict with the evidence:
 
 ```{code-cell} python
 from pyphi.macro import is_intrinsic_unit
@@ -155,9 +155,9 @@ verdict.valid, round(verdict.phi, 6), verdict.num_competitors
 The candidate's two competitors (the single-unit systems over `A` and over
 `B`) both have $\varphi_s = 0$, so the pair wins. The verdict depends only on
 the candidate's constituents and background apportionment — not on its
-mapping or grain — so every mapped variant of the same grouping shares it.
-Micro units themselves are exempt (they are the ground the recursion builds
-on), even when their own $\varphi_s$ is zero:
+mapping or grain — so every variant of the same grouping, whatever its
+mapping, shares it. Micro units themselves are exempt (they are the base
+case of the recursion), even when their own $\varphi_s$ is zero:
 
 ```{code-cell} python
 from pyphi.macro import micro_unit
@@ -177,7 +177,7 @@ candidates into the *complexes* by the recursive exclusion cascade — accept
 the φₛ-maximal candidate, exclude everything overlapping it, and continue on
 the remainder (Eq. 19 applied tier by tier; a candidate excluded by an
 accepted complex has no standing to exclude others). The same search is
-reachable from the front door as `pyphi.analyze(substrate, state,
+also available as `pyphi.analyze(substrate, state,
 grains=True)`. The winners are
 {class}`~pyphi.models.complex.Complex` objects, returned together with the
 full evaluation record:
@@ -197,7 +197,7 @@ winner.units
 ```
 
 The search, given every possible 2-constituent mapping, finds exactly the
-both-ON coarse-graining we built by hand. The winner carries its own φₛ and
+both-ON coarse-graining we built by hand. The winner reports its own φₛ and
 the record holds every evaluated system:
 
 ```{code-cell} python
@@ -267,12 +267,12 @@ search enumerates, and they read a group's joint state in opposite ways.
 Coarse-graining pools the constituents by how many are ON, so every joint
 state with the same ON-count collapses to the same macro state. Blackboxing
 instead reads out a chosen subset of *output* constituents and discards the
-rest. Only blackboxing extends cleanly to update grains above one: reading a
+rest. Only blackboxing extends to update grains above one: reading a
 designated output at the final micro update of a window is exactly what a unit
 spanning several updates does, so the temporal search in the next section is
 built on this family.
 
-The two helpers make the contrast concrete. Each returns a mapping — a truth
+The two helpers show the difference. Each returns a mapping — a truth
 table over the group's joint states — for a two-constituent group:
 
 ```{code-cell} python
@@ -286,9 +286,9 @@ constituents agree. The blackboxing `(0, 1, 0, 1)` copies constituent `0` and
 ignores constituent `1`: its macro state is ON exactly when `A` is ON,
 whatever `B` does.
 
-A blackboxed unit drops into the same pipeline as a coarse-grained one. Here
-is the blackboxing of the tutorial's two-unit substrate that reads out `A`,
-built into a `MacroUnit` and analyzed exactly as `alpha` was:
+A blackboxed unit is analyzed by the same pipeline as a coarse-grained one.
+Here is the blackboxing of the tutorial's two-unit substrate that reads out
+`A`, built into a `MacroUnit` and analyzed exactly as `alpha` was:
 
 ```{code-cell} python
 boxed = MacroUnit(
@@ -311,7 +311,7 @@ over two-step sequences of its constituents, so searching a substrate for such
 units requires a micro history of two states — the two most recent universe
 states, oldest first — rather than a single current state.
 
-The following substrate rewards a temporal unit. It is a three-unit
+The following substrate is one where a temporal unit wins. It is a three-unit
 deterministic system given as a function table: entry `i` is the index of the
 state the system moves to from state `i`, with states written in little-endian
 order (`A` is bit 0). A short loop turns the table into an 8 × 3
@@ -355,7 +355,7 @@ winner.units[0], round(winner.exclusion_margin, 6)
 ```
 
 Its `exclusion_margin` is how far it beats the strongest overlapping
-alternative. That margin is against a strong field: the whole substrate
+alternative. The competition was real: the whole substrate
 `{A, B, C}` evaluated at micro time (every unit at update grain 1) is itself
 integrated, and it appears in the winner's `excluded` record:
 
@@ -374,7 +374,7 @@ print(micro_universe.node_indices, round(micro_universe.phi, 4))
 
 The full micro universe reaches φₛ ≈ 0.2075, yet the temporal unit over `A`
 alone reaches 0.5083. That unit reads `A` every second step, and that view of
-the substrate holds more than twice the integrated information of the whole
+the substrate has more than twice the integrated information of the whole
 system read update by update.
 
 Temporal wins are not automatic. On a symmetric substrate — a deterministic

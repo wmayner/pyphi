@@ -57,7 +57,7 @@ default and bounds the exhaustive alternative.
 
 Macro units stack into a hierarchy. A unit's constituents may themselves be
 macro units (**meso** units), so that its mapping composes with theirs down to
-the micro units the whole tower rests on (Marshall et al., 2024, Eq. 14; Fig.
+the micro units at the bottom (Marshall et al., 2024, Eq. 14; Fig.
 3E). Building a unit directly on micro constituents leaves more mappings to
 choose from than building it on meso constituents, whose mappings are already
 fixed; which construction wins is decided, like everything else, by whichever
@@ -72,7 +72,7 @@ In PyPhi a macro unit is a {class}`~pyphi.macro.MacroUnit` with attributes
 {func}`~pyphi.macro.coarse_grain` (from ON-count classes) and
 {func}`~pyphi.macro.blackbox` (from output constituents, at any grain);
 {func}`~pyphi.macro.micro_unit` is the trivial identity unit over a single micro
-index, the ground the hierarchy is built on.
+index, the base of the hierarchy.
 
 ## The intrinsic-unit criteria
 
@@ -93,18 +93,19 @@ $$ \varphi_s(v^{J}) > \varphi_s(v') \quad \text{for every competitor } v'
 \qquad \text{(Eq. 16).} $$
 
 Both criteria are properties of the pair (constituents, background) alone. A
-candidate's mapping and update grain do not enter either inequality, so every
-mapped and grained variant of one decomposition shares a single verdict — the
-grain is chosen later, by the exclusion competition, not here.
+candidate's mapping and update grain do not enter either inequality, so all
+variants of one decomposition — whatever their mappings and update grains —
+share a single verdict. The grain is chosen later, by the exclusion
+competition, not here.
 
 {func}`~pyphi.macro.judge_candidate` applies both inequalities to a candidate's
 $\varphi_s$ and its evaluated competitor set and returns a
 {class}`~pyphi.macro.UnitVerdict`. The verdict's `reason` is a
 {class}`~pyphi.macro.Reason`: `VALID` when both criteria hold, `NOT_INTEGRATED`
-when the constituent system has $\varphi_s = 0$ and so fails the integration gate
-of Eq. 15, and `NOT_MAXIMAL` or `TIED` when a competitor beats or ties it under
-Eq. 16. Micro units are exempt — they are the ground the recursion builds on, and
-count as units even when their own $\varphi_s$ is zero.
+when the constituent system has $\varphi_s = 0$ and so fails the integration
+criterion of Eq. 15, and `NOT_MAXIMAL` or `TIED` when a competitor beats or ties
+it under Eq. 16. Micro units are exempt — they are the base case of the
+recursion, and count as units even when their own $\varphi_s$ is zero.
 
 ## Exclusion across grains
 
@@ -117,13 +118,13 @@ candidate system over the same micro units are rivals, not separate answers
 (Marshall et al., 2024, Eq. 19).
 
 PyPhi runs this competition as one cascade over **micro footprints**, so
-candidates at every grain compete on the same ground. Each candidate carries the
-set of micro units it ultimately covers; the cascade walks candidates in
+candidates at every grain compete on the same basis. Each candidate's footprint
+is the set of micro units it ultimately covers; the cascade walks candidates in
 descending $\varphi_s$, accepts the maximal one, drops every remaining candidate
 whose footprint overlaps it, and continues on what is left. The cascade is
 **recursive**: a candidate that has been excluded by an accepted complex has no
-standing to exclude anything else in turn. One consequence surprises many
-readers — a complex can coexist with an overlapping candidate of *higher*
+standing to exclude anything else in turn. One consequence is counterintuitive:
+a complex can coexist with an overlapping candidate of *higher*
 $\varphi_s$, a **shadow**, provided that shadow was itself excluded by some other
 complex. Ties within a tier escalate to the composition measure Φ, and a tier
 that still ties fails exclusion outright: none of its members becomes a complex,
@@ -134,10 +135,10 @@ search uses; the macro search simply feeds it candidate systems at every grain.
 It returns a {class}`~pyphi.macro.ComplexesResult` whose winners are
 {class}`~pyphi.models.complex.Complex` objects. Each winner reports an
 {attr}`~pyphi.models.complex.Complex.exclusion_margin` — the $\varphi_s$ gap to
-the best overlapping rival it beat — and carries the candidates it excluded,
+the best overlapping rival it beat — and records the candidates it excluded,
 shadows included; shadows do not enter the margin. A margin of zero means a
-rival tied at the configured precision, so the selection was decided beyond
-$\varphi_s$. For
+rival tied at the configured precision, so the selection was decided by
+criteria beyond $\varphi_s$. For
 how the recursion resolves overlapping candidates step by step, see the
 {doc}`recursive-exclusion tutorial <../tutorials/recursive-exclusion>`; for
 reading margins and controlling how ties are broken, see

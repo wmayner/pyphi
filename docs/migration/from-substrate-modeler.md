@@ -21,9 +21,9 @@ library.**
 
 | | `substrate_modeler` | current PyPhi (`pyphi.core.unit.Unit`) |
 |---|---|---|
-| What it is | A mechanism-carrying object | A trivial identity value type |
+| What it is | An object with its own update mechanism | A trivial identity value type |
 | Holds | `index`, `inputs`, `mechanism` (e.g. `"sigmoid"`), `params`, mutable `state`, `input_state` | `index`, `label`, `alphabet_size` — nothing else |
-| Computes a TPM? | Yes — the unit owns its update logic | No — units do not carry dynamics |
+| Computes a TPM? | Yes — the unit owns its update logic | No — units have no dynamics |
 | Mutable? | Yes (state changes in place) | No (`frozen=True` dataclass) |
 
 So migration **never** maps `Unit → Unit`. Instead, a unit's *behavior* (its
@@ -31,12 +31,12 @@ mechanism + inputs + params) becomes one entry in a `node_params` dict consumed
 by `pyphi.substrate_generator.create_substrate()`, which builds a stateless
 `pyphi.Substrate`.
 
-### The architecture shift
+### The architecture change
 
 | concept | `substrate_modeler` | current PyPhi |
 |---|---|---|
 | dynamics container | `Substrate(units, state)` — stateful, owns TPM logic | `Substrate(tpm, cm, node_labels)` — **stateless** value type |
-| where state lives | on the substrate and on each unit | on `System`, not on the substrate |
+| where state is stored | on the substrate and on each unit | on `System`, not on the substrate |
 | analyzable object | `pyphi` `Subsystem` (old) | `pyphi.System` |
 | per-node construction | build `Unit`/`CompositeUnit` objects, pass a list to `Substrate(...)` | pass a `node_params` dict to `create_substrate(...)` |
 
@@ -194,8 +194,8 @@ the original).
 
 ## 5. Lower-level construction (uniform mechanisms, custom callables)
 
-For a substrate where every node uses the same mechanism, or for a genuinely
-custom mechanism, use `build_substrate(unit_functions, weights)` directly. A unit
+For a substrate where every node uses the same mechanism, or for a custom
+mechanism of your own, use `build_substrate(unit_functions, weights)` directly. A unit
 function has the signature `f(element, weights, state, **kwargs) -> float` and is
 called once per from-state.
 
@@ -255,7 +255,7 @@ Count distinctions in a cause-effect structure with `len(ces.distinctions)`
 
 ### Matching / perception
 
-If the script used the matching research repo's perception layer, that now lives
+If the script used the matching research repo's perception layer, that is now
 in `pyphi.matching` (`PerceptualSystem`, `TriggeredTPM`, `triggering_coefficient`,
 `Perception`, `Differentiation`, `MatchingAnalysis`). A natively-built substrate
 feeds straight in:
@@ -321,13 +321,13 @@ substrate = build_substrate(
 
 system = pyphi.System.from_substrate(substrate, state=(1, 0, 0))
 with pyphi.config.override(**pyphi.iit4_2023):  # this network is deterministic,
-    print("phi:", float(system.sia().phi))      # so Φ = 0 under the 2026 default's cap
+    print("phi:", float(system.sia().phi))      # so Φ = 0 under the 2026 default
 print("distinctions:", len(system.ces().distinctions))
 ```
 
 This `substrate` is byte-identical to `pyphi.examples.basic_substrate()` (Φ =
 0.415037 under the IIT 4.0 (2023) formalism pinned above) — a handy
-correctness anchor while porting. It uses `build_substrate`
+correctness check while porting. It uses `build_substrate`
 with the **weighted-threshold** gates because this network has a single-input
 `B = and(C)`, which a 2-input truth-table gate can't express; the weighted
 `"and"`/`"or"` handle any fan-in (§5). For a mechanism-rich or endorsement

@@ -27,8 +27,8 @@ causes and actual effects of which. The formalism is described in
 > Quantitative Account of Actual Causation Using Dynamical Causal Networks.
 > *Entropy*, 21 (5), 459. <https://doi.org/10.3390/e21050459>
 
-The tools live in {mod}`pyphi.actual`. Turning off the progress bars keeps the
-output clean here; leave them on for real computations.
+The tools are in {mod}`pyphi.actual`. Turning off the progress bars keeps the
+output readable here; leave them on for real computations.
 
 ```{code-cell} python
 import pyphi
@@ -41,8 +41,8 @@ from pyphi import actual, Direction
 Unlike the integrated-information computations elsewhere in the documentation,
 actual causation uses its own formalism, configured by default to reproduce the
 2019 paper. No special configuration is needed — in particular, the IIT
-formalism version (and the 2026 intrinsic-information cap) does not affect
-actual causation.
+formalism version (and the 2026 intrinsic-information requirement) does not
+affect actual causation.
 
 ## The example network
 

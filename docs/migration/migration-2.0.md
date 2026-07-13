@@ -1,9 +1,9 @@
 # Migrating to PyPhi 2.0
 
 PyPhi 2.0 is a breaking release. Its default formalism is IIT 4.0 in the 2026
-revision with the intrinsic-information cap (Mayner, Marshall & Tononi, 2026),
-with IIT 4.0 (2023, Albantakis et al.) and IIT 3.0 retained through
-configuration. There are no deprecation shims: code written against pre-2.0
+revision with the intrinsic-information requirement (Mayner, Marshall &
+Tononi, 2026), with IIT 4.0 (2023, Albantakis et al.) and IIT 3.0 retained
+through configuration. There are no deprecation shims: code written against pre-2.0
 PyPhi must be updated to run.
 
 This guide documents the changes a pre-2.0 user hits, organized by topic. Each
@@ -59,7 +59,7 @@ phi = analysis.phi   # system integrated information, φ_s
 ces = analysis.ces   # the Φ-structure (a CauseEffectStructure)
 ```
 
-`pyphi.analyze` returns an `Analysis` carrying `.phi`, `.ces`, `.sia` (the system
+`pyphi.analyze` returns an `Analysis` with `.phi`, `.ces`, `.sia` (the system
 irreducibility analysis), and `.system` (the complex). To analyze a specific
 subset rather than searching for the complex, construct a `System` directly:
 `pyphi.System(substrate, state, node_indices=(0, 1, 2))`.
@@ -68,7 +68,7 @@ subset rather than searching for the complex, construct a `System` directly:
 
 **[both]** In 1.x a single `IIT_VERSION` config toggle selected the formalism,
 defaulting to IIT 3.0. In 2.0 the formalism is chosen per call, and **the default
-is now IIT 4.0 (2026)** (the intrinsic-information cap):
+is now IIT 4.0 (2026)** (with the intrinsic-information requirement):
 
 Before:
 
@@ -186,15 +186,17 @@ order-independent.
 ## Changed defaults
 
 **[both]** The default formalism changed from IIT 3.0 (1.x) to IIT 4.0 (2026)
-— the intrinsic-information cap (`system_phi_measure="INTRINSIC_INFORMATION"`).
+— with the intrinsic-information requirement
+(`system_phi_measure="INTRINSIC_INFORMATION"`).
 This silently changes computed values relative to a 1.x default run, so a
 migration that expects IIT 3.0 numbers must request `formalism="IIT_3_0"`
-explicitly; request `formalism="IIT_4_0_2023"` for the uncapped IIT 4.0 system φ.
+explicitly; request `formalism="IIT_4_0_2023"` for the IIT 4.0 system φ
+without that requirement.
 
 A practical consequence: **deterministic networks compute φ_s = 0 under the
 2026 default.** The classic examples (`xor`, `basic`, the cellular-automaton
 rules) are all deterministic, so analyses ported from 1.x or from the
-literature will show 0 where papers print nonzero values. This is the 2026
-formalism's intrinsic-information cap, not a regression; pin
-`formalism="IIT_4_0_2023"` to reproduce published 2023 numbers. See
+literature will show 0 where papers print nonzero values. This is the
+expected behavior of the 2026 formalism's intrinsic-information requirement;
+pin `formalism="IIT_4_0_2023"` to reproduce published 2023 numbers. See
 {doc}`../theory/intrinsic-information`.

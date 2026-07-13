@@ -25,8 +25,8 @@ pyphi.config.progress_bars = False
 
 ## The global switch
 
-The single flag that enables parallelism is `pyphi.config.parallel`. It lives
-in the infrastructure layer of the configuration, so it can also be read and
+The single flag that enables parallelism is `pyphi.config.parallel`. It is in
+the infrastructure layer of the configuration, so it can also be read and
 written through its full path:
 
 ```{code-cell} python
@@ -67,7 +67,7 @@ pyphi.config.parallel_workers = -1  # back to the default
 
 ## Enabling parallelism for a single computation
 
-The cleanest way to run one computation in parallel, without leaving the
+The best way to run one computation in parallel, without leaving the
 global configuration changed, is the `override` context manager. Everything
 inside the `with` block sees the overridden settings; outside, the previous
 values are restored.
@@ -90,10 +90,10 @@ sequential = pyphi.analyze(substrate, state)
 round(float(sequential.sia.phi), 6)
 ```
 
-## Per-level knobs
+## Per-level options
 
 Beyond the global switch, PyPhi parallelizes at several distinct levels of the
-computation, each with its own knob. Each knob is a dictionary with the keys
+computation, each with its own option. Each is a dictionary with the keys
 `parallel`, `sequential_threshold`, `chunksize`, and `progress`:
 
 ```{code-cell} python
@@ -103,9 +103,9 @@ dict(pyphi.config.infrastructure.parallel_concept_evaluation)
 The keys mean:
 
 - **`parallel`** — whether to parallelize this level at all.
-- **`sequential_threshold`** — the dispatch gate. Workloads with fewer than
-  this many items run sequentially, because for small counts the overhead of
-  spawning workers and shipping data to them costs more than it saves.
+- **`sequential_threshold`** — workloads with fewer than this many items run
+  sequentially, because for small counts the overhead of spawning workers and
+  sending data to them costs more than it saves.
 - **`chunksize`** — how many items each worker receives per batch. This
   governs granularity only, not the result.
 - **`progress`** — whether to show a progress bar for this level.
@@ -126,10 +126,10 @@ To tune one level, assign a new dictionary. A common pattern is to read the
 current value, change one key, and write it back:
 
 ```{code-cell} python
-knob = dict(pyphi.config.infrastructure.parallel_concept_evaluation)
-knob["parallel"] = True
-knob["sequential_threshold"] = 32
-pyphi.config.parallel_concept_evaluation = knob
+opts = dict(pyphi.config.infrastructure.parallel_concept_evaluation)
+opts["parallel"] = True
+opts["sequential_threshold"] = 32
+pyphi.config.parallel_concept_evaluation = opts
 dict(pyphi.config.infrastructure.parallel_concept_evaluation)
 ```
 
@@ -154,11 +154,11 @@ level encodes.
 As a rule of thumb:
 
 - **Small networks** (a handful of nodes) usually run *faster* sequentially.
-  The default `sequential_threshold` on each level already routes these
-  workloads to the sequential path, so turning on `pyphi.config.parallel`
+  The default `sequential_threshold` on each level already runs these
+  workloads sequentially, so turning on `pyphi.config.parallel`
   costs little for small problems.
 - **Larger networks** — where there are many mechanisms, purviews, or
-  partitions to evaluate — are where parallelism earns its keep.
+  partitions to evaluate — benefit the most.
 - Parallelism requires the optional dependency to be installed
   (`uv pip install "pyphi[parallel]"`). Without it, PyPhi falls back to
   sequential evaluation.

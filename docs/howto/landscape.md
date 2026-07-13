@@ -81,7 +81,7 @@ any point can be inspected in full detail.
 and reports finite-difference derivatives. The default quantity is
 `signed_phi` — the value *before* the positive-part clamp — because the
 clamped `phi` is exactly flat wherever the raw integration is negative,
-while the signed value still carries gradient information:
+while the signed value retains gradient information:
 
 ```{code-cell} python
 result = pyphi.perturb(axis, (1, 0, 0), 0.7)
@@ -109,8 +109,8 @@ switches.
 ```
 
 This substrate — the published Figure 1A system, at its published weights —
-sits about `0.0017` away from a specified-cause-state switch in the A→B
-weight. Crossing it collapses $\varphi_s$ to zero: the published value is
+is about `0.0017` away, in the A→B weight, from a switch in the specified
+cause state. Crossing it sends $\varphi_s$ to zero: the published value is
 correct and exactly reproducible, and also close to a boundary where the
 substrate specifies a different past state. That distance is invisible in
 $\varphi_s$ itself and in its derivative; it is what the margins and
@@ -132,7 +132,7 @@ after = pyphi.analyze(axis(0.704), (1, 0, 0), compute="sia")
 *searches* over one. Give it a builder mapping a parameter vector to a
 substrate — `weight_axes` builds one, the vector analogue of `weight_axis` —
 a box of bounds, and a seed. The optimizer is population-based and
-gradient-free, so it is untroubled by the selection switches that make the
+gradient-free, so it is unaffected by the selection switches that make the
 landscape piecewise-smooth; it maximizes signed normalized $\varphi_s$ by
 default, the quantity that stays continuous across those switches.
 

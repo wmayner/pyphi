@@ -22,7 +22,7 @@ This page follows the worked example of the IIT 4.0 paper (Albantakis et al.
 default formalism: **Figure 1** — is a set of units a complex, and how
 irreducible is it ($\varphi_s$)? **Figure 2** — what distinctions compose its
 cause-effect structure? **Figure 4** — how do those distinctions bind into
-relations? One small network carries all three:
+relations? All three use the same small network:
 {func}`pyphi.examples.iit4_2023_fig1a_substrate`.
 
 ```{code-cell} python
@@ -98,7 +98,7 @@ responsible — the minimum information partition — is on the analysis as
 With the complex fixed, the composition postulate unfolds what exists *within*
 it. Every subset of aB's units — every **mechanism** — is tested for an
 irreducible cause and effect. The irreducible ones are the complex's
-**distinctions**, and they live on the cause-effect structure:
+**distinctions**, collected in the cause-effect structure:
 
 ```{code-cell} python
 ces = aB.ces
@@ -119,7 +119,7 @@ repertoires (the probability distributions it specifies over its purviews):
 ces.distinctions[1]
 ```
 
-The whole set collapses to a table with `to_pandas`, handy for sorting,
+The whole set converts to a table with `to_pandas`, handy for sorting,
 filtering, or exporting:
 
 ```{code-cell} python
@@ -185,7 +185,7 @@ default formalism:
 ## Where to go next
 
 - {doc}`../theory/index` — the same pipeline, quantity by quantity, with the
-  paper-to-code map.
+  full map from paper symbols to code.
 - {doc}`../theory/intrinsic-information` — why a *deterministic* network
   computes $\varphi_s = 0$ under this formalism.
 - {doc}`iit-4.0-demo` — the paper's own supplementary notebook, going deeper

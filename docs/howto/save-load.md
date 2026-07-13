@@ -58,7 +58,7 @@ print("type preserved:", type(restored).__name__)
 print("round-trips   :", restored == ces)
 ```
 
-Every serializable type also carries the operations as methods. `obj.save(path)`
+Every serializable type also has these operations as methods. `obj.save(path)`
 is the same as `pyphi.save(obj, path)`, and the classmethod `Type.load(path)`
 is the same as `pyphi.load(path)`:
 

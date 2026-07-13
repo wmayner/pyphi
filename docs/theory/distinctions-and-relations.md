@@ -47,7 +47,7 @@ postulate. For the worked example the complex specifies three distinctions:
 ```
 
 Each row is a distinction: its mechanism, the cause purview it constrains, the
-effect purview it constrains, and its $\varphi_d$. A single distinction carries
+effect purview it constrains, and its $\varphi_d$. A single distinction contains
 the full detail — the mechanism, the two purviews, and the cause and effect
 repertoires (the probability distributions over purview states it specifies):
 
@@ -63,7 +63,7 @@ round(float(ces.sum_phi_distinctions), 3)
 
 ## Relations
 
-Distinctions do not sit in isolation. When the cause or effect purviews of two
+Distinctions are not independent of one another. When the cause or effect purviews of two
 or more distinctions overlap *congruently* — covering the same units in the same
 state — that overlap is itself an irreducible fact about the complex, a
 **relation**. A relation binds the distinctions it relates over a shared purview

@@ -11,12 +11,12 @@ kernelspec:
   name: python3
 ---
 
-# Querying relational structure in PyPhi 2.0
+# Query relational structure
 
 In IIT 4.0, a cause-effect structure is a set of **distinctions** together with the
 **relations** among them. A relation is any set of two or more distinctions whose
 purviews overlap in a congruent way, and its integrated information φ_r contributes
-to the system's Φ. Relations are where the combinatorics bite: a structure with
+to the system's Φ. Relations are the combinatorial bottleneck: a structure with
 `|D|` distinctions can have up to `2^{|D|} − 1` relations, and `|D|` itself can reach
 `2^n − 1` for `n` units. The IIT 4.0 paper's Figure 6D — 27 distinctions — has
 **1,537,080 relations**, and its Φ is dominated by the relational part.
@@ -48,7 +48,7 @@ from pyphi.measures.distribution import (
 from pyphi.relations import AnalyticalRelations, ConcreteRelations
 
 sns.set_theme(style="whitegrid", context="notebook")
-config.progress_bars = False  # keep the output clean
+config.progress_bars = False  # keep the output readable
 
 
 # Compute a cause-effect structure (distinctions and relations) for a system,
@@ -84,7 +84,7 @@ A relation set is computed by one of two backends, selected with
   form. It never materializes a relation.
 
 Both answer the same questions. Here we build each backend from the same
-distinctions and confirm the three headline scalars agree.
+distinctions and confirm the three summary quantities agree.
 
 ```{code-cell} python
 concrete = ConcreteRelations(ces.relations)          # the enumerated relations
@@ -117,8 +117,8 @@ the enumeration where it is cheap to do so.
 ### Degree spectrum
 
 The **degree** of a relation is its number of relata. `degree_spectrum()` returns,
-for each degree, how many relations have it and how much φ_r they carry — exactly,
-without listing a single relation. (Degree 1 is the self-relations: a distinction's
+for each degree, how many relations have it and how much φ_r they contribute —
+exactly, without listing a single relation. (Degree 1 is the self-relations: a distinction's
 cause overlapping its own effect.)
 
 ```{code-cell} python
@@ -239,7 +239,7 @@ pd.DataFrame(
 )
 ```
 
-## 5. Sampling for questions no closed form reaches
+## 5. Sampling for questions without a closed form
 
 For arbitrary per-relation quantities — a predicate on degree, on which units a
 relation touches, on any property you can write as a function — `sample(n, seed=...)`
@@ -341,7 +341,7 @@ Past roughly 35 distinctions the enumeration does not fit in memory at all, whil
 the analytical queries are unaffected. `num_relations()` already reflects this: it
 returns the exact count — 1,537,080 for Figure 6D — as a closed-form expression,
 having built no relations. When you do need explicit relation objects,
-`materialize(max_degree=..., min_phi=...)` is the bounded escape hatch, and
+`materialize(max_degree=..., min_phi=...)` builds a bounded subset of them, and
 `strongest(k)` streams the important ones in order.
 
 To use the analytical backend on your own structures, set

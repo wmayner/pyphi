@@ -17,7 +17,7 @@ potential purviews, partition enumerations) reused within a single process, and
 an optional **disk-backed result cache** that persists whole SIA and
 cause-effect-structure results across processes and sessions.
 
-All of the relevant switches live under `pyphi.config.infrastructure`, and can
+All of the relevant options are under `pyphi.config.infrastructure`, and can
 also be read or written through the top-level `pyphi.config` shortcut.
 
 ```{code-cell} python
@@ -107,7 +107,7 @@ pyphi.config.disk_cache_results = True
 ```
 
 Results are written under a `__pyphi_cache__/` directory in the working
-directory, one file per key. The cache key folds in the substrate, the state,
+directory, one file per key. The cache key incorporates the substrate, the state,
 the relevant configuration, and a code-version component, so a change to any of
 these produces a different key rather than a stale hit — you never have to clear
 the cache manually after changing the theory or the network.

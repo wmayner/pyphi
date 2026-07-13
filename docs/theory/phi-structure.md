@@ -49,11 +49,11 @@ the complex exists with system integrated information $\varphi_s \approx 0.172$,
 and the experience it specifies has the $\Phi$-structure above, of quantity
 $\Phi \approx 1.563$.
 
-## The paper-to-code map
+## From paper to code
 
 Every named quantity of IIT 4.0 corresponds to a type or attribute in PyPhi. The
-table maps the symbols of Albantakis et al. (2023) to where they live in the
-code, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))`).
+table maps the symbols of Albantakis et al. (2023) to the code that implements
+them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))`).
 
 | Symbol | Quantity | In PyPhi |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ code, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), 
 | $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | `analysis.sia.system_state` (per-direction `intrinsic_information`) |
 | $\varphi_c,\ \varphi_e$ | cause- and effect-side integrated information | `analysis.sia.cause.phi`, `analysis.sia.effect.phi` |
 | MIP | minimum information partition | `analysis.sia.partition` |
-| $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e)$, capped by $\mathit{ii}(s)$ under the 2026 default (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
+| $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e)$; under the 2026 default the minimum also includes $\mathit{ii}(s)$ (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
 | $\varphi_s^{\ast}$ | maximal system integrated information (the complex's) | the $\varphi_s$ of a complex from `Substrate.complexes` |
 | complex | maximal substrate | `Substrate.complexes`; the analyzed candidate is `analysis.system` |
 | mechanism | subset specifying a distinction | `distinction.mechanism` |
@@ -75,6 +75,4 @@ code, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), 
 | $\Phi$-structure | the distinctions and relations together | `CauseEffectStructure`; `analysis.ces` |
 | $\Phi$ | structure integrated information | `analysis.ces.big_phi` |
 
-This mapping is what makes the theory computable: each line of the IIT 4.0
-formalism has a home in the code, and the worked example on the preceding pages
-walks the whole table from top to bottom.
+The worked example on the preceding pages walks this table from top to bottom.

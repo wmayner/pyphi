@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Visualizing PyPhi results
+# Visualize results
 
 PyPhi ships plotting helpers for the objects it computes: the cause-effect
 structure and its relations, the connectivity and transition probabilities of a

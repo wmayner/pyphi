@@ -30,7 +30,7 @@ Eq. 2), and PyPhi requires it of every substrate.
 
 A transition probability matrix that violates conditional independence describes
 *instantaneous causality* — units influencing each other within a single step —
-which signals a missing exogenous variable. PyPhi rejects such a matrix. Consider
+which indicates a missing exogenous variable. PyPhi rejects such a matrix. Consider
 two units that stay put when they agree and flip with probability one-half when
 they disagree; their joint (state-by-state) transitions are not conditionally
 independent:

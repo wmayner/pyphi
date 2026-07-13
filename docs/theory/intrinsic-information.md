@@ -9,15 +9,21 @@ kernelspec:
   name: python3
 ---
 
-# The intrinsic-information cap
+# The intrinsic-information requirement
 
-PyPhi's default formalism, IIT 4.0 (2026), refines the system integrated
-information of the preceding pages in one way: beyond *specifying* an
-irreducible cause–effect state, a system must provide itself with a
-*repertoire of alternatives* — intrinsic **differentiation** (Mayner,
-Marshall, and Tononi, 2026). The two requirements trade off, and the system
-integrated information is capped by their minimum, the system's **intrinsic
-information** $\mathit{ii}(s)$:
+PyPhi's default formalism, IIT 4.0 (2026), refines the account of system
+integrated information given on the preceding pages (Mayner, Marshall, and
+Tononi, 2026). The motivation for the refinement is conceptual: the
+intrinsicality postulate requires that a system's cause–effect power be
+assessed from the system's own perspective, and to have cause–effect power
+intrinsically a system must satisfy two complementary requirements. It must
+provide itself with a repertoire of alternative cause–effect states —
+intrinsic **differentiation** — and it must specify one of those alternatives
+— intrinsic **specification**. The 2023 formulation quantified the second
+requirement; the 2026 refinement makes the first explicit in the measure. The
+two requirements trade off, and both are assessed by the system's **intrinsic
+information** $\mathit{ii}(s)$, which enters the minimum that defines the
+system integrated information:
 
 $$ \varphi_s = \min\{\varphi_c,\ \varphi_e,\ \mathit{ii}(s)\}. $$
 
@@ -34,26 +40,33 @@ $$
 \mathit{ii}_{c/e}(s) = \min\{i^{c/e}_{\mathrm{diff}}(s),\ i^{c/e}_{\mathrm{spec}}(s)\}.
 $$
 
-This page shows the cap in action, and its most consequential theorem:
-**a deterministic system has $\varphi_s = 0$.**
+This page explains the differentiation requirement, follows the measure
+through a small example, and describes what the requirement does and does
+not change.
 
-## Determinism means zero differentiation
+## Differentiation and determinism
 
-A deterministic system in a state pins its cause and effect down completely —
-maximal specification. But differentiation asks the opposite question: what
-repertoire of alternatives does the system furnish itself? A deterministic
-transition offers exactly one effect, so the effect-side intrinsic
-differentiation is zero, the cap binds at zero, and $\varphi_s = 0$ — however
-tightly the units are wired together. (The cause side is evaluated on the
-Bayesian posterior over prior states — Eqs. 6 and 11 — so it measures
-*predecessor degeneracy* and can stay positive even for deterministic
-dynamics; the effect side alone suffices to force the minimum to zero.) The paper states the property directly: "Purely deterministic
-systems provide no genuine alternatives, and thus their intrinsic
-differentiation is zero, while purely random systems specify no state,
-leaving intrinsic specification at zero" (Section 4).
+The requirement is easiest to see in the paper's opening example (Section 2):
+a single unit implementing deterministic COPY logic. From the outside, an
+experimenter can set the unit to each of its states in turn, observe that it
+copies them, and conclude that it has cause–effect power. From the unit's own
+perspective, however, its current state admits exactly one past state and one
+future state; no alternatives are available to it, so there is no difference
+for it to make to itself. Intrinsic differentiation quantifies the
+availability of such alternatives: like entropy, it is zero for a perfectly
+deterministic system and increases with decreasing determinism (Section 2.2).
 
-The classic three-XOR network makes this concrete. Under the *uncapped* 2023
-formalism it is the textbook integrated system:
+Specification behaves in the opposite way. As the paper puts it: "Purely
+deterministic systems provide no genuine alternatives, and thus their
+intrinsic differentiation is zero, while purely random systems specify no
+state, leaving intrinsic specification at zero" (Section 4). Under the 2026
+formalism a deterministic system therefore has $\varphi_s = 0$, a maximally
+noisy system likewise has $\varphi_s = 0$, and positive intrinsic information
+requires a balance of the two.
+
+The three-XOR network illustrates the deterministic case. Under the 2023
+formalism, which does not include the intrinsic-information requirement, it
+is highly integrated:
 
 ```{code-cell} python
 import pyphi
@@ -71,8 +84,8 @@ analysis = pyphi.analyze(xor, (0, 0, 0))
 analysis.phi
 ```
 
-The analysis records exactly where the zero comes from. Both directions carry
-substantial integration and a fully specified state — and zero
+The analysis records exactly where the zero comes from. Both directions have
+substantial integration and a fully specified state, but zero
 differentiation:
 
 ```{code-cell} python
@@ -82,27 +95,30 @@ print("differentiation:",
       {str(d): float(v) for d, v in sia.intrinsic_differentiation.items()})
 ```
 
-$\varphi_c = 1.5$ and $\varphi_e = 3.0$ survive from the 2023 analysis. The
-effect-side differentiation is $0$ — the deterministic transition offers no
-alternative effect — while the cause side records the network's two-fold
-predecessor degeneracy (each state is reachable from exactly two prior
-states, so $-\log_2 \tfrac{1}{2} = 1$). The minimum over directions — and
-with it $\varphi_s$ — is $0$.
+$\varphi_c = 1.5$ and $\varphi_e = 3.0$ are the same values as in the 2023
+analysis. The effect-side differentiation is $0$ — the deterministic
+transition offers no alternative effect — while the cause side records the
+network's two-fold predecessor degeneracy (each state is reachable from
+exactly two prior states, so $-\log_2 \tfrac{1}{2} = 1$). (The cause side is
+evaluated on the Bayesian posterior over prior states — Eqs. 6 and 11 — so it
+measures predecessor degeneracy and can stay positive even for deterministic
+dynamics; the effect side alone suffices to bring the minimum to zero.) The
+minimum over directions — and with it $\varphi_s$ — is $0$.
 
-## This is a theorem, not a bug
+## Reproducing published values
 
-Almost the entire classic IIT teaching repertoire is deterministic — the XOR
-network above, the `basic` OR/COPY/XOR gates, the cellular-automaton rules —
-so under the default formalism *all of them* compute $\varphi_s = 0$. If you
-port an analysis from the literature or from an earlier PyPhi and see zero
-where a paper printed $1.5$: nothing is broken. The system is deterministic,
-the default formalism is the 2026 refinement, and the published number is the
-uncapped 2023 quantity — still available by pinning that formalism, as in the
-first cell above or with `pyphi.config.override(**pyphi.conf.presets.iit4_2023)`.
+Many example systems in the IIT literature are deterministic — the XOR
+network above, the OR/COPY/XOR gates of `basic`, the cellular-automaton
+rules — and their published nonzero $\varphi_s$ values are quantities of the
+2023 formulation. Under the 2026 default these systems compute $\varphi_s =
+0$. To reproduce a published value, compute it under the formalism it was
+published with, as in the first cell above or with
+`pyphi.config.override(**pyphi.conf.presets.iit4_2023)`; see
+{doc}`formalism-versions`.
 
-Any indeterminism restores a repertoire of alternatives. The paper's own
+Any indeterminism provides a repertoire of alternatives. The paper's own
 worked example — the {doc}`Fig 1A logistic network <../tutorials/worked-example>`
-threaded through this section — is probabilistic, which is why its published
+used throughout this section — is probabilistic, which is why its published
 values are identical under 2023 and 2026. Even slight noise suffices: the
 three-unit noisy grid computes a small but positive value under the default.
 
@@ -110,9 +126,17 @@ three-unit noisy grid computes a small but positive value under the default.
 pyphi.analyze(pyphi.examples.grid3_substrate(), (0, 0, 0)).phi
 ```
 
-## What the cap does and does not change
+Differentiation is distinct from indeterminism in the micro dynamics,
+however. It is a requirement on the availability of alternative cause–effect
+states, and alternatives can arise from the system's description and grain as
+well as from noise: at a macro grain, many micro configurations may realize
+the same macro state, and that degeneracy can give a macro unit a repertoire
+of alternatives even when the underlying micro dynamics are nearly
+deterministic (Sections 2.2 and 4; see {doc}`macro-units`).
 
-The cap applies to the *system-level* quantity only. Mechanism-level
+## What the requirement does and does not change
+
+The requirement applies to the *system-level* quantity only. Mechanism-level
 quantities — distinctions, relations, and their summed structure $\Phi$ — are
 computed exactly as in 2023, so the XOR network's cause-effect structure is
 as rich as ever:
@@ -129,10 +153,15 @@ and comparison; the theory's verdict on the deterministic system itself is
 $\varphi_s = 0$.
 
 The minimum information partition is also unaffected: the MIP is selected on
-the *uncapped* normalized integrated information, exactly as in 2023, and the
-cap is applied once to the selected partition's value. Margins and
-tie-breaking therefore behave identically across the two formalisms (see
-{doc}`Control tie-breaking <../howto/tie-breaking>`).
+the normalized integrated information without the intrinsic-information term,
+exactly as in 2023, and $\mathit{ii}(s)$ enters the minimum only at the
+selected partition. Specified-*state* ties, however, are compared on
+$\varphi_s$ as each formalism defines it — under 2026, the value including
+the intrinsic-information term — so a deterministic system's tied readings
+all compare equal at zero and the reported state is a canonical
+representative, while readings tied at positive $\varphi_s$ escalate to the
+structure integrated information $\Phi$ (see
+{doc}`Control tie-breaking <../howto/tie-breaking>`, "System-state ties").
 
 For choosing between formalism versions — and reproducing published 2023 or
 IIT 3.0 numbers — see {doc}`formalism-versions`.

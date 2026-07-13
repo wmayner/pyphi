@@ -93,5 +93,5 @@ type(system.cause_marginal).__name__, type(system.effect_marginal).__name__
 
 These are the objects the next steps operate on. With the substrate fixed as a
 causal model and the system fixed as an intrinsic point of view, the following
-page asks the integration question: is this system irreducible, and by how
-much — its [system integrated information](system-integration.md), $\varphi_s$.
+page asks whether the system is irreducible, and by how much: its
+[system integrated information](system-integration.md), $\varphi_s$.

@@ -29,7 +29,7 @@ pip install pyphi
 ```
 
 Start by importing the package. Turning off the progress bars keeps the output
-clean here; leave them on for real computations, where they are helpful.
+readable here; leave them on for real computations, where they are helpful.
 
 ```{code-cell} python
 import pyphi
@@ -141,6 +141,6 @@ That is a full PyPhi computation. From here:
   numbers.
 - The theory page {doc}`../theory/overview` explains what these quantities mean
   and how they are defined.
-- If you analyze a *deterministic* network and see $\varphi_s = 0$: that is a
-  theorem of the default formalism, not a bug — see
-  {doc}`../theory/intrinsic-information`.
+- Deterministic networks have $\varphi_s = 0$ under the default formalism —
+  see {doc}`../theory/intrinsic-information` for why, and for how to
+  reproduce values published under earlier formulations.

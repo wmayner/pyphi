@@ -64,7 +64,7 @@ Add an `.mcp.json` to your project (or run `claude mcp add`):
 ## A first conversation
 
 Once connected, you talk to the assistant, not to the tools. Here is a typical
-session and what happens under the hood.
+session and the tool calls behind it.
 
 **You:** *What example networks does PyPhi have, and what is the "basic" one?*
 
@@ -101,10 +101,10 @@ conversation.
 **You:** *How would this change under IIT 3.0, or under the 2023 formalism?*
 
 The assistant re-runs `analyze` with a different `formalism`. The same network
-gives **0.208** under IIT 4.0 (2023) — the uncapped formulation, which stops at
-specifying an irreducible cause–effect state and does not require
-alternatives — and **0.188** under IIT 3.0 (which uses a different distance
-measure and has no relations). Together with the 2026 default above, that's
+gives **0.208** under IIT 4.0 (2023) — the formulation without the
+intrinsic-information requirement, which asks only that the system specify an
+irreducible cause–effect state — and **0.188** under IIT 3.0 (which uses a
+different distance measure and has no relations). Together with the 2026 default above, that's
 three formalisms and three different answers for the same system in the same
 state, each correct on its own terms.
 

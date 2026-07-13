@@ -24,7 +24,7 @@ tie-resolution rules can change which object is returned — and therefore the
 reported purviews and, in some cases, the composition of the cause-effect
 structure. The scalar $\varphi$ and $\varphi_s$ values are unaffected by
 tie-breaking (all tied candidates share the same value by definition); what
-changes is which representative object carries that value forward.
+changes is which representative object is reported.
 
 ```{note}
 In contrast to the examples often used in the literature, realistic systems are often noisy and lack exact symmetry, so ties are less important in empirical practice.
@@ -103,7 +103,7 @@ strategy strictly prefers one candidate over another.
 
 ## A worked example: a purview tie
 
-The basic example system has a genuine tie in the effect purview of one of its
+The basic example system has an exact tie in the effect purview of one of its
 mechanisms. Mechanism `C` (index `2`) specifies its effect over two different
 purviews that are exactly tied at $\varphi = 1$: the single unit `(1,)` and the
 pair `(0, 1)`. Which one PyPhi reports depends entirely on
@@ -144,7 +144,62 @@ mie_small.purview, round(mie_small.phi, 6)
 
 The $\varphi$ value is `1.0` in every case; only the selected purview changes.
 This is the sense in which tie-breaking can affect a result: it determines the
-representative object, not the integrated-information value it carries.
+representative object, not its integrated-information value.
+
+## System-state ties: the postulate ladder
+
+The specified cause and effect states of a *system* are selected by maximal
+intrinsic information (Eq. 12), and symmetric substrates routinely tie. These
+ties are not resolved by a configurable cascade: they follow the postulate
+ladder of the S1 tie-resolution supplement (Albantakis et al. 2023, S1),
+applied with each formalism's own $\varphi_s$ — under IIT 4.0 (2026), the
+value including the intrinsic-information term.
+
+1. **Integration.** Each tied $(\text{cause}, \text{effect})$ reading gets
+   its own MIP search, and the readings are compared on $\varphi_s$. A unique
+   maximum wins.
+2. **Composition.** Readings still tied at $\varphi_s > 0$ are compared on
+   the structure integrated information $\Phi$ of the cause–effect structure
+   each reading resolves (the mechanism sweep is shared; each reading pays
+   congruence resolution plus the closed-form relation sum). The
+   $\Phi$-maximal reading wins — "it is the integrated information
+   $\varphi_s$ that determines in which cause-effect state the system exists
+   the most", and past $\varphi_s$, the structure does.
+3. **A $\Phi$ tie** is *extrinsic* when the tied readings' structures are
+   intrinsically identical (isomorphic up to a relabeling of the units): the
+   system still qualifies, PyPhi reports a canonical representative, and the
+   full tied set is surfaced on ``sia.ties``. A $\Phi$ tie between genuinely
+   *distinct* structures violates the information postulate: the system does
+   not qualify as a complex, and the SIA is null with reason
+   ``NONUNIQUE_SYSTEM_STATE``.
+
+When every tied reading has $\varphi_s = 0$ — under the 2026 default this is
+every deterministic system — the system is not a complex under any reading,
+so nothing remains for $\Phi$ to adjudicate. The ladder stops: no
+cause–effect structure is computed, and the reported state is a canonical,
+relabeling-invariant representative whose choice is presentational.
+
+A noisy XOR loop shows the Composition step live. At $(0, 0, 0)$ its two
+specified cause readings tie at a positive $\varphi_s$, and the
+congruent reading supports more relation structure, so $\Phi$ selects it:
+
+```{code-cell} python
+import numpy as np
+
+p, n = 0.85, 3
+tpm = np.zeros((2**n, n))
+for i, s in enumerate(pyphi.utils.all_states((2,) * n)):
+    for j in range(n):
+        tpm[i, j] = p if (sum(s) - s[j]) % 2 == 1 else 1 - p
+noisy_xor = pyphi.Substrate(tpm, cm=np.ones((n, n), dtype=int) - np.eye(n, dtype=int))
+
+sia = pyphi.System(noisy_xor, (0, 0, 0)).sia()
+{
+    "phi": round(float(sia.phi), 6),
+    "chosen cause state": sia.system_state.cause.state,
+    "tied readings": len(sia.ties),
+}
+```
 
 ## Changing the rules
 
@@ -192,7 +247,7 @@ sia = pyphi.examples.basic_system().sia()
 }
 ```
 
-A symmetric substrate shows the flag firing: the two best system partitions
+A symmetric substrate produces an exact tie: the two best system partitions
 of the 3-unit grid are symmetry-related and tie exactly in normalized
 $\varphi$:
 

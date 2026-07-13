@@ -17,8 +17,8 @@ grouping and over which temporal window — are the ones that actually exist for
 a substrate in a given state. The search is combinatorial: it builds candidate
 macro units, assembles them into candidate systems, and compares those systems
 in an exclusion cascade. Because the number of candidates grows quickly, the
-first step of any real analysis is to pre-flight its cost, not to launch it
-blind. For the theory behind macro units and grains, see
+first step of any real analysis is to pre-flight its cost. For the theory
+behind macro units and grains, see
 {doc}`../theory/macro-units`; for a guided walkthrough, see the
 {doc}`intrinsic-units tutorial <../tutorials/macro>`.
 
@@ -53,9 +53,9 @@ substrate = Substrate(tpm, node_labels=("A", "B"))
 
 Every computation below runs under the configuration preset that reproduces
 the settings of Marshall et al. (2024). (The pin also matters for the
-numbers: several specimens here are deterministic or near-deterministic, and
-the 2026 default's intrinsic-information cap would zero them — see
-{doc}`../theory/intrinsic-information`.)
+numbers: several specimens here are deterministic or near-deterministic, so
+under the 2026 default's intrinsic-information requirement they would compute
+$\varphi_s = 0$ — see {doc}`../theory/intrinsic-information`.)
 
 ## Pre-flight the cost
 
@@ -138,7 +138,7 @@ len(temporal.complexes)
 
 {func}`pyphi.analyze <pyphi.analyze>` with `grains` returns a
 `ComplexesResult`. Its `complexes` are the winners of the exclusion cascade,
-each a `Complex` carrying its micro footprint (`node_indices`), its φₛ, and its
+each a `Complex` with its micro footprint (`node_indices`), its φₛ, and its
 macro units. Iterate them to see which units won and at which grain (each
 unit's `update_grain` is its temporal window):
 
@@ -157,7 +157,7 @@ winner = result.maximal_complex
 round(winner.exclusion_margin, 6), winner.effectively_tied
 ```
 
-Each winner also carries the candidates it excluded, in `excluded`. Here the
+Each winner also records the candidates it excluded, in `excluded`. Here the
 winner is a coarse-graining of both units, and its strongest beaten rival is a
 *blackboxing* of the same two units:
 
@@ -168,7 +168,7 @@ rival.node_indices, round(rival.phi, 6)
 
 In a condensation with several complexes, `excluded` can also hold *shadows* —
 candidates whose own φₛ is *higher* than the complex they appear under, kept out
-not by it but by a different complex that carved their footprint away. There is
+not by that complex but by a different one that overlapped their footprint. There is
 a single complex here, so no shadows arise. Exclusion is recursive: an excluded
 candidate cannot in turn exclude anything. For how the cascade resolves
 overlapping candidates, see the
@@ -209,10 +209,10 @@ For the parallel backend and its options, see {doc}`parallel`.
 
 ## Bound the search
 
-`SearchBounds` exposes the knobs that set the size of the search space. Each
-tightens one axis of the combinatorial cost:
+`SearchBounds` exposes the parameters that set the size of the search space.
+Each tightens one axis of the combinatorial cost:
 
-| Knob | Bounds | Cost it drives |
+| Bound | Limits | Cost it controls |
 | --- | --- | --- |
 | `max_constituents` | units per candidate macro unit | how large a group may be coarse-grained or blackboxed |
 | `max_update_grain` | largest temporal grain τ per level | the temporal window, and the required micro-history length |

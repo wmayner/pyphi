@@ -11,7 +11,7 @@ kernelspec:
 
 # Export results
 
-PyPhi's result objects and substrates carry their own analysis machinery, but
+PyPhi's result objects and substrates have their own analysis methods, but
 you will often want to hand the numbers to another tool: a plotting library, a
 statistics package, or a probabilistic-graphical-model toolkit. This guide
 shows the three export paths PyPhi provides: a Pandas `DataFrame` view of a
@@ -114,7 +114,7 @@ print("nodes:", sorted(g.nodes, key=str))
 print("edges:", sorted(g.edges, key=str))
 ```
 
-Each next-timeslice node carries its conditional probability table and its
+Each next-timeslice node stores its conditional probability table and its
 ordered parent labels as node attributes.
 
 ```{code-cell} python

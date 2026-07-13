@@ -56,8 +56,8 @@ so nothing was dropped here:
 result.skipped
 ```
 
-A deterministic substrate shows the mechanism — two of the eight states of
-the three-gate `basic` network are unreachable:
+With a deterministic substrate you can see this happen — two of the eight
+states of the three-gate `basic` network are unreachable:
 
 ```{code-cell} python
 pyphi.sweep(pyphi.examples.basic_substrate(), states="all").skipped
@@ -69,7 +69,7 @@ pyphi.sweep(pyphi.examples.basic_substrate(), states="all").skipped
 
 - `df` — the tidy table (also available as `result.to_pandas()`).
 - `results` — the raw result objects, aligned one-to-one with the rows of
-  `df`, so you can reach into any cell for detail the table does not carry.
+  `df`, so you can reach into any cell for detail that is not in the table.
 - `skipped` — the `(formalism, subset, state)` cells dropped as unreachable.
 
 ```{code-cell} python
@@ -101,8 +101,8 @@ pyphi.sweep(
 ```
 
 The deterministic `basic` network is chosen deliberately: the two rows differ
-(φ = 0.415 under 2023, 0 under 2026) because the 2026 formalism caps
-deterministic systems at zero — see
+(φ = 0.415 under 2023, 0 under 2026) because deterministic systems compute
+zero under the 2026 formalism's intrinsic-information requirement — see
 {doc}`../theory/intrinsic-information`.
 
 When more than one axis varies at once, the index becomes a `MultiIndex` with
@@ -122,7 +122,7 @@ pyphi.sweep(substrate, states="all", compute="ces").df.round(6)
 value is stored in `result.results` for every cell; reach into that list to
 work with whatever it returns.
 
-## Flag near-tied cells
+## Find near-tied cells
 
 The margin columns make it a one-liner to find the cells whose selections
 were effectively tied at the configured `precision` — the results whose
@@ -134,7 +134,7 @@ tied = result.df[result.df.effectively_tied.astype(bool)]
 tied[["phi", "partition_margin", "cause_state_margin", "effect_state_margin"]].round(6)
 ```
 
-Cells computed under a formalism without margin reporting (IIT 3.0) carry
+Cells computed under a formalism without margin reporting (IIT 3.0) have
 `None` in these columns.
 
 ## Running in parallel
@@ -154,7 +154,7 @@ parallel, so the table is identical either way.
 ## Reproducibility
 
 Pass a `seed` to stamp it into every result's provenance record, so a saved
-sweep carries the seed that produced it alongside the numbers:
+sweep records the seed that produced it alongside the numbers:
 
 ```{code-cell} python
 seeded = pyphi.sweep(substrate, states="all", seed=42)

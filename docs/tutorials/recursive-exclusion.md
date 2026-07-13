@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Recursive exclusion: how complexes carve a substrate
+# Recursive exclusion: how complexes divide a substrate
 
 {download}`Download this page as a Jupyter notebook <recursive-exclusion.ipynb>`
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/tutorials/recursive-exclusion.ipynb)
@@ -22,11 +22,11 @@ both exist: among overlapping candidates, only one specifies its
 cause–effect structure. PyPhi applies the postulate *recursively*
 (Marshall et al., 2023): candidates are walked in
 descending order of system integrated information $\varphi_s$, each
-accepted complex claims its units, and — crucially — a candidate excluded
+accepted complex claims its units, and a candidate excluded
 by an accepted complex no longer exists, so it cannot exclude anything
 else in turn.
 
-This recursion has a consequence that surprises many readers: **a complex
+This recursion has a counterintuitive consequence: **a complex
 can coexist with an overlapping candidate of higher $\varphi_s$**, as long
 as that candidate was itself excluded by some other complex. This tutorial
 builds a small substrate where that happens, finds its complexes, and
@@ -72,7 +72,7 @@ $\{A,B\} > \{B,C\} > \{C,D\}$, with $\{B,C\}$ overlapping both of its
 neighbors.
 
 The φₛ values in this tutorial are computed under the 2023 formalism, pinned
-explicitly below: the chain's φₛ ladder was constructed for the uncapped
+explicitly below: the chain's φₛ ladder was constructed for the 2023
 measure, and the exclusion mechanics being demonstrated are identical under
 both formalisms.
 
@@ -110,9 +110,9 @@ for record in sorted(cd.excluded, key=lambda r: -r.phi):
 
 $\{C,D\}$'s records contain candidates with **higher** $\varphi_s$ than
 $\{C,D\}$ itself — $\{B,C\}$ among them. These are *shadows*: candidates
-that out-inform the complex but were carved away by a different complex
-before this one was accepted. They document the recursion at work; they
-were never rivals that $\{C,D\}$ had to beat.
+with more integrated information than the complex, excluded by a different
+complex before this one was accepted. They document the recursion at work;
+they were never rivals that $\{C,D\}$ had to beat.
 
 ## Selection margins
 
@@ -134,7 +134,8 @@ $\{A,B\}$ won by a wide margin over the runner-up on its units. $\{C,D\}$
 beat only the singletons $\{C\}$ and $\{D\}$, and its margin measures the
 gap to the best of them. A margin of zero (equivalently,
 `complex_.effectively_tied`) would mean an overlapping rival tied at the
-configured precision and the selection was decided beyond $\varphi_s$; see
+configured precision and the selection was decided by criteria beyond
+$\varphi_s$; see
 {doc}`../howto/tie-breaking` for how ties are resolved.
 
 ## References

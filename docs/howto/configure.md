@@ -70,7 +70,7 @@ automatically:
 
 ```{code-cell} python
 pyphi.config.precision = 6
-pyphi.config.numerics.precision  # the write landed in the numerics layer
+pyphi.config.numerics.precision  # the write was routed to the numerics layer
 ```
 
 ```{code-cell} python
@@ -106,8 +106,9 @@ A preset is a bundle of options that reproduces the settings of a specific
 IIT paper. Three are provided:
 
 - `iit3` — IIT 3.0 (Oizumi et al. 2014)
-- `iit4_2023` — IIT 4.0 (Albantakis et al. 2023), uncapped
-- `iit4_2026` — IIT 4.0 with the intrinsic-information cap (Mayner,
+- `iit4_2023` — IIT 4.0 (Albantakis et al. 2023), without the
+  intrinsic-information requirement
+- `iit4_2026` — IIT 4.0 with the intrinsic-information requirement (Mayner,
   Marshall, Tononi 2026), the default formalism
 
 Each preset is a dictionary, so you apply it by unpacking it into
@@ -120,7 +121,7 @@ import warnings
 from pyphi import iit3
 
 # Switching the formalism emits advisory warnings that several config options
-# are changing; they are silenced here to keep the output clean.
+# are changing; they are silenced here to keep the output readable.
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     with pyphi.config.override(**iit3):

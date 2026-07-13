@@ -57,10 +57,10 @@ $$ \varphi_s = \min(\varphi_c, \varphi_e). $$
 (analysis.sia.cause.phi, analysis.sia.effect.phi, analysis.phi)
 ```
 
-For the worked example the effect direction is the binding one: $\varphi_e
+For the worked example the minimum comes from the effect side: $\varphi_e
 \approx 0.172$ is smaller than $\varphi_c \approx 0.245$, so $\varphi_s =
 \varphi_e \approx 0.172$ — the paper's Fig 1D split ($\varphi_c = 0.24$,
-$\varphi_e = 0.17$). The partition responsible — the MIP — is carried on the
+$\varphi_e = 0.17$). The partition responsible — the MIP — is stored on the
 analysis:
 
 ```{code-cell} python
@@ -72,10 +72,10 @@ analysis** that produced it, including the MIP, the cause and effect sides, and 
 size-normalized value (`analysis.sia.normalized_phi`) used when comparing systems
 of different sizes.
 
-Under the default formalism, $\varphi_s$ is additionally capped by the system's
-*intrinsic information* — a system must furnish itself alternatives, not merely
-specify one state. The cap and its consequences (deterministic systems have
-$\varphi_s = 0$) have {doc}`their own page <intrinsic-information>`.
+Under the default formalism, the minimum additionally includes the system's
+*intrinsic information* — a system must both furnish itself alternatives and
+specify one state. This requirement and its consequences (deterministic
+systems have $\varphi_s = 0$) have {doc}`their own page <intrinsic-information>`.
 
 ## Selection margins
 
@@ -95,7 +95,7 @@ Each such choice has a **margin**: the gap between the winner and the best
 competitor, in the units of the comparison. PyPhi reports these on the
 analysis — `partition_margin` (in normalized $\varphi$), the per-direction
 specified-state margins (in intrinsic information), and `tied_selections`
-naming any selection whose margin is within the configured numerical
+listing any selection whose margin is within the configured numerical
 precision of zero.
 
 ```{code-cell} python
@@ -106,13 +106,13 @@ precision of zero.
 )
 ```
 
-Margins are the theory-native form of sensitivity analysis. Because the
+Margins are the theory's own form of sensitivity analysis. Because the
 selections implement the principles of maximal and minimal existence, a
 substrate near a selection boundary is near a point where *what exists* —
-which state it specifies, where its weakest link lies — changes discretely,
+which state it specifies, which partition is minimal — changes discretely,
 even though the substrate's own parameters vary continuously. A small
-margin flags exactly that proximity, which no derivative of $\varphi_s$
-reveals. Exact zeros are ties, resolved by explicit, configurable rules;
+margin means the substrate is close to such a boundary, which no derivative
+of $\varphi_s$ reveals. Exact zeros are ties, resolved by explicit, configurable rules;
 see {doc}`Control tie-breaking </howto/tie-breaking>` for reading and
 acting on margins, and
 {doc}`Explore substrate parameter landscapes </howto/landscape>` for
@@ -132,7 +132,7 @@ for complex_ in substrate.complexes((0, 1, 1)):
     print(complex_.node_indices, round(float(complex_.phi), 4))
 ```
 
-Two non-overlapping complexes survive: the single unit $\{C\}$ and the pair
-$\{A, B\}$ — the complex the paper features. With a complex fixed, the final
+Two non-overlapping complexes remain: the single unit $\{C\}$ and the pair
+$\{A, B\}$ — the complex featured in the paper. With a complex fixed, the final
 postulate — *composition* — unfolds its internal structure: the
 [distinctions and relations](distinctions-and-relations.md) it specifies.

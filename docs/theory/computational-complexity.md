@@ -53,7 +53,7 @@ The differences between formalisms are entirely in *which* levels they visit and
 schemes.
 
 The counts at each level are closed-form combinatorial quantities. PyPhi's
-enumerators live in `pyphi.partition` and `pyphi.combinatorics`.
+enumerators are in `pyphi.partition` and `pyphi.combinatorics`.
 
 | Quantity | Count | Enumerator |
 |---|---|---|
@@ -103,7 +103,7 @@ et al. 2018.)
 
 IIT 4.0 computes a cause–effect structure — its **distinctions** and the
 **relations** among them — and, at the system level, the system integrated
-information $\varphi_s$. These are three separate cost centers.
+information $\varphi_s$. These are three separate costs.
 
 **Distinctions** reuse the mechanism × purview loop: $2^n - 1$ mechanisms, up to
 $2^n - 1$ cause and effect purviews each (pruned by the connectivity matrix), and
@@ -111,7 +111,7 @@ the mechanism partitions of each pair. The default scheme is `JOINT_PARTITION_AL
 which enumerates *all* set partitions of the mechanism and purview rather than only
 bipartitions — a Bell-number-weighted count per pair, super-exponential in $m+p$
 and far more than 3.0's $2^{\,m+p-1}$. At the sizes actually reachable, the
-distinctions are often the binding cost, precisely because of this scheme.
+distinctions often dominate the cost, precisely because of this scheme.
 
 **Relations** are the asymptotically dominant term in all of IIT. A relation binds
 a set of distinctions that share a congruent purview overlap; over $n$ units the
@@ -155,7 +155,7 @@ closed form by inclusion–exclusion, without enumerating individual relations.
 the whole system at each, with no inner mechanism loop.
 
 The **2023** and **2026** variants have identical asymptotic cost. The 2026
-Eq. 23 cap on system intrinsic information is applied once to the already-selected
+intrinsic-information term (Eq. 23) is evaluated once, at the already-selected
 minimum-information partition, an $O(1)$ step that does not change the number of
 partitions swept; `shortcircuit_sia` is a constant-factor pre-check that returns
 early when the system has no cause or effect.
@@ -187,7 +187,7 @@ timings, aggregates, fitted rates, and figure are written to
 :width: 100%
 
 Median wall-clock runtime versus system size $n$, one curve per formalism and
-stage, on a logarithmic vertical axis. A straight line is clean exponential
+stage, on a logarithmic vertical axis. A straight line indicates exponential
 growth; the upward-bending IIT 4.0 cause–effect-structure curves are
 super-exponential. The 2023 and 2026 curves coincide.
 ```
@@ -212,7 +212,7 @@ exactly:
 | IIT 4.0 — CES (2023) | 28.1 | 7.8 | 0.993 |
 | IIT 4.0 — $\varphi_s$ (2023) | 7.9 | 2.8 | 0.999 |
 
-### Connectivity, not just size
+### Connectivity matters as much as size
 
 The growth factors above are specific to the ring family used for the
 measurements, and they are best read as a single point in a space parameterized as
@@ -227,10 +227,10 @@ $2^n$. Because the surviving purviews are also smaller, the repertoires and
 distances computed over them are defined on distributions of correspondingly
 reduced support ($k^p$ with $p \ll n$); as this per-operation cost enters the
 exponential base rather than a leading constant, connectivity influences the
-*rate* of growth and not merely its scale. Absent connections furnish a second
-economy: when they imply that a mechanism's repertoire factorizes over a purview,
-the mechanism is reducible over that purview a priori and need not be evaluated at
-all (Mayner et al., 2018).
+*rate* of growth and not merely its scale. Missing connections save work a
+second way: when they imply that a mechanism's repertoire factorizes over a
+purview, the mechanism is reducible over that purview a priori and need not be
+evaluated at all (Mayner et al., 2018).
 
 Two further reductions act at the system level. A subsystem that is not strongly
 connected has $\varphi_s = 0$ by construction and is excluded from the search for
@@ -241,13 +241,12 @@ purviews of a sparse system yield far fewer realized relations than the
 $2^{\,2^n-1}-1$ worst case.
 
 These effects bound the *realized* cost, not the asymptotic worst case, which is
-attained at complete connectivity and is unchanged. The qualification is not
-merely formal: integration, the quantity IIT is designed to measure, stands in
-tension with sparsity, so the systems of greatest scientific interest tend to lie
-toward the densely connected and therefore costly regime, while a system sparse
-enough to sever into independent parts is by the same token one for which
-$\varphi_s = 0$. Connectivity thus determines the practical ceiling at least as
-much as unit count does.
+attained at complete connectivity and is unchanged. This qualification matters
+in practice: integration, the quantity IIT is designed to measure, works
+against sparsity. The systems of greatest scientific interest tend to be
+densely connected and therefore costly, while a system sparse enough to fall
+apart into independent parts has $\varphi_s = 0$ anyway. Connectivity
+determines the practical ceiling at least as much as unit count does.
 
 ## The cost of the grain search
 
@@ -285,12 +284,12 @@ One structural fact keeps this short of the full product of the four axes. The
 intrinsic-unit criteria (Marshall et al., 2024, Eqs. 15–16) are properties of a
 decomposition and its background alone — a candidate's mapping and update grain
 enter neither inequality — so the search judges each decomposition *once*, and that
-single verdict covers all of its mapped and grained variants. Building a unit on
-meso constituents rather than in one shot on the micro units narrows the mapping
-axis further, because the meso units' own mappings are already fixed (Marshall et
-al., 2024, Fig. 3E).
+single verdict covers all of its variants, whatever their mappings and update
+grains. Building a unit on meso constituents rather than directly on the micro
+units narrows the mapping axis further, because the meso units' own mappings
+are already fixed (Marshall et al., 2024, Fig. 3E).
 
-**What one candidate costs.** Two separate costs attach to each candidate.
+**What one candidate costs.** Each candidate has two separate costs.
 Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ work,
 whose dominant, mapping-independent share is paid once per distinct
 (footprint, grain, apportionment) combination rather than once per candidate:
@@ -321,9 +320,9 @@ every candidate.
 (2024) — the coarse-graining example rediscovered in the
 {doc}`intrinsic-units tutorial <../tutorials/macro>` — the default bounds (one
 macroing level, update grain 1, the coarse-graining and blackboxing families)
-evaluate about eighty candidate systems and finish in on the order of a second on
-this hardware, almost all of it in the $\varphi_s$ evaluations rather than in
-constructing the macro TPMs.
+evaluate about eighty candidate systems and finish in about a second, almost
+all of it in the $\varphi_s$ evaluations rather than in constructing the macro
+TPMs.
 
 **Pre-flight before running.** Because the candidate count can grow quickly,
 `SearchBounds.estimate` counts the systems a set of bounds would visit — walking the
@@ -390,14 +389,14 @@ Measured on the same ring family (`benchmarks/complexity/options.py`):
 :alt: Runtime versus system size for each configuration option, three panels.
 :width: 100%
 
-Median runtime versus $n$ for each knob, logarithmic vertical axis. Left: the
-mechanism partition scheme is the widest-separated — the strongest lever on IIT
-4.0 distinction cost. Middle: analytical and concrete relations nearly coincide
-for this system. Right: the IIT 3.0 cut-one approximation is shallower and reaches
-one unit further than the full cut sweep.
+Median runtime versus $n$ for each option, logarithmic vertical axis. Left: the
+mechanism partition scheme separates the curves the most — it has the strongest
+effect on IIT 4.0 distinction cost. Middle: analytical and concrete relations
+nearly coincide for this system. Right: the IIT 3.0 cut-one approximation is
+shallower and reaches one unit further than the full cut sweep.
 ```
 
-| Knob | Setting | Median at $n=5$ | Largest $n$ under a 45 s/eval budget |
+| Option | Setting | Median at $n=5$ | Largest $n$ under a 45 s/eval budget |
 |---|---|---|---|
 | mechanism scheme | `JOINT_BIPARTITION` | 3.3 s | **7** |
 | | `WEDGE_TRIPARTITION` | 8.8 s | 6 |
@@ -407,9 +406,9 @@ one unit further than the full cut sweep.
 | system cuts (3.0) | cut-one ($2n$) | 22 s | **6** |
 | | full ($2^n$, default) | 56 s | 5 |
 
-Three findings, one per knob:
+Three findings, one per option:
 
-- **The mechanism partition scheme is the dominant lever on IIT 4.0 distinction
+- **The mechanism partition scheme has the largest effect on IIT 4.0 distinction
   cost.** At $n=5$ the default `JOINT_PARTITION_ALL` is about 15× slower than
   `JOINT_BIPARTITION`, and the gap widens with $n$: `JOINT_BIPARTITION` reaches
   $n=7$ in ~4 minutes while `JOINT_PARTITION_ALL` is already at ~48 s by $n=5$.
@@ -418,15 +417,15 @@ Three findings, one per knob:
   definition, not a faster route to the same answer.
 
 - **Analytical relations help only modestly here**, ~1.2× at $n=5$, because for
-  this system the cause–effect structure is bound by its *distinctions*, not its
-  relations: the relation term that `ANALYTICAL` eliminates is not the bottleneck
-  at reachable sizes. (In an uncapped run, IIT 4.0 CES at $n=6$ still took ~30
-  minutes even with analytical relations — nearly all of it in the distinction
-  computation.) On a system with a large, densely overlapping set of distinctions
+  this system the cause–effect structure cost is dominated by its *distinctions*,
+  not its relations: the relation term that `ANALYTICAL` eliminates is not the bottleneck
+  at reachable sizes. (In a run without the time budget, IIT 4.0 CES at $n=6$
+  still took ~30 minutes even with analytical relations — nearly all of it in
+  the distinction computation.) On a system with a large, densely overlapping set of distinctions
   the relation term dominates instead, and the closed form is the difference
   between tractable and not.
 
-- **Cut-one is the cleanest approximation win** for IIT 3.0, ~2.6× at $n=5$, and
+- **Cut-one is the most effective approximation** for IIT 3.0, ~2.6× at $n=5$, and
   it reaches $n=6$ where the full sweep does not, because it replaces the $2^n$
   system cuts with $2n$. It returns an upper bound on Φ rather than the exact
   value.
@@ -452,8 +451,8 @@ reaches $n=7$; `default` and `+ analytical` coincide. Left, IIT 3.0 big Φ:
 `+ no-new-concepts` coincide (upper pair) — no-new-concepts adds nothing here.
 ```
 
-Median seconds, by stack (— = not measured, past the cap or the per-evaluation
-budget):
+Median seconds, by stack (— = not measured, past the measured size range or the
+per-evaluation budget):
 
 | Stack | $n=5$ | $n=6$ | $n=7$ |
 |---|---|---|---|
@@ -473,13 +472,13 @@ distinctions are cheap, the relations become the next bottleneck, so analytical
 relations *on top of* bipartitions pays off again — another ~4× ($13 \to 3.3$ s).
 The two together are ~16× at $n=5$ and move the ceiling from $n=5$ to $n=7$: the
 full stack reaches seven units (~4.5 min) while the default is already at ~52 s by
-five and would take tens of minutes at six. This is the stack to reach for when
+five and would take tens of minutes at six. Use this combination when
 the 4.0 structure needs to be tractable — with the caveat that bipartitions is a
 formalism choice, so the seven-unit result is a *different* quantity than the
 default all-partitions one, not the same number computed faster.
 
-**IIT 3.0 — cut-one is the only lever here; no-new-concepts needs a sparse
-system.** Cut-one gives ~2.4× at $n=5$, growing with $n$ (the full sweep's cut
+**IIT 3.0 — cut-one is the only setting that helps here; no-new-concepts needs
+a sparse system.** Cut-one gives ~2.4× at $n=5$, growing with $n$ (the full sweep's cut
 count is $2^n$ against cut-one's $2n$). No-new-concepts, though, gives *nothing*
 on this system — it skips re-evaluating mechanisms that do not specify a concept,
 but this strongly connected ring is dense: every one of the $2^n-1$ mechanisms
