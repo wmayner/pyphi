@@ -394,7 +394,7 @@ def maximal_relations(distinctions, atoms=None):
     ≥ 2) form a downward-closed family, so every relation's relata are a
     subset of some maximal relation's. A set of distinctions is a relation
     exactly when it is contained in some Z(n) — the distinctions whose
-    purview-union contains the state-tagged unit n — and each Z(n) is
+    purview-union contains the state-tagged unit n [1]_ — and each Z(n) is
     itself a relation, so the maximal relations are the inclusion-maximal
     elements of {Z(n)}. No relations are enumerated; cost is quadratic in
     the number of atoms. Self-relations are excluded: the family is not
@@ -434,7 +434,7 @@ def maximal_faces(distinctions, atoms=None):
     The face at atom n is M(n), the causes and effects whose purview
     contains n; every face of every relation is contained in some M(n),
     and M(n) is itself a face of the relation Z(n) (the distinctions whose
-    purview-union contains n), so the maximal faces are the
+    purview-union contains n [1]_), so the maximal faces are the
     inclusion-maximal elements of {M(n)}. Each face carries the φ_r of the
     relation it is a face of. A maximal face's parent relation need not be
     a maximal relation, so the maximal faces are not obtainable from
