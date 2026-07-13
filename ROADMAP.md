@@ -214,11 +214,17 @@ remainder, each with its gate verdict:
   only, and selection identity flips between near-tied set partitions at
   single-grid-point frequency — is honored by construction: the driver reads only
   the scalar objective and never branches on a MIP identity.
-- **Relations follow-ups** *(open)*. (a) *Largely done* —
-  `pyphi/visualize/projection/__init__.py` now renders `AnalyticalRelations` via
-  `strongest(k)` and raises a clear error when `max_relations` is omitted for the
-  analytical backend (rather than iterating). (b) Move the CES `diff` from the
-  relation-level set diff in `pyphi/models/ces.py` to statistic deltas.
+- **Relations follow-ups** *(a + b landed 2026-07-12; c open)*. (a) **Landed** —
+  `pyphi/visualize/projection/__init__.py` renders `AnalyticalRelations` via
+  `strongest(k)`, raises a clear error when `max_relations` is omitted for the
+  analytical backend, sizes nodes from the closed-form per-distinction Σφ_r
+  (`Relations.sum_phi_by_distinction`, cap-independent), and reads the exact
+  closed-form degree spectrum for the spectrum view; a general visualization
+  how-to (`docs/howto/visualize.md`) covers the whole `pyphi.visualize` surface
+  with interactive figures. (b) **Landed** — `CauseEffectStructure.diff`
+  (`pyphi/models/ces.py`) reports relation statistic deltas (Σφ_r, count,
+  per-degree) on every backend, keeping per-relation gained/lost where the
+  relations are enumerable.
   (c) **Make `ANALYTICAL` the default `relation_computation`** (currently
   `CONCRETE`; `conf/formalism.py`). The consumer plumbing already accepts
   `AnalyticalRelations` — serialize encoders/decoders, CES-algebra
