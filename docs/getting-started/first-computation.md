@@ -18,9 +18,9 @@ kernelspec:
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/getting-started/first-computation.ipynb)
 
 This page walks through a complete PyPhi computation end to end: build a small
-substrate, analyze it in a chosen state, read off the integrated information
-$\varphi_s$ and the associated $\Phi$-structure, and save the result to disk.
-It should take about ten minutes.
+substrate from the IIT 4.0 paper, analyze it in a chosen state, read off the
+integrated information $\varphi_s$ and the associated $\Phi$-structure, and
+save the result to disk. It should take about ten minutes.
 
 If you have not installed PyPhi yet:
 
@@ -40,47 +40,75 @@ pyphi.config.progress_bars = False
 ## Build a substrate
 
 A {class}`~pyphi.substrate.Substrate` is a set of interacting units defined by a
-transition probability matrix and a connectivity matrix. PyPhi ships a few small
-example systems; we will use the standard three-unit network that appears
-throughout the documentation.
+transition probability matrix and a connectivity matrix. PyPhi ships the
+example systems used in the IIT literature; we will use the three-unit network
+the IIT 4.0 paper introduces the theory with (Albantakis et al. 2023, Fig 1A) —
+three units `A`, `B`, and `C`, each a noisy logistic function of its inputs.
 
 ```{code-cell} python
-substrate = pyphi.examples.basic_substrate()
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 substrate
 ```
 
-The three units are named `A`, `B`, and `C`. The connectivity matrix shows which
-units influence which, and the transition probability matrix gives the
-probability that each unit turns on given the current state of the system.
+The connectivity matrix shows which units influence which, and the transition
+probability matrix gives the probability that each unit turns on given the
+current state of the system. Note the probabilities are strictly between 0
+and 1: the network is probabilistic, not deterministic.
 
 ## Analyze a state
 
 Integrated information is a property of a substrate *in a particular state*. We
-pick a state — one value per unit, ordered `(A, B, C)` — and hand it, together
-with the substrate, to {func}`~pyphi.analyze`.
+use the state analyzed in the paper — `A` off, `B` and `C` on — ordered
+`(A, B, C)`, and hand it, together with the substrate, to
+{func}`~pyphi.analyze`.
 
 ```{code-cell} python
-state = (1, 0, 0)
+state = (0, 1, 1)
 analysis = pyphi.analyze(substrate, state)
 analysis
 ```
 
-That single call runs the whole analysis: it identifies the maximally
-irreducible system, its distinctions, and their relations.
+That single call runs the whole analysis of the three-unit system: it measures
+the system's irreducibility, finds its distinctions, and computes their
+relations.
 
 ## Read the results
 
-The scalar `analysis.phi` is $\varphi_s$, the integrated information of the
-system as a whole — how much the system is more than the sum of its parts.
+The scalar `analysis.phi` is $\varphi_s$, the system integrated information —
+how much the system, as a whole, is irreducible to its parts.
 
 ```{code-cell} python
 round(analysis.phi, 4)
 ```
 
+The value is positive: the three units hang together as one system. (It
+reproduces the value published in the paper's Fig 1E for this system, 0.13.)
+
+## Find the complexes
+
+Not every subset of units exists as a whole of its own. Subsets *compete*:
+among overlapping candidates, only the one with maximal $\varphi_s$ — a
+**complex** — exists. {meth}`~pyphi.substrate.Substrate.complexes` runs that
+competition over every subset:
+
+```{code-cell} python
+for complex_ in substrate.complexes(state):
+    print(complex_.node_indices, round(float(complex_.phi), 4))
+```
+
+The substrate condenses into two complexes: the single unit `C`, and the pair
+`{A, B}` — the complex the paper features in Fig 1E, written "aB". Every other
+candidate, including the full three-unit system we just analyzed, is excluded
+by one of these two. This is IIT's exclusion postulate in action: $\varphi_s >
+0$ makes a candidate *eligible*; being a local maximum among everything it
+overlaps makes it a complex.
+
+## The Φ-structure
+
 The richer object is the $\Phi$-structure, available as `analysis.ces` (a
 {class}`~pyphi.models.ces.CauseEffectStructure`). It is the collection of
-*distinctions* — the irreducible mechanisms the system specifies — together with
-the *relations* among them.
+*distinctions* — the irreducible mechanisms the system specifies — together
+with the *relations* among them.
 
 ```{code-cell} python
 ces = analysis.ces
@@ -88,11 +116,11 @@ print("distinctions:", len(ces.distinctions))
 print("relations:   ", len(ces.relations))
 ```
 
-Its `big_phi` attribute is $\sum \varphi_d$, the total small-$\varphi$ summed
-over the distinctions.
+Its `big_phi` attribute is the structure integrated information $\Phi$, the
+summed $\varphi$ of the distinctions and relations.
 
 ```{code-cell} python
-ces.big_phi
+round(float(ces.big_phi), 4)
 ```
 
 ## Save the result
@@ -108,8 +136,11 @@ pyphi.save(ces, "ces.json")
 
 That is a full PyPhi computation. From here:
 
-- The {doc}`tutorials <../tutorials/index>` build up larger systems and walk
-  through cause-effect structures, macro analysis, and actual causation in
-  depth.
+- The {doc}`worked example <../tutorials/worked-example>` follows this same
+  network through the paper's Figures 1, 2, and 4, reproducing the published
+  numbers.
 - The theory page {doc}`../theory/overview` explains what these quantities mean
   and how they are defined.
+- If you analyze a *deterministic* network and see $\varphi_s = 0$: that is a
+  theorem of the default formalism, not a bug — see
+  {doc}`../theory/intrinsic-information`.
