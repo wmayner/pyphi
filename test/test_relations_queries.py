@@ -487,3 +487,17 @@ def test_sum_phi_by_distinction_parity(structures):
         assert c == pytest.approx(a)
     # Independent oracle: each relation contributes φ_r to each of its relata.
     assert sum(conc) == pytest.approx(sum(float(r.phi) * len(r) for r in concrete))
+
+
+def test_fold_sum_phi_by_distinction_matches_incident_concrete(
+    fold_structures, structures
+):
+    """Per-distinction incident Σφ_r on a fold equals iterating the fold's
+    concrete incident relations."""
+    _, _, fold, incident = fold_structures
+    _, distinctions, _, _ = structures
+    dl = list(distinctions)
+    expected = incident.sum_phi_by_distinction(dl)
+    actual = fold.sum_phi_by_distinction(dl)
+    for a, e in zip(actual, expected, strict=True):
+        assert a == pytest.approx(e)

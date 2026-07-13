@@ -1242,6 +1242,38 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     def _num_relations(self):
         return self._full.num_relations() - self._complement.num_relations()
 
+    def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
+        """Each distinction's Σφ_r over the *incident* relations, in closed
+        form.
+
+        A fold relation either contains a given distinction or does not, so
+        its incident Σφ_r is the fold total differenced against the fold of
+        the remaining distinctions — with the seed set restricted
+        accordingly, since a relation avoiding a seed distinction is
+        incident to the fold exactly when it touches one of the *other*
+        seeds. The result is parallel to ``distinctions``.
+        """
+        from pyphi.models.distinctions import ResolvedDistinctions
+
+        total = self.sum_phi()
+        result = []
+        for distinction in distinctions:
+            mechanism = tuple(distinction.mechanism)
+            others = ResolvedDistinctions(
+                d for d in self.distinctions if tuple(d.mechanism) != mechanism
+            )
+            remaining_seeds = [
+                seed for seed in self._seeds if tuple(seed.mechanism) != mechanism
+            ]
+            if remaining_seeds:
+                avoiding = AnalyticalFoldRelations(others, remaining_seeds).sum_phi()
+            else:
+                # Every fold relation contains the sole seed, so every fold
+                # relation is incident to it.
+                avoiding = 0.0
+            result.append(total - avoiding)
+        return tuple(result)
+
     def _apportioned_sum_phi(self):
         return self._full.apportioned_sum_phi() - self._complement.apportioned_sum_phi()
 
