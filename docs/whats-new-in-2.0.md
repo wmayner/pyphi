@@ -54,6 +54,9 @@ relations.phi_mean_std()      # exact mean and std of φ_r
 relations.max_phi()           # the strongest relation's φ_r
 relations.binding_matrix()    # how strongly each pair of unit-states is
                               # bound by relations (as a DataFrame)
+relations.maximal_relations() # the inclusion-maximal relations — the
+                              # facets of the relation complex
+relations.maximal_faces()     # the inclusion-maximal relation faces
 ```
 
 Three more tools cover what closed forms can't:
