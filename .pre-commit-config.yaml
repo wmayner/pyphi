@@ -50,5 +50,10 @@ repos:
     hooks:
       - id: jupytext
         args: [--sync]
-        files: ^docs/.*\.md$
+        # Scope to the paired notebook pages (myst front matter + .ipynb pair).
+        # Header-less prose pages are read via jupytext's pandoc backend, which
+        # is absent on CI runners and would crash the hook; excluding the
+        # section-hub index.md files keeps the sync to files jupytext can read.
+        files: ^docs/(getting-started|tutorials)/.*\.md$
+        exclude: ^docs/(getting-started|tutorials)/index\.md$
         require_serial: true
