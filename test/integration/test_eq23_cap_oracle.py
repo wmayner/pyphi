@@ -55,13 +55,26 @@ def _logistic3_k8() -> Substrate:
     return Substrate(tpm, cm)
 
 
-def _independent_i_diff(system: System, direction: Direction) -> float:
-    """Re-derive i_diff = min positive -log2(P) of the unpartitioned forward
-    repertoire at the system's actual state, independent of the production
-    ``intrinsic_differentiation`` measure."""
+def _independent_i_diff(
+    system: System, direction: Direction, specified_state: tuple[int, ...]
+) -> float:
+    """Re-derive i_diff from the paper's definitions, independent of the
+    production measure's conventions.
+
+    Mayner et al. (2026): Eq. 4, ``i_diff_e(s, s') = -log2 p_e(s' | s)``;
+    Eqs. 6 + 11, ``i_diff_c(s, s') = -log2 p_c_arrow(s' | s)`` with the
+    Bayes-normalized cause posterior
+    ``p_c_arrow(sbar | s) = p_c(s | sbar) / sum_shat p_c(s | shat)``. Both
+    are evaluated at the *specified* state s' (Eq. 12), not the current
+    state.
+    """
     nodes = system.node_indices
     rep = np.asarray(system.forward_repertoire(direction, nodes, nodes)).squeeze()
-    p = float(rep[system.proper_state])
+    if direction == Direction.CAUSE:
+        # The forward cause array holds the likelihoods p_c(s | sbar);
+        # Eq. 11 normalizes them into the posterior over cause states.
+        rep = rep / rep.sum()
+    p = float(rep[tuple(specified_state)])
     return -np.log2(p) if 0.0 < p < 1.0 else 0.0
 
 
@@ -102,10 +115,11 @@ def test_independent_i_diff_matches_production(name: str) -> None:
         system = System(substrate, state)
         for direction in (Direction.CAUSE, Direction.EFFECT):
             production = float(sia.intrinsic_differentiation[direction])
-            independent = _independent_i_diff(system, direction)
+            specified = tuple(sia.system_state[direction].state)
+            independent = _independent_i_diff(system, direction, specified)
             assert numerics.eq(production, independent), (
                 f"{name} {direction.name}: production i_diff {production} != "
-                f"independent -log2 P(state) {independent}"
+                f"paper-formula i_diff at specified state {independent}"
             )
 
 
@@ -147,3 +161,97 @@ def test_cap_never_increases_phi(name: str) -> None:
     """The 2026 cap can only lower phi: phi_2026 <= phi_2023."""
     sia23, sia26 = _sia_pair(_substrate(name), _STATES[name])
     assert float(sia26.phi) <= float(sia23.phi) + 1e-9
+
+
+##############################################################################
+# Paper-pinned monad values (Mayner et al. 2026, Example 1 / Fig. 2)
+##############################################################################
+
+
+def _monad(p_on_from_off: float, p_on_from_on: float) -> Substrate:
+    """Single-unit substrate with the given P(ON at t+1 | state at t)."""
+    tpm = np.array([[p_on_from_off], [p_on_from_on]])
+    return Substrate(tpm, cm=np.array([[1]]), node_labels=["m"])
+
+
+def _paper_monad_phi(p_on_from_off: float, p_on_from_on: float, s: int) -> float:
+    """φ_s = ii(s) for a monad (Eq. 14), from Eqs. 4-13 in pure numpy.
+
+    Independent of PyPhi's repertoire machinery: works directly on the
+    transition probabilities.
+    """
+    p_on = np.array([p_on_from_off, p_on_from_on])
+
+    # Effect side: p_e(sbar | s) and the unconstrained p_e(sbar) (Eq. 8).
+    p_e_cond = np.array([1.0 - p_on[s], p_on[s]])
+    p_e_unc = np.array([1.0 - p_on.mean(), p_on.mean()])
+    i_spec_e = p_e_cond * np.log2(p_e_cond / p_e_unc)  # Eq. 7
+    sprime_e = int(np.argmax(i_spec_e))  # Eq. 12
+    ii_e = min(i_spec_e[sprime_e], -np.log2(p_e_cond[sprime_e]))  # Eqs. 4, 13
+
+    # Cause side: likelihoods p_c(s | sbar), Bayes posterior (Eq. 11),
+    # unconditional p_c(s) (Eq. 10).
+    likelihood = np.array([[1.0 - p_on[0], p_on[0]], [1.0 - p_on[1], p_on[1]]])[
+        :, s
+    ]  # p(current = s | prior = sbar), for sbar in (0, 1)
+    posterior = likelihood / likelihood.sum()
+    p_c_unc = likelihood.mean()
+    i_spec_c = posterior * np.log2(likelihood / p_c_unc)  # Eq. 9
+    sprime_c = int(np.argmax(i_spec_c))  # Eq. 12
+    ii_c = min(i_spec_c[sprime_c], -np.log2(posterior[sprime_c]))  # Eqs. 6, 13
+
+    return float(min(ii_c, ii_e))  # Eq. 13; monad: φ_s = ii(s) (Eq. 14)
+
+
+@pytest.mark.parametrize(
+    ("p_on_from_off", "p_on_from_on", "regime"),
+    [
+        # Paper Fig. 2 monad at p=0.9. NOT regime: specified state s' != s,
+        # the case the paper's symmetry claim covers ("the symmetric case
+        # corresponds to an imperfect NOT gate"). Eq. 27: φ_s = -log2(0.9).
+        (0.9, 0.1, "not"),
+        # COPY regime: s' == s; conventions agree (regression pin).
+        (0.1, 0.9, "copy"),
+        # Asymmetric: non-doubly-stochastic, so the Eq. 11 cause normalizer
+        # differs from 1 and the cause-side i_diff exercises it.
+        (0.9, 0.15, "asymmetric"),
+    ],
+)
+def test_monad_phi_matches_paper_formulas(p_on_from_off, p_on_from_on, regime):
+    """The monad φ_s equals the from-scratch Eqs. 4-14 value."""
+    expected = _paper_monad_phi(p_on_from_off, p_on_from_on, s=1)
+    with config.override(
+        **presets.iit4_2026, single_micro_nodes_with_selfloops_have_phi=True
+    ):
+        sia = System(_monad(p_on_from_off, p_on_from_on), (1,)).sia()
+    assert float(sia.phi) == pytest.approx(expected, abs=1e-10), (
+        f"{regime}: PyPhi φ_s {float(sia.phi)} != paper Eqs. 4-14 value {expected}"
+    )
+
+
+def test_monad_maximum_matches_paper_fig2c():
+    """The paper prints max φ_s = 0.427 at p = 0.744 (Fig. 2C)."""
+    p = 0.744
+    with config.override(
+        **presets.iit4_2026, single_micro_nodes_with_selfloops_have_phi=True
+    ):
+        sia = System(_monad(1.0 - p, p), (1,)).sia()
+    assert round(float(sia.phi), 3) == pytest.approx(0.427)
+
+
+def test_cap_applies_to_all_tie_members():
+    """Every member of ``sia.ties`` carries its own capped φ.
+
+    The XOR loop is deterministic, so i_diff = 0 in both directions and the
+    cap forces φ_s = 0 for every tied (cause, effect) state pair — not just
+    the selected one.
+    """
+    from pyphi import examples
+
+    with config.override(**presets.iit4_2026):
+        sia = System(examples.xor_substrate(), (0, 0, 0)).sia()
+    assert float(sia.phi) == pytest.approx(0.0)
+    for tied in sia.ties:
+        assert float(tied.phi) == pytest.approx(0.0), (
+            f"tie member carries uncapped φ = {float(tied.phi)}"
+        )

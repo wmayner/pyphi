@@ -177,7 +177,7 @@ ignore = [
 # Mathematical symbols used deliberately in docstrings (Greek measures, set and
 # arithmetic operators). Whitelisted so the ambiguous-character rules
 # (RUF001/RUF002/RUF003) still catch genuine homoglyph typos elsewhere.
-allowed-confusables = ["α", "𝒜", "σ", "×", "−", "∖"]
+allowed-confusables = ["α", "𝒜", "σ", "×", "−", "∖", "′"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 88

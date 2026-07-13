@@ -1330,10 +1330,13 @@ def intrinsic_differentiation(p, state):
     Returns
     -------
     DistanceResult
-        The minimum positive surprisal, with
+        The minimum positive surprisal of the selected slice (of the whole
+        repertoire when ``state`` is ``None``), with
         ``method="INTRINSIC_DIFFERENTIATION"``.
     """
-    p = p.squeeze()[state]
+    p = p.squeeze()
+    if state is not None:
+        p = p[state]
     surprisal = pointwise_intrinsic_differentiation(p)
     positive_entries = surprisal[numerics.positive_mask(surprisal)]
     return DistanceResult(
@@ -1398,7 +1401,17 @@ def intrinsic_information(
         selectivity_repertoire,
         state=state,
     )
-    differentiation = intrinsic_differentiation(forward_repertoire, state=state)
+    if state is None:
+        # Per-state i_diff vector (Mayner et al. 2026, Eqs. 4 and 6: i_diff
+        # is defined per cause/effect state), aligned with the per-state
+        # specification array. Entries with p = 0 carry surprisal 0.0; they
+        # cannot win a downstream argmax because the specification term
+        # vanishes at zero forward probability as well.
+        differentiation = pointwise_intrinsic_differentiation(
+            np.asarray(forward_repertoire).squeeze()
+        )
+    else:
+        differentiation = intrinsic_differentiation(forward_repertoire, state=state)
     # Assumes single value at this point; state selection delegated to sub-functions.
     if not np.isscalar(specification) or not np.isscalar(differentiation):
         return np.minimum(specification, differentiation)

@@ -42,9 +42,12 @@ This page shows the cap in action, and its most consequential theorem:
 A deterministic system in a state pins its cause and effect down completely —
 maximal specification. But differentiation asks the opposite question: what
 repertoire of alternatives does the system furnish itself? A deterministic
-transition offers exactly one, so its intrinsic differentiation is zero, the
-cap binds at zero, and $\varphi_s = 0$ — however tightly the units are wired
-together. The paper states the property directly: "Purely deterministic
+transition offers exactly one effect, so the effect-side intrinsic
+differentiation is zero, the cap binds at zero, and $\varphi_s = 0$ — however
+tightly the units are wired together. (The cause side is evaluated on the
+Bayesian posterior over prior states — Eqs. 6 and 11 — so it measures
+*predecessor degeneracy* and can stay positive even for deterministic
+dynamics; the effect side alone suffices to force the minimum to zero.) The paper states the property directly: "Purely deterministic
 systems provide no genuine alternatives, and thus their intrinsic
 differentiation is zero, while purely random systems specify no state,
 leaving intrinsic specification at zero" (Section 4).
@@ -79,9 +82,12 @@ print("differentiation:",
       {str(d): float(v) for d, v in sia.intrinsic_differentiation.items()})
 ```
 
-$\varphi_c = 1.5$ and $\varphi_e = 3.0$ survive from the 2023 analysis; the
-differentiation term is $0$ in both directions, so the minimum — and
-$\varphi_s$ — is $0$.
+$\varphi_c = 1.5$ and $\varphi_e = 3.0$ survive from the 2023 analysis. The
+effect-side differentiation is $0$ — the deterministic transition offers no
+alternative effect — while the cause side records the network's two-fold
+predecessor degeneracy (each state is reachable from exactly two prior
+states, so $-\log_2 \tfrac{1}{2} = 1$). The minimum over directions — and
+with it $\varphi_s$ — is $0$.
 
 ## This is a theorem, not a bug
 

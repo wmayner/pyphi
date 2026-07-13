@@ -103,3 +103,31 @@ def test_2023_omitted_metric_uses_default(noisy_copy_system):
     )
 
     assert float(result.phi) == pytest.approx(0.644, abs=0.001)
+
+
+def test_2026_explicit_system_measure_immune_to_config_mechanism_measure(
+    noisy_copy_system,
+):
+    """An explicit ``system_measure`` fully determines partition scoring.
+
+    ``config.formalism.iit.mechanism_phi_measure`` must not leak into the
+    system-level partition evaluation when the caller passed the measure
+    explicitly: per-partition ii capping shifts the MIP, which the Eq. 23
+    design forbids.
+    """
+    from pyphi import System
+    from pyphi.conf import config
+
+    formalism = IIT4_2026Formalism()
+    gid = composite_measures["GENERALIZED_INTRINSIC_DIFFERENCE"]
+    spec = composite_measures["INTRINSIC_SPECIFICATION"]
+
+    baseline = formalism.evaluate_system(
+        noisy_copy_system, system_measure=gid, specification_measure=spec
+    )
+    fresh = System(noisy_copy_system.substrate, (1, 1))
+    with config.override(mechanism_phi_measure="INTRINSIC_INFORMATION"):
+        overridden = formalism.evaluate_system(
+            fresh, system_measure=gid, specification_measure=spec
+        )
+    assert float(overridden.phi) == pytest.approx(float(baseline.phi))

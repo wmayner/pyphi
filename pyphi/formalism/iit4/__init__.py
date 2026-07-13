@@ -628,7 +628,7 @@ def _integration_value_for_state(
         system.node_indices,
         partition,  # pyright: ignore[reportArgumentType] - DirectedBipartition passed to JointBipartition param in IIT 4.0
         partitioned_repertoire=partitioned_repertoire,
-        repertoire_distance=repertoire_distance,
+        mechanism_measure=repertoire_distance,
         state=specified,
     )
 
@@ -670,7 +670,17 @@ def integration_value(
 def intrinsic_differentiation_value(
     direction: Direction,
     system: System,
+    specified_state: tuple[int, ...],
 ) -> float:
+    """Intrinsic differentiation i_diff(s, s′) for the Eq. 23 cap.
+
+    The forward repertoire is evaluated at the *specified* state s′
+    (Mayner et al. 2026, Eqs. 4 and 6, with s′ per Eq. 12) — not at the
+    current state. On the cause side the forward array holds the
+    likelihoods p_c(s | s̄), which Eq. 11 normalizes into the posterior
+    p←_c(s̄ | s) before the surprisal is taken; on the effect side the
+    forward repertoire is already the conditional distribution p_e(s̄ | s).
+    """
     mechanism = purview = system.node_indices
 
     unpartitioned_repertoire = repertoire.forward_repertoire(
@@ -679,10 +689,16 @@ def intrinsic_differentiation_value(
         mechanism,  # pyright: ignore[reportArgumentType]
         purview,  # pyright: ignore[reportArgumentType]
     )
+    if direction == Direction.CAUSE:
+        # Eq. 11: Bayes-normalize the cause likelihoods into p←_c(s̄ | s).
+        # Divide into a fresh array — the repertoire is a shared cache entry.
+        unpartitioned_repertoire = (
+            unpartitioned_repertoire / unpartitioned_repertoire.sum()
+        )
 
     return measures.distribution.intrinsic_differentiation(
         unpartitioned_repertoire,
-        state=system.proper_state,
+        state=tuple(specified_state),
     )
 
 
@@ -738,7 +754,9 @@ def evaluate_partition(
 
     if intrinsic_differentiation is None:
         intrinsic_differentiation = {
-            direction: intrinsic_differentiation_value(direction, system)
+            direction: intrinsic_differentiation_value(
+                direction, system, system_state[direction].state
+            )
             for direction in directions
         }
 
@@ -755,10 +773,11 @@ def evaluate_partition(
     # paper (Eqs. 21-23: the formalism "is the same as the IIT 4.0 definition
     # of φ_s ... until Equation (23)"), the minimum information partition is
     # selected on the *uncapped* normalized φ exactly as in IIT 4.0, and the
-    # cap φ_s = min{φ_c, φ_e, ii(s)} is applied once to the selected MIP in
-    # ``sia`` (see ``_apply_ii_cap``). ``intrinsic_differentiation`` and the
-    # system-state ``intrinsic_information`` are carried on the SIA so the cap
-    # can be applied there. Applying the cap per-partition would let it shift
+    # cap φ_s = min{φ_c, φ_e, ii(s)} is applied in ``sia`` to each SIA as
+    # soon as its MIP is chosen (see ``_apply_ii_cap``).
+    # ``intrinsic_differentiation`` and the system-state
+    # ``intrinsic_information`` are carried on the SIA so the cap can be
+    # applied there. Applying the cap per-partition would let it shift
     # which partition is the MIP — which can make the reported φ_s *exceed*
     # the 2023 value, contradicting the formalism.
 
@@ -797,21 +816,15 @@ def _has_no_cause_or_effect(system_state):
     return reasons
 
 
-def _apply_ii_cap(
-    sia: SystemIrreducibilityAnalysis,
-) -> SystemIrreducibilityAnalysis:
-    """Apply the IIT 4.0 (2026) intrinsic-information cap (Eq. 23) to the MIP.
+def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
+    """Apply the Eq. 23 cap to a single SIA's φ values, in place.
 
-    The MIP is selected on the uncapped normalized integrated information,
-    exactly as in IIT 4.0 (Eqs. 21-22); this applies the cap
-    ``φ_s = min{φ_c, φ_e, ii(s)}`` once, to the chosen partition's value,
-    where ``ii(s) = min_d min(i_spec_d, i_diff_d)`` is partition-independent.
     The cap is taken on the raw ``signed_phi`` (so preventative-cause metadata
     is preserved) and the |·|+-clamped, normalized values are re-derived.
-    Mutates and returns ``sia`` so its tie/state metadata is preserved.
+    Idempotent: re-applying with the same cap terms is a no-op.
     """
     if sia.system_state is None or sia.intrinsic_differentiation is None:
-        return sia
+        return
     # __post_init__ guarantees signed_phi is set (defaulting to phi) for any
     # constructed SIA, so it is non-None by the time the cap is applied.
     assert sia.signed_phi is not None
@@ -828,6 +841,27 @@ def _apply_ii_cap(
     sia.phi = float(utils.positive_part(capped_signed))
     sia.signed_normalized_phi = float(capped_norm)
     sia.normalized_phi = float(utils.positive_part(capped_norm))
+
+
+def _apply_ii_cap(
+    sia: SystemIrreducibilityAnalysis,
+) -> SystemIrreducibilityAnalysis:
+    """Apply the IIT 4.0 (2026) intrinsic-information cap (Eq. 23).
+
+    The MIP is selected on the uncapped normalized integrated information,
+    exactly as in IIT 4.0 (Eqs. 21-22); this applies the cap
+    ``φ_s = min{φ_c, φ_e, ii(s)}`` once per SIA after its MIP is chosen,
+    where ``ii(s) = min_d min(i_spec_d, i_diff_d)`` is partition-independent
+    given the (cause, effect) specified-state pair. The cap is applied to
+    ``sia`` **and every member of its tie set**, each with its own cap
+    terms, so tied SIAs stay mutually comparable — φ_s is the capped
+    quantity by definition. Mutates and returns ``sia``.
+    """
+    members = {id(sia): sia}
+    for tied in sia.ties or ():
+        members.setdefault(id(tied), tied)
+    for member in members.values():
+        _cap_one(member)
     return sia
 
 
@@ -949,6 +983,14 @@ def sia(
     cause_specs = _spec_candidates(system_state.cause)
     effect_specs = _spec_candidates(system_state.effect)
 
+    # Eq. 23 (2026): each SIA is capped by ii(s) as soon as its MIP is
+    # chosen — the MIP itself is selected on *uncapped* normalized φ (Eqs.
+    # 21-22), but everything downstream (the per-state cascade, the tie
+    # set, the reported φ_s) sees the capped value, since φ_s is the capped
+    # quantity by definition. Each tied specified-state pair carries its
+    # own cap terms (i_diff depends on the specified state).
+    apply_cap = getattr(system_measure, "applies_ii_cap", False)
+
     if len(cause_specs) <= 1 and len(effect_specs) <= 1:
         mip_sia = _find_mip_for_fixed_state(
             system=system,
@@ -959,6 +1001,8 @@ def sia(
             parallel_kwargs=parallel_kwargs,
             default_sia=default_sia,
         )
+        if apply_cap:
+            mip_sia = _apply_ii_cap(mip_sia)
     else:
         per_pair_sias: dict[tuple, SystemIrreducibilityAnalysis] = {}
         for c in cause_specs:
@@ -968,7 +1012,7 @@ def sia(
                     c.state if c is not None else None,
                     e.state if e is not None else None,
                 )
-                per_pair_sias[key] = _find_mip_for_fixed_state(
+                pair_sia = _find_mip_for_fixed_state(
                     system=system,
                     system_state=forced_state,
                     partitions=partitions,
@@ -977,6 +1021,9 @@ def sia(
                     parallel_kwargs=parallel_kwargs,
                     default_sia=default_sia,
                 )
+                if apply_cap:
+                    pair_sia = _apply_ii_cap(pair_sia)
+                per_pair_sias[key] = pair_sia
 
         # Apply the per-state max-min cascade at the Integration level.
         # The Composition step of the cascade requires a ``big_phi`` value
@@ -1010,12 +1057,6 @@ def sia(
             original_effect=system_state.effect,
         )
         mip_sia.set_ties(tuple(per_pair_sias.values()))
-
-    # Eq. 23 (2026): cap the selected MIP's φ_s by the intrinsic-information
-    # requirement ii(s). The MIP was selected on uncapped φ above, exactly as
-    # in IIT 4.0; the cap is applied once, here, to the chosen partition.
-    if getattr(system_measure, "applies_ii_cap", False):
-        mip_sia = _apply_ii_cap(mip_sia)
 
     if config.infrastructure.clear_system_caches_after_computing_sia:
         system.clear_caches()
@@ -1138,11 +1179,14 @@ def _find_mip_for_fixed_state(
     if not isinstance(partitions, (list, tuple)):
         partitions = list(partitions)
 
-    # ``intrinsic_differentiation`` depends only on (direction, system), not the
-    # partition, so compute it once here and pass it to every partition rather
-    # than rebuilding it in each ``evaluate_partition`` call.
+    # ``intrinsic_differentiation`` depends only on (direction, system, the
+    # direction's specified state), not the partition, so compute it once here
+    # and pass it to every partition rather than rebuilding it in each
+    # ``evaluate_partition`` call.
     precomputed_intrinsic_differentiation = {
-        direction: intrinsic_differentiation_value(direction, system)
+        direction: intrinsic_differentiation_value(
+            direction, system, system_state[direction].state
+        )
         for direction in resolved_directions
     }
 
