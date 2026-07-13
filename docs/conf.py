@@ -68,6 +68,8 @@ napoleon_google_docstring = False
 autosummary_filename_map = {
     "pyphi.relations.relation": "pyphi.relations.relation-function",
     "pyphi.relations.relations": "pyphi.relations.relations-function",
+    "pyphi.mcp.content.TOPICS": "pyphi.mcp.content.TOPICS-attribute",
+    "pyphi.mcp.content.topics": "pyphi.mcp.content.topics-function",
 }
 
 intersphinx_mapping = {

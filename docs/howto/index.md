@@ -12,6 +12,7 @@ sweep
 grain-search
 landscape
 query-relations
+visualize
 tie-breaking
 mcp-server
 ```
