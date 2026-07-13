@@ -590,3 +590,73 @@ def test_maximal_relations_atom_filter(stub_distinctions):
     # Restricting to atom y keeps only Z(y) = {A, B}.
     result = relations.maximal_relations([a, b, c, e], atoms={"y"})
     assert {frozenset(r) for r in result} == {frozenset({a, b})}
+
+
+def _brute_force_maximal_relations(concrete):
+    rels = [r for r in concrete if not r.is_self_relation]
+    sets = [frozenset(r) for r in rels]
+    return {r for r, s in zip(rels, sets, strict=True) if not any(s < t for t in sets)}
+
+
+def _brute_force_maximal_faces(concrete):
+    all_faces = {f for r in concrete if not r.is_self_relation for f in r.faces}
+    face_sets = [frozenset(f) for f in all_faces]
+    return {f for f in all_faces if not any(frozenset(f) < g for g in face_sets)}
+
+
+def test_maximal_relations_match_brute_force(structures):
+    _, _, concrete, analytical = structures
+    expected = _brute_force_maximal_relations(concrete)
+    assert set(analytical.maximal_relations()) == expected
+    assert set(concrete.maximal_relations()) == expected
+    for facet in analytical.maximal_relations():
+        twin = next(r for r in expected if frozenset(r) == frozenset(facet))
+        assert float(facet.phi) == pytest.approx(float(twin.phi))
+
+
+def test_maximal_relations_cover_all_relations(structures):
+    _, _, concrete, analytical = structures
+    facets = [frozenset(f) for f in analytical.maximal_relations()]
+    for r in concrete:
+        if not r.is_self_relation:
+            assert any(frozenset(r) <= f for f in facets)
+    # No facet is a proper subset of another.
+    assert not any(a < b for a in facets for b in facets)
+
+
+def test_maximal_faces_match_brute_force(structures):
+    _, _, concrete, analytical = structures
+    expected = _brute_force_maximal_faces(concrete)
+    assert analytical.maximal_faces() == expected
+    assert concrete.maximal_faces() == expected
+    expected_phi = {frozenset(f): float(f.phi) for f in expected}
+    for face in analytical.maximal_faces():
+        assert float(face.phi) == pytest.approx(expected_phi[frozenset(face)])
+
+
+def test_maximal_relations_by_distinction(structures):
+    _, distinctions, concrete, analytical = structures
+    dlist = list(distinctions)
+    facets = set(analytical.maximal_relations())
+    membership = analytical.maximal_relations_by_distinction(dlist)
+    assert len(membership) == len(dlist)
+    for d, facets_of_d in zip(dlist, membership, strict=True):
+        assert set(facets_of_d) == {f for f in facets if d in f}
+    assert membership == concrete.maximal_relations_by_distinction(dlist)
+
+
+def test_fold_maximal_relations_match_incident_brute_force(fold_structures):
+    _, _, fold, incident = fold_structures
+    assert set(fold.maximal_relations()) == _brute_force_maximal_relations(incident)
+
+
+def test_fold_maximal_faces_match_incident_brute_force(fold_structures):
+    _, _, fold, incident = fold_structures
+    assert fold.maximal_faces() == _brute_force_maximal_faces(incident)
+
+
+def test_null_relations_maximal_queries_empty():
+    null = relations.NullRelations()
+    assert set(null.maximal_relations()) == set()
+    assert null.maximal_faces() == frozenset()
+    assert null.maximal_relations_by_distinction([]) == ()
