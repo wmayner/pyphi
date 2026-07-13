@@ -112,10 +112,14 @@ def render_lattice(
         for b in cov:
             edge_x += [pos[a][0], pos[b][0], None]
             edge_y += [pos[a][1], pos[b][1], None]
+
+    def units(indices: tuple[int, ...]) -> str:
+        return "".join(projection.node_labels.indices2labels(indices)) or "∅"
+
     hover = [
         (
-            f"<b>{n.label}</b><br>mechanism {n.mechanism} = {n.mechanism_state}"
-            f"<br>cause {n.cause_purview} · effect {n.effect_purview}"
+            f"<b>{n.label}</b><br>mechanism {units(n.mechanism)} = {n.mechanism_state}"
+            f"<br>cause {units(n.cause_purview)} · effect {units(n.effect_purview)}"
             f"<br>φ = {n.phi:.4g} · Σφ_R = {n.sum_phi_relations:.4g}"
         )
         for n in projection.nodes

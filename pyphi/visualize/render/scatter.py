@@ -109,11 +109,15 @@ def render_scatter(
         if size_by is None
         else rescale([getattr(n, size_by) for n in nodes], smin, smax)
     )
+
+    def units(indices: tuple[int, ...]) -> str:
+        return "".join(projection.node_labels.indices2labels(indices)) or "∅"
+
     hover = [
         (
             f"<b>{n.label}</b> ({role})"
-            f"<br>mechanism {n.mechanism} = {n.mechanism_state}"
-            f"<br>cause {n.cause_purview} · effect {n.effect_purview}"
+            f"<br>mechanism {units(n.mechanism)} = {n.mechanism_state}"
+            f"<br>cause {units(n.cause_purview)} · effect {units(n.effect_purview)}"
             f"<br>φ = {n.phi:.4g} · Σφ_R = {n.sum_phi_relations:.4g}"
         )
         for n, role in zip(nodes, roles, strict=True)
