@@ -31,7 +31,7 @@ pyphi.config.progress_bars = False
 argument is required. Pass `"all"` to enumerate every state of the substrate:
 
 ```{code-cell} python
-substrate = pyphi.examples.basic_substrate()
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 
 result = pyphi.sweep(substrate, states="all")
 result.df.round(6)
@@ -48,11 +48,19 @@ appear as constant context columns (`formalism`, `subset`).
 
 States that cannot be reached from any previous state have no defined
 repertoire, so their $\Phi$ is undefined. When you enumerate an axis with
-`"all"`, those cells are dropped rather than raised, and the dropped cells are
-recorded on the result:
+`"all"`, those cells are dropped rather than raised, and the dropped cells
+are recorded on the result. Our probabilistic substrate reaches every state,
+so nothing was dropped here:
 
 ```{code-cell} python
 result.skipped
+```
+
+A deterministic substrate shows the mechanism — two of the eight states of
+the three-gate `basic` network are unreachable:
+
+```{code-cell} python
+pyphi.sweep(pyphi.examples.basic_substrate(), states="all").skipped
 ```
 
 ## The result object
@@ -76,7 +84,7 @@ default) for the whole substrate, or an explicit list of node-index tuples.
 Here we hold the state fixed and vary the subsystem:
 
 ```{code-cell} python
-pyphi.sweep(substrate, states=(1, 0, 0), subsets="all").df.round(6)
+pyphi.sweep(substrate, states=(0, 1, 1), subsets="all").df.round(6)
 ```
 
 ## Sweeping over formalisms
@@ -86,11 +94,16 @@ each formalism. The active formalism is used when this argument is omitted.
 
 ```{code-cell} python
 pyphi.sweep(
-    substrate,
+    pyphi.examples.basic_substrate(),
     states=(1, 0, 0),
     formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
 ).df.round(6)
 ```
+
+The deterministic `basic` network is chosen deliberately: the two rows differ
+(φ = 0.415 under 2023, 0 under 2026) because the 2026 formalism caps
+deterministic systems at zero — see
+{doc}`../theory/intrinsic-information`.
 
 When more than one axis varies at once, the index becomes a `MultiIndex` with
 one level per varying axis.
@@ -114,7 +127,7 @@ work with whatever it returns.
 The margin columns make it a one-liner to find the cells whose selections
 were effectively tied at the configured `precision` — the results whose
 reported partitions or specified states are sensitive to tie-breaking rules
-(or, in a symmetric substrate, genuinely degenerate):
+— none, for this asymmetric substrate:
 
 ```{code-cell} python
 tied = result.df[result.df.effectively_tied.astype(bool)]

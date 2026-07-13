@@ -30,7 +30,7 @@ system-irreducibility analysis.
 ```{code-cell} python
 from pyphi import examples
 
-system = examples.rule110_system()
+system = examples.iit4_2023_fig1a_system()
 analysis = pyphi.analyze(system.substrate, system.state)
 
 ces = analysis.ces  # cause-effect structure (distinctions + relations)

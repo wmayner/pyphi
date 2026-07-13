@@ -52,8 +52,8 @@ registered cache. After a computation, the repertoire caches show the reuse
 they enabled:
 
 ```{code-cell} python
-substrate = pyphi.examples.basic_substrate()
-system = pyphi.System(substrate, (1, 0, 0))
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
+system = pyphi.System(substrate, (0, 1, 1))
 
 pyphi.cache.clear_all()
 sia = system.sia()

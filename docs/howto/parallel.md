@@ -73,8 +73,8 @@ inside the `with` block sees the overridden settings; outside, the previous
 values are restored.
 
 ```{code-cell} python
-substrate = pyphi.examples.basic_substrate()
-state = (1, 0, 0)
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
+state = (0, 1, 1)
 
 with pyphi.config.override(parallel=True, parallel_workers=2):
     analysis = pyphi.analyze(substrate, state)

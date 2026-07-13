@@ -24,13 +24,13 @@ import pyphi
 pyphi.config.progress_bars = False
 ```
 
-We use the basic three-node substrate throughout.
+We use the IIT 4.0 paper's three-unit Fig 1A substrate throughout.
 
 ```{code-cell} python
 from pyphi import examples
 
-substrate = examples.basic_substrate()
-state = (1, 0, 0)
+substrate = examples.iit4_2023_fig1a_substrate()
+state = (0, 1, 1)
 ```
 
 ## Cause-effect structures as a DataFrame
