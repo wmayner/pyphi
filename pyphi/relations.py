@@ -120,7 +120,7 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
 
     def _pandas_record(self):
         return {
-            "relata": tuple(sorted(self.purview)),
+            "purview": tuple(sorted(self.purview)),
             "phi": float(self.phi),
             "degree": len(self),
         }
@@ -191,6 +191,7 @@ class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
             "relata": tuple(self._relatum_labels(d) for d in self._ordered_relata),
             "phi": float(self.phi),
             "degree": len(self),
+            "purview": tuple(sorted(self.purview)),
         }
 
     def _faces(self):
@@ -509,7 +510,7 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             r._pandas_record()
             for r in self  # type: ignore[attr-defined]  # iterable in subclasses
         ]
-        return records_to_frame(rows, columns=["relata", "phi", "degree"])
+        return records_to_frame(rows, columns=["relata", "phi", "degree", "purview"])
 
     def sum_phi(self):
         if self._sum_phi_cached is None:

@@ -660,3 +660,24 @@ def test_null_relations_maximal_queries_empty():
     assert set(null.maximal_relations()) == set()
     assert null.maximal_faces() == frozenset()
     assert null.maximal_relations_by_distinction([]) == ()
+
+
+def test_relation_pandas_record_has_purview(structures):
+    _, _, concrete, _ = structures
+    if concrete.num_relations() == 0:
+        return
+    df = concrete.to_pandas()
+    assert "purview" in df.columns
+    relation = next(iter(concrete))
+    record = relation._pandas_record()
+    assert record["purview"] == tuple(sorted(relation.purview))
+
+
+def test_relation_face_pandas_record_keys(structures):
+    _, _, concrete, _ = structures
+    face = next((f for r in concrete if not r.is_self_relation for f in r.faces), None)
+    if face is None:
+        return
+    record = face._pandas_record()
+    assert set(record) == {"purview", "phi", "degree"}
+    assert record["purview"] == tuple(sorted(face.purview))
