@@ -32,5 +32,4 @@ complexes, distinctions, and relations.
 
 The notebook is a standalone download-and-run artifact rather than an executed
 documentation page. For the theory behind each step, see the
-{doc}`../theory/index`; for a shorter hands-on tour of the cause-effect
-structure, see {doc}`cause-effect-structure`.
+{doc}`../theory/index`; for a shorter hands-on tour, see {doc}`worked-example`.

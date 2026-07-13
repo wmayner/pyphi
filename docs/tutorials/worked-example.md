@@ -17,11 +17,13 @@ kernelspec:
 {download}`Download this page as a Jupyter notebook <worked-example.ipynb>`
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/tutorials/worked-example.ipynb)
 
-This page works through a small system from start to finish: a network of three
-XOR nodes, analyzed under IIT 4.0. The system is simple enough to reason about
-by hand, but rich enough to illustrate every layer of a PyPhi analysis — the
-integrated information $\Phi$ of the whole, the distinctions that compose its
-cause-effect structure, and the relations between them.
+This page follows the worked example of the IIT 4.0 paper (Albantakis et al.
+2023) from start to finish, reproducing its published numbers under PyPhi's
+default formalism: **Figure 1** — is a set of units a complex, and how
+irreducible is it ($\varphi_s$)? **Figure 2** — what distinctions compose its
+cause-effect structure? **Figure 4** — how do those distinctions bind into
+relations? One small network carries all three:
+{func}`pyphi.examples.iit4_2023_fig1a_substrate`.
 
 ```{code-cell} python
 import pyphi
@@ -29,185 +31,162 @@ import pyphi
 pyphi.config.progress_bars = False
 ```
 
-## The XOR substrate
+## The substrate: three logistic units
 
-The substrate is three fully connected XOR gates, labeled $A$, $B$, and $C$,
-with no self-connections. Each node turns ON in the next state exactly when an
-odd number of its two inputs are currently ON.
+Fig 1A defines three units $A$, $B$, $C$. Each unit's probability of turning
+ON is a logistic function (slope $k = 4$) of its weighted inputs, with the
+inputs read as $\pm 1$ (paper Eq. 60). $A$ and $B$ excite each other strongly
+($\pm 0.7$), $C$ inhibits $B$ ($-0.8$), and each unit weakly affects itself.
 
 ```{code-cell} python
-substrate = pyphi.examples.xor_substrate()
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 substrate
 ```
 
-The transition probability matrix and connectivity matrix are shown above. Every
-transition is deterministic (each next-state probability is 0 or 1), and the
-connectivity matrix confirms that every node feeds the other two but not itself.
-
-We will analyze the system in the state where all three nodes are OFF.
+The paper analyzes the state written "aBC": $A$ off, $B$ and $C$ on.
+(Lowercase marks an OFF unit.)
 
 ```{code-cell} python
-state = (0, 0, 0)
+state = (0, 1, 1)
 ```
 
-## Does the whole exist?
+## Figure 1: integration and exclusion
 
-According to IIT, existence is a property of the whole system before it is a
-property of the parts. The first question is therefore whether the system as a
-whole is integrated — whether it specifies an irreducible cause-effect structure
-with $\Phi > 0$.
-
-The {func}`pyphi.analyze` function performs the full analysis: it finds the
-system's minimum-information partition, builds the cause-effect structure of
-distinctions, and computes the relations among them.
+Fig 1E asks which candidate systems exist. We compute $\varphi_s$ for the
+three candidates the paper compares — the single unit $\{A\}$, the pair
+$\{A, B\}$ ("aB"), and the whole substrate:
 
 ```{code-cell} python
-analysis = pyphi.analyze(substrate, state)
-analysis
+for subset in [(0,), (0, 1), (0, 1, 2)]:
+    analysis = pyphi.analyze(substrate, state, subset=subset)
+    print(subset, round(analysis.phi, 4))
 ```
 
-The system integrates: its structural integrated information is
-$\Phi = 1.5$. The whole exists.
+These reproduce the paper's Fig 1E values: $0.04$, $0.17$, and $0.13$. The
+pair aB beats both its subset and its superset — and in fact every candidate
+that overlaps it — so **aB is a complex**. PyPhi's exhaustive competition
+confirms it, and finds one other, non-overlapping complex:
 
 ```{code-cell} python
-analysis.phi
+for complex_ in substrate.complexes(state):
+    print(complex_.node_indices, round(float(complex_.phi), 4))
 ```
 
-## The cause-effect structure
+The single unit $\{C\}$ has the globally maximal $\varphi_s$ here; since it
+does not overlap aB, both exist. The paper presents aB as *a* complex —
+maximal among the candidates that share its units — which is exactly what
+PyPhi finds.
 
-Having established that the whole exists, we can look at what exists *within* it.
-The cause-effect structure is the set of **distinctions** — mechanisms that
-specify an irreducible cause and an irreducible effect — together with the
-relations among them.
+Where does aB's $\varphi_s$ come from? Fig 1D splits it by temporal
+direction. Integration is measured separately over the system's causes and
+its effects, and the system is only as integrated as its weaker direction:
 
 ```{code-cell} python
-ces = analysis.ces
-distinctions = ces.distinctions
-len(distinctions)
+aB = pyphi.analyze(substrate, state, subset=(0, 1))
+print("φ_c =", round(float(aB.sia.cause.phi), 4))
+print("φ_e =", round(float(aB.sia.effect.phi), 4))
+print("φ_s =", round(aB.phi, 4))
 ```
 
-There are four distinctions. Three are the second-order mechanisms $AB$, $AC$,
-and $BC$; the fourth is the whole-system mechanism $ABC$.
+$\varphi_c = 0.24$ and $\varphi_e = 0.17$, the paper's published split; the
+effect side is the weaker one, so $\varphi_s = \varphi_e$. The partition
+responsible — the minimum information partition — is on the analysis as
+`aB.sia.partition`.
+
+## Figure 2: the distinctions
+
+With the complex fixed, the composition postulate unfolds what exists *within*
+it. Every subset of aB's units — every **mechanism** — is tested for an
+irreducible cause and effect. The irreducible ones are the complex's
+**distinctions**, and they live on the cause-effect structure:
 
 ```{code-cell} python
-for d in distinctions:
+ces = aB.ces
+for d in ces.distinctions:
     print(
-        f"{d.mechanism_label:>4}  "
-        f"φ_d = {float(d.phi):.3f}  "
-        f"cause {d.cause.purview}  effect {d.effect.purview}"
+        f"{d.mechanism_label:>3}  φ_d = {float(d.phi):.4f}  "
+        f"cause {d.cause_purview}  effect {d.effect_purview}"
     )
 ```
 
-The three second-order mechanisms each have $\varphi_d = \tfrac{1}{2}$; the
-whole-system mechanism has $\varphi_d = 1$. Notice which mechanisms are *absent*:
-none of the first-order mechanisms $A$, $B$, or $C$ appears. We return to why
-below.
-
-## One distinction up close
-
-By the symmetry of the network, the three second-order distinctions behave
-alike, so it is enough to examine one. Take the distinction specified by
-mechanism $AB$.
+Three distinctions, matching Fig 2: the first-order mechanisms $a$
+($\varphi_d = 0.33$) and $B$ ($0.32$), and the second-order mechanism $aB$
+($0.07$). Each specifies the *purviews* shown — the units its cause and effect
+power is about. A single distinction prints its full detail, including the
+repertoires (the probability distributions it specifies over its purviews):
 
 ```{code-cell} python
-ab = distinctions[0]
-ab.mechanism_label, float(ab.phi)
+ces.distinctions[1]
 ```
 
-Its cause and effect purviews tell us what part of the system it constrains in
-each temporal direction.
+The whole set collapses to a table with `to_pandas`, handy for sorting,
+filtering, or exporting:
 
 ```{code-cell} python
-ab.cause.purview, ab.effect.purview
+ces.to_pandas()
 ```
 
-The **cause purview** is the whole system $ABC$ (indices `(0, 1, 2)`), while the
-**effect purview** is just node $C$ (index `(2,)`).
+## Figure 4: the relations
 
-The {meth}`~pyphi.models.distinction.Distinction.explain` method summarizes why,
-naming the purview and the partition that the distinction is irreducible over.
+Distinctions whose purviews overlap congruently — same units, same specified
+state — bind together into **relations**. Fig 4 works out the relation between
+the distinctions $a$ and $aB$, which overlap over unit $b$:
 
 ```{code-cell} python
-print(ab.explain())
+relation = next(
+    r for r in ces.relations
+    if {tuple(m) for m in r.mechanisms} == {(0,), (0, 1)}
+)
+print("φ_r =", round(float(relation.phi), 4))
+print("faces:", relation.num_faces)
 ```
 
-The interpretation is the following. Knowing that $A$ and $B$ are both currently
-OFF constrains the *past*: the previous state of the whole system was either all
-OFF or all ON, with equal probability. That is why the cause purview is the whole
-of $ABC$. Looking *forward*, the mechanism $AB$ completely fixes the next state
-of $C$ — because $C$ is the XOR of $A$ and $B$, and both are OFF, so $C$ will be
-OFF — which is why the effect purview is exactly $C$. The mechanism says nothing
-about the next state of $A$ or $B$ on its own, since those depend on the value of
-$C$, so any effect purview larger than $C$ would be reducible.
-
-By symmetry, $AC$ specifies node $B$ as its effect and $BC$ specifies node $A$;
-each of the three second-order distinctions locks the next state of the one node
-it excludes.
-
-## Intrinsic versus extrinsic existence
-
-The most instructive feature of this example is what does *not* exist. None of
-the individual nodes $A$, $B$, or $C$ forms a distinction. We can confirm this
-directly: asking the system for the distinction of a single node returns a null
-distinction with $\varphi_d = 0$.
+$\varphi_r = 0.036$ with all $9$ faces, the paper's Fig 4 relation (quoted
+there as $0.035$, from the rounded $\varphi_d(aB) = 0.07$ divided over the
+two-unit purview union). The structure has seven relations in all — including
+*self-relations*, where a single distinction's own cause and effect purviews
+overlap:
 
 ```{code-cell} python
-system = analysis.system
-for mechanism, label in [((0,), "A"), ((1,), "B"), ((2,), "C")]:
-    d = system.distinction(mechanism)
-    print(f"{label}: φ_d = {float(d.phi):.3f}")
+for r in ces.relations:
+    mechs = [tuple(m) for m in r.mechanisms]
+    print(f"φ_r = {float(r.phi):.4f}  mechanisms {mechs}")
 ```
 
-This can be surprising. The XOR gates are physical objects sitting on a table; an
-observer can touch each one, manipulate it, and watch its causes and effects. But
-that is *extrinsic* existence — existence *for* an external observer. What matters
-for IIT is *intrinsic* existence: does the mechanism have an irreducible cause
-*and* an irreducible effect *within the system itself*?
+## The Φ-structure, summed
 
-A mechanism must have both. To see why $A$ fails, compare its irreducible cause
-with its irreducible effect:
+Distinctions and relations together are the complex's $\Phi$-structure, and
+their summed $\varphi$ is the **structure integrated information** $\Phi$:
 
 ```{code-cell} python
-A = (0,)
-mic = system.mic(A)  # maximally irreducible cause
-mie = system.mie(A)  # maximally irreducible effect
-print(f"cause  φ = {float(mic.phi):.3f}  over purview {mic.purview}")
-print(f"effect φ = {float(mie.phi):.3f}  over purview {mie.purview}")
+print("Σ φ_d =", round(float(ces.sum_phi_distinctions), 4))
+print("Σ φ_r =", round(float(ces.sum_phi_relations), 4))
+print("Φ     =", round(float(ces.big_phi), 4))
 ```
 
-Mechanism $A$ *does* have irreducible cause power ($\varphi = 0.5$ over $BC$),
-but its effect power is zero. With no self-loop, $A$ cannot affect itself; and
-knowing only the current state of $A$ says nothing about the next state of $B$ or
-$C$, because each of those is an XOR that also depends on the third node. Since a
-distinction's $\varphi_d$ is the smaller of its cause and effect values, and $A$'s
-effect value is zero, $A$ specifies no distinction. Having cause power is not
-enough — intrinsic existence requires irreducible power in both directions.
-
-## Relations
-
-Distinctions are not the whole story in IIT 4.0. Distinctions whose purviews
-overlap bind together into **relations**, and these contribute to $\Phi$
-alongside the distinctions themselves. This system has fifteen of them.
-
-```{code-cell} python
-len(ces.relations), ces.sum_phi_relations
-```
-
-The total structural integrated information combines both levels: the sum of the
-distinction $\varphi_d$ values and the sum of the relation $\varphi_r$ values.
-
-```{code-cell} python
-ces.sum_phi_distinctions, ces.sum_phi_relations
-```
+Note that $\Phi$ (the structure's total, $1.56$ here) is a different quantity
+from $\varphi_s$ (the system's irreducibility over its minimum partition,
+$0.17$ here). Both are reported on the analysis: `aB.phi` is $\varphi_s$;
+`aB.ces.big_phi` is $\Phi$.
 
 ## Summary
 
-For three XOR gates in the all-OFF state, IIT 4.0 finds:
+For the paper's Fig 1A network in state aBC, PyPhi reproduces, under the
+default formalism:
 
-- an integrated whole, with $\Phi = 1.5$;
-- four distinctions — the second-order mechanisms $AB$, $AC$, $BC$, each with
-  $\varphi_d = \tfrac{1}{2}$, and the whole-system mechanism $ABC$ with
-  $\varphi_d = 1$;
-- no first-order distinctions, because each single node has irreducible cause
-  power but no effect power, and so does not exist intrinsically;
-- fifteen relations binding the overlapping distinctions together.
+- $\varphi_s = 0.04 / 0.17 / 0.13$ for $\{A\}$ / aB / aBC (Fig 1E), with
+  $\varphi_c = 0.24$, $\varphi_e = 0.17$ for aB (Fig 1D);
+- aB as a complex, alongside the non-overlapping complex $\{C\}$;
+- aB's three distinctions with $\varphi_d = 0.33, 0.32, 0.07$ and their
+  purviews (Fig 2);
+- the relation $r(\{a, aB\})$ with $\varphi_r = 0.035$ and 9 faces (Fig 4);
+- the summed structure, $\Phi = 1.56$.
+
+## Where to go next
+
+- {doc}`../theory/index` — the same pipeline, quantity by quantity, with the
+  paper-to-code map.
+- {doc}`../theory/intrinsic-information` — why a *deterministic* network
+  computes $\varphi_s = 0$ under this formalism.
+- {doc}`iit-4.0-demo` — the paper's own supplementary notebook, going deeper
+  into the algorithm.
