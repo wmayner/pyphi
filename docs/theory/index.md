@@ -11,6 +11,7 @@ the [IIT wiki](https://iit.wiki); the authoritative source is
 overview
 substrate-and-system
 system-integration
+intrinsic-information
 distinctions-and-relations
 phi-structure
 macro-units
