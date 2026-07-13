@@ -21,6 +21,10 @@ This notebook is the supplement to the IIT 4.0 paper
 walks through a full IIT 4.0 analysis in PyPhi and reproduces the paper's
 numbers on the paper's own example systems.
 
+The notebook pins the IIT 4.0 (2023) formalism it documents; under PyPhi's
+default 2026 formalism, the deterministic Part 1 system would compute
+$\varphi_s = 0$ (see {doc}`../theory/intrinsic-information`).
+
 Part 1 works through a System Irreducibility Analysis one IIT postulate at a
 time — intrinsicality, information, integration ($φ_s$), exclusion (finding the
 first complex), and composition (unfolding the Φ-structure of distinctions and
