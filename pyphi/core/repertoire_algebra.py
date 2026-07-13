@@ -256,7 +256,13 @@ def effect_repertoire(
         return np.array([1.0])
     if mechanism_state is None:
         mechanism_state = _utils.state_of(mechanism, cs.state)
-    condition = FrozenMap(zip(mechanism, mechanism_state, strict=False))
+    if len(mechanism_state) != len(mechanism):
+        raise ValueError(
+            f"mechanism_state has {len(mechanism_state)} entries but the "
+            f"mechanism has {len(mechanism)} nodes; provide one state entry "
+            "per mechanism node."
+        )
+    condition = FrozenMap(zip(mechanism, mechanism_state, strict=True))
     return _effect_repertoire_inner(cs, condition, purview, direction)
 
 
@@ -395,7 +401,10 @@ def forward_cause_repertoire(
     if purview:
         # Per-purview-node alphabet sizes determine the result shape.
         purview_k = [alphabet_sizes[i] for i in purview]
-        result = np.empty(purview_k)
+        # NaN-fill so that when ``purview_state`` restricts the computation to
+        # a single state, the entries that were never computed are loud NaNs
+        # rather than uninitialized memory.
+        result = np.full(purview_k, np.nan)
         if purview_state is None:
             purview_states = itertools.product(*[range(k) for k in purview_k])
         else:

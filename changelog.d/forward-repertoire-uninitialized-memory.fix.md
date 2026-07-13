@@ -1,0 +1,1 @@
+Fixed `forward_cause_repertoire` returning uninitialized memory in the entries it did not compute when called with an explicit `purview_state`: the uncomputed entries are now NaN. Internal consumers only read the computed entry and are unaffected.

@@ -138,3 +138,27 @@ def test_kernel_cache_respects_memory_full(monkeypatch, cs) -> None:
         f"expected 0 cached entries when memory full, got {info.currsize}"
     )
     assert info.misses >= 2
+
+
+def test_forward_cause_repertoire_single_state_poisons_uncomputed(cs) -> None:
+    """With ``purview_state`` given, only that state's entry is computed; the
+    rest must be NaN, never uninitialized memory."""
+    import numpy as np
+
+    from pyphi.core import repertoire_algebra as ra
+
+    rep = ra.forward_cause_repertoire(cs, (0, 1, 2), (0, 1, 2), (0, 0, 0)).squeeze()
+    assert np.isfinite(rep[(0, 0, 0)])
+    unwritten = [s for s in np.ndindex(rep.shape) if s != (0, 0, 0)]
+    assert all(np.isnan(rep[s]) for s in unwritten)
+
+
+def test_effect_repertoire_rejects_wrong_length_mechanism_state(cs) -> None:
+    """A ``mechanism_state`` whose length differs from the mechanism must raise,
+    not silently truncate the pairing."""
+    from pyphi.core import repertoire_algebra as ra
+
+    with pytest.raises(ValueError, match="mechanism_state"):
+        ra.effect_repertoire(cs, (0, 2), (0, 1, 2), mechanism_state=(1,))
+    with pytest.raises(ValueError, match="mechanism_state"):
+        ra.effect_repertoire(cs, (0, 2), (0, 1, 2), mechanism_state=(1, 0, 1, 1))
