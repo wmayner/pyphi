@@ -153,9 +153,18 @@ def test_reference_topics_load():
         "gotchas",
         "interpreting-results",
         "building-systems",
+        "migration",
     }
     for topic in topics:
         assert len(content.load(topic)) > 100
+
+
+def test_migration_topic_covers_the_renames():
+    doc = content.load("migration")
+    # The load-bearing facts an agent needs, guarding against a stub file.
+    assert "no deprecation shims" in doc
+    for name in ("Substrate", "System", "analyze", "IIT_3_0"):
+        assert name in doc
 
 
 @pytest.mark.skipif(not HAS_EMD, reason="IIT 3.0 needs the emd extra")

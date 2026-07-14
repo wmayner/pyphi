@@ -37,7 +37,9 @@ reference.
   `pip install pyphi[visualize]`): `kind="ces"` the Φ-structure,
   `"repertoires"` the cause/effect repertoires, `"connectivity"` the causal
   graph, `"tpm"` the transition probability matrix.
-- `get_iit_reference(topic)` — the grounded theory reference.
+- `get_iit_reference(topic)` — the grounded theory reference. Porting code
+  written against an older PyPhi? Read `get_iit_reference("migration")` first:
+  2.0 renamed the core objects and has no compatibility shims.
 
 ## Two things to keep straight from the start
 
@@ -52,3 +54,4 @@ reference.
 - `explain_result` — narrate an analysis result in plain language.
 - `build_system_walkthrough` — turn a description of some units into a valid
   transition probability matrix.
+- `migrate_code` — rewrite pre-2.0 PyPhi code for 2.0.

@@ -47,6 +47,30 @@ def register(mcp: Any) -> None:
         )
 
     @mcp.prompt()
+    def migrate_code(code: str) -> str:
+        """Rewrite pre-2.0 PyPhi code for PyPhi 2.0.
+
+        Parameters
+        ----------
+        code : str
+            The pre-2.0 PyPhi code to port (e.g. code using ``pyphi.Network``,
+            ``pyphi.Subsystem``, ``pyphi.compute.*``, or a flat config).
+        """
+        return (
+            "Rewrite this PyPhi code for version 2.0:\n\n"
+            f"{code}\n\n"
+            "First read the 'migration' and 'gotchas' reference topics with "
+            "get_iit_reference. There are no deprecation shims, so every "
+            "pre-2.0 name must be changed. Apply the renames, replace "
+            "pyphi.compute.* with pyphi.analyze, update any config and jsonify "
+            "usage, and preserve the original behavior — if the code relied on "
+            'the old IIT 3.0 default, pass formalism="IIT_3_0" so the numbers '
+            "still match. Show the rewritten code and note any change that "
+            "alters computed values (especially that deterministic systems give "
+            "φ_s = 0 under the new 2026 default)."
+        )
+
+    @mcp.prompt()
     def build_system_walkthrough(description: str) -> str:
         """Turn a description of some units into a valid substrate.
 

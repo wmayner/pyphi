@@ -41,6 +41,11 @@ TOPICS: dict[str, tuple[str, str]] = {
         "How to turn a description of some units into a valid transition "
         "probability matrix.",
     ),
+    "migration": (
+        "migration.md",
+        "Migrating pre-2.0 PyPhi code to 2.0: the renames, config, and "
+        "default-formalism changes, with before/after snippets.",
+    ),
 }
 
 
