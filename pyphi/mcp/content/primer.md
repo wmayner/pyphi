@@ -41,6 +41,11 @@ reference.
   written against an older PyPhi? Read `get_iit_reference("migration")` first:
   2.0 renamed the core objects and has no compatibility shims.
 
+When you run PyPhi in a shell rather than through these tools, use the project's
+virtual environment — `uv run python` if it is a uv project, otherwise the
+environment's own `python` — not the bare system `python`, which likely does not
+have PyPhi installed.
+
 ## Two things to keep straight from the start
 
 - **States are little-endian.** The *first* node is the least-significant bit,

@@ -12,12 +12,20 @@ exploring what Φ, distinctions, and relations actually mean.
 
 ## Install
 
+Install PyPhi with the `mcp` extra. From PyPI:
+
 ```bash
 pip install "pyphi[mcp]"
 ```
 
+Or install the latest code straight from GitHub:
+
+```bash
+pip install "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git"
+```
+
 The IIT 3.0 formalism needs the earth-mover-distance backend, and plotting needs
-the visualization stack, so install those extras too if you want them:
+the visualization stack, so add those extras too if you want them:
 
 ```bash
 pip install "pyphi[mcp,emd,visualize]"
@@ -26,8 +34,54 @@ pip install "pyphi[mcp,emd,visualize]"
 ## Connect it to a client
 
 The server speaks MCP over stdio and is started by the `pyphi-mcp` console
-script (equivalently, `python -m pyphi.mcp`). Clients launch it for you; you
-rarely run it by hand.
+script (equivalently, `python -m pyphi.mcp`). Clients launch it as a subprocess;
+you rarely run it by hand.
+
+A client launches that subprocess with its own environment rather than your
+shell's, so a bare `pyphi-mcp` is found only if it is on the client's `PATH` —
+which a project virtual environment usually is not. Two ways to make the launch
+reliable without hardcoding a path:
+
+- **Run it through `uv`** (recommended). `uvx` resolves an isolated environment
+  and runs the entry point, so nothing needs to be installed or activated first.
+  From PyPI the launch command is `uvx --from "pyphi[mcp]" pyphi-mcp`; from
+  GitHub it is
+  `uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git" pyphi-mcp`.
+- **Install it as a tool** with `uv tool install "pyphi[mcp]"` (or
+  `pipx install "pyphi[mcp]"`), which places `pyphi-mcp` on a stable `PATH`
+  entry so the bare name works everywhere.
+
+### Claude Code
+
+Add the server with `claude mcp add` — everything after `--` is the launch
+command. From PyPI:
+
+```bash
+claude mcp add pyphi -- uvx --from "pyphi[mcp]" pyphi-mcp
+```
+
+Or, for the latest code from GitHub:
+
+```bash
+claude mcp add pyphi -- uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git" pyphi-mcp
+```
+
+This writes an entry to `.mcp.json` (or `~/.claude.json`), which you can also
+create by hand:
+
+```json
+{
+  "mcpServers": {
+    "pyphi": {
+      "command": "uvx",
+      "args": ["--from", "pyphi[mcp]", "pyphi-mcp"]
+    }
+  }
+}
+```
+
+Claude Code inherits your shell's `PATH`, so as long as `uv` is on it this needs
+no absolute paths.
 
 ### Claude Desktop
 
@@ -37,25 +91,24 @@ Add it to `claude_desktop_config.json`:
 {
   "mcpServers": {
     "pyphi": {
-      "command": "pyphi-mcp"
+      "command": "uvx",
+      "args": ["--from", "pyphi[mcp]", "pyphi-mcp"]
     }
   }
 }
 ```
 
-If `pyphi-mcp` is not on the client's `PATH`, use the absolute path to the
-executable in your environment (the one `which pyphi-mcp` prints inside your
-virtual environment).
-
-### Claude Code
-
-Add an `.mcp.json` to your project (or run `claude mcp add`):
+Claude Desktop is a GUI application and does not inherit your shell's `PATH`; it
+launches subprocesses with a minimal system `PATH`. If `uvx` (or `pyphi-mcp`) is
+not found there, give the absolute path to the executable — the one that
+`which uvx` prints in your shell:
 
 ```json
 {
   "mcpServers": {
     "pyphi": {
-      "command": "pyphi-mcp"
+      "command": "/Users/you/.local/bin/uvx",
+      "args": ["--from", "pyphi[mcp]", "pyphi-mcp"]
     }
   }
 }
