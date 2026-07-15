@@ -154,6 +154,8 @@ def test_reference_topics_load():
         "interpreting-results",
         "building-systems",
         "migration",
+        "configuration",
+        "performance",
     }
     for topic in topics:
         assert len(content.load(topic)) > 100

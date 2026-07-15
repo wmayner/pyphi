@@ -54,6 +54,21 @@ have PyPhi installed.
 - **Φ = 0 means the system is reducible**, not that it has no structure. A
   positive value is what indicates irreducible integrated information.
 
+## Configuring and running PyPhi
+
+- **Configuration** is one object, `pyphi.config`, in three layers: `formalism`
+  (what is computed), `infrastructure` (parallelism, caching, progress), and
+  `numerics` (precision). Through these tools, select a formalism by passing
+  `formalism=` to `analyze`; read `get_iit_reference("configuration")` before
+  changing options in a script.
+- **Expensive runs can hang the machine, and PyPhi has no built-in
+  checkpointing** — a run that hangs or is killed loses everything in progress.
+  Exact Φ is practical to about 10–12 units. Before starting any analysis large
+  enough to plausibly thrash, enable the opt-in disk result cache
+  (`pyphi.config.disk_cache_results = True`) so completed results survive, and
+  for a sweep over many systems save progress as it goes so a restart resumes
+  instead of recomputing. See `get_iit_reference("performance")`.
+
 ## Prompts
 
 - `explain_result` — narrate an analysis result in plain language.

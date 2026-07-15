@@ -10,6 +10,9 @@ supports.
 
 from __future__ import annotations
 
+import dataclasses
+import inspect
+from dataclasses import MISSING
 from importlib import resources
 
 #: Reference topics mapped to their Markdown file and a one-line description.
@@ -46,6 +49,16 @@ TOPICS: dict[str, tuple[str, str]] = {
         "Migrating pre-2.0 PyPhi code to 2.0: the renames, config, and "
         "default-formalism changes, with before/after snippets.",
     ),
+    "configuration": (
+        "configuration.md",
+        "The layered config object, override, presets, pyphi_config.yml, and "
+        "the options worth knowing.",
+    ),
+    "performance": (
+        "performance.md",
+        "Running expensive analyses: the cost ceiling, the in-memory and "
+        "opt-in disk caches, and checkpointing so a long run survives a crash.",
+    ),
 }
 
 
@@ -62,6 +75,10 @@ def topics() -> dict[str, str]:
 
 def load(topic: str) -> str:
     """Return the Markdown text of a reference topic.
+
+    The ``configuration`` topic has the complete option reference appended,
+    generated live from the config dataclasses by :func:`config_reference`, so
+    it never drifts from the code.
 
     Parameters
     ----------
@@ -85,6 +102,56 @@ def load(topic: str) -> str:
         raise KeyError(
             f"Unknown reference topic {topic!r}. Available topics: {available}."
         ) from None
-    return (resources.files(__package__) / "content" / filename).read_text(
+    text = (resources.files(__package__) / "content" / filename).read_text(
         encoding="utf-8"
     )
+    if topic == "configuration":
+        text += "\n" + config_reference()
+    return text
+
+
+def config_reference() -> str:
+    """Return a Markdown reference of every ``pyphi.config`` option.
+
+    Generated from the config dataclasses, so the option names, defaults, and
+    layer structure always match the installed code. Each namespace's class
+    docstring supplies the prose descriptions; the per-option list gives every
+    field with its default value.
+
+    Returns
+    -------
+    str
+        Markdown listing all options under ``numerics``, ``infrastructure``,
+        ``formalism.iit``, and ``formalism.actual_causation``.
+    """
+    # Imported here to avoid a circular import at module load and to keep the
+    # config the single source of truth for the option set.
+    from pyphi.conf.formalism import ActualCausationConfig
+    from pyphi.conf.formalism import IITConfig
+    from pyphi.conf.infrastructure import InfrastructureConfig
+    from pyphi.conf.numerics import NumericsConfig
+
+    namespaces = [
+        ("numerics", NumericsConfig),
+        ("infrastructure", InfrastructureConfig),
+        ("formalism.iit", IITConfig),
+        ("formalism.actual_causation", ActualCausationConfig),
+    ]
+    lines = ["## Complete option reference", ""]
+    for path, cls in namespaces:
+        lines.append(f"### `pyphi.config.{path}`")
+        lines.append("")
+        doc = inspect.getdoc(cls)
+        if doc:
+            lines.append(doc)
+            lines.append("")
+        for field in dataclasses.fields(cls):
+            if field.default is not MISSING:
+                default = field.default
+            elif field.default_factory is not MISSING:
+                default = field.default_factory()
+            else:
+                default = None
+            lines.append(f"- `{field.name}` (default `{default!r}`)")
+        lines.append("")
+    return "\n".join(lines)
