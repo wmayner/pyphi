@@ -104,7 +104,6 @@ fallback_version = "0.0.0"
 [tool.hatch.build.targets.sdist]
 include = [
     "README.md",
-    "INSTALLATION.rst",
     "CACHING.rst",
     "LICENSE.md",
     "CHANGELOG.md",

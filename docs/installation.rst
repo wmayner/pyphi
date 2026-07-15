@@ -41,10 +41,6 @@ To install the latest development version:
 
     pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"
 
-.. tip::
-    For detailed instructions on how to install PyPhi on macOS, see the
-    :ref:`macos-installation`.
-
 Legacy: Conda (Deprecated)
 ==========================
 

@@ -136,10 +136,6 @@ python -m pip install pyphi                     # current release (1.x)
 python -m pip install "git+https://github.com/wmayner/pyphi@main"   # 2.0 (IIT 4.0)
 ```
 
-### Detailed installation guide for macOS
-
-[See here](https://github.com/wmayner/pyphi/blob/main/INSTALLATION.rst).
-
 ## Contributing
 
 To help develop PyPhi, fork the project on GitHub, clone your fork, and install
