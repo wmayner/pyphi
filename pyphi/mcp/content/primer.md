@@ -49,8 +49,7 @@ at https://pyphi.readthedocs.io, or the installed package's own docstrings
 
 When you run PyPhi in a shell rather than through these tools, use the project's
 virtual environment — `uv run python` if it is a uv project, otherwise the
-environment's own `python` — not the bare system `python`, which likely does not
-have PyPhi installed.
+environment's own `python` — never the bare system `python`.
 
 ## Two things to keep straight from the start
 
