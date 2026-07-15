@@ -65,21 +65,6 @@ pip install pyphi                                                  # latest stab
 pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"  # latest development version
 ```
 
-### Legacy: conda (deprecated)
-
-```{warning}
-The conda package is deprecated and may not receive updates. Please use uv or
-pip instead.
-```
-
-Windows users who hit problems with uv or pip on older systems can use the
-[Anaconda Python](https://www.anaconda.com/what-is-anaconda/) distribution and
-[install PyPhi with conda](https://anaconda.org/wmayner/pyphi):
-
-```bash
-conda install -c wmayner pyphi
-```
-
 ## Your first computation
 
 Start by importing the package. Turning off the progress bars keeps the output
