@@ -59,6 +59,11 @@ TOPICS: dict[str, tuple[str, str]] = {
         "Running expensive analyses: the cost ceiling, the in-memory and "
         "opt-in disk caches, and checkpointing so a long run survives a crash.",
     ),
+    "visualization": (
+        "visualization.md",
+        "Plotting the Φ-structure with plot_ces: the five views, the "
+        "analytical max_relations rule, hand-built structures, and export.",
+    ),
 }
 
 

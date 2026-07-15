@@ -136,6 +136,20 @@ cap, since it reads the closed-form degree spectrum rather than the drawn edges:
 viz.plot_ces(analytical_ces, view="spectrum", max_relations=1)
 ```
 
+## Plotting a structure you built yourself
+
+A structure you assembled by hand — for instance, distinctions restored from a
+checkpoint — plots the same way. Build a `CauseEffectStructure`; the plot path
+never reads its `sia`, so `None` is fine, and the only requirement is that the
+structure be relation-closed:
+
+```{code-cell} python
+from pyphi.models import CauseEffectStructure
+
+rebuilt = CauseEffectStructure(None, ces.distinctions, ces.relations)
+viz.plot_ces(rebuilt, view="lattice")
+```
+
 ## Highlighting a Φ-fold
 
 A Φ-fold is a seed distinction together with every relation incident to it.
@@ -245,4 +259,26 @@ input energies:
 ```{code-cell} python
 viz.ising.plot_sigmoid(np.linspace(-5, 5, 100), temperature=1.0, field=0.0)
 plt.gcf()
+```
+
+## Saving a figure
+
+The cause-effect-structure plots (`plot_ces`, `highlight_phi_fold`) are Plotly
+figures. Save one as a self-contained HTML file — no network or CDN, opens in any
+browser — with inline Plotly.js:
+
+```python
+fig = viz.plot_ces(ces, view="hypergraph")
+fig.write_html("ces.html", include_plotlyjs="inline")
+```
+
+Do not rasterize these to PNG: static image export needs
+[kaleido](https://github.com/plotly/Kaleido), which PyPhi does not depend on, and
+a still frame of a figure meant to be rotated and hovered is misleading. Keep the
+cause-effect-structure plots as HTML. The Matplotlib figures (`plot_system`,
+`plot_graph`, `plot_tpm`, `plot_distribution`, `plot_repertoires`,
+`plot_dynamics`, the Ising helpers) save as images the usual way:
+
+```python
+fig.savefig("figure.png", dpi=120, bbox_inches="tight")
 ```

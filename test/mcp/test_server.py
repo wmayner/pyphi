@@ -156,6 +156,7 @@ def test_reference_topics_load():
         "migration",
         "configuration",
         "performance",
+        "visualization",
     }
     for topic in topics:
         assert len(content.load(topic)) > 100
@@ -166,6 +167,13 @@ def test_migration_topic_covers_the_renames():
     # The load-bearing facts an agent needs, guarding against a stub file.
     assert "no deprecation shims" in doc
     for name in ("Substrate", "System", "analyze", "IIT_3_0"):
+        assert name in doc
+
+
+def test_visualization_topic_covers_the_gotchas():
+    doc = content.load("visualization")
+    # The facts a fresh agent gets wrong without them, guarding against a stub.
+    for name in ("plot_ces", "max_relations", "ANALYTICAL", "hypergraph", "write_html"):
         assert name in doc
 
 
@@ -207,3 +215,38 @@ def test_plot_repertoires(basic_handle):
 def test_plot_unknown_kind_errors(basic_handle):
     with pytest.raises(ValueError, match="Unknown plot kind"):
         srv.plot(basic_handle, kind="bogus")
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_ces_view(basic_handle):
+    ref = srv.analyze(basic_handle, BASIC_STATE, compute="ces")["result_ref"]
+    out = srv.plot(ref, kind="ces", view="hypergraph")
+    assert isinstance(out, str)
+    assert ".html" in out
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_ces_unknown_view_errors(basic_handle):
+    # "barycentric" is a layout, not a view — the common confusion.
+    ref = srv.analyze(basic_handle, BASIC_STATE, compute="ces")["result_ref"]
+    with pytest.raises(ValueError, match="Unknown view"):
+        srv.plot(ref, kind="ces", view="barycentric")
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_ces_analytical_requires_max_relations(basic_handle):
+    with pyphi.config.override(relation_computation="ANALYTICAL"):
+        ref = srv.analyze(basic_handle, BASIC_STATE, compute="ces")["result_ref"]
+        # Analytical relations plot when capped, and raise when uncapped (the
+        # set is not enumerable) — the fact a fresh agent gets wrong.
+        out = srv.plot(ref, kind="ces", max_relations=8)
+        assert isinstance(out, str)
+        assert ".html" in out
+        with pytest.raises(ValueError):
+            srv.plot(ref, kind="ces")
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_view_rejected_for_non_ces(basic_handle):
+    with pytest.raises(ValueError, match="only to kind='ces'"):
+        srv.plot(basic_handle, kind="tpm", view="hypergraph")

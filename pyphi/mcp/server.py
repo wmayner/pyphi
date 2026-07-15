@@ -361,6 +361,9 @@ _PLOT_KINDS = {
     "tpm": "the state-by-state transition probability matrix — needs a handle",
 }
 
+# The views plot_ces offers; keep in sync with pyphi.visualize.plot_ces.
+_CES_VIEWS = ("lattice", "hypergraph", "scatter", "matrix", "spectrum")
+
 
 def _get_result(result_ref: str) -> Any:
     try:
@@ -388,7 +391,12 @@ def _state_by_state(substrate: Any) -> Any:
 
 
 @mcp.tool()
-def plot(target: str, kind: str = "ces") -> Any:
+def plot(
+    target: str,
+    kind: str = "ces",
+    view: str = "lattice",
+    max_relations: int | None = None,
+) -> Any:
     """Render one of PyPhi's built-in visualizations.
 
     Requires the ``visualize`` extra (``pip install pyphi[visualize]``). PyPhi
@@ -407,6 +415,19 @@ def plot(target: str, kind: str = "ces") -> Any:
         ``"repertoires"`` — the cause and effect repertoires of the analysis.
         ``"connectivity"`` — the substrate's causal connectivity graph.
         ``"tpm"`` — the state-by-state transition probability matrix.
+    view : str
+        For ``kind="ces"`` only, which of the five views to draw: ``"lattice"``
+        (default, the inclusion Hasse diagram), ``"hypergraph"`` (the 3-D cause
+        and effect purviews with relation faces), ``"scatter"``, ``"matrix"``,
+        or ``"spectrum"``. (``"barycentric"`` is a *layout*, not a view.)
+    max_relations : int, optional
+        For ``kind="ces"`` only, draw just the strongest this-many relations by
+        φ_r. Required when the structure's relations are computed analytically
+        (``relation_computation="ANALYTICAL"``), whose relation set cannot be
+        enumerated; node sizes and the spectrum view stay exact regardless. Left
+        as ``None`` with the default ``"CONCRETE"`` relations, every relation is
+        drawn. For the full direct-Python surface see
+        ``get_iit_reference("visualization")``.
 
     Returns
     -------
@@ -426,9 +447,17 @@ def plot(target: str, kind: str = "ces") -> Any:
     matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
 
+    if kind != "ces" and (view != "lattice" or max_relations is not None):
+        raise ValueError("view and max_relations apply only to kind='ces'.")
+
     if kind == "ces":
+        if view not in _CES_VIEWS:
+            views = ", ".join(_CES_VIEWS)
+            raise ValueError(f"Unknown view {view!r}; use one of: {views}.")
         result = _get_result(target)
-        fig = visualize.plot_ces(getattr(result, "ces", result))
+        fig = visualize.plot_ces(
+            getattr(result, "ces", result), view=view, max_relations=max_relations
+        )
     elif kind == "repertoires":
         result = _get_result(target)
         fig = visualize.plot_repertoires(result.system, result.sia)[0]

@@ -36,7 +36,9 @@ reference.
 - `plot(target, kind)` — render PyPhi's built-in visualizations (needs
   `pip install pyphi[visualize]`): `kind="ces"` the Φ-structure,
   `"repertoires"` the cause/effect repertoires, `"connectivity"` the causal
-  graph, `"tpm"` the transition probability matrix.
+  graph, `"tpm"` the transition probability matrix. For a particular view of the
+  Φ-structure, an analytically-computed structure, or plotting one you built
+  yourself, read `get_iit_reference("visualization")`.
 - `get_iit_reference(topic)` — the grounded theory reference. Porting code
   written against an older PyPhi? Read `get_iit_reference("migration")` first:
   2.0 renamed the core objects and has no compatibility shims.
