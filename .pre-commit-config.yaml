@@ -55,5 +55,5 @@ repos:
         # is absent on CI runners and would crash the hook; excluding the
         # section-hub index.md files keeps the sync to files jupytext can read.
         files: ^docs/(getting-started|tutorials)/.*\.md$
-        exclude: ^docs/(getting-started|tutorials)/index\.md$
+        exclude: ^docs/tutorials/index\.md$
         require_serial: true

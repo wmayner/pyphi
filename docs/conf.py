@@ -30,9 +30,9 @@ exclude_patterns = [
     "superpowers/**",
     "**/.ipynb_checkpoints",
     "examples/IIT_4.0_demo.ipynb",
-    "getting-started/first-computation.ipynb",
-    # Paired tutorial notebooks are download artifacts; the .md is the rendered
-    # source. Exclude the .ipynb so Sphinx does not see two files per document.
+    # Paired notebooks are download artifacts; the .md is the rendered source.
+    # Exclude the .ipynb so Sphinx does not see two files per document.
+    "getting-started/*.ipynb",
     "tutorials/*.ipynb",
 ]
 
