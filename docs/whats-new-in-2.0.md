@@ -76,4 +76,5 @@ The same queries work on Φ-folds (restricted to the relations touching a
 set of distinctions), and
 `ces.distinction_importance()` ranks each distinction by its additive
 contribution to Φ — the contributions sum to Φ exactly, so the ranking is
-a true decomposition of the structure's integrated information.
+a true decomposition of the structure's integrated information. See the
+how-to guide [Query relational structure](howto/query-relations.md).
