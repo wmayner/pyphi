@@ -587,8 +587,12 @@ When improving the codebase, prioritize:
 3. Implement feature
 4. Run tests and fix failures
 5. Add documentation
-6. Create changelog fragment in `changelog.d/`
-7. Request code review
+6. Consider the MCP server (`pyphi/mcp/`): decide whether the new
+   information or functionality should be surfaced there — as a tool in
+   `server.py`, a resource in `resources.py`, or reference content in
+   `pyphi/mcp/content/` — and update those surfaces if so
+7. Create changelog fragment in `changelog.d/`
+8. Request code review
 
 #### Fixing a Bug
 1. Write a failing test that reproduces the bug
