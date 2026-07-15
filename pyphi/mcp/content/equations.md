@@ -120,9 +120,9 @@ section or name.
 ## Macro units and grain
 
 Marshall et al. (2024), *Intrinsic Units*, bioRxiv (preprint; Eqs. 1–42 all
-numbered). Cite as a preprint. Eqs. 26–40 give the four-step macro-TPM
-construction (discount extrinsic connections, extend to update sequences,
-causally marginalize the background, compress into macro states).
+numbered). Eqs. 26–40 give the four-step macro-TPM construction (discount
+extrinsic connections, extend to update sequences, causally marginalize the
+background, compress into macro states).
 
 ## IIT 3.0
 

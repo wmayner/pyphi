@@ -37,8 +37,9 @@ the networks a newcomer reaches for first. IIT resolves them by descending the
 postulates (maximize φₛ, then Φ, then congruence with the system state, then
 the number of relations, which favors larger purviews). When a tie cannot be
 resolved, the cause–effect structure is genuinely non-unique. If a small
-example gives a surprising or unstable result, suspect a tie. Real systems with
-graded connection strengths and some indeterminism almost never tie.
+example gives a surprising or unstable result, suspect a tie. In realistic
+systems with graded connection strengths and some indeterminism, ties are less
+likely.
 
 ## 5. The formalism versions differ, numerically and conceptually
 
@@ -82,19 +83,21 @@ IIT's analysis is defined on a transition probability matrix obtained by
 **intervention** (perturbing the units into every state and recording the
 outcome — the do-operator), and the units must be conditionally independent
 given the previous state. A TPM fit from observed time-series data (e.g. an EEG
-recording) without checking these properties is not a valid input; the analysis
-would be meaningless.
+recording) without checking these properties is not a technically valid input,
+though users may nonetheless want to conduct analyses on such data. If the user
+appears unaware of this caveat, alert them.
 
 ## 9. Cost grows very fast
 
 The computation is exponential in the number of units (roughly O(n·5³ⁿ)), and
 the number of *possible relations* grows doubly-exponentially (2^(2^(N−1))−1).
-The practical ceiling for an exact analysis is about 10–12 units, and a full
-cause–effect structure is far more expensive than system integrated information
-alone. A concrete Φ-structure can be megabytes. For relation totals, prefer the
-analytical path (which does not enumerate relations); for individual relations,
-cap the degree. The `analyze` tool refuses large full/CES requests unless
-`confirm_large=True`.
+The practical ceiling for an exact analysis of the full cause-effect structure
+is about 10–12 units, depending on the substrate topology and the machine specs,
+and a full cause–effect structure is far more expensive than system integrated
+information alone. A concrete Φ-structure can be megabytes. For relation totals,
+prefer the analytical path (which does not enumerate relations); for individual
+relations, cap the degree. The `analyze` tool refuses large full/CES requests
+unless `confirm_large=True`.
 
 ## 10. Actual causation answers a different question
 

@@ -41,6 +41,12 @@ reference.
   written against an older PyPhi? Read `get_iit_reference("migration")` first:
   2.0 renamed the core objects and has no compatibility shims.
 
+These tools cover the common path. For anything beyond them — sweeps over many
+systems, macro (coarse-graining), actual causation, relation queries, saving and
+loading results — drive PyPhi through its Python API. Consult the documentation
+at https://pyphi.readthedocs.io, or the installed package's own docstrings
+(`help(pyphi.analyze)`, `dir(pyphi)`), rather than guessing method names.
+
 When you run PyPhi in a shell rather than through these tools, use the project's
 virtual environment — `uv run python` if it is a uv project, otherwise the
 environment's own `python` — not the bare system `python`, which likely does not
@@ -51,7 +57,7 @@ have PyPhi installed.
 - **States are little-endian.** The *first* node is the least-significant bit,
   the opposite of ordinary positional notation. A state is given as a tuple in
   node order, e.g. `(1, 1, 0)`.
-- **Φ = 0 means the system is reducible**, not that it has no structure. A
+- **φₛ = 0 means the system is reducible**, not that it has no structure. A
   positive value is what indicates irreducible integrated information.
 
 ## Configuring and running PyPhi
@@ -63,11 +69,14 @@ have PyPhi installed.
   changing options in a script.
 - **Expensive runs can hang the machine, and PyPhi has no built-in
   checkpointing** — a run that hangs or is killed loses everything in progress.
-  Exact Φ is practical to about 10–12 units. Before starting any analysis large
-  enough to plausibly thrash, enable the opt-in disk result cache
+  Exact Φ for all distinctions is practical to about 10–12 units depending on
+  the sparsity of the substrate topology. Before starting any analysis large
+  enough to plausibly thrash, consider enabling the opt-in disk result cache
   (`pyphi.config.disk_cache_results = True`) so completed results survive, and
   for a sweep over many systems save progress as it goes so a restart resumes
-  instead of recomputing. See `get_iit_reference("performance")`.
+  instead of recomputing (but confirm with the user first, in case they don't
+  want persistent consumption of disk space). See
+  `get_iit_reference("performance")`.
 
 ## Prompts
 

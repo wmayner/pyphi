@@ -36,13 +36,11 @@ def register(mcp: Any) -> None:
             "First read the 'interpreting-results' and 'gotchas' reference "
             "topics with get_iit_reference. Then use inspect() on the result "
             "to read its parts. In your explanation, cover:\n"
-            "- What Φ is here, and remember that Φ=0 means the system is "
-            "reducible, not that it lacks structure.\n"
-            "- The distinction between φₛ (whether the system exists as one "
-            "integrated whole) and Φ (how much structure it specifies).\n"
+            "- What are φₛ and Φ here; remember that φₛ=0 means the system is "
+            "reducible.\n"
             "- What the distinctions and relations are, concretely.\n"
-            "- Any caveats: ties from a symmetric transition probability "
-            "matrix, or the formalism version's effect on the numbers.\n"
+            "- Any caveats, such as ties from a symmetric transition probability "
+            "matrix.\n"
             "Avoid jargon where a plain word is just as precise."
         )
 
@@ -91,5 +89,6 @@ def register(mcp: Any) -> None:
             "interventional and conditionally independent. Then construct the "
             "state-by-node transition probability matrix row by row, explain "
             "each row, call build_substrate to create it, and confirm the "
-            "result with describe_substrate."
+            "result with describe_substrate. Check with the user that the "
+            "substrate you built matches their intent."
         )

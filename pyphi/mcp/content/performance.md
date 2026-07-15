@@ -54,15 +54,12 @@ fixed recipe:
   numerous, a single appended file or a periodic flush may be better than one
   file each. Save the inputs (state, and the `seed` if any randomization is
   used) alongside each result so the run is reproducible.
-- **A single expensive analysis** — one `sia()` or `ces()` on a large substrate
-  — cannot be checkpointed partway: the distinctions and relations are computed
-  internally, and their number grows combinatorially, so writing them
-  incrementally is neither possible from outside nor advisable. Here the only
-  levers are the **disk result cache** (which persists the whole result once it
-  finishes, so a re-run returns it instead of recomputing) and not exceeding the
-  size ceiling in the first place. If the analysis will not complete in
-  available memory and time, reduce the substrate rather than hoping to recover
-  a partial result.
+- **A single expensive analysis** — one `sia()` or `ces()` on a large substrate.
+  In this case, it may be necessary to store intermediate objects incrementally.
+  PyPhi's API exposes every level of the computation, so intermediate results can
+  be composed and assembled into a final structure; however, care must be taken to
+  do so properly. Make sure you understand the code before attempting this if you
+  deem it necessary for performance reasons.
 
 A sketch of the sweep case, to adapt rather than copy verbatim:
 

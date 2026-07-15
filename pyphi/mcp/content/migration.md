@@ -80,7 +80,7 @@ low-level IIT 4.0 functions from `new_big_phi` now imports `sia` and `ces` from
 
 In 1.x a single `IIT_VERSION` toggle selected the formalism, defaulting to IIT
 3.0. In 2.0 the formalism is chosen per call, and **the default is now IIT 4.0
-(2026)** with the intrinsic-information requirement.
+(2026)** with the intrinsic information requirement.
 
 Before:
 
@@ -180,12 +180,12 @@ Because the default formalism changed from IIT 3.0 to IIT 4.0 (2026), the same
 substrate and state give a **different result** than a 1.x default run unless
 `formalism="IIT_3_0"` is requested.
 
-The consequence that most often surprises people migrating: under the 2026
-default, **deterministic networks compute φ_s = 0.** The classic examples
-(`xor`, `basic`, the cellular-automaton rules) are all deterministic, so
-analyses ported from 1.x or from the literature will show 0 where papers print
-nonzero values. This is the intended behavior of the 2026 intrinsic-information
-requirement, not a bug. To reproduce old numbers:
+The consequence that could surprise people migrating: under the 2026 default,
+**deterministic networks compute φ_s = 0.** The classic examples (`xor`,
+`basic`, the cellular-automaton rules) are all deterministic, so analyses ported
+from 1.x or from the literature will show 0 where papers print nonzero values.
+This is the intended behavior of the 2026 intrinsic-information requirement. To
+reproduce old numbers:
 
 - IIT 3.0 numbers → `formalism="IIT_3_0"`
 - IIT 4.0 (2023) system φ, without the requirement → `formalism="IIT_4_0_2023"`

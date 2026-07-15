@@ -29,7 +29,7 @@ How to read an analysis result and explain it in plain language.
    units in the same state.
 4. **Name the caveats.** If the substrate is small and deterministic, mention
    that ties may make the structure non-unique (see gotchas). If a non-default
-   formalism was used, say so and why the number differs from 4.0 (2023).
+   formalism was used, say so.
 
 ## Common misreadings to avoid
 

@@ -8,13 +8,16 @@ theory (IIT) 4.0*, PLoS Computational Biology 19(10): e1011465.
 
 ## The starting point: cause–effect power
 
-IIT takes physical existence to mean having **cause–effect power** — the
-ability to take and make a difference. A **substrate** is a set of interacting
-units whose cause–effect power is captured entirely by its **transition
-probability matrix** (TPM): the probability of each next state given each
-current state. PyPhi requires the units to be **conditionally independent**
-given the previous state, which is what lets the substrate be described by
-per-unit transition probabilities rather than joint ones.
+IIT takes physical existence to mean having **cause–effect power** — the ability
+to take and make a difference. A **substrate** is a set of interacting units
+whose cause–effect power is captured entirely by its **transition probability
+matrix** (TPM): the probability of each next state given each current state. The
+theory assumes 'atomism': **micro-level units** are assumed to be the minimal
+elements that admit independent perturbation and observation. This entails that
+units are **conditionally independent** given the previous state, which is what
+lets the substrate be described by per-unit transition probabilities rather than
+joint ones. PyPhi therefore assumes conditional independence among micro-level
+units.
 
 ## The postulates
 
@@ -38,7 +41,7 @@ property of experience:
 
 ## φₛ versus Φ — two different quantities
 
-This distinction is the single most important thing to keep straight.
+This distinction is important to keep straight.
 
 **φₛ (system integrated information)** answers *does this system exist as one
 integrated whole?* It is computed on the cause side and the effect side
