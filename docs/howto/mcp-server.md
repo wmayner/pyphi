@@ -17,17 +17,32 @@ Install PyPhi with the `mcp` extra. From PyPI:
 pip install "pyphi[mcp]"
 ```
 
-Or install the latest code straight from GitHub:
-
-```bash
-pip install "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git"
-```
-
 Plotting needs the visualization stack, so add that extra too if you want it:
 
 ```bash
 pip install "pyphi[mcp,visualize]"
 ```
+
+### From the GitHub main branch
+
+To run the newest, unreleased code, install directly from the `main` branch
+instead of from PyPI. This picks up fixes and features that have not made it
+into a release yet.
+
+```bash
+pip install "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
+```
+
+Add the `visualize` extra the same way if you want plotting:
+
+```bash
+pip install "pyphi[mcp,visualize] @ git+https://github.com/wmayner/pyphi.git@main"
+```
+
+The client launch commands below take the same `@main` reference — anywhere
+they name `pyphi[mcp]`, substitute
+`pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main` to launch the
+server from the main branch.
 
 ### Claude Code
 
@@ -38,10 +53,10 @@ command. From PyPI:
 claude mcp add pyphi -- uvx --from "pyphi[mcp]" pyphi-mcp
 ```
 
-Or, for the latest code from GitHub:
+Or, for the latest code from the main branch:
 
 ```bash
-claude mcp add pyphi -- uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git" pyphi-mcp
+claude mcp add pyphi -- uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main" pyphi-mcp
 ```
 
 This writes an entry to `.mcp.json` (or `~/.claude.json`), which you can also
@@ -193,9 +208,9 @@ reliable without hardcoding a path:
 
 - **Run it through `uv`** (recommended). `uvx` resolves an isolated environment
   and runs the entry point, so nothing needs to be installed or activated first.
-  From PyPI the launch command is `uvx --from "pyphi[mcp]" pyphi-mcp`; from
-  GitHub it is
-  `uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git" pyphi-mcp`.
+  From PyPI the launch command is `uvx --from "pyphi[mcp]" pyphi-mcp`; from the
+  main branch it is
+  `uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main" pyphi-mcp`.
 - **Install it as a tool** with `uv tool install "pyphi[mcp]"` (or
   `pipx install "pyphi[mcp]"`), which places `pyphi-mcp` on a stable `PATH`
   entry so the bare name works everywhere.
