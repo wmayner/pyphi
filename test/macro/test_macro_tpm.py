@@ -461,3 +461,26 @@ class TestSparseFactors:
                 np.testing.assert_allclose(
                     got.factor(i), expected.factor(i), rtol=0, atol=1e-12
                 )
+
+
+class TestPreconditionValidation:
+    def test_short_history_rejected(self):
+        substrate = _asymmetric_substrate()
+        unit = MacroUnit((0, 1), 2, blackbox(2, 2, (0,)))
+        with pytest.raises(ValueError, match="micro_history"):
+            macro_tpms(substrate, (unit,), ((0, 0, 0, 0),))  # needs 2 entries
+
+    def test_correct_history_accepted(self):
+        substrate = _asymmetric_substrate()
+        unit = MacroUnit((0, 1), 2, blackbox(2, 2, (0,)))
+        cause, effect = macro_tpms(substrate, (unit,), ((0, 0, 0, 0), (0, 0, 0, 0)))
+        assert cause.n_nodes == 1 and effect.n_nodes == 1
+
+    def test_overlapping_units_rejected(self):
+        substrate = _asymmetric_substrate()
+        units = (
+            MacroUnit((0, 1), 1, coarse_grain(2, (1, 2))),
+            MacroUnit((1, 2), 1, coarse_grain(2, (1, 2))),
+        )
+        with pytest.raises(ValueError, match="disjoint"):
+            macro_tpms(substrate, units, ((0, 0, 0, 0),))
