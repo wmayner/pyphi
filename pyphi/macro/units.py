@@ -118,6 +118,11 @@ class MacroUnit:
         if 0 not in self.mapping or 1 not in self.mapping:
             raise ValueError("mapping must produce both macro states")
         apportionment = self.background_apportionment
+        if any(i < 0 for i in apportionment):
+            raise ValueError(
+                "negative background apportionment index: "
+                f"{sorted(i for i in apportionment if i < 0)}"
+            )
         if len(set(apportionment)) != len(apportionment):
             raise ValueError(f"duplicate background apportionment: {apportionment}")
         if set(apportionment) & union:

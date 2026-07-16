@@ -208,3 +208,13 @@ class TestMappingConstructors:
     def test_blackbox_no_outputs_rejected(self):
         with pytest.raises(ValueError, match="output"):
             blackbox(2, update_grain=1, output_constituents=())
+
+
+def test_negative_background_apportionment_rejected():
+    with pytest.raises(ValueError, match="negative"):
+        MacroUnit(
+            (0, 1),
+            1,
+            coarse_grain(2, (1, 2)),
+            background_apportionment=(-1,),
+        )
