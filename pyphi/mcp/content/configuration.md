@@ -95,6 +95,7 @@ The file is consulted only from the working directory, only at import time.
 | `disk_cache_results` | infrastructure | Persist whole results to disk (off by default). |
 | `version` | formalism.iit | Which IIT version to use. |
 | `ces_measure` | formalism.iit | Distance measure for cause-effect structures. |
+| `shortcircuit_distinctions` | formalism.iit | Skip the remaining MICE search when a distinction is already known reducible (on by default; `False` gives exhaustive sweeps with exact margins). |
 
 Caching and running large analyses without losing work have their own topic:
 read `get_iit_reference("performance")` before starting anything expensive.
