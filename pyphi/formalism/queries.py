@@ -25,6 +25,7 @@ import numpy as np
 from tqdm.auto import tqdm
 
 from pyphi import conf as _conf
+from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi import utils as _utils
 from pyphi import validate as _validate
@@ -372,17 +373,89 @@ def phi_max(cs: System, mechanism: tuple[int, ...]) -> float:
 # along with the rest of IIT 3.0's algorithms.
 
 
-def distinction(cs: System, mechanism: tuple[int, ...]) -> Any:
-    """Return the distinction specified by a mechanism."""
+def distinction(
+    cs: System,
+    mechanism: tuple[int, ...],
+    purviews: Any | None = None,
+    cause_purviews: Any | None = None,
+    effect_purviews: Any | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Return the distinction specified by a mechanism.
+
+    A distinction pairs the mechanism's maximally irreducible cause (its
+    MIC) with its maximally irreducible effect (its MIE). The empty
+    mechanism specifies the null distinction.
+
+    Parameters
+    ----------
+    cs : System
+        The system the mechanism belongs to.
+    mechanism : tuple[int]
+        The mechanism for which to determine the distinction.
+    purviews : tuple[tuple[int]], optional
+        A list of purviews to consider in both directions.
+    cause_purviews : tuple[tuple[int]], optional
+        A list of cause purviews to consider, overriding ``purviews``.
+    effect_purviews : tuple[tuple[int]], optional
+        A list of effect purviews to consider, overriding ``purviews``.
+
+    Returns
+    -------
+    Concept
+        The distinction specified by the mechanism.
+
+    Notes
+    -----
+    When ``config.formalism.iit.shortcircuit_distinctions`` is set,
+    evaluation stops as soon as the distinction is known to be reducible:
+    if the effect direction has no candidate purviews, or once the cause
+    MICE comes out with φ = 0, the remaining search is skipped and the
+    unevaluated direction is a null MICE carrying the
+    :attr:`~pyphi.models.explanation.NullResultReason.OTHER_DIRECTION_REDUCIBLE`
+    reason. The distinction's φ (the minimum across directions) is
+    unaffected.
+    """
     if not mechanism:
         return _ra.null_concept(cs)
-    maximally_irreducible_cause = find_mice(cs, Direction.CAUSE, mechanism)
-    maximally_irreducible_effect = find_mice(cs, Direction.EFFECT, mechanism)
-    return Concept(
-        mechanism=mechanism,
-        cause=maximally_irreducible_cause,
-        effect=maximally_irreducible_effect,
+    cause_purviews = cause_purviews if cause_purviews is not None else purviews
+    effect_purviews = effect_purviews if effect_purviews is not None else purviews
+    shortcircuit = config.formalism.iit.shortcircuit_distinctions  # pyright: ignore[reportAttributeAccessIssue]
+
+    if shortcircuit and not _ra.potential_purviews(
+        cs, Direction.EFFECT, mechanism, effect_purviews
+    ):
+        # The effect side is trivially reducible, so the distinction's φ is 0
+        # no matter the cause; the cause search is skipped.
+        effect = find_mice(
+            cs, Direction.EFFECT, mechanism, purviews=effect_purviews, **kwargs
+        )
+        cause = MaximallyIrreducibleCause(
+            _null_ria(
+                Direction.CAUSE,
+                mechanism,
+                (),
+                reasons=(NullResultReason.OTHER_DIRECTION_REDUCIBLE,),
+            )
+        )
+        return Concept(mechanism=mechanism, cause=cause, effect=effect)
+
+    cause = find_mice(cs, Direction.CAUSE, mechanism, purviews=cause_purviews, **kwargs)
+    if shortcircuit and not numerics.is_positive(float(cause.phi)):
+        effect = MaximallyIrreducibleEffect(
+            _null_ria(
+                Direction.EFFECT,
+                mechanism,
+                (),
+                reasons=(NullResultReason.OTHER_DIRECTION_REDUCIBLE,),
+            )
+        )
+        return Concept(mechanism=mechanism, cause=cause, effect=effect)
+
+    effect = find_mice(
+        cs, Direction.EFFECT, mechanism, purviews=effect_purviews, **kwargs
     )
+    return Concept(mechanism=mechanism, cause=cause, effect=effect)
 
 
 def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001
