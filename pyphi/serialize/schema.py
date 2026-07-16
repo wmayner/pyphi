@@ -158,16 +158,19 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
+    purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
 
 
 class MICECauseSchema(msgspec.Struct, frozen=True, tag="mice_cause"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
+    purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
 
 
 class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
+    purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
 
 
 MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema

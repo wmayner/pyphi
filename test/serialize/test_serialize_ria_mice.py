@@ -135,3 +135,59 @@ def test_ria_loads_without_new_fields():
     assert float(restored.signed_phi) == float(restored.phi)
     assert restored.selectivity is None
     assert restored.reasons is None
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_preserves_purview_ties(fmt):
+    a = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    b = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    tied = (a, b)
+    a._purview_ties = tied
+    b._purview_ties = tied
+    assert a.num_purview_ties == 1
+    restored = round_trip(a, fmt)
+    assert restored.num_purview_ties == 1
+    peers = [t for t in restored._purview_ties if t is not restored]
+    assert len(peers) == 1
+    assert peers[0]._purview_ties is restored._purview_ties
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_not_computed_ties_round_trip(fmt):
+    obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    assert obj._purview_ties is None
+    assert np.isnan(obj.num_purview_ties)
+    restored = round_trip(obj, fmt)
+    assert restored._purview_ties is None
+    assert np.isnan(restored.num_purview_ties)
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_computed_no_ties_round_trip(fmt):
+    obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    obj._purview_ties = (obj,)
+    restored = round_trip(obj, fmt)
+    assert restored._purview_ties == (restored,)
+    assert restored.num_purview_ties == 0
+
+
+def test_mice_loads_without_tie_field_as_not_computed():
+    # A payload without the field decodes as "ties not computed", not as
+    # a claim of zero ties.
+    obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    obj._purview_ties = (obj,)
+    data = json.loads(serialize.dumps(obj, format="json"))
+
+    def strip(o):
+        if isinstance(o, dict):
+            o.pop("purview_tie_peers", None)
+            for v in o.values():
+                strip(v)
+        elif isinstance(o, list):
+            for item in o:
+                strip(item)
+
+    strip(data)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    assert restored._purview_ties is None
+    assert np.isnan(restored.num_purview_ties)
