@@ -77,6 +77,21 @@ class IITConfig:
         full sweep, computed φ values are unchanged, and selection
         margins are exact everywhere. Does not gate IIT 3.0's early-exit
         logic.
+
+    Distinction short-circuiting (``shortcircuit_distinctions``)
+        When ``True`` (default), evaluating a distinction stops early on
+        detected reducibility: if the effect direction has no candidate
+        purviews, neither MICE search runs, and if the cause MICE comes
+        out with φ = 0, the effect search is skipped. A skipped
+        direction is a null MICE carrying the
+        ``OTHER_DIRECTION_REDUCIBLE`` reason; its φ reads 0 as a
+        placeholder (that direction's own maximal φ is unknown), and its
+        selection margins and ties are absent. The distinction's φ —
+        the minimum across directions — is unaffected, so cause-effect
+        structures are identical either way; only the contents of
+        zero-φ distinctions differ. When ``False``, both directions are
+        always evaluated in full, with exact margins and complete ties.
+        Applies to every formalism, including IIT 3.0 concepts.
     """
 
     version: str = "IIT_4_0_2026"
@@ -92,6 +107,7 @@ class IITConfig:
     relation_computation: str = "CONCRETE"
     assume_partitions_cannot_create_new_concepts: bool = False
     shortcircuit_sia: bool = True
+    shortcircuit_distinctions: bool = True
     single_micro_nodes_with_selfloops_have_phi: bool = True
     state_tie_resolution: str = "PHI"
     mip_tie_resolution: list[str] = field(
@@ -109,6 +125,7 @@ class IITConfig:
             "assume_partitions_cannot_create_new_concepts",
             "system_partition_include_complete",
             "shortcircuit_sia",
+            "shortcircuit_distinctions",
             "single_micro_nodes_with_selfloops_have_phi",
         ):
             value = getattr(self, name)

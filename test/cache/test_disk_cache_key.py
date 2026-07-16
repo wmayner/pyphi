@@ -96,6 +96,7 @@ def test_config_digest_covers_every_formalism_and_numerics_field():
         ("relation_computation", "ANALYTICAL"),
         ("assume_partitions_cannot_create_new_concepts", True),
         ("shortcircuit_sia", False),
+        ("shortcircuit_distinctions", False),
         ("single_micro_nodes_with_selfloops_have_phi", False),
         ("precision", 6),
     ],
