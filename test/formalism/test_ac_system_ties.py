@@ -146,7 +146,9 @@ def _find_mip_with_alphas(make_alphas):
         purview = (0, 1)
         n = len(
             list(
-                compute.mechanism_partitions(mechanism, purview, transition.node_labels)
+                compute._ac_mechanism_partitions(
+                    mechanism, purview, transition.node_labels
+                )
             )
         )
         alphas = make_alphas(n)
@@ -170,8 +172,13 @@ class TestFindMipPartitionTies:
         assert ria.partition_ties is None
 
     def test_tied_minimum_yields_exact_alpha_cluster(self):
+        # The tied minimum is placed on the last two partitions, which are
+        # distinct cuts. The JOINT_PARTITION_ALL family leads with cut-equivalent
+        # full-cut partitions (mechanism intact vs. internally split, same cut
+        # matrix, same lex_key); a minimum landing on that redundant pair has no
+        # unique lex-canonical winner (see the resolver follow-up in ROADMAP).
         ria, alphas = _find_mip_with_alphas(
-            lambda n: [0.2, 0.2] + [0.9 + 0.1 * i for i in range(n - 2)]
+            lambda n: [0.9 + 0.1 * i for i in range(n - 2)] + [0.2, 0.2]
         )
         assert len(alphas) > 2  # cluster must be a strict subset of candidates
         assert ria.partition_ties is not None
