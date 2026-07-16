@@ -150,6 +150,9 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     partition_tie_peers: tuple["RIASchema", ...] = ()
     state_tie_peers: tuple["RIASchema", ...] = ()
     partition_margin: PhiSchema | None = None
+    signed_phi: PhiSchema | None = None
+    selectivity: float | None = None
+    reasons: tuple[str, ...] | None = None
 
 
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):

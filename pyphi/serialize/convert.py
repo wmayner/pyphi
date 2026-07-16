@@ -299,6 +299,9 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
         ),
         state_tie_peers=tuple(_encode_ria(p, include_peers=False) for p in state_peers),
         partition_margin=_enc_optional(ria.partition_margin),
+        signed_phi=_enc_optional(ria.signed_phi),
+        selectivity=ria.selectivity,
+        reasons=_enc_reasons(ria.reasons),
     )
 
 
@@ -318,6 +321,9 @@ def _decode_ria(struct: Any) -> Any:
         purview_state=_opt_tuple(struct.purview_state),
         node_labels=_dec_optional(struct.node_labels),
         partition_margin=_dec_optional(struct.partition_margin),
+        signed_phi=_dec_optional(struct.signed_phi),
+        selectivity=struct.selectivity,
+        reasons=_dec_reasons(struct.reasons),
     )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ria(p) for p in struct.partition_tie_peers)
