@@ -7,10 +7,13 @@ from pyphi.direction import Direction
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
 from pyphi.models.complex import ExcludedCandidate
+from pyphi.models.explanation import NullResultReason
+from pyphi.models.explanation import RunnerUp
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import NullCut
 from pyphi.models.sia import IIT3SystemIrreducibilityAnalysis
 from pyphi.provenance import Provenance
+from test.conftest import IIT_3_CONFIG
 
 FORMATS = ["json", "msgpack"]
 
@@ -200,3 +203,73 @@ def test_iit4_sia_loads_without_margin_fields():
     # All pre-existing fields are untouched by the additions.
     assert float(restored.phi) == pytest.approx(float(sia.phi))
     assert restored.partition == sia.partition
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_iit3_sia_preserves_runner_up_and_reasons(fmt):
+    obj = IIT3SystemIrreducibilityAnalysis(
+        phi=0.5,
+        partition=DirectedBipartition(Direction.CAUSE, (0,), (1,)),
+        node_indices=(0, 1),
+        current_state=(1, 0),
+        reasons=[NullResultReason.NO_SYSTEM],
+        runner_up=RunnerUp(
+            partition=DirectedBipartition(Direction.CAUSE, (1,), (0,)), phi=0.75
+        ),
+    )
+    restored = round_trip(obj, fmt)
+    assert restored.runner_up == obj.runner_up
+    assert restored.reasons == [NullResultReason.NO_SYSTEM]
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_iit3_sia_preserves_config_and_provenance(fmt):
+    with IIT_3_CONFIG:
+        obj = IIT3SystemIrreducibilityAnalysis(
+            phi=0.5,
+            partition=DirectedBipartition(Direction.CAUSE, (0,), (1,)),
+            node_indices=(0, 1),
+            current_state=(1, 0),
+        )
+    restored = round_trip(obj, fmt)
+    # config degrades to a plain dict, matching the IIT4 decoder.
+    assert isinstance(restored.config, dict)
+    assert restored.config["formalism"]["iit"]["version"] == "IIT_3_0"
+    # provenance is the saved one, not freshly captured at load time.
+    assert restored.provenance == obj.provenance
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_iit4_sia_preserves_runner_up(fmt):
+    obj = SystemIrreducibilityAnalysis(phi=0.5, partition=NullCut((0, 1)))
+    obj.runner_up = RunnerUp(partition=NullCut((0, 1)), phi=0.75)
+    restored = round_trip(obj, fmt)
+    assert restored.runner_up == obj.runner_up
+
+
+def test_iit3_sia_loads_without_new_fields():
+    obj = IIT3SystemIrreducibilityAnalysis(
+        phi=0.5,
+        partition=DirectedBipartition(Direction.CAUSE, (0,), (1,)),
+        node_indices=(0, 1),
+        current_state=(1, 0),
+    )
+    data = json.loads(serialize.dumps(obj, format="json"))
+
+    def strip(o):
+        if isinstance(o, dict):
+            for key in ("runner_up", "reasons", "config", "provenance"):
+                o.pop(key, None)
+            for v in o.values():
+                strip(v)
+        elif isinstance(o, list):
+            for item in o:
+                strip(item)
+
+    strip(data)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    assert restored.runner_up is None
+    assert restored.reasons == []
+    # Nothing stored: the constructor still snapshots load-time context.
+    assert restored.config is not None
+    assert restored.provenance is not None

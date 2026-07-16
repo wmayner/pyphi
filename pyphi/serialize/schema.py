@@ -150,21 +150,27 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     partition_tie_peers: tuple["RIASchema", ...] = ()
     state_tie_peers: tuple["RIASchema", ...] = ()
     partition_margin: PhiSchema | None = None
+    signed_phi: PhiSchema | None = None
+    selectivity: float | None = None
+    reasons: tuple[str, ...] | None = None
 
 
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
+    purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
 
 
 class MICECauseSchema(msgspec.Struct, frozen=True, tag="mice_cause"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
+    purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
 
 
 class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
+    purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
 
 
 MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema
@@ -235,6 +241,11 @@ class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candida
     units: tuple[MacroUnitSchema, ...] | None = None
 
 
+class RunnerUpSchema(msgspec.Struct, frozen=True, tag="runner_up"):
+    partition: PartitionSchema
+    phi: PhiSchema
+
+
 class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
     phi: PhiSchema | None
     distinctions: DistinctionsAnySchema | None
@@ -244,6 +255,10 @@ class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
     node_labels: NodeLabelsSchema | None
     current_state: tuple[int, ...] | None
     tie_peers: tuple["IIT3SIASchema", ...] = ()
+    runner_up: RunnerUpSchema | None = None
+    reasons: tuple[str, ...] | None = None
+    config: dict[str, Any] | None = None
+    provenance: ProvenanceSchema | None = None
 
 
 # Direction-keyed phi dict (e.g. intrinsic_differentiation) as ordered pairs.
@@ -268,6 +283,7 @@ class IIT4SIASchema(msgspec.Struct, frozen=True, tag="iit4_sia"):
     provenance: ProvenanceSchema | None
     tie_peers: tuple["IIT4SIASchema", ...] = ()
     partition_margin: PhiSchema | None = None
+    runner_up: RunnerUpSchema | None = None
 
 
 class NullIIT4SIASchema(IIT4SIASchema, frozen=True, tag="null_iit4_sia"):
@@ -341,6 +357,8 @@ class CESSchema(msgspec.Struct, frozen=True, tag="ces"):
     sia: SIASchema
     distinctions: DistinctionsAnySchema
     relations: RelationsRefSchema
+    config: dict[str, Any] | None = None
+    provenance: ProvenanceSchema | None = None
 
 
 class NullCESSchema(CESSchema, frozen=True, tag="null_ces"):
@@ -379,6 +397,7 @@ class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
     partition: PartitionSchema
+    noise_background: bool = False
 
 
 # --- Actual causation ---------------------------------------------------------
@@ -394,6 +413,8 @@ class AcRIASchema(msgspec.Struct, frozen=True, tag="ac_ria"):
     probability: float
     partitioned_probability: float
     partition_tie_peers: tuple["AcRIASchema", ...] = ()
+    node_labels: NodeLabelsSchema | None = None
+    reasons: tuple[str, ...] | None = None
 
 
 class CausalLinkSchema(msgspec.Struct, frozen=True, tag="causal_link"):
@@ -426,6 +447,10 @@ class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
     cause_indices: tuple[int, ...] | None
     effect_indices: tuple[int, ...] | None
     node_labels: NodeLabelsSchema | None
+    reasons: tuple[str, ...] | None = None
+    config: dict[str, Any] | None = None
+    provenance: ProvenanceSchema | None = None
+    tie_peers: tuple["AcSIASchema", ...] = ()
 
 
 # --- Complex (embeds a substrate, hence after the substrate schema) -----------
@@ -498,6 +523,7 @@ Schema = (
     | UnresolvedDistinctionsSchema
     | ResolvedDistinctionsSchema
     | ProvenanceSchema
+    | RunnerUpSchema
     | ExcludedCandidateSchema
     | MacroUnitSchema
     | IIT3SIASchema

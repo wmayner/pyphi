@@ -1,8 +1,11 @@
+import json
+
 import numpy as np
 import pytest
 
 from pyphi import serialize
 from pyphi.direction import Direction
+from pyphi.models.explanation import NullResultReason
 from pyphi.models.mice import MaximallyIrreducibleCause
 from pyphi.models.mice import MaximallyIrreducibleEffect
 from pyphi.models.partitions import JointPartition
@@ -79,3 +82,112 @@ def test_mie_round_trips(fmt):
     restored = round_trip(obj, fmt)
     assert restored == obj
     assert type(restored) is MaximallyIrreducibleEffect
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_ria_preserves_negative_signed_phi(fmt):
+    obj = make_ria(phi=-0.25)
+    assert float(obj.phi) == 0.0
+    assert float(obj.signed_phi) == -0.25
+    restored = round_trip(obj, fmt)
+    assert float(restored.signed_phi) == -0.25
+    assert float(restored.signed_normalized_phi) == float(obj.signed_normalized_phi)
+    assert float(restored.phi) == 0.0
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_ria_preserves_selectivity_and_reasons(fmt):
+    obj = RepertoireIrreducibilityAnalysis(
+        phi=0.3,
+        direction=Direction.CAUSE,
+        mechanism=(0,),
+        purview=(1,),
+        partition=JointPartition(Part((0,), (1,))),
+        repertoire=np.array([0.4, 0.6]),
+        partitioned_repertoire=np.array([0.5, 0.5]),
+        mechanism_state=(1,),
+        purview_state=(0,),
+        selectivity=0.5,
+        reasons=[NullResultReason.NO_PURVIEWS],
+    )
+    restored = round_trip(obj, fmt)
+    assert restored.selectivity == 0.5
+    assert restored.reasons == [NullResultReason.NO_PURVIEWS]
+
+
+def test_ria_loads_without_new_fields():
+    # Payloads written before these fields existed decode with the defaults.
+    obj = make_ria()
+    data = json.loads(serialize.dumps(obj, format="json"))
+
+    def strip(o):
+        if isinstance(o, dict):
+            for key in ("signed_phi", "selectivity", "reasons"):
+                o.pop(key, None)
+            for v in o.values():
+                strip(v)
+        elif isinstance(o, list):
+            for item in o:
+                strip(item)
+
+    strip(data)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    assert float(restored.signed_phi) == float(restored.phi)
+    assert restored.selectivity is None
+    assert restored.reasons is None
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_preserves_purview_ties(fmt):
+    a = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    b = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    tied = (a, b)
+    a._purview_ties = tied
+    b._purview_ties = tied
+    assert a.num_purview_ties == 1
+    restored = round_trip(a, fmt)
+    assert restored.num_purview_ties == 1
+    peers = [t for t in restored._purview_ties if t is not restored]
+    assert len(peers) == 1
+    assert peers[0]._purview_ties is restored._purview_ties
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_not_computed_ties_round_trip(fmt):
+    obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    assert obj._purview_ties is None
+    assert np.isnan(obj.num_purview_ties)
+    restored = round_trip(obj, fmt)
+    assert restored._purview_ties is None
+    assert np.isnan(restored.num_purview_ties)
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_computed_no_ties_round_trip(fmt):
+    obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    obj._purview_ties = (obj,)
+    restored = round_trip(obj, fmt)
+    assert restored._purview_ties == (restored,)
+    assert restored.num_purview_ties == 0
+
+
+def test_mice_loads_without_tie_field_as_not_computed():
+    # A payload without the field decodes as "ties not computed", not as
+    # a claim of zero ties.
+    obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    obj._purview_ties = (obj,)
+    data = json.loads(serialize.dumps(obj, format="json"))
+
+    def strip(o):
+        if isinstance(o, dict):
+            o.pop("purview_tie_peers", None)
+            for v in o.values():
+                strip(v)
+        elif isinstance(o, list):
+            for item in o:
+                strip(item)
+
+    strip(data)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    assert restored._purview_ties is None
+    assert np.isnan(restored.num_purview_ties)

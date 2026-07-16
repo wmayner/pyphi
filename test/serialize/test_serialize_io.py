@@ -1,4 +1,5 @@
 import io
+import json
 
 import pytest
 
@@ -82,3 +83,15 @@ def test_gzip_with_explicit_format_override(tmp_path, sia):
     assert path.read_bytes()[:2] == b"\x1f\x8b"
     assert serialize.loads(gzip.decompress(path.read_bytes()), format="msgpack") == sia
     assert serialize.load(path, format="msgpack") == sia
+
+
+def test_future_format_version_rejected():
+    doc = json.loads(serialize.dumps(1.0, format="json"))
+    doc["format_version"] = serialize.FORMAT_VERSION + 1
+    with pytest.raises(ValueError, match="format_version"):
+        serialize.loads(json.dumps(doc).encode(), format="json")
+
+
+def test_current_format_version_loads():
+    data = serialize.dumps(1.0, format="json")
+    assert serialize.loads(data, format="json") == 1.0

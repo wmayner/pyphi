@@ -49,6 +49,11 @@ def dumps(obj: Any, *, format: str = "json") -> bytes:
 
 def loads(data: bytes, *, format: str = "json") -> Any:
     doc = _decode(data, format)
+    if doc.format_version > FORMAT_VERSION:
+        raise ValueError(
+            f"cannot load format_version {doc.format_version}: this version of "
+            f"PyPhi reads format_version {FORMAT_VERSION} or lower"
+        )
     return convert.from_schema(doc.payload)
 
 

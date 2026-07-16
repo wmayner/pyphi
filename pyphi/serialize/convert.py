@@ -299,6 +299,9 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
         ),
         state_tie_peers=tuple(_encode_ria(p, include_peers=False) for p in state_peers),
         partition_margin=_enc_optional(ria.partition_margin),
+        signed_phi=_enc_optional(ria.signed_phi),
+        selectivity=ria.selectivity,
+        reasons=_enc_reasons(ria.reasons),
     )
 
 
@@ -318,6 +321,9 @@ def _decode_ria(struct: Any) -> Any:
         purview_state=_opt_tuple(struct.purview_state),
         node_labels=_dec_optional(struct.node_labels),
         partition_margin=_dec_optional(struct.partition_margin),
+        signed_phi=_dec_optional(struct.signed_phi),
+        selectivity=struct.selectivity,
+        reasons=_dec_reasons(struct.reasons),
     )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ria(p) for p in struct.partition_tie_peers)
@@ -343,9 +349,50 @@ def _register_ria() -> None:
     _DECODERS[schema.RIASchema] = _decode_ria
 
 
+def _mice_struct_cls(mice: Any) -> Any:
+    from pyphi.models.mice import MaximallyIrreducibleCause
+    from pyphi.models.mice import MaximallyIrreducibleEffect
+
+    if isinstance(mice, MaximallyIrreducibleCause):
+        return schema.MICECauseSchema
+    if isinstance(mice, MaximallyIrreducibleEffect):
+        return schema.MICEEffectSchema
+    return schema.MICESchema
+
+
+def _encode_mice(mice: Any, struct_cls: Any, *, include_peers: bool = True) -> Any:
+    # Purview ties are tri-state: None = never computed; () = computed with
+    # no ties; otherwise the tied peers excluding this MICE, each encoded
+    # with its own tie field suppressed (the shared tie tuple contains this
+    # MICE, so recursing into peers' ties would never terminate).
+    peers: tuple | None = None
+    if mice._purview_ties is not None:
+        peers = (
+            tuple(
+                _encode_mice(t, _mice_struct_cls(t), include_peers=False)
+                for t in mice._purview_ties
+                if t is not mice
+            )
+            if include_peers
+            else ()
+        )
+    return struct_cls(
+        ria=to_schema(mice.ria),
+        purview_margin=_enc_optional(mice.purview_margin),
+        purview_tie_peers=peers,
+    )
+
+
 def _decode_mice(cls: type, struct: Any) -> Any:
     instance = cls(from_schema(struct.ria))
-    instance._purview_ties = (instance,)
+    if struct.purview_tie_peers is None:
+        instance._purview_ties = None
+    else:
+        peers = tuple(from_schema(p) for p in struct.purview_tie_peers)
+        tied = (instance, *peers)
+        instance._purview_ties = tied
+        for peer in peers:
+            peer._purview_ties = tied
     instance.purview_margin = _dec_optional(struct.purview_margin)
     return instance
 
@@ -355,17 +402,14 @@ def _register_mice() -> None:
     from pyphi.models.mice import MaximallyIrreducibleCauseOrEffect
     from pyphi.models.mice import MaximallyIrreducibleEffect
 
-    _ENCODERS[MaximallyIrreducibleCauseOrEffect] = lambda m: schema.MICESchema(
-        ria=to_schema(m.ria),
-        purview_margin=_enc_optional(m.purview_margin),
+    _ENCODERS[MaximallyIrreducibleCauseOrEffect] = lambda m: _encode_mice(
+        m, schema.MICESchema
     )
-    _ENCODERS[MaximallyIrreducibleCause] = lambda m: schema.MICECauseSchema(
-        ria=to_schema(m.ria),
-        purview_margin=_enc_optional(m.purview_margin),
+    _ENCODERS[MaximallyIrreducibleCause] = lambda m: _encode_mice(
+        m, schema.MICECauseSchema
     )
-    _ENCODERS[MaximallyIrreducibleEffect] = lambda m: schema.MICEEffectSchema(
-        ria=to_schema(m.ria),
-        purview_margin=_enc_optional(m.purview_margin),
+    _ENCODERS[MaximallyIrreducibleEffect] = lambda m: _encode_mice(
+        m, schema.MICEEffectSchema
     )
     _DECODERS[schema.MICESchema] = lambda s: _decode_mice(
         MaximallyIrreducibleCauseOrEffect, s
@@ -498,6 +542,10 @@ def _encode_iit3_sia(sia: Any, *, include_peers: bool) -> Any:
         node_labels=_enc_optional(sia.node_labels),
         current_state=_opt_tuple(sia.current_state),
         tie_peers=tuple(_encode_iit3_sia(p, include_peers=False) for p in peers),
+        runner_up=_enc_runner_up(sia.runner_up),
+        reasons=_enc_reasons(sia.reasons),
+        config=_enc_config(sia.config),
+        provenance=_enc_optional(sia.provenance),
     )
 
 
@@ -512,6 +560,10 @@ def _decode_iit3_sia(struct: Any) -> Any:
         node_indices=_opt_tuple(struct.node_indices),
         node_labels=_dec_optional(struct.node_labels),
         current_state=_opt_tuple(struct.current_state),
+        runner_up=_dec_runner_up(struct.runner_up),
+        reasons=_dec_reasons(struct.reasons),
+        config=struct.config,
+        provenance=_dec_optional(struct.provenance),
     )
     if struct.tie_peers:
         peers = tuple(_decode_iit3_sia(p) for p in struct.tie_peers)
@@ -563,6 +615,23 @@ def _dec_reasons(names: Any) -> Any:
     ]
 
 
+def _enc_runner_up(runner_up: Any) -> Any:
+    if runner_up is None:
+        return None
+    return schema.RunnerUpSchema(
+        partition=to_schema(runner_up.partition),
+        phi=to_schema(runner_up.phi),
+    )
+
+
+def _dec_runner_up(struct: Any) -> Any:
+    if struct is None:
+        return None
+    from pyphi.models.explanation import RunnerUp
+
+    return RunnerUp(partition=from_schema(struct.partition), phi=from_schema(struct.phi))
+
+
 def _enc_config(config: Any) -> Any:
     if config is None:
         return None
@@ -601,6 +670,7 @@ def _encode_iit4_sia(sia: Any, *, include_peers: bool) -> Any:
         provenance=_enc_optional(sia.provenance),
         tie_peers=tuple(_encode_iit4_sia(p, include_peers=False) for p in peers),
         partition_margin=_enc_optional(sia.partition_margin),
+        runner_up=_enc_runner_up(sia.runner_up),
     )
 
 
@@ -627,6 +697,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "config": struct.config,
         "provenance": _dec_optional(struct.provenance),
         "partition_margin": _dec_optional(struct.partition_margin),
+        "runner_up": _dec_runner_up(struct.runner_up),
     }
     if type(struct) is schema.NullIIT4SIASchema:
         instance = object.__new__(NullSystemIrreducibilityAnalysis)
@@ -748,6 +819,8 @@ def _encode_ces(ces: Any, struct_cls: Any) -> Any:
         sia=to_schema(ces.sia),
         distinctions=to_schema(ces.distinctions),
         relations=_encode_relations_ref(ces.relations, table, by_id),
+        config=_enc_config(ces.config),
+        provenance=_enc_optional(ces.provenance),
     )
 
 
@@ -759,6 +832,8 @@ def _decode_ces(struct: Any, domain_cls: Any) -> Any:
         sia=from_schema(struct.sia),
         distinctions=distinctions,
         relations=relations,
+        config=struct.config,
+        provenance=_dec_optional(struct.provenance),
     )
 
 
@@ -830,6 +905,7 @@ def _register_transition() -> None:
         cause_indices=tuple(t.cause_indices),
         effect_indices=tuple(t.effect_indices),
         partition=to_schema(t.partition),
+        noise_background=t.noise_background,
     )
     _DECODERS[schema.TransitionSchema] = lambda t: Transition(
         substrate=from_schema(t.substrate),
@@ -838,6 +914,7 @@ def _register_transition() -> None:
         cause_indices=tuple(t.cause_indices),
         effect_indices=tuple(t.effect_indices),
         partition=from_schema(t.partition),
+        noise_background=t.noise_background,
     )
 
 
@@ -855,6 +932,8 @@ def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
         probability=float(ria.probability),
         partitioned_probability=float(ria.partitioned_probability),
         partition_tie_peers=tuple(_encode_ac_ria(p, include_peers=False) for p in peers),
+        node_labels=_enc_optional(ria.node_labels),
+        reasons=_enc_reasons(ria.reasons),
     )
 
 
@@ -870,6 +949,8 @@ def _decode_ac_ria(struct: Any) -> Any:
         partition=from_schema(struct.partition),
         probability=struct.probability,
         partitioned_probability=struct.partitioned_probability,
+        node_labels=_dec_optional(struct.node_labels),
+        reasons=_dec_reasons(struct.reasons),
     )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ac_ria(p) for p in struct.partition_tie_peers)
@@ -938,10 +1019,9 @@ def _register_account() -> None:
     )
 
 
-def _register_ac_sia() -> None:
-    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
-
-    _ENCODERS[AcSystemIrreducibilityAnalysis] = lambda s: schema.AcSIASchema(
+def _encode_ac_sia(s: Any, *, include_peers: bool) -> Any:
+    peers = tuple(t for t in s.ties if t is not s) if include_peers else ()
+    return schema.AcSIASchema(
         alpha=None if s.alpha is None else float(s.alpha),
         direction=_enc_optional_direction(s.direction),
         account=_enc_optional(s.account),
@@ -954,21 +1034,49 @@ def _register_ac_sia() -> None:
         cause_indices=_opt_tuple(s.cause_indices),
         effect_indices=_opt_tuple(s.effect_indices),
         node_labels=_enc_optional(s.node_labels),
+        reasons=_enc_reasons(s.reasons),
+        config=_enc_config(s.config),
+        provenance=_enc_optional(s.provenance),
+        tie_peers=tuple(_encode_ac_sia(p, include_peers=False) for p in peers),
     )
-    _DECODERS[schema.AcSIASchema] = lambda s: AcSystemIrreducibilityAnalysis(
-        alpha=s.alpha,
-        direction=_dec_optional(s.direction),
-        account=_dec_optional(s.account),
-        partitioned_account=_dec_optional(s.partitioned_account),
-        partition=_dec_optional(s.partition),
-        before_state=_opt_tuple(s.before_state),
-        after_state=_opt_tuple(s.after_state),
-        size=s.size,
-        node_indices=_opt_tuple(s.node_indices),
-        cause_indices=_opt_tuple(s.cause_indices),
-        effect_indices=_opt_tuple(s.effect_indices),
-        node_labels=_dec_optional(s.node_labels),
+
+
+def _decode_ac_sia(struct: Any) -> Any:
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    instance = AcSystemIrreducibilityAnalysis(
+        alpha=struct.alpha,
+        direction=_dec_optional(struct.direction),
+        account=_dec_optional(struct.account),
+        partitioned_account=_dec_optional(struct.partitioned_account),
+        partition=_dec_optional(struct.partition),
+        before_state=_opt_tuple(struct.before_state),
+        after_state=_opt_tuple(struct.after_state),
+        size=struct.size,
+        node_indices=_opt_tuple(struct.node_indices),
+        cause_indices=_opt_tuple(struct.cause_indices),
+        effect_indices=_opt_tuple(struct.effect_indices),
+        node_labels=_dec_optional(struct.node_labels),
+        reasons=_dec_reasons(struct.reasons),
+        config=struct.config,
+        provenance=_dec_optional(struct.provenance),
     )
+    if struct.tie_peers:
+        peers = tuple(_decode_ac_sia(p) for p in struct.tie_peers)
+        tied = (instance, *peers)
+        instance._ties = tied
+        for peer in peers:
+            peer._ties = tied
+    return instance
+
+
+def _register_ac_sia() -> None:
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    _ENCODERS[AcSystemIrreducibilityAnalysis] = lambda s: _encode_ac_sia(
+        s, include_peers=True
+    )
+    _DECODERS[schema.AcSIASchema] = _decode_ac_sia
 
 
 def _enc_optional_direction(direction: Any) -> Any:

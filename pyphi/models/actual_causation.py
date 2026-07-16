@@ -861,8 +861,8 @@ def _null_ac_sia(transition, direction, alpha=0.0, reasons=None):
     return AcSystemIrreducibilityAnalysis(
         direction=direction,
         alpha=alpha,
-        account=(),
-        partitioned_account=(),
+        account=Account(()),
+        partitioned_account=Account(()),
         partition=transition.partition,
         before_state=transition.before_state,
         after_state=transition.after_state,
