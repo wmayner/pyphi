@@ -32,7 +32,7 @@ class CachePolicy(Protocol):
 class _DictCacheAdapter:
     """Adapter wrapping a backing dict with externally-tracked hit/miss counts.
 
-    Used by the module-level ``@cache(...)`` decorator and by ``DictCache``
+    Used by the module-level ``@cache(...)`` decorator and by ``ContentCache``
     instances. The ``stats`` callable returns ``(hits, misses)`` so the
     adapter doesn't need to mutate them — the wrapper closure that updates
     the counts owns them.

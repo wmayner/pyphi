@@ -24,6 +24,7 @@ from pyphi import distribution as _dist
 from pyphi import utils as _utils
 from pyphi import validate as _validate
 from pyphi.cache.content import ContentCache
+from pyphi.conf import config
 from pyphi.core.tpm import _node_ops
 from pyphi.data_structures import FrozenMap
 from pyphi.direction import Direction
@@ -53,9 +54,10 @@ def _memoize(fn: Callable) -> Callable:
     Distinct-but-equivalent Systems (re-constructed, or label-distinct) share
     entries via :class:`~pyphi.cache.content.ContentCache`. A fingerprint's
     entries are evicted when its last live carrier is garbage-collected. Stops
-    inserting new entries when ``cache_utils.memory_full()`` reports process
-    memory above ``maximum_cache_memory_percentage`` — already-computed values
-    are still returned, just not cached. Returned arrays are read-only;
+    inserting new entries when ``cache_repertoires`` is false or when
+    ``cache_utils.memory_full()`` reports process memory above
+    ``maximum_cache_memory_percentage`` — already-computed values are still
+    returned, just not cached. Returned arrays are read-only;
     callers that need a mutable copy must copy explicitly.
 
     Cache keys carry the resolved cause-side background convention, so
@@ -71,7 +73,12 @@ def _memoize(fn: Callable) -> Callable:
         fp = cs._fingerprint
         cache.observe(cs, fp)
         key_args = (cs._resolved_background_conditioning(), *args)
-        return cache.get_or_compute(fp, key_args, lambda: _freeze(fn(cs, *args)))
+        return cache.get_or_compute(
+            fp,
+            key_args,
+            lambda: _freeze(fn(cs, *args)),
+            store=config.infrastructure.cache_repertoires,
+        )
 
     return wrapper
 

@@ -1,100 +1,26 @@
 from pyphi import Direction
-from pyphi import cache
 from pyphi import config
 
 
-def test_cache():
-    c = cache.DictCache()
-    key = (0, 1)
-    value = "value"
-
-    assert c.get(key) is None
-    assert c.hits == 0
-    assert c.misses == 1
-    assert c.info() == (0, 1, 0)
-    assert c.size() == 0
-
-    c.set(key, value)
-
-    assert c.get(key) == value
-    assert c.hits == 1
-    assert c.misses == 1
-    assert c.info() == (1, 1, 1)
-    assert c.size() == 1
-
-    c.clear()
-    assert c.size() == 0
-    assert c.hits == 0
-    assert c.misses == 0
-
-
-class SomeObject:
-    """Object for testing cache decorator"""
-
-    def __init__(self):
-        self.my_cache = cache.DictCache()
-
-    @cache.method("my_cache", "key_prefix")
-    def cached_method(self, some_arg):  # noqa: ARG002
-        return "expensive computation"
-
-
-def test_cache_decorator():
-    o = SomeObject()
-    assert o.cached_method(1) == "expensive computation"
-    # generated from the key prefix and method arguments
-    expected_key = ("key_prefix", 1)
-    assert expected_key in o.my_cache.cache
-
-
-def test_cache_key_generation():
-    c = cache.DictCache()
-    assert c.key("arg", _prefix="CONSTANT") == ("CONSTANT", "arg")
-
-
-def factory():
-    """This function is necessary because CACHE_REPERTOIRES does not have an
-    effect if changed at runtime.
-
-    .. TODO:
-        fix that
-    """
-
-    class SomeObject:
-        """Object for testing CACHE_REPERTOIRES config option"""
-
-        def __init__(self):
-            self.repertoire_cache = cache.DictCache()
-
-        @cache.method("repertoire_cache", "cause")
-        def cause_repertoire(self, some_arg):  # noqa: ARG002
-            return "expensive computation"
-
-        @cache.method("repertoire_cache", "effect")
-        def effect_repertoire(self, some_arg):  # noqa: ARG002
-            return "expensive computation"
-
-    return SomeObject
-
-
 def test_cache_repertoires_config_option():
-    with config.override(cache_repertoires=True):
-        SomeObject = factory()
-        o = SomeObject()
-        assert o.cause_repertoire(1) == "expensive computation"
-        assert o.effect_repertoire(1) == "expensive computation"
-        expected_key = ("cause", 1)
-        assert expected_key in o.repertoire_cache.cache
-        expected_key = ("effect", 1)
-        assert expected_key in o.repertoire_cache.cache
+    """The option gates whether the kernel cache stores repertoires."""
+    from pyphi import examples
+    from pyphi.core import repertoire_algebra
 
-    with config.override(cache_repertoires=False):
-        SomeObject = factory()
-        o = SomeObject()
-        assert o.cause_repertoire(1) == "expensive computation"
-        assert o.effect_repertoire(1) == "expensive computation"
-        # Repertoire cache should be empty
-        assert not o.repertoire_cache.cache
+    repertoire_algebra.clear_caches()
+    # Hold the systems alive: kernel cache entries are evicted as soon as
+    # their last live carrier is garbage-collected.
+    system = examples.basic_system()
+    try:
+        with config.override(cache_repertoires=False):
+            system.cause_repertoire((0,), (1,))
+            sizes = {n: c.size for n, c in repertoire_algebra._kernel_caches.items()}
+            assert all(size == 0 for size in sizes.values()), sizes
+        with config.override(cache_repertoires=True):
+            system.cause_repertoire((0,), (1,))
+            assert any(c.size > 0 for c in repertoire_algebra._kernel_caches.values())
+    finally:
+        repertoire_algebra.clear_caches()
 
 
 # Test purview cache
