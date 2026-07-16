@@ -89,7 +89,7 @@ The file is consulted only from the working directory, only at import time.
 | Option | Layer | Effect |
 | --- | --- | --- |
 | `precision` | numerics | Decimal places used to compare φ values; lower is coarser and faster. |
-| `parallel` | infrastructure | Global switch for parallel computation. |
+| `parallel` | infrastructure | Master gate for parallelism — necessary but not sufficient; each level has its own switch. See `get_iit_reference("parallelization")`. |
 | `progress_bars` | infrastructure | Show progress bars during long computations. |
 | `cache_repertoires` | infrastructure | Memoize repertoire computations (on by default). |
 | `disk_cache_results` | infrastructure | Persist whole results to disk (off by default). |

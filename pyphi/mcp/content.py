@@ -59,6 +59,12 @@ TOPICS: dict[str, tuple[str, str]] = {
         "Running expensive analyses: the cost ceiling, the in-memory and "
         "opt-in disk caches, and checkpointing so a long run survives a crash.",
     ),
+    "parallelization": (
+        "parallelization.md",
+        "Running computations on multiple cores: the conditions under which "
+        "work actually parallelizes, the per-level options, which levels pay "
+        "for which workloads, and the server's parallel controls.",
+    ),
     "visualization": (
         "visualization.md",
         "Plotting the Φ-structure with plot_ces: the five views, the "

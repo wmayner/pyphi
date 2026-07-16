@@ -38,7 +38,7 @@ def _outer_loky(threshold: int = 2) -> dict:
     """Config override that forces loky on the two outer evaluation levels
     that the SIA/CES path dispatches — the SIA cut level
     (``parallel_partition_evaluation``) and the CES concept level
-    (``parallel_concept_evaluation``) — while leaving inner levels (purviews,
+    (``parallel_distinction_evaluation``) — while leaving inner levels (purviews,
     relations) at their defaults. Cuts and concepts are the historical
     ``BrokenProcessPool`` path; forcing the inner levels too only adds tiny
     cross-process dispatches (notably the IIT 4.0 relation cohort) that
@@ -55,7 +55,7 @@ def _outer_loky(threshold: int = 2) -> dict:
     forced = {"parallel": True, "sequential_threshold": threshold}
     keys = (
         "parallel_partition_evaluation",
-        "parallel_concept_evaluation",
+        "parallel_distinction_evaluation",
     )
     return {"parallel": True, **{k: {**getattr(c, k), **forced} for k in keys}}
 
@@ -136,7 +136,7 @@ def test_iit3_concepts_cost_balanced_chunking_equals_sequential() -> None:
     factory, state = _SUBSTRATES["basic"]
     # chunksize=2 with ~7 mechanisms forms several cost-balanced chunks
     concept_cfg = {
-        **config.infrastructure.parallel_concept_evaluation,
+        **config.infrastructure.parallel_distinction_evaluation,
         "parallel": True,
         "sequential_threshold": 1,
         "chunksize": 2,
@@ -144,7 +144,7 @@ def test_iit3_concepts_cost_balanced_chunking_equals_sequential() -> None:
     with config.override(**presets.iit3, parallel=False):
         seq = _ces_signature(iit3.ces(System(factory(), state)).distinctions)
     with config.override(
-        **presets.iit3, parallel=True, parallel_concept_evaluation=concept_cfg
+        **presets.iit3, parallel=True, parallel_distinction_evaluation=concept_cfg
     ):
         par = _ces_signature(iit3.ces(System(factory(), state)).distinctions)
 

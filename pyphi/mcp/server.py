@@ -25,6 +25,7 @@ from mcp.server.fastmcp import FastMCP
 import pyphi
 from pyphi import examples
 from pyphi import serialize
+from pyphi.conf.infrastructure import InfrastructureConfig
 
 from . import content
 
@@ -35,6 +36,84 @@ from . import content
 # limits on what PyPhi can compute.
 _CES_NODE_LIMIT = 7
 _SIA_NODE_LIMIT = 9
+
+# Friendly level names mapped to the per-level parallelization options. The
+# recommended default set covers the levels that pay off for a single-system
+# analysis; relations and mechanism partitions are excluded because
+# parallelizing them was measured not to pay (see the "parallelization"
+# reference topic).
+_PARALLEL_LEVELS = {
+    "partitions": "parallel_partition_evaluation",
+    "purviews": "parallel_purview_evaluation",
+    "distinctions": "parallel_distinction_evaluation",
+    "complexes": "parallel_complex_evaluation",
+    "mechanism_partitions": "parallel_mechanism_partition_evaluation",
+    "relations": "parallel_relation_evaluation",
+    "macro_systems": "parallel_macro_system_evaluation",
+}
+_DEFAULT_PARALLEL_LEVELS = ("partitions", "purviews", "distinctions")
+
+
+def _parallel_overrides(
+    parallel: bool | list[str] | None, workers: int | None = None
+) -> dict[str, Any]:
+    """Build ``pyphi.config`` option values from tool-level parallel arguments.
+
+    Declarative: an explicit level selection determines the full enabled set,
+    switching the named levels on and every other level off. ``None`` leaves
+    the current configuration untouched (except ``parallel_workers`` when
+    ``workers`` is given); ``False`` closes the global gate, which forces
+    every level sequential.
+    """
+    overrides: dict[str, Any] = {}
+    if workers is not None:
+        overrides["parallel_workers"] = workers
+    if parallel is None:
+        return overrides
+    if parallel is False:
+        overrides["parallel"] = False
+        return overrides
+    enabled = _DEFAULT_PARALLEL_LEVELS if parallel is True else parallel
+    unknown = [name for name in enabled if name not in _PARALLEL_LEVELS]
+    if unknown:
+        known = ", ".join(_PARALLEL_LEVELS)
+        raise ValueError(
+            f"Unknown parallel level(s) {', '.join(map(repr, unknown))}. "
+            f"Available levels: {known}."
+        )
+    overrides["parallel"] = True
+    for name, option in _PARALLEL_LEVELS.items():
+        overrides[option] = {
+            **dict(getattr(pyphi.config.infrastructure, option)),
+            "parallel": name in enabled,
+        }
+    return overrides
+
+
+def _parallel_state() -> dict[str, Any]:
+    """Summarize the current parallelization configuration."""
+    infra = pyphi.config.infrastructure
+    return {
+        "parallel": infra.parallel,
+        "workers": infra.parallel_workers,
+        "backend": infra.parallel_backend,
+        "levels": {
+            name: {
+                "parallel": dict(getattr(infra, option))["parallel"],
+                "sequential_threshold": dict(getattr(infra, option))[
+                    "sequential_threshold"
+                ],
+            }
+            for name, option in _PARALLEL_LEVELS.items()
+        },
+        "note": (
+            "A level runs in parallel only when the global 'parallel' gate "
+            "is on AND the level's own flag is on AND the workload meets "
+            "its sequential_threshold. See "
+            "get_iit_reference('parallelization')."
+        ),
+    }
+
 
 _INSTRUCTIONS = content.load("primer")
 
@@ -240,6 +319,8 @@ def analyze(
     compute: str = "full",
     detail: str = "summary",
     confirm_large: bool = False,
+    parallel: bool | list[str] | None = None,
+    workers: int | None = None,
 ) -> dict[str, Any]:
     """Run an IIT analysis of a substrate in a state.
 
@@ -265,6 +346,20 @@ def analyze(
     confirm_large : bool
         Full/CES analyses are refused above a soft node-count threshold unless
         this is set, to avoid accidentally starting an hours-long computation.
+        Parallelism does not lift the threshold — it divides the constants,
+        not the exponents.
+    parallel : bool or list of str, optional
+        Parallelism for this call only. ``None`` (default) uses the server's
+        current configuration (see ``configure_parallel``); ``true`` runs on
+        multiple cores at the recommended levels (``"partitions"``,
+        ``"purviews"``, ``"distinctions"``); a list of level names picks the
+        levels explicitly; ``false`` forces the call fully sequential.
+        Parallelism never changes the result, and workloads below a level's
+        sequential threshold run sequentially regardless. Read
+        ``get_iit_reference("parallelization")`` for which levels pay off.
+    workers : int, optional
+        Worker-process count for this call. Default uses the server's
+        configuration (-1 = all cores).
 
     Returns
     -------
@@ -287,9 +382,10 @@ def analyze(
         )
 
     compute_arg = None if compute == "full" else compute
-    result = pyphi.analyze(
-        substrate, tuple(state), formalism=formalism, compute=compute_arg
-    )
+    with pyphi.config.override(**_parallel_overrides(parallel, workers)):
+        result = pyphi.analyze(
+            substrate, tuple(state), formalism=formalism, compute=compute_arg
+        )
     ref = _register_result(result)
 
     out: dict[str, Any] = {
@@ -301,6 +397,66 @@ def analyze(
         target = getattr(result, "ces", result)
         out["serialized"] = serialize.dumps(target).decode("utf-8")
     return out
+
+
+@mcp.tool()
+def configure_parallel(
+    enable: bool | None = None,
+    levels: list[str] | None = None,
+    workers: int | None = None,
+    reset: bool = False,
+) -> dict[str, Any]:
+    """Read or set the server's parallelization configuration.
+
+    Settings persist for the life of the server process; a per-call
+    ``analyze(parallel=...)`` argument takes precedence for that call. With no
+    arguments, reports the current state without changing anything.
+
+    Parameters
+    ----------
+    enable : bool, optional
+        ``true`` opens the global gate and switches on ``levels`` (or the
+        recommended set — ``"partitions"``, ``"purviews"``,
+        ``"distinctions"`` — when ``levels`` is omitted), switching every
+        other level off. ``false`` closes the global gate, which disables all
+        parallelism regardless of the per-level flags.
+    levels : list of str, optional
+        The levels to switch on: ``"partitions"``, ``"purviews"``,
+        ``"distinctions"``, ``"complexes"``, ``"mechanism_partitions"``,
+        ``"relations"``, ``"macro_systems"``. Implies ``enable=true``. Read
+        ``get_iit_reference("parallelization")`` for which levels pay off for
+        which workloads.
+    workers : int, optional
+        Worker-process count (-1 = all cores). On its own, changes only the
+        worker count.
+    reset : bool
+        Restore every parallelization option to PyPhi's defaults (all
+        parallelism off), ignoring the other arguments.
+
+    Returns
+    -------
+    dict
+        The resulting configuration: the global gate, worker count, backend,
+        and each level's flag and sequential threshold.
+    """
+    if reset:
+        defaults = InfrastructureConfig()
+        pyphi.config.parallel = defaults.parallel
+        pyphi.config.parallel_workers = defaults.parallel_workers
+        pyphi.config.parallel_backend = defaults.parallel_backend
+        for option in _PARALLEL_LEVELS.values():
+            setattr(pyphi.config, option, dict(getattr(defaults, option)))
+    else:
+        spec: bool | list[str] | None
+        if enable is False:
+            spec = False
+        elif levels is not None:
+            spec = levels
+        else:
+            spec = enable
+        for option, value in _parallel_overrides(spec, workers).items():
+            setattr(pyphi.config, option, value)
+    return _parallel_state()
 
 
 @mcp.tool()

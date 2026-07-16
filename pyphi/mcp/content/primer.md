@@ -30,8 +30,12 @@ reference.
 - `build_substrate(tpm, cm?, node_labels?, alphabet?)` — build your own from a
   transition probability matrix.
 - `describe_substrate(handle)` — inspect a substrate.
-- `analyze(handle, state, formalism?, compute?, detail?, confirm_large?)` — the
-  workhorse. Returns a readable card, scalar values, and a `result_ref`.
+- `analyze(handle, state, formalism?, compute?, detail?, confirm_large?,
+  parallel?, workers?)` — the workhorse. Returns a readable card, scalar
+  values, and a `result_ref`. `parallel=true` runs that call on multiple
+  cores; see `get_iit_reference("parallelization")`.
+- `configure_parallel(enable?, levels?, workers?, reset?)` — read or
+  persistently set the server's parallelization configuration.
 - `inspect(result_ref, path)` — drill into one part of a result.
 - `plot(target, kind)` — render PyPhi's built-in visualizations (needs
   `pip install pyphi[visualize]`): `kind="ces"` the Φ-structure,
@@ -68,6 +72,10 @@ environment's own `python` — never the bare system `python`.
   `numerics` (precision). Through these tools, select a formalism by passing
   `formalism=` to `analyze`; read `get_iit_reference("configuration")` before
   changing options in a script.
+- **To use multiple cores**, read `get_iit_reference("parallelization")` first
+  — the global `parallel` flag alone does nothing; each level of the
+  computation must also be enabled, and the tools' `parallel` controls handle
+  this for you.
 - **Expensive runs can hang the machine, and PyPhi has no built-in
   checkpointing** — a run that hangs or is killed loses everything in progress.
   Exact Φ for all distinctions is practical to about 10–12 units depending on

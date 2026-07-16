@@ -53,7 +53,7 @@ class InfrastructureConfig:
     # below it run sequentially) and encodes that level's typical per-item
     # cost: parallel dispatch amortizes at roughly 0.5-1 s of total work
     # (measured in benchmarks/b18_dispatch_gate.py). System partitions,
-    # purviews, concepts, and complexes cost ~1 ms - 10 s per item, so
+    # purviews, distinctions, and complexes cost ~1 ms - 10 s per item, so
     # small counts already pay. Mechanism partitions (~50 µs) showed no
     # parallel benefit below 8192 items, and lazy relation construction
     # (~µs, cost dominated by pickling results back) none at any measured
@@ -65,7 +65,7 @@ class InfrastructureConfig:
     parallel_partition_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**6, 2**12, progress=False)
     )
-    parallel_concept_evaluation: Mapping[str, Any] = field(
+    parallel_distinction_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**6, 2**8, progress=True)
     )
     parallel_purview_evaluation: Mapping[str, Any] = field(
@@ -178,7 +178,7 @@ class InfrastructureConfig:
         for parallel_field_name in (
             "parallel_complex_evaluation",
             "parallel_partition_evaluation",
-            "parallel_concept_evaluation",
+            "parallel_distinction_evaluation",
             "parallel_purview_evaluation",
             "parallel_mechanism_partition_evaluation",
             "parallel_relation_evaluation",

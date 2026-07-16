@@ -23,11 +23,17 @@ import pyphi
 pyphi.config.progress_bars = False
 ```
 
-## The global switch
+## The global gate
 
-The single flag that enables parallelism is `pyphi.config.parallel`. It is in
-the infrastructure layer of the configuration, so it can also be read and
-written through its full path:
+`pyphi.config.parallel` is the master gate for parallelism. It is necessary
+but not sufficient: when it is `False` (the default), everything runs
+sequentially no matter what else is configured — and setting it to `True` by
+itself parallelizes nothing, because each level of the computation also has
+its own switch (see the per-level options below). The gate only ever forces
+things *off*.
+
+It is in the infrastructure layer of the configuration, so it can also be
+read and written through its full path:
 
 ```{code-cell} python
 pyphi.config.infrastructure.parallel
@@ -70,17 +76,29 @@ pyphi.config.parallel_workers = -1  # back to the default
 The best way to run one computation in parallel, without leaving the
 global configuration changed, is the `override` context manager. Everything
 inside the `with` block sees the overridden settings; outside, the previous
-values are restored.
+values are restored. Two things must be switched on: the global gate, and
+the specific level (here, the system-partition search):
 
 ```{code-cell} python
 substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 state = (0, 1, 1)
 
-with pyphi.config.override(parallel=True, parallel_workers=2):
+opts = dict(pyphi.config.infrastructure.parallel_partition_evaluation)
+opts["parallel"] = True
+
+with pyphi.config.override(
+    parallel=True, parallel_partition_evaluation=opts, parallel_workers=2
+):
     analysis = pyphi.analyze(substrate, state)
 
 round(float(analysis.sia.phi), 6)
 ```
+
+(This small example has fewer partitions than the level's
+`sequential_threshold`, so it runs sequentially anyway — the threshold
+exists because dispatching tiny workloads to workers costs more than it
+saves. The configuration is what matters here; a larger system fans out
+automatically.)
 
 Parallelism changes only how the work is scheduled, never the result. The same
 computation run sequentially gives the identical value:
@@ -92,12 +110,12 @@ round(float(sequential.sia.phi), 6)
 
 ## Per-level options
 
-Beyond the global switch, PyPhi parallelizes at several distinct levels of the
+Beyond the global gate, PyPhi parallelizes at several distinct levels of the
 computation, each with its own option. Each is a dictionary with the keys
 `parallel`, `sequential_threshold`, `chunksize`, and `progress`:
 
 ```{code-cell} python
-dict(pyphi.config.infrastructure.parallel_concept_evaluation)
+dict(pyphi.config.infrastructure.parallel_distinction_evaluation)
 ```
 
 The keys mean:
@@ -115,7 +133,7 @@ The available levels are:
 | Config option | Parallelizes over |
 | --- | --- |
 | `parallel_complex_evaluation` | Candidate systems (complexes) within a substrate |
-| `parallel_concept_evaluation` | Concepts (distinctions) within a cause-effect structure |
+| `parallel_distinction_evaluation` | Distinctions within a cause-effect structure |
 | `parallel_partition_evaluation` | System partitions when searching for the minimum information partition |
 | `parallel_purview_evaluation` | Candidate purviews for a mechanism |
 | `parallel_mechanism_partition_evaluation` | Partitions of a single mechanism |
@@ -126,16 +144,16 @@ To tune one level, assign a new dictionary. A common pattern is to read the
 current value, change one key, and write it back:
 
 ```{code-cell} python
-opts = dict(pyphi.config.infrastructure.parallel_concept_evaluation)
+opts = dict(pyphi.config.infrastructure.parallel_distinction_evaluation)
 opts["parallel"] = True
 opts["sequential_threshold"] = 32
-pyphi.config.parallel_concept_evaluation = opts
-dict(pyphi.config.infrastructure.parallel_concept_evaluation)
+pyphi.config.parallel_distinction_evaluation = opts
+dict(pyphi.config.infrastructure.parallel_distinction_evaluation)
 ```
 
 ```{code-cell} python
 # Restore the default (parallel off, threshold 64)
-pyphi.config.parallel_concept_evaluation = {
+pyphi.config.parallel_distinction_evaluation = {
     "parallel": False,
     "sequential_threshold": 64,
     "chunksize": 256,
@@ -159,9 +177,8 @@ As a rule of thumb:
   costs little for small problems.
 - **Larger networks** — where there are many mechanisms, purviews, or
   partitions to evaluate — benefit the most.
-- Parallelism requires the optional dependency to be installed
-  (`uv pip install "pyphi[parallel]"`). Without it, PyPhi falls back to
-  sequential evaluation.
+- Parallelism needs no extra installation: the process-pool backend is part
+  of PyPhi's core dependencies.
 
 When in doubt, benchmark both. Because the result is identical either way, you
 can compare wall-clock time directly and pick whichever is faster for your

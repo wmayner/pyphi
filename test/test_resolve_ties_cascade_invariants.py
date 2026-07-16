@@ -267,8 +267,8 @@ def _force_loky_parallel() -> dict:
             **_cfg.infrastructure.parallel_partition_evaluation,
             **forced,
         },
-        "parallel_concept_evaluation": {
-            **_cfg.infrastructure.parallel_concept_evaluation,
+        "parallel_distinction_evaluation": {
+            **_cfg.infrastructure.parallel_distinction_evaluation,
             **forced,
         },
         "parallel_purview_evaluation": {
