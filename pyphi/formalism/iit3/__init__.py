@@ -83,20 +83,16 @@ def concept(
     Concept
         The concept of the given mechanism.
     """
-    from pyphi.core import repertoire_algebra as _ra
-    from pyphi.formalism.queries import mic
-    from pyphi.formalism.queries import mie
+    from pyphi.formalism.queries import distinction
 
-    if not mechanism:
-        return _ra.null_concept(system)
-
-    cause_purviews = cause_purviews if cause_purviews is not None else purviews
-    cause = mic(system, mechanism, purviews=cause_purviews, **kwargs)
-
-    effect_purviews = effect_purviews if effect_purviews is not None else purviews
-    effect = mie(system, mechanism, purviews=effect_purviews, **kwargs)
-
-    return Concept(mechanism=mechanism, cause=cause, effect=effect)
+    return distinction(
+        system,
+        mechanism,
+        purviews=purviews,
+        cause_purviews=cause_purviews,
+        effect_purviews=effect_purviews,
+        **kwargs,
+    )
 
 
 def _compute_distinctions(

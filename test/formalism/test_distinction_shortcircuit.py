@@ -15,6 +15,7 @@ from pyphi.models import _null_ria
 from pyphi.models.explanation import NullResultReason
 from pyphi.substrate import Substrate
 from pyphi.system import System
+from test.conftest import IIT_3_CONFIG
 from test.conftest import IIT_4_CONFIG
 
 
@@ -130,3 +131,27 @@ def test_ces_identical_with_and_without_shortcircuit():
     with pyphi.config.override(shortcircuit_distinctions=False):
         off = list(system.all_distinctions())
     assert on == off
+
+
+def test_iit3_concept_shortcircuits(sink_system, monkeypatch):
+    calls = _recording_find_mice(monkeypatch)
+    from pyphi.formalism import iit3
+
+    with IIT_3_CONFIG, pyphi.config.override(progress_bars=False):
+        c = iit3.concept(sink_system, (2,))
+    assert Direction.CAUSE not in calls
+    assert tuple(c.cause.reasons) == (NullResultReason.OTHER_DIRECTION_REDUCIBLE,)
+
+
+def test_iit3_sia_unchanged_by_shortcircuit():
+    """Confirmation experiment for the spec's verification point: the IIT 3.0
+    partitioned-constellation path consumes nothing from skipped MICEs, so the
+    SIA is identical with the flag on and off."""
+    with IIT_3_CONFIG, pyphi.config.override(progress_bars=False):
+        system = examples.basic_system()
+        with pyphi.config.override(shortcircuit_distinctions=True):
+            sia_on = system.sia()
+        with pyphi.config.override(shortcircuit_distinctions=False):
+            sia_off = system.sia()
+    assert numerics.eq(sia_on.phi, sia_off.phi)
+    assert sia_on.partition == sia_off.partition
