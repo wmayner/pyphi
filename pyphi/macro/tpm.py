@@ -141,7 +141,9 @@ def _discounted_on_probabilities(
         patron = _patron_units(units)
     columns = []
     for i in range(n):
-        p_on = factored.factor(i)[..., 1]
+        # Broadcast to the full universe grid: a size-1 (non-input) axis is
+        # constant in that input, and the flatten below requires 2**n rows.
+        p_on = np.broadcast_to(factored.factor(i)[..., 1], factored.alphabet_sizes)
         if i in constituents:
             out = p_on  # Eq. 27: connections among U^J kept intact
         elif i in patron:

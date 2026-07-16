@@ -5,6 +5,7 @@ import pytest
 
 from pyphi import exceptions
 from pyphi.convert import sbn2sbs
+from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.macro.tpm import _background_weights_cause
 from pyphi.macro.tpm import _discounted_on_probabilities
 from pyphi.macro.tpm import _full_transition_matrix
@@ -415,3 +416,48 @@ class TestApportionedBackgroundPath:
         for tpm in (cause, effect):
             for k in range(2):
                 assert np.allclose(tpm.factor(k).sum(axis=-1), 1.0)
+
+
+class TestSparseFactors:
+    """Connectivity-sparse micro substrates (size-1 non-input factor axes)."""
+
+    @staticmethod
+    def _sparse_factors():
+        # 0 <-> 1 copy each other; 2 has a self-loop. Non-input axes size 1.
+        f0 = np.zeros((1, 2, 1, 2))
+        f0[0, 0, 0] = [1, 0]
+        f0[0, 1, 0] = [0, 1]
+        f1 = np.zeros((2, 1, 1, 2))
+        f1[0, 0, 0] = [1, 0]
+        f1[1, 0, 0] = [0, 1]
+        f2 = np.zeros((1, 1, 2, 2))
+        f2[0, 0, 0] = [1, 0]
+        f2[0, 0, 1] = [0, 1]
+        return [f0, f1, f2]
+
+    def test_discounted_on_probabilities_full_universe_shape(self):
+        factored = FactoredTPM(factors=self._sparse_factors())
+        unit = MacroUnit((0, 1), 1, coarse_grain(2, (1, 2)))
+        on_probs = _discounted_on_probabilities(factored, (unit,), 0)
+        assert on_probs.shape == (8, 3)
+
+    def test_macro_tpms_match_dense_control(self):
+        factors = self._sparse_factors()
+        sparse_sub = Substrate.from_factored(FactoredTPM(factors=factors))
+        dense_sub = Substrate.from_factored(
+            FactoredTPM(
+                factors=[np.broadcast_to(f, (2, 2, 2, 2)).copy() for f in factors]
+            )
+        )
+        unit = MacroUnit((0, 1), 1, coarse_grain(2, (1, 2)))
+        history = [(0, 0, 0)]
+        cause_sparse, effect_sparse = macro_tpms(sparse_sub, (unit,), history)
+        cause_dense, effect_dense = macro_tpms(dense_sub, (unit,), history)
+        for got, expected in [
+            (cause_sparse, cause_dense),
+            (effect_sparse, effect_dense),
+        ]:
+            for i in range(got.n_nodes):
+                np.testing.assert_allclose(
+                    got.factor(i), expected.factor(i), rtol=0, atol=1e-12
+                )
