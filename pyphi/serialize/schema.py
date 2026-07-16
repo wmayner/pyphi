@@ -357,6 +357,8 @@ class CESSchema(msgspec.Struct, frozen=True, tag="ces"):
     sia: SIASchema
     distinctions: DistinctionsAnySchema
     relations: RelationsRefSchema
+    config: dict[str, Any] | None = None
+    provenance: ProvenanceSchema | None = None
 
 
 class NullCESSchema(CESSchema, frozen=True, tag="null_ces"):

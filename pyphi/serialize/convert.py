@@ -819,6 +819,8 @@ def _encode_ces(ces: Any, struct_cls: Any) -> Any:
         sia=to_schema(ces.sia),
         distinctions=to_schema(ces.distinctions),
         relations=_encode_relations_ref(ces.relations, table, by_id),
+        config=_enc_config(ces.config),
+        provenance=_enc_optional(ces.provenance),
     )
 
 
@@ -830,6 +832,8 @@ def _decode_ces(struct: Any, domain_cls: Any) -> Any:
         sia=from_schema(struct.sia),
         distinctions=distinctions,
         relations=relations,
+        config=struct.config,
+        provenance=_dec_optional(struct.provenance),
     )
 
 

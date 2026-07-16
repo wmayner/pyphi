@@ -1,6 +1,9 @@
+import json
+
 import numpy as np
 import pytest
 
+import pyphi
 from pyphi import serialize
 from pyphi.direction import Direction
 from pyphi.formalism.iit4 import NullCauseEffectStructure
@@ -104,3 +107,26 @@ def test_null_ces_round_trips(fmt):
     restored = round_trip(obj, fmt)
     assert restored == obj
     assert type(restored) is NullCauseEffectStructure
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_ces_preserves_config_and_provenance(fmt):
+    with pyphi.config.override(precision=7):
+        obj = make_ces()
+    restored = round_trip(obj, fmt)
+    assert isinstance(restored.config, dict)
+    assert restored.config["numerics"]["precision"] == 7
+    assert restored.provenance == obj.provenance
+
+
+def test_ces_loads_without_config_and_provenance():
+    # Strip only the CES-level keys: payloads written before these fields
+    # existed lack them at the CES level but carry them on the embedded SIA.
+    obj = make_ces()
+    data = json.loads(serialize.dumps(obj, format="json"))
+    data["payload"].pop("config", None)
+    data["payload"].pop("provenance", None)
+    restored = serialize.loads(json.dumps(data).encode(), format="json")
+    # Nothing stored: the constructor still snapshots load-time context.
+    assert restored.config is not None
+    assert restored.provenance is not None
