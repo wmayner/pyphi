@@ -162,3 +162,34 @@ def test_effect_repertoire_rejects_wrong_length_mechanism_state(cs) -> None:
         ra.effect_repertoire(cs, (0, 2), (0, 1, 2), mechanism_state=(1,))
     with pytest.raises(ValueError, match="mechanism_state"):
         ra.effect_repertoire(cs, (0, 2), (0, 1, 2), mechanism_state=(1, 0, 1, 1))
+
+
+def test_cached_repertoire_is_read_only():
+    """A caller must not be able to poison the kernel cache in place."""
+    import numpy as np
+
+    from pyphi import examples
+
+    system = examples.basic_system()
+    r = system.cause_repertoire((0,), (1,))
+    with pytest.raises(ValueError, match="read-only"):
+        r[...] = 99.0
+    again = examples.basic_system().cause_repertoire((0,), (1,))
+    assert np.array_equal(again, r)
+
+
+def test_effect_repertoire_is_read_only():
+    from pyphi import examples
+
+    system = examples.basic_system()
+    r = system.effect_repertoire((0,), (1,))
+    with pytest.raises(ValueError, match="read-only"):
+        r[...] = 99.0
+
+
+def test_max_entropy_distribution_is_read_only():
+    from pyphi.distribution import max_entropy_distribution
+
+    d = max_entropy_distribution((0, 1, 2), (1,))
+    with pytest.raises(ValueError, match="read-only"):
+        d[...] = 99.0

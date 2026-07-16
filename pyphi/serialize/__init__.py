@@ -2,8 +2,10 @@
 
 Supports two wire formats from one schema: ``"json"`` (default, readable
 structure) and ``"msgpack"`` (binary, compact). The document carries a single
-top-level ``format_version``. A path ending in ``.gz`` is transparently
-gzip-compressed on save and decompressed on load.
+top-level ``format_version`` and a node-labels frame written once per
+document: nested objects whose labels match the frame store none and inherit
+it on decode. A path ending in ``.gz`` is transparently gzip-compressed on
+save and decompressed on load.
 """
 
 import gzip
@@ -24,6 +26,9 @@ class _Document(msgspec.Struct, frozen=True):
     # A φ value serialized on its own is a native float; every other domain
     # object serializes to a tagged Struct in ``schema.Schema``.
     payload: schema.Schema | float
+    # The document's node-labels frame: claimed once by the first labeled
+    # payload object, inherited on decode by every object that carries none.
+    node_labels: schema.NodeLabelsSchema | None = None
 
 
 def _encoder(fmt: str):
@@ -43,18 +48,32 @@ def _decode(data: bytes, fmt: str) -> _Document:
 
 
 def dumps(obj: Any, *, format: str = "json") -> bytes:
-    doc = _Document(format_version=FORMAT_VERSION, payload=convert.to_schema(obj))
+    payload, frame = convert.encode_document(obj)
+    doc = _Document(format_version=FORMAT_VERSION, payload=payload, node_labels=frame)
     return _encoder(format)(doc)
 
 
-def loads(data: bytes, *, format: str = "json") -> Any:
+def loads(data: bytes, *, format: str = "json", node_labels: Any = None) -> Any:
+    """Deserialize a document produced by :func:`dumps`.
+
+    Parameters
+    ----------
+    data : bytes
+        The serialized document.
+    format : {"json", "msgpack"}, optional
+        Wire format. Defaults to ``"json"``.
+    node_labels : NodeLabels, optional
+        Replacement label frame. If given, it is used in place of the
+        document's stored frame; objects carrying their own per-object
+        labels keep them.
+    """
     doc = _decode(data, format)
     if doc.format_version > FORMAT_VERSION:
         raise ValueError(
             f"cannot load format_version {doc.format_version}: this version of "
             f"PyPhi reads format_version {FORMAT_VERSION} or lower"
         )
-    return convert.from_schema(doc.payload)
+    return convert.decode_document(doc.payload, doc.node_labels, node_labels=node_labels)
 
 
 _SUFFIX_FORMATS = {".json": "json", ".msgpack": "msgpack", ".mpk": "msgpack"}

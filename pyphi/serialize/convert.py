@@ -5,6 +5,7 @@ decoder. Each serializable type adds one ``_register_<type>()`` populating both
 registries, invoked on first use via ``_ensure_registered()``.
 """
 
+import contextvars
 from collections.abc import Callable
 from typing import Any
 
@@ -46,6 +47,73 @@ def from_schema(struct: Any) -> Any:
 def _enc_optional(obj: Any) -> Any:
     """Encode a nested domain object that may be ``None``."""
     return to_schema(obj) if obj is not None else None
+
+
+# Document label frame. dumps()/loads() establish these contexts; encoders
+# and decoders resolve per-object labels against them. Outside a document
+# context (a direct to_schema/from_schema call), labels stay per-object.
+_ENC_FRAME: contextvars.ContextVar[list | None] = contextvars.ContextVar(
+    "_ENC_FRAME", default=None
+)
+_DEC_FRAME: contextvars.ContextVar[Any] = contextvars.ContextVar(
+    "_DEC_FRAME", default=None
+)
+
+
+def _enc_labels(labels: Any) -> Any:
+    """Encode a ``node_labels`` attribute against the document frame.
+
+    The first labeled object claims the frame and writes ``None`` into its
+    own struct; labels equal to the frame also write ``None``; labels that
+    differ are written per-object.
+    """
+    if labels is None:
+        return None
+    encoded = to_schema(labels)
+    holder = _ENC_FRAME.get()
+    if holder is None:
+        return encoded
+    if holder[0] is None:
+        holder[0] = encoded
+        return None
+    if encoded == holder[0]:
+        return None
+    return encoded
+
+
+def _dec_labels(stored: Any) -> Any:
+    """Resolve labels: the object's own stored labels, else the frame."""
+    if stored is not None:
+        return from_schema(stored)
+    return _DEC_FRAME.get()
+
+
+def encode_document(obj: Any) -> tuple[Any, Any]:
+    """Encode ``obj`` to a payload struct plus the claimed label frame."""
+    holder: list = [None]
+    token = _ENC_FRAME.set(holder)
+    try:
+        payload = to_schema(obj)
+    finally:
+        _ENC_FRAME.reset(token)
+    return payload, holder[0]
+
+
+def decode_document(payload: Any, frame: Any, node_labels: Any = None) -> Any:
+    """Decode ``payload`` under a document label frame.
+
+    ``frame`` is the document's stored ``NodeLabelsSchema`` (or ``None``);
+    ``node_labels`` is a caller-supplied domain ``NodeLabels`` that
+    replaces it.
+    """
+    resolved = node_labels
+    if resolved is None and frame is not None:
+        resolved = from_schema(frame)
+    token = _DEC_FRAME.set(resolved)
+    try:
+        return from_schema(payload)
+    finally:
+        _DEC_FRAME.reset(token)
 
 
 def _dec_optional(struct: Any) -> Any:
@@ -223,12 +291,12 @@ def _register_edge_cut() -> None:
     _ENCODERS[EdgeCut] = lambda c: schema.EdgeCutSchema(
         node_indices=tuple(c.node_indices),
         cut_matrix=arrays.array_to_bytes(np.asarray(c._cut_matrix)),
-        node_labels=_enc_optional(c.node_labels),
+        node_labels=_enc_labels(c.node_labels),
     )
     _DECODERS[schema.EdgeCutSchema] = lambda s: EdgeCut(
         tuple(s.node_indices),
         arrays.bytes_to_array(s.cut_matrix),
-        _dec_optional(s.node_labels),
+        _dec_labels(s.node_labels),
     )
 
 
@@ -237,10 +305,10 @@ def _register_complete_edge_cut() -> None:
 
     _ENCODERS[CompleteEdgeCut] = lambda c: schema.CompleteEdgeCutSchema(
         node_indices=tuple(c.node_indices),
-        node_labels=_enc_optional(c.node_labels),
+        node_labels=_enc_labels(c.node_labels),
     )
     _DECODERS[schema.CompleteEdgeCutSchema] = lambda s: CompleteEdgeCut(
-        tuple(s.node_indices), _dec_optional(s.node_labels)
+        tuple(s.node_indices), _dec_labels(s.node_labels)
     )
 
 
@@ -251,13 +319,13 @@ def _register_directed_set_partition() -> None:
         node_indices=tuple(c.node_indices),
         cut_matrix=arrays.array_to_bytes(np.asarray(c._cut_matrix)),
         set_partition=tuple(tuple(part) for part in c.set_partition),
-        node_labels=_enc_optional(c.node_labels),
+        node_labels=_enc_labels(c.node_labels),
     )
     _DECODERS[schema.DirectedSetPartitionSchema] = lambda s: DirectedSetPartition(
         node_indices=tuple(s.node_indices),
         cut_matrix=arrays.bytes_to_array(s.cut_matrix),
         set_partition=[list(part) for part in s.set_partition],
-        node_labels=_dec_optional(s.node_labels),
+        node_labels=_dec_labels(s.node_labels),
     )
 
 
@@ -293,7 +361,7 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
         repertoire=_enc_array(ria.repertoire),
         partitioned_repertoire=_enc_array(ria.partitioned_repertoire),
         specified_state=_enc_optional(ria.specified_state),
-        node_labels=_enc_optional(ria.node_labels),
+        node_labels=_enc_labels(ria.node_labels),
         partition_tie_peers=tuple(
             _encode_ria(p, include_peers=False) for p in partition_peers
         ),
@@ -319,7 +387,7 @@ def _decode_ria(struct: Any) -> Any:
         specified_state=_dec_optional(struct.specified_state),
         mechanism_state=_opt_tuple(struct.mechanism_state),
         purview_state=_opt_tuple(struct.purview_state),
-        node_labels=_dec_optional(struct.node_labels),
+        node_labels=_dec_labels(struct.node_labels),
         partition_margin=_dec_optional(struct.partition_margin),
         signed_phi=_dec_optional(struct.signed_phi),
         selectivity=struct.selectivity,
@@ -539,7 +607,7 @@ def _encode_iit3_sia(sia: Any, *, include_peers: bool) -> Any:
         partitioned_distinctions=_enc_optional(sia.partitioned_distinctions),
         partition=_enc_optional(sia.partition),
         node_indices=_opt_tuple(sia.node_indices),
-        node_labels=_enc_optional(sia.node_labels),
+        node_labels=_enc_labels(sia.node_labels),
         current_state=_opt_tuple(sia.current_state),
         tie_peers=tuple(_encode_iit3_sia(p, include_peers=False) for p in peers),
         runner_up=_enc_runner_up(sia.runner_up),
@@ -558,7 +626,7 @@ def _decode_iit3_sia(struct: Any) -> Any:
         partitioned_distinctions=_dec_optional(struct.partitioned_distinctions),
         partition=_dec_optional(struct.partition),
         node_indices=_opt_tuple(struct.node_indices),
-        node_labels=_dec_optional(struct.node_labels),
+        node_labels=_dec_labels(struct.node_labels),
         current_state=_opt_tuple(struct.current_state),
         runner_up=_dec_runner_up(struct.runner_up),
         reasons=_dec_reasons(struct.reasons),
@@ -661,7 +729,7 @@ def _encode_iit4_sia(sia: Any, *, include_peers: bool) -> Any:
         system_state=_enc_optional(sia.system_state),
         current_state=_opt_tuple(sia.current_state),
         node_indices=_opt_tuple(sia.node_indices),
-        node_labels=_enc_optional(sia.node_labels),
+        node_labels=_enc_labels(sia.node_labels),
         intrinsic_differentiation=_enc_intrinsic_diff(sia.intrinsic_differentiation),
         reasons=_enc_reasons(sia.reasons),
         signed_phi=_enc_optional(sia.signed_phi),
@@ -687,7 +755,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "system_state": _dec_optional(struct.system_state),
         "current_state": _opt_tuple(struct.current_state),
         "node_indices": _opt_tuple(struct.node_indices),
-        "node_labels": _dec_optional(struct.node_labels),
+        "node_labels": _dec_labels(struct.node_labels),
         "intrinsic_differentiation": _dec_intrinsic_diff(
             struct.intrinsic_differentiation
         ),
@@ -857,7 +925,7 @@ def _register_substrate() -> None:
         ),
         state_space=tuple(tuple(labels) for labels in s.factored_tpm.state_space),
         cm=arrays.array_to_bytes(np.asarray(s.cm)),
-        node_labels=_enc_optional(s.node_labels),
+        node_labels=_enc_labels(s.node_labels),
     )
 
     def _decode_substrate(s: schema.SubstrateSchema) -> Substrate:
@@ -868,7 +936,7 @@ def _register_substrate() -> None:
         return Substrate.from_factored(
             factored,
             cm=arrays.bytes_to_array(s.cm),
-            node_labels=_dec_optional(s.node_labels),
+            node_labels=_dec_labels(s.node_labels),
         )
 
     _DECODERS[schema.SubstrateSchema] = _decode_substrate
@@ -932,7 +1000,7 @@ def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
         probability=float(ria.probability),
         partitioned_probability=float(ria.partitioned_probability),
         partition_tie_peers=tuple(_encode_ac_ria(p, include_peers=False) for p in peers),
-        node_labels=_enc_optional(ria.node_labels),
+        node_labels=_enc_labels(ria.node_labels),
         reasons=_enc_reasons(ria.reasons),
     )
 
@@ -949,7 +1017,7 @@ def _decode_ac_ria(struct: Any) -> Any:
         partition=from_schema(struct.partition),
         probability=struct.probability,
         partitioned_probability=struct.partitioned_probability,
-        node_labels=_dec_optional(struct.node_labels),
+        node_labels=_dec_labels(struct.node_labels),
         reasons=_dec_reasons(struct.reasons),
     )
     if struct.partition_tie_peers:
@@ -1033,7 +1101,7 @@ def _encode_ac_sia(s: Any, *, include_peers: bool) -> Any:
         node_indices=_opt_tuple(s.node_indices),
         cause_indices=_opt_tuple(s.cause_indices),
         effect_indices=_opt_tuple(s.effect_indices),
-        node_labels=_enc_optional(s.node_labels),
+        node_labels=_enc_labels(s.node_labels),
         reasons=_enc_reasons(s.reasons),
         config=_enc_config(s.config),
         provenance=_enc_optional(s.provenance),
@@ -1056,7 +1124,7 @@ def _decode_ac_sia(struct: Any) -> Any:
         node_indices=_opt_tuple(struct.node_indices),
         cause_indices=_opt_tuple(struct.cause_indices),
         effect_indices=_opt_tuple(struct.effect_indices),
-        node_labels=_dec_optional(struct.node_labels),
+        node_labels=_dec_labels(struct.node_labels),
         reasons=_dec_reasons(struct.reasons),
         config=struct.config,
         provenance=_dec_optional(struct.provenance),

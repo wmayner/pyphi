@@ -11,6 +11,7 @@ from .cache import cache
 from .types import NodeIndices
 from .types import Purview
 from .types import Repertoire
+from .utils import np_immutable
 
 
 def normalize(a: Repertoire) -> Repertoire:
@@ -256,9 +257,9 @@ def max_entropy_distribution(
     -------
     np.ndarray
         The maximum entropy distribution, uniform over the states of the purview
-        nodes.
+        nodes. The array is cached and read-only.
     """
     distribution = np.ones(
         repertoire_shape(all_node_indices, purview, alphabet_sizes=alphabet_sizes)
     )
-    return distribution / distribution.size
+    return np_immutable(distribution / distribution.size)

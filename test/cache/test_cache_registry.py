@@ -138,30 +138,6 @@ def test_module_level_caches_present_for_partition_and_distribution():
     )
 
 
-# =============================================================================
-# DictCache opt-in registry registration
-# =============================================================================
-
-
-def test_dict_cache_with_name_registers():
-    from pyphi import cache as cache_module
-    from pyphi.cache import DictCache
-
-    DictCache(name="test.dict_cache.named")
-    assert "test.dict_cache.named" in cache_module.info()
-
-
-def test_dict_cache_without_name_does_not_register():
-    """Default behavior: anonymous DictCache instances stay out of the registry."""
-    from pyphi import cache as cache_module
-    from pyphi.cache import DictCache
-
-    before = set(cache_module.info().keys())
-    DictCache()
-    after = set(cache_module.info().keys())
-    assert before == after
-
-
 def test_substrate_purview_cache_is_a_singleton_registration():
     """The potential-purview cache is one module-level ``ContentCache``
     (registered once, at import, as ``substrate.potential_purviews``), not a

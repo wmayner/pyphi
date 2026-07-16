@@ -27,15 +27,17 @@ from pyphi.provenance import _git_info
 log = logging.getLogger(__name__)
 
 
-def _decode_or_none(data: bytes) -> Any | None:
+def _decode_or_none(data: bytes, node_labels: Any = None) -> Any | None:
     """Deserialize a stored result; ``None`` on any error (a cache miss).
 
     Staleness across code or config changes is handled entirely by the cache
     key (it folds in a code-version component), so there is no in-file version
-    tag; this only tolerates a corrupt/truncated file.
+    tag; this only tolerates a corrupt/truncated file. ``node_labels``
+    replaces the stored label frame, so a hit is decoded in the requesting
+    system's labels.
     """
     try:
-        return serialize.loads(data, format="msgpack")
+        return serialize.loads(data, format="msgpack", node_labels=node_labels)
     except Exception:  # any decode failure is a cache miss, not an error
         return None
 
@@ -131,7 +133,10 @@ def maybe_disk_cached(system: Any, kind: str, user_kwargs: dict, compute: Any) -
 
     Bypasses (just calls ``compute()``) when the cache is disabled, when the
     caller passed result-affecting kwargs the key cannot capture, or when the
-    git tree is dirty (``result_cache_key`` returns ``None``).
+    git tree is dirty (``result_cache_key`` returns ``None``). A hit is
+    decoded with the requesting system's node labels (the key is label-free,
+    so an equivalent system with different labels may have produced the
+    entry).
     """
     from pyphi.conf import config
 
@@ -142,7 +147,7 @@ def maybe_disk_cached(system: Any, kind: str, user_kwargs: dict, compute: Any) -
         return compute()
     hit = _RESULT_DISK_CACHE.get(key)
     if hit is not None:
-        result = _decode_or_none(hit)
+        result = _decode_or_none(hit, node_labels=system.node_labels)
         if result is not None:
             return result
     result = compute()
