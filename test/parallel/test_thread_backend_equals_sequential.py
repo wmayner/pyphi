@@ -31,7 +31,7 @@ def _thread_override(threshold: int = 2) -> dict:
     forced = {"parallel": True, "sequential_threshold": threshold}
     keys = (
         "parallel_partition_evaluation",
-        "parallel_concept_evaluation",
+        "parallel_distinction_evaluation",
         "parallel_purview_evaluation",
     )
     return {

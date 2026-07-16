@@ -34,6 +34,7 @@ from dataclasses import is_dataclass
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
+from typing import Literal
 
 import yaml
 
@@ -513,7 +514,7 @@ class _OverrideContext(contextlib.ContextDecorator):
             raise
         return self
 
-    def __exit__(self, *exc: Any) -> bool:
+    def __exit__(self, *exc: Any) -> Literal[False]:
         del exc
         if self._saved is None:
             return False

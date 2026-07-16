@@ -164,7 +164,10 @@ image.
   convention.
 - `analyze` — compute system integrated information φₛ and the Φ-structure of a
   substrate in a state (under the default IIT 4.0 formalism, or an earlier
-  version if you ask for one).
+  version if you ask for one), optionally on multiple cores for that call
+  (`parallel`, `workers`).
+- `configure_parallel` — read or persistently set the server's parallelization
+  configuration; a per-call `analyze` setting takes precedence.
 - `inspect` — drill into one part of a result (a distinction, a repertoire).
 - `plot` — render PyPhi's built-in visualizations (needs the `visualize`
   extra): the cause-effect structure (`kind="ces"`), the cause and effect
@@ -175,9 +178,10 @@ image.
 
 **Resources** — the same reference documents, at `pyphi://theory/{topic}`.
 
-**Prompts** — `explain_result` (narrate an analysis in plain language) and
+**Prompts** — `explain_result` (narrate an analysis in plain language),
 `build_system_walkthrough` (turn a description of some units into a valid
-transition probability matrix).
+transition probability matrix), and `migrate_code` (rewrite pre-2.0 PyPhi
+code for 2.0).
 
 ## Good to know
 
@@ -193,7 +197,10 @@ transition probability matrix).
   ceiling for an exact analysis is about 10–12 units), so `analyze` refuses a
   full analysis of a large substrate unless you confirm it. A full Φ-structure
   can serialize to megabytes, so `analyze` returns a compact summary by default
-  and `inspect` reads a specific part in full on request.
+  and `inspect` reads a specific part in full on request. Parallelism divides
+  the constants, not the exponents, so the guard applies regardless of the
+  `parallel` setting; the assistant knows when multiple cores help from the
+  bundled `parallelization` reference.
 
 ## Connect the MCP server to an arbitrary client
 

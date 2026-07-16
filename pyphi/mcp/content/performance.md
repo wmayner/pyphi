@@ -7,6 +7,11 @@ or hang the machine. The `analyze` tool guards a large substrate behind
 responsibility is yours — plan for cost *before* starting a run, not after it
 hangs.
 
+Besides the caching and checkpointing covered here, the other lever for
+expensive work is running on multiple cores. That has its own topic and its
+own pitfalls — in particular, the global `parallel` flag alone does nothing —
+so read `get_iit_reference("parallelization")` before reaching for it.
+
 ## Caching
 
 PyPhi caches at two levels.

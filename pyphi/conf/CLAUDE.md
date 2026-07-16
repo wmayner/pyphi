@@ -22,14 +22,18 @@ option-by-option reference, loaded only when working with this directory.
 
 ## Performance & Parallelization (`config.infrastructure`)
 
-- **`parallel`**: Global switch for parallelization (default: false)
+- **`parallel`**: Master gate for parallelization (default: false). Necessary
+  but not sufficient: `false` forces every level sequential; `true` only
+  permits levels whose own per-level `parallel` flag is also on.
 - **`parallel_workers`**: CPU cores to use (default: -1 = all)
-- **`parallel_backend`**: `"local"` (ProcessPoolExecutor) or `"auto"`
+- **`parallel_backend`**: `"local"` (loky process pool), `"thread"`, or
+  `"auto"` (threads on free-threaded runtimes, else processes)
 - **`parallel_*_evaluation`**: Fine-grained per-level dicts with keys
   `parallel` / `chunksize` / `sequential_threshold` / `progress`
-  (e.g. `parallel_concept_evaluation`, `parallel_complex_evaluation`,
+  (`parallel_distinction_evaluation`, `parallel_complex_evaluation`,
   `parallel_partition_evaluation`, `parallel_purview_evaluation`,
-  `parallel_mechanism_partition_evaluation`, `parallel_relation_evaluation`)
+  `parallel_mechanism_partition_evaluation`, `parallel_relation_evaluation`,
+  `parallel_macro_system_evaluation`)
 
 ## Caching (`config.infrastructure`)
 

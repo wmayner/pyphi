@@ -108,10 +108,10 @@ def _compute_distinctions(
     """Compute the bag of distinctions for a system, restricted by the
     given mechanism / purview / direction filters.
 
-    Concepts are computed over the mechanisms via
+    Distinctions are computed over the mechanisms via
     :func:`pyphi.parallel.map_reduce`, so the ``parallel`` keyword and the
-    other keys of ``config.infrastructure.parallel_concept_evaluation`` govern
-    the work.
+    other keys of ``config.infrastructure.parallel_distinction_evaluation``
+    govern the work.
 
     Parameters
     ----------
@@ -130,16 +130,17 @@ def _compute_distinctions(
     directions : Iterable[Direction], optional
         Restrict possible directions to these.
     only_positive_phi : bool
-        Whether to only return concepts with positive φ (default ``True``).
+        Whether to only return distinctions with positive φ (default
+        ``True``).
     parallel : bool, optional
-        Whether to compute concepts in parallel. If given, overrides
-        :data:`config.infrastructure.parallel_concept_evaluation`.
+        Whether to compute distinctions in parallel. If given, overrides
+        :data:`config.infrastructure.parallel_distinction_evaluation`.
 
     Returns
     -------
     Distinctions
         An :class:`~pyphi.models.UnresolvedDistinctions` over the surviving
-        concepts. It is unresolved because the active formalism's MICE search
+        distinctions. It is unresolved because the active formalism's MICE search
         may return tied specified states; IIT 3.0 callers route through
         ``ces_distance``, which accepts the base distinctions unchanged.
     """
@@ -156,7 +157,7 @@ def _compute_distinctions(
 
     reduce_func = _only_positive_phi if only_positive_phi else _any_phi
     parallel_kwargs = conf.parallel_kwargs(
-        dict(config.infrastructure.parallel_concept_evaluation), **kwargs
+        dict(config.infrastructure.parallel_distinction_evaluation), **kwargs
     )
     concepts = map_reduce(
         compute_concept,
@@ -168,7 +169,7 @@ def _compute_distinctions(
             "directions": directions,
         },
         reduce_func=reduce_func,
-        desc="Computing concepts",
+        desc="Computing distinctions",
         total=total,
         # Larger mechanisms span larger cause/effect repertoires; a cheap
         # directional proxy for per-mechanism cost.

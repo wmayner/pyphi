@@ -156,6 +156,7 @@ def test_reference_topics_load():
         "migration",
         "configuration",
         "performance",
+        "parallelization",
         "visualization",
     }
     for topic in topics:
@@ -175,6 +176,75 @@ def test_visualization_topic_covers_the_gotchas():
     # The facts a fresh agent gets wrong without them, guarding against a stub.
     for name in ("plot_ces", "max_relations", "ANALYTICAL", "hypergraph", "write_html"):
         assert name in doc
+
+
+def test_parallelization_topic_covers_the_gates():
+    doc = content.load("parallelization")
+    # The load-bearing facts: the two-gate rule, the per-level options, the
+    # measured guidance, and the tool surface, guarding against a stub.
+    for name in (
+        "sequential_threshold",
+        "parallel_distinction_evaluation",
+        "parallel_partition_evaluation",
+        "override",
+        "loky",
+        "configure_parallel",
+    ):
+        assert name in doc
+    # The global flag alone engages nothing — the most common mistake.
+    assert "not sufficient" in doc
+
+
+def test_analyze_parallel_matches_sequential(basic_handle):
+    # Parallelism never changes a result. (This small system falls below
+    # every sequential_threshold, so the test exercises the override
+    # plumbing and result invariance, not worker-pool spin-up.)
+    result = srv.analyze(basic_handle, BASIC_STATE, parallel=True, workers=2)
+    assert result["summary"]["phi"] == pytest.approx(BASIC_PHI_S)
+    assert result["summary"]["big_phi"] == pytest.approx(BASIC_BIG_PHI)
+    # The per-call override is scoped: the configuration is restored.
+    assert pyphi.config.infrastructure.parallel is False
+
+
+def test_analyze_parallel_unknown_level_errors(basic_handle):
+    with pytest.raises(ValueError, match="Unknown parallel level"):
+        srv.analyze(basic_handle, BASIC_STATE, parallel=["bogus"])
+
+
+def test_configure_parallel_roundtrip():
+    # A no-argument call reads without changing anything.
+    state = srv.configure_parallel()
+    assert state["parallel"] is False
+    assert state["workers"] == -1
+
+    state = srv.configure_parallel(enable=True, levels=["partitions"], workers=2)
+    assert state["parallel"] is True
+    assert state["workers"] == 2
+    assert state["levels"]["partitions"]["parallel"] is True
+    assert state["levels"]["relations"]["parallel"] is False
+    # A subsequent read agrees with what was set.
+    assert srv.configure_parallel() == state
+
+    state = srv.configure_parallel(reset=True)
+    assert state["parallel"] is False
+    assert state["workers"] == -1
+    assert all(not level["parallel"] for level in state["levels"].values())
+
+
+def test_analyze_parallel_false_overrides_server_config(basic_handle):
+    srv.configure_parallel(enable=True)
+    result = srv.analyze(basic_handle, BASIC_STATE, compute="sia", parallel=False)
+    assert result["summary"]["phi"] == pytest.approx(BASIC_PHI_S)
+    # The per-call setting is scoped; the server configuration persists.
+    assert pyphi.config.infrastructure.parallel is True
+
+
+def test_analyze_guardrail_unchanged_with_parallel():
+    # Parallelism divides constants, not exponents: the size guard still fires.
+    tpm = np.zeros((2**8, 8))
+    handle = srv.build_substrate(tpm.tolist())["handle"]
+    with pytest.raises(ValueError, match="confirm_large"):
+        srv.analyze(handle, [0] * 8, compute="full", parallel=True)
 
 
 @pytest.mark.skipif(not HAS_EMD, reason="IIT 3.0 needs the emd extra")
