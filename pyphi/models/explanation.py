@@ -44,6 +44,7 @@ class NullResultReason(Enum):
     EMPTY_PURVIEW = auto()
     UNREACHABLE_STATE = auto()
     REDUCIBLE_OVER_PARTITION = auto()
+    OTHER_DIRECTION_REDUCIBLE = auto()
 
     @property
     def level(self) -> str:
@@ -59,6 +60,7 @@ _MECHANISM_REASONS = frozenset(
         NullResultReason.EMPTY_PURVIEW,
         NullResultReason.UNREACHABLE_STATE,
         NullResultReason.REDUCIBLE_OVER_PARTITION,
+        NullResultReason.OTHER_DIRECTION_REDUCIBLE,
     }
 )
 

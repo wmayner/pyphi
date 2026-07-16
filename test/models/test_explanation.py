@@ -41,10 +41,15 @@ def test_level_partition_is_correct():
         NullResultReason.EMPTY_PURVIEW,
         NullResultReason.UNREACHABLE_STATE,
         NullResultReason.REDUCIBLE_OVER_PARTITION,
+        NullResultReason.OTHER_DIRECTION_REDUCIBLE,
     }
     assert {r for r in NullResultReason if r.level == "system"} == system
     assert {r for r in NullResultReason if r.level == "mechanism"} == mechanism
     assert system | mechanism == set(NullResultReason)
+
+
+def test_other_direction_reducible_is_mechanism_level():
+    assert NullResultReason.OTHER_DIRECTION_REDUCIBLE.level == "mechanism"
 
 
 def test_explanation_describe_and_pandas():
