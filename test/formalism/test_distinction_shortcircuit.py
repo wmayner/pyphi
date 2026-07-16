@@ -155,3 +155,19 @@ def test_iit3_sia_unchanged_by_shortcircuit():
             sia_off = system.sia()
     assert numerics.eq(sia_on.phi, sia_off.phi)
     assert sia_on.partition == sia_off.partition
+
+
+def test_phi_skips_effect_mip_when_cause_phi_zero(sink_system, monkeypatch):
+    calls = []
+    real = queries.phi_effect_mip
+
+    def recording(cs, mechanism, purview, **kwargs):
+        calls.append((mechanism, purview))
+        return real(cs, mechanism, purview, **kwargs)
+
+    monkeypatch.setattr(queries, "phi_effect_mip", recording)
+    # Purview (0,) is not a potential cause purview of mechanism (2,)
+    # (A receives no edge from C), so the cause MIP is null with φ = 0.
+    result = queries.phi(sink_system, (2,), (0,))
+    assert result == 0
+    assert calls == []

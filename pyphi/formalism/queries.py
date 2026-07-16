@@ -252,10 +252,13 @@ def phi(
     purview: tuple[int, ...],
     **kwargs: Any,
 ) -> float:
-    return min(
-        phi_cause_mip(cs, mechanism, purview, **kwargs),
-        phi_effect_mip(cs, mechanism, purview, **kwargs),
-    )
+    """Return the φ of a mechanism over a purview: the minimum of the cause
+    and effect MIP φ values. The effect MIP is not evaluated when the cause
+    MIP's φ is already 0, since φ values are non-negative."""
+    cause_phi = phi_cause_mip(cs, mechanism, purview, **kwargs)
+    if not numerics.is_positive(float(cause_phi)):
+        return cause_phi
+    return min(cause_phi, phi_effect_mip(cs, mechanism, purview, **kwargs))
 
 
 # ---- MICE / MIE search ----
