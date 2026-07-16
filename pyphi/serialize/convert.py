@@ -932,6 +932,8 @@ def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
         probability=float(ria.probability),
         partitioned_probability=float(ria.partitioned_probability),
         partition_tie_peers=tuple(_encode_ac_ria(p, include_peers=False) for p in peers),
+        node_labels=_enc_optional(ria.node_labels),
+        reasons=_enc_reasons(ria.reasons),
     )
 
 
@@ -947,6 +949,8 @@ def _decode_ac_ria(struct: Any) -> Any:
         partition=from_schema(struct.partition),
         probability=struct.probability,
         partitioned_probability=struct.partitioned_probability,
+        node_labels=_dec_optional(struct.node_labels),
+        reasons=_dec_reasons(struct.reasons),
     )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ac_ria(p) for p in struct.partition_tie_peers)
@@ -1015,10 +1019,9 @@ def _register_account() -> None:
     )
 
 
-def _register_ac_sia() -> None:
-    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
-
-    _ENCODERS[AcSystemIrreducibilityAnalysis] = lambda s: schema.AcSIASchema(
+def _encode_ac_sia(s: Any, *, include_peers: bool) -> Any:
+    peers = tuple(t for t in s.ties if t is not s) if include_peers else ()
+    return schema.AcSIASchema(
         alpha=None if s.alpha is None else float(s.alpha),
         direction=_enc_optional_direction(s.direction),
         account=_enc_optional(s.account),
@@ -1031,21 +1034,49 @@ def _register_ac_sia() -> None:
         cause_indices=_opt_tuple(s.cause_indices),
         effect_indices=_opt_tuple(s.effect_indices),
         node_labels=_enc_optional(s.node_labels),
+        reasons=_enc_reasons(s.reasons),
+        config=_enc_config(s.config),
+        provenance=_enc_optional(s.provenance),
+        tie_peers=tuple(_encode_ac_sia(p, include_peers=False) for p in peers),
     )
-    _DECODERS[schema.AcSIASchema] = lambda s: AcSystemIrreducibilityAnalysis(
-        alpha=s.alpha,
-        direction=_dec_optional(s.direction),
-        account=_dec_optional(s.account),
-        partitioned_account=_dec_optional(s.partitioned_account),
-        partition=_dec_optional(s.partition),
-        before_state=_opt_tuple(s.before_state),
-        after_state=_opt_tuple(s.after_state),
-        size=s.size,
-        node_indices=_opt_tuple(s.node_indices),
-        cause_indices=_opt_tuple(s.cause_indices),
-        effect_indices=_opt_tuple(s.effect_indices),
-        node_labels=_dec_optional(s.node_labels),
+
+
+def _decode_ac_sia(struct: Any) -> Any:
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    instance = AcSystemIrreducibilityAnalysis(
+        alpha=struct.alpha,
+        direction=_dec_optional(struct.direction),
+        account=_dec_optional(struct.account),
+        partitioned_account=_dec_optional(struct.partitioned_account),
+        partition=_dec_optional(struct.partition),
+        before_state=_opt_tuple(struct.before_state),
+        after_state=_opt_tuple(struct.after_state),
+        size=struct.size,
+        node_indices=_opt_tuple(struct.node_indices),
+        cause_indices=_opt_tuple(struct.cause_indices),
+        effect_indices=_opt_tuple(struct.effect_indices),
+        node_labels=_dec_optional(struct.node_labels),
+        reasons=_dec_reasons(struct.reasons),
+        config=struct.config,
+        provenance=_dec_optional(struct.provenance),
     )
+    if struct.tie_peers:
+        peers = tuple(_decode_ac_sia(p) for p in struct.tie_peers)
+        tied = (instance, *peers)
+        instance._ties = tied
+        for peer in peers:
+            peer._ties = tied
+    return instance
+
+
+def _register_ac_sia() -> None:
+    from pyphi.models.actual_causation import AcSystemIrreducibilityAnalysis
+
+    _ENCODERS[AcSystemIrreducibilityAnalysis] = lambda s: _encode_ac_sia(
+        s, include_peers=True
+    )
+    _DECODERS[schema.AcSIASchema] = _decode_ac_sia
 
 
 def _enc_optional_direction(direction: Any) -> Any:

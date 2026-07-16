@@ -413,6 +413,8 @@ class AcRIASchema(msgspec.Struct, frozen=True, tag="ac_ria"):
     probability: float
     partitioned_probability: float
     partition_tie_peers: tuple["AcRIASchema", ...] = ()
+    node_labels: NodeLabelsSchema | None = None
+    reasons: tuple[str, ...] | None = None
 
 
 class CausalLinkSchema(msgspec.Struct, frozen=True, tag="causal_link"):
@@ -445,6 +447,10 @@ class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
     cause_indices: tuple[int, ...] | None
     effect_indices: tuple[int, ...] | None
     node_labels: NodeLabelsSchema | None
+    reasons: tuple[str, ...] | None = None
+    config: dict[str, Any] | None = None
+    provenance: ProvenanceSchema | None = None
+    tie_peers: tuple["AcSIASchema", ...] = ()
 
 
 # --- Complex (embeds a substrate, hence after the substrate schema) -----------
