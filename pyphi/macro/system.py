@@ -24,84 +24,12 @@ from functools import cached_property
 from typing import Any
 
 from pyphi.core.tpm.factored import FactoredTPM
-from pyphi.macro.tpm import _system_micro_indices
+from pyphi.macro.tpm import _normalize_history
+from pyphi.macro.tpm import _validate_units
 from pyphi.macro.tpm import macro_tpms
 from pyphi.macro.units import MacroUnit
 from pyphi.substrate import Substrate
 from pyphi.system import System
-
-
-def _validate_units(substrate: Substrate, units: tuple[MacroUnit, ...]) -> None:
-    if not units:
-        raise ValueError("at least one macro unit is required")
-    sizes = substrate.factored_tpm.alphabet_sizes
-    if any(size != 2 for size in sizes):
-        raise ValueError(f"the substrate must be binary; got alphabet sizes {sizes}")
-    n = substrate.size
-    claimed: set[int] = set()
-    for unit in units:
-        footprint = set(unit.micro_constituents) | set(unit.background_apportionment)
-        if max(footprint) >= n:
-            raise ValueError(
-                f"unit references indices outside the substrate (size {n}): "
-                f"{sorted(i for i in footprint if i >= n)}"
-            )
-        if claimed & footprint:
-            raise ValueError(
-                "units' micro constituents and apportionments must be "
-                f"pairwise disjoint (Eq. 18); overlap: {sorted(claimed & footprint)}"
-            )
-        claimed |= footprint
-    system = set(_system_micro_indices(units))
-    for unit in units:
-        if set(unit.background_apportionment) & system:
-            raise ValueError(
-                "background apportionment must lie outside the system's "
-                "micro constituents: "
-                f"{sorted(set(unit.background_apportionment) & system)}"
-            )
-        _validate_nested_apportionment(unit)
-
-
-def _validate_nested_apportionment(unit: MacroUnit) -> None:
-    """Eq. 12: constituents' apportionments nest within their parent's."""
-    parent = set(unit.background_apportionment)
-    for c in unit.constituents:
-        if isinstance(c, MacroUnit):
-            if not set(c.background_apportionment) <= parent:
-                raise ValueError(
-                    "a constituent's background apportionment must be a "
-                    "subset of its parent's (Eq. 12); offending indices: "
-                    f"{sorted(set(c.background_apportionment) - parent)}"
-                )
-            _validate_nested_apportionment(c)
-
-
-def _normalize_history(units, substrate, micro_history):
-    max_grain = max(unit.micro_grain for unit in units)
-    history = tuple(micro_history)
-    if history and not isinstance(history[0], (tuple, list)):
-        if max_grain == 1:
-            history = (history,)
-        else:
-            raise ValueError(
-                "micro_history must be a sequence of states (oldest "
-                f"first) of length {max_grain}; got a bare state"
-            )
-    history = tuple(tuple(s) for s in history)
-    if len(history) != max_grain:
-        raise ValueError(
-            f"micro_history must have {max_grain} entries (the maximum "
-            f"micro grain); got {len(history)}"
-        )
-    n = substrate.size
-    for s in history:
-        if len(s) != n or any(v not in (0, 1) for v in s):
-            raise ValueError(
-                f"each history entry must be a binary universe state of "
-                f"length {n}; got {s}"
-            )
-    return history
 
 
 def _macro_state(units, history):

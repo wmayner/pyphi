@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 from pyphi import utils
 
 from .triggered_tpm import TriggeredTPM
+from .triggered_tpm import _validate_binary_substrate
+from .triggered_tpm import _validate_sorted_indices
 from .triggered_tpm import build_triggered_tpm
 
 if TYPE_CHECKING:
@@ -20,8 +22,8 @@ class PerceptualSystem:
     through a sensory interface ∂S ⊆ E.
 
     Produces the fixed-lag triggered TPM and the triggered response state for
-    each stimulus (a state of the sensory interface ∂S). Assumes a binary
-    substrate.
+    each stimulus (a state of the sensory interface ∂S). Only binary
+    substrates are currently supported.
 
     Attributes
     ----------
@@ -53,6 +55,9 @@ class PerceptualSystem:
                 "system_indices and sensory_indices must be disjoint; "
                 f"got overlap {sorted(system & sensory)}"
             )
+        _validate_binary_substrate(self.substrate)
+        _validate_sorted_indices("system_indices", self.system_indices)
+        _validate_sorted_indices("sensory_indices", self.sensory_indices)
 
     @property
     def environment_indices(self) -> tuple[int, ...]:

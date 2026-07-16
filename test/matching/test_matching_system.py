@@ -1,10 +1,12 @@
 """Tests for PerceptualSystem (the environment->system layer)."""
 
+import numpy as np
 import pytest
 
 from pyphi import examples
 from pyphi import utils
 from pyphi.matching import PerceptualSystem
+from pyphi.substrate import Substrate
 
 
 @pytest.fixture(scope="module")
@@ -52,3 +54,23 @@ def test_triggered_state_single(perceptual_system):
 def test_invalid_tau_raises(perceptual_system):
     with pytest.raises(ValueError):
         perceptual_system.triggered_tpm(tau=1, tau_clamp=2)
+
+
+def test_perceptual_system_rejects_kary_substrate():
+    f0 = np.full((3, 2, 3), 1 / 3)
+    f1 = np.full((3, 2, 2), 1 / 2)
+    substrate = Substrate(
+        marginals=[f0, f1],
+        state_space=((0, 1, 2), (0, 1)),
+        cm=np.ones((2, 2)),
+    )
+    with pytest.raises(ValueError, match="binary"):
+        PerceptualSystem(substrate, system_indices=(1,), sensory_indices=(0,))
+
+
+def test_perceptual_system_rejects_unsorted_indices():
+    substrate = examples.basic_substrate()
+    with pytest.raises(ValueError, match="system_indices"):
+        PerceptualSystem(substrate, system_indices=(2, 1), sensory_indices=(0,))
+    with pytest.raises(ValueError, match="sensory_indices"):
+        PerceptualSystem(substrate, system_indices=(2,), sensory_indices=(1, 0))

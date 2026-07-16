@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 
 import numpy as np
@@ -52,9 +53,13 @@ class TriggeredTPM:
         """Return Pr(mechanism = state) from a distribution over the system axes.
 
         Sums out the system units not in ``mechanism``. Requires ``mechanism``
-        to be a subset of ``system_indices`` and ``state`` to match its length.
+        to be a subset of ``system_indices`` (without duplicates) and ``state``
+        to match its length; the (mechanism, state) pairs may be given in any
+        order.
         """
         mechanism = tuple(mechanism)
+        if len(set(mechanism)) != len(mechanism):
+            raise ValueError(f"duplicate units in mechanism {mechanism}")
         if not set(mechanism) <= set(self.system_indices):
             raise ValueError(
                 f"mechanism {mechanism} is not a subset of system_indices "
@@ -62,11 +67,17 @@ class TriggeredTPM:
             )
         if len(state) != len(mechanism):
             raise ValueError(f"state {state} length != mechanism {mechanism} length")
+        # Canonicalize: sort the (mechanism, state) pairs together so the
+        # axis bookkeeping below can assume increasing mechanism order.
+        pairs = sorted(zip(mechanism, state, strict=True))
+        mechanism = tuple(m for m, _ in pairs)
+        state = tuple(s for _, s in pairs)
         keep = [self.system_indices.index(m) for m in mechanism]
         sum_axes = tuple(a for a in range(len(self.system_indices)) if a not in keep)
         reduced = distribution.sum(axis=sum_axes) if sum_axes else distribution
-        # mechanism and system_indices are both sorted, so `keep` is increasing
-        # and the remaining axes are already in mechanism order.
+        # `mechanism` is sorted above and `system_indices` is validated sorted
+        # at construction, so `keep` is increasing and the remaining axes are
+        # already in mechanism order.
         return float(reduced[tuple(state)])
 
     def conditional_probability(self, mechanism, state, stimulus) -> float:
@@ -96,6 +107,32 @@ def _full_state(sensory_indices, system_indices, x, s_sys, n):
     for i, si in zip(system_indices, s_sys, strict=True):
         full[i] = si
     return tuple(full)
+
+
+def _validate_binary_substrate(substrate) -> None:
+    """Raise if the substrate has any non-binary unit.
+
+    The triggered-TPM construction operates on the binary state-by-node
+    representation; only binary substrates are currently supported.
+    """
+    sizes = substrate.factored_tpm.alphabet_sizes
+    if any(size != 2 for size in sizes):
+        raise ValueError(
+            f"only binary substrates are currently supported; got alphabet sizes {sizes}"
+        )
+
+
+def _validate_sorted_indices(name: str, indices) -> None:
+    """Raise unless ``indices`` is strictly increasing (sorted, no duplicates).
+
+    Triggered-TPM axes and stimulus/state tuples are positional relative
+    to these index tuples, so only the sorted form is unambiguous.
+    """
+    if not all(a < b for a, b in itertools.pairwise(indices)):
+        raise ValueError(
+            f"{name} must be strictly increasing (sorted, without "
+            f"duplicates); got {tuple(indices)}"
+        )
 
 
 def _system_step_tpm(sbn_full, sensory_indices, system_indices, n, *, clamp_to):
@@ -132,8 +169,12 @@ def build_triggered_tpm(
 
     Clamp the sensory interface to the stimulus for ``tau_clamp`` steps, then
     marginalize it for the remaining ``tau - tau_clamp`` steps; compose and
-    average over the initial system state. Assumes a binary substrate.
+    average over the initial system state. Only binary substrates are
+    currently supported.
     """
+    _validate_binary_substrate(substrate)
+    _validate_sorted_indices("sensory_indices", sensory_indices)
+    _validate_sorted_indices("system_indices", system_indices)
     n = len(substrate.node_indices)
     sbn_full = np.asarray(substrate.tpm.to_array())[..., 1]  # binary ON-prob slice
 
