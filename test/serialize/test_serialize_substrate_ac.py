@@ -99,3 +99,12 @@ def test_transition_preserves_noise_background(fmt):
     original_ratio = obj._ratio(Direction.EFFECT, (0,), (1,))
     assert restored._ratio(Direction.EFFECT, (0,), (1,)) == original_ratio
     assert original_ratio != 0.0
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_null_ac_sia_round_trips(fmt):
+    sia = actual._null_ac_sia(make_transition(), Direction.CAUSE)
+    restored = round_trip(sia, fmt)
+    assert restored == sia
+    assert len(restored.account) == 0
+    assert len(restored.partitioned_account) == 0

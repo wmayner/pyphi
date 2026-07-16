@@ -794,8 +794,9 @@ def test_null_ac_sia(transition):
     assert sia.size == len(transition)
     assert sia.node_indices == transition.node_indices
     assert sia.direction == Direction.CAUSE
-    assert sia.account == ()
-    assert sia.partitioned_account == ()
+    assert sia.account == models.Account(())
+    assert sia.partitioned_account == models.Account(())
+    assert len(sia.account) == 0
     assert sia.alpha == 0.0
 
     sia = actual._null_ac_sia(transition, Direction.CAUSE, alpha=float("inf"))
