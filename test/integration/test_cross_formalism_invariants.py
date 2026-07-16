@@ -90,9 +90,9 @@ from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
 from pyphi.direction import Direction
 from pyphi.formalism import iit3
-from pyphi.formalism.actual_causation.compute import mechanism_partitions
 from pyphi.formalism.actual_causation.compute import probability_distance
 from pyphi.measures.distribution import generalized_intrinsic_difference
+from pyphi.partition import mechanism_partitions
 from test.hypothesis_utils import binary_state
 from test.hypothesis_utils import small_substrate
 

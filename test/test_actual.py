@@ -737,7 +737,10 @@ def ac_cut(direction, *parts):
 
 
 @config.override(
-    iit=replace(config.formalism.iit, mechanism_partition_scheme="WEDGE_TRIPARTITION")
+    actual_causation=replace(
+        config.formalism.actual_causation,
+        mechanism_partition_scheme="WEDGE_TRIPARTITION",
+    )
 )
 @pytest.mark.parametrize(
     "direction,answer",
@@ -891,20 +894,32 @@ class TestActualCausationIIT30:
         assert len(sia.partitioned_account) == 2
 
     def test_sia_cause_direction(self, transition):
-        """Test SIA with CAUSE direction only under IIT 3.0 bipartitions.
+        """Cause-direction SIA under the AC default (JOINT_PARTITION_ALL).
 
-        Under ``mechanism_partition_scheme="JOINT_BIPARTITION"`` (inherited
-        from ``IIT_3_CONFIG``), the cause direction reduces to ``alpha == 0.0``
-        for this fixture even though individual causal links have nonzero
-        alpha. The effect and bidirectional directions remain nonzero — see
-        :meth:`test_sia_effect_direction` and :meth:`test_sia`. Under
-        ``mechanism_partition_scheme="WEDGE_TRIPARTITION"`` the cause
-        direction is also nonzero; that regime is exercised by
-        :meth:`test_prevention`.
+        The AC formalism uses its own ``mechanism_partition_scheme`` (default
+        ``JOINT_PARTITION_ALL``, the 2019-paper family), independent of the IIT
+        ``mechanism_partition_scheme`` pinned by ``IIT_3_CONFIG``. For a
+        first-order occurrence the paper permits only the full cut, giving
+        α = rho = log₂(4/3). Selecting ``JOINT_BIPARTITION`` on the AC field is a
+        deliberate variant that admits the paper-forbidden m=1 partitions and
+        drives the cause direction to 0 — see
+        :meth:`test_sia_cause_direction_bipartition_variant`.
         """
         sia_cause = actual.sia(transition, Direction.CAUSE)
-        assert sia_cause.alpha == 0.0
+        assert np.isclose(sia_cause.alpha, np.log2(4 / 3))
         assert sia_cause.direction == Direction.CAUSE
+
+    def test_sia_cause_direction_bipartition_variant(self, transition):
+        """Selecting JOINT_BIPARTITION on the AC field reproduces the m=1
+        deflation to α = 0 as a deliberate, opt-in variant."""
+        with config.override(
+            actual_causation=replace(
+                config.formalism.actual_causation,
+                mechanism_partition_scheme="JOINT_BIPARTITION",
+            )
+        ):
+            sia_cause = actual.sia(transition, Direction.CAUSE)
+        assert sia_cause.alpha == 0.0
 
     def test_sia_effect_direction(self, transition):
         """Test SIA with EFFECT direction only (IIT 3.0)."""
@@ -913,18 +928,17 @@ class TestActualCausationIIT30:
         assert sia_effect.direction == Direction.EFFECT
 
     @config.override(
-        iit=replace(
-            config.formalism.iit, mechanism_partition_scheme="WEDGE_TRIPARTITION"
+        actual_causation=replace(
+            config.formalism.actual_causation,
+            mechanism_partition_scheme="WEDGE_TRIPARTITION",
         )
     )
     def test_prevention(self, prevention):
-        """Test prevention example under IIT 3.0 with tripartitions.
+        """Prevention example under an explicit AC ``WEDGE_TRIPARTITION`` choice.
 
-        The original test deliberately exercised tripartition
-        (``mechanism_partition_scheme="WEDGE_TRIPARTITION"``). Do not silently
-        inherit ``JOINT_BIPARTITION`` from ``IIT_3_CONFIG`` — the bipartition
-        and tripartition results differ and are different claims about the
-        prevention example.
+        The scheme is selected on the actual-causation config field (a
+        deliberate variant), not silently inherited from the IIT field. On this
+        example the AC default ``JOINT_PARTITION_ALL`` gives the same values.
         """
         assert np.isclose(actual.sia(prevention, Direction.CAUSE).alpha, 0.4150374992788)
         assert actual.sia(prevention, Direction.EFFECT).alpha == 0.0
@@ -948,9 +962,9 @@ class TestActualCausationIIT30:
         assert np.isclose(cria.alpha, 0.4150374992788)
         assert cria.probability == 2 / 3
         assert cria.partitioned_probability == 0.5
-        assert cria.partition == models.JointBipartition(
-            models.Part((), (1,)),
+        assert cria.partition == models.JointPartition(
             models.Part((0,), ()),
+            models.Part((), (1,)),
         )
 
         effect_account = actual.account(transition, Direction.EFFECT)
@@ -965,9 +979,9 @@ class TestActualCausationIIT30:
         assert np.isclose(eria0.alpha, 0.4150374992788)
         assert eria0.probability == 1.0
         assert eria0.partitioned_probability == 0.75
-        assert eria0.partition == models.JointBipartition(
-            models.Part((), (0,)),
+        assert eria0.partition == models.JointPartition(
             models.Part((1,), ()),
+            models.Part((), (0,)),
         )
 
         assert eria1.mechanism == (2,)
@@ -977,9 +991,9 @@ class TestActualCausationIIT30:
         assert np.isclose(eria1.alpha, 0.4150374992788)
         assert eria1.probability == 1.0
         assert eria1.partitioned_probability == 0.75
-        assert eria1.partition == models.JointBipartition(
-            models.Part((), (0,)),
+        assert eria1.partition == models.JointPartition(
             models.Part((2,), ()),
+            models.Part((), (0,)),
         )
 
     def test_causal_nexus(self, standard):
@@ -1018,7 +1032,7 @@ class TestActualCausationIIT30:
 
         On the (0,1,2) major complex, the transition (1,0,0) -> (0,0,1) ->
         (1,1,0) yields one true event at mechanism (2,) with cause purview
-        (0, 1) and effect purview (1,). Coverage of event-detection logic on a
+        (0, 1) and effect purview (0, 1). Coverage of event-detection logic on a
         pinned-indices complex is in test_true_events_on_known_complex.
         """
         states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
@@ -1034,9 +1048,9 @@ class TestActualCausationIIT30:
         assert true_cause.purview == (0, 1)
         assert true_cause.direction == Direction.CAUSE
 
-        assert true_effect.alpha == 1.0
+        assert np.isclose(true_effect.alpha, np.log2(8 / 3))
         assert true_effect.mechanism == (2,)
-        assert true_effect.purview == (1,)
+        assert true_effect.purview == (0, 1)
         assert true_effect.direction == Direction.EFFECT
 
     def test_true_events_on_known_complex(self, standard):
@@ -1098,7 +1112,7 @@ class TestActualCausationIIT30:
         assert actual_cause.purview == (0, 1)
         assert actual_cause.mechanism == (2,)
 
-        assert actual_effect.purview == (1,)
+        assert actual_effect.purview == (0, 1)
         assert actual_effect.mechanism == (2,)
 
     def test_extrinsic_events(self, standard):
@@ -1122,9 +1136,9 @@ class TestActualCausationIIT30:
         assert true_cause.purview == (0, 1)
         assert true_cause.direction == Direction.CAUSE
 
-        assert true_effect.alpha == 1.0
+        assert np.isclose(true_effect.alpha, np.log2(8 / 3))
         assert true_effect.mechanism == (2,)
-        assert true_effect.purview == (1,)
+        assert true_effect.purview == (0, 1)
         assert true_effect.direction == Direction.EFFECT
 
 
@@ -1407,3 +1421,48 @@ def test_transition_system_delegated_repertoire_matches_underlying() -> None:
     rep_ts = ts.cause_repertoire((1,), (1,))
     rep_us = ts._underlying_system.cause_repertoire((1,), (1,))
     assert np.array_equal(np.asarray(rep_ts), np.asarray(rep_us))
+
+
+class TestACMechanismPartitionScheme:
+    """AC partition enumeration is governed by the AC config field, not IIT."""
+
+    def _witness(self):
+        # Minimal first-order-occurrence-over-multi-unit-purview witness.
+        sub = Substrate(np.array([[0, 0], [1, 0], [1, 0], [1, 1]]))
+        return actual.Transition(sub, (1, 0), (1, 0), (0, 1), (0, 1))
+
+    def test_ac_uses_its_own_default_not_the_iit_field(self):
+        # Even with the IIT field pinned to the paper-forbidden bipartition
+        # family, AC uses its own default JOINT_PARTITION_ALL and returns rho.
+        t = self._witness()
+        from pyphi.formalism.actual_causation.compute import _find_mip
+
+        with config.override(
+            iit=replace(
+                config.formalism.iit, mechanism_partition_scheme="JOINT_BIPARTITION"
+            )
+        ):
+            ria = _find_mip(t, Direction.CAUSE, (0,), (0, 1))
+        assert np.isclose(ria.alpha, np.log2(4 / 3))
+
+    def test_iit_field_does_not_affect_ac_but_ac_field_does(self):
+        t = self._witness()
+        from pyphi.formalism.actual_causation.compute import _find_mip
+
+        # IIT field varies; AC field fixed at the default -> α is constant.
+        vals = []
+        for iit_scheme in ("JOINT_PARTITION_ALL", "JOINT_BIPARTITION"):
+            with config.override(
+                iit=replace(config.formalism.iit, mechanism_partition_scheme=iit_scheme)
+            ):
+                vals.append(_find_mip(t, Direction.CAUSE, (0,), (0, 1)).alpha)
+        assert np.isclose(vals[0], vals[1])
+
+        # AC field drives the result: bipartition on the AC field gives 0.
+        with config.override(
+            actual_causation=replace(
+                config.formalism.actual_causation,
+                mechanism_partition_scheme="JOINT_BIPARTITION",
+            )
+        ):
+            assert _find_mip(t, Direction.CAUSE, (0,), (0, 1)).alpha == 0.0

@@ -56,6 +56,11 @@ option-by-option reference, loaded only when working with this directory.
 
 - **`mechanism_partition_scheme`**: Default `"JOINT_PARTITION_ALL"`
 - **`system_partition_scheme`**: Default `"DIRECTED_SET_PARTITION"`
+- **`config.formalism.actual_causation.mechanism_partition_scheme`**: AC
+  partition family (default `"JOINT_PARTITION_ALL"`, the Albantakis et al. 2019
+  Eq. 7 / Fig. 3B family). Read independently of the IIT field above;
+  `"JOINT_BIPARTITION"` is a deliberate variant that deviates from the published
+  α on first-order occurrences.
 
 ## Debugging & Output (`config.infrastructure`)
 

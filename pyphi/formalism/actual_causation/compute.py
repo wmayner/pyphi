@@ -38,7 +38,7 @@ from pyphi.models import NullResultReason
 from pyphi.models import _null_ac_ria
 from pyphi.models import _null_ac_sia
 from pyphi.parallel import map_reduce
-from pyphi.partition import mechanism_partitions
+from pyphi.partition import partition_types
 from pyphi.registry import Registry
 
 if TYPE_CHECKING:
@@ -198,6 +198,21 @@ def account_distance(A1, A2):
     return sum([action.alpha for action in A1]) - sum([action.alpha for action in A2])
 
 
+def _ac_mechanism_partitions(mechanism, purview, node_labels=None):
+    """Yield mechanism partitions under the actual-causation partition scheme.
+
+    Resolves ``config.formalism.actual_causation.mechanism_partition_scheme``
+    through the partition-scheme registry at call time, so actual-causation
+    partitioning is governed by the AC formalism and never by the IIT
+    ``mechanism_partition_scheme`` field. The default ``JOINT_PARTITION_ALL`` is
+    the partition family of Albantakis et al. (2019), Eq. 7 and Fig. 3B: all
+    partitions of the occurrence, excluding the m=1 non-full-cut cases the paper
+    forbids for first-order occurrences.
+    """
+    scheme = config.formalism.actual_causation.mechanism_partition_scheme
+    return partition_types[scheme](mechanism, purview, node_labels)
+
+
 def _find_mip(
     transition: Transition,
     direction,
@@ -254,7 +269,9 @@ def _find_mip(
 
     probability = transition.probability(direction, mechanism, purview)
     candidates: list[AcRepertoireIrreducibilityAnalysis] = []
-    for partition in mechanism_partitions(mechanism, purview, transition.node_labels):
+    for partition in _ac_mechanism_partitions(
+        mechanism, purview, transition.node_labels
+    ):
         partitioned_probability = transition.partitioned_probability(
             direction,
             partition,
@@ -557,7 +574,7 @@ def _get_partitions(transition, direction):
     else:
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
-        for inner_partition in mechanism_partitions(
+        for inner_partition in _ac_mechanism_partitions(
             mechanism, purview, transition.node_labels
         ):
             yield DirectedJointPartition(

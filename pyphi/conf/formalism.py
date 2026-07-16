@@ -162,6 +162,12 @@ class ActualCausationConfig:
 
     version: str = "AC_2019"
     alpha_measure: str = "PMI"
+    # The partition family for actual-causation MIP search. JOINT_PARTITION_ALL
+    # is the Albantakis et al. (2019) family (Eq. 7 + Fig. 3B: all partitions of
+    # the occurrence, excluding the m=1 non-full-cut cases forbidden for
+    # first-order occurrences). Other registered schemes are deliberate
+    # variants — notably JOINT_BIPARTITION admits those m=1 partitions and so
+    # yields alpha below the published values on first-order occurrences.
     mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
     partitioned_repertoire_scheme: str = "PRODUCT"
     background_scheme: str = "UNIFORM"
