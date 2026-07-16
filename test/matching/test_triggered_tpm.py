@@ -186,3 +186,29 @@ def test_build_triggered_tpm_rejects_duplicate_indices():
     substrate = examples.basic_substrate()
     with pytest.raises(ValueError, match="system_indices"):
         build_triggered_tpm(substrate, (0,), (1, 1), tau=1, tau_clamp=1)
+
+
+def test_mechanism_order_is_canonicalized():
+    import pyphi
+
+    sbn = np.zeros((2, 2, 2, 3))
+    for a in (0, 1):
+        for b in (0, 1):
+            for c in (0, 1):
+                sbn[a, b, c, 1] = a
+    substrate = pyphi.Substrate(sbn)
+    t = build_triggered_tpm(
+        substrate, sensory_indices=(0,), system_indices=(1, 2), tau=1, tau_clamp=1
+    )
+    # (unit1, unit2) = (1, 0) with certainty for stimulus (1,).
+    assert t.conditional_probability((1, 2), (1, 0), (1,)) == pytest.approx(1.0)
+    # Same query with the mechanism in reversed order, state paired to match.
+    assert t.conditional_probability((2, 1), (0, 1), (1,)) == pytest.approx(1.0)
+    assert t.marginal_probability((2, 1), (0, 1)) == pytest.approx(
+        t.marginal_probability((1, 2), (1, 0))
+    )
+
+
+def test_marginalization_rejects_duplicate_mechanism(ttpm):
+    with pytest.raises(ValueError, match="duplicate"):
+        ttpm.conditional_probability((1, 1), (0, 0), (0,))

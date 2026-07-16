@@ -53,9 +53,13 @@ class TriggeredTPM:
         """Return Pr(mechanism = state) from a distribution over the system axes.
 
         Sums out the system units not in ``mechanism``. Requires ``mechanism``
-        to be a subset of ``system_indices`` and ``state`` to match its length.
+        to be a subset of ``system_indices`` (without duplicates) and ``state``
+        to match its length; the (mechanism, state) pairs may be given in any
+        order.
         """
         mechanism = tuple(mechanism)
+        if len(set(mechanism)) != len(mechanism):
+            raise ValueError(f"duplicate units in mechanism {mechanism}")
         if not set(mechanism) <= set(self.system_indices):
             raise ValueError(
                 f"mechanism {mechanism} is not a subset of system_indices "
@@ -63,11 +67,17 @@ class TriggeredTPM:
             )
         if len(state) != len(mechanism):
             raise ValueError(f"state {state} length != mechanism {mechanism} length")
+        # Canonicalize: sort the (mechanism, state) pairs together so the
+        # axis bookkeeping below can assume increasing mechanism order.
+        pairs = sorted(zip(mechanism, state, strict=True))
+        mechanism = tuple(m for m, _ in pairs)
+        state = tuple(s for _, s in pairs)
         keep = [self.system_indices.index(m) for m in mechanism]
         sum_axes = tuple(a for a in range(len(self.system_indices)) if a not in keep)
         reduced = distribution.sum(axis=sum_axes) if sum_axes else distribution
-        # mechanism and system_indices are both sorted, so `keep` is increasing
-        # and the remaining axes are already in mechanism order.
+        # `mechanism` is sorted above and `system_indices` is validated sorted
+        # at construction, so `keep` is increasing and the remaining axes are
+        # already in mechanism order.
         return float(reduced[tuple(state)])
 
     def conditional_probability(self, mechanism, state, stimulus) -> float:
