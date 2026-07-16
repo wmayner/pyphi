@@ -61,7 +61,9 @@ class _NdarrayBackend:
         factor = self._factors[i]
         idx: list[Any] = [slice(None)] * factor.ndim
         for j, state_j in fixed.items():
-            idx[j] = state_j
+            # A size-1 input axis means the factor is constant in that
+            # input, so conditioning on any state selects the stored slice.
+            idx[j] = 0 if factor.shape[j] == 1 else state_j
         out = factor[tuple(idx)]
         for j in sorted(fixed):
             out = np.expand_dims(out, axis=j)

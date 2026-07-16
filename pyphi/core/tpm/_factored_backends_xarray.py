@@ -56,7 +56,12 @@ class _XarrayBackend:
 
     def select(self, i: int, fixed: Mapping[int, int]) -> NDArray[np.float64]:
         factor = self._factors[i]
-        idx: dict[str, int] = {f"in_{j}": state_j for j, state_j in fixed.items()}
+        # A size-1 input axis means the factor is constant in that input,
+        # so conditioning on any state selects the stored slice.
+        idx: dict[str, int] = {
+            f"in_{j}": (0 if factor.sizes[f"in_{j}"] == 1 else state_j)
+            for j, state_j in fixed.items()
+        }
         sliced = factor.isel(idx)
         out = sliced.values
         for j in sorted(fixed):
