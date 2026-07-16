@@ -1,12 +1,15 @@
+import numpy as np
 import pytest
 
 from pyphi import actual
 from pyphi import examples
 from pyphi import serialize
 from pyphi.actual import Transition
+from pyphi.direction import Direction
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.models.complex import Complex
 from pyphi.models.complex import ExcludedCandidate
+from pyphi.substrate import Substrate
 
 FORMATS = ["json", "msgpack"]
 
@@ -82,3 +85,17 @@ def test_kary_substrate_round_trips(fmt):
     assert restored == obj
     assert list(restored.node_labels) == list(obj.node_labels)
     assert restored.factored_tpm.state_space == obj.factored_tpm.state_space
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_transition_preserves_noise_background(fmt):
+    # OR gate driven by a noised background unit: the EFFECT ratio is
+    # nonzero only when noise_background survives the round-trip.
+    substrate = Substrate(np.array([[0, 0], [1, 1], [1, 1], [1, 1]]))
+    obj = Transition(substrate, (1, 1), (1, 1), (0,), (1,), noise_background=True)
+    restored = round_trip(obj, fmt)
+    assert restored.noise_background is True
+    assert restored == obj
+    original_ratio = obj._ratio(Direction.EFFECT, (0,), (1,))
+    assert restored._ratio(Direction.EFFECT, (0,), (1,)) == original_ratio
+    assert original_ratio != 0.0

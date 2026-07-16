@@ -462,6 +462,7 @@ class Transition(Serializable):
             and self.cause_indices == other.cause_indices
             and self.effect_indices == other.effect_indices
             and self.partition == other.partition
+            and self.noise_background == other.noise_background
         )
 
     def __hash__(self) -> int:
@@ -473,6 +474,7 @@ class Transition(Serializable):
                 self.cause_indices,
                 self.effect_indices,
                 self.partition,
+                self.noise_background,
             )
         )
 

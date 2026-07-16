@@ -905,6 +905,7 @@ def _register_transition() -> None:
         cause_indices=tuple(t.cause_indices),
         effect_indices=tuple(t.effect_indices),
         partition=to_schema(t.partition),
+        noise_background=t.noise_background,
     )
     _DECODERS[schema.TransitionSchema] = lambda t: Transition(
         substrate=from_schema(t.substrate),
@@ -913,6 +914,7 @@ def _register_transition() -> None:
         cause_indices=tuple(t.cause_indices),
         effect_indices=tuple(t.effect_indices),
         partition=from_schema(t.partition),
+        noise_background=t.noise_background,
     )
 
 

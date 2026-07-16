@@ -397,6 +397,7 @@ class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
     partition: PartitionSchema
+    noise_background: bool = False
 
 
 # --- Actual causation ---------------------------------------------------------

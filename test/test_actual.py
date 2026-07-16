@@ -329,6 +329,16 @@ def test_background_noised():
     # is the load-bearing check for noise_background semantics.
 
 
+def test_transition_equality_includes_noise_background():
+    substrate = examples.actual_causation_substrate()
+    frozen = actual.Transition(substrate, (1, 1), (1, 1), (0,), (1,))
+    noised = actual.Transition(
+        substrate, (1, 1), (1, 1), (0,), (1,), noise_background=True
+    )
+    assert frozen != noised
+    assert len({frozen, noised}) == 2
+
+
 @pytest.fixture
 def background_3_node():
     """A is MAJ(ABC). B is OR(A, C). C is COPY(A)."""
