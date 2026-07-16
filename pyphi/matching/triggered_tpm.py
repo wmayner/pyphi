@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 
 import numpy as np
@@ -98,6 +99,32 @@ def _full_state(sensory_indices, system_indices, x, s_sys, n):
     return tuple(full)
 
 
+def _validate_binary_substrate(substrate) -> None:
+    """Raise if the substrate has any non-binary unit.
+
+    The triggered-TPM construction operates on the binary state-by-node
+    representation; only binary substrates are currently supported.
+    """
+    sizes = substrate.factored_tpm.alphabet_sizes
+    if any(size != 2 for size in sizes):
+        raise ValueError(
+            f"only binary substrates are currently supported; got alphabet sizes {sizes}"
+        )
+
+
+def _validate_sorted_indices(name: str, indices) -> None:
+    """Raise unless ``indices`` is strictly increasing (sorted, no duplicates).
+
+    Triggered-TPM axes and stimulus/state tuples are positional relative
+    to these index tuples, so only the sorted form is unambiguous.
+    """
+    if not all(a < b for a, b in itertools.pairwise(indices)):
+        raise ValueError(
+            f"{name} must be strictly increasing (sorted, without "
+            f"duplicates); got {tuple(indices)}"
+        )
+
+
 def _system_step_tpm(sbn_full, sensory_indices, system_indices, n, *, clamp_to):
     """A one-step state-by-node TPM over the system, with the sensory interface
     either clamped to a state (``clamp_to=x``) or marginalized
@@ -132,8 +159,12 @@ def build_triggered_tpm(
 
     Clamp the sensory interface to the stimulus for ``tau_clamp`` steps, then
     marginalize it for the remaining ``tau - tau_clamp`` steps; compose and
-    average over the initial system state. Assumes a binary substrate.
+    average over the initial system state. Only binary substrates are
+    currently supported.
     """
+    _validate_binary_substrate(substrate)
+    _validate_sorted_indices("sensory_indices", sensory_indices)
+    _validate_sorted_indices("system_indices", system_indices)
     n = len(substrate.node_indices)
     sbn_full = np.asarray(substrate.tpm.to_array())[..., 1]  # binary ON-prob slice
 
