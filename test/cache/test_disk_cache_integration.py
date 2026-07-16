@@ -92,3 +92,59 @@ def test_cache_write_failure_does_not_destroy_the_result(monkeypatch):
             system=None, kind="sia", compute=lambda: "computed", user_kwargs={}
         )
     assert result == "computed"
+
+
+def test_sia_hit_carries_the_requesters_labels(tmp_path, monkeypatch):
+    """The key is label-free by design, so a mathematically identical but
+    differently-labeled system hits; the result must carry the requester's
+    labels, not the computing system's."""
+    from pyphi import System
+    from pyphi.substrate import Substrate
+
+    _fresh_cache(tmp_path, monkeypatch)
+    with config.override(**presets.iit4_2023, disk_cache_results=True):
+        cold = examples.basic_system().sia()
+        sub = examples.basic_substrate()
+        twin_sub = Substrate.from_factored(
+            sub.factored_tpm, cm=sub.cm, node_labels=("X", "Y", "Z")
+        )
+        warm = System(twin_sub, examples.basic_state()).sia()
+    assert disk._RESULT_DISK_CACHE.hits >= 1
+    assert warm.phi == cold.phi
+    assert tuple(warm.node_labels) == ("X", "Y", "Z")
+    assert warm.cause is None or tuple(warm.cause.node_labels) == ("X", "Y", "Z")
+
+
+def test_ces_hit_carries_the_requesters_labels(tmp_path, monkeypatch):
+    from pyphi import System
+    from pyphi.substrate import Substrate
+
+    _fresh_cache(tmp_path, monkeypatch)
+    with config.override(**presets.iit4_2023, disk_cache_results=True):
+        examples.basic_system().ces()
+        sub = examples.basic_substrate()
+        twin_sub = Substrate.from_factored(
+            sub.factored_tpm, cm=sub.cm, node_labels=("X", "Y", "Z")
+        )
+        warm = System(twin_sub, examples.basic_state()).ces()
+    assert disk._RESULT_DISK_CACHE.hits >= 1
+    d = next(iter(warm.distinctions))
+    assert tuple(d.cause.node_labels) == ("X", "Y", "Z")
+
+
+def test_iit3_sia_hit_carries_the_requesters_labels(tmp_path, monkeypatch):
+    from pyphi import System
+    from pyphi.substrate import Substrate
+    from test.conftest import IIT_3_CONFIG
+
+    _fresh_cache(tmp_path, monkeypatch)
+    with IIT_3_CONFIG, config.override(disk_cache_results=True):
+        cold = examples.basic_system().sia()
+        sub = examples.basic_substrate()
+        twin_sub = Substrate.from_factored(
+            sub.factored_tpm, cm=sub.cm, node_labels=("X", "Y", "Z")
+        )
+        warm = System(twin_sub, examples.basic_state()).sia()
+    assert disk._RESULT_DISK_CACHE.hits >= 1
+    assert warm.phi == cold.phi
+    assert tuple(warm.node_labels) == ("X", "Y", "Z")
