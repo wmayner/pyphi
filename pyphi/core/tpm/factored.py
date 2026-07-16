@@ -130,6 +130,16 @@ class FactoredTPM(Displayable, ToPandasMixin):
     def factor(self, i: int) -> NDArray[np.float64]:
         return self._backend.get_factor(i)
 
+    def _factor_at(self, i: int, state: Sequence[int]) -> NDArray[np.float64]:
+        """Factor ``i``'s distribution at a full input state.
+
+        A size-1 input axis (a declared non-input) is constant in that
+        input, so its index is clamped to 0.
+        """
+        factor = self.factor(i)
+        idx = tuple(0 if factor.shape[k] == 1 else int(s) for k, s in enumerate(state))
+        return factor[idx]
+
     @classmethod
     def from_joint(
         cls,
@@ -451,7 +461,7 @@ class FactoredTPM(Displayable, ToPandasMixin):
                 unit_labels=unit_labels,
                 state_axis_sizes=a,
                 prob_on_for_state=lambda state: [
-                    self.factor(i)[state][1] for i in range(n)
+                    self._factor_at(i, state)[1] for i in range(n)
                 ],
             )
             label = "P(next unit on | current state)"
@@ -459,7 +469,9 @@ class FactoredTPM(Displayable, ToPandasMixin):
             grid = _display.distribution_grid(
                 unit_labels=unit_labels,
                 alphabet_sizes=a,
-                dist_for_state=lambda state: [self.factor(i)[state] for i in range(n)],
+                dist_for_state=lambda state: [
+                    self._factor_at(i, state).tolist() for i in range(n)
+                ],
             )
             label = "P(next unit = state | current state)"
         return Section(label=label, body=(grid,))
@@ -474,7 +486,7 @@ class FactoredTPM(Displayable, ToPandasMixin):
         labels = list(self.unit_labels_for_display())
         states = list(utils.all_states(a))
         if all(size == 2 for size in a):
-            data = [[float(self.factor(i)[s][1]) for i in range(n)] for s in states]
+            data = [[float(self._factor_at(i, s)[1]) for i in range(n)] for s in states]
             index = (
                 pd.MultiIndex.from_tuples(states, names=[f"in_{i}" for i in range(n)])
                 if n > 1
@@ -490,7 +502,7 @@ class FactoredTPM(Displayable, ToPandasMixin):
             }
             for s in states
             for i in range(n)
-            for next_state, p in enumerate(self.factor(i)[s])
+            for next_state, p in enumerate(self._factor_at(i, s))
         ]
         return pd.DataFrame(rows)
 
@@ -527,8 +539,13 @@ class FactoredTPM(Displayable, ToPandasMixin):
         data_vars = {}
         for i in range(n):
             out_dim = f"u{i}_next"
+            # Broadcast size-1 (non-input) axes to full extent so the dims
+            # match the coordinate lengths.
+            full = np.broadcast_to(
+                self.factor(i), (*self.alphabet_sizes, len(state_space[i]))
+            )
             data_vars[f"unit_{i}"] = xr.DataArray(
-                self.factor(i),
+                full,
                 dims=(*in_dims, out_dim),
                 coords={**in_coords, out_dim: list(state_space[i])},
             )

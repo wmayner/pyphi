@@ -387,3 +387,30 @@ def test_condition_size1_axis_nonzero_state_xarray() -> None:
 def test_subtpm_size1_axis_nonzero_state_xarray() -> None:
     tpm = FactoredTPM(factors=_sparse_three_node_factors(), backend="xarray")
     assert tpm.subtpm((2,), (1,)) == tpm.subtpm((2,), (0,))
+
+
+def test_display_and_export_on_sparse_factors() -> None:
+    sparse = FactoredTPM(factors=_sparse_three_node_factors())
+    dense = FactoredTPM(
+        factors=[
+            np.broadcast_to(f, (2, 2, 2, 2)).copy() for f in _sparse_three_node_factors()
+        ]
+    )
+    # The sparse and dense forms are the same TPM, so their rendered
+    # forms must agree.
+    assert repr(sparse) == repr(dense)
+    assert str(sparse) == str(dense)
+    assert sparse.to_pandas().equals(dense.to_pandas())
+
+
+@requires_xarray
+def test_to_xarray_on_sparse_factors() -> None:
+    sparse = FactoredTPM(factors=_sparse_three_node_factors())
+    dense = FactoredTPM(
+        factors=[
+            np.broadcast_to(f, (2, 2, 2, 2)).copy() for f in _sparse_three_node_factors()
+        ]
+    )
+    ds = sparse.to_xarray()
+    assert dict(ds.sizes)["u0"] == 2
+    assert ds.identical(dense.to_xarray())
