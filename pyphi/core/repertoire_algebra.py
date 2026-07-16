@@ -40,6 +40,13 @@ from pyphi.measures.protocols import satisfies_composite_measure
 _kernel_caches: dict[str, ContentCache] = {}
 
 
+def _freeze(result: Any) -> Any:
+    """Make an ndarray result read-only; other values pass through."""
+    if isinstance(result, np.ndarray):
+        return _utils.np_immutable(result)
+    return result
+
+
 def _memoize(fn: Callable) -> Callable:
     """Memoize a function over System instances by content fingerprint.
 
@@ -48,7 +55,8 @@ def _memoize(fn: Callable) -> Callable:
     entries are evicted when its last live carrier is garbage-collected. Stops
     inserting new entries when ``cache_utils.memory_full()`` reports process
     memory above ``maximum_cache_memory_percentage`` — already-computed values
-    are still returned, just not cached.
+    are still returned, just not cached. Returned arrays are read-only;
+    callers that need a mutable copy must copy explicitly.
 
     Cache keys carry the resolved cause-side background convention, so
     cause-side entries never cross conventions (effect-side entries are
@@ -63,7 +71,7 @@ def _memoize(fn: Callable) -> Callable:
         fp = cs._fingerprint
         cache.observe(cs, fp)
         key_args = (cs._resolved_background_conditioning(), *args)
-        return cache.get_or_compute(fp, key_args, lambda: fn(cs, *args))
+        return cache.get_or_compute(fp, key_args, lambda: _freeze(fn(cs, *args)))
 
     return wrapper
 
