@@ -542,6 +542,10 @@ def _encode_iit3_sia(sia: Any, *, include_peers: bool) -> Any:
         node_labels=_enc_optional(sia.node_labels),
         current_state=_opt_tuple(sia.current_state),
         tie_peers=tuple(_encode_iit3_sia(p, include_peers=False) for p in peers),
+        runner_up=_enc_runner_up(sia.runner_up),
+        reasons=_enc_reasons(sia.reasons),
+        config=_enc_config(sia.config),
+        provenance=_enc_optional(sia.provenance),
     )
 
 
@@ -556,6 +560,10 @@ def _decode_iit3_sia(struct: Any) -> Any:
         node_indices=_opt_tuple(struct.node_indices),
         node_labels=_dec_optional(struct.node_labels),
         current_state=_opt_tuple(struct.current_state),
+        runner_up=_dec_runner_up(struct.runner_up),
+        reasons=_dec_reasons(struct.reasons),
+        config=struct.config,
+        provenance=_dec_optional(struct.provenance),
     )
     if struct.tie_peers:
         peers = tuple(_decode_iit3_sia(p) for p in struct.tie_peers)
@@ -607,6 +615,23 @@ def _dec_reasons(names: Any) -> Any:
     ]
 
 
+def _enc_runner_up(runner_up: Any) -> Any:
+    if runner_up is None:
+        return None
+    return schema.RunnerUpSchema(
+        partition=to_schema(runner_up.partition),
+        phi=to_schema(runner_up.phi),
+    )
+
+
+def _dec_runner_up(struct: Any) -> Any:
+    if struct is None:
+        return None
+    from pyphi.models.explanation import RunnerUp
+
+    return RunnerUp(partition=from_schema(struct.partition), phi=from_schema(struct.phi))
+
+
 def _enc_config(config: Any) -> Any:
     if config is None:
         return None
@@ -645,6 +670,7 @@ def _encode_iit4_sia(sia: Any, *, include_peers: bool) -> Any:
         provenance=_enc_optional(sia.provenance),
         tie_peers=tuple(_encode_iit4_sia(p, include_peers=False) for p in peers),
         partition_margin=_enc_optional(sia.partition_margin),
+        runner_up=_enc_runner_up(sia.runner_up),
     )
 
 
@@ -671,6 +697,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "config": struct.config,
         "provenance": _dec_optional(struct.provenance),
         "partition_margin": _dec_optional(struct.partition_margin),
+        "runner_up": _dec_runner_up(struct.runner_up),
     }
     if type(struct) is schema.NullIIT4SIASchema:
         instance = object.__new__(NullSystemIrreducibilityAnalysis)

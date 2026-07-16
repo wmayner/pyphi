@@ -241,6 +241,11 @@ class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candida
     units: tuple[MacroUnitSchema, ...] | None = None
 
 
+class RunnerUpSchema(msgspec.Struct, frozen=True, tag="runner_up"):
+    partition: PartitionSchema
+    phi: PhiSchema
+
+
 class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
     phi: PhiSchema | None
     distinctions: DistinctionsAnySchema | None
@@ -250,6 +255,10 @@ class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
     node_labels: NodeLabelsSchema | None
     current_state: tuple[int, ...] | None
     tie_peers: tuple["IIT3SIASchema", ...] = ()
+    runner_up: RunnerUpSchema | None = None
+    reasons: tuple[str, ...] | None = None
+    config: dict[str, Any] | None = None
+    provenance: ProvenanceSchema | None = None
 
 
 # Direction-keyed phi dict (e.g. intrinsic_differentiation) as ordered pairs.
@@ -274,6 +283,7 @@ class IIT4SIASchema(msgspec.Struct, frozen=True, tag="iit4_sia"):
     provenance: ProvenanceSchema | None
     tie_peers: tuple["IIT4SIASchema", ...] = ()
     partition_margin: PhiSchema | None = None
+    runner_up: RunnerUpSchema | None = None
 
 
 class NullIIT4SIASchema(IIT4SIASchema, frozen=True, tag="null_iit4_sia"):
@@ -504,6 +514,7 @@ Schema = (
     | UnresolvedDistinctionsSchema
     | ResolvedDistinctionsSchema
     | ProvenanceSchema
+    | RunnerUpSchema
     | ExcludedCandidateSchema
     | MacroUnitSchema
     | IIT3SIASchema
