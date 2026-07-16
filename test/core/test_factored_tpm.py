@@ -335,3 +335,55 @@ def test_factored_tpm_rejects_reduced_dimension_factor() -> None:
     reduced = np.full((2, 2), 0.5)
     with pytest.raises(InvalidTPM, match="leading axes"):
         FactoredTPM(factors=[full, reduced], state_space=((0, 1), (0, 1)))
+
+
+# --- connectivity-sparse factors (size-1 non-input axes) ---
+
+
+def _sparse_three_node_factors():
+    # 0 <-> 1 copy each other; 2 has a self-loop. Non-input axes have size 1.
+    f0 = np.zeros((1, 2, 1, 2))
+    f0[0, 0, 0] = [1, 0]
+    f0[0, 1, 0] = [0, 1]
+    f1 = np.zeros((2, 1, 1, 2))
+    f1[0, 0, 0] = [1, 0]
+    f1[1, 0, 0] = [0, 1]
+    f2 = np.zeros((1, 1, 2, 2))
+    f2[0, 0, 0] = [1, 0]
+    f2[0, 0, 1] = [0, 1]
+    return [f0, f1, f2]
+
+
+def test_condition_size1_axis_nonzero_state() -> None:
+    tpm = FactoredTPM(factors=_sparse_three_node_factors())
+    c1 = tpm.condition({2: 1})
+    c0 = tpm.condition({2: 0})
+    # Factors 0 and 1 are independent of node 2 (size-1 axis): identical slices.
+    np.testing.assert_array_equal(c1.factor(0), c0.factor(0))
+    np.testing.assert_array_equal(c1.factor(1), c0.factor(1))
+    # Factor 2 depends on node 2: conditioning selects the real slice.
+    np.testing.assert_array_equal(np.squeeze(c1.factor(2)), [0.0, 1.0])
+    np.testing.assert_array_equal(np.squeeze(c0.factor(2)), [1.0, 0.0])
+
+
+def test_subtpm_size1_axis_nonzero_state() -> None:
+    tpm = FactoredTPM(factors=_sparse_three_node_factors())
+    # Free units 0 and 1 are independent of node 2, so the conditioned
+    # sub-TPM is the same for either fixed state.
+    assert tpm.subtpm((2,), (1,)) == tpm.subtpm((2,), (0,))
+
+
+@requires_xarray
+def test_condition_size1_axis_nonzero_state_xarray() -> None:
+    tpm = FactoredTPM(factors=_sparse_three_node_factors(), backend="xarray")
+    c1 = tpm.condition({2: 1})
+    c0 = tpm.condition({2: 0})
+    np.testing.assert_array_equal(c1.factor(0), c0.factor(0))
+    np.testing.assert_array_equal(c1.factor(1), c0.factor(1))
+    np.testing.assert_array_equal(np.squeeze(c1.factor(2)), [0.0, 1.0])
+
+
+@requires_xarray
+def test_subtpm_size1_axis_nonzero_state_xarray() -> None:
+    tpm = FactoredTPM(factors=_sparse_three_node_factors(), backend="xarray")
+    assert tpm.subtpm((2,), (1,)) == tpm.subtpm((2,), (0,))
