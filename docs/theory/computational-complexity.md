@@ -379,6 +379,7 @@ into three kinds, and the distinction matters for how a result should be read:
 | `relation_computation` | `CONCRETE` → `ANALYTICAL` | exact reformulation (yields the count and summed φ, not individual relations) | removes the $2^D$ relation enumeration; the CES then scales like its distinctions alone |
 | `mechanism_partition_scheme` | `JOINT_PARTITION_ALL` / `WEDGE_TRIPARTITION` / `JOINT_BIPARTITION` | formalism choice | per-(mechanism, purview) partition count Bell-weighted $> 2^{m-1}3^p > 2^{m+p-1}$ |
 | `shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
+| `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining MICE search once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
 | `parallel` | `False` → `True` | exact | constant factor set by the number of cores |
 | `system_partition_scheme` (3.0) | `DIRECTED_BIPARTITION` → `…_CUT_ONE` | approximation (upper bound on Φ) | system cuts $2^n \to 2n$ |
 | `assume_partitions_cannot_create_new_concepts` (3.0) | `False` → `True` | approximation (no guaranteed bound) | reuses the unpartitioned distinctions across cuts |

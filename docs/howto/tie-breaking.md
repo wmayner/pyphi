@@ -279,7 +279,12 @@ One caveat: when a partition sweep stops early because it detected
 reducibility ($\varphi_s = 0$), no exact margin exists and `partition_margin`
 is `None`. Setting `shortcircuit_sia=False` evaluates every partition, which
 makes margins exact everywhere (at the cost of exhaustive evaluation on
-reducible systems) without changing any computed $\varphi$ value.
+reducible systems) without changing any computed $\varphi$ value. The same
+applies at the mechanism level: when `shortcircuit_distinctions` (on by
+default) detects that a distinction is reducible, the remaining MICE search is
+skipped, so the skipped direction carries no margins or ties and reports the
+`OTHER_DIRECTION_REDUCIBLE` reason instead. Set it to `False` to evaluate both
+directions in full.
 
 To move from margins in value units to distances in *parameter* units — how
 far a connection weight can move before a selection switches — see
