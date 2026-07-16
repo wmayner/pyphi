@@ -42,6 +42,22 @@ _FACTORED_TPM_DEFAULT_BACKEND: Literal["ndarray", "xarray"] = "ndarray"
 StateSpace = Sequence[Any] | Sequence[Sequence[Any]] | None
 
 
+def _own_factor(f: ArrayLike) -> NDArray[np.float64]:
+    """Return a read-only float64 array of ``f`` sharing no writable memory
+    with the caller's input.
+
+    A writable input array is copied before freezing, so the caller's own
+    array is never modified; a read-only input is stored as-is; a fresh
+    dtype conversion is frozen in place without a further copy.
+    """
+    a = np.asarray(f, dtype=np.float64)
+    if a.flags.writeable:
+        if isinstance(f, np.ndarray) and np.may_share_memory(a, f):
+            a = a.copy()
+        a.flags.writeable = False
+    return a
+
+
 def _normalize_state_space(
     raw: StateSpace,
     factors: Sequence[NDArray[np.float64]],
@@ -80,7 +96,11 @@ def _normalize_state_space(
 
 
 class FactoredTPM(Displayable, ToPandasMixin):
-    """Per-node-factored conditional TPM."""
+    """Per-node-factored conditional TPM.
+
+    Stored factors are read-only and independent of the arrays passed in: a
+    hashed value type's contents cannot change after construction.
+    """
 
     __slots__ = ("_backend", "_node_labels", "_state_space")
 
@@ -91,7 +111,7 @@ class FactoredTPM(Displayable, ToPandasMixin):
         backend: Literal["ndarray", "xarray"] | None = None,
         node_labels: Sequence[str] | None = None,
     ) -> None:
-        factor_arrays = tuple(np.asarray(f, dtype=np.float64) for f in factors)
+        factor_arrays = tuple(_own_factor(f) for f in factors)
         self._state_space = _normalize_state_space(state_space, factor_arrays)
         alphabet_sizes = tuple(len(s) for s in self._state_space)
         self._backend = _make_default_backend(factor_arrays, alphabet_sizes, backend)
