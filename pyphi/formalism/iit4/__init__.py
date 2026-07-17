@@ -811,7 +811,8 @@ def _has_no_cause_or_effect(system_state):
         # including a floating-point residue of a mathematically-zero
         # ii(s) — specifies nothing, and forces φ_s = min over directions
         # to zero.
-        if not numerics.is_positive(system_state[direction].intrinsic_information):
+        spec = system_state[direction]
+        if spec is not None and not numerics.is_positive(spec.intrinsic_information):
             reasons.append(reason)
     return reasons
 
