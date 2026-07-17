@@ -1,12 +1,37 @@
 {
   "fixture_name": "multivalued_k3k3_k4_sparse_iit4_2023",
   "schema_version": 1,
-  "generated_from_commit": "eb1ab31c71b7d88b35984061208b92e175cea954",
+  "generated_from_commit": "fe81bf8f2e424618d75793a45306361dea36d99d",
   "description": "3-node sparse heterogeneous substrate with alphabet sizes (3,3,4) on a directed 3-cycle (seed 2028). Exercises sparse + mixed-alphabet repertoire and partition paths under IIT 4.0 (2023).",
   "config_overrides": {
-    "iit.version": "IIT_4_0_2023",
-    "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
-    "system_partition_scheme": "DIRECTED_SET_PARTITION",
+    "iit": {
+      "version": "IIT_4_0_2023",
+      "mechanism_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "system_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "specification_measure": "GENERALIZED_INTRINSIC_DIFFERENCE",
+      "ces_measure": "SUM_SMALL_PHI",
+      "mechanism_partition_scheme": "JOINT_PARTITION_ALL",
+      "system_partition_scheme": "DIRECTED_SET_PARTITION",
+      "system_partition_include_complete": false,
+      "distinction_phi_normalization": "NUM_CONNECTIONS_CUT",
+      "background_conditioning": "CAUSAL_MARGINALIZATION",
+      "relation_computation": "CONCRETE",
+      "assume_partitions_cannot_create_new_concepts": false,
+      "shortcircuit_sia": true,
+      "shortcircuit_distinctions": true,
+      "single_micro_nodes_with_selfloops_have_phi": true,
+      "state_tie_resolution": "PHI",
+      "mip_tie_resolution": [
+        "NORMALIZED_PHI",
+        "NEGATIVE_PHI"
+      ],
+      "purview_tie_resolution": "PHI",
+      "sia_tie_resolution": [
+        "NORMALIZED_PHI",
+        "NEGATIVE_PHI",
+        "PARTITION_LEX"
+      ]
+    },
     "progress_bars": false,
     "parallel": false
   },
@@ -785,6 +810,12 @@
       "specified_states": [
         [
           0
+        ],
+        [
+          1
+        ],
+        [
+          2
         ]
       ],
       "repertoire": "@npz:a130",
@@ -1099,7 +1130,51 @@
       "specified_states": [
         [
           0,
+          0
+        ],
+        [
+          0,
           1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
         ]
       ],
       "repertoire": "@npz:a146",
@@ -1352,6 +1427,12 @@
       "specified_states": [
         [
           0
+        ],
+        [
+          1
+        ],
+        [
+          2
         ]
       ],
       "repertoire": "@npz:a158",
@@ -1571,8 +1652,40 @@
       ],
       "specified_states": [
         [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
           2,
           1
+        ],
+        [
+          2,
+          2
         ]
       ],
       "repertoire": "@npz:a170",
@@ -2621,6 +2734,12 @@
       ],
       "specified_states": [
         [
+          0
+        ],
+        [
+          1
+        ],
+        [
           2
         ]
       ],
@@ -3362,6 +3481,15 @@
       ],
       "specified_states": [
         [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
           3
         ]
       ],
@@ -3872,6 +4000,12 @@
         ]
       ],
       "specified_states": [
+        [
+          0
+        ],
+        [
+          1
+        ],
         [
           2
         ]
