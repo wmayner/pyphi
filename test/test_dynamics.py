@@ -159,3 +159,34 @@ def test_settle_clamp_holds_units_fixed():
     sbs[:, 3] = 1.0
     tpm = _sbn_from_sbs(sbs)
     assert settle(tpm, initial_state=(0, 0), clamp={0: 0})[-1] == (0, 1)
+
+
+def test_settle_in_exactly_max_steps_returns():
+    from pyphi.dynamics import settle
+
+    # Every state maps to (1, 1): a one-step settle from (0, 0).
+    sbs = np.zeros((4, 4))
+    sbs[:, 3] = 1
+    tpm = convert.state_by_state2state_by_node(sbs)
+    trajectory = settle(tpm, (0, 0), max_steps=1)
+    assert trajectory == [(0, 0), (1, 1)]
+    assert len(trajectory) - 1 == 1  # settling time == max_steps is allowed
+
+
+def test_settle_raises_when_settling_time_exceeds_max_steps():
+    import pytest
+
+    from pyphi.dynamics import settle
+    from pyphi.exceptions import NonConvergenceError
+
+    # Chain (0,0) -> (1,0) -> (1,1) -> (1,1): settling time 2.
+    # Little-endian state indices: (0,0)=0, (1,0)=1, (0,1)=2, (1,1)=3.
+    sbs = np.zeros((4, 4))
+    sbs[0, 1] = 1
+    sbs[1, 3] = 1
+    sbs[2, 3] = 1
+    sbs[3, 3] = 1
+    tpm = convert.state_by_state2state_by_node(sbs)
+    with pytest.raises(NonConvergenceError, match="max_steps"):
+        settle(tpm, (0, 0), max_steps=1)
+    assert settle(tpm, (0, 0), max_steps=2) == [(0, 0), (1, 0), (1, 1)]

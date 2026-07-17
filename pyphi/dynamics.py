@@ -168,7 +168,10 @@ def settle(tpm, initial_state, *, clamp=None, max_steps=None):
         trajectory.append(nxt)
         seen.add(nxt)
         state = nxt
-        if max_steps is not None and len(trajectory) > max_steps:
+        # The just-appended state may itself be the fixed point (confirmed on
+        # the next iteration), so the best-case settling time here is
+        # len(trajectory) - 1; raise only when even that exceeds the cap.
+        if max_steps is not None and len(trajectory) - 1 > max_steps:
             raise NonConvergenceError(f"did not settle within max_steps={max_steps}")
 
 
