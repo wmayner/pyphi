@@ -12,6 +12,10 @@ import time
 
 import pytest
 
+from pyphi import Direction
+from pyphi import examples
+from pyphi.conf import config
+from pyphi.conf import presets
 from pyphi.parallel import false
 from pyphi.parallel import map_reduce
 from pyphi.parallel.scheduler import ShortcircuitPolicy
@@ -113,3 +117,28 @@ def test_worker_exception_cancels_pending_thread_futures():
             progress=False,
         )
     assert len(calls) < 32
+
+
+def test_find_mice_tied_purview_winner_independent_of_result_order(monkeypatch):
+    from pyphi.formalism import queries
+
+    system = examples.iit4_2023_fig6a_system()
+    with config.override(**presets.iit4_2026):
+        baseline = queries.find_mice(system, Direction.CAUSE, (0,), parallel=False)
+
+        real_map_reduce = queries.map_reduce
+
+        def reversed_map_reduce(fn, items, **kwargs):
+            results = real_map_reduce(
+                fn, items, **{**kwargs, "parallel": False, "progress": False}
+            )
+            return list(reversed(list(results)))
+
+        monkeypatch.setattr(queries, "map_reduce", reversed_map_reduce)
+        adversarial = queries.find_mice(system, Direction.CAUSE, (0,))
+
+    assert len(baseline.purview_ties) >= 2, "case must be a genuine phi tie"
+    assert adversarial.purview == baseline.purview
+    assert {m.purview for m in adversarial.purview_ties} == {
+        m.purview for m in baseline.purview_ties
+    }

@@ -322,6 +322,12 @@ def find_mice(
         **parallel_kwargs,
     )
 
+    # Parallel evaluation returns results in completion / cost-bin order;
+    # restore the canonical purview enumeration order so tie resolution
+    # selects the same winner as sequential evaluation.
+    order = {purview: index for index, purview in enumerate(purviews_list)}
+    mip_results = sorted(mip_results, key=lambda ria: order[ria.purview])
+
     all_mice = [mice_class(result) for result in mip_results]  # type: ignore[arg-type]
     ties = tuple(resolve_ties.purviews(all_mice, default=no_purviews))  # type: ignore[arg-type]
     for tie in ties:
