@@ -51,6 +51,18 @@ class ShortcircuitPolicy:
     func: Callable[[Any], bool] = field(default=_never_short_circuit)
     callback: Callable[[Iterable[Any]], None] | None = None
 
+    @property
+    def active(self) -> bool:
+        """Whether a real short-circuit predicate is set.
+
+        ``False`` when ``func`` is either no-predicate sentinel: this
+        class's default, or :func:`pyphi.parallel.false` (the public
+        ``map_reduce`` default that backends receive).
+        """
+        from pyphi.parallel import false
+
+        return self.func is not _never_short_circuit and self.func is not false
+
 
 @runtime_checkable
 class Scheduler(Protocol):
