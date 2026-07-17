@@ -245,6 +245,9 @@ def _find_mip_iit4(
         _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
     )
 
+    # Specified-state ties are resolved positionally downstream, so
+    # results must arrive in input order, not completion order.
+    state_parallel_kwargs: dict[str, Any] = {**parallel_kwargs, "ordered": True}
     mips = map_reduce(
         partial(_find_mip_single_state, system),  # pyright: ignore[reportPrivateUsage]
         specified_states,
@@ -258,7 +261,7 @@ def _find_mip_iit4(
             "mechanism_measure": mechanism_measure,
         },
         desc="Finding MIP for maximum intrinsic information states",
-        **parallel_kwargs,
+        **state_parallel_kwargs,
     )
 
     ties = tuple(resolve_ties.states(mips))  # type: ignore[arg-type]

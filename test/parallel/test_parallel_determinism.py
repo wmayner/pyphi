@@ -142,3 +142,24 @@ def test_find_mice_tied_purview_winner_independent_of_result_order(monkeypatch):
     assert {m.purview for m in adversarial.purview_ties} == {
         m.purview for m in baseline.purview_ties
     }
+
+
+def test_state_mip_map_reduce_collects_in_input_order(monkeypatch):
+    import pyphi.formalism.iit4.formalism as iit4_formalism
+    from pyphi import System
+    from pyphi.formalism import queries
+
+    captured = []
+    real_map_reduce = iit4_formalism.map_reduce
+
+    def capturing_map_reduce(fn, items, *more_items, **kwargs):
+        captured.append(kwargs)
+        return real_map_reduce(fn, items, *more_items, **kwargs)
+
+    monkeypatch.setattr(iit4_formalism, "map_reduce", capturing_map_reduce)
+    with config.override(**presets.iit4_2026):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        queries.find_mip(system, Direction.CAUSE, (0,), (0, 1))
+
+    assert captured, "the state-MIP path should invoke map_reduce"
+    assert all(kwargs.get("ordered") is True for kwargs in captured)
