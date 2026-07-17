@@ -13,6 +13,7 @@ from pyphi.optimize import _objective_value
 from pyphi.optimize import optimize
 from pyphi.optimize import weight_axes
 from pyphi.substrate_generator import ising
+from test.conftest import skip_if_no_emd_backend
 
 # The IIT 4.0 (2023) Fig. 1A substrate; STATE is reachable with positive φ_s.
 FIG1A_WEIGHTS = np.array(
@@ -217,3 +218,35 @@ def test_result_save_and_to_pandas_roundtrip(tmp_path):
     assert payload["seed"] == 5
     assert len(payload["trajectory"]) == result.n_evaluations
     assert payload["best_objective"] == pytest.approx(result.best_objective)
+
+
+@skip_if_no_emd_backend
+def test_eval_one_iit3_returns_finite_phi_objective():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    row = _eval_one(
+        np.array([0.7]),
+        builder=axis,
+        state=STATE,
+        subset=None,
+        formalism="IIT_3_0",
+        objective="phi",
+    )
+    assert row["reachable"] is True
+    assert np.isfinite(row["objective"])
+    assert isinstance(row["partition"], str)
+    assert row["cause_state"] is None
+    assert row["effect_state"] is None
+    assert np.isnan(row["partition_margin"])
+    assert np.isnan(row["cause_state_margin"])
+    assert np.isnan(row["effect_state_margin"])
+
+
+def test_objective_value_missing_attribute_raises_clear_error():
+    class MinimalSIA:
+        phi = 0.5
+
+    assert _objective_value(MinimalSIA(), "phi") == 0.5
+    with pytest.raises(ValueError, match="signed_normalized_phi"):
+        _objective_value(MinimalSIA(), "signed_normalized_phi")

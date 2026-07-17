@@ -166,3 +166,73 @@ def test_ising_plot_smoke():
     fig = plot(w, temperature=1.0, field=0.0)
     assert fig is not None
     plt.close(fig)
+
+
+def _k3_system():
+    """A two-unit ternary system in state (2, 0) — both units in the system."""
+    import pyphi
+
+    rng = np.random.default_rng(2026)
+
+    def marginal():
+        m = rng.uniform(size=(3, 3, 3))
+        return m / m.sum(axis=-1, keepdims=True)
+
+    substrate = pyphi.Substrate(
+        marginals=[marginal(), marginal()], state_space=(0, 1, 2)
+    )
+    return pyphi.System(substrate, state=(2, 0))
+
+
+def test_system_graph_kary_colors():
+    from matplotlib.colors import to_rgb
+
+    from pyphi.visualize.connectivity import _system_graph
+
+    _g, colors = _system_graph(_k3_system())
+    assert len(colors) == 2
+    # In-system units interpolate lightblue -> darkblue by state intensity:
+    # state 2 of 3 is the dark end, state 0 the light end.
+    assert np.allclose(colors[0], to_rgb("darkblue"))
+    assert np.allclose(colors[1], to_rgb("lightblue"))
+
+
+def test_plot_system_kary_draws():
+    from pyphi.visualize.connectivity import plot_system
+
+    fig, ax = plt.subplots()
+    g = plot_system(_k3_system(), ax=ax)
+    assert len(g.nodes) == 2
+    plt.close(fig)
+
+
+def test_plot_tpm_kary_integer_labels():
+    from pyphi.visualize import plot_tpm
+
+    tpm = np.full((3, 3), 1 / 3)
+    fig, ax = plot_tpm(tpm)
+    assert [t.get_text() for t in ax.get_xticklabels()] == ["0", "1", "2"]
+    assert [t.get_text() for t in ax.get_yticklabels()] == ["0", "1", "2"]
+    plt.close(fig)
+
+
+def test_plot_tpm_nonsquare_uses_integer_labels():
+    from pyphi.visualize import plot_tpm
+
+    # A 16x4 array is not a state-by-state TPM; bit-string labels would be
+    # wrong on both axes, so integer state indices are used.
+    tpm = np.full((16, 4), 0.25)
+    fig, ax = plot_tpm(tpm)
+    assert [t.get_text() for t in ax.get_xticklabels()] == [str(i) for i in range(4)]
+    assert [t.get_text() for t in ax.get_yticklabels()] == [str(i) for i in range(16)]
+    plt.close(fig)
+
+
+def test_plot_tpm_explicit_states():
+    from pyphi.visualize import plot_tpm
+
+    tpm = np.full((3, 3), 1 / 3)
+    fig, ax = plot_tpm(tpm, states=["L", "M", "H"])
+    assert [t.get_text() for t in ax.get_xticklabels()] == ["L", "M", "H"]
+    assert [t.get_text() for t in ax.get_yticklabels()] == ["L", "M", "H"]
+    plt.close(fig)

@@ -133,7 +133,15 @@ def _objective_value(sia: Any, objective: Any) -> float:
     if callable(objective):
         value: Any = objective(sia)
         return float(value)
-    return _optional_float(getattr(sia, objective))
+    try:
+        value = getattr(sia, objective)
+    except AttributeError:
+        raise ValueError(
+            f"objective {objective!r} is not available on "
+            f"{type(sia).__name__}; choose an objective the requested "
+            f"formalism provides (e.g. objective='phi')"
+        ) from None
+    return _optional_float(value)
 
 
 def _eval_one(
@@ -174,19 +182,25 @@ def _eval_one(
             "effect_state_margin": math.nan,
             "_sia": None,
         }
-    system_state = sia.system_state
+    # Selection margins and state specifications exist only on IIT 4.0
+    # SIAs; other formalisms' rows carry None/NaN in those columns.
+    system_state = getattr(sia, "system_state", None)
     cause = system_state.cause if system_state is not None else None
     effect = system_state.effect if system_state is not None else None
-    margins = sia.state_margins
+    margins = getattr(sia, "state_margins", None)
     return {
         "objective": _objective_value(sia, objective),
         "reachable": True,
         "partition": _part_id(sia.partition),
         "cause_state": None if cause is None else tuple(int(x) for x in cause.state),
         "effect_state": None if effect is None else tuple(int(x) for x in effect.state),
-        "partition_margin": _optional_float(sia.partition_margin),
-        "cause_state_margin": _optional_float(margins[Direction.CAUSE]),
-        "effect_state_margin": _optional_float(margins[Direction.EFFECT]),
+        "partition_margin": _optional_float(getattr(sia, "partition_margin", None)),
+        "cause_state_margin": _optional_float(
+            margins[Direction.CAUSE] if margins is not None else None
+        ),
+        "effect_state_margin": _optional_float(
+            margins[Direction.EFFECT] if margins is not None else None
+        ),
         "_sia": sia,
     }
 

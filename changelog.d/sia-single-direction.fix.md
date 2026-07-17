@@ -1,0 +1,1 @@
+Fixed `sia(directions=[...])` with a single direction crashing with an `AttributeError` when `shortcircuit_sia` is enabled (the default): a direction that was not requested no longer participates in the shortcircuit check.

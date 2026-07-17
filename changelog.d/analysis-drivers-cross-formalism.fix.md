@@ -1,0 +1,1 @@
+Fixed `landscape_section`, `perturb`, and `optimize` crashing with `AttributeError` under non-IIT-4.0 formalism presets (e.g. `formalism="IIT_3_0"`): IIT 4.0-only columns now carry `None`/`NaN`, matching the `sweep` contract, and requesting a named objective the formalism does not provide raises a clear `ValueError`.

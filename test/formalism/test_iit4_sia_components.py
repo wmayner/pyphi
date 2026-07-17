@@ -665,3 +665,24 @@ class TestNoCauseOrEffectShortCircuit:
         from pyphi.formalism.iit4 import _has_no_cause_or_effect
 
         assert _has_no_cause_or_effect(self._system_state(0.5, 0.25)) == []
+
+
+def test_sia_single_direction_with_shortcircuit():
+    """A one-direction ``directions=`` restriction must not crash the
+    shortcircuit path: a direction that was not requested cannot
+    shortcircuit the analysis."""
+    from pyphi import Direction
+    from pyphi import examples
+    from pyphi.formalism import FORMALISM_REGISTRY
+
+    with config.override(shortcircuit_sia=True):
+        system = examples.basic_system()
+        formalism = FORMALISM_REGISTRY["IIT_4_0_2026"]
+        for direction in Direction.both():
+            sia = formalism.evaluate_system(system, directions=[direction])
+            assert float(sia.phi) >= 0.0
+        # Control: the explicit two-direction call matches the default.
+        both = formalism.evaluate_system(system, directions=list(Direction.both()))
+        assert float(both.phi) == pytest.approx(
+            float(formalism.evaluate_system(system).phi)
+        )

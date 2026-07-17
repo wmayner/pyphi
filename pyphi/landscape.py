@@ -132,24 +132,32 @@ def _eval_point(
     sia: Any = analyze(
         builder(float(theta)), state, subset=subset, formalism=formalism, compute="sia"
     )
-    system_state = sia.system_state
+    # Selection margins and state specifications exist only on IIT 4.0
+    # SIAs; other formalisms' rows carry None/NaN in those columns.
+    system_state = getattr(sia, "system_state", None)
     cause = system_state.cause if system_state is not None else None
     effect = system_state.effect if system_state is not None else None
-    state_margins = sia.state_margins
+    state_margins = getattr(sia, "state_margins", None)
     from pyphi.direction import Direction
 
     row = {
         "phi": float(sia.phi),
-        "signed_phi": _optional_float(sia.signed_phi),
-        "normalized_phi": _optional_float(sia.normalized_phi),
-        "signed_normalized_phi": _optional_float(sia.signed_normalized_phi),
+        "signed_phi": _optional_float(getattr(sia, "signed_phi", None)),
+        "normalized_phi": _optional_float(getattr(sia, "normalized_phi", None)),
+        "signed_normalized_phi": _optional_float(
+            getattr(sia, "signed_normalized_phi", None)
+        ),
         "partition": _part_id(sia.partition),
         "cause_state": None if cause is None else tuple(int(x) for x in cause.state),
         "effect_state": None if effect is None else tuple(int(x) for x in effect.state),
-        "partition_margin": _optional_float(sia.partition_margin),
-        "cause_state_margin": _optional_float(state_margins[Direction.CAUSE]),
-        "effect_state_margin": _optional_float(state_margins[Direction.EFFECT]),
-        "effectively_tied": sia.effectively_tied,
+        "partition_margin": _optional_float(getattr(sia, "partition_margin", None)),
+        "cause_state_margin": _optional_float(
+            state_margins[Direction.CAUSE] if state_margins is not None else None
+        ),
+        "effect_state_margin": _optional_float(
+            state_margins[Direction.EFFECT] if state_margins is not None else None
+        ),
+        "effectively_tied": getattr(sia, "effectively_tied", None),
     }
     return row, sia
 
