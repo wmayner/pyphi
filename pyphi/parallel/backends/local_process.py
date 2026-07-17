@@ -271,40 +271,47 @@ class LocalMapReduce:
         # surviving candidates) — depend on worker scheduling. Collecting in
         # submission order instead yields the same prefix as sequential
         # evaluation, keeping the parallel result deterministic.
-        if self.ordered or self.shortcircuit_func is not false:
-            for future in futures:
-                chunk_results = future.result()
-                results.extend(chunk_results)
-                # Update progress bar
-                if self.progress_bar is not None:
-                    self.progress_bar.update(len(chunk_results))
-                # Check for short-circuit in any of the chunk results
-                for r in chunk_results:
-                    if self.shortcircuit_func(r):
-                        short_circuited = True
-                        self._cancel_remaining(futures)
-                        if self.shortcircuit_callback is not None:
-                            self.shortcircuit_callback(futures)
+        # A worker exception cancels the pending chunks before propagating:
+        # the executor is a process-global reusable pool, so orphaned chunks
+        # would keep burning CPU and delay the next map-reduce.
+        try:
+            if self.ordered or self.shortcircuit_func is not false:
+                for future in futures:
+                    chunk_results = future.result()
+                    results.extend(chunk_results)
+                    # Update progress bar
+                    if self.progress_bar is not None:
+                        self.progress_bar.update(len(chunk_results))
+                    # Check for short-circuit in any of the chunk results
+                    for r in chunk_results:
+                        if self.shortcircuit_func(r):
+                            short_circuited = True
+                            self._cancel_remaining(futures)
+                            if self.shortcircuit_callback is not None:
+                                self.shortcircuit_callback(futures)
+                            break
+                    if short_circuited:
                         break
-                if short_circuited:
-                    break
-        else:
-            for future in as_completed(futures):
-                chunk_results = future.result()
-                results.extend(chunk_results)
-                # Update progress bar
-                if self.progress_bar is not None:
-                    self.progress_bar.update(len(chunk_results))
-                # Check for short-circuit in any of the chunk results
-                for r in chunk_results:
-                    if self.shortcircuit_func(r):
-                        short_circuited = True
-                        self._cancel_remaining(futures)
-                        if self.shortcircuit_callback is not None:
-                            self.shortcircuit_callback(futures)
+            else:
+                for future in as_completed(futures):
+                    chunk_results = future.result()
+                    results.extend(chunk_results)
+                    # Update progress bar
+                    if self.progress_bar is not None:
+                        self.progress_bar.update(len(chunk_results))
+                    # Check for short-circuit in any of the chunk results
+                    for r in chunk_results:
+                        if self.shortcircuit_func(r):
+                            short_circuited = True
+                            self._cancel_remaining(futures)
+                            if self.shortcircuit_callback is not None:
+                                self.shortcircuit_callback(futures)
+                            break
+                    if short_circuited:
                         break
-                if short_circuited:
-                    break
+        except BaseException:
+            self._cancel_remaining(futures)
+            raise
 
         # Final reduction - apply user's reduce function
         self.result = _reduce(results, self.reduce_func, self.reduce_kwargs)

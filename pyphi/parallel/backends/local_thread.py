@@ -92,15 +92,24 @@ class LocalThreadScheduler:
             iterator: Iterable[Any] = (
                 futures if ordered or shortcircuit.active else as_completed(futures)
             )
-            for fut in iterator:
-                value = fut.result()
-                results.append(value)
-                if shortcircuit.func(value):
-                    for remaining in futures:
-                        if not remaining.done():
-                            remaining.cancel()
-                    if shortcircuit.callback is not None:
-                        shortcircuit.callback(futures)
-                    break
+            # A worker exception cancels the pending futures before
+            # propagating; otherwise the executor's shutdown would block
+            # until every orphaned future had run to completion.
+            try:
+                for fut in iterator:
+                    value = fut.result()
+                    results.append(value)
+                    if shortcircuit.func(value):
+                        for remaining in futures:
+                            if not remaining.done():
+                                remaining.cancel()
+                        if shortcircuit.callback is not None:
+                            shortcircuit.callback(futures)
+                        break
+            except BaseException:
+                for remaining in futures:
+                    if not remaining.done():
+                        remaining.cancel()
+                raise
 
         return reducer(results)

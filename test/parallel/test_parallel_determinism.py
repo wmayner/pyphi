@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from pyphi.parallel import false
 from pyphi.parallel import map_reduce
 from pyphi.parallel.scheduler import ShortcircuitPolicy
@@ -62,3 +64,52 @@ def test_thread_backend_shortcircuit_collects_submission_order_prefix():
         progress=False,
     )
     assert result == [1, 1, 0]
+
+
+def _boom_or_sleep(x):
+    if x == 0:
+        raise ValueError("boom")
+    time.sleep(0.05)
+    return x
+
+
+def test_worker_exception_cancels_pending_process_chunks():
+    from pyphi.parallel.backends.local_process import LocalMapReduce
+
+    # loky marks a future RUNNING as soon as it enters its prefetch queue
+    # (2 * workers + 1 deep), so use enough single-item chunks that many
+    # futures are still pending when the exception surfaces.
+    mr = LocalMapReduce(
+        map_func=_boom_or_sleep,
+        iterables=(list(range(512)),),
+        reduce_func=list,
+        reduce_kwargs={},
+        chunksize=1,
+        progress=False,
+        total=512,
+    )
+    with pytest.raises(ValueError, match="boom"):
+        mr.run()
+    assert any(future.cancelled() for future in mr._futures)
+
+
+def test_worker_exception_cancels_pending_thread_futures():
+    calls = []
+
+    def boom_or_sleep(x):
+        calls.append(x)
+        if x == 0:
+            raise ValueError("boom")
+        time.sleep(0.3)
+        return x
+
+    with pytest.raises(ValueError, match="boom"):
+        map_reduce(
+            boom_or_sleep,
+            list(range(32)),
+            parallel=True,
+            backend="thread",
+            sequential_threshold=1,
+            progress=False,
+        )
+    assert len(calls) < 32
