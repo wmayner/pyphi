@@ -4,6 +4,7 @@ import pytest
 
 from pyphi.visualize.projection import InclusionOrder
 from pyphi.visualize.projection import _inclusion_order
+from test.conftest import skip_if_no_emd_backend
 
 
 def test_inclusion_order_exact():
@@ -296,4 +297,43 @@ def test_plot_ces_forwards_max_relations():
         with pytest.raises(ValueError, match="max_relations"):
             plot_ces(ces)
         fig = plot_ces(ces, max_relations=2)
+    assert fig is not None
+
+
+def test_project_ces_empty_raises_clear_error():
+    from pyphi.formalism.iit4 import NullCauseEffectStructure
+    from pyphi.visualize.projection import project_ces
+
+    with pytest.raises(ValueError, match="empty cause-effect structure"):
+        project_ces(NullCauseEffectStructure())
+
+
+@pytest.fixture(scope="module")
+def iit3_xor_ces():
+    import pyphi
+    from pyphi import examples
+    from test.conftest import IIT_3_CONFIG
+
+    with IIT_3_CONFIG:
+        return pyphi.formalism.iit3.ces(examples.xor_system())
+
+
+@skip_if_no_emd_backend
+def test_project_ces_iit3(iit3_xor_ces):
+    from pyphi.visualize.projection import project_ces
+
+    projection = project_ces(iit3_xor_ces)
+    assert len(projection.nodes) == 3
+    # The purview-union inclusion order is built from purview indices, which
+    # IIT 3.0 distinctions carry (they have no specified states).
+    assert len(projection.purview_union_inclusion.rank) == 3
+
+
+@skip_if_no_emd_backend
+@pytest.mark.parametrize("view", ["lattice", "hypergraph", "scatter"])
+def test_plot_ces_iit3_views_render(iit3_xor_ces, view):
+    pytest.importorskip("plotly")
+    from pyphi.visualize import plot_ces
+
+    fig = plot_ces(iit3_xor_ces, view=view)
     assert fig is not None

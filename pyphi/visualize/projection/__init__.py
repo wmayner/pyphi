@@ -253,7 +253,9 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
         If ``ces`` is not relation-closed (e.g. a :class:`PhiFold`, whose
         relations may reference distinctions outside it).
     ValueError
-        If ``max_relations`` is None and ``ces.relations`` is not enumerable.
+        If the structure has no distinctions (an empty, reducible-system
+        structure), or if ``max_relations`` is None and ``ces.relations`` is
+        not enumerable.
     """
     if not getattr(ces, "relation_closed", True):
         raise TypeError(
@@ -263,6 +265,11 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
             "highlight_phi_fold to visualize a fold"
         )
     distinctions = list(ces.distinctions)
+    if not distinctions:
+        raise ValueError(
+            "cannot project an empty cause-effect structure "
+            "(no distinctions: the system is reducible)"
+        )
     if node_labels is None:
         node_labels = distinctions[0].node_labels
     mechanism_to_id = {tuple(d.mechanism): i for i, d in enumerate(distinctions)}
@@ -287,8 +294,11 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
     mechanism_inclusion = _inclusion_order(
         tuple(frozenset(d.mechanism) for d in distinctions)
     )
+    # Purview unions as index sets, from the purviews directly: the
+    # projection needs only unit indices, and IIT 3.0 distinctions carry no
+    # specified states for their purview units.
     unions = tuple(
-        frozenset(getattr(u, "index", u) for u in d.purview_union) for d in distinctions
+        frozenset(d.cause_purview) | frozenset(d.effect_purview) for d in distinctions
     )
     purview_union_inclusion = _inclusion_order(unions)
     sums = ces.relations.sum_phi_by_distinction(distinctions)
