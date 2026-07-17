@@ -65,18 +65,33 @@ class LocalThreadScheduler:
             return reducer([])
 
         if len(materialized[0]) < chunking.sequential_threshold:
-            results = [
-                fn(*args, **map_kwargs) for args in zip(*materialized, strict=False)
-            ]
+            results: list[Any] = []
+            for args in zip(*materialized, strict=False):
+                value = fn(*args, **map_kwargs)
+                results.append(value)
+                if shortcircuit.func(value):
+                    if shortcircuit.callback is not None:
+                        shortcircuit.callback(results)
+                    break
             return reducer(results)
 
-        results: list[Any] = []
+        results = []
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = [
                 executor.submit(fn, *args, **map_kwargs)
                 for args in zip(*materialized, strict=False)
             ]
-            iterator: Iterable[Any] = futures if ordered else as_completed(futures)
+            # Collect in submission order when the caller asked for original
+            # order or a short-circuit predicate is active. When
+            # short-circuiting, the collected subset is truncated at the
+            # first triggering result, so completion order would make that
+            # subset — and any order-sensitive reduction over it (e.g. tie
+            # resolution among the surviving candidates) — depend on thread
+            # scheduling. Submission order yields the same prefix as
+            # sequential evaluation.
+            iterator: Iterable[Any] = (
+                futures if ordered or shortcircuit.active else as_completed(futures)
+            )
             for fut in iterator:
                 value = fut.result()
                 results.append(value)
