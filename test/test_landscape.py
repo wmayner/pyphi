@@ -13,6 +13,7 @@ from pyphi.landscape import landscape_section
 from pyphi.landscape import perturb
 from pyphi.landscape import weight_axis
 from pyphi.substrate_generator import ising
+from test.conftest import skip_if_no_emd_backend
 
 # The IIT 4.0 (2023) Fig. 1A substrate, with the A→B weight as the parameter
 # axis. Known facts at the published point θ = 0.7 (default config): φ_s =
@@ -148,3 +149,31 @@ def test_perturb_unreachable_raises():
 
     with pytest.raises(exceptions.StateUnreachableError):
         perturb(build, (0, 1, 1), 0.5)
+
+
+@skip_if_no_emd_backend
+def test_landscape_section_iit3_rows_carry_defaults():
+    """A documented non-4.0 preset produces rows, not AttributeErrors.
+
+    IIT 4.0-only columns carry NaN/None, the contract established by
+    ``pyphi.sweep._row_sia``.
+    """
+    substrate = examples.basic_substrate()
+    section = landscape_section(
+        lambda _theta: substrate, (1, 0, 0), [0.0], formalism="IIT_3_0"
+    )
+    row = section.df.iloc[0]
+    assert math.isfinite(row["phi"])
+    assert isinstance(row["partition"], str)
+    for column in (
+        "signed_phi",
+        "normalized_phi",
+        "signed_normalized_phi",
+        "partition_margin",
+        "cause_state_margin",
+        "effect_state_margin",
+    ):
+        assert math.isnan(row[column])
+    assert row["cause_state"] is None
+    assert row["effect_state"] is None
+    assert row["effectively_tied"] is None
