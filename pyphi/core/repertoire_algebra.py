@@ -21,6 +21,7 @@ from typing import Any
 import numpy as np
 
 from pyphi import distribution as _dist
+from pyphi import numerics
 from pyphi import utils as _utils
 from pyphi import validate as _validate
 from pyphi.cache.content import ContentCache
@@ -622,6 +623,11 @@ def intrinsic_information(
     Composite measures take the multi-argument path (forward, partitioned,
     selectivity repertoires evaluated at a state); other measure shapes
     fall through to :func:`repertoire_distance`.
+
+    States whose intrinsic information ties the maximum within
+    ``config.numerics.precision`` form the tie family (available via the
+    returned specification's ``ties``); the returned specification is the
+    first tied state in enumeration order.
     """
     from pyphi.models.state_specification import StateSpecification
 
@@ -660,11 +666,25 @@ def intrinsic_information(
             )
 
     state_to_information = {state: evaluate_state(state) for state in states}
+    # The raw maximum anchors the tie cluster; membership is tolerance-based,
+    # so states whose values differ from the maximum only by float-path noise
+    # still join the family. The winner is the first tied state in enumeration
+    # order, which keeps the selection independent of that noise.
     max_information = max(state_to_information.values())
+    tied_states = [
+        (state, information)
+        for state, information in state_to_information.items()
+        if numerics.eq(information, max_information)
+    ]
+    winner_state = tied_states[0][0]
     ranked = sorted(state_to_information.items(), key=lambda kv: kv[1], reverse=True)
-    if len(ranked) > 1:
-        runner_up_state, runner_up_value = ranked[1]
-        runner_up_information = float(runner_up_value)
+    runner_up = next(
+        ((state, value) for state, value in ranked if state != winner_state),
+        None,
+    )
+    if runner_up is not None:
+        runner_up_state = runner_up[0]
+        runner_up_information = float(runner_up[1])
     else:
         runner_up_state = runner_up_information = None
     ties = [
@@ -678,8 +698,7 @@ def intrinsic_information(
             runner_up_state=runner_up_state,
             runner_up_intrinsic_information=runner_up_information,
         )
-        for state, information in state_to_information.items()
-        if information == max_information
+        for state, information in tied_states
     ]
     for tie in ties:
         tie.set_ties(ties)
