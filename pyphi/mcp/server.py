@@ -278,7 +278,7 @@ def build_substrate(
     if node_labels is not None:
         kwargs["node_labels"] = node_labels
     if alphabet is not None:
-        kwargs["alphabet"] = alphabet
+        kwargs["state_space"] = tuple(tuple(range(k)) for k in alphabet)
     substrate = pyphi.Substrate(np.asarray(tpm, dtype=float), **kwargs)
     handle = _register_substrate(substrate)
     return {"handle": handle, **_substrate_summary(substrate)}
@@ -534,16 +534,21 @@ def _get_result(result_ref: str) -> Any:
 def _state_by_state(substrate: Any) -> Any:
     """Return a substrate's 2-D state-by-state transition probability matrix.
 
-    Slices the on-probability out of the multidimensional state-by-node TPM,
-    reshapes it in little-endian (Fortran) state order, then converts to
-    state-by-state form, which is what ``visualize.plot_tpm`` expects.
+    Valid for any per-unit alphabet: the (current, next) entry is the product
+    over units of each unit's next-state probability given the current joint
+    state, with states enumerated in little-endian mixed-radix order
+    (``pyphi.utils.all_states``). This is what ``visualize.plot_tpm`` expects.
     """
-    from pyphi import convert
+    from pyphi import utils
 
-    n = substrate.size
-    on = np.asarray(substrate.tpm.to_joint())[..., 1]
-    state_by_node = on.reshape(-1, n, order="F")
-    return convert.state_by_node2state_by_state(state_by_node)
+    joint = np.asarray(substrate.tpm.to_joint())
+    states = list(utils.all_states(substrate.tpm.alphabet_sizes))
+    sbs = np.empty((len(states), len(states)))
+    for i, current in enumerate(states):
+        per_unit = joint[current]  # (unit, next-state) probabilities
+        for j, nxt in enumerate(states):
+            sbs[i, j] = np.prod([per_unit[u, s] for u, s in enumerate(nxt)])
+    return sbs
 
 
 @mcp.tool()
@@ -622,8 +627,13 @@ def plot(
         fig = plt.figure()
         visualize.plot_graph(substrate.to_networkx())
     elif kind == "tpm":
+        from pyphi import utils
+
         substrate = _get_substrate(target)
-        fig = visualize.plot_tpm(_state_by_state(substrate))[0]
+        states = [
+            "".join(map(str, s)) for s in utils.all_states(substrate.tpm.alphabet_sizes)
+        ]
+        fig = visualize.plot_tpm(_state_by_state(substrate), states=states)[0]
     else:
         kinds = ", ".join(_PLOT_KINDS)
         raise ValueError(f"Unknown plot kind {kind!r}; use one of: {kinds}.")

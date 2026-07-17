@@ -320,3 +320,51 @@ def test_plot_ces_analytical_requires_max_relations(basic_handle):
 def test_plot_view_rejected_for_non_ces(basic_handle):
     with pytest.raises(ValueError, match="only to kind='ces'"):
         srv.plot(basic_handle, kind="tpm", view="hypergraph")
+
+
+def _kary_joint_tpm_lists():
+    """An explicit-alphabet joint TPM for a two-unit ternary substrate,
+    as nested lists (the MCP tool's wire format)."""
+    rng = np.random.default_rng(7)
+
+    def marginal():
+        m = rng.random((3, 3, 3))
+        return m / m.sum(axis=-1, keepdims=True)
+
+    substrate = pyphi.Substrate(
+        marginals=[marginal(), marginal()], state_space=(0, 1, 2)
+    )
+    return np.asarray(substrate.tpm.to_joint()).tolist()
+
+
+def test_build_substrate_kary_alphabet_list():
+    out = srv.build_substrate(_kary_joint_tpm_lists(), alphabet=[3, 3])
+    assert out["num_nodes"] == 2
+    assert srv._get_substrate(out["handle"]).num_states == 9
+
+
+def test_state_by_state_binary_output_unchanged(basic_handle):
+    from pyphi import convert
+
+    substrate = srv._get_substrate(basic_handle)
+    on = np.asarray(substrate.tpm.to_joint())[..., 1]
+    expected = convert.state_by_node2state_by_state(
+        on.reshape(-1, substrate.size, order="F")
+    )
+    assert np.allclose(srv._state_by_state(substrate), expected)
+
+
+def test_state_by_state_kary():
+    out = srv.build_substrate(_kary_joint_tpm_lists(), alphabet=[3, 3])
+    substrate = srv._get_substrate(out["handle"])
+    sbs = srv._state_by_state(substrate)
+    assert sbs.shape == (9, 9)
+    assert np.allclose(sbs.sum(axis=1), 1.0)
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_tpm_kary_substrate():
+    out = srv.build_substrate(_kary_joint_tpm_lists(), alphabet=[3, 3])
+    result = srv.plot(out["handle"], kind="tpm")
+    assert isinstance(result, list)
+    assert ".png" in result[0]
