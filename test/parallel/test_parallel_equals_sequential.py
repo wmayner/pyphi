@@ -77,13 +77,27 @@ _PARAMS = [
 ]
 
 
-def _ces_signature(distinctions) -> list[tuple[tuple[int, ...], float]]:
+def _ces_signature(distinctions) -> list[tuple]:
     """A reorder-stable structural fingerprint of a cause-effect structure:
-    each distinction's mechanism and its |small_phi|, rounded to the active
-    numerical precision so sub-precision float-reassociation noise from
-    cross-process reduction never masquerades as a real divergence."""
+    each distinction's mechanism, its cause and effect purviews, and its
+    |small_phi|, rounded to the active numerical precision so sub-precision
+    float-reassociation noise from cross-process reduction never masquerades
+    as a real divergence."""
+
+    def purview(concept, direction_attr):
+        value = getattr(concept, direction_attr, None)
+        return tuple(value) if value is not None else None
+
     p = config.numerics.precision
-    return sorted((tuple(c.mechanism), round(float(c.phi), p)) for c in distinctions)
+    return sorted(
+        (
+            tuple(c.mechanism),
+            purview(c, "cause_purview"),
+            purview(c, "effect_purview"),
+            round(float(c.phi), p),
+        )
+        for c in distinctions
+    )
 
 
 @pytest.mark.emd

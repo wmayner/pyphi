@@ -84,6 +84,7 @@ class LocalMapReduce:
         size_func: Callable[..., float] | None = None,
         shortcircuit_func: Callable = false,
         shortcircuit_callback: Callable | None = None,
+        shortcircuit_callback_args: Any = None,
         ordered: bool = False,
         map_kwargs: dict | None = None,
         progress: bool = True,
@@ -99,6 +100,7 @@ class LocalMapReduce:
         self.size_func = size_func
         self.shortcircuit_func = shortcircuit_func
         self.shortcircuit_callback = shortcircuit_callback
+        self.shortcircuit_callback_args = shortcircuit_callback_args
         self.ordered = ordered
         self.map_kwargs = fallback(map_kwargs, {})
         self.progress = progress
@@ -111,6 +113,15 @@ class LocalMapReduce:
         self.done = False
         self.error = None
         self._futures: list[Any] = []
+
+    def _fire_shortcircuit_callback(self, default: Any) -> None:
+        """Invoke the callback with the caller's args, or ``default``."""
+        if self.shortcircuit_callback is not None:
+            self.shortcircuit_callback(
+                self.shortcircuit_callback_args
+                if self.shortcircuit_callback_args is not None
+                else default
+            )
 
     def _cancel_remaining(self, futures: list[Any]) -> None:
         """Cancel all remaining futures."""
@@ -219,8 +230,7 @@ class LocalMapReduce:
             if self.progress_bar is not None:
                 self.progress_bar.update(1)
             if self.shortcircuit_func(result):
-                if self.shortcircuit_callback is not None:
-                    self.shortcircuit_callback(collected)
+                self._fire_shortcircuit_callback(collected)
                 break
 
         self.result = _reduce(collected, self.reduce_func, self.reduce_kwargs)
@@ -287,8 +297,7 @@ class LocalMapReduce:
                         if self.shortcircuit_func(r):
                             short_circuited = True
                             self._cancel_remaining(futures)
-                            if self.shortcircuit_callback is not None:
-                                self.shortcircuit_callback(futures)
+                            self._fire_shortcircuit_callback(futures)
                             break
                     if short_circuited:
                         break
@@ -304,8 +313,7 @@ class LocalMapReduce:
                         if self.shortcircuit_func(r):
                             short_circuited = True
                             self._cancel_remaining(futures)
-                            if self.shortcircuit_callback is not None:
-                                self.shortcircuit_callback(futures)
+                            self._fire_shortcircuit_callback(futures)
                             break
                     if short_circuited:
                         break
@@ -441,6 +449,7 @@ class LocalProcessScheduler:
             size_func=chunking.size_func,
             shortcircuit_func=shortcircuit.func,
             shortcircuit_callback=shortcircuit.callback,
+            shortcircuit_callback_args=shortcircuit.args,
             ordered=ordered,
             map_kwargs=map_kwargs,
             progress=progress.enabled,

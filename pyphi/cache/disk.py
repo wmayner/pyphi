@@ -153,9 +153,9 @@ def maybe_disk_cached(system: Any, kind: str, user_kwargs: dict, compute: Any) -
     result = compute()
     try:
         _RESULT_DISK_CACHE.put(key, serialize.dumps(result, format="msgpack"))
-    except OSError:
-        # The write is best-effort: never let a full disk or permission
-        # error destroy a freshly computed result.
+    except Exception:
+        # The write is best-effort: never let a serialization or storage
+        # failure destroy a freshly computed result.
         log.warning(
             "disk result cache write failed; returning the result uncached",
             exc_info=True,

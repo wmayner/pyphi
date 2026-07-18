@@ -70,8 +70,7 @@ class LocalThreadScheduler:
                 value = fn(*args, **map_kwargs)
                 results.append(value)
                 if shortcircuit.func(value):
-                    if shortcircuit.callback is not None:
-                        shortcircuit.callback(results)
+                    shortcircuit.fire(results)
                     break
             return reducer(results)
 
@@ -103,8 +102,7 @@ class LocalThreadScheduler:
                         for remaining in futures:
                             if not remaining.done():
                                 remaining.cancel()
-                        if shortcircuit.callback is not None:
-                            shortcircuit.callback(futures)
+                        shortcircuit.fire(futures)
                         break
             except BaseException:
                 for remaining in futures:

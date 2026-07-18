@@ -148,3 +148,28 @@ def test_iit3_sia_hit_carries_the_requesters_labels(tmp_path, monkeypatch):
     assert disk._RESULT_DISK_CACHE.hits >= 1
     assert warm.phi == cold.phi
     assert tuple(warm.node_labels) == ("X", "Y", "Z")
+
+
+def test_serialization_failure_does_not_destroy_result(monkeypatch, tmp_path):
+    """A cache-write failure of any kind is best-effort: the freshly computed
+    result is still returned."""
+    from pyphi.cache import disk
+
+    def _fixed_key(*_args, **_kwargs):
+        return "test-key"
+
+    def _always_miss(_key):
+        return None
+
+    def _unserializable(*_args, **_kwargs):
+        raise TypeError("unserializable")
+
+    monkeypatch.setattr(disk, "result_cache_key", _fixed_key, raising=True)
+    monkeypatch.setattr(disk._RESULT_DISK_CACHE, "get", _always_miss)
+    monkeypatch.setattr(disk.serialize, "dumps", _unserializable)
+
+    class _System:
+        node_labels = None
+
+    result = disk.maybe_disk_cached(_System(), "sia", {}, lambda: "computed")
+    assert result == "computed"
