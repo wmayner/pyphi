@@ -13,18 +13,9 @@ if TYPE_CHECKING:
 
 def _component_perceptions(perception):
     """Yield (component, perception) for each component of one structure."""
-    from pyphi.relations import AnalyticalRelations
-
-    relations = perception.ces.relations
-    if isinstance(relations, AnalyticalRelations):
-        raise TypeError(
-            "concrete differentiation requires iterable (materialized) "
-            f"relations; got {type(relations).__name__}. Use "
-            "`analytical_differentiation` for analytical relations."
-        )
     for distinction in perception.ces.distinctions:
         yield distinction, perception.distinction_perception(distinction)
-    for relation in relations:
+    for relation in perception._relations:
         yield relation, perception.relation_perception(relation)
 
 
@@ -82,8 +73,9 @@ class Differentiation:
 
         Equal to :attr:`differentiation` wherever that is computable, but reads
         only each structure's ``distinctions`` (never ``relations``), so it is
-        the path to use when the structures carry ``AnalyticalRelations`` (which
-        are not iterable). D splits into the distinction-union term Σφ_d plus
+        the cheap path when the structures carry ``AnalyticalRelations``: it never
+        enumerates a relation, where the concrete properties would first materialize
+        the relation sets. D splits into the distinction-union term Σφ_d plus
         the relation-union term, the latter computed by inclusion-exclusion over
         the unique structures:
 

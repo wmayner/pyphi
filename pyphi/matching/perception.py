@@ -13,6 +13,7 @@ from .triggering import triggering_coefficient
 if TYPE_CHECKING:
     from pyphi.models.ces import CauseEffectStructure
     from pyphi.models.ces import PhiFold
+    from pyphi.relations import ConcreteRelations
 
     from .triggered_tpm import TriggeredTPM
 
@@ -30,7 +31,8 @@ class Perception:
     Attributes
     ----------
     ces : CauseEffectStructure
-        The Φ-structure unfolded from the triggered system state.
+        The Φ-structure unfolded from the triggered system state. An analytical
+        relation summary is materialized on first use of any per-relation quantity.
     triggered_tpm : TriggeredTPM
         The fixed-lag response distribution supplying triggering coefficients.
     stimulus : tuple of int
@@ -67,6 +69,22 @@ class Perception:
             )
             for d in self.ces.distinctions
         }
+
+    @cached_property
+    def _relations(self) -> ConcreteRelations:
+        """The enumerable relation set of ``ces``.
+
+        Per-relation perception values (Eqs. 9-13, 19) require individual
+        relations; an analytical relation summary is materialized here on
+        first use, at the same cost as computing the structure with the
+        concrete backend.
+        """
+        from pyphi.relations import AnalyticalRelations
+
+        relations = self.ces.relations
+        if isinstance(relations, AnalyticalRelations):
+            return relations.materialize()
+        return relations  # type: ignore[return-value]  # Base Relations may be AnalyticalRelations, materialized above
 
     def distinction_perception(self, distinction) -> float:
         """Perception value of a distinction, t(x, m) · φ_d (Eq. 8)."""
@@ -108,8 +126,5 @@ class Perception:
         ``ces``: the quantity of intrinsic meaning the stimulus triggered.
         """
         distinctions = sum(self.distinction_perception(d) for d in self.ces.distinctions)
-        relations = sum(
-            self.relation_perception(r)
-            for r in self.ces.relations  # pyright: ignore[reportGeneralTypeIssues]  # Relations base lacks __iter__; concrete subclasses provide it
-        )
+        relations = sum(self.relation_perception(r) for r in self._relations)
         return distinctions + relations
