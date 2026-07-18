@@ -517,6 +517,108 @@ substrates that drive each disqualification branch, extending B5; and Marshall's
 (φ_s never exceeds the number of connections the partition cuts) is a runtime invariant
 extending B1's bound-certificate assertions.
 
+### 2026-07-16 whole-library-review triage — deferred items
+
+> Final triage of the 2026-07-13 whole-library review: every remaining confirmed finding and
+> judgment item was re-verified against the current code; items needing a design decision or a
+> larger build land here, the rest were fixed directly or rejected with reasons (the local
+> triage record carries the per-item detail and the C/A/D/T/O/R/M IDs cited below).
+
+*Correctness & design decisions:*
+
+- **Realization enforcement for actual causation (C01 — high priority).** `Transition` /
+  `causal_nexus` accept impossible transitions (current→next probability 0) and report positive
+  α, violating the Realization requirement of Albantakis et al. 2019 (the dead
+  `StateUnreachableError` suppression in `transitions()` suggests enforcement was intended).
+  Decide the enforcement point — `Transition` construction vs filtering in `transitions()` —
+  plus null-result semantics for `causal_nexus`/`actual.sia` on impossible pairs; several test
+  files construct Transitions directly, so the blast radius follows the choice.
+- **Partial formalism pin leaves the ambient measure active (A1).** Setting `iit.version`
+  to `IIT_4_0_2023` alone computes capped φ under the 2023 label (both IIT 4.0 formalisms
+  declare both measures compatible, so the constraint layer passes). The blessed paths
+  (presets, `analyze(formalism=...)`) are absolute pins and safe. Options: couple
+  version→measure defaults, or warn on partial pins; the intrinsic-information measure under
+  the 2023 version is deliberately expressible, so this is a design decision.
+- **`analyze(formalism=...)` cache-invalidation warnings (A4).** The two per-call warnings are
+  baseless for the fresh in-scope System, but the exit warning has a real referent: the
+  returned System escapes with MICE cached under the overridden formalism, so later
+  recomputation on it silently mixes formalisms. Needs scope-aware design, not blanket muting.
+- **Eager validation for registry-keyed config strings (A23).** `ces_measure='BOGUS'` and
+  tie-resolution-policy typos are accepted at override time and fail deep in compute. Eager
+  validation must respect the config bootstrap window (registries are not importable during
+  config auto-load) and span several registries.
+- **APMI +inf fill (D6 follow-up).** `absolute_pointwise_mutual_information` leaves
+  `np.nan_to_num`'s default positive-infinity fill (≈1.8e308) where the intrinsic-difference
+  convention yields +inf; changing it changes actual-causation values, so it needs its own
+  decision and regression pass.
+- **Label-vs-index precedence for integer alphabets (A17).** With integer state-space labels
+  like (1, 2), `_coerce_state_to_indices` interprets a state value as a label when it matches
+  the alphabet and as an index otherwise — states (0,0) and (1,1) both coerce to indices
+  (0,0). Any fix (raise or warn on ambiguity, or lock in documented precedence) changes
+  accepted inputs for existing k-ary users; policy decision.
+- **Nested-parallelism guard at the backend (R2).** Worker config snapshots ship
+  `parallel=True` into workers; sweep/optimize/macro-search each hand-roll
+  `override(parallel=False)` but `substrate.all_sias` does not, so nested worker pools are
+  possible there. Force `infrastructure.parallel=False` in shipped worker snapshots at the
+  backend and delete the three per-driver guards; needs determinism coverage.
+- **Mixed-update-grain macro anchor test (T15).** Every macro TPM/golden test uses one shared
+  update grain; the per-unit window offset in `pyphi/macro/tpm.py` is untested for mixed
+  grains. Needs a hand-derived anchor; a targeted window-offset unit test would shrink the
+  cost.
+
+*API surface decisions:*
+
+- **Loaded SIA `config` as a `ConfigSnapshot` (A16).** Serialization round-trips the recorded
+  config as a plain nested dict, so attribute access breaks after load. This was an explicit
+  scope cut; leaf values are stringified on encode, so faithful reconstruction needs schema
+  design.
+- **MCP registry eviction (A26).** The MCP server's result/substrate registries grow without
+  bound over a session; eviction invalidates handles an agent still holds, so it needs a
+  policy (bounded LRU with an expiry-error contract, or an explicit clear tool).
+- **`max_relations` demanded by edge-free views (A33).** `project_ces` materializes
+  strongest-K relation edges even for the lattice and spectrum views that draw none; fixing it
+  means lazy edges or view-dependent projection on a public function.
+- **`nice_true_ces` (O1).** Dead public function in the restored `pyphi.actual` with a fragile
+  index-pairing over separate cause/effect lists; deprecate-or-fix decision.
+- **xarray storage backend (O3).** Requested only by tests; the backend benchmark chose
+  ndarray. Removal drops a public `FactoredTPM` constructor option and the `xarray` extra;
+  ship decision.
+- **`is_nonpositive` (O9).** Dead in-library but public and named in the MCP migration table,
+  and not the tolerance-complement of `is_positive` (values in (0, ε] satisfy neither).
+  Redefine-or-remove decision.
+- **AC dead pluggability (A8/O4).** `ActualCausationConfig.background_scheme` and
+  `alpha_aggregation` are resolved into callables but never threaded into compute; each
+  registry holds one value and validation forbids others, so they cannot change behavior.
+  Thread-or-delete belongs with the deferred AC-4.0 formalism build.
+- **Formalism `partition_scheme` ClassVar (D15 follow-up).** Declared on the formalism
+  protocol and set by the IIT 3.0/4.0 formalisms but read by nothing; delete it or consume it
+  from the constraints layer.
+
+*Capabilities (small builds):*
+
+- **ii(s) accessor and integrated fraction (M2).** Per-direction intrinsic specification is
+  already on `sia.system_state`; add a named `ii(s)` accessor (min over directions of
+  min(i_spec, i_diff)) and the integrated fraction φₛ/ii as SIA properties.
+- **Measured Σφ_r certificate (M3).** The state-keyed sum-of-relation-φ certificate proved in
+  the S(o) experiments exists only under `experiments/`; add
+  `sum_phi_relations_measured_bound(distinctions)` to `formalism/iit4/bounds.py` (O(|D|·n)).
+- **Cost pre-flight for analyze/sia/ces (M5).** The counting primitives exist in `bounds.py`;
+  expose an estimate surface and make the MCP hard node-limits delegate to it.
+- **`SweepResult`/`OptimizationResult` serialization (M12).** Neither has a load path, and
+  `OptimizationResult.save` drops the winning substrate and SIA. Register both in
+  `pyphi.serialize`, reusing the existing Substrate/SIA schemas.
+- **Thread-backend progress (M13).** The thread backend discards the progress policy on entry
+  (an in-code deferral note); hook the progress bar into its futures loop.
+- **Script-facing provenance writer (M14).** `provenance.save_json`/`save_npz` with git SHA,
+  parameters encoded in the filename, and no-clobber versioning — consolidating the pattern
+  that experiment scripts repeatedly re-implement.
+
+Already tracked elsewhere (verified during the triage): the Wave 7 ii-gate (M4), the
+intervention/lesion surface (N14 ← M8), the Φ-structure distance surface (N16 ← M6), the
+ANALYTICAL relation-computation default flip (M10 — the documentation-overhaul follow-up
+item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-error work
+(B14 ← T3).
+
 ## Context
 
 PyPhi is a scientific library implementing Integrated Information Theory (IIT). It has
