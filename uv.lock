@@ -1961,7 +1961,7 @@ requires-dist = [
     { name = "psutil", specifier = ">=2.1.1" },
     { name = "pyyaml", specifier = ">=3.13" },
     { name = "redis", marker = "extra == 'caching'", specifier = ">=2.10.5" },
-    { name = "scipy", specifier = ">=0.13.3" },
+    { name = "scipy", specifier = ">=1.15" },
     { name = "seaborn", marker = "extra == 'visualize'" },
     { name = "tqdm", specifier = ">=4.20.0" },
     { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2024.1" },
