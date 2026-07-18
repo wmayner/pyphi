@@ -317,3 +317,11 @@ def test_nonsquare_nondeterministic_2_state_by_node2state_by_state():
     ])
     # fmt: on
     assert np.allclose(result, answer)
+
+
+def test_state_by_state2state_by_node_rejects_non_power_of_two():
+    import pytest
+
+    tpm = np.ones((9, 9)) / 9
+    with pytest.raises(ValueError, match="integer"):
+        convert.state_by_state2state_by_node(tpm)

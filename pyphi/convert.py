@@ -195,7 +195,7 @@ def be2le_state_by_state(tpm):
     """
     le = np.empty(tpm.shape, dtype=tpm.dtype)
     N = tpm.shape[0]
-    n = int(log2(N))
+    n = assume_integer(log2(N))
     for i, j in product(range(N), repeat=2):
         le[i, j] = tpm[be2le(i, n), be2le(j, n)]
     return le
@@ -213,7 +213,7 @@ def to_multidimensional(tpm):
     # Cast to np.array
     tpm = np.array(tpm)
     # Get the number of nodes in the previous state
-    n_prev = int(log2(np.prod(tpm.shape[:-1])))
+    n_prev = assume_integer(log2(np.prod(tpm.shape[:-1])))
     # Get the number of nodes in the next state
     n_next = tpm.shape[-1]
     # Reshape. We use Fortran ordering here so that the rows use the
@@ -294,7 +294,7 @@ def state_by_state2state_by_node(tpm):
     # Get the number of states from the length of one side of the TPM.
     S = tpm.shape[-1]
     # Get the number of nodes from the number of states.
-    N = int(log2(S))
+    N = assume_integer(log2(S))
     # Initialize the new state-by node TPM.
     sbn_tpm = np.zeros([2] * N + [N])
     # Map indices to state-tuples with the little-endian convention.
