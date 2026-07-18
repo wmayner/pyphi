@@ -180,3 +180,31 @@ class TestImportTimeValidation:
         )
         result = self._import_pyphi(tmp_path)
         assert result.returncode == 0, result.stderr
+
+
+class TestSectionRouting:
+    def test_misfiled_field_rejected(self, tmp_path):
+        path = tmp_path / "config.yml"
+        path.write_text(
+            textwrap.dedent("""\
+            ---
+            numerics:
+              parallel: true
+            """)
+        )
+        before = config.infrastructure.parallel
+        with pytest.raises(ConfigurationError, match="belongs to"):
+            config.load_yaml(str(path))
+        assert config.infrastructure.parallel == before
+
+    def test_stray_formalism_key_rejected(self, tmp_path):
+        path = tmp_path / "config.yml"
+        path.write_text(
+            textwrap.dedent("""\
+            ---
+            formalism:
+              parallel: true
+            """)
+        )
+        with pytest.raises(ConfigurationError, match="unrecognized keys"):
+            config.load_yaml(str(path))

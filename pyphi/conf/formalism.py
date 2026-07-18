@@ -17,6 +17,7 @@ whenever the IIT sub-config changes.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import fields
@@ -110,17 +111,27 @@ class IITConfig:
     shortcircuit_distinctions: bool = True
     single_micro_nodes_with_selfloops_have_phi: bool = True
     state_tie_resolution: str = "PHI"
-    mip_tie_resolution: list[str] = field(
-        default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI"]
+    mip_tie_resolution: Sequence[str] = field(
+        default_factory=lambda: ("NORMALIZED_PHI", "NEGATIVE_PHI")
     )
-    purview_tie_resolution: str | list[str] = "PHI"
-    sia_tie_resolution: list[str] = field(
-        default_factory=lambda: ["NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX"]
+    purview_tie_resolution: str | Sequence[str] = "PHI"
+    sia_tie_resolution: Sequence[str] = field(
+        default_factory=lambda: ("NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX")
     )
 
     __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
+        # A frozen config must not share mutable containers with callers,
+        # presets, or snapshots; sequence-valued fields are stored as tuples.
+        for name in (
+            "mip_tie_resolution",
+            "purview_tie_resolution",
+            "sia_tie_resolution",
+        ):
+            value = getattr(self, name)
+            if isinstance(value, list):
+                object.__setattr__(self, name, tuple(value))
         for name in (
             "assume_partitions_cannot_create_new_concepts",
             "system_partition_include_complete",
