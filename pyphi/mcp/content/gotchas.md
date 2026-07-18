@@ -106,4 +106,7 @@ possible states (φₛ, Φ, complexes). **Actual causation** asks about a single
 realized transition — *what actually caused what, this time* (token causation).
 It operates on a `Transition`, measures link strength as α (alpha) in bits
 (`alpha_measure="PMI"`), and evaluates causes and effects independently. Do not
-mix its quantities with φₛ/Φ; they answer different questions.
+mix its quantities with φₛ/Φ; they answer different questions. The transition
+must be realizable: constructing a `Transition` whose effect occurrence has
+zero probability — or calling `causal_nexus()` and related entry points with a
+state pair the TPM says cannot occur — raises `TransitionUnreachableError`.

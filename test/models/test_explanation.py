@@ -99,7 +99,7 @@ def test_ac_null_sia_carries_reason():
     substrate = examples.actual_causation_substrate()
     # Over the OR-AND substrate this transition has an empty unpartitioned
     # account in the cause direction, so the AC SIA short-circuits to alpha = 0.
-    transition = actual.Transition(substrate, (1, 1), (0, 0), (0,), (1,))
+    transition = actual.Transition(substrate, (1, 0), (1, 0), (0,), (1,))
     sia = actual.sia(transition, Direction.CAUSE)
     assert float(sia.alpha) == 0
     assert NullResultReason.EMPTY_CAUSE_EFFECT_STRUCTURE in (sia.reasons or [])
@@ -191,7 +191,7 @@ def test_ac_explain():
 
     # A null AC SIA explains its short-circuit reason.
     substrate = examples.actual_causation_substrate()
-    null_t = actual.Transition(substrate, (1, 1), (0, 0), (0,), (1,))
+    null_t = actual.Transition(substrate, (1, 0), (1, 0), (0,), (1,))
     null_expl = actual.sia(null_t, Direction.CAUSE).explain()
     assert null_expl.level == "system"
     assert null_expl.subject.startswith("α")

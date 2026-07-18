@@ -74,11 +74,17 @@ def test_call_counts_pinned(key: str) -> None:
 
 
 def test_call_counts_pinned_actual_causation() -> None:
-    with config.override(**presets.iit3):
+    # Construction is inside the counted scope, matching
+    # scripts/gen_perf_counts.py: Transition.__post_init__ computes the
+    # realization-check repertoire, which the pin tracks.
+    def _run_ac() -> None:
         transition = actual.Transition(
             examples.actual_causation_substrate(), (1, 0), (1, 0), (0, 1), (0, 1)
         )
-        counts = count_calls(lambda: actual.account(transition), FRAMES)
+        actual.account(transition)
+
+    with config.override(**presets.iit3):
+        counts = count_calls(_run_ac, FRAMES)
         assert counts == _PINS["actual_causation::account"], (
             "AC account call counts changed from the pins. If deliberate, "
             "regenerate: uv run python scripts/gen_perf_counts.py"

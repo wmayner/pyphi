@@ -43,25 +43,31 @@ def _iter_probabilities():
     """Yield every transition probability reachable through the AC plumbing.
 
     Covers the canonical two-node AC substrate (an ``OR`` and an ``AND`` gate
-    with self-loops), across all sixteen before/after state pairs, both temporal
-    directions, every nonempty mechanism/purview pair, and — for each valid pair
-    — every mechanism partition. Both the unpartitioned
+    with self-loops), across all realizable before/after state pairs, both
+    temporal directions, every nonempty mechanism/purview pair, and — for each
+    valid pair — every mechanism partition. Both the unpartitioned
     (:meth:`~pyphi.actual.Transition.probability`) and partitioned
     (:meth:`~pyphi.actual.Transition.partitioned_probability`) values are
     yielded.
 
-    Combinations whose purview state is unreachable in the requested direction
-    raise :class:`~pyphi.exceptions.StateUnreachableError` inside the plumbing
-    and are skipped: for those the plumbing raises rather than returning a
-    probability, so no value reaches the PMI guard at all.
+    State pairs violating the Realization requirement cannot be constructed as
+    :class:`~pyphi.actual.Transition` objects, and combinations whose purview
+    state is unreachable in the requested direction raise
+    :class:`~pyphi.exceptions.StateUnreachableError` inside the plumbing; both
+    are skipped, since for those no value reaches the PMI guard at all.
     """
     substrate = actual_causation_substrate()
     n = substrate.size
     states = list(itertools.product((0, 1), repeat=n))
     for before, after in itertools.product(states, states):
-        transition = actual.Transition(
-            substrate, before, after, tuple(range(n)), tuple(range(n))
-        )
+        try:
+            transition = actual.Transition(
+                substrate, before, after, tuple(range(n)), tuple(range(n))
+            )
+        except pyphi.exceptions.StateUnreachableError:
+            # Transitions violating the Realization requirement cannot be
+            # constructed, so no probability from them can reach the guard.
+            continue
         for direction in (pyphi.Direction.CAUSE, pyphi.Direction.EFFECT):
             for mechanism in utils.powerset(range(n), nonempty=True):
                 for purview in utils.powerset(range(n), nonempty=True):
@@ -90,10 +96,11 @@ def test_no_subprecision_probability_residues():
     no returned probability lands in the open interval ``(0, 1e-13)`` where the
     exact guard would misfire.
 
-    Result over the canonical AC substrate: 792 probability values sampled
-    (216 unpartitioned, 576 partitioned); 160 are exactly ``0.0`` and the
-    smallest nonzero value is ``0.0625`` (:math:`2^{-4}`), far above the
-    tolerance. Should this ever fail, both PMI guards must switch to
+    Result over the canonical AC substrate: 198 probability values sampled
+    (54 unpartitioned, 144 partitioned); none are exactly ``0.0`` — zero
+    probabilities arose only from occurrences within unrealizable transitions,
+    which cannot be constructed — and the smallest value is ``1/9``, far above
+    the tolerance. Should this ever fail, both PMI guards must switch to
     ``numerics.is_zero(p) or numerics.is_zero(q)``.
     """
     values = np.array(list(_iter_probabilities()))
