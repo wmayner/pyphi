@@ -940,7 +940,7 @@ class AnalyticalRelations(Relations):
             "it does not enumerate the relation set. Use .strongest(k) for the "
             "top-k relations by φ_r, .materialize() to enumerate all of them "
             "(may be expensive on large structures), or set "
-            "config.formalism.iit.relation_computation = 'CONCRETE' to compute "
+            "pyphi.config.relation_computation = 'CONCRETE' to compute "
             "the full concrete relation set."
         )
 
@@ -1642,7 +1642,7 @@ class RelationComputationsRegistry(Registry):
     """Storage for functions for computing relations.
 
     Users can define custom schemes and use them by setting
-    ``config.formalism.iit.relation_computation = 'NONE'``.
+    ``pyphi.config.relation_computation = 'NONE'``.
 
     Examples
     --------

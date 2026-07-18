@@ -5,8 +5,7 @@ module searches it: :func:`optimize` runs a seeded population method over a
 bounded box of connection weights, looking for a substrate that maximizes an
 IIT quantity — by default the signed normalized system irreducibility φₛ,
 which stays continuous across minimum-information-partition switches and so
-gives a gradient-free search no discontinuities to trip on
-(``experiments/substrate_landscape_experiments/FINDINGS.md``).
+gives a gradient-free search no discontinuities to trip on.
 
 :func:`weight_axes` builds the search space for the common case: a map from a
 parameter vector to a :func:`~pyphi.substrate_generator.build_substrate`
@@ -350,7 +349,7 @@ def optimize(
     parameters, evaluating each candidate as one system irreducibility
     analysis. The default objective, signed normalized φₛ, is continuous across
     minimum-information-partition switches, so the gradient-free search sees no
-    discontinuities (``experiments/substrate_landscape_experiments/FINDINGS.md``).
+    discontinuities.
 
     Parameters
     ----------

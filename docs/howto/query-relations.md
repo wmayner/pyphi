@@ -382,7 +382,7 @@ having built no relations. When you do need explicit relation objects,
 To use the analytical backend on your own structures, set
 
 ```python
-config.formalism.iit.relation_computation = "ANALYTICAL"
+pyphi.config.relation_computation = "ANALYTICAL"
 ```
 
 and every relation set a computation returns will answer these queries in closed

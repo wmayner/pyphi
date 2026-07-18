@@ -8,7 +8,7 @@ Two distinct mathematical concepts share this module's
 - :class:`DirectedBipartition` — a directed bipartition of an index set
   (Θ(S), Eq. 14-18). Stores ``(direction, from_nodes, to_nodes)``.
 - :class:`JointPartition` — a sequence of :class:`Part` blocks, each a
-  ``(mechanism, purview)`` pair (Π(M,Z), Eq. 5-7). Subclasses
+  ``(mechanism, purview)`` pair (Θ(M,Z), Albantakis et al. 2023, Eq. 38). Subclasses
   :class:`JointBipartition` (k=2) and :class:`JointTripartition` (k=3,
   wedge constraint).
 - :class:`DirectedJointPartition` — a :class:`JointPartition` together
@@ -267,7 +267,11 @@ class _PartitionBase(ToPandasMixin):
         return frozenset((int(a), int(b)) for a, b in np.argwhere(matrix))
 
     def num_connections_cut(self) -> int:
-        """Number of directed connections severed (IIT 4.0 Eq. 24)."""
+        """Number of directed connections severed.
+
+        The count used by the connection-based φ normalization denominators
+        (Albantakis et al. 2023, Eqs. 23 and 43).
+        """
         return len(self.removed_edges())
 
     def refines(self, other: _PartitionBase) -> bool:
@@ -676,7 +680,7 @@ class JointPartition(Displayable, Sequence[Part], _PartitionBase):
     all Parts form a partition of the union mechanism, and likewise for
     the purview subsets. The two side-partitions are matched index-by-index.
 
-    Corresponds to Π(M,Z) in IIT 4.0 Eq. 5-7. Subclasses
+    Corresponds to Θ(M,Z) in IIT 4.0 (Albantakis et al. 2023, Eq. 38). Subclasses
     :class:`JointBipartition` (k=2) and :class:`JointTripartition` (k=3)
     add semantic markers.
     """

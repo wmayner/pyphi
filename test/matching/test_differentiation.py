@@ -2,7 +2,9 @@
 
 import pytest
 
+import pyphi
 from pyphi import examples
+from pyphi.conf import presets
 from pyphi.matching import Differentiation
 from pyphi.matching import PerceptualSystem
 from pyphi.matching.perception import Perception
@@ -101,12 +103,13 @@ def perceptions():
     ps = PerceptualSystem(substrate, system_indices=system, sensory_indices=sensory)
     ttpm = ps.triggered_tpm(tau=2, tau_clamp=1)
     result = {}
-    for stimulus in [(0,), (1,)]:
-        y = ttpm.argmax_state(stimulus)
-        ces = substrate.ces(
-            state=_full_state(sensory, system, stimulus, y), indices=system
-        )
-        result[stimulus] = Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
+    with pyphi.config.override(**presets.iit4_2026):
+        for stimulus in [(0,), (1,)]:
+            y = ttpm.argmax_state(stimulus)
+            ces = substrate.ces(
+                state=_full_state(sensory, system, stimulus, y), indices=system
+            )
+            result[stimulus] = Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
     return result
 
 

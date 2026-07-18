@@ -1101,8 +1101,9 @@ def intrinsic_difference(p: ArrayLike, q: ArrayLike) -> float:
             p_i \log_2 \left( \frac{p_i}{q_i} \right)
         \right\}
 
-    where we define :math:`p_i \log_2 \left( \frac{p_i}{q_i} \right)` to be
-    :math:`0` when :math:`p_i = 0` or :math:`q_i = 0`.
+    where :math:`p_i \log_2 \left( \frac{p_i}{q_i} \right)` is :math:`0`
+    when :math:`p_i = 0`, and :math:`+\infty` when :math:`p_i > 0` and
+    :math:`q_i = 0`.
 
     See the following paper:
 

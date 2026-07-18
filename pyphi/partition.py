@@ -430,7 +430,7 @@ class PartitionRegistry(Registry):
     partitions during MIP search.
 
     Users can define custom partitions and use them by setting
-    ``config.formalism.iit.mechanism_partition_scheme = 'NONE'``.
+    ``pyphi.config["iit.mechanism_partition_scheme"] = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
@@ -721,7 +721,7 @@ class SystemPartitionRegistry(Registry):
     nodes. Used by SIA computations to enumerate cuts of the full system.
 
     Users can define custom partitions and use them by setting
-    ``config.formalism.iit.system_partition_scheme = 'NONE'``.
+    ``pyphi.config.system_partition_scheme = 'NONE'``.
 
     Registered objects are validated against
     :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape
