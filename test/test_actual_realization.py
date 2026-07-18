@@ -117,3 +117,46 @@ def test_noised_background_can_realize(swap_substrate):
         swap_substrate, (0, 0), (1, 0), (0,), (0,), noise_background=True
     )
     assert t.probability(Direction.EFFECT, (0,), (0,)) == pytest.approx(0.5)
+
+
+def test_transitions_raises_eagerly(swap_substrate):
+    # No iteration: the pair is validated at call time.
+    with pytest.raises(exceptions.TransitionUnreachableError):
+        actual.transitions(swap_substrate, (0, 0), (1, 0))
+
+
+def test_transitions_yields_all_candidates_for_valid_pair(swap_substrate):
+    # For a realizable pair, every cm-supported candidate is realized
+    # (each unit's factor is positive, so every subset product is), and
+    # the sweep yields all (2^2 - 1)^2 of them.
+    assert len(list(actual.transitions(swap_substrate, (1, 0), (0, 1)))) == 9
+
+
+def test_causal_nexus_rejects_impossible_pair(swap_substrate):
+    with pytest.raises(exceptions.TransitionUnreachableError):
+        actual.causal_nexus(swap_substrate, (0, 0), (1, 0))
+
+
+def test_nexus_rejects_impossible_pair(swap_substrate):
+    with pytest.raises(exceptions.TransitionUnreachableError):
+        actual.nexus(swap_substrate, (0, 0), (1, 0))
+
+
+def test_causal_nexus_valid_pair_still_works(swap_substrate):
+    result = actual.causal_nexus(swap_substrate, (1, 0), (0, 1))
+    assert result is not None
+
+
+def test_events_rejects_impossible_first_pair(swap_substrate):
+    with pytest.raises(exceptions.TransitionUnreachableError):
+        actual.events(swap_substrate, (0, 0), (1, 0), (0, 1), (0, 1))
+
+
+def test_events_rejects_impossible_second_pair(swap_substrate):
+    with pytest.raises(exceptions.TransitionUnreachableError):
+        actual.events(swap_substrate, (0, 0), (0, 0), (1, 0), (0, 1))
+
+
+def test_events_valid_triplet_still_works(swap_substrate):
+    result = actual.events(swap_substrate, (1, 0), (0, 1), (1, 0), (0, 1))
+    assert isinstance(result, tuple)
