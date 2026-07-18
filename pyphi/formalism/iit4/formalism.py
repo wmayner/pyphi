@@ -282,6 +282,7 @@ class IIT4_2023Formalism:
     )
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
+    compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 
@@ -445,6 +446,7 @@ class IIT4_2026Formalism:
     )
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
+    compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 

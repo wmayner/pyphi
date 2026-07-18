@@ -206,3 +206,36 @@ def _system_partition_scheme_compatible_with_version(config: Any) -> str | None:
             f"formalism.iit.version to one whose formalism accepts {scheme!r}."
         )
     return None
+
+
+@register_constraint("mechanism_partition_scheme_compatible_with_version")
+def _mechanism_partition_scheme_compatible_with_version(config: Any) -> str | None:
+    """The mechanism partition scheme must be one the active formalism accepts.
+
+    IIT 3.0 defines mechanism-level φ over bipartitions (with the wedge
+    tripartition as its registered variant); pairing it with the IIT 4.0
+    ``JOINT_PARTITION_ALL`` family silently computes a different quantity
+    than the 2014 paper's φ. Formalisms that accept any registered scheme
+    declare ``compatible_mechanism_partition_schemes = None`` and are not
+    constrained.
+    """
+    iit = config.formalism.iit
+    version = iit.version
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        return None
+    compatible = getattr(formalism, "compatible_mechanism_partition_schemes", None)
+    if compatible is None:
+        return None  # unconstrained (e.g. IIT 4.0)
+    scheme = iit.mechanism_partition_scheme
+    if scheme not in compatible:
+        return (
+            f"formalism.iit.mechanism_partition_scheme={scheme!r} is not "
+            f"compatible with formalism.iit.version={version!r}. Compatible "
+            f"mechanism partition schemes for this version: "
+            f"{sorted(compatible)}. Fix: set "
+            f"formalism.iit.mechanism_partition_scheme to one of those, or "
+            f"change formalism.iit.version to one whose formalism accepts "
+            f"{scheme!r}."
+        )
+    return None

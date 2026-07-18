@@ -227,7 +227,7 @@ def cause_repertoire(
     cs: Any,
     mechanism: tuple[int, ...],
     purview: tuple[int, ...],
-    **kwargs: Any,  # noqa: ARG001
+    **kwargs: Any,
 ) -> Any:
     """Cause repertoire πc(z | m) of a mechanism over a purview.
 
@@ -242,6 +242,12 @@ def cause_repertoire(
         ``array([1.0])``; an empty mechanism yields the maximum-entropy
         (unconstrained) distribution over the purview.
     """
+    if kwargs:
+        raise TypeError(
+            f"cause_repertoire got unexpected keyword arguments "
+            f"{sorted(kwargs)}; it computes at the system's current state "
+            f"and accepts no state overrides"
+        )
     if not purview:
         return np.array([1.0])
     if not mechanism:
@@ -462,7 +468,7 @@ def forward_repertoire(
     **kwargs: Any,
 ) -> Any:
     if direction == Direction.CAUSE:
-        return forward_cause_repertoire(cs, mechanism, purview, purview_state)
+        return forward_cause_repertoire(cs, mechanism, purview, purview_state, **kwargs)
     if direction == Direction.EFFECT:
         return forward_effect_repertoire(cs, mechanism, purview, **kwargs)
     _validate.direction(direction)

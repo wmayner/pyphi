@@ -302,3 +302,24 @@ class TestSystemSchemeEnumerationConsistency:
                 sia_raised = True
 
             assert eager_rejected == sia_raised, scheme
+
+
+class TestMechanismPartitionSchemeConstraint:
+    def test_iit3_rejects_joint_partition_all(self):
+        overrides = {
+            "iit.version": "IIT_3_0",
+            "iit.mechanism_phi_measure": "EMD",
+            "iit.system_phi_measure": "EMD",
+            "iit.specification_measure": "EMD",
+            "iit.system_partition_scheme": "DIRECTED_BIPARTITION",
+            "iit.mechanism_partition_scheme": "JOINT_PARTITION_ALL",
+        }
+        with (
+            pytest.raises(ConfigurationError, match="mechanism_partition_scheme"),
+            config.override(**overrides),
+        ):
+            pass
+
+    def test_iit4_unconstrained(self):
+        with config.override(**{"iit.mechanism_partition_scheme": "JOINT_BIPARTITION"}):
+            assert config.formalism.iit.mechanism_partition_scheme == "JOINT_BIPARTITION"

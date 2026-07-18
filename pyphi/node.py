@@ -124,6 +124,8 @@ class Node(Displayable, ToPandasMixin):
         Labels are for display only, so two equal nodes may have different
         labels.
         """
+        if not isinstance(other, Node):
+            return NotImplemented
         return (
             self.index == other.index
             and np.array_equal(self.cause_marginal, other.cause_marginal)
@@ -134,9 +136,14 @@ class Node(Displayable, ToPandasMixin):
         )
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        result = self.__eq__(other)
+        if result is NotImplemented:
+            return result
+        return not result
 
     def __lt__(self, other):
+        if not isinstance(other, Node):
+            return NotImplemented
         return self.index < other.index
 
     def __hash__(self):

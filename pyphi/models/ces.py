@@ -490,6 +490,14 @@ class StructureView(CauseEffectStructure):
 
     parent: CauseEffectStructure = field(kw_only=True)
 
+    def save(self, target: Any, **kwargs: Any) -> None:
+        """Views have no serialized form; save the parent structure."""
+        raise NotImplementedError(
+            f"{type(self).__name__} is a view into its parent structure and "
+            f"has no serialized form; save the parent CauseEffectStructure "
+            f"instead"
+        )
+
 
 @dataclass(frozen=True, eq=False, repr=False)
 class InducedSubstructure(StructureView):

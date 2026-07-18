@@ -124,3 +124,18 @@ def test_build_substrate_returns_substrate_with_correct_cm():
     assert isinstance(sub, Substrate)
     assert np.array_equal(np.asarray(sub.cm), np.array([[0, 1], [1, 0]]))
     assert [str(label) for label in sub.node_labels] == ["A", "B"]
+
+
+def test_random_substrate_is_seed_reproducible():
+    import numpy as np
+
+    from pyphi.substrate_generator import random_substrate
+
+    a = random_substrate(3, seed=42)
+    b = random_substrate(3, seed=42)
+    c = random_substrate(3, seed=43)
+    assert a == b
+    assert not np.allclose(a.tpm.to_array(), c.tpm.to_array())
+    banded = random_substrate(2, seed=1, epsilon=0.1)
+    arr = banded.tpm.to_array()
+    assert arr.min() >= 0.1 and arr.max() <= 0.9

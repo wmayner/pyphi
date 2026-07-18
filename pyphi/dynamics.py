@@ -64,7 +64,13 @@ def simulate(
         raise ValueError("initial_state must have length equal to the number of units")
 
     if isinstance(clamp, Mapping):
-        clamps = [clamp] * timesteps  # pyright: ignore[reportOperatorIssue]
+        if timesteps is None:
+            raise ValueError(
+                "timesteps=None requires an explicit iterable of per-step "
+                "clamps; with a single clamp mapping, pass an integer "
+                "number of timesteps"
+            )
+        clamps = [clamp] * timesteps
     else:
         clamps = clamp
 

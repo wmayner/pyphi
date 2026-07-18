@@ -31,6 +31,7 @@ class _DummyFormalism:
     uses_system_phi_measure = False
     partition_scheme = "JOINT_BIPARTITION"
     compatible_system_partition_schemes = None
+    compatible_mechanism_partition_schemes = None
 
     @property
     def config(self):
