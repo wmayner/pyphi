@@ -433,6 +433,17 @@ class Transition(Serializable):
         :class:`NullCut` over the union of cause and effect indices.
     noise_background : bool, optional
         If ``True``, background conditions are noised instead of frozen.
+
+    Raises
+    ------
+    TransitionUnreachableError
+        If the effect occurrence has zero probability given the before
+        state, violating the Realization principle of Albantakis et al.
+        (2019), Section 2.4: p(v_t | v_{t−1}) > 0. The check applies the transition's
+        own background semantics (frozen, or noised when
+        ``noise_background`` is ``True``) and runs only for unpartitioned
+        construction; a transition built with an explicit ``partition`` is
+        a derived copy of an already-validated transition.
     """
 
     substrate: Substrate
@@ -444,6 +455,7 @@ class Transition(Serializable):
     noise_background: bool = False
 
     def __post_init__(self) -> None:
+        unpartitioned = self.partition is None
         validate.state_length(self.before_state, self.substrate.size)
         validate.state_length(self.after_state, self.substrate.size)
         alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
@@ -452,10 +464,19 @@ class Transition(Serializable):
         coerce = self.substrate.node_labels.coerce_to_indices
         object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
         object.__setattr__(self, "effect_indices", coerce(self.effect_indices))
-        if self.partition is None:
+        if unpartitioned:
             object.__setattr__(
                 self, "partition", NullCut(self.node_indices, self.substrate.node_labels)
             )
+            if self.effect_indices and (
+                self.probability(
+                    Direction.EFFECT, self.cause_indices, self.effect_indices
+                )
+                <= 0.0
+            ):
+                raise exceptions.TransitionUnreachableError(
+                    self.before_state, self.after_state
+                )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Transition):
