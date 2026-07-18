@@ -526,13 +526,12 @@ extending B1's bound-certificate assertions.
 
 *Correctness & design decisions:*
 
-- **Realization enforcement for actual causation (C01 — high priority).** `Transition` /
-  `causal_nexus` accept impossible transitions (current→next probability 0) and report positive
-  α, violating the Realization requirement of Albantakis et al. 2019 (the dead
-  `StateUnreachableError` suppression in `transitions()` suggests enforcement was intended).
-  Decide the enforcement point — `Transition` construction vs filtering in `transitions()` —
-  plus null-result semantics for `causal_nexus`/`actual.sia` on impossible pairs; several test
-  files construct Transitions directly, so the blast radius follows the choice.
+- **Realization enforcement for actual causation (C01 — high priority). DONE 2026-07-18.**
+  `Transition` construction raises `TransitionUnreachableError` for zero-probability effect
+  occurrences, and the entry points (`transitions`, `nexus`, `causal_nexus`, `events`,
+  `true_events`) reject observed state pairs that are impossible under the substrate dynamics,
+  per the Realization requirement of Albantakis et al. 2019. Design spec and plan under
+  `docs/superpowers/`.
 - **Partial formalism pin leaves the ambient measure active (A1).** Setting `iit.version`
   to `IIT_4_0_2023` alone computes capped φ under the 2023 label (both IIT 4.0 formalisms
   declare both measures compatible, so the constraint layer passes). The blessed paths
