@@ -71,3 +71,19 @@ def test_system_state_as_labels_resolves_to_indices() -> None:
     sys_via_labels = pyphi.System(sub, state=("L", "M"))
     sys_via_indices = pyphi.System(sub, state=(0, 1))
     assert sys_via_labels.state == sys_via_indices.state
+
+
+def test_numpy_integer_states_accepted_with_non_integer_labels():
+    """States produced by numpy code (e.g. ``dynamics.simulate``) coerce as
+    indices even when the alphabet labels are strings."""
+    import numpy as np
+
+    from pyphi import Substrate
+    from pyphi import System
+
+    rng = np.random.default_rng(0)
+    substrate = Substrate(rng.random((2, 2, 2)), state_space=("lo", "hi"))
+    state = tuple(np.array([0, 1]))
+    system = System(substrate, state)
+    assert system.state == (0, 1)
+    assert all(type(s) is int for s in system.state)

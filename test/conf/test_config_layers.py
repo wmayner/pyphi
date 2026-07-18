@@ -64,14 +64,15 @@ class TestIITConfig:
         assert a.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
         assert b.mechanism_phi_measure == "EMD"
 
-    def test_mip_tie_resolution_default_is_list(self):
+    def test_mip_tie_resolution_default_is_immutable_tuple(self):
         cfg = IITConfig()
-        assert cfg.mip_tie_resolution == ["NORMALIZED_PHI", "NEGATIVE_PHI"]
+        assert cfg.mip_tie_resolution == ("NORMALIZED_PHI", "NEGATIVE_PHI")
+        assert isinstance(cfg.mip_tie_resolution, tuple)
 
-    def test_mip_tie_resolution_each_instance_independent(self):
-        a = IITConfig()
-        b = IITConfig()
-        assert a.mip_tie_resolution is not b.mip_tie_resolution
+    def test_sequence_fields_coerced_from_lists(self):
+        cfg = IITConfig(mip_tie_resolution=["PHI", "PARTITION_LEX"])
+        assert cfg.mip_tie_resolution == ("PHI", "PARTITION_LEX")
+        assert isinstance(cfg.mip_tie_resolution, tuple)
 
 
 class TestActualCausationConfig:
@@ -627,3 +628,77 @@ def test_default_formalism_is_iit4_2026():
     assert iit.system_phi_measure == "INTRINSIC_INFORMATION"
     assert iit.mechanism_phi_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
     assert iit.specification_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
+
+
+class TestOverrideReentrancy:
+    def test_decorated_recursive_function_restores_config(self):
+        initial = config.numerics.precision
+
+        @config.override(precision=6)
+        def f(n: int) -> int:
+            assert config.numerics.precision == 6
+            if n:
+                return f(n - 1)
+            return config.numerics.precision
+
+        assert f(2) == 6
+        assert config.numerics.precision == initial
+
+    def test_reused_context_object_restores_config(self):
+        initial = config.numerics.precision
+        ctx = config.override(precision=7)
+        with ctx, ctx:
+            assert config.numerics.precision == 7
+        assert config.numerics.precision == initial
+
+
+class TestConfigImmutability:
+    def test_preset_tie_resolution_cannot_be_corrupted(self):
+        from pyphi.conf import presets
+
+        preset_value = presets.iit4_2026["iit"].sia_tie_resolution
+        with config.override(iit=presets.iit4_2026["iit"]):
+            live = config.formalism.iit.sia_tie_resolution
+            with pytest.raises((TypeError, AttributeError)):
+                live.append("CORRUPTED")  # type: ignore[union-attr]
+        assert tuple(preset_value) == ("NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX")
+
+    def test_iit_config_is_hashable(self):
+        assert hash(IITConfig()) is not None
+
+    def test_snapshot_does_not_alias_live_mappings(self):
+        snap = config.snapshot()
+        live = config.infrastructure.parallel_partition_evaluation
+        snap_map = snap.infrastructure.parallel_partition_evaluation
+        with pytest.raises(TypeError):
+            live["parallel"] = "corrupted"  # type: ignore[index]
+        assert dict(snap_map) == dict(live)
+
+
+class TestSnapshotOverrides:
+    def test_as_overrides_round_trips_colliding_fields(self):
+        from pyphi.conf import presets
+
+        with config.override(**presets.iit3):
+            snap = config.snapshot()
+        assert config.formalism.iit.version != "IIT_3_0"
+        with config.override(**snap.as_overrides()):
+            assert config.formalism.iit.version == "IIT_3_0"
+            assert (
+                config.formalism.iit.mechanism_partition_scheme
+                == snap.formalism.iit.mechanism_partition_scheme
+            )
+        assert config.formalism.iit.version != "IIT_3_0"
+
+
+class TestPresetCompleteness:
+    def test_iit4_presets_reset_actual_causation(self):
+        from pyphi.conf import presets
+
+        with (
+            config.override(
+                **{"actual_causation.mechanism_partition_scheme": "JOINT_BIPARTITION"}
+            ),
+            config.override(**presets.iit4_2026),
+        ):
+            assert config.formalism.actual_causation == ActualCausationConfig()

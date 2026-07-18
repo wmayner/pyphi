@@ -119,6 +119,7 @@ iit4_2023: dict[str, Any] = {
         system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
         specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     ),
+    "actual_causation": ActualCausationConfig(),
 }
 
 iit4_2026: dict[str, Any] = {
@@ -129,6 +130,7 @@ iit4_2026: dict[str, Any] = {
         system_phi_measure="INTRINSIC_INFORMATION",
         specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     ),
+    "actual_causation": ActualCausationConfig(),
 }
 
 # Map a formalism version-name string (as stored in

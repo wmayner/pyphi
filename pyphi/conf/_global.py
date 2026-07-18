@@ -221,19 +221,34 @@ class _GlobalConfig:
         ``mechanism_partition_scheme``) route to the sub-namespace the YAML
         nests them under.
         """
+        from pyphi.conf._field_routing import FIELD_TO_LAYER
+        from pyphi.conf._field_routing import ConfigurationError
         from pyphi.conf._io import load_yaml as _load
 
         data = _load(path)
-        formalism_data = data.pop("formalism", {})
+        formalism_data = dict(data.pop("formalism", {}))
         saved = self.snapshot()
         try:
-            for fields_dict in data.values():
+            for section_name, fields_dict in data.items():
                 for field_name, value in fields_dict.items():
+                    layer, _ = FIELD_TO_LAYER.get(field_name, (None, None))
+                    if layer != section_name:
+                        raise ConfigurationError(
+                            f"config field {field_name!r} is nested under "
+                            f"{section_name!r} but belongs to "
+                            f"{layer if layer is not None else 'no known layer'!r}"
+                        )
                     setattr(self, field_name, value)
             for sub_name in ("iit", "actual_causation"):
-                sub_data = formalism_data.get(sub_name, {})
+                sub_data = formalism_data.pop(sub_name, {})
                 for field_name, value in sub_data.items():
                     self[f"{sub_name}.{field_name}"] = value
+            if formalism_data:
+                raise ConfigurationError(
+                    f"unrecognized keys under 'formalism': "
+                    f"{sorted(formalism_data)}; expected 'iit' and/or "
+                    f"'actual_causation' sub-sections"
+                )
             if self.infrastructure.validate_config:
                 from pyphi.conf.constraints import check_config_constraints
 
@@ -249,12 +264,21 @@ class _GlobalConfig:
             yaml.safe_dump(self._as_nested_dict(), f, sort_keys=False)
 
     def _as_nested_dict(self) -> dict[str, Any]:
-        """Return the layered config as a nested dict."""
-        return {
-            "formalism": asdict(self._formalism),
-            "infrastructure": asdict(self._infrastructure),
-            "numerics": asdict(self._numerics),
-        }
+        """Return the layered config as a nested dict of plain builtins.
+
+        Immutable containers stored on the frozen layers (tuples,
+        ``FrozenMap``) are converted to lists and dicts so the result is
+        safe for ``yaml.safe_dump``.
+        """
+        from pyphi.conf._helpers import plain_builtins
+
+        return plain_builtins(
+            {
+                "formalism": asdict(self._formalism),
+                "infrastructure": asdict(self._infrastructure),
+                "numerics": asdict(self._numerics),
+            }
+        )
 
     def __getitem__(self, path: str) -> Any:
         """Read a config field by dotted path or by bare leaf name.
@@ -486,16 +510,19 @@ class _OverrideContext(contextlib.ContextDecorator):
 
     Saves a full snapshot on entry and restores all three layers on exit
     (wholesale, not key-by-key) so colliding sub-namespace fields still
-    round-trip correctly.
+    round-trip correctly. Snapshots are kept on a stack, so one context
+    object is safely reentrant — in particular when used as a decorator on
+    a recursive or reentrant function.
     """
 
     def __init__(self, config: _GlobalConfig, kwargs: dict[str, Any]) -> None:
         self._config = config
         self._new_values = kwargs
-        self._saved: ConfigSnapshot | None = None
+        self._saved: list[ConfigSnapshot] = []
 
     def __enter__(self) -> _OverrideContext:
-        self._saved = self._config.snapshot()
+        saved = self._config.snapshot()
+        self._saved.append(saved)
         try:
             for name, value in self._new_values.items():
                 if "." in name:
@@ -509,15 +536,14 @@ class _OverrideContext(contextlib.ContextDecorator):
         except Exception:
             # A rejected (or otherwise failed) override must not leave the
             # global config in a half-applied state, since __exit__ won't run.
-            self._config.install_snapshot(self._saved)
-            self._saved = None
+            self._saved.pop()
+            self._config.install_snapshot(saved)
             raise
         return self
 
     def __exit__(self, *exc: Any) -> Literal[False]:
         del exc
-        if self._saved is None:
+        if not self._saved:
             return False
-        self._config.install_snapshot(self._saved)
-        self._saved = None
+        self._config.install_snapshot(self._saved.pop())
         return False

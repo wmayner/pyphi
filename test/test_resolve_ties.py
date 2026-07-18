@@ -357,10 +357,10 @@ def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
 
 
 def test_iit3_default_sia_tie_resolution_is_phi_partition_lex():
-    """presets.iit3's sia_tie_resolution is ["PHI", "PARTITION_LEX"]."""
+    """presets.iit3's sia_tie_resolution is ("PHI", "PARTITION_LEX")."""
     from pyphi.conf import presets
 
-    assert presets.iit3["iit"].sia_tie_resolution == ["PHI", "PARTITION_LEX"]
+    assert presets.iit3["iit"].sia_tie_resolution == ("PHI", "PARTITION_LEX")
 
 
 def test_iit3_find_mip_consults_mip_tie_resolution():
@@ -399,4 +399,4 @@ def test_iit3_default_mip_tie_resolution_is_raw_phi():
     """presets.iit3's mip_tie_resolution is ["PHI", "PARTITION_LEX"]."""
     from pyphi.conf import presets
 
-    assert presets.iit3["iit"].mip_tie_resolution == ["PHI", "PARTITION_LEX"]
+    assert presets.iit3["iit"].mip_tie_resolution == ("PHI", "PARTITION_LEX")

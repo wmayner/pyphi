@@ -19,6 +19,19 @@ from typing import Any
 import yaml
 
 
+def plain_builtins(value: Any) -> Any:
+    """Recursively convert to plain builtins for ``yaml.safe_dump``.
+
+    Mappings (including ``FrozenMap``) become dicts; tuples and lists
+    become lists. Other values pass through unchanged.
+    """
+    if isinstance(value, Mapping):
+        return {key: plain_builtins(v) for key, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [plain_builtins(v) for v in value]
+    return value
+
+
 def yaml_repr(self: Any) -> str:
     """Render a frozen-dataclass config layer as nested YAML.
 
@@ -29,7 +42,7 @@ def yaml_repr(self: Any) -> str:
     the top-level ``pyphi.config``.
     """
     return yaml.safe_dump(
-        asdict(self), sort_keys=False, default_flow_style=False
+        plain_builtins(asdict(self)), sort_keys=False, default_flow_style=False
     ).rstrip()
 
 

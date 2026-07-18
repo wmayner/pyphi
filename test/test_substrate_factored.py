@@ -55,3 +55,13 @@ def test_substrate_rejects_factored_via_tpm_keyword() -> None:
     factored = FactoredTPM(factors=[f0, f1], state_space=((0, 1), (0, 1)))
     with pytest.raises(ValueError, match="marginals"):
         Substrate(tpm=factored)  # type: ignore[arg-type]
+
+
+def test_wrong_shaped_joint_tpm_names_accepted_forms():
+    import numpy as np
+    import pytest
+
+    from pyphi import Substrate
+
+    with pytest.raises(ValueError, match="accepted"):
+        Substrate(np.random.default_rng(0).random((3, 2)))

@@ -307,7 +307,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         state: Any,
         nodes: Any | None = None,
         partition: DirectedBipartition | None = None,
-        **kwargs: Any,  # noqa: ARG003
+        **kwargs: Any,
     ) -> System:
         """Construct a System from a substrate, state, and optional node subset."""
         if nodes is None:
@@ -317,6 +317,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             state=tuple(state),
             node_indices=tuple(nodes),
             partition=partition,  # type: ignore[arg-type]
+            **kwargs,
         )
 
     # ---- cached cheap derived properties ----

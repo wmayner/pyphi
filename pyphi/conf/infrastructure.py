@@ -137,6 +137,23 @@ class InfrastructureConfig:
     __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
+        # A frozen config must not share mutable containers with callers,
+        # presets, or snapshots; the per-level parallel mappings are stored
+        # as immutable (and hashable) FrozenMaps.
+        from pyphi.data_structures import FrozenMap
+
+        for name in (
+            "parallel_complex_evaluation",
+            "parallel_partition_evaluation",
+            "parallel_distinction_evaluation",
+            "parallel_purview_evaluation",
+            "parallel_mechanism_partition_evaluation",
+            "parallel_relation_evaluation",
+            "parallel_macro_system_evaluation",
+        ):
+            value = getattr(self, name)
+            if not isinstance(value, FrozenMap):
+                object.__setattr__(self, name, FrozenMap(value))
         _check_bool("parallel", self.parallel)
         _check_int("parallel_workers", self.parallel_workers)
         _check_int(

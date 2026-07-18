@@ -414,3 +414,18 @@ def test_to_xarray_on_sparse_factors() -> None:
     ds = sparse.to_xarray()
     assert dict(ds.sizes)["u0"] == 2
     assert ds.identical(dense.to_xarray())
+
+
+def test_out_of_range_probabilities_rejected():
+    import numpy as np
+    import pytest
+
+    from pyphi import Substrate
+    from pyphi.exceptions import InvalidTPM
+
+    tpm = np.array([[0.1, 0.1], [0.9, 1.1], [1.1, 0.2], [0.1, 0.9]])
+    with pytest.raises(InvalidTPM, match=r"outside \[0, 1\]"):
+        Substrate(tpm)
+    negative = np.array([[-0.2, 0.5], [0.9, 0.5], [0.5, 0.2], [0.1, 0.9]])
+    with pytest.raises(InvalidTPM, match=r"outside \[0, 1\]"):
+        Substrate(negative)

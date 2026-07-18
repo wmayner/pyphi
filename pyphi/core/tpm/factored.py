@@ -643,6 +643,11 @@ def _validate(factored: FactoredTPM) -> None:
                     f"factor {i} input dim {j} has size {dim_size}; "
                     f"expected 1 (non-input) or {a[j]} (input)"
                 )
+        if f.min() < -tol or f.max() > 1.0 + tol:
+            raise exceptions.InvalidTPM(
+                f"factor {i} has probabilities outside [0, 1]: "
+                f"min {f.min()}, max {f.max()}, tolerance {tol}"
+            )
         sums = f.sum(axis=-1)
         if not np.allclose(sums, 1.0, atol=tol):
             if sums.ndim == 0:

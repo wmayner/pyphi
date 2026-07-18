@@ -63,7 +63,7 @@ class TestIIT3MatchesYamlReference:
 
     def test_purview_tie_resolution(self, yml):
         assert (
-            iit3["iit"].purview_tie_resolution
+            list(iit3["iit"].purview_tie_resolution)
             == yml["formalism"]["iit"]["purview_tie_resolution"]
         )
 
@@ -112,7 +112,7 @@ class TestIIT3Settings:
         assert iit3["iit"].single_micro_nodes_with_selfloops_have_phi is False
 
     def test_purview_tie_resolution(self):
-        assert iit3["iit"].purview_tie_resolution == ["PHI", "PURVIEW_SIZE"]
+        assert iit3["iit"].purview_tie_resolution == ("PHI", "PURVIEW_SIZE")
 
     def test_assume_partitions_cannot_create_new_concepts_is_false(self):
         assert iit3["iit"].assume_partitions_cannot_create_new_concepts is False

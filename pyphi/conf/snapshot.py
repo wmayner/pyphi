@@ -24,7 +24,9 @@ class ConfigSnapshot:
 
     Result objects carry one of these so reproducibility is self-contained:
     rerunning a saved result is
-    ``pyphi.config.override(**snap.as_kwargs())``.
+    ``pyphi.config.override(**snap.as_overrides())``, which restores every
+    field — including the formalism version and other fields whose bare
+    names collide between the IIT and actual-causation sub-namespaces.
     """
 
     formalism: FormalismConfig
@@ -55,6 +57,27 @@ class ConfigSnapshot:
                 other_val = getattr(other_sub, f.name)
                 if self_val != other_val:
                     result[f"formalism.{sub_name}.{f.name}"] = (self_val, other_val)
+        return result
+
+    def as_overrides(self) -> dict[str, Any]:
+        """Return a full-fidelity override mapping for this snapshot.
+
+        Infrastructure and numerics fields appear under their flat names;
+        every formalism field appears under its qualified dotted path
+        (``iit.version``, ``actual_causation.mechanism_partition_scheme``,
+        ...), so — unlike :meth:`as_kwargs` — fields whose bare names
+        collide between the two formalism sub-namespaces are included.
+        ``pyphi.config.override(**snap.as_overrides())`` reproduces the
+        snapshotted configuration exactly.
+        """
+        result: dict[str, Any] = {}
+        for layer in (self.infrastructure, self.numerics):
+            for f in fields(layer):
+                result[f.name] = getattr(layer, f.name)
+        for sub_name in ("iit", "actual_causation"):
+            sub = getattr(self.formalism, sub_name)
+            for f in fields(sub):
+                result[f"{sub_name}.{f.name}"] = getattr(sub, f.name)
         return result
 
     def as_kwargs(self) -> dict[str, Any]:
