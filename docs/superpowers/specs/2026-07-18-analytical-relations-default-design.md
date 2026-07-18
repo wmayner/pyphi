@@ -147,6 +147,30 @@ Worktree flow. Completion gate: pathless `uv run pytest` green in the
 worktree and on main after merge; slow lane (`uv run pytest -m slow
 --slow`) green; the forced-CONCRETE spot check above.
 
+### 7. Value equality for analytical relation summaries (amendment)
+
+Flipping the default surfaced a gap that predates this work:
+`AnalyticalRelations` and `AnalyticalFoldRelations` define no
+`__eq__`/`__hash__`, so they compare by object identity — two identical
+computations, a disk-cache hit, or a serialize round-trip yield structures
+whose relation views compare unequal while every closed-form quantity
+agrees. `ConcreteRelations` never exposed this because it inherits
+content-based equality from `frozenset`.
+
+Both classes gain value-based equality, consistent with their state being a
+pure function of their constructor arguments:
+
+- `AnalyticalRelations`: equal iff the other object is the exact same type
+  and `distinctions` are equal; hash over `(type, distinctions)`.
+- `AnalyticalFoldRelations`: additionally requires equal seed distinctions.
+- Cross-backend comparisons (analytical vs concrete) remain unequal: the
+  two are distinct representations, and equality never triggers
+  materialization.
+
+Direct equality/hash tests live with the default-path tests; the 12
+equality-dependent suite failures (serialize round-trips, disk-cache hit,
+determinism checks) become default-path coverage with no pins.
+
 ## Out of scope
 
 - Tuning the viz default below/above 1000 (adjust later if plotly
