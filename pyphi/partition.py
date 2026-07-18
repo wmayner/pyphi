@@ -400,7 +400,7 @@ def k_partitions(collection, k):
     n = len(collection)
 
     # Special cases
-    if n == 0 or k < 1:
+    if n == 0 or k < 1 or k > n:
         return []
     if k == 1:
         return [[collection]]

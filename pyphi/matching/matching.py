@@ -128,9 +128,11 @@ class MatchingAnalysis:
             Length of each stimulus sequence. Must be >= 1.
         subsequence_max : bool, optional
             If False (default), the gap is computed over the full sequence
-            (Eq. 21 with ``(a, b) = (1, k)``). If True, the trial-mean gap is
-            computed for every contiguous 1-based window ``(a, b)`` and the
-            maximum is returned, recording the winning window.
+            (Eq. 21 with ``(a, b) = (1, k)``), a lower bound on the
+            maximized quantity. If True, the trial-mean gap is computed for
+            every contiguous 1-based window ``(a, b)`` with ``a < b`` —
+            Eq. 21's maximization domain, so ``k`` must be at least 2 — and
+            the maximum is returned, recording the winning window.
 
         Returns
         -------
@@ -141,7 +143,8 @@ class MatchingAnalysis:
         Raises
         ------
         ValueError
-            If ``n_trials`` or ``k`` is less than 1.
+            If ``n_trials`` or ``k`` is less than 1, or if
+            ``subsequence_max`` is true and ``k`` is less than 2.
         """
         if n_trials < 1:
             raise ValueError("n_trials must be at least 1")
@@ -184,8 +187,15 @@ class MatchingAnalysis:
 
         subsequence = None
         if subsequence_max:
+            if k < 2:
+                raise ValueError(
+                    "subsequence_max requires k >= 2: Eq. 21 maximizes over "
+                    "windows (a, b) with a < b"
+                )
             windows = {
-                (a, b): per_trial(a, b) for a in range(1, k + 1) for b in range(a, k + 1)
+                (a, b): per_trial(a, b)
+                for a in range(1, k + 1)
+                for b in range(a + 1, k + 1)
             }
             subsequence = max(windows, key=lambda window: gap(*windows[window]))
             world, noise = windows[subsequence]

@@ -243,3 +243,27 @@ def test_intrinsic_information_winner_is_first_enumerated_tied_state() -> None:
     assert spec.state == (1, 1)
     assert spec.runner_up_state == (0, 1)
     assert spec.runner_up_state != spec.state
+
+
+def test_forward_cause_repertoire_purview_order_independent() -> None:
+    """The repertoire does not depend on the order of the purview tuple."""
+    import numpy as np
+
+    from pyphi import Substrate
+    from pyphi import System
+
+    rng = np.random.default_rng(42)
+    substrate = Substrate(rng.random((2, 2, 2, 3)))
+    system = System(substrate, (1, 0, 1))
+    a = system.forward_cause_repertoire((0,), (1, 2), None)
+    b = system.forward_cause_repertoire((0,), (2, 1), None)
+    assert np.allclose(a, b)
+
+
+def test_forward_cause_repertoire_empty_purview_is_identity() -> None:
+    """An empty purview yields the multiplicative-identity repertoire."""
+    from pyphi import examples
+
+    r = examples.basic_system().forward_cause_repertoire((0,), (), ())
+    assert r.dtype == float
+    assert float(r.squeeze()) == 1.0

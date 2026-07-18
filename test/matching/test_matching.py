@@ -119,11 +119,10 @@ def test_raw_arrays_reconstruct_value(analysis):
     assert result.subsequence is None
 
 
-def test_subsequence_max_on_k1_equals_default(analysis):
-    default = analysis.matching(seed=3, n_trials=4, k=1)
-    fancy = analysis.matching(seed=3, n_trials=4, k=1, subsequence_max=True)
-    assert fancy.value == pytest.approx(default.value)
-    assert fancy.subsequence == (1, 1)
+def test_subsequence_max_rejects_k1(analysis):
+    # Eq. 21 maximizes over windows with a < b, so k = 1 has no valid window.
+    with pytest.raises(ValueError, match="a < b"):
+        analysis.matching(seed=3, n_trials=4, k=1, subsequence_max=True)
 
 
 def test_subsequence_max_dominates_full_sequence(analysis):
@@ -132,7 +131,7 @@ def test_subsequence_max_dominates_full_sequence(analysis):
     assert fancy.value >= default.value - 1e-12
     assert fancy.subsequence is not None
     a, b = fancy.subsequence
-    assert 1 <= a <= b <= 3
+    assert 1 <= a < b <= 3
     # Raw arrays reconstruct the value in subsequence mode too.
     reconstructed = float(
         np.mean(fancy.world_differentiation) - np.mean(fancy.noise_differentiation)

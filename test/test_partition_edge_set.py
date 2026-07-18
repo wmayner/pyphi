@@ -177,3 +177,20 @@ def test_normalization_factor_none_partition_is_none():
 
     with config.override(distinction_phi_normalization="NUM_CONNECTIONS_CUT"):
         assert normalization_factor(None) is None
+
+
+def test_directed_joint_partition_severs_only_into_the_receiving_side():
+    """ψ severs each part's mechanism only into the rest of the whole
+    purview, never into mechanism nodes outside the part (asymmetric case:
+    the parametrized instance above has mechanism == purview, which cannot
+    distinguish the two)."""
+    part = JointPartition(Part((0,), (3,)), Part((2,), (1,)))
+    undirected = part.removed_edges()
+    assert undirected == frozenset({(0, 1), (2, 3)})
+    effect = DirectedJointPartition(Direction.EFFECT, part)
+    cause = DirectedJointPartition(Direction.CAUSE, part)
+    assert effect.removed_edges() == undirected
+    assert cause.removed_edges() == frozenset((b, a) for a, b in undirected)
+    for p in (effect, cause):
+        expected = frozenset((int(a), int(b)) for a, b in np.argwhere(p.cut_matrix(N)))
+        assert p.removed_edges() == expected

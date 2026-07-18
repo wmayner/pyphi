@@ -264,3 +264,13 @@ def test_mip_reshuffle_and_genuine_change_branches():
         _mip_changed(a_no_ties, SimpleNamespace(partition=p3, ties=None, phi=1.0))
         is False
     )
+
+
+def test_distinction_diff_detects_genuine_mip_change(s):
+    from pyphi.formalism import iit3
+
+    with pyphi.config.override(**presets.iit3):
+        da = iit3.concept(s, (1,))
+        db = iit3.concept(s, (0, 1))
+    assert da.diff(db).mip_changed
+    assert not da.diff(da).mip_changed

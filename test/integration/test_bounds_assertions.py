@@ -146,3 +146,22 @@ def test_sia_overshoot_is_detected(monkeypatch: pytest.MonkeyPatch) -> None:
         pytest.raises(BoundViolationError),
     ):
         _binary_system().sia()
+
+
+def test_ces_bound_validations_request_certified_bounds(monkeypatch):
+    """The relation-sum and big-Φ validations in ``ces()`` must request
+    certified certificates; an uncertified bound makes the check a silent
+    no-op."""
+    captured = {}
+    original = bounds.check_phi_bound
+
+    def capture(value, bound_thunk, **kwargs):
+        captured[kwargs.get("label")] = bound_thunk()
+        return original(value, bound_thunk, **kwargs)
+
+    monkeypatch.setattr(bounds, "check_phi_bound", capture)
+    with config.override(**presets.iit4_2023, validate_phi_bounds=True):
+        _binary_system().ces()
+    for label in ("sum phi_relations", "big_phi"):
+        assert label in captured
+        assert captured[label].certified, label

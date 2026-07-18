@@ -489,3 +489,21 @@ def test_screened_posterior_round_trips():
     assert restored.screened == pp.screened
     assert restored.reference_margins == pp.reference_margins
     np.testing.assert_array_equal(restored.samples, pp.samples)
+
+
+def test_edge_probability_directed_asymmetric_edge():
+    """A single directed edge is reported in its true direction only: unit 1
+    copies unit 0, unit 0 is an unbiased coin. A transposed probability
+    matrix passes any symmetric-substrate test but fails this one."""
+    rng = np.random.default_rng(7)
+    current, nxt = [], []
+    for state in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+        for _ in range(1500):
+            current.append(state)
+            nxt.append((int(rng.random() < 0.5), state[0]))
+    posterior = estimate_substrate(
+        (np.array(current), np.array(nxt, dtype=int)), regime="perturbational"
+    )
+    prob = posterior.edge_probability(n_samples=200, seed=5, threshold=0.2)
+    assert prob[0, 1] > 0.9
+    assert prob[1, 0] < 0.1

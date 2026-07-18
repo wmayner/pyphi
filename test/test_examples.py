@@ -98,3 +98,14 @@ def test_frog_accounts_have_composite_causes():
 
     assert all(count >= 1 for count in composite_counts.values())
     assert composite_counts["F3"] > composite_counts["F1"]
+
+
+def test_propagation_delay_d_gate_is_xor():
+    """Unit D copies XOR(B, F) from the previous state, for every state."""
+    import itertools
+
+    substrate = examples.propagation_delay_substrate()
+    tpm = substrate.tpm.to_array()
+    for previous in itertools.product((0, 1), repeat=9):
+        expected = (previous[1] == 1) ^ (previous[5] == 1)
+        assert tpm[previous][3][1] == expected, previous
