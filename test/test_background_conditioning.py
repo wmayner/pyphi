@@ -154,3 +154,22 @@ class TestActualCausationInsulation:
             flipped = account_alphas()
         assert flipped == baseline
         assert len(baseline) > 0
+
+
+class TestFromSubstrateKwargs:
+    def test_from_substrate_forwards_background_conditioning(self, substrate):
+        factory = System.from_substrate(
+            substrate,
+            STATE,
+            SYSTEM_NODES,
+            background_conditioning="CONDITION_CURRENT_STATE",
+        )
+        assert factory.background_conditioning == "CONDITION_CURRENT_STATE"
+        direct = _system(substrate, background_conditioning="CONDITION_CURRENT_STATE")
+        rep_factory = factory.cause_repertoire((0,), (1,)).squeeze()
+        rep_direct = direct.cause_repertoire((0,), (1,)).squeeze()
+        assert rep_factory == pytest.approx(rep_direct)
+
+    def test_from_substrate_rejects_unknown_kwargs(self, substrate):
+        with pytest.raises(TypeError):
+            System.from_substrate(substrate, STATE, SYSTEM_NODES, bogus_kwarg=1)

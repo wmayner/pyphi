@@ -109,3 +109,16 @@ def test_propagation_delay_d_gate_is_xor():
     for previous in itertools.product((0, 1), repeat=9):
         expected = (previous[1] == 1) ^ (previous[5] == 1)
         assert tpm[previous][3][1] == expected, previous
+
+
+def test_basic_substrate_honors_passed_cm():
+    full = np.ones((3, 3), dtype=int)
+    substrate = examples.basic_substrate(cm=full)
+    assert np.array_equal(substrate.cm, full)
+    # The default connectivity is unchanged.
+    default = examples.basic_substrate()
+    assert np.array_equal(default.cm, np.array([[0, 0, 1], [1, 0, 1], [1, 1, 0]]))
+    # An inconsistent matrix is rejected rather than silently replaced.
+    cycle = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+    with pytest.raises(ValueError, match="under-specified"):
+        examples.basic_substrate(cm=cycle)

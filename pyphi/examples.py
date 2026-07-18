@@ -76,7 +76,7 @@ def grid3_system():
 
 
 @register_example
-def basic_substrate(cm=False):
+def basic_substrate(cm: np.ndarray | bool = False):
     """A 3-node substrate of logic gates.
 
     Diagram::
@@ -151,8 +151,6 @@ def basic_substrate(cm=False):
             [1, 1, 0],
         ])
     # fmt: on
-    else:
-        cm = None
     return Substrate(tpm, cm=cm, node_labels=LABELS[: tpm.shape[1]])
 
 

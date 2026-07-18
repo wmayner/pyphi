@@ -137,7 +137,13 @@ class NodeLabels(Sequence[str]):
         if all(isinstance(node, str) for node in nodes_list):
             indices = self.labels2indices(tuple(nodes_list))  # type: ignore[arg-type]
         else:
-            indices = map(int, nodes_list)
+            indices = tuple(int(node) for node in nodes_list)
+            out_of_range = [i for i in indices if not 0 <= i < len(self.node_indices)]
+            if out_of_range:
+                raise ValueError(
+                    f"node indices {out_of_range} out of range for "
+                    f"{len(self.node_indices)} nodes"
+                )
         return tuple(sorted(set(indices)))
 
     def coerce_to_labels(

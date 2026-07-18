@@ -57,3 +57,10 @@ def test_contains(nl):
 def test_instantiation_from_other_node_labels_object(nl):
     copied = NodeLabels(nl, (0, 1, 2))
     assert copied == nl
+
+
+def test_coerce_to_indices_rejects_out_of_range(nl):
+    with pytest.raises(ValueError, match="out of range"):
+        nl.coerce_to_indices((0, 7))
+    with pytest.raises(ValueError, match="out of range"):
+        nl.coerce_to_indices((-1,))

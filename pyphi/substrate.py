@@ -90,8 +90,8 @@ def _coerce_state_to_indices(
     for i, (s, labels) in enumerate(zip(state, state_space, strict=True)):
         if s in labels:
             indices.append(labels.index(s))
-        elif isinstance(s, int) and 0 <= s < len(labels):
-            indices.append(s)
+        elif isinstance(s, (int, np.integer)) and 0 <= s < len(labels):
+            indices.append(int(s))
         else:
             raise ValueError(
                 f"state[{i}] = {s!r} is not in state_space[{i}] = {labels!r} "
@@ -267,7 +267,15 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
                     "documentation for more info."
                 )
             return sbn.astype(np.float64)
-        return convert.to_multidimensional(arr)
+        try:
+            return convert.to_multidimensional(arr)
+        except ValueError as error:
+            raise ValueError(
+                f"cannot interpret a TPM with shape {arr.shape}: accepted "
+                "forms are multidimensional state-by-node (2, ..., 2, n), "
+                "2-D state-by-node (2**n, n), square state-by-state "
+                "(S, S), or per-node marginals with an explicit state space"
+            ) from error
 
     @property
     def tpm(self) -> FactoredTPM:

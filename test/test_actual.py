@@ -1477,3 +1477,11 @@ class TestACMechanismPartitionScheme:
             )
         ):
             assert _find_mip(t, Direction.CAUSE, (0,), (0, 1)).alpha == 0.0
+
+
+def test_transition_validates_states_at_construction():
+    substrate = examples.actual_causation_substrate()
+    with pytest.raises(ValueError, match="one entry per"):
+        actual.Transition(substrate, (0, 1, 0), (1, 1), (0,), (1,))
+    with pytest.raises(ValueError, match="Invalid state"):
+        actual.Transition(substrate, (0, 5), (1, 1), (0,), (1,))
