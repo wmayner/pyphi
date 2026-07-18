@@ -195,7 +195,7 @@ def transition_states(
 
     Every unit's ``after_state`` must have nonzero probability given the
     full ``before_state``: the Realization principle of Albantakis et al.
-    (2019), Section 2.2, requires p(v_t | v_{t−1}) > 0 for a transition
+    (2019) [1]_, Section 2.2, requires p(v_t | v_{t−1}) > 0 for a transition
     to be defined.
 
     Parameters
