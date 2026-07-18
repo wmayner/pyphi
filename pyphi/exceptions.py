@@ -50,6 +50,30 @@ class StateUnreachableBackwardsError(StateUnreachableError):
         super().__init__(state, message)
 
 
+class TransitionUnreachableError(StateUnreachableError):
+    """The transition has zero probability under the substrate dynamics.
+
+    Raised when a state pair violates the Realization principle of
+    Albantakis et al. (2019): a transition is defined only when
+    p(after state | before state) > 0.
+    """
+
+    def __init__(
+        self,
+        before_state: tuple[int, ...],
+        after_state: tuple[int, ...],
+        message: str | None = None,
+    ) -> None:
+        self.before_state = before_state
+        self.after_state = after_state
+        if message is None:
+            message = (
+                f"The transition {before_state} -> {after_state} has zero "
+                "probability under the substrate dynamics."
+            )
+        super().__init__(after_state, message)
+
+
 class IntractableCauseInversionError(ValueError):
     """The cause inversion cannot proceed within the intermediate-size cap.
 

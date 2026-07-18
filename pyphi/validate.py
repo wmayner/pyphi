@@ -186,6 +186,54 @@ def state_length(state: Sequence[int], size: int) -> bool:
     return True
 
 
+def transition_states(
+    substrate: Any,
+    before_state: Sequence[int],
+    after_state: Sequence[int],
+) -> None:
+    """Raise if the observed state pair is impossible under the dynamics.
+
+    Every unit's ``after_state`` must have nonzero probability given the
+    full ``before_state``: the Realization principle of Albantakis et al.
+    (2019), Section 2.2, requires p(v_t | v_{t−1}) > 0 for a transition
+    to be defined.
+
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate whose dynamics define transition probabilities.
+    before_state : tuple[int]
+        The state of the substrate at time t−1.
+    after_state : tuple[int]
+        The state of the substrate at time t.
+
+    Raises
+    ------
+    pyphi.exceptions.TransitionUnreachableError
+        If ``p(after_state | before_state) = 0`` under the substrate's
+        factored TPM.
+    ValueError
+        If either state has the wrong length or is outside the alphabet.
+
+    References
+    ----------
+    .. [1] Albantakis L, Marshall W, Hoel E, Tononi G. (2019).
+       What caused what? A quantitative account of actual causation using
+       dynamical causal networks. *Entropy*, 21 (5), 459.
+       https://doi.org/10.3390/e21050459
+    """
+    factored = substrate.factored_tpm
+    state_length(before_state, substrate.size)
+    state_length(after_state, substrate.size)
+    node_states(before_state, factored.alphabet_sizes)
+    node_states(after_state, factored.alphabet_sizes)
+    for i in range(factored.n_nodes):
+        if factored._factor_at(i, before_state)[after_state[i]] <= 0.0:
+            raise exceptions.TransitionUnreachableError(
+                tuple(before_state), tuple(after_state)
+            )
+
+
 def state_reachable(system: object) -> None:
     """Raise :class:`~pyphi.exceptions.StateUnreachableForwardsError` if the
     state is unreachable.
