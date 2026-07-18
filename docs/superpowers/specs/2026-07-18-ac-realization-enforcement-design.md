@@ -43,10 +43,9 @@ the second:
   This matches `System.from_substrate`, which raises `StateUnreachableError`
   for an unreachable current state rather than returning a null result.
 - **Per-candidate enforcement lives in `Transition.__post_init__`.**
-  Unrealizable transitions become unrepresentable; the sweep in
-  `transitions()` filters them via the now-live
-  `suppress(StateUnreachableError)`; directly constructed transitions (user
-  code, tests) are equally protected.
+  Unrealizable transitions become unrepresentable, so `actual.sia` and
+  `account` can never receive one; directly constructed transitions (user
+  code, tests) are protected the same way as the sweep's candidates.
 - **Raw `<= 0.0` comparison, no tolerance** — consistent with the existing
   reachability checks in `validate.py`, `core/tpm/marginalization.py`, and
   `macro/tpm.py`. Zero-probability TPM entries are exact.
@@ -65,10 +64,14 @@ class TransitionUnreachableError(StateUnreachableError):
 Constructor takes `(before_state, after_state)` (and an optional message)
 and formats a message naming the zero-probability transition; `self.state`
 (inherited) is set to `after_state`. Subclassing `StateUnreachableError`
-makes the existing `suppress(StateUnreachableError)` in `transitions()` the
-live filter and keeps existing `except StateUnreachableError` callers
-working. This mirrors the `StateUnreachableForwardsError` /
-`StateUnreachableBackwardsError` pattern.
+keeps existing `except StateUnreachableError` callers working and lets the
+`suppress(StateUnreachableError)` in `transitions()` act as a safety net.
+Note that once the observed pair is validated (Section 3), the per-candidate
+check can never fire inside the sweep: with frozen background, a
+candidate's effect-occurrence probability is a product of per-unit factors
+that the full-pair check already required to be positive. The per-candidate
+check's real work is on directly constructed transitions. This mirrors the
+`StateUnreachableForwardsError` / `StateUnreachableBackwardsError` pattern.
 
 ### 2. Per-candidate check in `Transition.__post_init__`
 
@@ -146,7 +149,7 @@ Called at the top of:
 | Situation | Behavior |
 |---|---|
 | Observed pair impossible (any unit's after-state has zero probability given the before state) | `transitions`/`nexus`/`causal_nexus`/`events` and callers raise `TransitionUnreachableError` |
-| Observed pair possible; a candidate (cause set, effect set) unrealizable | Candidate filtered from the sweep by the live `suppress(StateUnreachableError)` |
+| Observed pair possible; sweep candidates | All cm-supported candidates are realized (their probabilities are sub-products of the validated full-pair product); the `suppress(StateUnreachableError)` remains as a safety net |
 | Observed pair possible; no irreducible candidates | Null SIA (α = 0), unchanged |
 | Direct construction of an unrealizable `Transition` | Raises `TransitionUnreachableError` at construction; `actual.sia`/`account` can never receive one |
 | `apply_cut` / decode of a saved transition | No re-check (explicit partition ⇒ derived copy) |
@@ -163,8 +166,9 @@ Called at the top of:
   - `apply_cut` on a valid transition does not re-run the check (e.g., no
     error when cutting, and construction with explicit partition bypasses);
   - `events()` raises when either pair of the triplet is impossible;
-  - `transitions()` yields only realizable candidates for a pair where some
-    candidates are unrealizable.
+  - `transitions()` on a realizable pair yields every cm-supported
+    candidate (documenting that entry validation subsumes per-candidate
+    filtering in the sweep).
 - Full suite: all existing fixtures and both `examples.py` transitions must
   remain constructible. Any existing fixture that turns out to encode an
   impossible transition is a latent bug to surface and fix individually,
