@@ -267,3 +267,15 @@ def test_forward_cause_repertoire_empty_purview_is_identity() -> None:
     r = examples.basic_system().forward_cause_repertoire((0,), (), ())
     assert r.dtype == float
     assert float(r.squeeze()) == 1.0
+
+
+def test_cause_repertoire_rejects_state_override_kwargs() -> None:
+    """State-override keyword arguments are rejected loudly on the cause
+    side rather than silently ignored."""
+    import pytest
+
+    from pyphi import examples
+
+    system = examples.basic_system()
+    with pytest.raises(TypeError, match="unexpected keyword"):
+        system.cause_repertoire((0,), (1,), mechanism_state=(1,))

@@ -190,3 +190,19 @@ def test_settle_raises_when_settling_time_exceeds_max_steps():
     with pytest.raises(NonConvergenceError, match="max_steps"):
         settle(tpm, (0, 0), max_steps=1)
     assert settle(tpm, (0, 0), max_steps=2) == [(0, 0), (1, 0), (1, 1)]
+
+
+def test_simulate_timesteps_none_with_mapping_clamp_raises():
+    import numpy as np
+    import pytest
+
+    from pyphi import dynamics
+
+    tpm = np.ones((4, 2)) * 0.5
+    with pytest.raises(ValueError, match="timesteps=None"):
+        dynamics.simulate(
+            tpm,
+            timesteps=None,
+            initial_state=(0, 0),
+            rng=np.random.default_rng(0),
+        )

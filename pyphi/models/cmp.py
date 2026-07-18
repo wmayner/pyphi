@@ -70,20 +70,28 @@ class Orderable:
             )
 
     def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Orderable):
+            return NotImplemented
         self._check_orderable(other)
-        return self.order_by() < other.order_by()  # type: ignore[attr-defined]
+        return self.order_by() < other.order_by()
 
     def __le__(self, other: object) -> bool:
+        if not isinstance(other, Orderable):
+            return NotImplemented
         self._check_orderable(other)
-        return self.order_by() < other.order_by() or self == other  # type: ignore[attr-defined]
+        return self.order_by() < other.order_by() or self == other
 
     def __gt__(self, other: object) -> bool:
+        if not isinstance(other, Orderable):
+            return NotImplemented
         self._check_orderable(other)
-        return self.order_by() > other.order_by()  # type: ignore[attr-defined]
+        return self.order_by() > other.order_by()
 
     def __ge__(self, other: object) -> bool:
+        if not isinstance(other, Orderable):
+            return NotImplemented
         self._check_orderable(other)
-        return self.order_by() > other.order_by() or self == other  # type: ignore[attr-defined]
+        return self.order_by() > other.order_by() or self == other
 
     def __eq__(self, other: object) -> bool:
         raise NotImplementedError

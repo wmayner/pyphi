@@ -295,3 +295,40 @@ def create_substrate(
     elif not isinstance(labels, NodeLabels):
         labels = NodeLabels(tuple(labels), range(n))
     return build_substrate(functions, weights, node_labels=labels)
+
+
+def random_substrate(
+    n: int,
+    *,
+    seed: int,
+    epsilon: float = 0.0,
+    cm: NDArray[np.int_] | None = None,
+) -> Substrate:
+    """A seeded random binary substrate of ``n`` units.
+
+    Each unit's ON probability, for every previous state, is drawn
+    independently and uniformly from ``(epsilon, 1 − epsilon)`` using an
+    isolated generator seeded with ``seed``, so the substrate is exactly
+    reproducible from ``(n, seed, epsilon)``.
+
+    Parameters
+    ----------
+    n : int
+        Number of binary units.
+    seed : int
+        Seed for the isolated random generator.
+    epsilon : float, optional
+        Margin keeping probabilities away from 0 and 1 (deterministic
+        entries); ``0.0`` (the default) permits near-deterministic rows.
+    cm : numpy.ndarray, optional
+        Connectivity matrix. If ``None``, connectivity is inferred from
+        the sampled TPM (generically fully connected).
+
+    Returns
+    -------
+    Substrate
+        The sampled substrate.
+    """
+    rng = np.random.default_rng(seed)
+    tpm = rng.uniform(epsilon, 1.0 - epsilon, size=(2**n, n))
+    return Substrate(tpm, cm=cm)

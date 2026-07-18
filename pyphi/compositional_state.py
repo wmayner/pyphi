@@ -105,8 +105,7 @@ class CompositionalState(UserDict):
         return any(len(mechanisms) > 1 for mechanisms in self[purview].values())
 
     def _mechanism_has_conflicts(self, mechanism):
-        mechanism = self._to_indices(mechanism)
-        return any(any(self[purview].values()) for purview in self.conflicted_purviews())
+        return self.number_of_conflicts(mechanism) > 0
 
     def has_conflicts(self, purview=None, mechanism=None):
         """Return whether the CompositionalState has conflicts."""

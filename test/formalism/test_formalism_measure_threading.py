@@ -131,3 +131,21 @@ def test_2026_explicit_system_measure_immune_to_config_mechanism_measure(
             fresh, system_measure=gid, specification_measure=spec
         )
     assert float(overridden.phi) == pytest.approx(float(baseline.phi))
+
+
+def test_iit3_module_functions_require_iit3_pin():
+    import pytest
+
+    import pyphi
+    from pyphi import examples
+    from pyphi.conf import presets
+    from pyphi.conf._field_routing import ConfigurationError
+    from pyphi.formalism import iit3
+
+    with pyphi.config.override(**presets.iit4_2026):
+        with pytest.raises(ConfigurationError, match="active formalism"):
+            iit3.sia(examples.basic_system())
+        with pytest.raises(ConfigurationError, match="active formalism"):
+            iit3.conceptual_info(examples.basic_system())
+        with pytest.raises(ConfigurationError, match="active formalism"):
+            iit3.ces(examples.basic_system())

@@ -153,13 +153,21 @@ def __getattr__(name: str) -> ModuleType:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
+# Submodules that require optional dependencies at import time; kept out of
+# ``__all__`` so ``from pyphi import *`` works on a base install. They remain
+# importable as attributes and are listed by ``dir(pyphi)``.
+_OPTIONAL_DEP_SUBMODULES = frozenset({"visualize", "mcp"})
+
 __all__ = [
     "Analysis",
     "Direction",
     "FactoredTPM",
     "JointTPM",
+    "LandscapeSection",
     "OptimizationResult",
+    "Perturbation",
     "Substrate",
+    "SweepResult",
     "System",
     "Transition",
     "TransitionSystem",
@@ -178,7 +186,22 @@ __all__ = [
     "save",
     "weight_axes",
     "weight_axis",
-] + [name for name in sorted(_SUBMODULE_NAMES) if not name.startswith("_")]
+] + [
+    name
+    for name in sorted(_SUBMODULE_NAMES)
+    if not name.startswith("_")
+    and name not in _OPTIONAL_DEP_SUBMODULES
+    and name not in ("analyze", "optimize")
+]
+
+
+def __dir__() -> list[str]:
+    """Include lazily importable submodules in ``dir(pyphi)``."""
+    return sorted(
+        set(globals())
+        | set(__all__)
+        | {name for name in _SUBMODULE_NAMES if not name.startswith("_")}
+    )
 
 
 if not (config.infrastructure.welcome_off or "PYPHI_WELCOME_OFF" in os.environ):
@@ -203,7 +226,8 @@ For general discussion, you are welcome to join the pyphi-users group:
   https://groups.google.com/forum/#!forum/pyphi-users
 
 To suppress this message, either:
-  - Set `WELCOME_OFF: true` in your `pyphi_config.yml` file, or
+  - Set `welcome_off: true` under the `infrastructure:` section of your
+    `pyphi_config.yml` file, or
   - Set the environment variable PYPHI_WELCOME_OFF to any value in your shell:
         export PYPHI_WELCOME_OFF='yes'
 """

@@ -47,6 +47,9 @@ class IIT3Formalism:
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"}
     )
+    compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
+        {"JOINT_BIPARTITION", "WEDGE_TRIPARTITION"}
+    )
 
     config: FormalismConfig = field(default_factory=_default_formalism_config)
 

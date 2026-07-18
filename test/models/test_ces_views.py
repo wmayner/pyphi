@@ -169,3 +169,15 @@ def test_meet_across_substrates_same_shape_is_empty(xor_ces, grid3_ces):
     # as a frame mismatch, but value equality makes the intersection empty
     met = xor_ces.meet(grid3_ces)
     assert len(met.distinctions) == 0
+
+
+def test_structure_view_save_raises_clear_error(tmp_path):
+    import pytest
+
+    from pyphi.models.ces import InducedSubstructure
+
+    assert callable(getattr(InducedSubstructure, "save", None))
+    # Any concrete view raises the documented error rather than an opaque
+    # serializer-dispatch TypeError.
+    with pytest.raises(NotImplementedError, match="view into its parent"):
+        InducedSubstructure.save(object.__new__(InducedSubstructure), tmp_path / "x")

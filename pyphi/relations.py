@@ -1668,6 +1668,14 @@ def concrete_relations(
 def analytical_relations(
     distinctions: Iterable[Distinction], **kwargs: Any
 ) -> AnalyticalRelations:
+    if kwargs:
+        raise TypeError(
+            f"analytical relation computation does not support keyword "
+            f"arguments {sorted(kwargs)}: the analytical backend summarizes "
+            f"all degrees in closed form. Use "
+            f"relation_computation='CONCRETE' for degree caps or parallel "
+            f"controls."
+        )
     return AnalyticalRelations(distinctions)
 
 

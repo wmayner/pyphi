@@ -158,3 +158,12 @@ def test_analytical_relations_iteration_raises_guided_error():
 
     # The closed-form count still works — only enumeration is unavailable.
     assert isinstance(len(rels), int)
+
+
+def test_analytical_relations_rejects_unsupported_kwargs():
+    import pytest
+
+    from pyphi.relations import analytical_relations
+
+    with pytest.raises(TypeError, match="analytical relation computation"):
+        analytical_relations((), max_degree=2)

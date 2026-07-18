@@ -51,6 +51,25 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+def _check_active_version() -> None:
+    """Raise unless the active formalism version is IIT 3.0.
+
+    Mechanism-level work dispatches through the *active* formalism, so
+    calling these functions under another version would silently mix
+    formalisms.
+    """
+    from pyphi.conf._field_routing import ConfigurationError
+
+    version = config.formalism.iit.version
+    if version != "IIT_3_0":
+        raise ConfigurationError(
+            f"pyphi.formalism.iit3 functions dispatch mechanism-level work "
+            f"through the active formalism, which is {version!r}; pin "
+            f"IIT 3.0 first, e.g. with "
+            f"pyphi.config.override(**pyphi.conf.presets.iit3)"
+        )
+
+
 def concept(
     system: System,
     mechanism: Mechanism,
@@ -204,6 +223,7 @@ def ces(
 
     from pyphi.provenance import stamp_wall_time
 
+    _check_active_version()
     start = time.perf_counter()
     sia_kwargs = sia_kwargs or {}
     distinctions_kwargs = distinctions_kwargs or {}
@@ -242,6 +262,7 @@ def conceptual_info(system: System, **kwargs: Any) -> float:
     This is the distance from the system's
     :class:`~pyphi.models.distinctions.Distinctions` to the null concept.
     """
+    _check_active_version()
     ci = ces_distance(
         _compute_distinctions(system, **kwargs), ResolvedDistinctions(()), system=system
     )
@@ -427,6 +448,7 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
         information for the given system.
     """
     # pylint: disable=unused-argument
+    _check_active_version()
 
     log.info("Calculating big-phi data for %s...", system)
 

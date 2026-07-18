@@ -453,11 +453,15 @@ def optimize(
     objective_name = objective if isinstance(objective, str) else "<callable>"
 
     rows: list[dict[str, Any]] = []
-    sias: list[Any] = []
+    # Only the best candidate's SIA is retained; keeping every candidate's
+    # full SIA would grow memory linearly with the number of evaluations.
+    best_index: int | None = None
+    best_value = 0.0
+    best_sia_seen: Any = None
     generation = 0
 
     def batch_objective(population: NDArray[Any]) -> NDArray[Any]:
-        nonlocal generation
+        nonlocal generation, best_index, best_value, best_sia_seen
         # scipy hands a (D, S) matrix under vectorized=True.
         thetas = [population[:, i] for i in range(population.shape[1])]
         evaluated = _eval_batch(
@@ -479,7 +483,17 @@ def optimize(
                 "effect_state_margin": row["effect_state_margin"],
             }
             rows.append(record)
-            sias.append(row["_sia"])
+            value = record["objective"]
+            if value is not None and not math.isnan(float(value)):
+                improved = (
+                    float(value) > best_value
+                    if direction == "maximize"
+                    else float(value) < best_value
+                )
+                if best_index is None or improved:
+                    best_index = len(rows) - 1
+                    best_value = float(value)
+                    best_sia_seen = row["_sia"]
             if row["reachable"]:
                 scores[member] = sign * row["objective"]
             else:
@@ -502,19 +516,17 @@ def optimize(
     )
 
     trajectory = pd.DataFrame(rows)
-    # Derive the best from the logged trajectory (not `outcome`) so best_params /
-    # best_sia / best_objective stay mutually consistent and match the table.
-    # nanargmax/nanargmin skip NaN (unreachable) rows; the default RangeIndex
-    # makes the returned position line up with the `sias` list.
-    values = trajectory["objective"].to_numpy(dtype=float)
+    # Derive the best from the logged evaluations (not `outcome`) so
+    # best_params / best_sia / best_objective stay mutually consistent and
+    # match the table. The running best skips NaN (unreachable) rows and
+    # keeps the first occurrence on exact ties; the default RangeIndex makes
+    # `best_index` line up with the trajectory rows.
     param_cols = [f"p{d}" for d in range(len(box))]
-    if np.isfinite(values).any():
-        best_row = int(
-            np.nanargmax(values) if direction == "maximize" else np.nanargmin(values)
-        )
-        best_objective = float(values[best_row])
+    if best_index is not None:
+        best_row = best_index
+        best_objective = best_value
         best_params = trajectory.iloc[best_row][param_cols].to_numpy(dtype=float)
-        best_sia = sias[best_row]
+        best_sia = best_sia_seen
     else:
         # Every candidate was dynamically unreachable — no meaningful optimum.
         best_objective = math.nan

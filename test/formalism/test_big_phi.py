@@ -74,8 +74,12 @@ def test_clear_system_caches_after_computing_sia_config_option(s):
         assert all(stats["size"] == 0 for stats in s.cache_info().values())
 
 
+@skip_if_no_emd_backend
 def test_conceptual_info(s):
-    assert iit3.conceptual_info(s) == 1.0
+    # IIT 3.0 conceptual information (Oizumi et al. 2014, Eq. 10) under the
+    # complete IIT 3.0 preset.
+    with IIT_3_CONFIG:
+        assert iit3.conceptual_info(s) == pytest.approx(2.812499, abs=1e-6)
 
 
 def test_sia_empty_system(s_empty):

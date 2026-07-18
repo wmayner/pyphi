@@ -59,6 +59,9 @@ class PhiFormalism(Protocol):
     - ``compatible_system_partition_schemes``: frozenset of system partition
       scheme names this formalism accepts, or ``None`` if it accepts any
       registered scheme.
+    - ``compatible_mechanism_partition_schemes``: frozenset of mechanism
+      partition scheme names this formalism accepts, or ``None`` if it
+      accepts any registered scheme.
     - ``config``: the :class:`FormalismConfig` snapshot the formalism
       operates against.
 
@@ -71,6 +74,7 @@ class PhiFormalism(Protocol):
     uses_system_phi_measure: ClassVar[bool]
     partition_scheme: ClassVar[str | None]
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None]
+    compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None]
 
     @property
     def config(self) -> FormalismConfig: ...

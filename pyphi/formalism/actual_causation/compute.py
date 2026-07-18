@@ -396,10 +396,20 @@ def _find_causal_link(
         )
         for purview in purviews
     ]
-    # Filter out None values and bail if no candidates have alpha > 0.
+    # Filter out None values; if no candidate has alpha > 0, the mechanism
+    # specifies no causal link, reported as a null link (matching the
+    # no-purviews path above rather than a bare empty list).
     valid_ria = [ria for ria in all_ria if ria is not None and bool(ria)]
     if not valid_ria:
-        return []
+        return CausalLink(
+            _null_ac_ria(
+                transition.mechanism_state(direction),
+                direction,
+                mechanism,
+                None,
+                reasons=[NullResultReason.NO_POSITIVE_ALPHA],
+            )
+        )
     context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
     outcome = resolve_ties.resolve_ac_causal_link_tie(valid_ria, context=context)
     winner = outcome.resolved

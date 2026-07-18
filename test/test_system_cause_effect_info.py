@@ -9,7 +9,7 @@ from .conftest import skip_if_no_emd_backend
 @pytest.mark.emd
 @skip_if_no_emd_backend
 @config.override(
-    {"iit.version": "IIT_3_0"},
+    {"iit.version": "IIT_3_0", "iit.mechanism_partition_scheme": "JOINT_BIPARTITION"},
     mechanism_phi_measure="EMD",
     system_partition_scheme="DIRECTED_BIPARTITION",
 )
@@ -26,7 +26,7 @@ def test_cause_info(s):
 @pytest.mark.emd
 @skip_if_no_emd_backend
 @config.override(
-    {"iit.version": "IIT_3_0"},
+    {"iit.version": "IIT_3_0", "iit.mechanism_partition_scheme": "JOINT_BIPARTITION"},
     mechanism_phi_measure="EMD",
     system_partition_scheme="DIRECTED_BIPARTITION",
 )
@@ -43,7 +43,7 @@ def test_effect_info(s):
 @pytest.mark.emd
 @skip_if_no_emd_backend
 @config.override(
-    {"iit.version": "IIT_3_0"},
+    {"iit.version": "IIT_3_0", "iit.mechanism_partition_scheme": "JOINT_BIPARTITION"},
     mechanism_phi_measure="EMD",
     system_partition_scheme="DIRECTED_BIPARTITION",
 )

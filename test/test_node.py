@@ -113,3 +113,15 @@ def test_generate_nodes_default_labels(s):
         s.cause_marginal, s.effect_marginal, s.cm, s.state, s.node_indices
     )
     assert [n.label for n in nodes] == ["n0", "n1", "n2"]
+
+
+def test_node_comparisons_with_foreign_types():
+    from pyphi import examples
+
+    node = examples.basic_system().nodes[0]
+    assert (node == "not a node") is False
+    assert (node != "not a node") is True
+    import pytest
+
+    with pytest.raises(TypeError):
+        _ = node < "not a node"
