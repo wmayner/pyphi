@@ -558,7 +558,7 @@ def propagation_delay_substrate():
         if previous[3] == 1:
             current_state[2] = 1
             current_state[4] = 1
-        if previous[1] == 1 ^ previous[5] == 1:
+        if (previous[1] == 1) ^ (previous[5] == 1):
             current_state[3] = 1
         if previous[4] == 1 and previous[8] == 1:
             current_state[6] = 1
