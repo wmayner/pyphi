@@ -72,10 +72,13 @@ its irreducibility (Albantakis et al., 2023).
 
 A relation can also bind a *single* distinction with itself, where its own
 cause and effect purviews overlap congruently — a self-relation. Counting
-these, the worked example has seven relations:
+these, the worked example has seven relations. By default the relation set is
+a closed-form summary; individual relations are enumerated explicitly with
+`materialize()`:
 
 ```{code-cell} python
-[(round(float(r.phi), 3), r.purview) for r in ces.relations]
+relations = ces.relations.materialize()
+[(round(float(r.phi), 3), r.purview) for r in relations]
 ```
 
 Each is a congruent overlap over a purview (here, over one unit and over a pair),
