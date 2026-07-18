@@ -24,6 +24,7 @@ from pyphi.display.numbers import format_value
 from . import cmp
 from .diff import ResultDiff
 from .diff import _diff_common
+from .diff import _mip_changed
 from .explanation import Explanation
 from .explanation import binding_direction_finding
 from .pandas import ToDictFromExplicitAttrsMixin
@@ -198,11 +199,18 @@ class Distinction(
                 f"cannot diff {type(self).__name__} against {type(other).__name__}"
             )
         common = _diff_common(self, other)
+        # A distinction has no partition of its own; the MIP comparison is
+        # per-direction over the underlying repertoire analyses.
+        assert self.cause is not None and self.effect is not None
+        assert other.cause is not None and other.effect is not None
+        mip_changed = _mip_changed(self.cause.ria, other.cause.ria) or _mip_changed(
+            self.effect.ria, other.effect.ria
+        )
         return ResultDiff(
             subject=f"Δφ = {format_value(common['delta_phi'])}",
             level="mechanism",
             delta_phi=common["delta_phi"],
-            mip_changed=common["mip_changed"],
+            mip_changed=mip_changed,
             changes=(),
             config_diff=common["config_diff"],
             substrate_note=common["substrate_note"],
