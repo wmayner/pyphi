@@ -425,13 +425,17 @@ def forward_cause_repertoire(
             purview_states = itertools.product(*[range(k) for k in purview_k])
         else:
             purview_states = iter([purview_state])
+        for state in purview_states:
+            result[state] = forward_cause_probability(
+                cs, mechanism, purview, state, mechanism_state=mechanism_state
+            )
+        # The buffer's axes follow the purview-argument order; restore
+        # ascending node-index order to match the repertoire shape.
+        result = result.transpose(tuple(np.argsort(purview)))
     else:
-        result = np.array([1])
-        purview_states = iter([()])
-    for state in purview_states:
-        result[state] = forward_cause_probability(
-            cs, mechanism, purview, state, mechanism_state=mechanism_state
-        )
+        # An empty purview constrains nothing; the repertoire is the
+        # multiplicative identity, as for ``cause_repertoire``.
+        result = np.array([1.0])
     return result.reshape(
         repertoire_shape(
             cs.substrate.node_indices, purview, alphabet_sizes=alphabet_sizes
