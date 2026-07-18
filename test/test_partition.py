@@ -77,7 +77,8 @@ def test_k_partition():
     assert list(k_partitions(range(1), 1)) == [[[0]]]
     assert list(k_partitions(range(3), 1)) == [[[0, 1, 2]]]
     assert list(k_partitions(range(3), 3)) == [[[0], [1], [2]]]
-    assert list(k_partitions(range(3), 4)) == [[[], [0], [1], [2]]]
+    # There are no partitions of an n-set into k > n nonempty blocks.
+    assert list(k_partitions(range(3), 4)) == []
     assert list(k_partitions(range(4), 3)) == [
         [[0, 1], [2], [3]],
         [[0], [1, 2], [3]],
@@ -331,3 +332,9 @@ def test_bidirectional_cut_matrices_symmetric_and_complete():
         expected = 2 ** (n * (n - 1) // 2) - 1
         assert len(matrices) == expected, (n, len(matrices), expected)
         assert len(distinct) == expected, (n, len(distinct), expected)
+
+
+def test_k_partitions_more_blocks_than_elements_is_empty():
+    # There are no partitions of an n-set into k > n nonempty blocks.
+    assert list(k_partitions(range(3), 4)) == []
+    assert list(k_partitions(range(2), 5)) == []
