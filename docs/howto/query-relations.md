@@ -80,14 +80,14 @@ A relation set is computed by one of two backends, selected with
 
 - **`CONCRETE`** builds every relation as an explicit object. Exact and fully
   general, but the output grows exponentially with the number of distinctions.
-- **`ANALYTICAL`** stores only the distinction set and answers queries in closed
-  form. It never materializes a relation.
+- **`ANALYTICAL`** (the default) stores only the distinction set and answers
+  queries in closed form. It never materializes a relation.
 
 Both answer the same questions. Here we build each backend from the same
 distinctions and confirm the three summary quantities agree.
 
 ```{code-cell} python
-concrete = ConcreteRelations(ces.relations)          # the enumerated relations
+concrete = ces.relations.materialize()               # the enumerated relations
 analytical = AnalyticalRelations(ces.distinctions)   # the closed-form view
 
 pd.DataFrame(
@@ -379,11 +379,10 @@ having built no relations. When you do need explicit relation objects,
 `materialize(max_degree=..., min_phi=...)` builds a bounded subset of them, and
 `strongest(k)` streams the important ones in order.
 
-To use the analytical backend on your own structures, set
+The analytical backend is the default, so every relation set a computation
+returns answers these queries in closed form. To work with enumerated
+relation sets throughout, set
 
 ```python
-pyphi.config.relation_computation = "ANALYTICAL"
+pyphi.config.relation_computation = "CONCRETE"
 ```
-
-and every relation set a computation returns will answer these queries in closed
-form.

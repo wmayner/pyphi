@@ -129,12 +129,16 @@ ces.to_pandas()
 ## Figure 4: the relations
 
 Distinctions whose purviews overlap congruently — same units, same specified
-state — bind together into **relations**. Fig 4 works out the relation between
-the distinctions $a$ and $aB$, which overlap over unit $b$:
+state — bind together into **relations**. Fig 4 works out the relation
+between the distinctions $a$ and $aB$, which overlap over unit $b$. By
+default PyPhi computes the relation set analytically — a closed-form summary
+that answers aggregate queries without building relation objects. To examine
+individual relations, enumerate them explicitly with `materialize()`:
 
 ```{code-cell} python
+relations = ces.relations.materialize()
 relation = next(
-    r for r in ces.relations
+    r for r in relations
     if {tuple(m) for m in r.mechanisms} == {(0,), (0, 1)}
 )
 print("φ_r =", round(float(relation.phi), 4))
@@ -148,7 +152,7 @@ two-unit purview union). The structure has seven relations in all — including
 overlap:
 
 ```{code-cell} python
-for r in ces.relations:
+for r in relations:
     mechs = [tuple(m) for m in r.mechanisms]
     print(f"φ_r = {float(r.phi):.4f}  mechanisms {mechs}")
 ```

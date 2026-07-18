@@ -140,15 +140,16 @@ import pandas as pd
 pd.DataFrame(rows).set_index("n")
 ```
 
-In practice PyPhi does not enumerate all $2^D$ subsets of the $D$ distinctions it
-finds. It walks them depth-first and prunes a whole subtree the moment the running
-purview overlap becomes empty
-(`pyphi.combinatorics.combinations_with_nonempty_intersection`), so the realized
-count is the number of subsets with nonempty congruent overlap — worst case
-$2^D - D - 1$, but typically far fewer. Each candidate relation is lazy: its φ and
-faces are computed only when read. When even the realized enumeration is too much,
-`relation_computation = "ANALYTICAL"` computes the relation count and summed φ in
-closed form by inclusion–exclusion, without enumerating individual relations.
+By default, `relation_computation = "ANALYTICAL"` computes the relation count
+and summed φ in closed form by inclusion–exclusion, without enumerating
+individual relations at all. Setting `relation_computation = "CONCRETE"`
+enumerates them explicitly, but not by walking all $2^D$ subsets of the $D$
+distinctions found: it walks them depth-first and prunes a whole subtree the
+moment the running purview overlap becomes empty
+(`pyphi.combinatorics.combinations_with_nonempty_intersection`), so the
+realized count is the number of subsets with nonempty congruent overlap —
+worst case $2^D - D - 1$, but typically far fewer. Each candidate relation is
+lazy: its φ and faces are computed only when read.
 
 **System $\varphi_s$** is separate and much cheaper: it sweeps the
 `DIRECTED_SET_PARTITION` system cuts — $B_n(3)$ before de-duplication — evaluating
@@ -376,7 +377,7 @@ into three kinds, and the distinction matters for how a result should be read:
 
 | Option | Setting | Kind | Effect on cost |
 |---|---|---|---|
-| `relation_computation` | `CONCRETE` → `ANALYTICAL` | exact reformulation (yields the count and summed φ, not individual relations) | removes the $2^D$ relation enumeration; the CES then scales like its distinctions alone |
+| `relation_computation` | `ANALYTICAL` (default); set `CONCRETE` to enumerate | exact reformulation (yields the count and summed φ, not individual relations) | removes the $2^D$ relation enumeration; the CES then scales like its distinctions alone |
 | `mechanism_partition_scheme` | `JOINT_PARTITION_ALL` / `WEDGE_TRIPARTITION` / `JOINT_BIPARTITION` | formalism choice | per-(mechanism, purview) partition count Bell-weighted $> 2^{m-1}3^p > 2^{m+p-1}$ |
 | `shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
 | `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining MICE search once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
@@ -402,8 +403,8 @@ shallower and reaches one unit further than the full cut sweep.
 | mechanism scheme | `JOINT_BIPARTITION` | 3.3 s | **7** |
 | | `WEDGE_TRIPARTITION` | 8.8 s | 6 |
 | | `JOINT_PARTITION_ALL` (default) | 48 s | 5 |
-| relations | `ANALYTICAL` | 41 s | 5 |
-| | `CONCRETE` (default) | 50 s | 5 |
+| relations | `ANALYTICAL` (default) | 41 s | 5 |
+| | `CONCRETE` | 50 s | 5 |
 | system cuts (3.0) | cut-one ($2n$) | 22 s | **6** |
 | | full ($2^n$, default) | 56 s | 5 |
 
@@ -457,7 +458,7 @@ per-evaluation budget):
 
 | Stack | $n=5$ | $n=6$ | $n=7$ |
 |---|---|---|---|
-| **IIT 4.0 CES** default (all-partitions + concrete) | 52 | — | — |
+| **IIT 4.0 CES** all-partitions + concrete | 52 | — | — |
 | + analytical relations | 48 | — | — |
 | + bipartitions | 13 | — | — |
 | **bipartitions + analytical** | **3.3** | 28 | 269 |
@@ -472,8 +473,8 @@ the mechanism scheme to bipartitions cuts the distinction cost ~4×. And once th
 distinctions are cheap, the relations become the next bottleneck, so analytical
 relations *on top of* bipartitions pays off again — another ~4× ($13 \to 3.3$ s).
 The two together are ~16× at $n=5$ and move the ceiling from $n=5$ to $n=7$: the
-full stack reaches seven units (~4.5 min) while the default is already at ~52 s by
-five and would take tens of minutes at six. Use this combination when
+full stack reaches seven units (~4.5 min) while all-partitions + concrete is
+already at ~52 s by five and would take tens of minutes at six. Use this combination when
 the 4.0 structure needs to be tractable — with the caveat that bipartitions is a
 formalism choice, so the seven-unit result is a *different* quantity than the
 default all-partitions one, not the same number computed faster.
@@ -497,7 +498,7 @@ fixed by the formalism.
   without computing repertoires, pruning purviews and cuts a priori.
 - **For IIT 4.0, cheapen distinctions and relations together.** Pairing a cheaper
   mechanism partition scheme with `ANALYTICAL` relations compounds — above it
-  reached seven units where the default stalled at five. The partition scheme is a
+  reached seven units where all-partitions + concrete stalled at five. The partition scheme is a
   formalism choice, so this changes which quantity is computed.
 - **Use `ANALYTICAL` relations** when you need the relation count or summed φ but
   not the individual relations — it avoids the $2^D$ enumeration entirely, and

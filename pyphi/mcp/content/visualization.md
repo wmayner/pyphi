@@ -46,18 +46,17 @@ Through the `plot` tool: `plot(result_ref, kind="ces", view="hypergraph")`.
 A common mistake is to believe `plot_ces` requires concrete (enumerable)
 relations. It does not. The rule:
 
-- The default `relation_computation` is `"CONCRETE"`, so `ces.relations` is an
-  enumerable set and `plot_ces(ces)` works with no extra arguments.
-- Under `relation_computation="ANALYTICAL"` the relation set is a closed-form
-  summary that cannot be listed. Then you **must** pass `max_relations=N` — it
-  draws the strongest N relations by φ_r (via `relations.strongest(k=N)`).
-  Omitting it raises `ValueError` rather than drawing an arbitrary subset of an
-  unbounded set.
+- The default `relation_computation` is `"ANALYTICAL"`: `ces.relations` is a
+  closed-form summary that cannot be listed. `plot_ces(ces)` works with no
+  extra arguments — it draws the strongest 1000 relations by φ_r (via
+  `relations.strongest(k)`); pass `max_relations=N` to choose the cap.
+- Under `relation_computation="CONCRETE"` the relation set is enumerable and
+  `plot_ces(ces)` draws every relation unless `max_relations` caps it.
 
 ```python
-with pyphi.config.override(relation_computation="ANALYTICAL"):
-    ces = system.ces()
-viz.plot_ces(ces, view="lattice", max_relations=8)   # analytical relations plot fine
+ces = system.ces()
+viz.plot_ces(ces, view="lattice")                    # renders the strongest 1000
+viz.plot_ces(ces, view="lattice", max_relations=8)    # renders only the strongest 8
 ```
 
 `max_relations` caps only how many relation *edges* are drawn. Marker sizes and
