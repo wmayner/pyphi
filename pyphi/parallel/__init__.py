@@ -197,6 +197,12 @@ def map_reduce(
             "size_func cost-balancing reorders items across chunks and is "
             "incompatible with ordered=True"
         )
+    if size_func is not None and shortcircuit_func is not false:
+        raise ValueError(
+            "size_func cost-balancing reorders items across chunks and is "
+            "incompatible with a short-circuit predicate, whose truncation "
+            "must match the sequential-evaluation prefix"
+        )
     iterables = (items, *more_items)
     show_progress = fallback(progress, config.infrastructure.progress_bars)
     resolved_total = fallback(try_len(*iterables), total)
@@ -232,7 +238,9 @@ def map_reduce(
             enabled=show_progress, desc=desc or "", total=resolved_total
         ),
         shortcircuit=ShortcircuitPolicy(
-            func=shortcircuit_func, callback=shortcircuit_callback
+            func=shortcircuit_func,
+            callback=shortcircuit_callback,
+            args=shortcircuit_callback_args,
         ),
         ordered=ordered,
         map_kwargs=map_kwargs,

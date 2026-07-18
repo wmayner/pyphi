@@ -863,7 +863,9 @@ def _encode_relations_ref(relations: Any, table: list, by_id: dict) -> Any:
     raise TypeError(f"Cannot normalize relations of type {type(relations).__name__}")
 
 
-def _decode_relations_ref(struct: Any, table: list) -> Any:
+def _decode_relations_ref(
+    struct: Any, table: list, distinctions: Any | None = None
+) -> Any:
     from pyphi.models.distinctions import ResolvedDistinctions
     from pyphi.relations import AnalyticalRelations
     from pyphi.relations import ConcreteRelations
@@ -873,6 +875,10 @@ def _decode_relations_ref(struct: Any, table: list) -> Any:
     if type(struct) is schema.NullRelationsRefSchema:
         return NullRelations()
     if type(struct) is schema.AnalyticalRelationsRefSchema:
+        # Reuse the already-decoded distinctions object so the wrapper type
+        # and identity are shared with the structure's own distinctions.
+        if distinctions is not None:
+            return AnalyticalRelations(distinctions)
         return AnalyticalRelations(ResolvedDistinctions(table))
     relations = tuple(
         Relation([table[i] for i in ref.distinction_indices]) for ref in struct.relations
@@ -895,7 +901,7 @@ def _encode_ces(ces: Any, struct_cls: Any) -> Any:
 def _decode_ces(struct: Any, domain_cls: Any) -> Any:
     distinctions = from_schema(struct.distinctions)
     table = list(distinctions)
-    relations = _decode_relations_ref(struct.relations, table)
+    relations = _decode_relations_ref(struct.relations, table, distinctions)
     return domain_cls(
         sia=from_schema(struct.sia),
         distinctions=distinctions,

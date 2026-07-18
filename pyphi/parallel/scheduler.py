@@ -50,6 +50,12 @@ class ProgressPolicy:
 class ShortcircuitPolicy:
     func: Callable[[Any], bool] = field(default=_never_short_circuit)
     callback: Callable[[Iterable[Any]], None] | None = None
+    args: Any = None
+
+    def fire(self, default: Any) -> None:
+        """Invoke the callback with ``args``, or ``default`` when unset."""
+        if self.callback is not None:
+            self.callback(self.args if self.args is not None else default)
 
     @property
     def active(self) -> bool:

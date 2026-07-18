@@ -195,3 +195,42 @@ def test_note_round_trips_through_serialize():
     restored = serialize.loads(serialize.dumps(prov))
     assert restored.note == "round-trip"
     assert restored == prov
+
+
+def test_git_info_ignores_unrelated_enclosing_repository(tmp_path):
+    """A git repository that does not track the package (e.g. a project tree
+    enclosing an installed wheel) contributes no commit stamp."""
+    import subprocess
+
+    from pyphi import provenance
+
+    outer = tmp_path / "outer"
+    package_dir = outer / ".venv" / "site-packages" / "pyphi"
+    package_dir.mkdir(parents=True)
+    (package_dir / "__init__.py").write_text("")
+    subprocess.run(["git", "init", "-q", str(outer)], check=True)
+    (outer / "somefile.txt").write_text("x")
+    subprocess.run(["git", "-C", str(outer), "add", "somefile.txt"], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(outer),
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "user.name=t",
+            "commit",
+            "-qm",
+            "init",
+        ],
+        check=True,
+    )
+    provenance._git_info.cache_clear()
+    try:
+        with mock.patch.object(provenance, "_PACKAGE_ROOT", package_dir):
+            sha, dirty = provenance._git_info()
+        assert sha is None
+        assert dirty is None
+    finally:
+        provenance._git_info.cache_clear()

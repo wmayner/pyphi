@@ -43,6 +43,19 @@ def _git_info() -> tuple[str | None, bool | None]:
             check=True,
             timeout=5,
         ).stdout.strip()
+        ownership = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "__init__.py"],
+            cwd=_PACKAGE_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+        if ownership.returncode != 0:
+            # The discovered repository does not track the package (e.g. an
+            # installed wheel inside another project's git tree); its commit
+            # says nothing about the pyphi code version.
+            return None, None
         status = subprocess.run(
             ["git", "status", "--porcelain"],
             cwd=_PACKAGE_ROOT,

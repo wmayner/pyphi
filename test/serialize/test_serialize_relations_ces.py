@@ -130,3 +130,24 @@ def test_ces_loads_without_config_and_provenance():
     # Nothing stored: the constructor still snapshots load-time context.
     assert restored.config is not None
     assert restored.provenance is not None
+
+
+def test_ces_analytical_relations_share_decoded_distinctions():
+    """The decoded CES's analytical relations wrap the structure's own
+    distinctions object, preserving wrapper type and identity sharing."""
+    import dataclasses
+
+    import pyphi
+    from pyphi import examples
+    from pyphi import serialize
+    from pyphi.conf import presets
+    from pyphi.relations import AnalyticalRelations
+
+    with pyphi.config.override(**presets.iit4_2023):
+        ces = examples.basic_system().ces()
+    analytical = dataclasses.replace(
+        ces, relations=AnalyticalRelations(ces.distinctions)
+    )
+    loaded = serialize.loads(serialize.dumps(analytical))
+    assert isinstance(loaded.relations, AnalyticalRelations)
+    assert loaded.relations.distinctions is loaded.distinctions

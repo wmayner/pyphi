@@ -163,3 +163,45 @@ def test_state_mip_map_reduce_collects_in_input_order(monkeypatch):
 
     assert captured, "the state-MIP path should invoke map_reduce"
     assert all(kwargs.get("ordered") is True for kwargs in captured)
+
+
+def _identity(value):
+    return value
+
+
+def _is_zero(value):
+    return value == 0
+
+
+def test_shortcircuit_callback_args_honored_on_parallel_paths():
+    """The caller's ``shortcircuit_callback_args`` reaches the callback on the
+    thread and process parallel paths, not only the sequential path."""
+    for backend in ("thread", "local"):
+        received = []
+        with config.override(parallel=True, parallel_backend=backend):
+            map_reduce(
+                _identity,
+                list(range(32)),
+                reduce_func=list,
+                shortcircuit_func=_is_zero,
+                shortcircuit_callback=received.append,
+                shortcircuit_callback_args="sentinel",
+                parallel=True,
+                sequential_threshold=1,
+                chunksize=1,
+                progress=False,
+            )
+        assert received == ["sentinel"], backend
+
+
+def test_size_func_with_shortcircuit_rejected():
+    with pytest.raises(ValueError, match="short-circuit"):
+        map_reduce(
+            _identity,
+            [1, 2, 3],
+            reduce_func=list,
+            size_func=lambda item: item,
+            shortcircuit_func=bool,
+            parallel=False,
+            progress=False,
+        )
