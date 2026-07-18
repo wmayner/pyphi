@@ -70,7 +70,7 @@ them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), 
 | purview | subset a mechanism constrains | `distinction.cause_purview`, `distinction.effect_purview` |
 | distinction | mechanism with its cause and effect state | `Distinction`; `analysis.ces.distinctions` |
 | $\varphi_d$ | distinction integrated information | `distinction.phi` |
-| relation | congruent overlap of distinctions | `Relation`; `analysis.ces.relations` |
+| relation | congruent overlap of distinctions | `Relation`; `analysis.ces.relations` (closed-form by default, enumerate with `.materialize()`/`.strongest()`) |
 | $\varphi_r$ | relation integrated information | `relation.phi` |
 | $\Phi$-structure | the distinctions and relations together | `CauseEffectStructure`; `analysis.ces` |
 | $\Phi$ | structure integrated information | `analysis.ces.big_phi` |

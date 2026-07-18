@@ -57,3 +57,15 @@ def test_analytical_fold_relations_value_equality():
     # distinctions: it describes a different (incident-only) relation set
     assert fold1 != ces.relations
     assert ces.relations != fold1
+
+
+def test_analytical_fold_relations_seed_order_is_normalized():
+    ces = examples.xor_system().ces()
+    d1, d2 = ces.distinctions[0], ces.distinctions[1]
+    parent = ces.distinctions
+
+    forward = AnalyticalFoldRelations(parent, [d1, d2])
+    reversed_ = AnalyticalFoldRelations(parent, [d2, d1])
+
+    assert forward == reversed_
+    assert hash(forward) == hash(reversed_)

@@ -259,7 +259,7 @@ def test_analytical_three_structure_inclusion_exclusion_matches_concrete(percept
     assert d.differentiation > 0
 
 
-def test_analytical_runs_on_analytical_relations_where_concrete_cannot(perceptions):
+def test_differentiation_agrees_with_analytical_on_analytical_relations(perceptions):
     from pyphi.models.ces import CauseEffectStructure
     from pyphi.relations import AnalyticalRelations
 

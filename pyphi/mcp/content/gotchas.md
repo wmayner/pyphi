@@ -95,9 +95,9 @@ The practical ceiling for an exact analysis of the full cause-effect structure
 is about 10–12 units, depending on the substrate topology and the machine specs,
 and a full cause–effect structure is far more expensive than system integrated
 information alone. A concrete Φ-structure can be megabytes. For relation totals,
-prefer the analytical path (which does not enumerate relations); for individual
-relations, cap the degree. The `analyze` tool refuses large full/CES requests
-unless `confirm_large=True`.
+the analytical backend (the default) does not enumerate relations; for
+individual relations, cap the degree. The `analyze` tool refuses large full/CES
+requests unless `confirm_large=True`.
 
 ## 10. Actual causation answers a different question
 

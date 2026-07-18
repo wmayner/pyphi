@@ -1403,8 +1403,8 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     seeds survive. Enumeration (iteration, faces) is not supported -- use
     concrete relations for that.
 
-    Equality additionally requires matching ``_seeds``: a fold summary with
-    the same parent distinctions but a different seed set describes a
+    Equality additionally requires matching seed distinctions: a fold summary
+    with the same parent distinctions but a different seed set describes a
     different (incident-only) relation set, so it is a distinct value, not
     just a distinct view.
     """
@@ -1412,9 +1412,11 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     def __init__(self, parent_distinctions, seeds):
         super().__init__(parent_distinctions)
         self._full = AnalyticalRelations(parent_distinctions)
-        self._seeds = tuple(seeds)
+        from pyphi.models.distinctions import _concept_sort_key
+
+        self._seeds = tuple(sorted(seeds, key=_concept_sort_key))
         self._share_weighted_cached = None
-        seed_mechanisms = {tuple(d.mechanism) for d in seeds}
+        seed_mechanisms = {tuple(d.mechanism) for d in self._seeds}
         from pyphi.models.distinctions import ResolvedDistinctions
 
         complement = ResolvedDistinctions(
