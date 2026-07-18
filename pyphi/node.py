@@ -44,11 +44,13 @@ class Node(Displayable, ToPandasMixin):
         states of this node's inputs: an input dimension has the size of that
         input's alphabet, while a non-input dimension is collapsed to size 1
         (so a node with ``m`` binary inputs contributes a 2^m × 2 marginal).
-        The trailing axis holds this node's own state distribution — its cause
-        (previous-timestep) state for ``cause_marginal`` and its effect
-        (next-timestep) state for ``effect_marginal`` — so that ``[..., 0]``
-        gives the probabilities that the node is OFF and ``[..., 1]`` that it
-        is ON.
+        The trailing axis holds this node's own state distribution at the
+        later time of each conditional: for ``cause_marginal`` the leading
+        axes range over previous-timestep input states and the trailing axis
+        is the node's current state; for ``effect_marginal`` the leading axes
+        range over current input states and the trailing axis is the node's
+        next state. In both, ``[..., 0]`` gives the probabilities that the
+        node is OFF and ``[..., 1]`` that it is ON.
     """
 
     def __init__(self, cause_marginal, effect_marginal, cm, index, state, node_labels):

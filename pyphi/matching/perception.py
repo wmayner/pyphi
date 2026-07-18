@@ -88,12 +88,13 @@ class Perception:
         return float(relation.phi) * mean_t
 
     def fold_perception(self, fold: PhiFold) -> float:
-        """Summed perception value of a single distinction's Φ-fold (Eq. 11).
+        """Perception value of a single distinction's Φ-fold (Eq. 11).
 
         For the Φ-fold of a mechanism m — the distinction and every relation
-        involving it — the perception values of its components sum to
-        t(x, m) · Φ_d(C(d(m))), where Φ_d is the fold's contribution to Φ
-        (Eq. 3). ``fold`` must contain exactly one distinction (its seed).
+        involving it — returns the seed's triggering coefficient t(x, m)
+        times the fold's contribution to Φ (Eq. 3): the distinction's φ plus
+        each incident relation's φ divided by its degree. ``fold`` must
+        contain exactly one distinction (its seed).
         """
         (seed,) = fold.distinctions
         t = self.triggering_coefficients[seed.mechanism].value

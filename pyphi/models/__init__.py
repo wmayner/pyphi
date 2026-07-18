@@ -34,15 +34,15 @@ Distinction
 DirectedAccount
     Alias for :class:`pyphi.models.actual_causation.DirectedAccount`.
 MaximallyIrreducibleCause
-    Alias for :class:`pyphi.models.mechanism.MaximallyIrreducibleCause`.
+    Alias for :class:`pyphi.models.mice.MaximallyIrreducibleCause`.
 MaximallyIrreducibleEffect
-    Alias for :class:`pyphi.models.mechanism.MaximallyIrreducibleEffect`.
+    Alias for :class:`pyphi.models.mice.MaximallyIrreducibleEffect`.
 MaximallyIrreducibleCauseOrEffect
-    Alias for :class:`pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`.
+    Alias for :class:`pyphi.models.mice.MaximallyIrreducibleCauseOrEffect`.
 Part
     Alias for :class:`pyphi.models.partitions.Part`.
 RepertoireIrreducibilityAnalysis
-    Alias for :class:`pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`.
+    Alias for :class:`pyphi.models.ria.RepertoireIrreducibilityAnalysis`.
 IIT3SystemIrreducibilityAnalysis
     Alias for :class:`pyphi.models.sia.IIT3SystemIrreducibilityAnalysis` — the
     IIT 3.0 result type. The IIT 4.0 result type with the same role lives in

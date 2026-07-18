@@ -41,9 +41,10 @@ class IIT3SystemIrreducibilityAnalysis(
     intermediate results obtained in the course of computing it.
 
     These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). Ordering is by :meth:`order_by`: Φ values are compared first
-    (up to the configured numerical precision); ties are then broken by the
-    minimum-information partition's lexicographic key.
+    ``>``, etc.). Ordering is by :meth:`order_by`: raw Φ values are compared
+    first, then the minimum-information partition's lexicographic key.
+    Precision-tolerant clustering is applied at decision sites by
+    :mod:`pyphi.resolve_ties`, not by these operators.
 
     Attributes
     ----------

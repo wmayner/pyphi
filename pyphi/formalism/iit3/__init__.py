@@ -1,10 +1,10 @@
 # formalism/iit3/__init__.py
 """IIT 3.0 (Oizumi et al. 2014) algorithms.
 
-Distribution-distance-based phi computation. Partition scheme: bipartitions
-(``BI``). Compatible measures: ``EMD``, ``L1``, ``KLD``, ``ENTROPY_DIFFERENCE``,
-``PSQ2``, ``MP2Q``, ``AID`` (absolute intrinsic difference), ``ID``
-(intrinsic difference).
+Distribution-distance-based phi computation. Partition scheme:
+``JOINT_BIPARTITION``. Compatible measures: ``EMD``, ``L1``, ``KLD``,
+``ENTROPY_DIFFERENCE``, ``PSQ2``, ``MP2Q``, ``AID`` (absolute intrinsic
+difference), ``ID`` (intrinsic difference).
 
 The dispatch class :class:`IIT3Formalism` lives in :mod:`.formalism` and
 calls back into this module's ``sia`` / ``ces`` / etc. for the actual

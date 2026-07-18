@@ -3,7 +3,9 @@
 import numpy as np
 import pytest
 
+import pyphi
 from pyphi import examples
+from pyphi.conf import presets
 from pyphi.matching import PerceptualSystem
 from pyphi.matching.perception import Perception
 
@@ -28,7 +30,10 @@ def perception():
     ttpm = ps.triggered_tpm(tau=2, tau_clamp=1)
     stimulus = (1,)
     y = ttpm.argmax_state(stimulus)
-    ces = substrate.ces(state=_full_state(sensory, system, stimulus, y), indices=system)
+    with pyphi.config.override(**presets.iit4_2026):
+        ces = substrate.ces(
+            state=_full_state(sensory, system, stimulus, y), indices=system
+        )
     return Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
 
 
@@ -77,8 +82,9 @@ def test_consistency_guard_rejects_wrong_state():
     stimulus = (1,)
     y = ttpm.argmax_state(stimulus)
     wrong = tuple(1 - v for v in y)
-    ces = substrate.ces(
-        state=_full_state(sensory, system, stimulus, wrong), indices=system
-    )
+    with pyphi.config.override(**presets.iit4_2026):
+        ces = substrate.ces(
+            state=_full_state(sensory, system, stimulus, wrong), indices=system
+        )
     with pytest.raises(ValueError, match="triggered"):
         Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)

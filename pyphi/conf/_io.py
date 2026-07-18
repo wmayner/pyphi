@@ -43,7 +43,8 @@ def load_yaml(path: str | Path) -> dict[str, dict[str, Any]]:
             f"Config file {path!r} uses the 1.x flat format "
             f"(e.g., {upper_keys[0]!r}). In 2.0, options are grouped by "
             f"layer (formalism / infrastructure / numerics). See "
-            f"changelog.d/p10-config-split.refactor.md for the rename map."
+            f"the 2.0 migration guide (docs/migration/migration-2.0.md) "
+            f"for the rename map."
         )
     unknown = set(data) - KNOWN_LAYERS
     if unknown:

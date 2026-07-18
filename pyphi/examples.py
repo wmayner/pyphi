@@ -1061,7 +1061,8 @@ fig14_substrate = fig1a_substrate
 
 @register_example
 def fig16_substrate():
-    """The substrate shown in Figure 16B of the 2014 IIT 3.0 paper."""
+    """The ABCDEFG portion of the substrate shown in Figure 16 of the 2014
+    IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0, 0, 0],

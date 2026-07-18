@@ -1083,7 +1083,7 @@ def true_events(
         The state of the substrate at ``t + 1``.
     indices : tuple[int], optional
         The indices of the major complex.
-    major_complex : AcSystemIrreducibilityAnalysis, optional
+    major_complex : Complex, optional
         The major complex. If ``major_complex`` is given then ``indices``
         is ignored.
 
@@ -1094,9 +1094,9 @@ def true_events(
     """
     # TODO: validate triplet of states
 
-    if major_complex:
+    if major_complex is not None:
         nodes = major_complex.node_indices
-    elif indices:
+    elif indices is not None:
         nodes = indices
     else:
         major_complex = substrate.maximal_complex(current_state)
@@ -1128,7 +1128,7 @@ def extrinsic_events(
         The state of the substrate at ``t + 1``.
     indices : tuple[int], optional
         The indices of the major complex.
-    major_complex : AcSystemIrreducibilityAnalysis, optional
+    major_complex : Complex, optional
         The major complex. If ``major_complex`` is given then ``indices``
         is ignored.
 
@@ -1137,9 +1137,9 @@ def extrinsic_events(
     tuple[Event]
         The extrinsic events in the major complex.
     """
-    if major_complex:
+    if major_complex is not None:
         mc_nodes = major_complex.node_indices
-    elif indices:
+    elif indices is not None:
         mc_nodes = indices
     else:
         major_complex = substrate.maximal_complex(current_state)
