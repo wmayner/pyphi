@@ -56,28 +56,6 @@ def test_marginal():
     assert np.array_equal(distribution.marginal(repertoire, 2), np.array([[[0, 1]]]))
 
 
-def test_independent():
-    # fmt: off
-    repertoire = np.array([
-        [[0.25],
-         [0.25]],
-        [[0.25],
-         [0.25]],
-    ])
-    # fmt: on
-    assert distribution.independent(repertoire)
-
-    # fmt: off
-    repertoire = np.array([
-        [[0.5],
-         [0.0]],
-        [[0.0],
-         [0.5]],
-    ])
-    # fmt: on
-    assert not distribution.independent(repertoire)
-
-
 def test_purview_size(s):
     mechanisms = powerset(s.node_indices)
     purviews = powerset(s.node_indices)

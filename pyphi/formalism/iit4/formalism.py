@@ -16,14 +16,12 @@ Both delegate to the algorithms in :mod:`pyphi.formalism.iit4` (the
 from __future__ import annotations
 
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Any
 from typing import ClassVar
 from typing import Literal
 from typing import cast
 
 from pyphi.conf import config
-from pyphi.conf.formalism import FormalismConfig
 from pyphi.formalism.base import check_measure_compatible
 from pyphi.measures.protocols import CompositeMeasure
 from pyphi.measures.protocols import DistributionMeasure
@@ -33,12 +31,6 @@ from pyphi.parallel import map_reduce
 
 from . import ces as _ces  # pyright: ignore[reportUnknownVariableType]
 from . import sia as _sia  # pyright: ignore[reportUnknownVariableType]
-
-
-def _default_formalism_config() -> FormalismConfig:
-    from pyphi.conf import config as _global
-
-    return _global.formalism
 
 
 def _evaluate_partition_iit4(
@@ -284,8 +276,6 @@ class IIT4_2023Formalism:
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
 
-    config: FormalismConfig = field(default_factory=_default_formalism_config)
-
     def evaluate_mechanism(
         self,
         system: Any,
@@ -447,8 +437,6 @@ class IIT4_2026Formalism:
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
-
-    config: FormalismConfig = field(default_factory=_default_formalism_config)
 
     def evaluate_mechanism(
         self,

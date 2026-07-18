@@ -30,18 +30,6 @@ from .pandas import ToPandasMixin
 from .pandas import records_to_frame
 from .partitions import concise_partition
 
-# TODO(slipperyhank): add second state
-_acria_attributes = [
-    "alpha",
-    "state",
-    "direction",
-    "mechanism",
-    "purview",
-    "partition",
-    "probability",
-    "partitioned_probability",
-]
-
 
 class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMixin):
     """The irreducibility analysis of an actual cause or effect.
@@ -106,8 +94,6 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
         self._partition_ties: tuple[AcRepertoireIrreducibilityAnalysis, ...] | None = (
             None
         )
-
-    __slots__ = ()
 
     def _pandas_record(self):
         labels = self.node_labels

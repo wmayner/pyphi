@@ -26,15 +26,13 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from pyphi import exceptions
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.landscape import _QUANTITIES
+from pyphi.landscape import _UNREACHABLE
+from pyphi.landscape import _optional_float
+from pyphi.landscape import _part_id
 
-_UNREACHABLE = (
-    exceptions.StateUnreachableForwardsError,
-    exceptions.StateUnreachableBackwardsError,
-)
-_QUANTITIES = frozenset({"phi", "signed_phi", "normalized_phi", "signed_normalized_phi"})
 # Rank-based DE selection only needs unreachable to compare worse than any real
 # candidate; a fixed large sentinel (internal minimization convention) suffices.
 _UNREACHABLE_PENALTY = 1e18
@@ -107,25 +105,6 @@ class _WeightAxis:
         for (i, j), value in zip(self.entries, np.asarray(theta), strict=True):
             varied[i, j] = value
         return build_substrate(self.unit_functions, varied, **self.kwargs)
-
-
-def _optional_float(value: Any) -> float:
-    return math.nan if value is None else float(value)
-
-
-def _part_id(partition: Any) -> str:
-    """A stable, opaque identity string for a system partition.
-
-    Compare identities for equality; do not parse them.
-    """
-    if partition is None or getattr(partition, "is_null", False):
-        return "NullCut"
-    set_partition = getattr(partition, "set_partition", None)
-    if set_partition is not None:
-        parts = str(sorted(sorted(part) for part in set_partition))
-    else:
-        parts = type(partition).__name__
-    return f"{parts}|{sorted(partition.removed_edges())}"
 
 
 def _objective_value(sia: Any, objective: Any) -> float:

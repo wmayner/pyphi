@@ -183,15 +183,6 @@ class DistanceResult(float):
 
         return fmt.fmt_number(float(self))
 
-    def _preserve_aux_data(self, other_result):
-        """Copy auxiliary data from another DistanceResult if this one wins a
-        comparison."""
-        if isinstance(other_result, DistanceResult):
-            for key, val in other_result._public_aux_data().items():
-                if not hasattr(self, key):
-                    setattr(self, key, val)
-        return self
-
     def __copy__(self):
         """Ensure auxiliary data is preserved when copying."""
         return DistanceResult(float(self), **self._public_aux_data())

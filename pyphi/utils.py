@@ -1,11 +1,7 @@
 # utils.py
 """Package-wide utilities."""
 
-import functools
 import hashlib
-import math
-import operator
-from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -16,9 +12,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from scipy.special import comb
-
-from . import numerics
 
 
 # TODO(states) refactor
@@ -156,74 +149,8 @@ def positive_part(x: float) -> float:
 
 
 # see http://stackoverflow.com/questions/16003217
-def combs(a: np.ndarray, r: int) -> np.ndarray:
-    """NumPy implementation of ``itertools.combinations``.
-
-    Return successive ``r``-length combinations of elements in the array ``a``.
-
-    Parameters
-    ----------
-    a : np.ndarray
-        The array from which to get combinations.
-    r : int
-        The length of the combinations.
-
-    Returns
-    -------
-    np.ndarray
-        An array of combinations.
-    """
-    # Special-case for 0-length combinations
-    if r == 0:
-        return np.asarray([])
-
-    a = np.asarray(a)
-    data_type = a.dtype if r == 0 else np.dtype([("", a.dtype)] * r)
-    b = np.fromiter(combinations(a, r), data_type)
-    return b.view(a.dtype).reshape(-1, r)
 
 
-# see http://stackoverflow.com/questions/16003217/
-def comb_indices(n: int, k: int) -> np.ndarray:
-    """Return indices that generate the ``k``-combinations of ``n`` elements.
-
-    Parameters
-    ----------
-    n : int
-        The total number of elements to choose from.
-    k : int
-        The length of each combination.
-
-    Returns
-    -------
-    np.ndarray
-        A ``(comb(n, k), k)`` array of indices that can be used to select every
-        length-``k`` combination from an array.
-
-    Examples
-    --------
-    >>> n, k = 3, 2
-    >>> data = np.arange(6).reshape(2, 3)
-    >>> data[:, comb_indices(n, k)]
-    array([[[0, 1],
-            [0, 2],
-            [1, 2]],
-    <BLANKLINE>
-           [[3, 4],
-            [3, 5],
-            [4, 5]]])
-    """
-    # Count the number of combinations for preallocation
-    count = comb(n, k, exact=True)
-    # Get numpy iterable from ``itertools.combinations``
-    indices = np.fromiter(
-        chain.from_iterable(combinations(range(n), k)), int, count=(count * k)
-    )
-    # Reshape output into the array of combination indicies
-    return indices.reshape(-1, k)
-
-
-# Based on https://docs.python.org/3/library/itertools.html#itertools-recipes
 def powerset(
     iterable: Iterable[Any],
     nonempty: bool = False,
@@ -316,82 +243,6 @@ def load_data(directory: str, num: int) -> list[np.ndarray]:
     return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 
 
-def specified_substate(
-    purview: tuple[int, ...], specified_state: np.ndarray, subset: tuple[int, ...]
-) -> np.ndarray:
-    """Return the specified state restricted to a subset of purview nodes."""
-    purview_relative_subset = [purview.index(node) for node in subset]
-    return specified_state[:, purview_relative_subset]
-
-
-def extremum_with_short_circuit(
-    seq: list,
-    value_func: Callable = lambda item: item.phi,
-    cmp: Callable = operator.lt,
-    initial: float = float("inf"),
-    shortcircuit_value: float = 0,
-    shortcircuit_callback: Callable | None = None,
-) -> object | None:
-    """Return the extreme item in ``seq``, optionally short-circuiting early.
-
-    Parameters
-    ----------
-    seq : Iterable
-        Items to evaluate.
-    value_func : callable
-        Function extracting the value to compare from an item. Defaults to
-        ``lambda item: item.phi``.
-    cmp : callable
-        Comparison operator used to track the extremum; use ``operator.lt`` for
-        minima or ``operator.gt`` for maxima.
-    initial : float
-        Initial comparison value for the extremum tracker.
-    shortcircuit_value : float
-        If ``value_func(item)`` equals this, return the item immediately.
-    shortcircuit_callback : callable or None
-        Callback invoked when short-circuiting, if provided.
-
-    Returns
-    -------
-    object or None
-        The item with the extreme value according to ``cmp``, or ``None`` if
-        ``seq`` is empty.
-    """
-    extreme_item: object | None = None
-    extreme_value: float = initial
-    for item in seq:
-        value = value_func(item)
-        if value == shortcircuit_value:
-            if shortcircuit_callback is not None:
-                shortcircuit_callback()
-            return item  # type: ignore[no-any-return]
-        if cmp(value, extreme_value):
-            extreme_value = value
-            extreme_item = item
-    return extreme_item
-
-
-def expsublog(x: float, y: float) -> float:
-    """Computes ``x / y`` as ``exp(log(x) - log(y))``.
-
-    Useful for dividing by extremely large denominators.
-
-    See also ``numpy.logaddexp``.
-    """
-    return math.exp(math.log(x) - math.log(y))
-
-
-def expaddlog(x: float, y: float) -> float:
-    """Computes ``x * y`` as ``exp(log(x) + log(y))``.
-
-    Useful for multiplying extremely large or small factors without overflow
-    or underflow.
-
-    See also ``numpy.logaddexp``.
-    """
-    return math.exp(math.log(x) + math.log(y))
-
-
 def _try_len(iterable: object) -> int | None:
     """Return ``len(iterable)`` if available, otherwise ``None``."""
     try:
@@ -413,69 +264,8 @@ def assume_integer(x: float) -> int:
     return int(x)
 
 
-def all_same(comparison: Callable, seq: Generator | list) -> bool:
-    """Return True if all elements compare to the first element."""
-    sentinel = object()
-    first = next(iter(seq), sentinel)
-    if first is sentinel:
-        # Vacuously
-        return True
-    return all(comparison(first, other) for other in seq)
-
-
-def all_are_equal(seq: Generator | list) -> bool:
-    """Return whether all elements are equal up to ``config.numerics.precision``."""
-    return all_same(numerics.eq, seq)
-
-
-all_are_identical = functools.partial(all_same, operator.is_)
-
-
 NO_DEFAULT = object()
-
-
-# TODO test
-def all_extrema(
-    comparison: Callable, seq: Generator | list, default: object = NO_DEFAULT
-) -> list:
-    """Return the extrema of ``seq``.
-
-    Use ``<`` as the comparison to obtain the minima; use ``>`` as the
-    comparison to obtain the maxima.
-
-    Uses only one pass through ``seq``.
-
-    Parameters
-    ----------
-    comparison : callable
-        A comparison operator.
-    seq : iterator
-        An iterator over a sequence.
-
-    Returns
-    -------
-    list
-        The maxima or minima in ``seq``.
-    """
-    extrema: list = []
-    sentinel = object()
-    current_extremum = next(iter(seq), sentinel)
-    if current_extremum is sentinel:
-        if default is NO_DEFAULT:
-            raise ValueError("Cannot find extrema of empty sequence without default")
-        return [default]
-    extrema.append(current_extremum)
-    for element in seq:
-        if comparison(element, current_extremum):
-            extrema = [element]
-            current_extremum = element
-        elif element == current_extremum:
-            extrema.append(element)
-    return extrema
-
-
-all_minima = functools.partial(all_extrema, operator.lt)
-all_maxima = functools.partial(all_extrema, operator.gt)
+"""Sentinel distinguishing "no default given" from an explicit ``None``."""
 
 
 def iter_with_default(seq: Iterable[Any], default: object) -> Generator[Any]:

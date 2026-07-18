@@ -74,26 +74,6 @@ def marginal(repertoire: Repertoire, node_index: int) -> Repertoire:
     return repertoire.sum(index, keepdims=True)
 
 
-def independent(repertoire: Repertoire) -> bool:
-    """Return whether the repertoire factorizes into its single-node marginals.
-
-    A repertoire is independent when it equals the outer product of its
-    per-node marginal distributions.
-    """
-    marginals = [marginal(repertoire, i) for i in range(repertoire.ndim)]
-
-    # TODO: is there a way to do without an explicit iteration?
-    joint = marginals[0]
-    for m in marginals[1:]:
-        joint = joint * m
-
-    # TODO: should we round here?
-    # repertoire = repertoire.round(config.numerics.precision)
-    # joint = joint.round(config.numerics.precision)
-
-    return bool(np.array_equal(repertoire, joint))
-
-
 def purview(repertoire: Repertoire | None) -> Purview | None:
     """Return the purview over which a repertoire is distributed.
 

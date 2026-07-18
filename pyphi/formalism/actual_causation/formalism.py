@@ -3,22 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Any
 from typing import ClassVar
 
 from pyphi.conf import config
-from pyphi.conf.formalism import FormalismConfig
 from pyphi.direction import Direction
 from pyphi.formalism.base import check_measure_compatible
 
 from . import compute
-
-
-def _default_formalism_config() -> FormalismConfig:
-    from pyphi.conf import config as _global
-
-    return _global.formalism
 
 
 def _resolve_ac_measures(
@@ -83,8 +75,6 @@ class AC2019Formalism:
     name: ClassVar[str] = "AC_2019"
     compatible_measures: ClassVar[frozenset[str]] = frozenset({"PMI", "WPMI"})
     uses_system_phi_measure: ClassVar[bool] = False
-
-    config: FormalismConfig = field(default_factory=_default_formalism_config)
 
     def evaluate_account(
         self, transition: Any, direction: Any = Direction.BIDIRECTIONAL, **kwargs: Any
