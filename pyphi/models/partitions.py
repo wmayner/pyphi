@@ -447,19 +447,28 @@ class DirectedJointPartition(Displayable, _PartitionBase):
         return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
     def cut_matrix(self, n: int) -> NDArray[np.int_]:
+        # Severed edges run only into the whole partition's receiving side
+        # (the purview under ψ's direction ordering), not into every index
+        # the partition touches.
+        _, whole_to = self.direction.order(
+            self.partition.mechanism, self.partition.purview
+        )
         cm = np.zeros((n, n), dtype=int)
         for part in self.partition:
             from_, to = self.direction.order(part.mechanism, part.purview)
-            external = tuple(set(self.indices) - set(to))
+            external = tuple(set(whole_to) - set(to))
             cm[np.ix_(from_, external)] = 1
         return cm
 
     def removed_edges(self) -> frozenset[tuple[int, int]]:
-        indices = set(self.indices)
+        _, whole_to = self.direction.order(
+            self.partition.mechanism, self.partition.purview
+        )
+        receiving = set(whole_to)
         edges: set[tuple[int, int]] = set()
         for part in self.partition:
             from_, to = self.direction.order(part.mechanism, part.purview)
-            external = indices - set(to)
+            external = receiving - set(to)
             edges.update((f, e) for f in from_ for e in external)
         return frozenset(edges)
 
