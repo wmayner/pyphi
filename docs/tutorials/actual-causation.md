@@ -82,7 +82,10 @@ The {class}`~pyphi.actual.Transition` object is the core of every actual
 causation computation. To build one, pass the substrate, its state at $t-1$ and
 at $t$, and the units of interest on the cause side ($t-1$) and the effect side
 ($t$). The state given must be the state of the entire substrate, not just the
-units in the transition.
+units in the transition. The transition must also satisfy the *realization*
+requirement: if the effect-side occurrence has zero probability given the
+state at $t-1$, the transition cannot have occurred, and construction raises
+{class}`~pyphi.exceptions.TransitionUnreachableError`.
 
 ```{code-cell} python
 transition = actual.Transition(substrate, X_state, Y_state, X, Y)

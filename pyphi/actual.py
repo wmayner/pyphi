@@ -433,6 +433,17 @@ class Transition(Serializable):
         :class:`NullCut` over the union of cause and effect indices.
     noise_background : bool, optional
         If ``True``, background conditions are noised instead of frozen.
+
+    Raises
+    ------
+    TransitionUnreachableError
+        If the effect occurrence has zero probability given the before
+        state, violating the Realization principle of Albantakis et al.
+        (2019), Section 2.4: p(v_t | v_{t−1}) > 0. The check applies the transition's
+        own background semantics (frozen, or noised when
+        ``noise_background`` is ``True``) and runs only for unpartitioned
+        construction; a transition built with an explicit ``partition`` is
+        a derived copy of an already-validated transition.
     """
 
     substrate: Substrate
@@ -444,6 +455,7 @@ class Transition(Serializable):
     noise_background: bool = False
 
     def __post_init__(self) -> None:
+        unpartitioned = self.partition is None
         validate.state_length(self.before_state, self.substrate.size)
         validate.state_length(self.after_state, self.substrate.size)
         alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
@@ -452,10 +464,19 @@ class Transition(Serializable):
         coerce = self.substrate.node_labels.coerce_to_indices
         object.__setattr__(self, "cause_indices", coerce(self.cause_indices))
         object.__setattr__(self, "effect_indices", coerce(self.effect_indices))
-        if self.partition is None:
+        if unpartitioned:
             object.__setattr__(
                 self, "partition", NullCut(self.node_indices, self.substrate.node_labels)
             )
+            if self.effect_indices and (
+                self.probability(
+                    Direction.EFFECT, self.cause_indices, self.effect_indices
+                )
+                <= 0.0
+            ):
+                raise exceptions.TransitionUnreachableError(
+                    self.before_state, self.after_state
+                )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Transition):
@@ -885,27 +906,52 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
 # =============================================================================
 
 
-# TODO: Fix this to test whether the transition is possible
 def transitions(substrate, before_state, after_state):
-    """Return a generator of all **possible** transitions of a substrate."""
-    # TODO: Does not return systems that are in an impossible transitions.
+    """Return a generator over all realizable transitions of a substrate.
 
-    # Elements without inputs are reducibe effects,
-    # elements without outputs are reducible causes.
-    possible_causes = np.where(np.sum(substrate.cm, 1) > 0)[0]
-    possible_effects = np.where(np.sum(substrate.cm, 0) > 0)[0]
+    Candidate cause sets are subsets of the units with outputs; candidate
+    effect sets are subsets of the units with inputs. The observed state
+    pair is validated eagerly: calling this function on an impossible
+    pair raises immediately, before any iteration.
 
-    for cause_subset in utils.powerset(possible_causes, nonempty=True):
-        for effect_subset in utils.powerset(possible_effects, nonempty=True):
-            with contextlib.suppress(exceptions.StateUnreachableError):
-                yield Transition(
-                    substrate, before_state, after_state, cause_subset, effect_subset
-                )
+    Raises
+    ------
+    TransitionUnreachableError
+        If ``p(after_state | before_state) = 0`` under the substrate
+        dynamics (Albantakis et al. 2019, Realization).
+    """
+    validate.transition_states(substrate, before_state, after_state)
+
+    def _generate():
+        # Units without inputs are reducible effects; units without
+        # outputs are reducible causes.
+        possible_causes = np.where(np.sum(substrate.cm, 1) > 0)[0]
+        possible_effects = np.where(np.sum(substrate.cm, 0) > 0)[0]
+        for cause_subset in utils.powerset(possible_causes, nonempty=True):
+            for effect_subset in utils.powerset(possible_effects, nonempty=True):
+                # Safety net: with a validated pair and frozen background,
+                # every candidate's effect occurrence has positive
+                # probability, but construction may still raise for other
+                # reachability reasons.
+                with contextlib.suppress(exceptions.StateUnreachableError):
+                    yield Transition(
+                        substrate, before_state, after_state, cause_subset, effect_subset
+                    )
+
+    return _generate()
 
 
 def nexus(substrate, before_state, after_state, direction=Direction.BIDIRECTIONAL):
-    """Return a tuple of all irreducible nexus of the substrate."""
+    """Return a tuple of all irreducible nexus of the substrate.
+
+    Raises
+    ------
+    TransitionUnreachableError
+        If the observed state pair is impossible under the substrate
+        dynamics.
+    """
     validate.is_substrate(substrate)
+    validate.transition_states(substrate, before_state, after_state)
 
     sias = (
         sia(transition, direction)
@@ -917,8 +963,16 @@ def nexus(substrate, before_state, after_state, direction=Direction.BIDIRECTIONA
 def causal_nexus(
     substrate, before_state, after_state, direction=Direction.BIDIRECTIONAL
 ):
-    """Return the causal nexus of the substrate."""
+    """Return the causal nexus of the substrate.
+
+    Raises
+    ------
+    TransitionUnreachableError
+        If the observed state pair is impossible under the substrate
+        dynamics.
+    """
     validate.is_substrate(substrate)
+    validate.transition_states(substrate, before_state, after_state)
 
     log.info("Calculating causal nexus...")
     result = nexus(substrate, before_state, after_state, direction)
@@ -998,7 +1052,17 @@ def _actual_effects(substrate, current_state, next_state, nodes, mechanisms=None
 
 
 def events(substrate, previous_state, current_state, next_state, nodes, mechanisms=None):
-    """Find all events (mechanisms with actual causes and actual effects)."""
+    """Find all events (mechanisms with actual causes and actual effects).
+
+    Raises
+    ------
+    TransitionUnreachableError
+        If either observed pair of the state triplet
+        (``previous_state`` → ``current_state`` or ``current_state`` →
+        ``next_state``) is impossible under the substrate dynamics.
+    """
+    validate.transition_states(substrate, previous_state, current_state)
+    validate.transition_states(substrate, current_state, next_state)
     actual_causes = _actual_causes(
         substrate, previous_state, current_state, nodes, mechanisms
     )
@@ -1091,9 +1155,13 @@ def true_events(
     -------
     tuple[Event]
         The true events in the major complex.
-    """
-    # TODO: validate triplet of states
 
+    Raises
+    ------
+    TransitionUnreachableError
+        If either observed pair of the state triplet is impossible under
+        the substrate dynamics.
+    """
     if major_complex is not None:
         nodes = major_complex.node_indices
     elif indices is not None:
