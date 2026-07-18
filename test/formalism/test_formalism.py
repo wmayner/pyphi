@@ -33,12 +33,6 @@ class _DummyFormalism:
     compatible_system_partition_schemes = None
     compatible_mechanism_partition_schemes = None
 
-    @property
-    def config(self):
-        from pyphi.conf import config as _global
-
-        return _global.formalism
-
     def evaluate_mechanism(self, system, direction, mechanism, purview, **kwargs):  # noqa: ARG002
         return None
 

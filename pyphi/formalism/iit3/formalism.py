@@ -8,20 +8,12 @@ Delegates to the IIT 3.0 SIA algorithms in :mod:`pyphi.formalism.iit3`
 from __future__ import annotations
 
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Any
 from typing import ClassVar
 from typing import Literal
 
 from pyphi.conf import config
-from pyphi.conf.formalism import FormalismConfig
 from pyphi.formalism.base import check_measure_compatible
-
-
-def _default_formalism_config() -> FormalismConfig:
-    from pyphi.conf import config as _global
-
-    return _global.formalism
 
 
 @dataclass(frozen=True)
@@ -50,8 +42,6 @@ class IIT3Formalism:
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"JOINT_BIPARTITION", "WEDGE_TRIPARTITION"}
     )
-
-    config: FormalismConfig = field(default_factory=_default_formalism_config)
 
     def evaluate_mechanism(
         self,

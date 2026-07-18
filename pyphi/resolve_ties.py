@@ -7,7 +7,6 @@ from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Any
 from typing import Literal
 from typing import Protocol
@@ -87,7 +86,6 @@ class CascadeLevel:
 CascadeOutcomeStatus = Literal[
     "RESOLVED",
     "UNRESOLVED_WITHIN_BUDGET",
-    "POSTULATE_FAILURE",
 ]
 
 
@@ -707,7 +705,6 @@ def resolve_state_tie[K, V: _StateMIP](
 
 # Suppress "unused" warning for field — used in CascadeOutcome subclasses
 # that may extend with diagnostic tables.
-_ = field
 
 
 class PhiObjectTieResolutionRegistry(Registry):

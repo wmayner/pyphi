@@ -254,30 +254,6 @@ def sum_of_ratio_of_minima_among_subsets(
     return sum_ratio
 
 
-def sum_of_min_times_avg_among_subsets(values: list[float]) -> float:
-    """Return the sum of the product of the minimum and mean of each subset
-    with size >1 of the values."""
-    # This series counts, from i = 0 to (len(values) - 1), the number of subsets
-    # of values of size >1 such that value i is included in all subsets.
-    values.sort()
-    _sum = 0
-    for i, min_val in enumerate(values[:-1]):
-        n = len(values[i:])
-        # For each candidate min_val, we add its contibution to the sum of the
-        # average \sum_k (1/k) * comb(n-1, k-1), where k is the size of the
-        # subsets k = 2, ..., n-1
-        _n = n - 1
-        sum_avg_val = min_val * ((2 ** (_n + 1) - 1) / (_n + 1) - 1)
-        # Contribution of the other elements to the sum of the average
-        # \sum_k (1/k) * comb(n-2, k-2), k is the size of the subsets k = 2, ..., n-2
-        _n = n - 2
-        sum_avg_val += (
-            sum(values[i + 1 :]) * (_n * 2 ** (_n + 1) + 1) / (_n**2 + 3 * _n + 2)
-        )
-        _sum += min_val * sum_avg_val
-    return _sum
-
-
 def only_nonsubsets(sets: Iterable[set]) -> list[set]:
     """Find sets that are not proper subsets of any other set."""
     sets = sorted(map(set, sets), key=len, reverse=True)

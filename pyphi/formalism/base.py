@@ -23,7 +23,7 @@ from typing import runtime_checkable
 from pyphi.registry import InstanceRegistry
 
 if TYPE_CHECKING:
-    from pyphi.conf.formalism import FormalismConfig
+    pass
 
 __all__ = [
     "ACTUAL_CAUSATION_FORMALISM_REGISTRY",
@@ -62,8 +62,6 @@ class PhiFormalism(Protocol):
     - ``compatible_mechanism_partition_schemes``: frozenset of mechanism
       partition scheme names this formalism accepts, or ``None`` if it
       accepts any registered scheme.
-    - ``config``: the :class:`FormalismConfig` snapshot the formalism
-      operates against.
 
     Signatures are permissive (``Any``) over the measure and partition
     arguments.
@@ -75,9 +73,6 @@ class PhiFormalism(Protocol):
     partition_scheme: ClassVar[str | None]
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None]
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None]
-
-    @property
-    def config(self) -> FormalismConfig: ...
 
     def evaluate_mechanism(
         self, system: Any, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
@@ -226,9 +221,6 @@ class ActualCausationFormalism(Protocol):
 
     name: ClassVar[str]
     compatible_measures: ClassVar[frozenset[str]]
-
-    @property
-    def config(self) -> FormalismConfig: ...
 
     def evaluate_account(
         self, transition: Any, direction: Any, **kwargs: Any
