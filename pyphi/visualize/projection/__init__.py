@@ -13,7 +13,12 @@ from dataclasses import field
 
 from pyphi.labels import NodeLabels
 
+DEFAULT_MAX_ANALYTICAL_RELATIONS = 1000
+"""Relations rendered when ``max_relations`` is None and the relation set is
+not enumerable (the analytical backend): the strongest this-many by φ_r."""
+
 __all__ = [
+    "DEFAULT_MAX_ANALYTICAL_RELATIONS",
     "CESProjection",
     "DistinctionNode",
     "EndpointNode",
@@ -238,10 +243,11 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
         distinction.
     max_relations : int, optional
         Render only the ``max_relations`` strongest relations (and their faces),
-        in descending φ_r order. If None, render every relation; a relation set
-        that cannot be enumerated (the analytical backend) then raises, since
-        "every relation" is unbounded. Node marker sizes and the degree spectrum
-        are always computed over the full structure, independent of this cap.
+        in descending φ_r order. If None, render every relation when the set is
+        enumerable; when it is not (the analytical backend), render the
+        strongest ``DEFAULT_MAX_ANALYTICAL_RELATIONS``. Node marker sizes and
+        the degree spectrum are always computed over the full structure,
+        independent of this cap.
 
     Returns
     -------
@@ -254,8 +260,7 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
         relations may reference distinctions outside it).
     ValueError
         If the structure has no distinctions (an empty, reducible-system
-        structure), or if ``max_relations`` is None and ``ces.relations`` is
-        not enumerable.
+        structure).
     """
     if not getattr(ces, "relation_closed", True):
         raise TypeError(
@@ -277,10 +282,7 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
         try:
             iter(ces.relations)
         except TypeError:
-            raise ValueError(
-                "relations are not enumerable (analytical backend); pass "
-                "max_relations=N to render the strongest N relations by φ_r"
-            ) from None
+            max_relations = DEFAULT_MAX_ANALYTICAL_RELATIONS
     top = list(ces.relations.strongest(k=max_relations))
     edges = tuple(
         RelationEdge(

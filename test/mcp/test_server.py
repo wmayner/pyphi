@@ -304,16 +304,17 @@ def test_plot_ces_unknown_view_errors(basic_handle):
 
 
 @pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
-def test_plot_ces_analytical_requires_max_relations(basic_handle):
+def test_plot_ces_analytical_defaults_to_max_relations(basic_handle):
     with pyphi.config.override(relation_computation="ANALYTICAL"):
         ref = srv.analyze(basic_handle, BASIC_STATE, compute="ces")["result_ref"]
-        # Analytical relations plot when capped, and raise when uncapped (the
-        # set is not enumerable) — the fact a fresh agent gets wrong.
-        out = srv.plot(ref, kind="ces", max_relations=8)
-        assert isinstance(out, str)
-        assert ".html" in out
-        with pytest.raises(ValueError):
-            srv.plot(ref, kind="ces")
+        # Analytical relations now default to rendering the strongest 1000.
+        out_default = srv.plot(ref, kind="ces")
+        assert isinstance(out_default, str)
+        assert ".html" in out_default
+        # Explicit cap still works.
+        out_capped = srv.plot(ref, kind="ces", max_relations=8)
+        assert isinstance(out_capped, str)
+        assert ".html" in out_capped
 
 
 @pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")

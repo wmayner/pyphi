@@ -583,12 +583,12 @@ def plot(
         or ``"spectrum"``. (``"barycentric"`` is a *layout*, not a view.)
     max_relations : int, optional
         For ``kind="ces"`` only, draw just the strongest this-many relations by
-        φ_r. Required when the structure's relations are computed analytically
+        φ_r. When the structure's relations are computed analytically
         (``relation_computation="ANALYTICAL"``), whose relation set cannot be
-        enumerated; node sizes and the spectrum view stay exact regardless. Left
-        as ``None`` with the default ``"CONCRETE"`` relations, every relation is
-        drawn. For the full direct-Python surface see
-        ``get_iit_reference("visualization")``.
+        enumerated, ``None`` draws the strongest 1000; node sizes and the
+        spectrum view stay exact regardless. With enumerable (``"CONCRETE"``)
+        relations, ``None`` draws every relation. For the full direct-Python
+        surface see ``get_iit_reference("visualization")``.
 
     Returns
     -------
