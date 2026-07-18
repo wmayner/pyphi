@@ -37,6 +37,7 @@ def test_level_partition_is_correct():
     }
     mechanism = {
         NullResultReason.NO_PURVIEWS,
+        NullResultReason.NO_POSITIVE_ALPHA,
         NullResultReason.NO_PARTITIONS,
         NullResultReason.EMPTY_PURVIEW,
         NullResultReason.UNREACHABLE_STATE,

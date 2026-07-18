@@ -121,7 +121,7 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
             "alpha": float(self.alpha),
             "direction": str(self.direction),
             "mechanism": labelled(self.mechanism),
-            "purview": labelled(self.purview),
+            "purview": labelled(self.purview) if self.purview is not None else None,
         }
 
     @property
@@ -151,8 +151,10 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
         )
 
     def order_by(self):
-        # Here we enforce that ties are broken in favor of smaller purviews
-        return [self.alpha, len(self.mechanism), -len(self.purview)]
+        # Here we enforce that ties are broken in favor of smaller purviews;
+        # null analyses (purview None) sort as empty.
+        purview_size = len(self.purview) if self.purview is not None else 0
+        return [self.alpha, len(self.mechanism), -purview_size]
 
     def __eq__(self, other: object) -> bool:  # noqa: PLR0911
         # TODO(slipperyhank): include 2nd state here?
@@ -168,6 +170,8 @@ class AcRepertoireIrreducibilityAnalysis(Displayable, cmp.Orderable, ToPandasMix
             return False
         if not numerics.eq(self.alpha, other.alpha):
             return False
+        if self.probability is None or other.probability is None:
+            return self.probability is other.probability
         return numerics.eq(self.probability, other.probability)
 
     def __bool__(self):
@@ -335,7 +339,7 @@ class CausalLink(Displayable, cmp.Orderable, ToPandasMixin):
             "alpha": float(self.alpha),
             "direction": str(self.direction),
             "mechanism": labelled(self.mechanism),
-            "purview": labelled(self.purview),
+            "purview": labelled(self.purview) if self.purview is not None else None,
         }
 
     @property

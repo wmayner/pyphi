@@ -40,6 +40,7 @@ class NullResultReason(Enum):
     EMPTY_CAUSE_EFFECT_STRUCTURE = auto()
     # Mechanism level
     NO_PURVIEWS = auto()
+    NO_POSITIVE_ALPHA = auto()
     NO_PARTITIONS = auto()
     EMPTY_PURVIEW = auto()
     UNREACHABLE_STATE = auto()
@@ -56,6 +57,7 @@ class NullResultReason(Enum):
 _MECHANISM_REASONS = frozenset(
     {
         NullResultReason.NO_PURVIEWS,
+        NullResultReason.NO_POSITIVE_ALPHA,
         NullResultReason.NO_PARTITIONS,
         NullResultReason.EMPTY_PURVIEW,
         NullResultReason.UNREACHABLE_STATE,

@@ -1485,3 +1485,30 @@ def test_transition_validates_states_at_construction():
         actual.Transition(substrate, (0, 1, 0), (1, 1), (0,), (1,))
     with pytest.raises(ValueError, match="Invalid state"):
         actual.Transition(substrate, (0, 5), (1, 1), (0,), (1,))
+
+
+def test_null_ac_results_support_comparison_and_pandas():
+    from pyphi.models.actual_causation import _null_ac_ria
+
+    a = _null_ac_ria((0,), Direction.EFFECT, (0,), None)
+    b = _null_ac_ria((0,), Direction.EFFECT, (0,), None)
+    assert a == b
+    assert (a != b) is False
+    assert not a < b
+    assert a <= b
+    real = _null_ac_ria((0,), Direction.EFFECT, (0,), (1,))
+    assert (a == real) is False
+    assert isinstance(a.to_pandas(), object)
+
+
+def test_find_actual_cause_returns_null_link_when_no_positive_alpha():
+    from pyphi import models
+
+    substrate = examples.actual_causation_substrate()
+    transition = actual.Transition(substrate, (1, 0), (1, 0), (1,), (0,))
+    link = transition.find_actual_cause((1,), purviews=((),))
+    other = transition.find_actual_effect((1,), purviews=((),))
+    assert isinstance(link, models.CausalLink)
+    assert link.alpha == 0.0
+    # Comparison works on null links.
+    assert isinstance(link == other, bool)
