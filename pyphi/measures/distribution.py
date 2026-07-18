@@ -813,8 +813,8 @@ def psq2(p: ArrayLike, q: ArrayLike) -> float:
     """
     p = np.asarray(p)
     q = np.asarray(q)
-    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(len(p))).sum()
-    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(len(q))).sum()
+    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p**2 * log2(p.size)).sum()
+    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q**2 * log2(q.size)).sum()
     return DistanceResult(abs(fp - fq), method="PSQ2")
 
 
@@ -841,12 +841,17 @@ def mp2q(p: ArrayLike, q: ArrayLike) -> float:
     float
         The distance.
     """
-    p = np.asarray(p)
-    q = np.asarray(q)
+    p = np.asarray(p, dtype=float)
+    q = np.asarray(q, dtype=float)
     # There is already a factor of p in the `information_density`, so we only
-    # multiply by p, not p**2
+    # multiply by p, not p**2. Terms with p_i = 0 contribute nothing (the
+    # p_i^2 factor dominates the 1/q_i pole), so they are masked to zero
+    # rather than left as 0/0 = NaN; p_i > 0 with q_i = 0 stays +inf.
+    density = information_density(p, q)
+    ratio = np.divide(p, q, out=np.zeros_like(p), where=p > 0)
+    terms = np.where(p > 0, ratio * density, 0.0)
     return DistanceResult(
-        np.sum(p / q * information_density(p, q) / len(p)),
+        np.sum(terms / p.size),
         method="MP2Q",
         asymmetric=True,
     )
