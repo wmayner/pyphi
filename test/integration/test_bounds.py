@@ -523,8 +523,14 @@ def _ces(system):
 
 
 def _assert_certified_bounds_hold(system):
+    """Check the certified bounds against a real pipeline computation.
+
+    Enumerates individual relations to check the per-relation bound, so it
+    pins the concrete backend regardless of the ambient default.
+    """
     n = len(system.node_indices)
-    ces = _ces(system)
+    with config.override(relation_computation="CONCRETE"):
+        ces = _ces(system)
     sum_phi_d = 0.0
     for distinction in ces.distinctions:
         phi = float(distinction.phi)

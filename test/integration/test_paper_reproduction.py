@@ -194,7 +194,10 @@ def test_iit4_2023_fig4_relation_a_aB(_iit4_2023):
     minimum). The paper's reported 0.035 is the same quantity computed from the
     rounded phi_d(aB) = 0.07 (0.07 / 2 = 0.035).
     """
-    ces = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).ces()
+    # This test locates one specific relation by its mechanisms: the concrete
+    # backend, since the analytical backend does not enumerate relations.
+    with config.override(relation_computation="CONCRETE"):
+        ces = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).ces()
     relation = next(
         r for r in ces.relations if {tuple(m) for m in r.mechanisms} == {(0,), (0, 1)}
     )

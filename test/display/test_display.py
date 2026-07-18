@@ -22,10 +22,13 @@ from test.conftest import IIT_4_CONFIG
 
 @pytest.fixture(autouse=True)
 def _pin_iit4_2023():
-    """Pin the 2023/GID formalism for this module, so φ assertions do not
-    depend on the ambient default. Tests that need another formalism override
-    it locally with a ``with`` block, which nests inside this pin."""
-    with IIT_4_CONFIG:
+    """Pin the 2023/GID formalism with concrete relations, so φ assertions do
+    not depend on the ambient default. This module's relation cards
+    (``_xor_relations``) enumerate individual relations to check table and
+    per-relation rendering, which the analytical backend does not support.
+    Tests that need another formalism or backend override it locally with a
+    ``with`` block, which nests inside this pin."""
+    with IIT_4_CONFIG, pyphi.config.override(relation_computation="CONCRETE"):
         yield
 
 

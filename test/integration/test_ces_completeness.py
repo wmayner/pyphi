@@ -189,8 +189,14 @@ _COUNTEREXAMPLES = {
 
 @pytest.fixture(autouse=True)
 def _iit4_2023():
+    """Pin the 2023 formalism with concrete relations: the CES fingerprint
+    enumerates individual relations by their relata, which the analytical
+    backend does not support."""
     with config.override(
-        **presets.iit4_2023, validate_system_states=False, progress_bars=False
+        **presets.iit4_2023,
+        relation_computation="CONCRETE",
+        validate_system_states=False,
+        progress_bars=False,
     ):
         yield
 

@@ -3,6 +3,7 @@
 import pytest
 
 from pyphi import examples
+from pyphi.conf import config
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.ces import PhiFold
 from pyphi.models.ces import StructureView
@@ -14,7 +15,11 @@ from pyphi.relations import concrete_relations
 
 @pytest.fixture(scope="module")
 def xor_ces():
-    return examples.xor_system().ces()
+    """Concrete relations: most tests here enumerate/index relations to check
+    induced- and folded-view membership, which the analytical backend does
+    not support."""
+    with config.override(relation_computation="CONCRETE"):
+        return examples.xor_system().ces()
 
 
 @pytest.fixture(scope="module")
@@ -103,7 +108,9 @@ def test_fold_still_works_after_refactor(xor_ces):
 
 @pytest.fixture(scope="module")
 def grid3_ces():
-    return examples.grid3_system().ces()
+    """Concrete relations: see ``xor_ces`` above."""
+    with config.override(relation_computation="CONCRETE"):
+        return examples.grid3_system().ces()
 
 
 def test_meet_with_itself_is_whole(xor_ces):

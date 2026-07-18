@@ -93,7 +93,7 @@ def test_config_digest_covers_every_formalism_and_numerics_field():
     ("field", "alternate"),
     [
         ("system_partition_include_complete", True),
-        ("relation_computation", "ANALYTICAL"),
+        ("relation_computation", "CONCRETE"),
         ("assume_partitions_cannot_create_new_concepts", True),
         ("shortcircuit_sia", False),
         ("shortcircuit_distinctions", False),

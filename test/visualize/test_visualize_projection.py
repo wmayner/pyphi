@@ -242,9 +242,8 @@ def _xor_ces(analytical):
     import pyphi
     from pyphi import examples
 
-    if not analytical:
-        return examples.xor_system().ces()
-    with pyphi.config.override(relation_computation="ANALYTICAL"):
+    backend = "ANALYTICAL" if analytical else "CONCRETE"
+    with pyphi.config.override(relation_computation=backend):
         return examples.xor_system().ces()
 
 
