@@ -842,6 +842,13 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     sia.phi = float(utils.positive_part(capped_signed))
     sia.signed_normalized_phi = float(capped_norm)
     sia.normalized_phi = float(utils.positive_part(capped_norm))
+    # ii(s) is partition-independent given the specified states, so the same
+    # state-level terms cap the runner-up partition's φ; the reported φ-gap
+    # then compares capped to capped.
+    if sia.runner_up is not None and len(cap_terms) > 1:
+        ii_cap = min(cap_terms[1:])
+        if float(sia.runner_up.phi) > ii_cap:
+            sia.runner_up = replace(sia.runner_up, phi=float(ii_cap))
 
 
 def _apply_ii_cap(
@@ -1410,13 +1417,13 @@ def ces(
         )
         bounds.check_phi_bound(
             result.sum_phi_relations,
-            lambda: bounds.sum_phi_relations_upper_bound(n),
+            lambda: bounds.sum_phi_relations_upper_bound(n, bound="GENERAL"),
             system=system,
             label="sum phi_relations",
         )
         bounds.check_phi_bound(
             result.big_phi,
-            lambda: bounds.big_phi_upper_bound(n),
+            lambda: bounds.big_phi_upper_bound(n, bound="GENERAL"),
             system=system,
             label="big_phi",
         )
