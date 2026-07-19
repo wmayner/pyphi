@@ -1,8 +1,12 @@
 """Unit tests for the exclusion cascade over Candidate records."""
 
+import pytest
+
 from pyphi.condensation import Candidate
+from pyphi.condensation import PendingCandidate
 from pyphi.condensation import exclusion_cascade
 from pyphi.condensation import exclusion_records
+from pyphi.condensation import gated_exclusion_cascade
 
 
 class _StubSystem:
@@ -199,3 +203,123 @@ def test_tied_isolated_candidates_never_escalate_to_big_phi():
     outcome = exclusion_cascade(candidates)
     assert _footprints(outcome) == [(0, 1), (2, 3)]
     assert outcome.failed_cliques == ()
+
+
+def _lazy(candidates, ceilings):
+    """(pending, evaluate_batch, calls): each pending resolves to its
+    candidate; calls records each forced band's footprints."""
+    by_id = {}
+    pending = []
+    for cand, ceiling in zip(candidates, ceilings, strict=True):
+        p = PendingCandidate(footprint=cand.footprint, ceiling=ceiling, payload=cand)
+        by_id[id(p)] = cand
+        pending.append(p)
+    calls = []
+
+    def evaluate_batch(band):
+        calls.append([tuple(sorted(p.footprint)) for p in band])
+        return [by_id[id(p)] for p in band]
+
+    return pending, evaluate_batch, calls
+
+
+class TestGatedExclusionCascade:
+    def test_matches_eager_cascade_when_everything_forced(self):
+        # Loose ceilings put every candidate in the first forced band, so
+        # nothing is gated and the outcome must match the eager cascade
+        # exactly (accepted: {0,1} then {3}; {1,2} and {2,3} drop by
+        # coverage).
+        candidates = [
+            _candidate({0, 1}, 1.0),
+            _candidate({1, 2}, 0.5),
+            _candidate({3}, 0.25),
+            _candidate({2, 3}, 0.1),
+        ]
+        eager = exclusion_cascade(candidates)
+        pending, evaluate_batch, _ = _lazy(candidates, [1.0] * 4)
+        outcome, gated = gated_exclusion_cascade(pending, evaluate_batch)
+        assert outcome.accepted == eager.accepted
+        assert outcome.failed_cliques == eager.failed_cliques
+        assert [tuple(sorted(c.footprint)) for c in outcome.accepted] == [
+            (0, 1),
+            (3,),
+        ]
+        assert gated == ()
+
+    def test_tight_ceilings_gate_coverage_dropped_candidates(self):
+        # With ceilings equal to each phi, candidates the eager cascade
+        # drops by coverage are certified skips instead: same accepted
+        # set, but {1,2} and {2,3} are never evaluated.
+        candidates = [
+            _candidate({0, 1}, 1.0),
+            _candidate({1, 2}, 0.5),
+            _candidate({3}, 0.25),
+            _candidate({2, 3}, 0.1),
+        ]
+        eager = exclusion_cascade(candidates)
+        pending, evaluate_batch, calls = _lazy(candidates, [c.phi for c in candidates])
+        outcome, gated = gated_exclusion_cascade(pending, evaluate_batch)
+        assert outcome.accepted == eager.accepted
+        assert outcome.failed_cliques == eager.failed_cliques
+        assert sorted(tuple(sorted(p.footprint)) for p in gated) == [
+            (1, 2),
+            (2, 3),
+        ]
+        forced = [fp for band in calls for fp in band]
+        assert (1, 2) not in forced
+        assert (2, 3) not in forced
+
+    def test_gates_overlapping_candidate_below_ceiling(self):
+        candidates = [
+            _candidate({0, 1}, 1.0),
+            _candidate({1, 2}, 0.5),  # overlaps winner, ceiling below
+            _candidate({3}, 0.25),  # disjoint: must still be evaluated
+        ]
+        pending, evaluate_batch, calls = _lazy(candidates, [1.0, 0.6, 0.3])
+        outcome, gated = gated_exclusion_cascade(pending, evaluate_batch)
+        assert [tuple(sorted(c.footprint)) for c in outcome.accepted] == [
+            (0, 1),
+            (3,),
+        ]
+        assert [tuple(sorted(p.footprint)) for p in gated] == [(1, 2)]
+        forced = [fp for band in calls for fp in band]
+        assert (1, 2) not in forced
+        assert (3,) in forced
+
+    def test_disjoint_low_candidate_never_gated_by_global_max(self):
+        candidates = [
+            _candidate({0, 1}, 1.0),
+            _candidate({2, 3}, 0.01),
+        ]
+        pending, evaluate_batch, _ = _lazy(candidates, [1.0, 0.02])
+        outcome, gated = gated_exclusion_cascade(pending, evaluate_batch)
+        assert len(outcome.accepted) == 2
+        assert gated == ()
+
+    def test_tolerance_tied_pending_is_forced_not_gated(self):
+        # Overlapping candidates whose ceilings tie the winner at precision
+        # must be evaluated so the tie machinery sees them.
+        shared = object()
+        candidates = [
+            _candidate({0, 1}, 1.0, fingerprint=shared),
+            _candidate({1, 2}, 1.0, fingerprint=shared),
+        ]
+        eager = exclusion_cascade(candidates)
+        pending, evaluate_batch, _ = _lazy(candidates, [1.0, 1.0])
+        outcome, gated = gated_exclusion_cascade(pending, evaluate_batch)
+        assert gated == ()
+        # Same-fingerprint overlapping tie: both fail exclusion.
+        assert outcome.accepted == eager.accepted == ()
+        assert len(outcome.failed_cliques) == len(eager.failed_cliques) == 1
+
+    def test_ceiling_violation_raises(self):
+        candidates = [_candidate({0, 1}, 1.0)]
+        pending, evaluate_batch, _ = _lazy(candidates, [0.5])  # phi > ceiling
+        with pytest.raises(RuntimeError, match="ceiling"):
+            gated_exclusion_cascade(pending, evaluate_batch)
+
+    def test_empty_pending(self):
+        outcome, gated = gated_exclusion_cascade([], lambda _band: [])
+        assert outcome.accepted == ()
+        assert outcome.failed_cliques == ()
+        assert gated == ()
