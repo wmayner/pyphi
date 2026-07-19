@@ -630,6 +630,14 @@ def test_default_formalism_is_iit4_2026():
     assert iit.specification_measure == "GENERALIZED_INTRINSIC_DIFFERENCE"
 
 
+def test_default_relation_computation_is_analytical():
+    """The library default relation backend. As with the formalism default
+    above, do NOT pin a config here — this must observe the real default."""
+    from pyphi.conf import config
+
+    assert config.formalism.iit.relation_computation == "ANALYTICAL"
+
+
 class TestOverrideReentrancy:
     def test_decorated_recursive_function_restores_config(self):
         initial = config.numerics.precision

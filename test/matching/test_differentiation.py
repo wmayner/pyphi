@@ -47,6 +47,11 @@ class FakePerception:
     def relation_perception(self, relation):
         return self._values[relation]
 
+    @property
+    def _relations(self):
+        """Return the relations for consistency with real Perception."""
+        return self.ces.relations
+
 
 A = FakeComponent("a", phi=1.0)
 B = FakeComponent("b", phi=2.0)
@@ -254,7 +259,7 @@ def test_analytical_three_structure_inclusion_exclusion_matches_concrete(percept
     assert d.differentiation > 0
 
 
-def test_analytical_runs_on_analytical_relations_where_concrete_cannot(perceptions):
+def test_differentiation_agrees_with_analytical_on_analytical_relations(perceptions):
     from pyphi.models.ces import CauseEffectStructure
     from pyphi.relations import AnalyticalRelations
 
@@ -271,11 +276,9 @@ def test_analytical_runs_on_analytical_relations_where_concrete_cannot(perceptio
     )
     d_analytical = Differentiation((analytical_p,))
     d_concrete = Differentiation((concrete,))
-    # The analytical path runs and agrees with the concrete value...
+    # Both paths run and agree, since analytical relations materialize transparently.
     assert d_analytical.analytical_differentiation == pytest.approx(
         d_concrete.differentiation
     )
-    # ...while the concrete path refuses non-iterable AnalyticalRelations
-    # with a message that names the alternative.
-    with pytest.raises(TypeError, match="analytical_differentiation"):
-        _ = d_analytical.differentiation
+    # The concrete path also works with analytical relations.
+    assert d_analytical.differentiation == pytest.approx(d_concrete.differentiation)

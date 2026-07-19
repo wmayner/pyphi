@@ -105,7 +105,7 @@ class IITConfig:
     system_partition_include_complete: bool = False
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
     background_conditioning: str = "CAUSAL_MARGINALIZATION"
-    relation_computation: str = "CONCRETE"
+    relation_computation: str = "ANALYTICAL"
     assume_partitions_cannot_create_new_concepts: bool = False
     shortcircuit_sia: bool = True
     shortcircuit_distinctions: bool = True

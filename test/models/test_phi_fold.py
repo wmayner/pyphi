@@ -3,6 +3,7 @@
 import pytest
 
 from pyphi import examples
+from pyphi.conf import config
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.ces import PhiFold
 from pyphi.relations import AnalyticalRelations
@@ -11,7 +12,12 @@ from pyphi.relations import NullRelations
 
 @pytest.fixture(scope="module")
 def xor_ces():
-    return examples.xor_system().ces()
+    """Concrete relations: most tests here enumerate/index relations to check
+    fold membership and manual apportioned sums, which the analytical
+    backend does not support. ``xor_ces_analytical`` below covers the
+    analytical-specific comparisons."""
+    with config.override(relation_computation="CONCRETE"):
+        return examples.xor_system().ces()
 
 
 def test_concrete_apportioned_sum_phi_matches_manual(xor_ces):

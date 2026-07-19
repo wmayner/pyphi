@@ -184,7 +184,8 @@ def test_ces_diff_with_differing_relation_sets():
     substrate = examples.basic_substrate()
     state_a = examples.basic_state()
     state_b = tuple(1 - s if i == 0 else s for i, s in enumerate(state_a))
-    with pyphi.config.override(**presets.iit4_2023):
+    # Per-relation gained/lost rows require enumerating the relation set.
+    with pyphi.config.override(**presets.iit4_2023, relation_computation="CONCRETE"):
         a = substrate.ces(state_a)
         b = substrate.ces(state_b)
     n_a = a.relations.num_relations()

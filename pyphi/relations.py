@@ -930,9 +930,28 @@ class RelationSample:
 
 
 class AnalyticalRelations(Relations):
+    """A closed-form summary of the relations among a set of distinctions.
+
+    Every query (``sum_phi``, ``num_relations``, degree spectra, ...) is a
+    pure function of ``distinctions``, so two instances are equal exactly
+    when their ``distinctions`` are equal — regardless of whether either was
+    freshly computed, deserialized, or produced by a separate call. A
+    :class:`ConcreteRelations` built from the same distinctions is never
+    equal to one: the two are distinct representations, and comparing them
+    would require materializing one into the other's form.
+    """
+
     def __init__(self, distinctions):
         self.distinctions = distinctions
         super().__init__()
+
+    def __eq__(self, other: object) -> bool:
+        if type(other) is not type(self):
+            return NotImplemented
+        return self.distinctions == other.distinctions
+
+    def __hash__(self) -> int:
+        return hash((type(self), self.distinctions))
 
     def _not_enumerable(self, verb: str) -> NoReturn:
         raise TypeError(
@@ -1383,20 +1402,35 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     Self-relations of ``D\\F`` cancel in the difference; self-relations of the
     seeds survive. Enumeration (iteration, faces) is not supported -- use
     concrete relations for that.
+
+    Equality additionally requires matching seed distinctions: a fold summary
+    with the same parent distinctions but a different seed set describes a
+    different (incident-only) relation set, so it is a distinct value, not
+    just a distinct view.
     """
 
     def __init__(self, parent_distinctions, seeds):
         super().__init__(parent_distinctions)
         self._full = AnalyticalRelations(parent_distinctions)
-        self._seeds = tuple(seeds)
+        from pyphi.models.distinctions import _concept_sort_key
+
+        self._seeds = tuple(sorted(seeds, key=_concept_sort_key))
         self._share_weighted_cached = None
-        seed_mechanisms = {tuple(d.mechanism) for d in seeds}
+        seed_mechanisms = {tuple(d.mechanism) for d in self._seeds}
         from pyphi.models.distinctions import ResolvedDistinctions
 
         complement = ResolvedDistinctions(
             d for d in parent_distinctions if tuple(d.mechanism) not in seed_mechanisms
         )
         self._complement = AnalyticalRelations(complement)
+
+    def __eq__(self, other: object) -> bool:
+        if type(other) is not type(self):
+            return NotImplemented
+        return self.distinctions == other.distinctions and self._seeds == other._seeds
+
+    def __hash__(self) -> int:
+        return hash((type(self), self.distinctions, self._seeds))
 
     def _facet_context(self) -> tuple[Iterable, frozenset | None]:
         """Every incident relation lies inside an incident Z(n) with n in a

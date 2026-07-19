@@ -68,11 +68,12 @@ def test_null_relations_len_is_zero():
 
 @pytest.fixture(autouse=True)
 def _pin_formalism():
-    """Pin IIT 4.0 (2023): the golden CES/relation files in this module are
-    2023-sourced, so the comparisons must not depend on the ambient default.
-    (Under the 2026 default, deterministic fixtures cap to φ_s = 0 and their
+    """Pin IIT 4.0 (2023) with concrete relations: the golden CES/relation
+    files in this module are 2023-sourced and compared relation-by-relation,
+    so the comparisons must not depend on the ambient default. (Under the
+    2026 default, deterministic fixtures cap to φ_s = 0 and their
     congruence-resolved structures are empty.)"""
-    with IIT_4_CONFIG:
+    with IIT_4_CONFIG, config.override(relation_computation="CONCRETE"):
         yield
 
 

@@ -93,27 +93,17 @@ viz.plot_ces(ces, view="spectrum")
 
 ## Visualizing analytically-computed relations
 
-For larger structures the relation set is far too big to enumerate, so PyPhi can
-compute relations *analytically* — every aggregate answered in closed form,
-nothing materialized (see {doc}`query-relations`). Because that relation set
-cannot be listed, `plot_ces` renders the **strongest** relations by φ_r, chosen
-with `max_relations`:
+For larger structures the relation set is far too big to enumerate, so by
+default PyPhi computes relations *analytically* — every aggregate answered in
+closed form, nothing materialized (see {doc}`query-relations`). Because that
+relation set cannot be listed, `plot_ces` renders the **strongest** relations
+by φ_r, defaulting to the strongest 1000 when the set is not enumerable;
+`max_relations` chooses the cap:
 
 ```{code-cell} python
-with pyphi.config.override(relation_computation="ANALYTICAL"):
-    analytical_ces = examples.xor_system().ces()
+analytical_ces = examples.xor_system().ces()
 
 viz.plot_ces(analytical_ces, view="lattice", max_relations=8)
-```
-
-Without `max_relations` the call raises, rather than silently drawing an
-arbitrary subset of an unbounded set:
-
-```{code-cell} python
-try:
-    viz.plot_ces(analytical_ces, view="lattice")
-except ValueError as error:
-    print(error)
 ```
 
 The cap limits only how many relation *edges* are drawn. Marker size still

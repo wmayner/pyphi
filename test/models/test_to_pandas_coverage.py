@@ -60,9 +60,10 @@ def test_ces_to_pandas_dataframe_of_distinctions():
 
 
 def test_relations_to_pandas_dataframe():
+    # A per-relation dataframe requires enumerating the relation set.
     substrate = examples.basic_substrate()
     state = examples.basic_state()
-    with config.override(**presets.iit4_2023):
+    with config.override(**presets.iit4_2023, relation_computation="CONCRETE"):
         ces = substrate.ces(state)
     relations = ces.relations
     df = relations.to_pandas()

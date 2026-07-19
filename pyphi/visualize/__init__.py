@@ -137,10 +137,10 @@ def plot_ces(
         default) draws every face as a star; ``4`` keeps degree-2 lines and
         degree-3 triangles.
     max_relations : int, optional
-        Render only the strongest ``max_relations`` relations by φ_r. Required
-        when the structure's relations are computed analytically (the set is
-        not enumerable); node sizes and the spectrum view remain exact
-        regardless. If None, every relation is rendered.
+        Render only the strongest ``max_relations`` relations by φ_r. If None,
+        every relation is rendered when the set is enumerable; analytically
+        computed relations (not enumerable) default to the strongest 1000.
+        Node sizes and the spectrum view remain exact regardless.
 
     Raises
     ------
@@ -243,8 +243,8 @@ def highlight_phi_fold(
     show : tuple of str, optional
         Element classes to draw.
     max_relations : int, optional
-        Render only the strongest ``max_relations`` relations by φ_r; required
-        for analytically-computed relations.
+        Render only the strongest ``max_relations`` relations by φ_r; defaults
+        to the strongest 1000 for analytically-computed relations.
 
     Raises
     ------

@@ -30,7 +30,10 @@ def perception():
     ttpm = ps.triggered_tpm(tau=2, tau_clamp=1)
     stimulus = (1,)
     y = ttpm.argmax_state(stimulus)
-    with pyphi.config.override(**presets.iit4_2026):
+    with (
+        pyphi.config.override(**presets.iit4_2026),
+        pyphi.config.override(relation_computation="CONCRETE"),
+    ):
         ces = substrate.ces(
             state=_full_state(sensory, system, stimulus, y), indices=system
         )
@@ -88,3 +91,39 @@ def test_consistency_guard_rejects_wrong_state():
         )
     with pytest.raises(ValueError, match="triggered"):
         Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
+
+
+@pytest.fixture(scope="module")
+def analytical_perception():
+    """The same stimulus/system as ``perception``, with analytical relations."""
+    from pyphi.relations import AnalyticalRelations
+
+    substrate = examples.grid3_substrate()
+    sensory, system = (0,), (1, 2)
+    ps = PerceptualSystem(substrate, system_indices=system, sensory_indices=sensory)
+    ttpm = ps.triggered_tpm(tau=2, tau_clamp=1)
+    stimulus = (1,)
+    y = ttpm.argmax_state(stimulus)
+    with (
+        pyphi.config.override(**presets.iit4_2026),
+        pyphi.config.override(relation_computation="ANALYTICAL"),
+    ):
+        ces = substrate.ces(
+            state=_full_state(sensory, system, stimulus, y), indices=system
+        )
+        assert isinstance(ces.relations, AnalyticalRelations)  # precondition
+    return Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
+
+
+def test_richness_analytical_matches_concrete(perception, analytical_perception):
+    assert analytical_perception.richness == pytest.approx(perception.richness)
+
+
+def test_perceptual_differentiation_accepts_analytical(
+    perception, analytical_perception
+):
+    from pyphi.matching import Differentiation
+
+    d_concrete = Differentiation((perception,)).perceptual_differentiation
+    d_analytical = Differentiation((analytical_perception,)).perceptual_differentiation
+    assert d_analytical == pytest.approx(d_concrete)

@@ -242,9 +242,8 @@ def _xor_ces(analytical):
     import pyphi
     from pyphi import examples
 
-    if not analytical:
-        return examples.xor_system().ces()
-    with pyphi.config.override(relation_computation="ANALYTICAL"):
+    backend = "ANALYTICAL" if analytical else "CONCRETE"
+    with pyphi.config.override(relation_computation=backend):
         return examples.xor_system().ces()
 
 
@@ -256,14 +255,19 @@ def test_project_ces_carries_degree_spectrum():
     assert proj.degree_spectrum == ces.relations.degree_spectrum()
 
 
-def test_project_ces_analytical_requires_cap():
+def test_project_ces_analytical_defaults_to_strongest_1000():
     from pyphi.relations import AnalyticalRelations
+    from pyphi.visualize.projection import DEFAULT_MAX_ANALYTICAL_RELATIONS
     from pyphi.visualize.projection import project_ces
 
     ces = _xor_ces(analytical=True)
     assert isinstance(ces.relations, AnalyticalRelations)  # precondition
-    with pytest.raises(ValueError, match="max_relations"):
-        project_ces(ces)
+    projection = project_ces(ces)
+    assert 0 < len(projection.edges) <= DEFAULT_MAX_ANALYTICAL_RELATIONS
+    # The default draws the same relations the concrete backend would
+    # (xor's relation set is far below the cap).
+    concrete = project_ces(_xor_ces(analytical=False))
+    assert {e.relata for e in projection.edges} == {e.relata for e in concrete.edges}
 
 
 def test_project_ces_analytical_matches_concrete_and_sizes_faithfully():
@@ -294,8 +298,8 @@ def test_plot_ces_forwards_max_relations():
 
     with pyphi.config.override(relation_computation="ANALYTICAL"):
         ces = examples.xor_system().ces()
-        with pytest.raises(ValueError, match="max_relations"):
-            plot_ces(ces)
+        fig_default = plot_ces(ces)
+        assert fig_default is not None
         fig = plot_ces(ces, max_relations=2)
     assert fig is not None
 
