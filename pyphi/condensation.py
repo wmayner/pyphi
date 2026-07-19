@@ -332,6 +332,7 @@ def gated_exclusion_cascade(
         # tier level; with nothing evaluated, force the top ceiling band.
         while pending_left:
             if evaluated:
+                # numerics: exact — level selection; band membership is tolerant.
                 level = max(c.phi for _, c in evaluated)
                 band = [
                     p
@@ -346,6 +347,7 @@ def gated_exclusion_cascade(
             band_ids = {id(p) for p in band}
             pending_left = [p for p in pending_left if id(p) not in band_ids]
             for p, candidate in zip(band, list(evaluate_batch(band)), strict=True):
+                # numerics: exact — tolerance applied explicitly via tol.
                 if candidate.phi > p.ceiling + tol:
                     raise RuntimeError(
                         "certified gate premise violated: "
@@ -354,7 +356,9 @@ def gated_exclusion_cascade(
                     )
                 evaluated.append((order[id(p)], candidate))
         # Resolve one tier, exactly as the eager cascade would.
+        # numerics: exact — tier-head selection; membership decided by numerics.eq.
         level = max(c.phi for _, c in evaluated)
+        # numerics: exact — ordered by input position; membership is tolerant.
         tier = sorted(
             (pair for pair in evaluated if _numerics.eq(pair[1].phi, level)),
             key=lambda pair: pair[0],
