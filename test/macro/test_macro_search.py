@@ -1,5 +1,6 @@
 """Tests for pyphi.macro.search: bounded intrinsic-unit search (Eqs 15-19)."""
 
+import hypothesis.extra.numpy as hnp
 import numpy as np
 import pytest
 from hypothesis import given
@@ -8,12 +9,19 @@ from hypothesis import strategies as st
 
 from pyphi import config
 from pyphi import numerics
+from pyphi.conf import ConfigurationError
 from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.criteria import unit_integration
 from pyphi.macro.search import ComplexesResult
 from pyphi.macro.search import SearchBounds
+from pyphi.macro.search import _compute_ceilings
+from pyphi.macro.search import _ii_ceiling
+from pyphi.macro.search import _is_micro
+from pyphi.macro.search import _resolve_prune
+from pyphi.macro.search import _strictly_below
+from pyphi.macro.search import _system_micro_indices
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
 from pyphi.macro.search import complexes
@@ -26,6 +34,7 @@ from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
 from pyphi.substrate import Substrate
+from pyphi.system import System
 from test.macro.test_macro_criteria import bu_substrate
 from test.macro.test_macro_criteria import min_substrate
 from test.macro.test_macro_tpm import CG_TPM
@@ -1065,3 +1074,299 @@ class TestCrossDoorEquivalence:
             record.phi > float(by_units[(2, 3)].phi)
             for record in by_units[(2, 3)].excluded
         )
+
+
+class TestPruneResolution:
+    def test_auto_is_certified_under_2026(self):
+        with config.override(**presets.iit4_2026):
+            assert _resolve_prune(None) == "certified"
+
+    def test_auto_is_off_under_2023_gid(self):
+        with config.override(**presets.iit4_2023):
+            assert _resolve_prune(None) == "off"
+
+    def test_explicit_certified_raises_under_2023_gid(self):
+        with (
+            config.override(**presets.iit4_2023),
+            pytest.raises(ConfigurationError),
+        ):
+            _resolve_prune("certified")
+
+    def test_off_never_raises(self):
+        with config.override(**presets.iit4_2023):
+            assert _resolve_prune("off") == "off"
+        with config.override(**presets.iit4_2026):
+            assert _resolve_prune("off") == "off"
+
+    def test_unknown_value_raises(self):
+        with pytest.raises(ValueError):
+            _resolve_prune("heuristic")
+
+
+class TestIICeiling:
+    def _cg_systems(self, groups):
+        substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+        state = (0, 0, 0, 0)
+        return [
+            MacroSystem.from_micro(
+                substrate, tuple(micro_unit(i) for i in units), (state,)
+            )
+            for units in groups
+        ]
+
+    def test_ceiling_bounds_phi(self):
+        with config.override(**presets.iit4_2026):
+            for system in self._cg_systems([(0,), (0, 1), (0, 1, 2, 3)]):
+                ceiling, state = _ii_ceiling(system)
+                phi = float(system.sia().phi)
+                assert phi <= ceiling or numerics.eq(phi, ceiling)
+                assert state.cause is not None or ceiling == 0.0
+
+    def test_sia_accepts_precomputed_system_state(self):
+        with config.override(**presets.iit4_2026):
+            (system,) = self._cg_systems([(0, 1)])
+            _, state = _ii_ceiling(system)
+            assert float(system.sia(system_state=state).phi) == float(system.sia().phi)
+
+    def test_compute_ceilings_merges_in_order(self):
+        with config.override(**presets.iit4_2026):
+            systems = self._cg_systems([(0,), (1,), (0, 1)])
+            ceilings = {}
+            _compute_ceilings(systems, ceilings, None)
+            assert list(ceilings) == systems
+            for system in systems:
+                assert ceilings[system][0] == _ii_ceiling(system)[0]
+
+
+def test_strictly_below():
+    assert _strictly_below(0.5, 1.0)
+    assert not _strictly_below(1.0, 1.0)
+    assert not _strictly_below(1.0 - 1e-15, 1.0)  # tolerance-equal
+    assert not _strictly_below(2.0, 1.0)
+
+
+def _verdicts_equal(a, b):
+    assert len(a) == len(b)
+    for va, vb in zip(a, b, strict=True):
+        assert va.constituents == vb.constituents
+        assert va.background_apportionment == vb.background_apportionment
+        assert va.verdict.valid == vb.verdict.valid
+        assert va.verdict.reason == vb.verdict.reason
+        assert numerics.eq(va.verdict.phi, vb.verdict.phi)
+        assert va.verdict.num_competitors == vb.verdict.num_competitors
+
+
+class TestEq16Gate:
+    def test_intrinsic_units_verdicts_match_off(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            bounds = SearchBounds()
+            off = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off")
+            on = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="certified")
+            assert off.units == on.units
+            _verdicts_equal(off.verdicts, on.verdicts)
+
+    def test_competing_systems_identical(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            bounds = SearchBounds()
+            pool = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off").units
+            macro = [u for u in pool if not _is_micro(u)]
+            if not macro:
+                pytest.skip("no macro units derived for this substrate")
+            unit = macro[0]
+            off = competing_systems(substrate, unit, (0, 0, 0, 0), bounds, prune="off")
+            on = competing_systems(
+                substrate, unit, (0, 0, 0, 0), bounds, prune="certified"
+            )
+            assert off == on
+
+    def test_is_intrinsic_unit_matches_off(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            bounds = SearchBounds()
+            pool = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off").units
+            macro = [u for u in pool if not _is_micro(u)]
+            if not macro:
+                pytest.skip("no macro units derived for this substrate")
+            unit = macro[0]
+            off = is_intrinsic_unit(substrate, unit, (0, 0, 0, 0), bounds, prune="off")
+            on = is_intrinsic_unit(
+                substrate, unit, (0, 0, 0, 0), bounds, prune="certified"
+            )
+            assert off.valid == on.valid
+            assert off.reason == on.reason
+            assert numerics.eq(off.phi, on.phi)
+            assert off.num_competitors == on.num_competitors
+
+
+def _complexes_equal(off, on):
+    assert len(off.complexes) == len(on.complexes)
+    for a, b in zip(off.complexes, on.complexes, strict=True):
+        assert a.node_indices == b.node_indices
+        assert numerics.eq(float(a.sia.phi), float(b.sia.phi))
+        assert a.units == b.units
+    assert off.ties == on.ties
+
+
+class TestCertifiedComplexes:
+    def _run(self, substrate, state, bounds=None):
+        bounds = bounds or SearchBounds()
+        off = complexes(substrate, state, bounds, prune="off")
+        on = complexes(substrate, state, bounds, prune="certified")
+        return off, on
+
+    def test_equivalent_on_example_1(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            off, on = self._run(substrate, (0, 0, 0, 0))
+            _complexes_equal(off, on)
+
+    def test_equivalent_on_tie_substrate(self):
+        with config.override(**presets.iit4_2026):
+            substrate = tie_substrate()  # 3 units, symmetric A <-> C
+            off, on = self._run(substrate, (0, 0, 0))
+            _complexes_equal(off, on)
+            # Tie members are never gated: every tied system was evaluated.
+            for clique in on.ties:
+                for system in clique:
+                    matching = [
+                        r for r in on.records if r.system == system and not r.gated
+                    ]
+                    assert matching
+
+    def test_equivalent_on_disjoint_complexes(self):
+        with config.override(**presets.iit4_2026):
+            substrate = decaying_chain_substrate()
+            off, on = self._run(substrate, (0, 0, 0, 0))
+            _complexes_equal(off, on)
+            assert len(on.complexes) >= 2  # the fixture's two disjoint winners
+
+    def test_gated_record_invariants(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            _off, on = self._run(substrate, (0, 0, 0, 0))
+            accepted = {c.node_indices: float(c.sia.phi) for c in on.complexes}
+            for record in on.records:
+                assert (record.phi is None) == record.gated
+                if record.gated:
+                    assert record.ii_ceiling is not None
+                    fp = set(_system_micro_indices(record.system.units))
+                    below_some_winner = any(
+                        set(indices) & fp and _strictly_below(record.ii_ceiling, phi)
+                        for indices, phi in accepted.items()
+                    )
+                    assert below_some_winner
+
+    def test_gate_bites_on_example_1(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            off, on = self._run(substrate, (0, 0, 0, 0))
+            evaluated = [r for r in on.records if not r.gated]
+            gated = [r for r in on.records if r.gated]
+            assert gated  # the gate actually fires
+            assert len(evaluated) < len(off.records)
+
+    def test_gated_exclusion_records_present(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            _off, on = self._run(substrate, (0, 0, 0, 0))
+            gated_excl = [
+                excl for c in on.complexes for excl in c.excluded if excl.gated
+            ]
+            for excl in gated_excl:
+                assert excl.phi is None
+                assert excl.ii_ceiling is not None
+                repr(excl)  # display must not crash on a gated record
+
+    def test_off_matches_prior_shape(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            off = complexes(substrate, (0, 0, 0, 0), SearchBounds(), prune="off")
+            for record in off.records:
+                assert record.phi is not None
+                assert not record.gated
+
+
+# Minimal n = 2 witness refuting min(ii_c, ii_e) >= phi_s under the 2023
+# GID measure (experiments/ii_phi_inequality_experiments/FINDINGS.md):
+# phi_s exceeds ii_e by ~0.054. It certifies that GID-mode gating is
+# unsound and must remain unavailable.
+GID_WITNESS_TPM = np.array(
+    [
+        [0.90294049, 0.74463958],
+        [0.55496427, 0.24027935],
+        [0.5432427, 0.42462247],
+        [0.07088583, 0.84413472],
+    ]
+)
+
+
+class TestCertifiedGateSoundnessGuard:
+    def test_witness_violates_inequality_under_gid(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(GID_WITNESS_TPM)
+            system = System(substrate, (0, 1))
+            sia = system.sia()
+            ii_min = min(
+                float(sia.system_state.cause.intrinsic_information),
+                float(sia.system_state.effect.intrinsic_information),
+            )
+            phi = float(sia.phi)
+            assert phi > ii_min
+            assert not numerics.eq(phi, ii_min)
+
+    def test_certified_unavailable_under_gid(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(GID_WITNESS_TPM)
+            with pytest.raises(ConfigurationError):
+                complexes(substrate, (0, 1), SearchBounds(), prune="certified")
+
+    def test_auto_resolves_off_under_gid(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(GID_WITNESS_TPM)
+            result = complexes(substrate, (0, 1), SearchBounds())
+            for record in result.records:
+                assert record.phi is not None
+                assert not record.gated
+
+
+class TestCertifiedParallelEquivalence:
+    def test_parallel_equals_sequential(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            seq = complexes(
+                substrate,
+                (0, 0, 0, 0),
+                SearchBounds(),
+                parallel_kwargs={"parallel": False},
+                prune="certified",
+            )
+            par = complexes(
+                substrate,
+                (0, 0, 0, 0),
+                SearchBounds(),
+                parallel_kwargs={"parallel": True},
+                prune="certified",
+            )
+            assert seq.records == par.records
+            _complexes_equal(seq, par)
+
+
+@pytest.mark.slow
+@settings(max_examples=15, deadline=None)
+@given(data=st.data())
+def test_certified_equals_off_on_random_substrates(data):
+    tpm = data.draw(
+        hnp.arrays(
+            np.float64,
+            (8, 3),
+            elements=st.floats(0.05, 0.95, allow_nan=False),
+        )
+    )
+    with config.override(**presets.iit4_2026):
+        substrate = Substrate(tpm)
+        bounds = SearchBounds(max_constituents=2, max_update_grain=1)
+        off = complexes(substrate, (0, 0, 0), bounds, prune="off")
+        on = complexes(substrate, (0, 0, 0), bounds, prune="certified")
+        _complexes_equal(off, on)

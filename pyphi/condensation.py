@@ -257,6 +257,134 @@ def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
     return CondensationOutcome(tuple(accepted), tuple(failed))
 
 
+@dataclass(frozen=True)
+class PendingCandidate:
+    """A candidate the gated cascade knows only by a certified φₛ ceiling.
+
+    Attributes
+    ----------
+    footprint : frozenset[int]
+        The candidate's micro units.
+    ceiling : float
+        A certified upper bound on the candidate's φₛ.
+    payload : Any
+        Opaque caller data, handed back through ``evaluate_batch``.
+    """
+
+    footprint: frozenset[int]
+    ceiling: float
+    payload: Any = None
+
+
+def gated_exclusion_cascade(
+    pending: Sequence[PendingCandidate],
+    evaluate_batch: Callable[[Sequence[PendingCandidate]], Sequence[Candidate]],
+) -> tuple[CondensationOutcome, tuple[PendingCandidate, ...]]:
+    """Condense candidates known by certified φₛ ceilings, evaluating lazily.
+
+    Candidates are forced to exact φₛ — via ``evaluate_batch``, which must
+    return one :class:`Candidate` per pending item, in order — only when
+    their ceiling reaches the tier currently being resolved at
+    ``config.numerics.precision``. Each tier then resolves exactly as in
+    :func:`exclusion_cascade`. A pending candidate that comes to overlap
+    an accepted complex is a certified exclusion: its ceiling, hence its
+    φₛ, is strictly below that complex's φₛ at precision, so it is never
+    evaluated and is returned in the second element.
+
+    Within-tier presentation order follows the input order of ``pending``,
+    matching the eager cascade's contract. Ceilings certify skips only:
+    when every ceiling is loose enough to force evaluation, the outcome is
+    identical to the eager cascade on the same input order.
+
+    Notes
+    -----
+    Tier membership is tolerant but not transitive, so the eager cascade's
+    tier boundaries can be anchored by a candidate that is later dropped
+    by coverage. A gated candidate is never evaluated and cannot anchor:
+    when three φₛ values form a sub-tolerance chain whose middle candidate
+    is gated, the two ends share a tier here where the eager cascade
+    splits them. The difference is observable only when those ends also
+    overlap each other, in which case their tie escalates to Composition
+    (the reading the tie supplement prescribes for candidates tied at
+    precision) instead of the higher end excluding the lower by coverage.
+
+    Raises
+    ------
+    RuntimeError
+        If a forced candidate's φₛ exceeds its ceiling beyond precision —
+        the certified premise itself is violated, and pruning would be
+        unsound.
+    """
+    from pyphi import numerics as _numerics
+    from pyphi.conf import config as _config
+
+    tol = 10.0 ** (-_config.numerics.precision)
+    order = {id(p): i for i, p in enumerate(pending)}
+    pending_left = list(pending)
+    evaluated: list[tuple[int, Candidate]] = []
+    accepted: list[Candidate] = []
+    failed: list[tuple[Candidate, ...]] = []
+    gated: list[PendingCandidate] = []
+    covered: set[int] = set()
+
+    while evaluated or pending_left:
+        # Force every pending candidate whose ceiling reaches the current
+        # tier level; with nothing evaluated, force the top ceiling band.
+        while pending_left:
+            if evaluated:
+                # numerics: exact — level selection; band membership is tolerant.
+                level = max(c.phi for _, c in evaluated)
+                band = [
+                    p
+                    for p in pending_left
+                    if p.ceiling >= level or _numerics.eq(p.ceiling, level)
+                ]
+            else:
+                top = max(p.ceiling for p in pending_left)
+                band = [p for p in pending_left if _numerics.eq(p.ceiling, top)]
+            if not band:
+                break
+            band_ids = {id(p) for p in band}
+            pending_left = [p for p in pending_left if id(p) not in band_ids]
+            for p, candidate in zip(band, list(evaluate_batch(band)), strict=True):
+                # numerics: exact — tolerance applied explicitly via tol.
+                if candidate.phi > p.ceiling + tol:
+                    raise RuntimeError(
+                        "certified gate premise violated: "
+                        f"φₛ = {candidate.phi} exceeds the "
+                        f"intrinsic-information ceiling {p.ceiling}"
+                    )
+                evaluated.append((order[id(p)], candidate))
+        # Resolve one tier, exactly as the eager cascade would.
+        # numerics: exact — tier-head selection; membership decided by numerics.eq.
+        level = max(c.phi for _, c in evaluated)
+        # numerics: exact — ordered by input position; membership is tolerant.
+        tier = sorted(
+            (pair for pair in evaluated if _numerics.eq(pair[1].phi, level)),
+            key=lambda pair: pair[0],
+        )
+        tier_ids = {id(c) for _, c in tier}
+        evaluated = [pair for pair in evaluated if id(pair[1]) not in tier_ids]
+        survivors = [c for _, c in tier if not (c.footprint & covered)]
+        if survivors:
+            tier_accepted, tier_failed = _resolve_phi_tied_group(survivors)
+            position = {id(c): i for i, c in enumerate(survivors)}
+            tier_accepted.sort(key=lambda c: position[id(c)])
+            accepted.extend(tier_accepted)
+            failed.extend(tier_failed)
+            for complex_candidate in tier_accepted:
+                covered |= complex_candidate.footprint
+        # Certified skips: pending candidates overlapping accepted coverage.
+        still: list[PendingCandidate] = []
+        for p in pending_left:
+            if p.footprint & covered:
+                gated.append(p)
+            else:
+                still.append(p)
+        pending_left = still
+    return CondensationOutcome(tuple(accepted), tuple(failed)), tuple(gated)
+
+
 def _resolve_clique_iit3(clique: list[Candidate]) -> Candidate | None:
     """Return the unique complex from an IIT 3.0 overlap clique, or ``None``
     when the clique is indeterminate.

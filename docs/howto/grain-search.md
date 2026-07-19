@@ -174,9 +174,13 @@ candidate cannot in turn exclude anything. For how the cascade resolves
 overlapping candidates, see the
 {doc}`recursive-exclusion tutorial <../tutorials/recursive-exclusion>`.
 
-`records` holds every system the search actually evaluated, so its length is
-the realized version of the pre-flight estimate. Here they match: the worst
-case of eight candidate systems was reached exactly.
+`records` holds every candidate system the search considered, so its length
+is the realized version of the pre-flight estimate. Under a system measure
+with the intrinsic-information cap, the certified prune may skip some
+candidates' partition sweeps; those records carry `gated=True` and an upper
+bound in place of an exact φₛ (this page's runs use the 2023 preset, where
+the prune is unavailable and every record is exact). Here the lengths
+match: the worst case of eight candidate systems was reached exactly.
 
 ```{code-cell} python
 len(result.records), estimate.distinct_systems_upper_bound

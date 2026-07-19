@@ -272,24 +272,27 @@ def _phi(substrate, units, micro_history, memo, system_cache):
     return system, memo[system]
 
 
-def _evaluate_one(system: MacroSystem) -> float:
-    """Worker entry: φₛ of one system.
+def _evaluate_one(item) -> float:
+    """Worker entry: φₛ of one ``(system, system_state)`` pair.
 
-    The inner ``sia`` is forced sequential so search-level parallelism
-    stays one process-pool deep (nested pools merely oversubscribe).
-    This runs only on the parallel-dispatch path; the in-process path
-    of :func:`_evaluate_systems` leaves ``sia`` under the ambient
-    config, preserving per-evaluation partition parallelism.
+    ``system_state`` may be ``None``; when given, it is the precomputed
+    intrinsic-information state specification, forwarded to ``sia`` so
+    it is not recomputed. The inner ``sia`` is forced sequential so
+    search-level parallelism stays one process-pool deep (nested pools
+    merely oversubscribe). This runs only on the parallel-dispatch
+    path; the in-process path of :func:`_evaluate_systems` leaves
+    ``sia`` under the ambient config, preserving per-evaluation
+    partition parallelism.
     """
     from pyphi.conf import config as _config
 
-    phi = 0.0
+    system, system_state = item
+    kwargs = {} if system_state is None else {"system_state": system_state}
     with _config.override(parallel=False):
-        phi = float(system.sia().phi)
-    return phi
+        return float(system.sia(**kwargs).phi)
 
 
-def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
+def _evaluate_systems(systems, memo, parallel_kwargs=None, system_states=None) -> None:
     """Evaluate ``systems`` and merge φₛ into ``memo`` in order.
 
     Systems already in the memo, duplicates within the batch, and
@@ -298,7 +301,9 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
     option is enabled, otherwise in-process under the ambient config --
     and inserted into the memo in that same order, so a parallel run's
     memo (and every result derived from it) is identical to a
-    sequential one's.
+    sequential one's. ``system_states`` optionally maps systems to
+    precomputed intrinsic-information state specifications, forwarded
+    to each ``sia`` call.
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
@@ -313,6 +318,7 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
         pending.append(system)
     if not pending:
         return
+    states = system_states or {}
     pkwargs = _conf.parallel_kwargs(
         _config.infrastructure.parallel_macro_system_evaluation,
         **(parallel_kwargs or {}),
@@ -321,11 +327,122 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
         pkwargs["ordered"] = True
         pkwargs["total"] = len(pending)
         pkwargs.setdefault("desc", "Evaluating macro systems")
-        phis = map_reduce(_evaluate_one, pending, **pkwargs)
+        phis = map_reduce(
+            _evaluate_one,
+            [(system, states.get(system)) for system in pending],
+            **pkwargs,
+        )
     else:
-        phis = [float(system.sia().phi) for system in pending]
+        phis = []
+        for system in pending:
+            state = states.get(system)
+            kwargs = {} if state is None else {"system_state": state}
+            phis.append(float(system.sia(**kwargs).phi))
     for system, phi in zip(pending, phis, strict=True):
         memo[system] = phi
+
+
+def _resolve_prune(prune: str | None) -> str:
+    """Resolve the ``prune`` mode against the active system measure.
+
+    ``None`` selects ``"certified"`` exactly when the resolved system
+    measure applies the intrinsic-information cap (under which φₛ ≤ ii
+    by construction), and ``"off"`` otherwise. Requesting
+    ``"certified"`` without the cap is an error: ii ≥ φₛ does not hold
+    under other measures, so a certified prune would be unsound.
+    """
+    from pyphi.conf import ConfigurationError
+    from pyphi.conf import config as _config
+    from pyphi.measures.distribution import resolve_system_measure
+
+    if prune not in (None, "certified", "off"):
+        raise ValueError(f"prune must be 'certified', 'off', or None; got {prune!r}")
+    if prune == "off":
+        return "off"
+    measure = resolve_system_measure(_config.formalism.iit.system_phi_measure)
+    capped = bool(getattr(measure, "applies_ii_cap", False))
+    if prune == "certified" and not capped:
+        raise ConfigurationError(
+            "prune='certified' requires a system measure that applies the "
+            "intrinsic-information cap "
+            "(system_phi_measure='INTRINSIC_INFORMATION'); ii ≥ φₛ does "
+            f"not hold under {_config.formalism.iit.system_phi_measure!r}"
+        )
+    return "certified" if capped else "off"
+
+
+def _strictly_below(x: float, y: float) -> bool:
+    """True when ``x < y`` beyond ``config.numerics.precision``."""
+    from pyphi import numerics as _numerics
+
+    return x < y and not _numerics.eq(x, y)
+
+
+def _ii_ceiling(system):
+    """``(ceiling, system_state)``: the certified φₛ upper bound.
+
+    The ceiling is the minimum over directions of the state-maximal
+    intrinsic information — the quantity the Eq. 23 cap bounds φₛ by.
+    The returned state specification is the same object ``sia`` computes
+    before its partition sweep, so callers can pass it back to ``sia``
+    to avoid recomputation. A missing direction contributes 0.0 (no
+    specified cause or effect certifies φₛ = 0).
+    """
+    from pyphi.conf import config as _config
+    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    state = system_intrinsic_information(
+        system,
+        specification_measure=resolve_mechanism_measure(
+            _config.formalism.iit.specification_measure
+        ),
+    )
+    cause = 0.0 if state.cause is None else float(state.cause.intrinsic_information)
+    effect = 0.0 if state.effect is None else float(state.effect.intrinsic_information)
+    return min(cause, effect), state
+
+
+def _ceiling_one(system):
+    """Worker entry: the ceiling of one system, inner computation
+    sequential (mirrors :func:`_evaluate_one`)."""
+    from pyphi.conf import config as _config
+
+    with _config.override(parallel=False):
+        return _ii_ceiling(system)
+
+
+def _compute_ceilings(systems, ceilings, parallel_kwargs=None) -> None:
+    """Merge ``(ceiling, system_state)`` for ``systems`` into
+    ``ceilings`` in dispatch order, skipping entries already present,
+    duplicates, and ``None`` systems (mirrors
+    :func:`_evaluate_systems`)."""
+    from pyphi import conf as _conf
+    from pyphi.conf import config as _config
+    from pyphi.parallel import map_reduce
+
+    pending = []
+    seen = set()
+    for system in systems:
+        if system is None or system in ceilings or system in seen:
+            continue
+        seen.add(system)
+        pending.append(system)
+    if not pending:
+        return
+    pkwargs = _conf.parallel_kwargs(
+        _config.infrastructure.parallel_macro_system_evaluation,
+        **(parallel_kwargs or {}),
+    )
+    if pkwargs.get("parallel"):
+        pkwargs["ordered"] = True
+        pkwargs["total"] = len(pending)
+        pkwargs.setdefault("desc", "Computing ii ceilings")
+        results = map_reduce(_ceiling_one, pending, **pkwargs)
+    else:
+        results = [_ii_ceiling(system) for system in pending]
+    for system, result in zip(pending, results, strict=True):
+        ceilings[system] = result
 
 
 def _as_constituent(unit: MacroUnit) -> MacroUnit | int:
@@ -410,8 +527,29 @@ def _apportionments(n, footprint, inherited, bounds: SearchBounds):
     )
 
 
-def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo, system_cache):
-    """``f(U^J, W^J)``: evaluated competitor systems (Eq. 16)."""
+def _f(
+    substrate,
+    V,
+    W,
+    footprint,
+    pool,
+    micro_history,
+    bounds,
+    memo,
+    system_cache,
+    ceilings,
+    gates,
+    mode,
+):
+    """``f(U^J, W^J)``: competitor entries ``(system, φₛ)`` (Eq. 16).
+
+    Under the certified prune, a competitor whose intrinsic-information
+    ceiling is strictly below the candidate's φₛ at precision carries
+    ``None`` in place of φₛ: it cannot beat or tie the candidate, so its
+    partition sweep is skipped.
+    """
+    from pyphi import numerics as _numerics
+
     fp = set(footprint)
     allowed = set(W)
     members = [
@@ -421,15 +559,32 @@ def _f(substrate, V, W, footprint, pool, micro_history, bounds, memo, system_cac
         and set(unit.background_apportionment) <= allowed
     ]
     own = canonical_units(V)
-    competitors = []
+    phi_V = None
+    if mode == "certified":
+        _, phi_V = _phi(substrate, V, micro_history, memo, system_cache)
+    entries = []
     for combo in _assemble_systems(members, bounds.max_background):
         if canonical_units(combo) == own:
             continue
-        system, phi = _phi(substrate, combo, micro_history, memo, system_cache)
+        system = _system_of_cached(substrate, combo, micro_history, system_cache)
         if system is None:
             continue
-        competitors.append((system, phi))
-    return competitors
+        if (
+            mode == "certified"
+            and system not in memo
+            and phi_V is not None
+            and _numerics.is_positive(phi_V)
+        ):
+            if system not in ceilings:
+                ceilings[system] = _ii_ceiling(system)
+            ceiling = ceilings[system][0]
+            if _strictly_below(ceiling, phi_V):
+                gates[system] = ceiling
+                entries.append((system, None))
+                continue
+        _, phi = _phi(substrate, combo, micro_history, memo, system_cache)
+        entries.append((system, phi))
+    return entries
 
 
 def _variants(V, W, bounds: SearchBounds):
@@ -448,12 +603,38 @@ def _variants(V, W, bounds: SearchBounds):
     ]
 
 
-def _judge(substrate, V, W, footprint, micro_history, bounds, pool, memo, system_cache):
+def _judge(
+    substrate,
+    V,
+    W,
+    footprint,
+    micro_history,
+    bounds,
+    pool,
+    memo,
+    system_cache,
+    ceilings,
+    gates,
+    mode,
+):
     _, phi = _phi(substrate, V, micro_history, memo, system_cache)
-    competitors = _f(
-        substrate, V, W, footprint, pool, micro_history, bounds, memo, system_cache
+    entries = _f(
+        substrate,
+        V,
+        W,
+        footprint,
+        pool,
+        micro_history,
+        bounds,
+        memo,
+        system_cache,
+        ceilings,
+        gates,
+        mode,
     )
-    return judge_candidate(0.0 if phi is None else phi, competitors)
+    competitors = [(s, p) for s, p in entries if p is not None]
+    num_gated = sum(1 for _, p in entries if p is None)
+    return judge_candidate(0.0 if phi is None else phi, competitors, num_gated=num_gated)
 
 
 def _trivial_verdict(phi) -> UnitVerdict:
@@ -524,6 +705,9 @@ def _derive_units(
     within=None,
     proper=False,
     parallel_kwargs=None,
+    ceilings=None,
+    gates=None,
+    mode="off",
 ):
     """The intrinsic-unit recursion (paper p. 9), bounded by ``bounds``.
 
@@ -533,8 +717,16 @@ def _derive_units(
     admits only strict-subset footprints, every candidate in a size
     class is independent of the others, so the class's φₛ evaluations
     are batched (and optionally parallelized) before the judgments run
-    sequentially over the warm memo. Returns ``(pool, verdicts)``.
+    sequentially over the warm memo. Under the certified prune the
+    batching runs in stages — candidate systems first (their φₛ values
+    are the gate incumbents), then competitor ceilings, then only the
+    surviving competitors — warming ``memo`` and ``ceilings`` so the
+    judge walk makes identical decisions. Returns ``(pool, verdicts)``.
     """
+    if ceilings is None:
+        ceilings = {}
+    if gates is None:
+        gates = {}
     n = substrate.size
     indices = tuple(range(n)) if within is None else tuple(sorted(within))
     pool: list[MacroUnit] = [micro_unit(i) for i in indices]
@@ -575,14 +767,70 @@ def _derive_units(
                             continue
                         seen.add(key)
                         candidates.append((footprint, V, W))
-            _evaluate_systems(
-                [
-                    _system_of_cached(substrate, units, micro_history, system_cache)
-                    for units in _class_combos(candidates, pool_at_class_start, bounds)
-                ],
-                memo,
-                parallel_kwargs,
-            )
+            if mode == "certified":
+                from pyphi import numerics as _numerics
+
+                v_systems = [
+                    _system_of_cached(substrate, V, micro_history, system_cache)
+                    for _fp, V, _W in candidates
+                ]
+                _evaluate_systems(v_systems, memo, parallel_kwargs)
+                combo_systems: list = []
+                combo_gate_phi: list = []
+                for (footprint, V, W), v_system in zip(
+                    candidates, v_systems, strict=True
+                ):
+                    phi_V = None if v_system is None else memo.get(v_system)
+                    fp = set(footprint)
+                    allowed = set(W)
+                    members = [
+                        u
+                        for u in pool_at_class_start
+                        if set(u.micro_constituents) < fp
+                        and set(u.background_apportionment) <= allowed
+                    ]
+                    own = canonical_units(V)
+                    for combo in _assemble_systems(members, bounds.max_background):
+                        if canonical_units(combo) == own:
+                            continue
+                        system = _system_of_cached(
+                            substrate, combo, micro_history, system_cache
+                        )
+                        if system is None or system in memo:
+                            continue
+                        combo_systems.append(system)
+                        combo_gate_phi.append(phi_V)
+                _compute_ceilings(combo_systems, ceilings, parallel_kwargs)
+                survivors = []
+                survivor_seen: set = set()
+                for system, phi_V in zip(combo_systems, combo_gate_phi, strict=True):
+                    if system in survivor_seen or system in memo:
+                        continue
+                    if (
+                        phi_V is not None
+                        and _numerics.is_positive(phi_V)
+                        and _strictly_below(ceilings[system][0], phi_V)
+                    ):
+                        continue
+                    survivor_seen.add(system)
+                    survivors.append(system)
+                _evaluate_systems(
+                    survivors,
+                    memo,
+                    parallel_kwargs,
+                    system_states={s: ceilings[s][1] for s in survivors},
+                )
+            else:
+                _evaluate_systems(
+                    [
+                        _system_of_cached(substrate, units, micro_history, system_cache)
+                        for units in _class_combos(
+                            candidates, pool_at_class_start, bounds
+                        )
+                    ],
+                    memo,
+                    parallel_kwargs,
+                )
             new_units: list[MacroUnit] = []
             for footprint, V, W in candidates:
                 verdict = _judge(
@@ -595,6 +843,9 @@ def _derive_units(
                     pool_at_class_start,
                     memo,
                     system_cache,
+                    ceilings,
+                    gates,
+                    mode,
                 )
                 verdicts.append(
                     DecompositionVerdict(
@@ -615,7 +866,17 @@ def _derive_units(
 
 
 def _f_for_unit(
-    substrate, unit, V, micro_history, bounds, memo, system_cache, parallel_kwargs=None
+    substrate,
+    unit,
+    V,
+    micro_history,
+    bounds,
+    memo,
+    system_cache,
+    ceilings,
+    gates,
+    mode,
+    parallel_kwargs=None,
 ):
     pool, _ = _derive_units(
         substrate,
@@ -626,6 +887,9 @@ def _f_for_unit(
         within=unit.micro_constituents,
         proper=True,
         parallel_kwargs=parallel_kwargs,
+        ceilings=ceilings,
+        gates=gates,
+        mode=mode,
     )
     fp = set(unit.micro_constituents)
     allowed = set(unit.background_apportionment)
@@ -635,12 +899,33 @@ def _f_for_unit(
         if set(u.micro_constituents) < fp and set(u.background_apportionment) <= allowed
     ]
     own = canonical_units(V)
-    to_eval = [_system_of_cached(substrate, V, micro_history, system_cache)]
+    v_system = _system_of_cached(substrate, V, micro_history, system_cache)
+    combos = []
     for combo in _assemble_systems(members, bounds.max_background):
         if canonical_units(combo) == own:
             continue
-        to_eval.append(_system_of_cached(substrate, combo, micro_history, system_cache))
-    _evaluate_systems(to_eval, memo, parallel_kwargs)
+        combos.append(_system_of_cached(substrate, combo, micro_history, system_cache))
+    if mode == "certified":
+        from pyphi import numerics as _numerics
+
+        _evaluate_systems([v_system], memo, parallel_kwargs)
+        phi_V = None if v_system is None else memo.get(v_system)
+        to_ceiling = [s for s in combos if s is not None and s not in memo]
+        _compute_ceilings(to_ceiling, ceilings, parallel_kwargs)
+        if phi_V is not None and _numerics.is_positive(phi_V):
+            survivors = [
+                s for s in to_ceiling if not _strictly_below(ceilings[s][0], phi_V)
+            ]
+        else:
+            survivors = to_ceiling
+        _evaluate_systems(
+            survivors,
+            memo,
+            parallel_kwargs,
+            system_states={s: ceilings[s][1] for s in survivors},
+        )
+    else:
+        _evaluate_systems([v_system, *combos], memo, parallel_kwargs)
     return _f(
         substrate,
         V,
@@ -651,6 +936,9 @@ def _f_for_unit(
         bounds,
         memo,
         system_cache,
+        ceilings,
+        gates,
+        mode,
     )
 
 
@@ -660,9 +948,18 @@ def competing_systems(
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
     parallel_kwargs: dict | None = None,
+    prune: str | None = None,
 ) -> tuple[MacroSystem, ...]:
-    """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16)."""
+    """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16).
+
+    ``prune="certified"`` skips partition sweeps whose outcome is
+    certified by the intrinsic-information cap; ``"off"`` evaluates
+    everything; ``None`` (default) selects ``"certified"`` exactly when
+    the active system measure applies the cap. The returned systems are
+    identical under every mode.
+    """
     _require_iit4()
+    mode = _resolve_prune(prune)
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
     )
@@ -670,11 +967,23 @@ def competing_systems(
         return ()
     memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
+    ceilings: dict = {}
+    gates: dict = {}
     V = canonical_units(_as_unit(c) for c in unit.constituents)
     return tuple(
         system
         for system, _ in _f_for_unit(
-            substrate, unit, V, history, bounds, memo, system_cache, parallel_kwargs
+            substrate,
+            unit,
+            V,
+            history,
+            bounds,
+            memo,
+            system_cache,
+            ceilings,
+            gates,
+            mode,
+            parallel_kwargs,
         )
     )
 
@@ -685,28 +994,48 @@ def is_intrinsic_unit(
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
     parallel_kwargs: dict | None = None,
+    prune: str | None = None,
 ) -> UnitVerdict:
     """Eqs. 15-16 for one candidate; micro units return VALID trivially.
 
     The unit's own mapping and update grain are ignored (Eq. 15 is
     mapping-independent); the recursion is run restricted to the unit's
-    footprint to build ``f(U^J, W^J)``.
+    footprint to build ``f(U^J, W^J)``. ``prune="certified"`` skips
+    competitor partition sweeps whose outcome is certified by the
+    intrinsic-information cap; ``"off"`` evaluates everything; ``None``
+    (default) selects ``"certified"`` exactly when the active system
+    measure applies the cap. The verdict is identical under every mode.
     """
     _require_iit4()
+    mode = _resolve_prune(prune)
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
     )
     memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
+    ceilings: dict = {}
+    gates: dict = {}
     if _is_micro(unit):
         _, phi = _phi(substrate, (unit,), history, memo, system_cache)
         return _trivial_verdict(phi)
     V = canonical_units(_as_unit(c) for c in unit.constituents)
-    competitors = _f_for_unit(
-        substrate, unit, V, history, bounds, memo, system_cache, parallel_kwargs
+    entries = _f_for_unit(
+        substrate,
+        unit,
+        V,
+        history,
+        bounds,
+        memo,
+        system_cache,
+        ceilings,
+        gates,
+        mode,
+        parallel_kwargs,
     )
     _, phi = _phi(substrate, V, history, memo, system_cache)
-    return judge_candidate(0.0 if phi is None else phi, competitors)
+    competitors = [(s, p) for s, p in entries if p is not None]
+    num_gated = sum(1 for _, p in entries if p is None)
+    return judge_candidate(0.0 if phi is None else phi, competitors, num_gated=num_gated)
 
 
 @dataclass(frozen=True)
@@ -739,14 +1068,33 @@ def intrinsic_units(
     micro_history,
     bounds: SearchBounds,
     parallel_kwargs: dict | None = None,
+    prune: str | None = None,
 ) -> IntrinsicUnitsResult:
-    """The recursion's fixed point: the valid-unit pool plus all verdicts."""
+    """The recursion's fixed point: the valid-unit pool plus all verdicts.
+
+    ``prune="certified"`` skips competitor partition sweeps whose outcome
+    is certified by the intrinsic-information cap; ``"off"`` evaluates
+    everything; ``None`` (default) selects ``"certified"`` exactly when
+    the active system measure applies the cap. Units and verdicts are
+    identical under every mode.
+    """
     _require_iit4()
+    mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
+    ceilings: dict = {}
+    gates: dict = {}
     units, verdicts = _derive_units(
-        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+        substrate,
+        history,
+        bounds,
+        memo,
+        system_cache,
+        parallel_kwargs=parallel_kwargs,
+        ceilings=ceilings,
+        gates=gates,
+        mode=mode,
     )
     return IntrinsicUnitsResult(units=units, verdicts=verdicts)
 
@@ -756,16 +1104,27 @@ def valid_systems(
     micro_history,
     bounds: SearchBounds,
     parallel_kwargs: dict | None = None,
+    prune: str | None = None,
 ) -> tuple[MacroSystem, ...]:
     """The bounded ``P(u)``: every Eq-18-compatible system of intrinsic
     units, evaluated over the full universe with everything else as
-    background. Systems whose state is unreachable are dropped."""
+    background. Systems whose state is unreachable are dropped.
+    ``prune`` gates the unit derivation's competitor sweeps as in
+    :func:`intrinsic_units`; the returned systems are identical under
+    every mode."""
     _require_iit4()
+    mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
     units, _ = _derive_units(
-        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+        substrate,
+        history,
+        bounds,
+        memo,
+        system_cache,
+        parallel_kwargs=parallel_kwargs,
+        mode=mode,
     )
     systems = []
     for combo in _assemble_systems(list(units), bounds.max_background):
@@ -777,10 +1136,29 @@ def valid_systems(
 
 @dataclass(frozen=True)
 class EvaluationRecord:
-    """One evaluated system and its φₛ."""
+    """One candidate system and what the search established about it.
+
+    Attributes
+    ----------
+    system : MacroSystem
+        The candidate system.
+    phi : float or None
+        The exact φₛ, or ``None`` for a gated candidate — one whose
+        partition sweep was skipped because its intrinsic-information
+        ceiling is certifiably below an overlapping accepted complex's
+        φₛ.
+    ii_ceiling : float or None
+        The certified upper bound on φₛ (the minimum-direction intrinsic
+        information), when the certified prune computed one.
+    gated : bool
+        Whether the candidate was gated; ``phi`` is ``None`` exactly
+        when this is True.
+    """
 
     system: MacroSystem
-    phi: float
+    phi: float | None
+    ii_ceiling: float | None = None
+    gated: bool = False
 
 
 @dataclass(frozen=True)
@@ -796,8 +1174,13 @@ class ComplexesResult:
         structure and exclusion records. Mutually disjoint in micro
         footprint by construction.
     records : tuple[EvaluationRecord, ...]
-        Every system evaluated during the run (criteria checks included)
-        with its φₛ, in evaluation order.
+        One entry per candidate the run considered (criteria checks
+        included): evaluated systems first, in evaluation order, with
+        exact φₛ (and their intrinsic-information ceiling when the
+        certified prune computed one), followed by gated candidates
+        carrying ``phi=None`` and their ceiling. A candidate is gated
+        only when its φₛ is certifiably below an overlapping accepted
+        complex's at precision.
     ties : tuple[tuple[MacroSystem, ...], ...]
         Cliques of overlapping candidate systems that tied at φₛ and
         still tied at Φ under Composition escalation, failing the
@@ -832,6 +1215,7 @@ def complexes(
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
     parallel_kwargs: dict | None = None,
+    prune: str | None = None,
 ) -> ComplexesResult:
     """Identify the complexes of the bounded candidate space -- the
     one-call driver.
@@ -842,6 +1226,17 @@ def complexes(
     by an accepted complex has no standing to exclude other candidates.
     φₛ ties between overlapping candidates escalate to Composition (Φ);
     cliques that still tie fail exclusion and are reported in ``ties``.
+
+    ``prune="certified"`` skips partition sweeps whose outcome is
+    certified by the intrinsic-information cap; ``"off"`` evaluates
+    everything; ``None`` (default) selects ``"certified"`` exactly when
+    the active system measure applies the cap.
+
+    Notes
+    -----
+    Under the certified prune the identified complexes, ties, and
+    verdicts are identical to a full evaluation; only ``records``
+    distinguishes gated candidates from evaluated ones.
     """
     _require_iit4()
     from pyphi import validate
@@ -850,34 +1245,104 @@ def complexes(
     from pyphi.condensation import exclusion_records
     from pyphi.models.complex import Complex
 
+    mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
+    ceilings: dict = {}
+    gates: dict = {}
     units, _ = _derive_units(
-        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+        substrate,
+        history,
+        bounds,
+        memo,
+        system_cache,
+        parallel_kwargs=parallel_kwargs,
+        ceilings=ceilings,
+        gates=gates,
+        mode=mode,
     )
     sweep_systems = [
         _system_of_cached(substrate, combo, history, system_cache)
         for combo in _assemble_systems(list(units), bounds.max_background)
     ]
-    _evaluate_systems(sweep_systems, memo, parallel_kwargs)
-    evaluated: list[tuple[MacroSystem, float]] = [
-        (system, memo[system]) for system in sweep_systems if system is not None
-    ]
+    if mode == "certified":
+        from pyphi.condensation import PendingCandidate
+        from pyphi.condensation import gated_exclusion_cascade
 
-    candidates = [
-        Candidate(
-            footprint=frozenset(_system_micro_indices(system.units)),
-            phi=phi,
-            sia_provider=lambda system=system: system.sia(),
-            system_provider=lambda system=system: system,
-            units=system.units,
-        )
-        for system, phi in evaluated
-    ]
-    by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
-    outcome = exclusion_cascade(candidates)
+        _compute_ceilings(sweep_systems, ceilings, parallel_kwargs)
+        pending = [
+            PendingCandidate(
+                footprint=frozenset(_system_micro_indices(system.units)),
+                ceiling=ceilings[system][0],
+                payload=system,
+            )
+            for system in sweep_systems
+            if system is not None
+        ]
+        candidates: list[Candidate] = []
+        by_candidate: dict = {}
+
+        def _evaluate_band(band):
+            _evaluate_systems(
+                [p.payload for p in band],
+                memo,
+                parallel_kwargs,
+                system_states={p.payload: ceilings[p.payload][1] for p in band},
+            )
+            batch = []
+            for p in band:
+                candidate = Candidate(
+                    footprint=p.footprint,
+                    phi=memo[p.payload],
+                    sia_provider=lambda system=p.payload: system.sia(),
+                    system_provider=lambda system=p.payload: system,
+                    units=p.payload.units,
+                )
+                candidates.append(candidate)
+                by_candidate[candidate] = p.payload
+                batch.append(candidate)
+            return batch
+
+        outcome, sweep_gated = gated_exclusion_cascade(pending, _evaluate_band)
+        for p in sweep_gated:
+            gates.setdefault(p.payload, p.ceiling)
+    else:
+        _evaluate_systems(sweep_systems, memo, parallel_kwargs)
+        evaluated: list[tuple[MacroSystem, float]] = [
+            (system, memo[system]) for system in sweep_systems if system is not None
+        ]
+        candidates = [
+            Candidate(
+                footprint=frozenset(_system_micro_indices(system.units)),
+                phi=phi,
+                sia_provider=lambda system=system: system.sia(),
+                system_provider=lambda system=system: system,
+                units=system.units,
+            )
+            for system, phi in evaluated
+        ]
+        by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
+        outcome = exclusion_cascade(candidates)
+        sweep_gated = ()
     records_map = exclusion_records(outcome.accepted, candidates)
+    if sweep_gated:
+        from pyphi.models.complex import ExcludedCandidate
+
+        for accepted_candidate in outcome.accepted:
+            key = tuple(sorted(accepted_candidate.footprint))
+            extra = tuple(
+                ExcludedCandidate(
+                    tuple(sorted(p.footprint)),
+                    None,
+                    units=p.payload.units,
+                    ii_ceiling=p.ceiling,
+                    gated=True,
+                )
+                for p in sweep_gated
+                if accepted_candidate.footprint & p.footprint
+            )
+            records_map[key] = records_map[key] + extra
     winners = tuple(
         Complex(
             sia=cand.sia_provider(),
@@ -893,7 +1358,16 @@ def complexes(
         tuple(by_candidate[c] for c in clique) for clique in outcome.failed_cliques
     )
     records = tuple(
-        EvaluationRecord(system=system, phi=phi) for system, phi in memo.items()
+        EvaluationRecord(
+            system=system,
+            phi=phi,
+            ii_ceiling=(ceilings[system][0] if system in ceilings else None),
+        )
+        for system, phi in memo.items()
+    ) + tuple(
+        EvaluationRecord(system=system, phi=None, ii_ceiling=ceiling, gated=True)
+        for system, ceiling in gates.items()
+        if system not in memo
     )
     validate.non_overlapping(winners)
     return ComplexesResult(complexes=winners, records=records, ties=ties)

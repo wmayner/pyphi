@@ -774,6 +774,12 @@ class System(Displayable, ToPandasMixin, Serializable):
         the public boundary and threads them to the active formalism
         explicitly, so formalism methods are never called without explicit
         measures in normal flow.
+
+        A ``system_state`` keyword, when given, must be the state
+        specification the analysis would itself compute (it is derived
+        deterministically from the system and configuration); it is
+        excluded from the disk-cache key so precomputed and freshly
+        computed analyses share one cache entry.
         """
         from pyphi.cache.disk import maybe_disk_cached
 
@@ -797,7 +803,8 @@ class System(Displayable, ToPandasMixin, Serializable):
                 )
             return _sia(self, **call_kwargs)
 
-        return maybe_disk_cached(self, "sia", kwargs, _compute)
+        cache_kwargs = {k: v for k, v in kwargs.items() if k != "system_state"}
+        return maybe_disk_cached(self, "sia", cache_kwargs, _compute)
 
     def ces(self, **kwargs: Any) -> Any:
         """Return the cause-effect structure of this system (Eq. 57).

@@ -34,37 +34,82 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
     ----------
     node_indices : tuple[int, ...]
         The excluded candidate's micro units.
-    phi : float
-        The candidate's φₛ value.
+    phi : float or None
+        The candidate's φₛ value, or ``None`` for a gated candidate —
+        one whose partition sweep was skipped because its
+        intrinsic-information ceiling is certifiably below the excluding
+        complex's φₛ.
     units : tuple or None
         The candidate's macro unit structure; ``None`` for a candidate
         system of micro units.
+    ii_ceiling : float or None
+        The certified upper bound on φₛ, when the certified prune
+        computed one.
+    gated : bool
+        Whether the candidate was gated; ``phi`` is ``None`` exactly
+        when this is True.
     """
 
-    def __init__(self, node_indices: Any, phi: Any, units: Any = None) -> None:
+    def __init__(
+        self,
+        node_indices: Any,
+        phi: Any,
+        units: Any = None,
+        ii_ceiling: Any = None,
+        gated: bool = False,
+    ) -> None:
         self.node_indices: tuple[int, ...] = tuple(node_indices)
-        self.phi: float = float(phi)
+        self.phi: float | None = float(phi) if phi is not None else None
         self.units: tuple[Any, ...] | None = tuple(units) if units is not None else None
+        self.ii_ceiling: float | None = (
+            float(ii_ceiling) if ii_ceiling is not None else None
+        )
+        self.gated: bool = bool(gated)
 
     def _pandas_record(self) -> dict[str, Any]:
-        record = {"node_indices": self.node_indices, "phi": float(self.phi)}
+        record: dict[str, Any] = {
+            "node_indices": self.node_indices,
+            "phi": float(self.phi) if self.phi is not None else None,
+        }
+        if self.ii_ceiling is not None:
+            record["ii_ceiling"] = self.ii_ceiling
+        if self.gated:
+            record["gated"] = True
         if self.units is not None:
             record["units"] = self.units
         return record
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
+        if self.phi is None:
+            value = (
+                f"φ ≤ {format_value(self.ii_ceiling)}"
+                if self.ii_ceiling is not None
+                else "gated"
+            )
+        else:
+            value = f"φ={format_value(self.phi)}"
         return Description(
             title=cls,
-            compact=f"{cls}({self.node_indices}, φ={format_value(self.phi)})",
+            compact=f"{cls}({self.node_indices}, {value})",
         )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ExcludedCandidate):
             return NotImplemented
-        return self.node_indices == other.node_indices and numerics.eq(
-            self.phi, other.phi
-        )
+        if self.node_indices != other.node_indices or (self.phi is None) != (
+            other.phi is None
+        ):
+            return False
+        if self.phi is not None:
+            assert other.phi is not None
+            return numerics.eq(self.phi, other.phi)
+        if (self.ii_ceiling is None) != (other.ii_ceiling is None):
+            return False
+        if self.ii_ceiling is None:
+            return True
+        assert other.ii_ceiling is not None
+        return numerics.eq(self.ii_ceiling, other.ii_ceiling)
 
     def __ne__(self, other: object) -> bool:
         return not self == other
@@ -143,14 +188,16 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         of zero indicates an overlapping rival within ``precision`` of
         this complex's own φₛ: the selection was decided beyond φₛ,
         either by escalation within the tie clique or by the rival's
-        overlap with another complex.
+        overlap with another complex. Gated rivals — certified strictly
+        below this complex's φₛ, with no exact value — do not enter the
+        margin.
         """
         phi = float(self.phi)
         rivals = [
             float(c.phi)
             for c in self.excluded
             # numerics: exact — composed with eq into a tolerant ≤ for a reported margin
-            if c.phi < phi or numerics.eq(c.phi, phi)
+            if c.phi is not None and (c.phi < phi or numerics.eq(c.phi, phi))
         ]
         if not rivals:
             return None

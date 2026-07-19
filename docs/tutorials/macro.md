@@ -407,6 +407,15 @@ Every $\varphi_s$ evaluation in a driver run is memoized, and
 per judged decomposition, and {func}`pyphi.macro.valid_systems` the
 admissible-system set.
 
+Under a system measure that applies the intrinsic-information cap (the
+default), the drivers skip partition sweeps whose outcome is certified: a
+candidate whose intrinsic information — an upper bound on $\varphi_s$ under
+the cap — is strictly below an overlapping accepted complex's $\varphi_s$
+cannot change the outcome. Skipped candidates appear in `result.records`
+with `gated=True`, carrying their ceiling in place of an exact
+$\varphi_s$. Results are identical either way; pass `prune="off"` to
+evaluate every candidate exactly.
+
 ## Parallelism
 
 A search reduces to many independent `MacroSystem.sia()` evaluations, which
