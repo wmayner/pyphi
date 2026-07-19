@@ -20,6 +20,7 @@ from pyphi.macro.search import _ii_ceiling
 from pyphi.macro.search import _is_micro
 from pyphi.macro.search import _resolve_prune
 from pyphi.macro.search import _strictly_below
+from pyphi.macro.search import _system_micro_indices
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
 from pyphi.macro.search import complexes
@@ -1195,3 +1196,91 @@ class TestEq16Gate:
             assert off.reason == on.reason
             assert numerics.eq(off.phi, on.phi)
             assert off.num_competitors == on.num_competitors
+
+
+def _complexes_equal(off, on):
+    assert len(off.complexes) == len(on.complexes)
+    for a, b in zip(off.complexes, on.complexes, strict=True):
+        assert a.node_indices == b.node_indices
+        assert numerics.eq(float(a.sia.phi), float(b.sia.phi))
+        assert a.units == b.units
+    assert off.ties == on.ties
+
+
+class TestCertifiedComplexes:
+    def _run(self, substrate, state, bounds=None):
+        bounds = bounds or SearchBounds()
+        off = complexes(substrate, state, bounds, prune="off")
+        on = complexes(substrate, state, bounds, prune="certified")
+        return off, on
+
+    def test_equivalent_on_example_1(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            off, on = self._run(substrate, (0, 0, 0, 0))
+            _complexes_equal(off, on)
+
+    def test_equivalent_on_tie_substrate(self):
+        with config.override(**presets.iit4_2026):
+            substrate = tie_substrate()  # 3 units, symmetric A <-> C
+            off, on = self._run(substrate, (0, 0, 0))
+            _complexes_equal(off, on)
+            # Tie members are never gated: every tied system was evaluated.
+            for clique in on.ties:
+                for system in clique:
+                    matching = [
+                        r for r in on.records if r.system == system and not r.gated
+                    ]
+                    assert matching
+
+    def test_equivalent_on_disjoint_complexes(self):
+        with config.override(**presets.iit4_2026):
+            substrate = decaying_chain_substrate()
+            off, on = self._run(substrate, (0, 0, 0, 0))
+            _complexes_equal(off, on)
+            assert len(on.complexes) >= 2  # the fixture's two disjoint winners
+
+    def test_gated_record_invariants(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            _off, on = self._run(substrate, (0, 0, 0, 0))
+            accepted = {c.node_indices: float(c.sia.phi) for c in on.complexes}
+            for record in on.records:
+                assert (record.phi is None) == record.gated
+                if record.gated:
+                    assert record.ii_ceiling is not None
+                    fp = set(_system_micro_indices(record.system.units))
+                    below_some_winner = any(
+                        set(indices) & fp and _strictly_below(record.ii_ceiling, phi)
+                        for indices, phi in accepted.items()
+                    )
+                    assert below_some_winner
+
+    def test_gate_bites_on_example_1(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            off, on = self._run(substrate, (0, 0, 0, 0))
+            evaluated = [r for r in on.records if not r.gated]
+            gated = [r for r in on.records if r.gated]
+            assert gated  # the gate actually fires
+            assert len(evaluated) < len(off.records)
+
+    def test_gated_exclusion_records_present(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            _off, on = self._run(substrate, (0, 0, 0, 0))
+            gated_excl = [
+                excl for c in on.complexes for excl in c.excluded if excl.gated
+            ]
+            for excl in gated_excl:
+                assert excl.phi is None
+                assert excl.ii_ceiling is not None
+                repr(excl)  # display must not crash on a gated record
+
+    def test_off_matches_prior_shape(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            off = complexes(substrate, (0, 0, 0, 0), SearchBounds(), prune="off")
+            for record in off.records:
+                assert record.phi is not None
+                assert not record.gated

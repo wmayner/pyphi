@@ -1136,10 +1136,29 @@ def valid_systems(
 
 @dataclass(frozen=True)
 class EvaluationRecord:
-    """One evaluated system and its φₛ."""
+    """One candidate system and what the search established about it.
+
+    Attributes
+    ----------
+    system : MacroSystem
+        The candidate system.
+    phi : float or None
+        The exact φₛ, or ``None`` for a gated candidate — one whose
+        partition sweep was skipped because its intrinsic-information
+        ceiling is certifiably below an overlapping accepted complex's
+        φₛ.
+    ii_ceiling : float or None
+        The certified upper bound on φₛ (the minimum-direction intrinsic
+        information), when the certified prune computed one.
+    gated : bool
+        Whether the candidate was gated; ``phi`` is ``None`` exactly
+        when this is True.
+    """
 
     system: MacroSystem
-    phi: float
+    phi: float | None
+    ii_ceiling: float | None = None
+    gated: bool = False
 
 
 @dataclass(frozen=True)
@@ -1155,8 +1174,13 @@ class ComplexesResult:
         structure and exclusion records. Mutually disjoint in micro
         footprint by construction.
     records : tuple[EvaluationRecord, ...]
-        Every system evaluated during the run (criteria checks included)
-        with its φₛ, in evaluation order.
+        One entry per candidate the run considered (criteria checks
+        included): evaluated systems first, in evaluation order, with
+        exact φₛ (and their intrinsic-information ceiling when the
+        certified prune computed one), followed by gated candidates
+        carrying ``phi=None`` and their ceiling. A candidate is gated
+        only when its φₛ is certifiably below an overlapping accepted
+        complex's at precision.
     ties : tuple[tuple[MacroSystem, ...], ...]
         Cliques of overlapping candidate systems that tied at φₛ and
         still tied at Φ under Composition escalation, failing the
@@ -1191,6 +1215,7 @@ def complexes(
     micro_history,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
     parallel_kwargs: dict | None = None,
+    prune: str | None = None,
 ) -> ComplexesResult:
     """Identify the complexes of the bounded candidate space -- the
     one-call driver.
@@ -1201,6 +1226,17 @@ def complexes(
     by an accepted complex has no standing to exclude other candidates.
     φₛ ties between overlapping candidates escalate to Composition (Φ);
     cliques that still tie fail exclusion and are reported in ``ties``.
+
+    ``prune="certified"`` skips partition sweeps whose outcome is
+    certified by the intrinsic-information cap; ``"off"`` evaluates
+    everything; ``None`` (default) selects ``"certified"`` exactly when
+    the active system measure applies the cap.
+
+    Notes
+    -----
+    Under the certified prune the identified complexes, ties, and
+    verdicts are identical to a full evaluation; only ``records``
+    distinguishes gated candidates from evaluated ones.
     """
     _require_iit4()
     from pyphi import validate
@@ -1209,34 +1245,104 @@ def complexes(
     from pyphi.condensation import exclusion_records
     from pyphi.models.complex import Complex
 
+    mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, float] = {}
     system_cache: dict[tuple, MacroSystem | None] = {}
+    ceilings: dict = {}
+    gates: dict = {}
     units, _ = _derive_units(
-        substrate, history, bounds, memo, system_cache, parallel_kwargs=parallel_kwargs
+        substrate,
+        history,
+        bounds,
+        memo,
+        system_cache,
+        parallel_kwargs=parallel_kwargs,
+        ceilings=ceilings,
+        gates=gates,
+        mode=mode,
     )
     sweep_systems = [
         _system_of_cached(substrate, combo, history, system_cache)
         for combo in _assemble_systems(list(units), bounds.max_background)
     ]
-    _evaluate_systems(sweep_systems, memo, parallel_kwargs)
-    evaluated: list[tuple[MacroSystem, float]] = [
-        (system, memo[system]) for system in sweep_systems if system is not None
-    ]
+    if mode == "certified":
+        from pyphi.condensation import PendingCandidate
+        from pyphi.condensation import gated_exclusion_cascade
 
-    candidates = [
-        Candidate(
-            footprint=frozenset(_system_micro_indices(system.units)),
-            phi=phi,
-            sia_provider=lambda system=system: system.sia(),
-            system_provider=lambda system=system: system,
-            units=system.units,
-        )
-        for system, phi in evaluated
-    ]
-    by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
-    outcome = exclusion_cascade(candidates)
+        _compute_ceilings(sweep_systems, ceilings, parallel_kwargs)
+        pending = [
+            PendingCandidate(
+                footprint=frozenset(_system_micro_indices(system.units)),
+                ceiling=ceilings[system][0],
+                payload=system,
+            )
+            for system in sweep_systems
+            if system is not None
+        ]
+        candidates: list[Candidate] = []
+        by_candidate: dict = {}
+
+        def _evaluate_band(band):
+            _evaluate_systems(
+                [p.payload for p in band],
+                memo,
+                parallel_kwargs,
+                system_states={p.payload: ceilings[p.payload][1] for p in band},
+            )
+            batch = []
+            for p in band:
+                candidate = Candidate(
+                    footprint=p.footprint,
+                    phi=memo[p.payload],
+                    sia_provider=lambda system=p.payload: system.sia(),
+                    system_provider=lambda system=p.payload: system,
+                    units=p.payload.units,
+                )
+                candidates.append(candidate)
+                by_candidate[candidate] = p.payload
+                batch.append(candidate)
+            return batch
+
+        outcome, sweep_gated = gated_exclusion_cascade(pending, _evaluate_band)
+        for p in sweep_gated:
+            gates.setdefault(p.payload, p.ceiling)
+    else:
+        _evaluate_systems(sweep_systems, memo, parallel_kwargs)
+        evaluated: list[tuple[MacroSystem, float]] = [
+            (system, memo[system]) for system in sweep_systems if system is not None
+        ]
+        candidates = [
+            Candidate(
+                footprint=frozenset(_system_micro_indices(system.units)),
+                phi=phi,
+                sia_provider=lambda system=system: system.sia(),
+                system_provider=lambda system=system: system,
+                units=system.units,
+            )
+            for system, phi in evaluated
+        ]
+        by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
+        outcome = exclusion_cascade(candidates)
+        sweep_gated = ()
     records_map = exclusion_records(outcome.accepted, candidates)
+    if sweep_gated:
+        from pyphi.models.complex import ExcludedCandidate
+
+        for accepted_candidate in outcome.accepted:
+            key = tuple(sorted(accepted_candidate.footprint))
+            extra = tuple(
+                ExcludedCandidate(
+                    tuple(sorted(p.footprint)),
+                    None,
+                    units=p.payload.units,
+                    ii_ceiling=p.ceiling,
+                    gated=True,
+                )
+                for p in sweep_gated
+                if accepted_candidate.footprint & p.footprint
+            )
+            records_map[key] = records_map[key] + extra
     winners = tuple(
         Complex(
             sia=cand.sia_provider(),
@@ -1252,7 +1358,16 @@ def complexes(
         tuple(by_candidate[c] for c in clique) for clique in outcome.failed_cliques
     )
     records = tuple(
-        EvaluationRecord(system=system, phi=phi) for system, phi in memo.items()
+        EvaluationRecord(
+            system=system,
+            phi=phi,
+            ii_ceiling=(ceilings[system][0] if system in ceilings else None),
+        )
+        for system, phi in memo.items()
+    ) + tuple(
+        EvaluationRecord(system=system, phi=None, ii_ceiling=ceiling, gated=True)
+        for system, ceiling in gates.items()
+        if system not in memo
     )
     validate.non_overlapping(winners)
     return ComplexesResult(complexes=winners, records=records, ties=ties)
