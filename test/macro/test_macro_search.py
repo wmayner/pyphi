@@ -17,6 +17,7 @@ from pyphi.macro.search import ComplexesResult
 from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import _compute_ceilings
 from pyphi.macro.search import _ii_ceiling
+from pyphi.macro.search import _is_micro
 from pyphi.macro.search import _resolve_prune
 from pyphi.macro.search import _strictly_below
 from pyphi.macro.search import candidate_mappings
@@ -1139,3 +1140,58 @@ def test_strictly_below():
     assert not _strictly_below(1.0, 1.0)
     assert not _strictly_below(1.0 - 1e-15, 1.0)  # tolerance-equal
     assert not _strictly_below(2.0, 1.0)
+
+
+def _verdicts_equal(a, b):
+    assert len(a) == len(b)
+    for va, vb in zip(a, b, strict=True):
+        assert va.constituents == vb.constituents
+        assert va.background_apportionment == vb.background_apportionment
+        assert va.verdict.valid == vb.verdict.valid
+        assert va.verdict.reason == vb.verdict.reason
+        assert numerics.eq(va.verdict.phi, vb.verdict.phi)
+        assert va.verdict.num_competitors == vb.verdict.num_competitors
+
+
+class TestEq16Gate:
+    def test_intrinsic_units_verdicts_match_off(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            bounds = SearchBounds()
+            off = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off")
+            on = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="certified")
+            assert off.units == on.units
+            _verdicts_equal(off.verdicts, on.verdicts)
+
+    def test_competing_systems_identical(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            bounds = SearchBounds()
+            pool = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off").units
+            macro = [u for u in pool if not _is_micro(u)]
+            if not macro:
+                pytest.skip("no macro units derived for this substrate")
+            unit = macro[0]
+            off = competing_systems(substrate, unit, (0, 0, 0, 0), bounds, prune="off")
+            on = competing_systems(
+                substrate, unit, (0, 0, 0, 0), bounds, prune="certified"
+            )
+            assert off == on
+
+    def test_is_intrinsic_unit_matches_off(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            bounds = SearchBounds()
+            pool = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off").units
+            macro = [u for u in pool if not _is_micro(u)]
+            if not macro:
+                pytest.skip("no macro units derived for this substrate")
+            unit = macro[0]
+            off = is_intrinsic_unit(substrate, unit, (0, 0, 0, 0), bounds, prune="off")
+            on = is_intrinsic_unit(
+                substrate, unit, (0, 0, 0, 0), bounds, prune="certified"
+            )
+            assert off.valid == on.valid
+            assert off.reason == on.reason
+            assert numerics.eq(off.phi, on.phi)
+            assert off.num_competitors == on.num_competitors
