@@ -1,5 +1,6 @@
 """Tests for pyphi.macro.search: bounded intrinsic-unit search (Eqs 15-19)."""
 
+import hypothesis.extra.numpy as hnp
 import numpy as np
 import pytest
 from hypothesis import given
@@ -33,6 +34,7 @@ from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
 from pyphi.substrate import Substrate
+from pyphi.system import System
 from test.macro.test_macro_criteria import bu_substrate
 from test.macro.test_macro_criteria import min_substrate
 from test.macro.test_macro_tpm import CG_TPM
@@ -1284,3 +1286,87 @@ class TestCertifiedComplexes:
             for record in off.records:
                 assert record.phi is not None
                 assert not record.gated
+
+
+# Minimal n = 2 witness refuting min(ii_c, ii_e) >= phi_s under the 2023
+# GID measure (experiments/ii_phi_inequality_experiments/FINDINGS.md):
+# phi_s exceeds ii_e by ~0.054. It certifies that GID-mode gating is
+# unsound and must remain unavailable.
+GID_WITNESS_TPM = np.array(
+    [
+        [0.90294049, 0.74463958],
+        [0.55496427, 0.24027935],
+        [0.5432427, 0.42462247],
+        [0.07088583, 0.84413472],
+    ]
+)
+
+
+class TestCertifiedGateSoundnessGuard:
+    def test_witness_violates_inequality_under_gid(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(GID_WITNESS_TPM)
+            system = System(substrate, (0, 1))
+            sia = system.sia()
+            ii_min = min(
+                float(sia.system_state.cause.intrinsic_information),
+                float(sia.system_state.effect.intrinsic_information),
+            )
+            phi = float(sia.phi)
+            assert phi > ii_min
+            assert not numerics.eq(phi, ii_min)
+
+    def test_certified_unavailable_under_gid(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(GID_WITNESS_TPM)
+            with pytest.raises(ConfigurationError):
+                complexes(substrate, (0, 1), SearchBounds(), prune="certified")
+
+    def test_auto_resolves_off_under_gid(self):
+        with config.override(**presets.iit4_2023):
+            substrate = Substrate(GID_WITNESS_TPM)
+            result = complexes(substrate, (0, 1), SearchBounds())
+            for record in result.records:
+                assert record.phi is not None
+                assert not record.gated
+
+
+class TestCertifiedParallelEquivalence:
+    def test_parallel_equals_sequential(self):
+        with config.override(**presets.iit4_2026):
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            seq = complexes(
+                substrate,
+                (0, 0, 0, 0),
+                SearchBounds(),
+                parallel_kwargs={"parallel": False},
+                prune="certified",
+            )
+            par = complexes(
+                substrate,
+                (0, 0, 0, 0),
+                SearchBounds(),
+                parallel_kwargs={"parallel": True},
+                prune="certified",
+            )
+            assert seq.records == par.records
+            _complexes_equal(seq, par)
+
+
+@pytest.mark.slow
+@settings(max_examples=15, deadline=None)
+@given(data=st.data())
+def test_certified_equals_off_on_random_substrates(data):
+    tpm = data.draw(
+        hnp.arrays(
+            np.float64,
+            (8, 3),
+            elements=st.floats(0.05, 0.95, allow_nan=False),
+        )
+    )
+    with config.override(**presets.iit4_2026):
+        substrate = Substrate(tpm)
+        bounds = SearchBounds(max_constituents=2, max_update_grain=1)
+        off = complexes(substrate, (0, 0, 0), bounds, prune="off")
+        on = complexes(substrate, (0, 0, 0), bounds, prune="certified")
+        _complexes_equal(off, on)
