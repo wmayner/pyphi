@@ -195,17 +195,27 @@ remainder, each with its gate verdict:
   measured **complete**-distinction state-keyed certificate (~100–1000× tighter
   than the shipped `GENERAL` bound) as a certified measured bound in
   `bounds.py`.
-- **ii-gated grain scheduling** *(open build; 2026-cap arm only)*. The GID arm
-  is dead: `min(ii_c, ii_e) ≥ φ_s` is **refuted** under the 2023/GID measure
-  (`experiments/ii_phi_inequality_experiments/FINDINGS.md`; minimal n=2 witness, margin
-  −0.054). Under the 2026 Eq. 23 cap the inequality holds by construction, so
-  `prune="certified"` is available only under
-  `system_phi_measure="INTRINSIC_INFORMATION"`; any GID-mode gating is
-  heuristic and must be labeled approximate. *Prerequisites landed
-  (2026-07-11):* the formalism-default decoupling pinned every φ-asserting test
-  to its formalism, and the **default is now IIT 4.0 (2026)** (both dashboard
-  rows), so the certified prune is sound under the shipping default — no opt-in
-  needed. The gate build itself is still open.
+- **ii-gated grain scheduling** *(landed 2026-07-19; certified arm only)*.
+  Built per `docs/superpowers/specs/2026-07-19-ii-gate-design.md`: a lazy
+  `gated_exclusion_cascade` in `pyphi/condensation.py` forces exact φₛ only
+  when a candidate's intrinsic-information ceiling reaches the tier being
+  resolved (certified skips on coverage overlap; ties never gated; runtime
+  soundness check), plus the Eq. 16 competitor gate and a `prune` keyword on
+  the five evaluating entry points — `"certified"` automatically under a
+  measure with the Eq. 23 cap, `ConfigurationError` under GID (the refuted
+  arm; the n=2 witness ships in the test suite as a permanent guard). Gated
+  candidates appear in `records` and exclusion records with their ceiling
+  (`phi=None`). Results are proven identical to full evaluation (equivalence,
+  disjoint-complex, tie, determinism, and Hypothesis property tests), with
+  one documented sub-tolerance tier-anchoring boundary (spec §4). **Honest
+  measured bite** — far below the exploration's scalar-incumbent projection
+  (which was unsound in general and used uncapped 2023 values): worked
+  example, default bounds 1/80 candidates gated (wall parity, 0.47 s both);
+  EXHAUSTIVE mappings 5/120 gated (~15% faster). Most evaluations happen
+  during unit derivation where Eqs. 15-16 require exact φ_V, and the 2026 cap
+  lowers the winner ceilings are compared against (0.207 vs 1.004), so the
+  gate pays only in sweep-heavy regimes; it never costs (ceiling state is
+  passed back into `sia`).
 - **Landscape optimizer driver** *(landed as `pyphi.optimize`; dashboard row)*.
   Gate **passed**: the n=5 roughness replication ran
   (`experiments/substrate_landscape_experiments/FINDINGS.md`) — signed normalized
