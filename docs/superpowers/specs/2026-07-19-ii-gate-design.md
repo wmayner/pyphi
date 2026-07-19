@@ -133,10 +133,31 @@ Repeat until both `evaluated` and `pending` are empty:
 **Equivalence.** At every tier the survivor set and tie resolution are
 identical to the eager cascade's (forced set ⊇ tier membership; gated
 candidates are exactly those the eager cascade drops by coverage), so
-`accepted` and `failed_cliques` — including every quirk of the current
-implementation — are reproduced exactly. At least one candidate is always
-evaluated (the top band is always forced), so results never come from
-ceilings alone.
+`accepted` and `failed_cliques` are reproduced exactly, with the one
+documented boundary below. At least one candidate is always evaluated
+(the top band is always forced), so results never come from ceilings
+alone.
+
+**Equivalence boundary (documented, not closed).** Tier membership is
+tolerant (`numerics.eq` against the tier head) and tolerance does not
+chain transitively, so the eager cascade's tier boundaries can be
+anchored by a candidate that is itself later dropped by coverage. A gated
+candidate is never evaluated and cannot anchor. Consequently, when three
+candidates' φ values form a sub-tolerance chain (each within
+10^(−precision) of the next but the ends not of each other) and the
+middle candidate is gated, the gated cascade groups the two ends into one
+tier where the eager cascade splits them. The difference is observable
+only when the two ends also overlap each other: the gated cascade
+escalates their tie to Composition, while the eager cascade accepts the
+higher and drops the lower by coverage. The escalation is the
+theory-faithful reading — overlapping candidates tied at precision
+escalate — and the eager split is an artifact of drawing hard tier
+boundaries through non-transitive tolerance. The corner cannot be closed
+while gating at all: whether the middle candidate anchors a split is a
+fact about its exact φ, which only the skipped sweep could produce.
+Near-ties at ~10^(−13) do occur in practice (theoretically-equal values
+computed along different construction paths); anchored three-value chains
+have not been observed outside constructed examples.
 
 **Runtime soundness check.** For every forced candidate, the cascade checks
 φ ≤ ceiling + 10^(−precision) and raises `RuntimeError` on violation. The
@@ -212,9 +233,10 @@ Evaluated records look exactly as today (`phi` set; `ii_ceiling` also set
 when the gate computed one). Gated records carry `phi=None`,
 `gated=True`, and their ceiling — an upper bound, not the value; the
 certified fact is that φ_s is strictly below the accepting complex's φ_s at
-precision. `ComplexesResult.records` keeps one entry per candidate, in
-resolution order (evaluated entries in evaluation order, gated entries at
-the point they were gated). Exclusion records on accepted complexes include
+precision. `ComplexesResult.records` keeps one entry per candidate:
+evaluated entries first, in evaluation order (exactly as without the
+gate), followed by gated entries in the order they were gated; both
+segments are deterministic. Exclusion records on accepted complexes include
 the gated candidates they excluded, carrying the ceiling where exact φ is
 unavailable.
 
