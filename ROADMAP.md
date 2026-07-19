@@ -215,10 +215,10 @@ remainder, each with its gate verdict:
   only, and selection identity flips between near-tied set partitions at
   single-grid-point frequency — is honored by construction: the driver reads only
   the scalar objective and never branches on a MIP identity.
-- **Relations follow-ups** *(a + b landed 2026-07-12; c open)*. (a) **Landed** —
+- **Relations follow-ups** *(a + b landed 2026-07-12; c landed 2026-07-18)*.
+  (a) **Landed** —
   `pyphi/visualize/projection/__init__.py` renders `AnalyticalRelations` via
-  `strongest(k)`, raises a clear error when `max_relations` is omitted for the
-  analytical backend, sizes nodes from the closed-form per-distinction Σφ_r
+  `strongest(k)`, sizes nodes from the closed-form per-distinction Σφ_r
   (`Relations.sum_phi_by_distinction`, cap-independent), and reads the exact
   closed-form degree spectrum for the spectrum view; a general visualization
   how-to (`docs/howto/visualize.md`) covers the whole `pyphi.visualize` surface
@@ -226,19 +226,21 @@ remainder, each with its gate verdict:
   (`pyphi/models/ces.py`) reports relation statistic deltas (Σφ_r, count,
   per-degree) on every backend, keeping per-relation gained/lost where the
   relations are enumerable.
-  (c) **Make `ANALYTICAL` the default `relation_computation`** (currently
-  `CONCRETE`; `conf/formalism.py`). The consumer plumbing already accepts
-  `AnalyticalRelations` — serialize encoders/decoders, CES-algebra
-  `induce`/`meet` branches, viz — and a forced-analytical suite run
-  (2026-07-11) confirms **no numerical mismatch**. But flipping the default
-  breaks ~102 test sites (61 failures + 41 errors), *all* `TypeError:
-  'AnalyticalRelations' not iterable/subscriptable`: `visualize/*` (55, need a
-  default `max_relations`), relation/CES tests (28), `matching/*` (17). It is a
-  user-facing behavior change (`ces.relations` becomes a non-iterable view by
-  default), so it warrants its own spec/plan/decoupling like the
-  formalism-default flip: pin the concrete-needing tests to `CONCRETE`, give viz
-  a default `max_relations`, and document the `.materialize()`/`.strongest()`
-  migration path.
+  (c) **Landed (2026-07-18)** — `ANALYTICAL` is the default
+  `relation_computation` (`conf/formalism.py`; spec
+  `docs/superpowers/specs/2026-07-18-analytical-relations-default-design.md`).
+  `ces.relations` is a closed-form summary by default; plotting renders the
+  strongest 1000 relations when the set is not enumerable
+  (`DEFAULT_MAX_ANALYTICAL_RELATIONS`); matching materializes analytical
+  summaries on first use (`Perception._relations`); tests that enumerate
+  individual relations pin `CONCRETE` explicitly, with unpinned default-path
+  coverage in `test/test_analytical_default.py`. The flip surfaced and fixed a
+  latent gap: `AnalyticalRelations`/`AnalyticalFoldRelations` compared by
+  identity — they now have value-based `__eq__`/`__hash__` (exact type +
+  distinctions, plus order-normalized seeds for folds), restoring CES
+  equality, serialize round-trips, and disk-cache hits under the default.
+  Presets deliberately carry no `relation_computation` (a computation-strategy
+  knob, not formalism-defining), so `analyze`/`sweep` inherit the flip.
 - **Theory ledger remainder** *(research / 2.x)*: the TV-distance → φₛ lemma
   (would enable a hard τ-cap in grain search); the macro ceiling extension and
   m=1 singleton correction (the `bounds.py` certificates currently exclude
