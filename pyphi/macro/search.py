@@ -272,24 +272,27 @@ def _phi(substrate, units, micro_history, memo, system_cache):
     return system, memo[system]
 
 
-def _evaluate_one(system: MacroSystem) -> float:
-    """Worker entry: φₛ of one system.
+def _evaluate_one(item) -> float:
+    """Worker entry: φₛ of one ``(system, system_state)`` pair.
 
-    The inner ``sia`` is forced sequential so search-level parallelism
-    stays one process-pool deep (nested pools merely oversubscribe).
-    This runs only on the parallel-dispatch path; the in-process path
-    of :func:`_evaluate_systems` leaves ``sia`` under the ambient
-    config, preserving per-evaluation partition parallelism.
+    ``system_state`` may be ``None``; when given, it is the precomputed
+    intrinsic-information state specification, forwarded to ``sia`` so
+    it is not recomputed. The inner ``sia`` is forced sequential so
+    search-level parallelism stays one process-pool deep (nested pools
+    merely oversubscribe). This runs only on the parallel-dispatch
+    path; the in-process path of :func:`_evaluate_systems` leaves
+    ``sia`` under the ambient config, preserving per-evaluation
+    partition parallelism.
     """
     from pyphi.conf import config as _config
 
-    phi = 0.0
+    system, system_state = item
+    kwargs = {} if system_state is None else {"system_state": system_state}
     with _config.override(parallel=False):
-        phi = float(system.sia().phi)
-    return phi
+        return float(system.sia(**kwargs).phi)
 
 
-def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
+def _evaluate_systems(systems, memo, parallel_kwargs=None, system_states=None) -> None:
     """Evaluate ``systems`` and merge φₛ into ``memo`` in order.
 
     Systems already in the memo, duplicates within the batch, and
@@ -298,7 +301,9 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
     option is enabled, otherwise in-process under the ambient config --
     and inserted into the memo in that same order, so a parallel run's
     memo (and every result derived from it) is identical to a
-    sequential one's.
+    sequential one's. ``system_states`` optionally maps systems to
+    precomputed intrinsic-information state specifications, forwarded
+    to each ``sia`` call.
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
@@ -313,6 +318,7 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
         pending.append(system)
     if not pending:
         return
+    states = system_states or {}
     pkwargs = _conf.parallel_kwargs(
         _config.infrastructure.parallel_macro_system_evaluation,
         **(parallel_kwargs or {}),
@@ -321,11 +327,122 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None) -> None:
         pkwargs["ordered"] = True
         pkwargs["total"] = len(pending)
         pkwargs.setdefault("desc", "Evaluating macro systems")
-        phis = map_reduce(_evaluate_one, pending, **pkwargs)
+        phis = map_reduce(
+            _evaluate_one,
+            [(system, states.get(system)) for system in pending],
+            **pkwargs,
+        )
     else:
-        phis = [float(system.sia().phi) for system in pending]
+        phis = []
+        for system in pending:
+            state = states.get(system)
+            kwargs = {} if state is None else {"system_state": state}
+            phis.append(float(system.sia(**kwargs).phi))
     for system, phi in zip(pending, phis, strict=True):
         memo[system] = phi
+
+
+def _resolve_prune(prune: str | None) -> str:
+    """Resolve the ``prune`` mode against the active system measure.
+
+    ``None`` selects ``"certified"`` exactly when the resolved system
+    measure applies the intrinsic-information cap (under which φₛ ≤ ii
+    by construction), and ``"off"`` otherwise. Requesting
+    ``"certified"`` without the cap is an error: ii ≥ φₛ does not hold
+    under other measures, so a certified prune would be unsound.
+    """
+    from pyphi.conf import ConfigurationError
+    from pyphi.conf import config as _config
+    from pyphi.measures.distribution import resolve_system_measure
+
+    if prune not in (None, "certified", "off"):
+        raise ValueError(f"prune must be 'certified', 'off', or None; got {prune!r}")
+    if prune == "off":
+        return "off"
+    measure = resolve_system_measure(_config.formalism.iit.system_phi_measure)
+    capped = bool(getattr(measure, "applies_ii_cap", False))
+    if prune == "certified" and not capped:
+        raise ConfigurationError(
+            "prune='certified' requires a system measure that applies the "
+            "intrinsic-information cap "
+            "(system_phi_measure='INTRINSIC_INFORMATION'); ii ≥ φₛ does "
+            f"not hold under {_config.formalism.iit.system_phi_measure!r}"
+        )
+    return "certified" if capped else "off"
+
+
+def _strictly_below(x: float, y: float) -> bool:
+    """True when ``x < y`` beyond ``config.numerics.precision``."""
+    from pyphi import numerics as _numerics
+
+    return x < y and not _numerics.eq(x, y)
+
+
+def _ii_ceiling(system):
+    """``(ceiling, system_state)``: the certified φₛ upper bound.
+
+    The ceiling is the minimum over directions of the state-maximal
+    intrinsic information — the quantity the Eq. 23 cap bounds φₛ by.
+    The returned state specification is the same object ``sia`` computes
+    before its partition sweep, so callers can pass it back to ``sia``
+    to avoid recomputation. A missing direction contributes 0.0 (no
+    specified cause or effect certifies φₛ = 0).
+    """
+    from pyphi.conf import config as _config
+    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    state = system_intrinsic_information(
+        system,
+        specification_measure=resolve_mechanism_measure(
+            _config.formalism.iit.specification_measure
+        ),
+    )
+    cause = 0.0 if state.cause is None else float(state.cause.intrinsic_information)
+    effect = 0.0 if state.effect is None else float(state.effect.intrinsic_information)
+    return min(cause, effect), state
+
+
+def _ceiling_one(system):
+    """Worker entry: the ceiling of one system, inner computation
+    sequential (mirrors :func:`_evaluate_one`)."""
+    from pyphi.conf import config as _config
+
+    with _config.override(parallel=False):
+        return _ii_ceiling(system)
+
+
+def _compute_ceilings(systems, ceilings, parallel_kwargs=None) -> None:
+    """Merge ``(ceiling, system_state)`` for ``systems`` into
+    ``ceilings`` in dispatch order, skipping entries already present,
+    duplicates, and ``None`` systems (mirrors
+    :func:`_evaluate_systems`)."""
+    from pyphi import conf as _conf
+    from pyphi.conf import config as _config
+    from pyphi.parallel import map_reduce
+
+    pending = []
+    seen = set()
+    for system in systems:
+        if system is None or system in ceilings or system in seen:
+            continue
+        seen.add(system)
+        pending.append(system)
+    if not pending:
+        return
+    pkwargs = _conf.parallel_kwargs(
+        _config.infrastructure.parallel_macro_system_evaluation,
+        **(parallel_kwargs or {}),
+    )
+    if pkwargs.get("parallel"):
+        pkwargs["ordered"] = True
+        pkwargs["total"] = len(pending)
+        pkwargs.setdefault("desc", "Computing ii ceilings")
+        results = map_reduce(_ceiling_one, pending, **pkwargs)
+    else:
+        results = [_ii_ceiling(system) for system in pending]
+    for system, result in zip(pending, results, strict=True):
+        ceilings[system] = result
 
 
 def _as_constituent(unit: MacroUnit) -> MacroUnit | int:

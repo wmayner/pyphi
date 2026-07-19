@@ -8,12 +8,17 @@ from hypothesis import strategies as st
 
 from pyphi import config
 from pyphi import numerics
+from pyphi.conf import ConfigurationError
 from pyphi.conf import presets
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.criteria import unit_integration
 from pyphi.macro.search import ComplexesResult
 from pyphi.macro.search import SearchBounds
+from pyphi.macro.search import _compute_ceilings
+from pyphi.macro.search import _ii_ceiling
+from pyphi.macro.search import _resolve_prune
+from pyphi.macro.search import _strictly_below
 from pyphi.macro.search import candidate_mappings
 from pyphi.macro.search import competing_systems
 from pyphi.macro.search import complexes
@@ -1065,3 +1070,72 @@ class TestCrossDoorEquivalence:
             record.phi > float(by_units[(2, 3)].phi)
             for record in by_units[(2, 3)].excluded
         )
+
+
+class TestPruneResolution:
+    def test_auto_is_certified_under_2026(self):
+        with config.override(**presets.iit4_2026):
+            assert _resolve_prune(None) == "certified"
+
+    def test_auto_is_off_under_2023_gid(self):
+        with config.override(**presets.iit4_2023):
+            assert _resolve_prune(None) == "off"
+
+    def test_explicit_certified_raises_under_2023_gid(self):
+        with (
+            config.override(**presets.iit4_2023),
+            pytest.raises(ConfigurationError),
+        ):
+            _resolve_prune("certified")
+
+    def test_off_never_raises(self):
+        with config.override(**presets.iit4_2023):
+            assert _resolve_prune("off") == "off"
+        with config.override(**presets.iit4_2026):
+            assert _resolve_prune("off") == "off"
+
+    def test_unknown_value_raises(self):
+        with pytest.raises(ValueError):
+            _resolve_prune("heuristic")
+
+
+class TestIICeiling:
+    def _cg_systems(self, groups):
+        substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+        state = (0, 0, 0, 0)
+        return [
+            MacroSystem.from_micro(
+                substrate, tuple(micro_unit(i) for i in units), (state,)
+            )
+            for units in groups
+        ]
+
+    def test_ceiling_bounds_phi(self):
+        with config.override(**presets.iit4_2026):
+            for system in self._cg_systems([(0,), (0, 1), (0, 1, 2, 3)]):
+                ceiling, state = _ii_ceiling(system)
+                phi = float(system.sia().phi)
+                assert phi <= ceiling or numerics.eq(phi, ceiling)
+                assert state.cause is not None or ceiling == 0.0
+
+    def test_sia_accepts_precomputed_system_state(self):
+        with config.override(**presets.iit4_2026):
+            (system,) = self._cg_systems([(0, 1)])
+            _, state = _ii_ceiling(system)
+            assert float(system.sia(system_state=state).phi) == float(system.sia().phi)
+
+    def test_compute_ceilings_merges_in_order(self):
+        with config.override(**presets.iit4_2026):
+            systems = self._cg_systems([(0,), (1,), (0, 1)])
+            ceilings = {}
+            _compute_ceilings(systems, ceilings, None)
+            assert list(ceilings) == systems
+            for system in systems:
+                assert ceilings[system][0] == _ii_ceiling(system)[0]
+
+
+def test_strictly_below():
+    assert _strictly_below(0.5, 1.0)
+    assert not _strictly_below(1.0, 1.0)
+    assert not _strictly_below(1.0 - 1e-15, 1.0)  # tolerance-equal
+    assert not _strictly_below(2.0, 1.0)

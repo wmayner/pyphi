@@ -66,7 +66,10 @@ class UnitVerdict:
 
 
 def judge_candidate(
-    phi: float, competitors: Iterable[tuple[MacroSystem, float]]
+    phi: float,
+    competitors: Iterable[tuple[MacroSystem, float]],
+    *,
+    num_gated: int = 0,
 ) -> UnitVerdict:
     """Eqs. 15-16 given φₛ(v^J) and the evaluated competitor set.
 
@@ -80,6 +83,10 @@ def judge_candidate(
         The candidate's φₛ(v^J).
     competitors : Iterable[tuple[MacroSystem, float]]
         ``(system, φₛ)`` pairs for ``f(U^J, W^J)``.
+    num_gated : int
+        Competitors certified — by an intrinsic-information ceiling
+        strictly below ``phi`` — unable to beat or tie the candidate;
+        counted in ``num_competitors`` but never evaluated.
     """
     competitors = tuple(competitors)
     if not numerics.is_positive(phi):
@@ -89,7 +96,7 @@ def judge_candidate(
             phi=phi,
             witness=None,
             witness_phi=None,
-            num_competitors=len(competitors),
+            num_competitors=len(competitors) + num_gated,
         )
     best_system: MacroSystem | None = None
     best_phi = float("-inf")
@@ -105,7 +112,7 @@ def judge_candidate(
                 phi=phi,
                 witness=best_system,
                 witness_phi=best_phi,
-                num_competitors=len(competitors),
+                num_competitors=len(competitors) + num_gated,
             )
         if best_phi > phi:
             return UnitVerdict(
@@ -114,7 +121,7 @@ def judge_candidate(
                 phi=phi,
                 witness=best_system,
                 witness_phi=best_phi,
-                num_competitors=len(competitors),
+                num_competitors=len(competitors) + num_gated,
             )
     return UnitVerdict(
         valid=True,
@@ -122,7 +129,7 @@ def judge_candidate(
         phi=phi,
         witness=None,
         witness_phi=None,
-        num_competitors=len(competitors),
+        num_competitors=len(competitors) + num_gated,
     )
 
 
