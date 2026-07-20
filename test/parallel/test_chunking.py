@@ -77,3 +77,50 @@ def test_relation_size_func_is_overlap_times_degree():
     assert cost((0, 1)) == 2 * 2  # overlap {1,2} size 2, degree 2
     assert cost((0, 1, 2)) == 1 * 3  # overlap {2} size 1, degree 3
     assert cost((0, 3)) == 0 * 2  # disjoint purviews -> 0
+
+
+class TestIterChunks:
+    def test_even_chunks_cover_all_items_once(self):
+        from pyphi.parallel.chunking import iter_chunks
+
+        chunks = list(iter_chunks([[10, 20, 30, 40, 50]], chunksize=2, num_workers=2))
+        flat = [x for (chunk,) in chunks for x in chunk]
+        assert flat == [10, 20, 30, 40, 50]
+        assert all(len(chunk) >= 1 for (chunk,) in chunks)
+
+    def test_multi_iterable_chunks_stay_aligned(self):
+        from pyphi.parallel.chunking import iter_chunks
+
+        chunks = list(
+            iter_chunks([[1, 2, 3, 4], ["a", "b", "c", "d"]], chunksize=2, num_workers=1)
+        )
+        for xs, ys in chunks:
+            for x, y in zip(xs, ys, strict=True):
+                assert "abcd"[x - 1] == y
+
+    def test_cost_balanced_chunks_cover_all_items(self):
+        from pyphi.parallel.chunking import iter_chunks
+
+        chunks = list(
+            iter_chunks(
+                [[3, 1, 2, 5, 4]],
+                chunksize=2,
+                num_workers=2,
+                size_func=lambda x: float(x),
+            )
+        )
+        flat = sorted(x for (chunk,) in chunks for x in chunk)
+        assert flat == [1, 2, 3, 4, 5]
+
+    def test_empty_input_yields_nothing(self):
+        from pyphi.parallel.chunking import iter_chunks
+
+        assert list(iter_chunks([[]], chunksize=2, num_workers=2)) == []
+        assert list(iter_chunks([], chunksize=2, num_workers=2)) == []
+
+    def test_worker_floor_spreads_chunks(self):
+        from pyphi.parallel.chunking import iter_chunks
+
+        # 4 items fit in one chunk of 100, but 4 workers force 4 chunks.
+        chunks = list(iter_chunks([[1, 2, 3, 4]], chunksize=100, num_workers=4))
+        assert len(chunks) == 4
