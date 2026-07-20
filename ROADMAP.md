@@ -191,10 +191,18 @@ remainder, each with its gate verdict:
   unsound, so state-keying is mandatory) already gives Σφ_r in O(|D|·n) and
   supersedes it. Approach B (density-budget LP) is not pursued — the looseness
   is in the incidence count, which a mass budget cannot cap. No
-  `bounds.py` change. *Still open, distinct from the bracket:* exposing the
-  measured **complete**-distinction state-keyed certificate (~100–1000× tighter
-  than the shipped `GENERAL` bound) as a certified measured bound in
-  `bounds.py`.
+  `bounds.py` change from the bracket itself. *The measured-certificate
+  remainder landed 2026-07-19* (spec
+  `docs/superpowers/specs/2026-07-19-measured-bound-design.md`):
+  `sum_phi_relations_measured_bound(distinctions)` and
+  `big_phi_measured_bound(distinctions)` in `formalism/iit4/bounds.py` —
+  the Eq 14 linear-program maximum on the measured per-atom profile plus
+  the exact Eq 9 self-relation sum, certified with no binary-units or
+  measure domain guard (the theorem is combinatorial over the relation
+  formula; state-keying mandatory per the index-keying unsoundness
+  witness). ~128× tighter than `GENERAL` on grid3; soundness, dominance,
+  k-ary, and Hypothesis property tests in
+  `test/integration/test_bounds.py`. This also discharges triage item M3.
 - **ii-gated grain scheduling** *(landed 2026-07-19; certified arm only)*.
   Built per `docs/superpowers/specs/2026-07-19-ii-gate-design.md`: a lazy
   `gated_exclusion_cascade` in `pyphi/condensation.py` forces exact φₛ only
@@ -610,9 +618,9 @@ extending B1's bound-certificate assertions.
 - **ii(s) accessor and integrated fraction (M2).** Per-direction intrinsic specification is
   already on `sia.system_state`; add a named `ii(s)` accessor (min over directions of
   min(i_spec, i_diff)) and the integrated fraction φₛ/ii as SIA properties.
-- **Measured Σφ_r certificate (M3).** The state-keyed sum-of-relation-φ certificate proved in
-  the S(o) experiments exists only under `experiments/`; add
-  `sum_phi_relations_measured_bound(distinctions)` to `formalism/iit4/bounds.py` (O(|D|·n)).
+- **Measured Σφ_r certificate (M3).** *Landed 2026-07-19:*
+  `sum_phi_relations_measured_bound(distinctions)` and `big_phi_measured_bound(distinctions)`
+  in `formalism/iit4/bounds.py` (see the Wave 7 anytime-bracket entry).
 - **Cost pre-flight for analyze/sia/ces (M5).** The counting primitives exist in `bounds.py`;
   expose an estimate surface and make the MCP hard node-limits delegate to it.
 - **`SweepResult`/`OptimizationResult` serialization (M12).** Neither has a load path, and
