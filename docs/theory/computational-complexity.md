@@ -256,6 +256,29 @@ densely connected and therefore costly, while a system sparse enough to fall
 apart into independent parts has $\varphi_s = 0$ anyway. Connectivity
 determines the practical ceiling at least as much as unit count does.
 
+## Estimating a workload before running it
+
+Every count above is knowable before any φ is computed.
+`pyphi.estimate_analysis` walks the same enumeration machinery the analysis
+would use — the active system partition scheme, the connectivity-pruned
+purview sets, the mechanism partitions per (mechanism, purview) size pair —
+and returns the counts as an `AnalysisEstimate`, without evaluating
+anything:
+
+```{code-cell} python
+import pyphi
+from pyphi import examples
+
+pyphi.estimate_analysis(examples.basic_substrate())
+```
+
+The estimate reports counts and structural weights (the state-space size is
+the per-evaluation cost scale); it never predicts wall time, which is
+machine- and configuration-dependent. Counting is budgeted: pass `limit` to
+bound the estimate's own work, and a truncated walk reports lower bounds
+with `capped=True`. The counterpart for grain searches is
+`SearchBounds.estimate`, described in the next section.
+
 ## The cost of the grain search
 
 The sections above cost a *single* IIT 4.0 analysis, evaluated at the micro

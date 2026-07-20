@@ -625,8 +625,15 @@ extending B1's bound-certificate assertions.
 - **Measured Σφ_r certificate (M3).** *Landed 2026-07-19:*
   `sum_phi_relations_measured_bound(distinctions)` and `big_phi_measured_bound(distinctions)`
   in `formalism/iit4/bounds.py` (see the Wave 7 anytime-bracket entry).
-- **Cost pre-flight for analyze/sia/ces (M5).** The counting primitives exist in `bounds.py`;
-  expose an estimate surface and make the MCP hard node-limits delegate to it.
+- **Cost pre-flight for analyze/sia/ces (M5).** *Landed 2026-07-20:*
+  `pyphi.estimate_analysis` (`pyphi/cost.py`) counts the workload of a single-system
+  analysis — scheme-aware system partitions, connectivity-pruned purview evaluations,
+  mechanism-partition sweeps — by driving the real enumerators with seeded memos; the
+  MCP `analyze` guard now gates on those counts instead of node counts (a sparse
+  system above the old node limit passes; a fully connected 7-unit CES,
+  ≈1.45 × 10⁹ sweeps, now asks for confirmation), and a new `estimate_cost` MCP tool
+  exposes the estimate. Spec:
+  `docs/superpowers/specs/2026-07-20-analysis-cost-estimate-design.md`.
 - **`SweepResult`/`OptimizationResult` serialization (M12).** *Landed 2026-07-20:* both are
   registered in `pyphi.serialize` with full-fidelity `save`/`load` (DataFrames embedded as
   parquet; pyarrow is now a core dependency); the lossy bespoke `OptimizationResult.save`

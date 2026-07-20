@@ -7,6 +7,13 @@ or hang the machine. The `analyze` tool guards a large substrate behind
 responsibility is yours — plan for cost *before* starting a run, not after it
 hangs.
 
+Cost is countable before you commit: the `estimate_cost` tool reports the
+workload of an `analyze` call — system partitions, purview evaluations,
+mechanism-partition sweeps — without computing anything (in Python,
+`pyphi.estimate_analysis`). The `analyze` guard itself runs on these
+counts, so `confirm_large` is requested exactly when the workload is
+actually large under the active formalism, scheme, and connectivity.
+
 Besides the caching and checkpointing covered here, the other lever for
 expensive work is running on multiple cores. That has its own topic and its
 own pitfalls — in particular, the global `parallel` flag alone does nothing —
