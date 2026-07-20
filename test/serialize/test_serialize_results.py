@@ -2,6 +2,7 @@
 
 import math
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -10,7 +11,11 @@ from pyphi import serialize
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
+from pyphi.optimize import OptimizationResult
+from pyphi.optimize import optimize
+from pyphi.optimize import weight_axes
 from pyphi.serialize import frames
+from pyphi.substrate_generator import ising
 from pyphi.sweep import SweepResult
 from pyphi.sweep import sweep
 
@@ -140,3 +145,110 @@ class TestSweepResultRoundTrip:
         serialize.save(Direction.CAUSE, path)
         with pytest.raises(TypeError, match="SweepResult"):
             SweepResult.load(path)
+
+
+# The IIT 4.0 (2023) Fig. 1A substrate; (1, 0, 0) is reachable.
+FIG1A_WEIGHTS = np.array(
+    [
+        [-0.2, 0.7, 0.2],
+        [0.7, -0.2, 0.0],
+        [0.0, -0.8, 0.2],
+    ]
+)
+
+
+@pytest.fixture(scope="module")
+def optimization_result():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    with config.override(**presets.iit4_2023, progress_bars=False):
+        return optimize(
+            axis,
+            (1, 0, 0),
+            [(0.2, 1.2)],
+            seed=5,
+            popsize=4,
+            maxiter=3,
+            parallel=False,
+        )
+
+
+def _assert_optimization_equal(a, b):
+    assert isinstance(b, OptimizationResult)
+    np.testing.assert_array_equal(a.best_params, b.best_params)
+    assert a.best_objective == b.best_objective or (
+        math.isnan(a.best_objective) and math.isnan(b.best_objective)
+    )
+    assert a.best_substrate == b.best_substrate
+    assert a.best_sia == b.best_sia
+    pd.testing.assert_frame_equal(a.trajectory, b.trajectory)
+    assert a.bounds == b.bounds
+    assert a.seed == b.seed
+    assert a.direction == b.direction
+    assert a.objective_name == b.objective_name
+    assert a.settings == b.settings
+    assert a.config_snapshot == b.config_snapshot
+    assert a.n_evaluations == b.n_evaluations
+    assert a.n_unreachable == b.n_unreachable
+
+
+class TestOptimizationResultRoundTrip:
+    @pytest.mark.parametrize("fmt", ["json", "msgpack"])
+    def test_round_trip(self, optimization_result, fmt):
+        assert optimization_result.best_sia is not None  # precondition
+        data = serialize.dumps(optimization_result, format=fmt)
+        _assert_optimization_equal(
+            optimization_result, serialize.loads(data, format=fmt)
+        )
+
+    def test_save_load_path(self, optimization_result, tmp_path):
+        path = tmp_path / "run.mpk.gz"
+        optimization_result.save(path)
+        _assert_optimization_equal(optimization_result, OptimizationResult.load(path))
+
+    def test_all_unreachable_nan_round_trips(self):
+        # NaN best_objective (no reachable candidate) maps through None in the
+        # schema and is restored as NaN; all-None and all-NaN trajectory
+        # columns survive.
+        n = 2
+        trajectory = pd.DataFrame(
+            {
+                "eval": [0, 1],
+                "generation": [0, 0],
+                "p0": [0.1, 0.9],
+                "objective": [math.nan] * n,
+                "reachable": [False] * n,
+                "partition": [None] * n,
+                "cause_state": [None] * n,
+                "effect_state": [None] * n,
+                "partition_margin": [math.nan] * n,
+                "cause_state_margin": [math.nan] * n,
+                "effect_state_margin": [math.nan] * n,
+            }
+        )
+        result = OptimizationResult(
+            best_params=np.array([0.1]),
+            best_objective=math.nan,
+            best_substrate=examples.basic_substrate(),
+            best_sia=None,
+            trajectory=trajectory,
+            bounds=[(0.0, 1.0)],
+            seed=1,
+            direction="maximize",
+            objective_name="signed_normalized_phi",
+            settings={
+                "backend": "scipy.differential_evolution",
+                "popsize": 4,
+                "maxiter": 3,
+                "tol": 0.01,
+            },
+            config_snapshot={"precision": 13, "formalism": None},
+            n_evaluations=n,
+            n_unreachable=n,
+        )
+        for fmt in ["json", "msgpack"]:
+            back = serialize.loads(serialize.dumps(result, format=fmt), format=fmt)
+            assert math.isnan(back.best_objective)
+            assert back.best_sia is None
+            _assert_optimization_equal(result, back)

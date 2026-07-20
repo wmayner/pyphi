@@ -18,7 +18,6 @@ import math
 from collections.abc import Callable
 from collections.abc import Sequence
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -31,6 +30,7 @@ from pyphi.landscape import _QUANTITIES
 from pyphi.landscape import _UNREACHABLE
 from pyphi.landscape import _optional_float
 from pyphi.landscape import _part_id
+from pyphi.serializable import Serializable
 
 # Rank-based DE selection only needs unreachable to compare worse than any real
 # candidate; a fixed large sentinel (internal minimization convention) suffices.
@@ -184,7 +184,7 @@ def _eval_one(
 
 
 @dataclass(frozen=True)
-class OptimizationResult:
+class OptimizationResult(Serializable):
     """The outcome of an :func:`optimize` run.
 
     Attributes
@@ -238,29 +238,6 @@ class OptimizationResult:
 
     def to_pandas(self) -> pd.DataFrame:
         return self.trajectory
-
-    def save(self, path: Any) -> None:
-        """Write the trajectory and metadata to ``path`` as JSON.
-
-        Writes exactly where told; parameter-encoded, non-clobbering filenames
-        are the caller's responsibility.
-        """
-        import json
-
-        payload = {
-            "best_params": list(map(float, self.best_params)),
-            "best_objective": float(self.best_objective),
-            "bounds": [list(map(float, b)) for b in self.bounds],
-            "seed": int(self.seed),
-            "direction": self.direction,
-            "objective_name": self.objective_name,
-            "settings": self.settings,
-            "config_snapshot": self.config_snapshot,
-            "n_evaluations": int(self.n_evaluations),
-            "n_unreachable": int(self.n_unreachable),
-            "trajectory": self.trajectory.to_dict(orient="records"),
-        }
-        Path(path).write_text(json.dumps(payload, indent=2, default=str))
 
 
 def _eval_batch(

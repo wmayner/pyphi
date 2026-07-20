@@ -520,6 +520,28 @@ class SweepResultSchema(msgspec.Struct, frozen=True, tag="sweep_result"):
     skipped: tuple[tuple[str, tuple[int, ...], tuple[int, ...]], ...]
 
 
+class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):
+    """An :func:`~pyphi.optimize.optimize` outcome.
+
+    ``best_objective`` is stored as None exactly when the run had no
+    reachable candidate (NaN on the domain object; JSON cannot carry NaN).
+    """
+
+    best_params: bytes
+    best_objective: float | None
+    best_substrate: SubstrateSchema
+    best_sia: SIASchema | None
+    trajectory: DataFrameSchema
+    bounds: tuple[tuple[float, float], ...]
+    seed: int
+    direction: str
+    objective_name: str
+    settings: dict[str, Any]
+    config_snapshot: dict[str, Any]
+    n_evaluations: int
+    n_unreachable: int
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -571,4 +593,5 @@ Schema = (
     | SubstratePosteriorSchema
     | PhiPosteriorSchema
     | SweepResultSchema
+    | OptimizationResultSchema
 )
