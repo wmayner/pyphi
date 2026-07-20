@@ -43,9 +43,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Note: Single-machine parallelization uses stdlib ProcessPoolExecutor - no extra deps needed.
-# The 'cluster' extra will be available in v2.0 for Dask-based cluster support.
-# cluster = ["dask[distributed]>=2024.1.0", "dask-jobqueue>=0.8.0"]
+# Note: Single-machine parallelization needs no extra dependencies.
+# Distributed execution on a Dask cluster (dask-jobqueue covers HTCondor/Slurm
+# deployments):
+cluster = ["dask[distributed]>=2024.1.0", "dask-jobqueue>=0.8.0"]
 visualize = ["matplotlib", "networkx>=2.6.2", "plotly>=5.8.2", "seaborn"]
 caching = ["redis>=2.10.5"]
 # POT (Python Optimal Transport) provides the exact EMD backend (`ot.emd2`).
@@ -64,6 +65,7 @@ dev = [
     "asv",
     "build",
     "coverage",
+    "dask[distributed]>=2024.1.0",
     # graphify: knowledge-graph CLI (command is `graphify`); used to query and
     # refresh graphify-out/. Standalone tool, not a pyphi import dependency.
     "graphifyy>=0.8.44",

@@ -229,7 +229,7 @@ def test_local_thread_scheduler_progress_shortcircuit(monkeypatch):
     assert bar.closed
 
 
-def test_dask_scheduler_skeleton_lazy_import():
+def test_dask_backend_lazy_import():
     """Importing the dask backend must not load dask.distributed."""
     import sys
 
@@ -238,16 +238,6 @@ def test_dask_scheduler_skeleton_lazy_import():
     from pyphi.parallel.backends import dask as _dask_module  # noqa: F401
 
     assert "dask.distributed" not in sys.modules
-
-
-def test_dask_scheduler_raises_not_implemented():
-    from pyphi.parallel.backends.dask import DaskScheduler
-
-    s = DaskScheduler()
-    assert isinstance(s, Scheduler)
-    assert s.supports_shared_state is False
-    with pytest.raises(NotImplementedError, match=r"DaskScheduler is a stub"):
-        s.map_reduce(lambda x: x, [1, 2, 3])
 
 
 # ============================================================================
@@ -363,7 +353,7 @@ def test_apply_snapshot_skips_when_running_in_parent_pid():
 #
 # ``map_reduce`` resolves its ``backend=`` through :func:`default_scheduler`,
 # so ``"thread"`` runs on the thread scheduler and ``"dask"`` reaches the
-# Dask stub (which raises ``NotImplementedError``). These tests pin that
+# Dask backend (which requires an active client). These tests pin that
 # the backend argument is actually honored.
 
 
@@ -390,11 +380,12 @@ def test_map_reduce_rejects_unknown_backend():
         map_reduce(_double, [1, 2, 3], backend="invalid")
 
 
-def test_map_reduce_dask_backend_is_not_implemented():
-    """backend='dask' now actually routes to the DaskScheduler stub."""
+def test_map_reduce_dask_backend_requires_client():
+    """backend='dask' routes to the DaskScheduler, which needs a client."""
+    pytest.importorskip("distributed")
     from pyphi.parallel import map_reduce
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(RuntimeError, match=r"distributed\.Client"):
         map_reduce(
             _double, [1, 2, 3, 4, 5], backend="dask", sequential_threshold=1, chunksize=2
         )
