@@ -119,9 +119,13 @@ computed. New tests:
    config).
 3. **Big-phi composition**: `big_phi_measured_bound.value` == Σφ_d +
    `sum_phi_relations_measured_bound.value`; and ≥ the fixture's actual Φ.
-4. **No-guard differentiators**: computes without raising on (a) a k-ary
-   system, (b) the 2026 intrinsic-information default — both of which the
-   size-based bounds refuse.
+4. **No-guard differentiators**: (a) computes and holds on a k-ary
+   system, which the size-based `report()` refuses; (b) computes — with
+   the same value — under an out-of-domain mechanism measure
+   (`mechanism_phi_measure="ID"`), where `sum_phi_relations_upper_bound`
+   raises `ValueError`. (The 2026 preset itself is in-domain for the
+   size-based bounds, since its mechanism measure is still GID; the
+   soundness tests cover it via the domain-config parametrization.)
 5. **Empty input** → 0.0, certified.
 6. **Hypothesis property (slow lane)**: random small binary substrates,
    concrete Σφ_r ≤ measured bound + tolerance — the verify script's check
