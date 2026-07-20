@@ -577,7 +577,8 @@ def sum_phi_relations_measured_bound(distinctions: Iterable[Any]) -> UpperBound:
     S(o) of the distinctions containing it, and contributes at most
     S(o)·(2^k − 1 − k)/k, where k is the number of those distinctions.
     The self-relation sum is carried exactly (Eq 9), a strict tightening
-    of Eq 15. Cost is O(|D|·n); no relations are enumerated.
+    of Eq 15. Cost is O(D·n) for D distinctions over n units; no
+    relations are enumerated.
 
     Parameters
     ----------
