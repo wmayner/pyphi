@@ -16,6 +16,7 @@ from __future__ import annotations
 import itertools
 import tempfile
 import uuid
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -25,17 +26,30 @@ from mcp.server.fastmcp import FastMCP
 import pyphi
 from pyphi import examples
 from pyphi import serialize
+from pyphi.conf import presets
 from pyphi.conf.infrastructure import InfrastructureConfig
+from pyphi.cost import estimate_analysis
 
 from . import content
 
-# A full cause-effect structure unfolds distinctions and relations, whose count
-# grows doubly-exponentially in the number of units, so a larger request is
-# refused unless the caller confirms it. System integrated information alone is
-# cheaper. These are soft guards against accidental hours-long runs, not hard
-# limits on what PyPhi can compute.
-_CES_NODE_LIMIT = 7
-_SIA_NODE_LIMIT = 9
+# Soft guards against accidentally starting an hours-long run, not hard limits
+# on what PyPhi can compute. The guard counts the requested analysis's workload
+# with pyphi.cost.estimate_analysis, so the partition schemes, connectivity,
+# and alphabet all inform the refusal. _SIA_PARTITION_LIMIT is the
+# DIRECTED_SET_PARTITION count for 9 fully connected binary units — the
+# largest system-level analysis admitted without confirmation.
+# _CES_SWEEP_LIMIT admits a fully connected 6-unit binary cause-effect
+# structure under JOINT_PARTITION_ALL (31,938,830 sweeps) and refuses the
+# 7-unit one (1,450,456,298 sweeps).
+#
+# _GUARD_COUNT_BUDGET bounds the guard's own counting work (purview
+# evaluations plus fresh partition enumerations; memoized counts are free),
+# keeping the pre-flight to a few seconds. A walk that exceeds it is
+# refused conservatively: a workload too large to count cheaply is treated
+# as too large to run unconfirmed.
+_SIA_PARTITION_LIMIT = 4_419_572
+_CES_SWEEP_LIMIT = 100_000_000
+_GUARD_COUNT_BUDGET = 3_000_000
 
 # Friendly level names mapped to the per-level parallelization options. The
 # recommended default set covers the levels that pay off for a single-system
@@ -344,10 +358,12 @@ def analyze(
         ``"full"`` (also embeds the complete serialized result, which can be
         megabytes for a Φ-structure — prefer ``inspect`` to drill in instead).
     confirm_large : bool
-        Full/CES analyses are refused above a soft node-count threshold unless
-        this is set, to avoid accidentally starting an hours-long computation.
-        Parallelism does not lift the threshold — it divides the constants,
-        not the exponents.
+        An analysis whose estimated workload exceeds a soft limit is refused
+        unless this is set, to avoid accidentally starting an hours-long
+        computation. The workload is counted by the same machinery as the
+        ``estimate_cost`` tool, so the partition schemes, connectivity, and
+        alphabet all inform the guard. Parallelism does not lift the
+        threshold — it divides the constants, not the exponents.
     parallel : bool or list of str, optional
         Parallelism for this call only. ``None`` (default) uses the server's
         current configuration (see ``configure_parallel``); ``true`` runs on
@@ -369,17 +385,37 @@ def analyze(
         *reducible*, not that it has no structure.
     """
     substrate = _get_substrate(handle)
-    size = substrate.size
-    unfolds_structure = compute in ("full", "ces")
-    limit = _CES_NODE_LIMIT if unfolds_structure else _SIA_NODE_LIMIT
-    if size > limit and not confirm_large:
-        raise ValueError(
-            f"This substrate has {size} nodes; a '{compute}' analysis at this "
-            f"size may run for a very long time (cost grows exponentially, and "
-            f"relations doubly-exponentially). Pass confirm_large=true to "
-            f"proceed anyway, or use compute='sia' for a cheaper system-level "
-            f"result."
+    if not confirm_large:
+        unfolds_structure = compute in ("full", "ces")
+        threshold = _CES_SWEEP_LIMIT if unfolds_structure else _SIA_PARTITION_LIMIT
+        overrides = presets.by_name.get(formalism, {}) if formalism else {}
+        with pyphi.config.override(**overrides):
+            estimate = estimate_analysis(
+                substrate,
+                compute="ces" if unfolds_structure else "sia",
+                limit=_GUARD_COUNT_BUDGET,
+            )
+        gauge = (
+            estimate.mechanism_partition_sweeps
+            if unfolds_structure
+            else estimate.system_partitions
         )
+        axis = "mechanism-partition sweeps" if unfolds_structure else "system partitions"
+        if estimate.capped or (gauge is not None and gauge > threshold):
+            if gauge is None:
+                estimated = f"beyond the guard's counting budget in {axis}"
+            elif estimate.capped:
+                estimated = f"at least {gauge:,} {axis}"
+            else:
+                estimated = f"{gauge:,} {axis}"
+            raise ValueError(
+                f"A '{compute}' analysis of this {substrate.size}-node "
+                f"substrate is estimated at {estimated} (soft limit "
+                f"{threshold:,}); it may run for a very long time. Pass "
+                f"confirm_large=true to proceed anyway, use the "
+                f"estimate_cost tool to inspect the workload, or use "
+                f"compute='sia' for a cheaper system-level result."
+            )
 
     compute_arg = None if compute == "full" else compute
     with pyphi.config.override(**_parallel_overrides(parallel, workers)):
@@ -397,6 +433,49 @@ def analyze(
         target = getattr(result, "ces", result)
         out["serialized"] = serialize.dumps(target).decode("utf-8")
     return out
+
+
+@mcp.tool()
+def estimate_cost(
+    handle: str,
+    compute: str = "full",
+    formalism: str | None = None,
+) -> dict[str, Any]:
+    """Count the workload of an analysis before running it.
+
+    Reports what ``analyze`` would evaluate — system partitions, candidate
+    mechanisms, connectivity-pruned purview evaluations, and
+    mechanism-partition sweeps — without computing any φ. The counts
+    reflect the partition schemes, connectivity, and alphabet under the
+    requested formalism. Wall time is machine-dependent and is not
+    predicted; use the counts to compare candidate systems and settings.
+
+    Parameters
+    ----------
+    handle : str
+        A substrate handle from ``load_example`` or ``build_substrate``.
+    compute : str
+        ``"full"`` (default), ``"sia"``, or ``"ces"`` — the analysis whose
+        workload to estimate, as in ``analyze``.
+    formalism : str, optional
+        As in ``analyze``.
+
+    Returns
+    -------
+    dict
+        A ``card`` (human-readable text) and an ``estimate`` mapping with
+        the counts; ``capped=true`` marks counts that are lower bounds.
+    """
+    substrate = _get_substrate(handle)
+    if formalism is not None and formalism not in presets.by_name:
+        valid = ", ".join(sorted(presets.by_name))
+        raise ValueError(f"unknown formalism {formalism!r}; expected one of: {valid}")
+    overrides = presets.by_name[formalism] if formalism is not None else {}
+    with pyphi.config.override(**overrides):
+        estimate = estimate_analysis(
+            substrate, compute=None if compute == "full" else compute
+        )
+    return {"card": str(estimate), "estimate": asdict(estimate)}
 
 
 @mcp.tool()
