@@ -48,7 +48,7 @@ PRESETS = {"iit3": pyphi.iit3, "iit4_2023": pyphi.iit4_2023}
 # trips (the concrete relation enumeration and the full IIT 3.0 cut sweep both
 # blow up a step earlier than the reformulations they are compared against).
 CONFIGS: list[dict[str, Any]] = [
-    {"knob": "relations", "name": "concrete", "stage": "ces", "preset": "iit4_2023", "changes": {}, "n_cap": 5},
+    {"knob": "relations", "name": "concrete", "stage": "ces", "preset": "iit4_2023", "changes": {"relation_computation": "CONCRETE"}, "n_cap": 5},
     {"knob": "relations", "name": "analytical", "stage": "ces", "preset": "iit4_2023", "changes": {"relation_computation": "ANALYTICAL"}, "n_cap": 5},
     {"knob": "system cuts", "name": "full 2**n", "stage": "sia", "preset": "iit3", "changes": {}, "n_cap": 5},
     {"knob": "system cuts", "name": "cut-one 2n", "stage": "sia", "preset": "iit3", "changes": {"system_partition_scheme": "DIRECTED_BIPARTITION_CUT_ONE"}, "n_cap": 6},
@@ -58,13 +58,16 @@ CONFIGS: list[dict[str, Any]] = [
 ]
 
 # Stacked settings: which *combinations* buy the most units. Each group's first
-# entry is the formalism default; later entries add one cost-reducing setting at
-# a time. IIT 4.0 needs both a cheaper mechanism scheme and analytical relations;
-# IIT 3.0 big Φ needs both cut-one and no-new-concepts.
+# entry is the all-reformulations-off baseline (concrete relations / the full
+# cut sweep); later entries add one cost-reducing setting at a time. IIT 4.0
+# needs both a cheaper mechanism scheme and analytical relations; IIT 3.0 big Φ
+# needs both cut-one and no-new-concepts. Concrete relations are pinned
+# explicitly wherever they are measured, since the shipping default is
+# analytical.
 COMBOS: list[dict[str, Any]] = [
-    {"knob": "IIT 4.0 CES", "name": "default (all-partitions + concrete)", "stage": "ces", "preset": "iit4_2023", "changes": {}, "n_cap": 5},
+    {"knob": "IIT 4.0 CES", "name": "all-partitions + concrete", "stage": "ces", "preset": "iit4_2023", "changes": {"relation_computation": "CONCRETE"}, "n_cap": 5},
     {"knob": "IIT 4.0 CES", "name": "+ analytical relations", "stage": "ces", "preset": "iit4_2023", "changes": {"relation_computation": "ANALYTICAL"}, "n_cap": 5},
-    {"knob": "IIT 4.0 CES", "name": "+ bipartitions", "stage": "ces", "preset": "iit4_2023", "changes": {"mechanism_partition_scheme": "JOINT_BIPARTITION"}, "n_cap": 5},
+    {"knob": "IIT 4.0 CES", "name": "+ bipartitions", "stage": "ces", "preset": "iit4_2023", "changes": {"mechanism_partition_scheme": "JOINT_BIPARTITION", "relation_computation": "CONCRETE"}, "n_cap": 5},
     {"knob": "IIT 4.0 CES", "name": "bipartitions + analytical", "stage": "ces", "preset": "iit4_2023", "changes": {"mechanism_partition_scheme": "JOINT_BIPARTITION", "relation_computation": "ANALYTICAL"}, "n_cap": 7},
     {"knob": "IIT 3.0 big Φ", "name": "default (full cuts)", "stage": "sia", "preset": "iit3", "changes": {}, "n_cap": 5},
     {"knob": "IIT 3.0 big Φ", "name": "+ cut-one", "stage": "sia", "preset": "iit3", "changes": {"system_partition_scheme": "DIRECTED_BIPARTITION_CUT_ONE"}, "n_cap": 6},

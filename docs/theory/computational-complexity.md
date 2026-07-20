@@ -456,7 +456,8 @@ any one alone — is what moves the ceiling.
 
 Median runtime versus $n$ for stacked settings, logarithmic vertical axis. Right,
 IIT 4.0 CES: `bipartitions + analytical` (bottom) is far below the others and
-reaches $n=7$; `default` and `+ analytical` coincide. Left, IIT 3.0 big Φ:
+reaches $n=7$; the all-partitions + concrete baseline (labeled `default` in the
+plot legend) and `+ analytical` coincide. Left, IIT 3.0 big Φ:
 `+ cut-one` and `cut-one + no-new-concepts` coincide (lower pair); `default` and
 `+ no-new-concepts` coincide (upper pair) — no-new-concepts adds nothing here.
 ```
