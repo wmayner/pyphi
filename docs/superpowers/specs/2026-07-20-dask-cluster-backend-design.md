@@ -68,11 +68,23 @@ reusing its building blocks:
   (the sampled-chunksize fold rule, reused verbatim).
 - **Chunking.** Reuse `compute_chunksize` (client-side cost sampling with
   the same call-shape rules for `map_kwargs`/multi-iterable maps) and the
-  same chunk construction as `LocalMapReduce._get_chunks` (even or
-  cost-balanced index bins). Chunks are submitted as
-  `client.submit(_process_chunk, chunk_tuple, wrapped_fn, map_kwargs,
-  shortcircuit.func)` futures — `_process_chunk` is imported from
-  `local_process` unchanged.
+  same chunk construction as `LocalMapReduce._get_chunks` — factored into
+  a shared pure helper `chunking.iter_chunks(materialized, chunksize,
+  num_workers, size_func)` that `_get_chunks` also delegates to
+  (behavior-neutral refactor). The worker-count floor uses the connected
+  cluster's worker count (`client.scheduler_info()["workers"]`). Chunks
+  are submitted as `client.submit(_process_chunk, chunk_tuple, wrapped_fn,
+  map_kwargs, shortcircuit.func, pure=False)` futures — `_process_chunk`
+  is imported from `local_process` unchanged, and `pure=False` makes every
+  submission a distinct task so dask's content-addressed keys never
+  deduplicate repeated computations.
+- **Nested dispatch runs in-task.** A `map_reduce` call that executes
+  *inside* a Dask worker task (detected with `distributed.get_worker()`)
+  runs its items sequentially in that task instead of submitting to the
+  cluster: blocking on subtasks from within a task can deadlock a fully
+  occupied worker pool, and worker slots are typically single-core.
+  Consequently only the outermost parallel level of a nested computation
+  distributes; inner levels stay in-task.
 - **Config propagation.** Reuse `_make_worker_fn(fn, snapshot)`. Dask
   workers are processes holding module globals, so the existing
   hash-deduplicated `_apply_snapshot_if_changed` works unchanged. One
@@ -166,8 +178,10 @@ committed) when the guide lands.
   recorded on the row: sweep cells (with a substrate axis) materialized as
   independent condor jobs + collect into `SweepResult`; trigger = pool-scale
   campaigns where a held worker pool is wasteful.
-- MCP `performance.md`: one paragraph noting the dask backend exists and
-  that `parallel_backend` selects it.
+- MCP content: `pyphi/mcp/content/parallelization.md` currently states the
+  dask backend is an unimplemented stub — replace that sentence with an
+  accurate description (client-connected distributed execution via the
+  `cluster` extra).
 
 ## Out of scope
 
