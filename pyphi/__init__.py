@@ -101,6 +101,8 @@ from .conf import iit4_2023
 from .conf import iit4_2026
 from .core.tpm import FactoredTPM as FactoredTPM
 from .core.tpm import JointTPM as JointTPM
+from .cost import AnalysisEstimate as AnalysisEstimate
+from .cost import estimate_analysis as estimate_analysis
 from .direction import Direction
 from .estimate import estimate_substrate as estimate_substrate
 from .estimate import phi_posterior as phi_posterior

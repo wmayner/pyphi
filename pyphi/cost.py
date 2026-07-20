@@ -14,6 +14,21 @@ the machine and configuration and is never predicted.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+from typing import Any
+
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.models.pandas import ToPandasMixin
+
+if TYPE_CHECKING:
+    from pyphi.substrate import Substrate
+
+__all__ = ["AnalysisEstimate", "estimate_analysis"]
+
 _PARTITION_COUNT_CAP = 6
 
 
@@ -167,3 +182,253 @@ def _mechanism_partition_count(msize: int, psize: int, counter: _Counter) -> int
             count += 1
         _MECHANISM_PARTITION_COUNT_MEMO[key] = count
     return count
+
+
+def _fmt(value: int) -> str:
+    """Format a count for display; huge counts as a power of ten."""
+    if value < 10**15:
+        return f"{value:,}"
+    return f"~10^{len(str(value)) - 1}"
+
+
+@dataclass(frozen=True)
+class AnalysisEstimate(Displayable, ToPandasMixin):
+    """The workload of a single-system analysis, before running it.
+
+    Work axes are counted by driving the analysis's own enumeration
+    machinery under the active configuration. ``None`` marks an axis
+    outside the estimate's scope: excluded by ``compute``, not applicable
+    under the active formalism, or not reached before the work budget
+    (``capped=True``).
+
+    Attributes
+    ----------
+    n_units : int
+        Number of units in the candidate system.
+    state_space_size : int
+        Product of the candidate units' alphabet sizes — the scale of one
+        repertoire evaluation. Reported as a weight, never multiplied into
+        the counts.
+    compute : str
+        ``"full"``, ``"sia"``, or ``"ces"``.
+    system_partitions : int or None
+        Partitions the system irreducibility analysis sweeps, under the
+        active system partition scheme.
+    mechanisms : int or None
+        Candidate mechanisms: 2ⁿ − 1 for n units.
+    purview_evaluations : int or None
+        Connectivity-pruned (mechanism, direction, purview) triples — the
+        repertoire-computation axis.
+    mechanism_partition_sweeps : int or None
+        Mechanism partitions summed over all counted triples, under the
+        active mechanism partition scheme — the dominant cost of unfolding
+        a cause-effect structure.
+    relations_closed_form : bool or None
+        Whether the active relation backend computes relations in closed
+        form (``ANALYTICAL``) rather than by enumeration (``CONCRETE``).
+        ``None`` when relations are outside the estimate's scope.
+    possible_distinctions : int or None
+        Candidate distinctions (2ⁿ − 1) — the size ceiling of the
+        cause-effect structure. Present only under an IIT 4.0 formalism
+        with binary units.
+    possible_relations : int or None
+        Candidate relations (2^(2ⁿ−1) − 1) — the size ceiling of the
+        relation set, and the enumeration worst case when
+        ``relations_closed_form`` is ``False``. Present only under an
+        IIT 4.0 formalism with binary units.
+    capped : bool
+        The counting walk hit its work budget; walked counts are lower
+        bounds (rendered with a ``≥`` qualifier) and axes never reached
+        are ``None``.
+    """
+
+    n_units: int
+    state_space_size: int
+    compute: str
+    system_partitions: int | None
+    mechanisms: int | None
+    purview_evaluations: int | None
+    mechanism_partition_sweeps: int | None
+    relations_closed_form: bool | None
+    possible_distinctions: int | None
+    possible_relations: int | None
+    capped: bool
+
+    def _qualifier(self) -> str:
+        return "≥" if self.capped else "="
+
+    def _pandas_record(self) -> dict:
+        return {
+            "n_units": self.n_units,
+            "state_space_size": self.state_space_size,
+            "compute": self.compute,
+            "system_partitions": self.system_partitions,
+            "mechanisms": self.mechanisms,
+            "purview_evaluations": self.purview_evaluations,
+            "mechanism_partition_sweeps": self.mechanism_partition_sweeps,
+            "relations_closed_form": self.relations_closed_form,
+            "possible_distinctions": self.possible_distinctions,
+            "possible_relations": self.possible_relations,
+            "capped": self.capped,
+        }
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        q = self._qualifier()
+        rows = [
+            Row("Units", str(self.n_units)),
+            Row("State space", _fmt(self.state_space_size)),
+        ]
+        if self.system_partitions is not None:
+            rows.append(Row("System partitions", f"{q} {_fmt(self.system_partitions)}"))
+        if self.mechanisms is not None:
+            rows.append(Row("Mechanisms", _fmt(self.mechanisms)))
+        if self.purview_evaluations is not None:
+            rows.append(
+                Row("Purview evaluations", f"{q} {_fmt(self.purview_evaluations)}")
+            )
+        if self.mechanism_partition_sweeps is not None:
+            rows.append(
+                Row(
+                    "Mechanism partition sweeps",
+                    f"{q} {_fmt(self.mechanism_partition_sweeps)}",
+                )
+            )
+        if self.relations_closed_form is not None:
+            rows.append(
+                Row(
+                    "Relations",
+                    "closed form" if self.relations_closed_form else "enumerated",
+                )
+            )
+        if self.possible_distinctions is not None:
+            rows.append(Row("Possible distinctions", _fmt(self.possible_distinctions)))
+        if self.possible_relations is not None:
+            rows.append(Row("Possible relations", _fmt(self.possible_relations)))
+        rows.append(Row("Capped", self.capped))
+        return Description(
+            title="AnalysisEstimate",
+            subtitle=f"{self.n_units} units, {self.compute}",
+            sections=(Section(rows=tuple(rows)),),
+            compact=(
+                f"AnalysisEstimate(n_units={self.n_units}, compute={self.compute!r})"
+            ),
+        )
+
+
+def estimate_analysis(
+    substrate: Substrate,
+    subset: Any = None,
+    compute: str | None = None,
+    limit: int = 1_000_000,
+) -> AnalysisEstimate:
+    """Count the workload of a single-system analysis, without running it.
+
+    Drives the same enumeration machinery :func:`pyphi.analyze` would use
+    under the active configuration: the system partition scheme, the
+    connectivity-pruned purview sets, and the mechanism partition scheme.
+    No φ is computed and no state is needed — every counted quantity is
+    state-independent.
+
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate to analyze.
+    subset : optional
+        Node indices (or labels) of the candidate system; ``None`` uses
+        the whole substrate.
+    compute : str or None, optional
+        ``None`` estimates the full analysis; ``"sia"`` only the
+        system-partition axis; ``"ces"`` only the distinction axis.
+    limit : int, optional
+        Work budget for the counting walk itself: purview evaluations and
+        fresh partition enumerations each cost one unit, while memoized
+        partition counts are free. A walk that exceeds the budget stops
+        immediately and reports ``capped=True``.
+
+    Returns
+    -------
+    AnalysisEstimate
+        The counted workload.
+
+    Raises
+    ------
+    ValueError
+        If ``compute`` is not ``"sia"``, ``"ces"``, or ``None``.
+
+    Examples
+    --------
+    >>> from pyphi import examples
+    >>> est = estimate_analysis(examples.basic_substrate())
+    >>> est.mechanisms
+    7
+    >>> est.system_partitions
+    22
+    """
+    if compute not in (None, "sia", "ces"):
+        raise ValueError(
+            f"unknown compute: {compute!r}; expected 'sia', 'ces', or None "
+            "for the full analysis"
+        )
+    from pyphi import utils
+    from pyphi.conf import config
+    from pyphi.direction import Direction
+    from pyphi.system import System
+
+    cs = System.from_substrate(substrate, (0,) * substrate.size, subset)
+    indices = cs.node_indices
+    m = len(indices)
+    alphabet = substrate.factored_tpm.alphabet_sizes
+    state_space_size = 1
+    for i in indices:
+        state_space_size *= int(alphabet[i])
+    scope = "full" if compute is None else compute
+
+    counter = _Counter(limit)
+    capped = False
+    system_partition_count = None
+    mechanisms = None
+    purview_evaluations = None
+    sweeps = None
+    try:
+        if scope in ("full", "sia"):
+            system_partition_count = _system_partition_count(m, counter)
+        if scope in ("full", "ces"):
+            mechanisms = 2**m - 1
+            purview_evaluations = 0
+            sweeps = 0
+            for mechanism in utils.powerset(indices, nonempty=True):
+                for direction in (Direction.CAUSE, Direction.EFFECT):
+                    for purview in cs.potential_purviews(direction, mechanism):
+                        counter.charge(1)
+                        purview_evaluations += 1
+                        sweeps += _mechanism_partition_count(
+                            len(mechanism), len(purview), counter
+                        )
+    except _LimitReached:
+        capped = True
+
+    version = config.formalism.iit.version
+    relations_closed_form = None
+    possible_distinctions = None
+    possible_relations = None
+    if version.startswith("IIT_4_0") and scope in ("full", "ces"):
+        relations_closed_form = config.formalism.iit.relation_computation == "ANALYTICAL"
+        if all(int(alphabet[i]) == 2 for i in indices):
+            from pyphi.formalism.iit4 import bounds
+
+            possible_distinctions = bounds.number_of_possible_distinctions(m)
+            possible_relations = bounds.number_of_possible_relations(m)
+
+    return AnalysisEstimate(
+        n_units=m,
+        state_space_size=state_space_size,
+        compute=scope,
+        system_partitions=system_partition_count,
+        mechanisms=mechanisms,
+        purview_evaluations=purview_evaluations,
+        mechanism_partition_sweeps=sweeps,
+        relations_closed_form=relations_closed_form,
+        possible_distinctions=possible_distinctions,
+        possible_relations=possible_relations,
+        capped=capped,
+    )

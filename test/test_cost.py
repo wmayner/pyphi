@@ -1,5 +1,7 @@
 """Tests for pyphi.cost: the single-system analysis workload pre-flight."""
 
+from math import comb
+
 import numpy as np
 import pytest
 
@@ -8,8 +10,10 @@ from pyphi import examples
 from pyphi.conf import presets
 from pyphi.cost import _MECHANISM_PARTITION_COUNT_MEMO
 from pyphi.cost import _PARTITION_COUNT_MEMO
+from pyphi.cost import estimate_analysis
 from pyphi.partition import mechanism_partitions
 from pyphi.partition import system_partitions
+from test.conftest import IIT_3_CONFIG
 
 
 @pytest.fixture(autouse=True)
@@ -68,3 +72,148 @@ class TestSeeds:
             assert (
                 _MECHANISM_PARTITION_COUNT_MEMO[("JOINT_PARTITION_ALL", a, b)] == direct
             )
+
+
+class TestCounts:
+    def test_counts_match_direct_enumeration(self):
+        est = estimate_analysis(_dense3())
+        assert est.n_units == 3
+        assert est.compute == "full"
+        assert est.state_space_size == 8
+        assert est.mechanisms == 7
+        assert est.system_partitions == sum(1 for _ in system_partitions((0, 1, 2)))
+        # Fully connected: every nonempty purview is a candidate for every
+        # mechanism in both directions.
+        assert est.purview_evaluations == 7 * 2 * 7
+        expected = sum(
+            comb(3, a)
+            * comb(3, b)
+            * 2
+            * sum(
+                1 for _ in mechanism_partitions(tuple(range(a)), tuple(range(a, a + b)))
+            )
+            for a in (1, 2, 3)
+            for b in (1, 2, 3)
+        )
+        assert est.mechanism_partition_sweeps == expected
+        assert est.relations_closed_form is True
+        assert est.possible_distinctions == 7
+        assert est.possible_relations == 2**7 - 1
+        assert est.capped is False
+
+    def test_dense_3unit_reference_values(self):
+        est = estimate_analysis(_dense3())
+        assert est.system_partitions == 22
+        assert est.purview_evaluations == 98
+        assert est.mechanism_partition_sweeps == 1102
+
+    def test_sparse_connectivity_prunes_purviews(self):
+        sparse = estimate_analysis(examples.basic_substrate())
+        dense = estimate_analysis(_dense3())
+        assert sparse.purview_evaluations == 30
+        assert sparse.mechanism_partition_sweeps == 526
+        assert sparse.purview_evaluations < dense.purview_evaluations
+        assert sparse.mechanism_partition_sweeps < dense.mechanism_partition_sweeps
+
+    def test_subset_restricts_the_walk(self):
+        est = estimate_analysis(_dense3(), subset=(0, 1))
+        assert est.n_units == 2
+        assert est.state_space_size == 4
+        assert est.mechanisms == 3
+        assert est.purview_evaluations == 3 * 2 * 3
+        assert est.system_partitions == sum(1 for _ in system_partitions((0, 1)))
+
+
+class TestScope:
+    def test_sia_scope(self):
+        est = estimate_analysis(_dense3(), compute="sia")
+        assert est.compute == "sia"
+        assert est.system_partitions == 22
+        assert est.mechanisms is None
+        assert est.purview_evaluations is None
+        assert est.mechanism_partition_sweeps is None
+        assert est.relations_closed_form is None
+        assert est.possible_distinctions is None
+        assert est.possible_relations is None
+
+    def test_ces_scope(self):
+        est = estimate_analysis(_dense3(), compute="ces")
+        assert est.compute == "ces"
+        assert est.system_partitions is None
+        assert est.mechanism_partition_sweeps == 1102
+
+    def test_unknown_compute_raises(self):
+        with pytest.raises(ValueError, match="compute"):
+            estimate_analysis(_dense3(), compute="everything")
+
+
+class TestConfigSensitivity:
+    def test_system_partition_scheme_changes_the_count(self):
+        with pyphi.config.override(system_partition_scheme="DIRECTED_BIPARTITION"):
+            est = estimate_analysis(_dense3(), compute="sia")
+            direct = sum(1 for _ in system_partitions((0, 1, 2)))
+            assert est.system_partitions == direct
+        default = estimate_analysis(_dense3(), compute="sia")
+        assert est.system_partitions != default.system_partitions
+
+    def test_concrete_relations_backend_reports_enumeration(self):
+        with pyphi.config.override(relation_computation="CONCRETE"):
+            est = estimate_analysis(_dense3())
+        assert est.relations_closed_form is False
+        assert est.possible_relations == 2**7 - 1
+
+    def test_iit3_counts_without_iit4_context(self):
+        with IIT_3_CONFIG:
+            est = estimate_analysis(_dense3())
+            direct = sum(1 for _ in system_partitions((0, 1, 2)))
+            assert est.system_partitions == direct
+            assert est.mechanism_partition_sweeps is not None
+            assert est.relations_closed_form is None
+            assert est.possible_distinctions is None
+            assert est.possible_relations is None
+
+    def test_kary_work_axes_without_binary_context(self):
+        rng = np.random.default_rng(2026)
+        f0 = rng.uniform(size=(3, 3, 3))
+        f0 = f0 / f0.sum(axis=-1, keepdims=True)
+        f1 = rng.uniform(size=(3, 3, 3))
+        f1 = f1 / f1.sum(axis=-1, keepdims=True)
+        sub = pyphi.Substrate(marginals=[f0, f1], state_space=("LOW", "MID", "HIGH"))
+        est = estimate_analysis(sub)
+        assert est.state_space_size == 9
+        assert est.mechanisms == 3
+        assert est.purview_evaluations is not None
+        assert est.relations_closed_form is not None
+        assert est.possible_distinctions is None
+        assert est.possible_relations is None
+
+
+class TestBudget:
+    def test_limit_truncates_the_walk(self):
+        est = estimate_analysis(_dense3(), limit=10)
+        assert est.capped is True
+        assert est.purview_evaluations is not None
+        assert est.purview_evaluations < 98
+        assert est.mechanism_partition_sweeps < 1102
+
+    def test_memoized_counts_do_not_consume_budget(self):
+        # Seeded system-partition counts resolve even under a unit budget.
+        est = estimate_analysis(_dense3(), compute="sia", limit=1)
+        assert est.system_partitions == 22
+        assert est.capped is False
+
+
+class TestPresentation:
+    def test_pandas_record(self):
+        record = estimate_analysis(_dense3()).to_pandas()
+        assert record["n_units"] == 3
+        assert record["mechanisms"] == 7
+        assert record["capped"] is False
+
+    def test_card_renders(self):
+        est = estimate_analysis(_dense3())
+        assert "AnalysisEstimate" in str(est)
+
+    def test_capped_card_uses_lower_bound_qualifier(self):
+        est = estimate_analysis(_dense3(), limit=10)
+        assert "≥" in str(est)
