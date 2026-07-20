@@ -514,6 +514,12 @@ class DataFrameSchema(msgspec.Struct, frozen=True, tag="dataframe"):
     tuple_columns: tuple[str, ...] = ()
 
 
+class SweepResultSchema(msgspec.Struct, frozen=True, tag="sweep_result"):
+    df: DataFrameSchema
+    results: tuple["Schema | float", ...]
+    skipped: tuple[tuple[str, tuple[int, ...], tuple[int, ...]], ...]
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -564,4 +570,5 @@ Schema = (
     | CoverageReportSchema
     | SubstratePosteriorSchema
     | PhiPosteriorSchema
+    | SweepResultSchema
 )

@@ -15,6 +15,7 @@ import numpy as np
 from pyphi.direction import Direction
 
 from . import arrays
+from . import frames
 from . import schema
 
 _ENCODERS: dict[type, Callable[[Any], Any]] = {}  # domain type   -> encode
@@ -1251,6 +1252,35 @@ def _register_phi_posterior() -> None:
     )
 
 
+def _register_sweep_result() -> None:
+    from pyphi.sweep import SweepResult
+
+    _ENCODERS[SweepResult] = lambda r: schema.SweepResultSchema(
+        df=frames.dataframe_to_schema(r.df),
+        results=tuple(
+            obj if isinstance(obj, float) else to_schema(obj) for obj in r.results
+        ),
+        skipped=tuple(
+            (formalism, tuple(subset), tuple(state))
+            for formalism, subset, state in r.skipped
+        ),
+    )
+
+    def _decode_sweep_result(s: schema.SweepResultSchema) -> Any:
+        return SweepResult(
+            df=frames.schema_to_dataframe(s.df),
+            results=[
+                obj if isinstance(obj, float) else from_schema(obj) for obj in s.results
+            ],
+            skipped=[
+                (formalism, tuple(subset), tuple(state))
+                for formalism, subset, state in s.skipped
+            ],
+        )
+
+    _DECODERS[schema.SweepResultSchema] = _decode_sweep_result
+
+
 _REGISTERED = False
 
 
@@ -1303,3 +1333,4 @@ def _ensure_registered() -> None:
     _register_coverage_report()
     _register_substrate_posterior()
     _register_phi_posterior()
+    _register_sweep_result()

@@ -22,6 +22,7 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
+from pyphi.serializable import Serializable
 from pyphi.system import System
 
 # A dynamically-unreachable state has no defined cause/effect repertoire, so its
@@ -40,7 +41,7 @@ class _Skipped:
 
 
 @dataclass(frozen=True)
-class SweepResult:
+class SweepResult(Serializable):
     """A sweep's tidy table plus the raw results behind it.
 
     ``df`` has one row per computed cell, indexed by the axes that vary.
