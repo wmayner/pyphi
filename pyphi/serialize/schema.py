@@ -497,6 +497,23 @@ class PhiPosteriorSchema(msgspec.Struct, frozen=True, tag="phi_posterior"):
     reference_margins: dict[str, float | None] | None = None
 
 
+# --- Batch-run results --------------------------------------------------------
+
+
+class DataFrameSchema(msgspec.Struct, frozen=True, tag="dataframe"):
+    """A pandas DataFrame as embedded parquet.
+
+    ``index_columns`` names the index levels reset to columns before the
+    parquet write; ``tuple_columns`` names the object columns whose non-null
+    cells are restored as tuples on decode (parquet represents them as
+    lists).
+    """
+
+    parquet: bytes
+    index_columns: tuple[str, ...] = ()
+    tuple_columns: tuple[str, ...] = ()
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
