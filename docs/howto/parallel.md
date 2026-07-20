@@ -183,3 +183,12 @@ As a rule of thumb:
 When in doubt, benchmark both. Because the result is identical either way, you
 can compare wall-clock time directly and pick whichever is faster for your
 network size.
+
+## Running on a cluster
+
+The `dask` backend distributes the same parallel levels across a
+`dask.distributed` cluster — a laptop `LocalCluster`, lab workstations, or
+an HTCondor/Slurm pool via `dask-jobqueue`. Install the `cluster` extra
+(`pip install "pyphi[cluster]"`), connect a `distributed.Client`, and set
+`pyphi.config.parallel_backend = "dask"`. See {doc}`chtc` for cluster
+deployment, including UW–Madison's CHTC.

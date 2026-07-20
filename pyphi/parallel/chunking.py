@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import heapq
 import math
+from collections.abc import Callable
+from collections.abc import Iterator
+from collections.abc import Sequence
+from typing import Any
 
 _EPS = 1e-12
 
@@ -45,3 +49,46 @@ def cost_balanced_partition(weights: list[float], k: int) -> list[list[int]]:
         bins[b].append(idx)
         heapq.heappush(heap, (acc + w, b))
     return bins
+
+
+def iter_chunks(
+    materialized: Sequence[Sequence[Any]],
+    chunksize: int,
+    num_workers: int,
+    size_func: Callable[[Any], float] | None = None,
+) -> Iterator[tuple]:
+    """Yield chunk tuples for parallel dispatch.
+
+    Each yielded tuple holds one list per input sequence, index-aligned
+    across sequences. Indices are grouped into ``max(ceil(n / chunksize),
+    num_workers)`` bins — evenly, or cost-balanced when ``size_func``
+    estimates per-item cost from the first sequence's items. ``n`` is the
+    length of the shortest sequence, so ragged inputs truncate as
+    ``zip(strict=False)`` would.
+
+    Parameters
+    ----------
+    materialized : sequence of sequences
+        The item sequences to chunk; the first is the primary axis.
+    chunksize : int
+        Target number of items per chunk.
+    num_workers : int
+        Lower bound on the number of chunks, so a small workload still
+        spreads across available workers.
+    size_func : callable, optional
+        Estimated cost of one primary-axis item. If None, chunks are
+        count-balanced.
+    """
+    if not materialized or not materialized[0]:
+        return
+    n = min(len(it) for it in materialized)
+    k = max(math.ceil(n / chunksize), num_workers)
+    if size_func is not None:
+        weights = [size_func(materialized[0][i]) for i in range(n)]
+        index_bins = cost_balanced_partition(weights, k)
+    else:
+        index_bins = even_partition(n, k)
+    for indices in index_bins:
+        if not indices:
+            continue
+        yield tuple([it[i] for i in indices] for it in materialized)

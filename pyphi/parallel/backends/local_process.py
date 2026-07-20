@@ -15,6 +15,7 @@ from __future__ import annotations
 import functools
 import logging
 import math
+import threading
 from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -139,28 +140,14 @@ class LocalMapReduce:
             else:
                 materialized.append(list(iterable))
 
-        # Chunk each iterable and zip them together
-        if not materialized or not materialized[0]:
-            return
+        from pyphi.parallel.chunking import iter_chunks
 
-        from pyphi.parallel.chunking import cost_balanced_partition
-        from pyphi.parallel.chunking import even_partition
-
-        # Partition over the shortest iterable so the index applied to every
-        # iterable is in range (matches the old ``zip(strict=False)`` truncation
-        # when iterables differ in length).
-        n = min(len(it) for it in materialized)
-        k = max(math.ceil(n / self.chunksize), get_num_processes())
-        if self.size_func is not None:
-            weights = [self.size_func(materialized[0][i]) for i in range(n)]
-            index_bins = cost_balanced_partition(weights, k)
-        else:
-            index_bins = even_partition(n, k)
-
-        for indices in index_bins:
-            if not indices:
-                continue
-            yield tuple([it[i] for i in indices] for it in materialized)
+        yield from iter_chunks(
+            materialized,
+            chunksize=self.chunksize,
+            num_workers=get_num_processes(),
+            size_func=self.size_func,
+        )
 
     def _should_run_parallel(self) -> bool:
         """Parallelize whenever the chunker would produce more than one chunk.
@@ -329,6 +316,7 @@ class LocalMapReduce:
 
 _LAST_APPLIED_SNAPSHOT_HASH: int | None = None
 _PARENT_PID: int | None = None
+_SNAPSHOT_LOCK = threading.Lock()
 
 
 def _apply_snapshot_if_changed(snapshot: Any, snap_hash: int) -> None:
@@ -336,7 +324,9 @@ def _apply_snapshot_if_changed(snapshot: Any, snap_hash: int) -> None:
 
     ``snap_hash`` identifies the snapshot; it is computed once on the
     parent side (hashing the snapshot repr is ~1 ms, far too slow to pay
-    per item) and compared against the last-applied hash here.
+    per item) and compared against the last-applied hash here. The
+    check-and-install is atomic so that multithreaded workers cannot
+    interleave installations.
 
     Skips application when running in the parent process (set by the thread
     scheduler before dispatch) — threads share the parent's globals and the
@@ -349,11 +339,12 @@ def _apply_snapshot_if_changed(snapshot: Any, snap_hash: int) -> None:
     if _PARENT_PID is not None and os.getpid() == _PARENT_PID:
         return
 
-    if snap_hash == _LAST_APPLIED_SNAPSHOT_HASH:
-        return
+    with _SNAPSHOT_LOCK:
+        if snap_hash == _LAST_APPLIED_SNAPSHOT_HASH:
+            return
 
-    config.install_snapshot(snapshot)
-    _LAST_APPLIED_SNAPSHOT_HASH = snap_hash
+        config.install_snapshot(snapshot)
+        _LAST_APPLIED_SNAPSHOT_HASH = snap_hash
 
 
 def _make_worker_fn(fn: Callable[..., Any], snapshot: Any) -> Callable[..., Any]:

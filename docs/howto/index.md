@@ -5,6 +5,7 @@
 
 configure
 parallel
+chtc
 cache
 save-load
 export

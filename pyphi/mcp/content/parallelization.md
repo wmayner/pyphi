@@ -66,7 +66,9 @@ gated by the global `progress_bars` option).
   cores; `-2` means all but one; a positive integer caps the count.
 - `parallel_backend` — `"local"` (the default; a loky process pool),
   `"thread"` (a thread pool), or `"auto"` (threads on a free-threaded
-  Python, processes otherwise). `"dask"` is an unimplemented stub.
+  Python, processes otherwise). `"dask"` distributes across a
+  user-connected `dask.distributed` cluster (requires the `cluster` extra
+  and an active `distributed.Client`).
 
 ## Recipes
 
