@@ -19,7 +19,9 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from typing import Any
 
+from pyphi.parallel.backends.progress import LocalProgressBar
 from pyphi.parallel.scheduler import ChunkingPolicy
+from pyphi.parallel.scheduler import ProgressPolicy
 from pyphi.parallel.scheduler import ShortcircuitPolicy
 
 
@@ -43,10 +45,11 @@ class LocalThreadScheduler:
         ordered: bool = False,
         map_kwargs: dict[str, Any] | None = None,
     ) -> Any:
-        # threads share parent globals; progress hookup deferred to a follow-up
-        del config_snapshot, progress
+        # Threads share the parent's globals, so there is no snapshot to apply.
+        del config_snapshot
 
         chunking = chunking or ChunkingPolicy()
+        progress = progress or ProgressPolicy()
         shortcircuit = shortcircuit or ShortcircuitPolicy()
         map_kwargs = map_kwargs or {}
 
@@ -64,50 +67,70 @@ class LocalThreadScheduler:
         if not materialized or not materialized[0]:
             return reducer([])
 
-        if len(materialized[0]) < chunking.sequential_threshold:
-            results: list[Any] = []
-            for args in zip(*materialized, strict=False):
-                value = fn(*args, **map_kwargs)
-                results.append(value)
-                if shortcircuit.func(value):
-                    shortcircuit.fire(results)
-                    break
-            return reducer(results)
-
-        results = []
-        with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            futures = [
-                executor.submit(fn, *args, **map_kwargs)
-                for args in zip(*materialized, strict=False)
-            ]
-            # Collect in submission order when the caller asked for original
-            # order or a short-circuit predicate is active. When
-            # short-circuiting, the collected subset is truncated at the
-            # first triggering result, so completion order would make that
-            # subset — and any order-sensitive reduction over it (e.g. tie
-            # resolution among the surviving candidates) — depend on thread
-            # scheduling. Submission order yields the same prefix as
-            # sequential evaluation.
-            iterator: Iterable[Any] = (
-                futures if ordered or shortcircuit.active else as_completed(futures)
+        # Updates happen only in this (collecting) thread, never in workers,
+        # so the bar needs no locking.
+        progress_bar = (
+            LocalProgressBar(
+                total=progress.total
+                if progress.total is not None
+                else len(materialized[0]),
+                desc=progress.desc,
             )
-            # A worker exception cancels the pending futures before
-            # propagating; otherwise the executor's shutdown would block
-            # until every orphaned future had run to completion.
-            try:
-                for fut in iterator:
-                    value = fut.result()
+            if progress.enabled
+            else None
+        )
+        try:
+            if len(materialized[0]) < chunking.sequential_threshold:
+                results: list[Any] = []
+                for args in zip(*materialized, strict=False):
+                    value = fn(*args, **map_kwargs)
                     results.append(value)
+                    if progress_bar is not None:
+                        progress_bar.update(1)
                     if shortcircuit.func(value):
-                        for remaining in futures:
-                            if not remaining.done():
-                                remaining.cancel()
-                        shortcircuit.fire(futures)
+                        shortcircuit.fire(results)
                         break
-            except BaseException:
-                for remaining in futures:
-                    if not remaining.done():
-                        remaining.cancel()
-                raise
+                return reducer(results)
 
-        return reducer(results)
+            results = []
+            with ThreadPoolExecutor(max_workers=num_workers) as executor:
+                futures = [
+                    executor.submit(fn, *args, **map_kwargs)
+                    for args in zip(*materialized, strict=False)
+                ]
+                # Collect in submission order when the caller asked for
+                # original order or a short-circuit predicate is active. When
+                # short-circuiting, the collected subset is truncated at the
+                # first triggering result, so completion order would make that
+                # subset — and any order-sensitive reduction over it (e.g. tie
+                # resolution among the surviving candidates) — depend on
+                # thread scheduling. Submission order yields the same prefix
+                # as sequential evaluation.
+                iterator: Iterable[Any] = (
+                    futures if ordered or shortcircuit.active else as_completed(futures)
+                )
+                # A worker exception cancels the pending futures before
+                # propagating; otherwise the executor's shutdown would block
+                # until every orphaned future had run to completion.
+                try:
+                    for fut in iterator:
+                        value = fut.result()
+                        results.append(value)
+                        if progress_bar is not None:
+                            progress_bar.update(1)
+                        if shortcircuit.func(value):
+                            for remaining in futures:
+                                if not remaining.done():
+                                    remaining.cancel()
+                            shortcircuit.fire(futures)
+                            break
+                except BaseException:
+                    for remaining in futures:
+                        if not remaining.done():
+                            remaining.cancel()
+                    raise
+
+            return reducer(results)
+        finally:
+            if progress_bar is not None:
+                progress_bar.close()

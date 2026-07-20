@@ -135,6 +135,100 @@ def test_local_thread_scheduler_does_not_apply_snapshot():
     assert worker_views == [11, 11, 11]
 
 
+def _patch_thread_progress_bar(monkeypatch):
+    """Replace the thread backend's progress bar with a recorder; return the
+    list of bars constructed."""
+    bars = []
+
+    class RecordingBar:
+        def __init__(self, total=None, desc=""):
+            self.total = total
+            self.desc = desc
+            self.updates = 0
+            self.closed = False
+            bars.append(self)
+
+        def update(self, n=1):
+            self.updates += n
+
+        def close(self):
+            self.closed = True
+
+    monkeypatch.setattr(
+        "pyphi.parallel.backends.local_thread.LocalProgressBar", RecordingBar
+    )
+    return bars
+
+
+def test_local_thread_scheduler_progress_parallel_path(monkeypatch):
+    from pyphi.parallel.backends.local_thread import LocalThreadScheduler
+
+    bars = _patch_thread_progress_bar(monkeypatch)
+    s = LocalThreadScheduler()
+    result = s.map_reduce(
+        lambda x: x + 1,
+        [10, 20, 30],
+        reducer=sum,
+        progress=ProgressPolicy(enabled=True, desc="units"),
+    )
+    assert result == 11 + 21 + 31
+    (bar,) = bars
+    # Policy total is None; the bar falls back to the materialized item count.
+    assert bar.total == 3
+    assert bar.desc == "units"
+    assert bar.updates == 3
+    assert bar.closed
+
+
+def test_local_thread_scheduler_progress_sequential_path(monkeypatch):
+    from pyphi.parallel.backends.local_thread import LocalThreadScheduler
+
+    bars = _patch_thread_progress_bar(monkeypatch)
+    s = LocalThreadScheduler()
+    result = s.map_reduce(
+        lambda x: x + 1,
+        [1, 2, 3, 4, 5],
+        reducer=list,
+        chunking=ChunkingPolicy(sequential_threshold=10),
+        progress=ProgressPolicy(enabled=True),
+    )
+    assert result == [2, 3, 4, 5, 6]
+    (bar,) = bars
+    assert bar.updates == 5
+    assert bar.closed
+
+
+def test_local_thread_scheduler_progress_disabled(monkeypatch):
+    from pyphi.parallel.backends.local_thread import LocalThreadScheduler
+
+    bars = _patch_thread_progress_bar(monkeypatch)
+    s = LocalThreadScheduler()
+    s.map_reduce(lambda x: x, [1, 2, 3], reducer=list)
+    s.map_reduce(
+        lambda x: x, [1, 2, 3], reducer=list, progress=ProgressPolicy(enabled=False)
+    )
+    assert bars == []
+
+
+def test_local_thread_scheduler_progress_shortcircuit(monkeypatch):
+    """On short-circuit the bar closes after the collected prefix."""
+    from pyphi.parallel.backends.local_thread import LocalThreadScheduler
+
+    bars = _patch_thread_progress_bar(monkeypatch)
+    s = LocalThreadScheduler()
+    result = s.map_reduce(
+        lambda x: x,
+        [1, 2, 3, 4, 5],
+        reducer=list,
+        progress=ProgressPolicy(enabled=True),
+        shortcircuit=ShortcircuitPolicy(func=lambda r: r == 2),
+    )
+    assert result == [1, 2]
+    (bar,) = bars
+    assert bar.updates == 2
+    assert bar.closed
+
+
 def test_dask_scheduler_skeleton_lazy_import():
     """Importing the dask backend must not load dask.distributed."""
     import sys

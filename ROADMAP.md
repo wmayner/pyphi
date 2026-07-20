@@ -638,8 +638,10 @@ extending B1's bound-certificate assertions.
   registered in `pyphi.serialize` with full-fidelity `save`/`load` (DataFrames embedded as
   parquet; pyarrow is now a core dependency); the lossy bespoke `OptimizationResult.save`
   is gone. Spec: `docs/superpowers/specs/2026-07-19-result-serialization-design.md`.
-- **Thread-backend progress (M13).** The thread backend discards the progress policy on entry
-  (an in-code deferral note); hook the progress bar into its futures loop.
+- **Thread-backend progress (M13).** *Landed 2026-07-20:* the thread backend now reports
+  through `LocalProgressBar` on both its execution paths (sequential fallback and futures
+  loop), matching the process backend; previously it accepted the progress policy but
+  discarded it on entry.
 - **Script-facing provenance writer (M14).** *Landed 2026-07-20:*
   `provenance.save_json`/`save_npz`/`save_dataframe` (parquet, per the DataFrame-output
   convention) with `format_stem` filename encoding, `unique_path` no-clobber versioning, an
