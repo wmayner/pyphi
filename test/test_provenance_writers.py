@@ -3,6 +3,7 @@
 import json
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from pyphi import provenance
@@ -84,3 +85,55 @@ class TestSaveJson:
         second = provenance.save_json({"x": 2}, tmp_path, "study", params={"seed": 1})
         assert second == tmp_path / "study_seed1_v2.json"
         assert json.loads(first.read_text())["data"] == {"x": 1}
+
+
+class TestSaveNpz:
+    def test_arrays_round_trip_with_metadata(self, tmp_path):
+        arrays = {"phis": np.linspace(0, 1, 5), "states": np.eye(2)}
+        path = provenance.save_npz(arrays, tmp_path, "study", params={"seed": 3})
+        assert path == tmp_path / "study_seed3.npz"
+        with np.load(path) as npz:
+            np.testing.assert_array_equal(npz["phis"], arrays["phis"])
+            np.testing.assert_array_equal(npz["states"], arrays["states"])
+        metadata = provenance.read_metadata(path)
+        assert metadata["params"] == {"seed": 3}
+        assert metadata["provenance"]["seed"] == 3
+
+    def test_reserved_names_rejected(self, tmp_path):
+        with pytest.raises(ValueError, match="reserved"):
+            provenance.save_npz({"_provenance": np.zeros(1)}, tmp_path, "study")
+
+
+class TestSaveDataframe:
+    def test_round_trip_and_metadata(self, tmp_path):
+        df = pd.DataFrame(
+            {"phi": [0.1, 0.2], "n": [3, 4]},
+            index=pd.Index(["a", "b"], name="system"),
+        )
+        path = provenance.save_dataframe(df, tmp_path, "study", params={"seed": 9})
+        assert path == tmp_path / "study_seed9.parquet"
+        pd.testing.assert_frame_equal(pd.read_parquet(path), df)
+        metadata = provenance.read_metadata(path)
+        assert metadata["provenance"]["seed"] == 9
+        assert metadata["params"] == {"seed": 9}
+
+
+class TestReadMetadata:
+    def test_json_metadata(self, tmp_path):
+        path = provenance.save_json({"x": 1}, tmp_path, "study", params={"seed": 5})
+        metadata = provenance.read_metadata(path)
+        assert metadata["params"] == {"seed": 5}
+        assert metadata["provenance"]["seed"] == 5
+        assert "pyphi_version" in metadata["provenance"]
+
+    def test_plain_json_rejected(self, tmp_path):
+        path = tmp_path / "plain.json"
+        path.write_text('{"x": 1}')
+        with pytest.raises(ValueError, match="no pyphi provenance"):
+            provenance.read_metadata(path)
+
+    def test_unknown_suffix_rejected(self, tmp_path):
+        path = tmp_path / "file.csv"
+        path.touch()
+        with pytest.raises(ValueError, match="unrecognized suffix"):
+            provenance.read_metadata(path)

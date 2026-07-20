@@ -22,10 +22,14 @@ from dataclasses import replace
 from datetime import UTC
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
 import scipy
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 _PACKAGE_ROOT = Path(__file__).resolve().parent
 
@@ -269,6 +273,129 @@ def save_json(
     return path
 
 
+def _metadata_json(
+    prov: Provenance, params: Mapping[str, Any] | None
+) -> tuple[str, str]:
+    """Serialize the provenance record and params as JSON strings."""
+    return (
+        json.dumps(asdict(prov), default=_json_default),
+        json.dumps(dict(params or {}), default=_json_default),
+    )
+
+
+def save_npz(
+    arrays: Mapping[str, np.ndarray],
+    directory: Path | str,
+    name: str,
+    *,
+    params: Mapping[str, Any] | None = None,
+    run_label: str | None = None,
+    seed: int | None = None,
+    note: str | None = None,
+) -> Path:
+    """Write ``arrays`` to a self-describing, non-clobbering ``.npz`` file.
+
+    The arrays are stored with :func:`numpy.savez_compressed`, plus two
+    reserved entries ``_provenance`` and ``_params`` holding JSON strings
+    (read back with :func:`read_metadata`). Array names beginning with
+    ``_`` raise :class:`ValueError`. Filename, versioning, and seed
+    resolution follow :func:`save_json`.
+
+    Returns the written path.
+    """
+    reserved = [key for key in arrays if key.startswith("_")]
+    if reserved:
+        raise ValueError(f"array names beginning with '_' are reserved: {reserved}")
+    prov = _capture_metadata(params, seed, note)
+    prov_json, params_json = _metadata_json(prov, params)
+    path = unique_path(directory, format_stem(name, params, run_label), ".npz")
+    entries = {
+        **arrays,
+        "_provenance": np.array(prov_json),
+        "_params": np.array(params_json),
+    }
+    np.savez_compressed(path, allow_pickle=False, **entries)
+    return path
+
+
+def save_dataframe(
+    df: pd.DataFrame,
+    directory: Path | str,
+    name: str,
+    *,
+    params: Mapping[str, Any] | None = None,
+    run_label: str | None = None,
+    seed: int | None = None,
+    note: str | None = None,
+) -> Path:
+    """Write ``df`` to a self-describing, non-clobbering parquet file.
+
+    The frame is written with its index preserved; ``pyphi_provenance``
+    and ``pyphi_params`` entries (JSON strings) are merged into the
+    parquet schema metadata, so :func:`pandas.read_parquet` reads the
+    data normally and :func:`read_metadata` recovers the metadata.
+    Filename, versioning, and seed resolution follow :func:`save_json`.
+    DataFrame fidelity follows parquet semantics.
+
+    Returns the written path.
+    """
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    prov = _capture_metadata(params, seed, note)
+    prov_json, params_json = _metadata_json(prov, params)
+    path = unique_path(directory, format_stem(name, params, run_label), ".parquet")
+    table = pa.Table.from_pandas(df, preserve_index=True)
+    metadata = dict(table.schema.metadata or {})
+    metadata[b"pyphi_provenance"] = prov_json.encode()
+    metadata[b"pyphi_params"] = params_json.encode()
+    pq.write_table(table.replace_schema_metadata(metadata), path)
+    return path
+
+
+def read_metadata(path: Path | str) -> dict[str, Any]:
+    """Read the provenance and params embedded in a writer's output file.
+
+    Dispatches on the file suffix (``.json``, ``.npz``, or ``.parquet``)
+    and returns ``{"provenance": dict, "params": dict}``. A file without
+    the expected metadata (not produced by :func:`save_json`,
+    :func:`save_npz`, or :func:`save_dataframe`) raises
+    :class:`ValueError`, as does an unrecognized suffix.
+    """
+    path = Path(path)
+    missing = ValueError(f"no pyphi provenance metadata in {path}")
+    if path.suffix == ".json":
+        document = json.loads(path.read_text())
+        try:
+            return {
+                "provenance": document["provenance"],
+                "params": document["params"],
+            }
+        except (KeyError, TypeError):
+            raise missing from None
+    if path.suffix == ".npz":
+        with np.load(path) as npz:
+            try:
+                return {
+                    "provenance": json.loads(str(npz["_provenance"][()])),
+                    "params": json.loads(str(npz["_params"][()])),
+                }
+            except KeyError:
+                raise missing from None
+    if path.suffix == ".parquet":
+        import pyarrow.parquet as pq
+
+        metadata = pq.read_schema(path).metadata or {}
+        try:
+            return {
+                "provenance": json.loads(metadata[b"pyphi_provenance"]),
+                "params": json.loads(metadata[b"pyphi_params"]),
+            }
+        except KeyError:
+            raise missing from None
+    raise ValueError(f"unrecognized suffix {path.suffix!r} for {path}")
+
+
 def _set_provenance(result: Any, prov: Provenance) -> None:
     """Assign ``prov`` to ``result.provenance``, working around frozen results."""
     try:
@@ -319,7 +446,10 @@ __all__ = [
     "HasProvenance",
     "Provenance",
     "format_stem",
+    "read_metadata",
+    "save_dataframe",
     "save_json",
+    "save_npz",
     "stamp_wall_time",
     "unique_path",
 ]
