@@ -22,8 +22,10 @@ the MCP guard read real counts instead of node counts.
 
 ## 2. Scope
 
-- New module `pyphi/estimate.py` with `estimate_analysis(...)` returning an
-  `AnalysisEstimate`; exported as `pyphi.estimate_analysis`.
+- New module `pyphi/cost.py` with `estimate_analysis(...)` returning an
+  `AnalysisEstimate`; exported as `pyphi.estimate_analysis`. (The name
+  `pyphi/estimate.py` is taken: that module is statistical substrate
+  estimation from observed transitions, an unrelated sense of "estimate".)
 - Counting is **config-generic**: the work axes are enumerated under
   whatever formalism configuration is active (IIT 3.0 and both IIT 4.0
   presets all work). The IIT 4.0-specific structure-size context from
@@ -33,7 +35,7 @@ the MCP guard read real counts instead of node counts.
   replace the node limits, and a new `estimate_cost` MCP tool exposes the
   estimate directly.
 - The shared counting utilities (the work-budget counter and the
-  system-partition count memo) move to `pyphi/estimate.py`;
+  system-partition count memo) move to `pyphi/cost.py`;
   `pyphi/macro/estimate.py` imports them with no behavior change.
 
 Out of scope: wall-time prediction (per the standing fidelity ruling);
@@ -45,7 +47,7 @@ in bytes; estimating actual-causation analyses.
 ```python
 def estimate_analysis(
     substrate: Substrate,
-    subset: tuple[int, ...] | None = None,
+    subset: Any = None,  # node indices or labels, as in analyze()
     compute: str | None = None,
     limit: int = 1_000_000,
 ) -> AnalysisEstimate
@@ -57,13 +59,15 @@ def estimate_analysis(
   axis. Any other `compute` value raises `ValueError`.
 - There is no state parameter: every counted quantity is
   state-independent.
-- `limit` is the work budget for the estimate itself (counted items plus
-  partition-enumeration steps, as in `estimate_search`). When the budget is
-  exhausted, counting stops immediately and the result is marked capped.
+- `limit` is the work budget for the estimate's own walk: purview
+  evaluations and fresh partition-enumeration steps each cost one unit,
+  while memoized partition counts are free (so a large but memoized
+  workload is still counted exactly). When the budget is exhausted,
+  counting stops immediately and the result is marked capped.
 
 ### `AnalysisEstimate`
 
-Frozen dataclass in `pyphi/estimate.py`, `Displayable` + `ToPandasMixin`
+Frozen dataclass in `pyphi/cost.py`, `Displayable` + `ToPandasMixin`
 (card rendering and `to_pandas()` record, matching `SearchEstimate`).
 
 Fields (`None` means "not in this estimate's scope" — the axis was excluded
@@ -91,9 +95,9 @@ by `compute`, or the context is not applicable under the active config):
   structure-size context from `formalism/iit4/bounds.py`; present only
   under a 4.0 formalism with binary units. `possible_relations` doubles as
   the enumeration worst case when `relations_closed_form` is `False`.
-- `capped: bool` — the work budget (or a per-pair enumeration cap) was
-  hit; counts are lower bounds and the card renders them with a `≥`
-  qualifier.
+- `capped: bool` — the work budget was hit; walked counts are lower
+  bounds (the card renders them with a `≥` qualifier) and axes never
+  reached are `None`.
 
 ## 4. Counting method
 
@@ -103,8 +107,16 @@ closed-form formulas that could drift from it:
 - **System partitions**: enumerate `pyphi.partition.system_partitions`
   over `range(m)` under the active scheme, memoized on (scheme name, m).
   This memo currently lives in `pyphi/macro/estimate.py`
-  (`_partition_counts`); it moves to `pyphi/estimate.py` and the macro
+  (`_partition_counts`); it moves to `pyphi/cost.py` and the macro
   module imports it.
+- **Seeded memos**: both memos are seeded with the default schemes' counts
+  (`DIRECTED_SET_PARTITION` for m ≤ 9; `JOINT_PARTITION_ALL` for size
+  pairs up to (7, 7)), produced by direct enumeration of the same
+  generators. Seed-verification tests re-enumerate the cheap entries (the
+  largest few are covered by the slow lane or by their recorded one-time
+  enumeration). Seeding makes the estimate — and the MCP guard built on
+  it — instant for the shipping defaults while staying enumeration-exact
+  for every other scheme and size.
 - **Purviews**: the estimate constructs the candidate `System` internally
   in an all-zeros reference state and calls its `potential_purviews` for
   each mechanism and direction — the exact code path the CES walk uses.
@@ -118,9 +130,10 @@ closed-form formulas that could drift from it:
   steps charge the work budget, so a pathologically large pair trips the
   limit mid-enumeration rather than hanging the estimate.
 - **Budget**: a single `_Counter` (moved from `pyphi/macro/estimate.py`)
-  is charged per counted item and per enumeration step. Hitting `limit`
+  is charged one unit per purview evaluation and per fresh
+  partition-enumeration step; memoized counts are free. Hitting `limit`
   raises the internal stop signal; the estimate returns immediately with
-  `capped=True`.
+  `capped=True`, keeping partial counts as lower bounds.
 
 The IIT 4.0 context numbers call
 `bounds.number_of_possible_distinctions` / `number_of_possible_relations`
@@ -138,31 +151,36 @@ In `pyphi/mcp/server.py`:
   fully connected 9-unit binary system for the SIA threshold and the fully
   connected 7-unit binary system for the CES threshold, under the default
   configuration — and recorded as constants with a comment stating the
-  derivation. **Contingency:** if the 7-unit sweep count turns out to
-  exceed ~10⁸ (making the guard's one-time first-call enumeration cost
-  itself unreasonable), the CES threshold is instead set to 10⁸ with a
-  comment noting the deliberate tightening.
+  derivation. The SIA threshold is the exact 9-unit count (4,419,572
+  partitions). The 7-unit sweep count is 1,450,456,298 — above 10⁸ — so
+  the CES threshold is set to 10⁸, a deliberate tightening: the fully
+  connected 6-unit CES (31,938,830 sweeps) is admitted, the 7-unit one
+  requires confirmation.
 - The `analyze` tool runs `estimate_analysis(substrate, subset=None,
-  compute=..., limit=threshold + 1)` before computing. The gating count
-  matches today's limit selection: `compute="sia"` gates on
-  `system_partitions` against `_SIA_PARTITION_LIMIT`; `compute="ces"` and
-  `"full"` gate on `mechanism_partition_sweeps` against
-  `_CES_SWEEP_LIMIT`. If the gating count exceeds its threshold — or the
-  estimate capped out — the tool refuses with the actual counts in the
-  message, unless `confirm_large=true`. `confirm_large` semantics are unchanged. When the
+  compute=..., limit=_GUARD_COUNT_BUDGET)` before computing, where
+  `_GUARD_COUNT_BUDGET` (3 × 10⁶ work units) bounds the guard's own
+  counting to a few seconds. The gating count matches today's limit
+  selection: `compute="sia"` gates on `system_partitions` against
+  `_SIA_PARTITION_LIMIT`; `compute="ces"` and `"full"` gate on
+  `mechanism_partition_sweeps` against `_CES_SWEEP_LIMIT`. If the gating
+  count exceeds its threshold — or the estimate capped out (a workload too
+  large to count within the guard's budget is treated as too large to run
+  unconfirmed) — the tool refuses with the counts in the message, unless
+  `confirm_large=true`. `confirm_large` semantics are unchanged. When the
   caller passes a `formalism` override, the estimate runs under that same
   preset (inside the same config override the analysis will use), so the
   guard sees the workload the analysis will actually have.
-- Because the size-pair and scheme memos persist for the server process,
-  the guard's cost after the first large call is proportional to the
-  number of size pairs, not the partition counts.
+- Because the seeded memos cover the default schemes and persist for the
+  process, the guard is instant for the shipping defaults; only
+  non-default schemes or unseeded sizes enumerate, bounded by
+  `_GUARD_COUNT_BUDGET`.
 - New MCP tool `estimate_cost(handle, compute="full", formalism=None)`:
   returns the estimate's card plus the counts as a dict, so agents can
   pre-flight explicitly before committing to an analysis.
 
 ## 6. Testing
 
-New `test/test_estimate.py`, formalism pinned with complete presets:
+New `test/test_cost.py`, formalism pinned with complete presets:
 
 - Exact counts on a fully connected 3-unit binary system, checked against
   direct enumeration of the same registries (e.g. `system_partitions`
