@@ -400,6 +400,7 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
 - **B16** — First-class `Complex` marker type. *`2.0`.* `models/complex.py` wrapping a SIA + `is_maximal`, its exclusion set, and the selecting substrate; `complexes()` returns `tuple[Complex, ...]` and the exclusion postulate becomes `validate.non_overlapping(...)`. Advances ship-criterion #1 (every Greek letter a named type); pre-freeze (return-contract change).
 - **B17** — Drop dead/micro dependencies. *`quick-win`.* Remove the declared-but-unreferenced `tblib`; replace `ordered-set` with a `dict.fromkeys` wrapper; audit the ~8 `toolz` sites onto stdlib/`more_itertools` (already a dep). Shrinks the install closure; fits the P15 import-cleanup wave.
 - **B18** — Adaptive parallel granularity (analytic cost model). *`2.x`.* Activate the dormant `ChunkingPolicy.size_func` with an analytic per-item cost signal and bin-pack into equal-predicted-cost chunks instead of uniform timed-sample extrapolation; eliminates the straggler where one worker draws all the expensive items. Chunking doesn't affect results (guarded by N2).
+- **Parquet as the convention for DataFrame disk outputs.** *`quick-win`.* pyarrow is a core dependency as of the M12 result serialization; adopt parquet for standalone DataFrame outputs — benchmark aggregate tables, experiment scripts, and the provenance writer (M14) — replacing ad-hoc CSV, so dtypes and NaN survive and outputs interoperate with the wider Arrow ecosystem.
 
 *Dropped as duplicates (14):* log-space repertoire algebra, low-rank TPM backend, SCC/modularity factorization, analytic/marginal-polytope specified-state search, four relation-face compaction variants, relation-hypergraph isomorphism, checkpoint/resume ledger, half-precision storage, pyemd→POT swap, numba JIT, `to_xarray()` cube, `config.profile()`, notebook gallery, partition φ-spectrum attribute — each folded under the existing P-item or N-item it overlaps (full mapping in the audit record).
 
@@ -623,9 +624,10 @@ extending B1's bound-certificate assertions.
   in `formalism/iit4/bounds.py` (see the Wave 7 anytime-bracket entry).
 - **Cost pre-flight for analyze/sia/ces (M5).** The counting primitives exist in `bounds.py`;
   expose an estimate surface and make the MCP hard node-limits delegate to it.
-- **`SweepResult`/`OptimizationResult` serialization (M12).** Neither has a load path, and
-  `OptimizationResult.save` drops the winning substrate and SIA. Register both in
-  `pyphi.serialize`, reusing the existing Substrate/SIA schemas.
+- **`SweepResult`/`OptimizationResult` serialization (M12).** *Landed 2026-07-20:* both are
+  registered in `pyphi.serialize` with full-fidelity `save`/`load` (DataFrames embedded as
+  parquet; pyarrow is now a core dependency); the lossy bespoke `OptimizationResult.save`
+  is gone. Spec: `docs/superpowers/specs/2026-07-19-result-serialization-design.md`.
 - **Thread-backend progress (M13).** The thread backend discards the progress policy on entry
   (an in-code deferral note); hook the progress bar into its futures loop.
 - **Script-facing provenance writer (M14).** `provenance.save_json`/`save_npz` with git SHA,

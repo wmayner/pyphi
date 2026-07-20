@@ -147,7 +147,9 @@ float(result.best_objective), result.best_params
 ```
 
 Every evaluation is logged to `result.to_pandas()`, and
-`result.save("run_seed20260711.json")` persists the trajectory and metadata.
+`result.save("run_seed20260711.json")` persists the complete result — the
+winning substrate and its analysis, the trajectory, and the run metadata —
+which `pyphi.optimize.OptimizationResult.load` reads back.
 
 ```{code-cell} python
 result.to_pandas().head()

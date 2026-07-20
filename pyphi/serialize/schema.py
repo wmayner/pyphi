@@ -497,6 +497,51 @@ class PhiPosteriorSchema(msgspec.Struct, frozen=True, tag="phi_posterior"):
     reference_margins: dict[str, float | None] | None = None
 
 
+# --- Batch-run results --------------------------------------------------------
+
+
+class DataFrameSchema(msgspec.Struct, frozen=True, tag="dataframe"):
+    """A pandas DataFrame as embedded parquet.
+
+    ``index_columns`` names the index levels reset to columns before the
+    parquet write; ``tuple_columns`` names the object columns whose non-null
+    cells are restored as tuples on decode (parquet represents them as
+    lists).
+    """
+
+    parquet: bytes
+    index_columns: tuple[str, ...] = ()
+    tuple_columns: tuple[str, ...] = ()
+
+
+class SweepResultSchema(msgspec.Struct, frozen=True, tag="sweep_result"):
+    df: DataFrameSchema
+    results: tuple["Schema | float", ...]
+    skipped: tuple[tuple[str, tuple[int, ...], tuple[int, ...]], ...]
+
+
+class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):
+    """An :func:`~pyphi.optimize.optimize` outcome.
+
+    ``best_objective`` is stored as None exactly when the run had no
+    reachable candidate (NaN on the domain object; JSON cannot carry NaN).
+    """
+
+    best_params: bytes
+    best_objective: float | None
+    best_substrate: SubstrateSchema
+    best_sia: SIASchema | None
+    trajectory: DataFrameSchema
+    bounds: tuple[tuple[float, float], ...]
+    seed: int
+    direction: str
+    objective_name: str
+    settings: dict[str, Any]
+    config_snapshot: dict[str, Any]
+    n_evaluations: int
+    n_unreachable: int
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -547,4 +592,6 @@ Schema = (
     | CoverageReportSchema
     | SubstratePosteriorSchema
     | PhiPosteriorSchema
+    | SweepResultSchema
+    | OptimizationResultSchema
 )

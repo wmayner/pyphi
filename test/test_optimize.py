@@ -1,13 +1,12 @@
 """Tests for pyphi.optimize: black-box optimization over substrate weights."""
 
-import json
-
 import numpy as np
 import pandas as pd
 import pytest
 
 import pyphi
 from pyphi import examples
+from pyphi.optimize import OptimizationResult
 from pyphi.optimize import _eval_one
 from pyphi.optimize import _objective_value
 from pyphi.optimize import optimize
@@ -214,10 +213,12 @@ def test_result_save_and_to_pandas_roundtrip(tmp_path):
     assert result.to_pandas() is result.trajectory
     path = tmp_path / "run_seed5.json"
     result.save(path)
-    payload = json.loads(path.read_text())
-    assert payload["seed"] == 5
-    assert len(payload["trajectory"]) == result.n_evaluations
-    assert payload["best_objective"] == pytest.approx(result.best_objective)
+    back = OptimizationResult.load(path)
+    np.testing.assert_array_equal(back.best_params, result.best_params)
+    assert back.best_objective == pytest.approx(result.best_objective)
+    assert back.best_substrate == result.best_substrate
+    assert back.best_sia == result.best_sia
+    pd.testing.assert_frame_equal(back.trajectory, result.trajectory)
 
 
 @skip_if_no_emd_backend

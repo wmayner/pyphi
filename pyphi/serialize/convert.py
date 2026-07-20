@@ -6,6 +6,7 @@ registries, invoked on first use via ``_ensure_registered()``.
 """
 
 import contextvars
+import math
 from collections.abc import Callable
 from typing import Any
 
@@ -15,6 +16,7 @@ import numpy as np
 from pyphi.direction import Direction
 
 from . import arrays
+from . import frames
 from . import schema
 
 _ENCODERS: dict[type, Callable[[Any], Any]] = {}  # domain type   -> encode
@@ -1251,6 +1253,78 @@ def _register_phi_posterior() -> None:
     )
 
 
+def _register_sweep_result() -> None:
+    from pyphi.sweep import SweepResult
+
+    _ENCODERS[SweepResult] = lambda r: schema.SweepResultSchema(
+        df=frames.dataframe_to_schema(r.df),
+        results=tuple(
+            obj if isinstance(obj, float) else to_schema(obj) for obj in r.results
+        ),
+        skipped=tuple(
+            (formalism, tuple(subset), tuple(state))
+            for formalism, subset, state in r.skipped
+        ),
+    )
+
+    def _decode_sweep_result(s: schema.SweepResultSchema) -> Any:
+        return SweepResult(
+            df=frames.schema_to_dataframe(s.df),
+            results=[
+                obj if isinstance(obj, float) else from_schema(obj) for obj in s.results
+            ],
+            skipped=[
+                (formalism, tuple(subset), tuple(state))
+                for formalism, subset, state in s.skipped
+            ],
+        )
+
+    _DECODERS[schema.SweepResultSchema] = _decode_sweep_result
+
+
+def _register_optimization_result() -> None:
+    from pyphi.optimize import OptimizationResult
+
+    def _encode_optimization_result(r: Any) -> Any:
+        best_objective = float(r.best_objective)
+        return schema.OptimizationResultSchema(
+            best_params=arrays.array_to_bytes(np.asarray(r.best_params, dtype=float)),
+            best_objective=None if math.isnan(best_objective) else best_objective,
+            best_substrate=to_schema(r.best_substrate),
+            best_sia=_enc_optional(r.best_sia),
+            trajectory=frames.dataframe_to_schema(r.trajectory),
+            bounds=tuple((float(lo), float(hi)) for lo, hi in r.bounds),
+            seed=int(r.seed),
+            direction=r.direction,
+            objective_name=r.objective_name,
+            settings=dict(r.settings),
+            config_snapshot=dict(r.config_snapshot),
+            n_evaluations=int(r.n_evaluations),
+            n_unreachable=int(r.n_unreachable),
+        )
+
+    _ENCODERS[OptimizationResult] = _encode_optimization_result
+
+    def _decode_optimization_result(s: schema.OptimizationResultSchema) -> Any:
+        return OptimizationResult(
+            best_params=arrays.bytes_to_array(s.best_params),
+            best_objective=math.nan if s.best_objective is None else s.best_objective,
+            best_substrate=from_schema(s.best_substrate),
+            best_sia=_dec_optional(s.best_sia),
+            trajectory=frames.schema_to_dataframe(s.trajectory),
+            bounds=[(lo, hi) for lo, hi in s.bounds],
+            seed=s.seed,
+            direction=s.direction,
+            objective_name=s.objective_name,
+            settings=s.settings,
+            config_snapshot=s.config_snapshot,
+            n_evaluations=s.n_evaluations,
+            n_unreachable=s.n_unreachable,
+        )
+
+    _DECODERS[schema.OptimizationResultSchema] = _decode_optimization_result
+
+
 _REGISTERED = False
 
 
@@ -1303,3 +1377,5 @@ def _ensure_registered() -> None:
     _register_coverage_report()
     _register_substrate_posterior()
     _register_phi_posterior()
+    _register_sweep_result()
+    _register_optimization_result()

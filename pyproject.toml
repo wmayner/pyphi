@@ -36,6 +36,7 @@ dependencies = [
     "numpy",
     "pandas>=2.0.0",
     "psutil>=2.1.1",
+    "pyarrow>=25.0",
     "pyyaml>=3.13",
     "scipy>=1.15",
     "tqdm>=4.20.0",
