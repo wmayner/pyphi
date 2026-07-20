@@ -66,6 +66,8 @@ from pathlib import Path
 
 import numpy as np
 
+from pyphi.provenance import unique_path
+
 RESULTS_DIR = Path(__file__).parent / "b18_dispatch_gate_results"
 
 # Workload sizes as fractions of the level's chunksize. Sizes at or below
@@ -640,15 +642,6 @@ def run_level(name: str, seed: int, trials: int) -> dict:
             {"size": cold_size, "raw_seconds": cold} if cold else None
         ),
     }
-
-
-def unique_path(directory: Path, stem: str, suffix: str) -> Path:
-    path = directory / f"{stem}{suffix}"
-    version = 2
-    while path.exists():
-        path = directory / f"{stem}_v{version}{suffix}"
-        version += 1
-    return path
 
 
 def main() -> None:
