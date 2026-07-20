@@ -139,6 +139,44 @@ def test_analyze_guardrail_refuses_large_without_confirmation():
         srv.analyze(handle, [0] * 8, compute="full")
 
 
+def test_analyze_guard_reports_estimated_counts():
+    tpm = np.zeros((2**8, 8))
+    handle = srv.build_substrate(tpm.tolist())["handle"]
+    with pytest.raises(ValueError, match="mechanism-partition sweeps"):
+        srv.analyze(handle, [0] * 8, compute="full")
+
+
+def test_count_gate_admits_sparse_system_above_old_node_limit():
+    # Eight disconnected units have no candidate purviews at all, so the
+    # estimated workload is trivial and the guard admits the analysis
+    # without confirmation, where a node-count guard refused at this size.
+    tpm = np.zeros((2**8, 8))
+    cm = np.zeros((8, 8))
+    handle = srv.build_substrate(tpm.tolist(), cm=cm.tolist())["handle"]
+    out = srv.analyze(handle, [0] * 8, compute="ces")
+    assert "result_ref" in out
+
+
+def test_estimate_cost_tool(basic_handle):
+    out = srv.estimate_cost(basic_handle)
+    assert "AnalysisEstimate" in out["card"]
+    est = out["estimate"]
+    assert est["n_units"] == 3
+    assert est["mechanisms"] == 7
+    assert est["capped"] is False
+
+
+def test_estimate_cost_sia_scope(basic_handle):
+    est = srv.estimate_cost(basic_handle, compute="sia")["estimate"]
+    assert est["system_partitions"] == 22
+    assert est["mechanism_partition_sweeps"] is None
+
+
+def test_estimate_cost_unknown_formalism_is_a_clear_error(basic_handle):
+    with pytest.raises(ValueError, match="unknown formalism"):
+        srv.estimate_cost(basic_handle, formalism="IIT_5_0")
+
+
 def test_unknown_handle_is_a_clear_error():
     with pytest.raises(KeyError, match="Unknown substrate handle"):
         srv.describe_substrate("nope")
