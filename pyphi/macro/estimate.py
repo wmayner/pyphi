@@ -21,6 +21,10 @@ from __future__ import annotations
 import itertools
 from dataclasses import dataclass
 
+from pyphi.cost import _PARTITION_COUNT_CAP
+from pyphi.cost import _Counter
+from pyphi.cost import _LimitReached
+from pyphi.cost import _partition_counts
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -32,13 +36,6 @@ from pyphi.macro.search import _decompositions
 from pyphi.macro.search import _require_iit4
 from pyphi.macro.search import candidate_mappings
 from pyphi.models.pandas import ToPandasMixin
-
-_PARTITION_COUNT_CAP = 6
-
-# Partition counts keyed by (system partition scheme name, m). Enumerating
-# the partitions of m elements is the same regardless of substrate, so the
-# count is memoized across calls at module scope.
-_PARTITION_COUNT_MEMO: dict[tuple[str, int], int] = {}
 
 
 @dataclass(frozen=True)
@@ -103,21 +100,6 @@ def _variant_standins(V, W, bounds: SearchBounds, base: int) -> list[_StandIn]:
         if num_mappings:
             out.append(_StandIn(footprint, update_grain * grain, W, base * num_mappings))
     return out
-
-
-class _LimitReached(Exception):
-    pass
-
-
-class _Counter:
-    def __init__(self, limit: int) -> None:
-        self.limit = limit
-        self.spent = 0
-
-    def charge(self, amount: int) -> None:
-        self.spent += amount
-        if self.spent > self.limit:
-            raise _LimitReached
 
 
 @dataclass(frozen=True)
@@ -233,24 +215,6 @@ class SearchEstimate(Displayable, ToPandasMixin):
                 f"{q} {self.distinct_systems_upper_bound})"
             ),
         )
-
-
-def _partition_counts(ms) -> dict[int, int]:
-    from pyphi.conf import config
-    from pyphi.partition import system_partitions
-
-    scheme = config.formalism.iit.system_partition_scheme
-    counts = {}
-    for m in ms:
-        if m > _PARTITION_COUNT_CAP:
-            continue
-        key = (scheme, m)
-        count = _PARTITION_COUNT_MEMO.get(key)
-        if count is None:
-            count = sum(1 for _ in system_partitions(tuple(range(m))))
-            _PARTITION_COUNT_MEMO[key] = count
-        counts[m] = count
-    return counts
 
 
 def estimate_search(
