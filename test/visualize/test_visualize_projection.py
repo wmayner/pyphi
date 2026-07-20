@@ -270,6 +270,28 @@ def test_project_ces_analytical_defaults_to_strongest_1000():
     assert {e.relata for e in projection.edges} == {e.relata for e in concrete.edges}
 
 
+def test_project_ces_analytical_truncates_at_cap(monkeypatch):
+    import pyphi.visualize.projection as projection_module
+    from pyphi.relations import AnalyticalRelations
+
+    ces = _xor_ces(analytical=True)
+    assert isinstance(ces.relations, AnalyticalRelations)  # precondition
+    full = projection_module.project_ces(ces)
+    assert len(full.edges) > 3  # the cap must bind below the full set
+    monkeypatch.setattr(projection_module, "DEFAULT_MAX_ANALYTICAL_RELATIONS", 3)
+    truncated = projection_module.project_ces(ces)
+    assert len(truncated.edges) == 3
+    # The cap keeps the strongest relations: the kept phi values are the
+    # top three of the full set (as a multiset, so ties at the cut are fine).
+    kept = sorted((e.phi for e in truncated.edges), reverse=True)
+    all_phis = sorted((e.phi for e in full.edges), reverse=True)
+    assert kept == pytest.approx(all_phis[:3])
+    # Node data and the degree spectrum stay computed over the full
+    # structure, independent of the cap.
+    assert truncated.degree_spectrum == full.degree_spectrum
+    assert len(truncated.nodes) == len(full.nodes)
+
+
 def test_project_ces_analytical_matches_concrete_and_sizes_faithfully():
     from pyphi.visualize.projection import project_ces
 
