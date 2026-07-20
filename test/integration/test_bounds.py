@@ -711,6 +711,77 @@ class TestMeasuredBounds:
             )
         assert float(from_list) == float(from_generator)
 
+    def test_kary_system_no_guard(self):
+        # A ternary 2-unit substrate: the theorem has no binary-units
+        # assumption, so the measured bound must compute and hold where
+        # the size-based bounds refuse the substrate outright.
+        rng = np.random.default_rng(2027)
+        marginals = []
+        for _ in range(2):
+            f = rng.uniform(size=(3, 3, 3))
+            marginals.append(f / f.sum(axis=-1, keepdims=True))
+        substrate = Substrate(marginals=marginals, state_space=("LOW", "MID", "HIGH"))
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            system = System(substrate, (0, 0), substrate.node_indices)
+            distinctions, sum_phi_r = self._concrete(system)
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+        assert distinctions, "fixture must yield distinctions; adjust seed/state"
+        assert sum_phi_r <= float(measured) + TOL
+        with pytest.raises(ValueError, match="binary"):
+            bounds.report(substrate=substrate)
+
+    def test_no_measure_domain_guard(self):
+        # The distinctions are computed under a pinned in-domain config;
+        # the bound call then happens under an out-of-domain mechanism
+        # measure. The measured bound reads no config, so it returns the
+        # same value; the size-based bound refuses.
+        system = EXAMPLES["system"]["basic"]()
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            distinctions, _ = self._concrete(system)
+            in_domain = bounds.sum_phi_relations_measured_bound(distinctions)
+        # Mechanism-level INTRINSIC_INFORMATION is a valid IIT_4_0_2026
+        # config but outside the bounds' confirmed (version, measure) set.
+        with (
+            config.override(**DOMAIN_CONFIGS["iit4_2026"]),
+            config.override(mechanism_phi_measure="INTRINSIC_INFORMATION"),
+        ):
+            out_of_domain = bounds.sum_phi_relations_measured_bound(distinctions)
+            assert float(out_of_domain) == float(in_domain)
+            with pytest.raises(ValueError, match="not confirmed"):
+                bounds.sum_phi_relations_upper_bound(3, bound="GENERAL")
+
+
+@pytest.mark.slow
+class TestMeasuredBoundPropertySlow:
+    """Soundness of the measured certificate on random small systems."""
+
+    @settings(
+        max_examples=25,
+        deadline=None,
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+            HealthCheck.data_too_large,
+        ],
+    )
+    @given(data=st.data())
+    def test_random_systems(self, data):
+        with config.override(
+            **DOMAIN_CONFIGS["iit4_2023"], validate_system_states=False
+        ):
+            system = data.draw(small_system(min_size=2, max_size=3))
+            with config.override(relation_computation="CONCRETE"):
+                ces = _ces(system)
+            distinctions = list(ces.distinctions)
+            sum_phi_r = math.fsum(
+                float(r.phi)
+                for r in ces.relations  # pyright: ignore[reportGeneralTypeIssues]
+            )
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+            exact = float(AnalyticalRelations(ces.distinctions).sum_phi())
+        assert sum_phi_r <= float(measured) + TOL
+        assert exact <= float(measured) + TOL
+
 
 class TestConjectureProbes:
     """Non-gating probes of the conditional/conjectured bounds.
