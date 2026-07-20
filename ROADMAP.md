@@ -616,9 +616,12 @@ extending B1's bound-certificate assertions.
 
 *Capabilities (small builds):*
 
-- **ii(s) accessor and integrated fraction (M2).** Per-direction intrinsic specification is
-  already on `sia.system_state`; add a named `ii(s)` accessor (min over directions of
-  min(i_spec, i_diff)) and the integrated fraction φₛ/ii as SIA properties.
+- **ii(s) accessor and integrated fraction (M2).** *Landed 2026-07-20:*
+  `SystemIrreducibilityAnalysis.intrinsic_information` (min over directions of
+  min(i_spec, i_diff), from the same state-level terms the Eq. 23 requirement uses — the
+  requirement's `_cap_one` now reads through it, so the two cannot disagree) and
+  `.integrated_fraction` (φₛ/ii, `None` when ii(s) is unavailable or zero); both are
+  `to_pandas()` columns. Tests: `test/formalism/test_sia_accessors.py`.
 - **Measured Σφ_r certificate (M3).** *Landed 2026-07-19:*
   `sum_phi_relations_measured_bound(distinctions)` and `big_phi_measured_bound(distinctions)`
   in `formalism/iit4/bounds.py` (see the Wave 7 anytime-bracket entry).

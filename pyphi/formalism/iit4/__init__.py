@@ -289,6 +289,41 @@ class SystemIrreducibilityAnalysis(
         :attr:`tied_selections` is non-empty."""
         return bool(self.tied_selections)
 
+    @property
+    def intrinsic_information(self) -> float | None:
+        """The system intrinsic information ii(s) (Mayner et al. 2026, Eq. 23).
+
+        The minimum over directions of min(i_spec, i_diff), where i_spec
+        is the intrinsic information of the specified state and i_diff its
+        intrinsic differentiation, each rectified by ``|·|⁺``.
+        Partition-independent given the specified states. Under the
+        IIT 4.0 (2026) formalism, φₛ = min{φ_c, φ_e, ii(s)}, so
+        φₛ ≤ ii(s). ``None`` when no system state is available.
+        """
+        if self.system_state is None or not self.intrinsic_differentiation:
+            return None
+        terms = []
+        for direction, differentiation in self.intrinsic_differentiation.items():
+            spec = self.system_state[direction]
+            if spec is not None:
+                terms.append(float(utils.positive_part(spec.intrinsic_information)))
+            terms.append(float(utils.positive_part(differentiation)))
+        return min(terms)
+
+    @property
+    def integrated_fraction(self) -> float | None:
+        """The integrated fraction φₛ / ii(s) of the system intrinsic information.
+
+        Lies in [0, 1] under the IIT 4.0 (2026) formalism, where
+        φₛ = min{φ_c, φ_e, ii(s)}; under formalisms without the
+        intrinsic-information requirement it may exceed 1. ``None`` when
+        ii(s) is unavailable or zero (no finite ratio is defined).
+        """
+        ii = self.intrinsic_information
+        if ii is None or not numerics.is_positive(ii):
+            return None
+        return float(self.phi) / ii
+
     def resolve_system_state(self) -> None:
         """Update system_state to reflect the specified states resolved by the MIP.
 
@@ -370,6 +405,8 @@ class SystemIrreducibilityAnalysis(
         return {
             "phi": float(self.phi),
             "normalized_phi": float(self.normalized_phi),
+            "intrinsic_information": _optional_float(self.intrinsic_information),
+            "integrated_fraction": _optional_float(self.integrated_fraction),
             "system": self._system_label(),
             "current_state": self.current_state,
             "partition": concise_partition(self.partition)
@@ -824,18 +861,14 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     is preserved) and the |·|+-clamped, normalized values are re-derived.
     Idempotent: re-applying with the same cap terms is a no-op.
     """
-    if sia.system_state is None or sia.intrinsic_differentiation is None:
+    ii = sia.intrinsic_information
+    if ii is None:
         return
     # __post_init__ guarantees signed_phi is set (defaulting to phi) for any
     # constructed SIA, so it is non-None by the time the cap is applied.
     assert sia.signed_phi is not None
-    cap_terms = [float(sia.signed_phi)]
-    for direction in sia.intrinsic_differentiation:
-        spec = sia.system_state[direction]
-        if spec is not None:
-            cap_terms.append(utils.positive_part(spec.intrinsic_information))
-        cap_terms.append(utils.positive_part(sia.intrinsic_differentiation[direction]))
-    capped_signed = min(cap_terms)
+    # numerics: exact — Eq. 23 defines φ_s as a minimum, not a tie decision.
+    capped_signed = min(float(sia.signed_phi), ii)
     norm = normalization_factor(sia.partition)
     capped_norm = capped_signed * norm if norm is not None else capped_signed
     sia.signed_phi = float(capped_signed)
@@ -845,10 +878,8 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     # ii(s) is partition-independent given the specified states, so the same
     # state-level terms cap the runner-up partition's φ; the reported φ-gap
     # then compares capped to capped.
-    if sia.runner_up is not None and len(cap_terms) > 1:
-        ii_cap = min(cap_terms[1:])
-        if float(sia.runner_up.phi) > ii_cap:
-            sia.runner_up = replace(sia.runner_up, phi=float(ii_cap))
+    if sia.runner_up is not None and float(sia.runner_up.phi) > ii:
+        sia.runner_up = replace(sia.runner_up, phi=float(ii))
 
 
 def _apply_ii_cap(

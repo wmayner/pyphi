@@ -1,0 +1,1 @@
+Added `SystemIrreducibilityAnalysis.intrinsic_information`, the system intrinsic information ii(s) (Mayner et al. 2026, Eq. 23), and `SystemIrreducibilityAnalysis.integrated_fraction`, the integrated fraction φₛ/ii(s). Both also appear as columns in `to_pandas()` records.
