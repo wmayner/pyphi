@@ -21,6 +21,7 @@ from hypothesis import settings
 from hypothesis import strategies as st
 
 from pyphi import config
+from pyphi import examples
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
 from pyphi.direction import Direction
@@ -32,6 +33,7 @@ from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
 from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import Part
+from pyphi.relations import AnalyticalRelations
 from pyphi.substrate import Substrate
 from pyphi.system import System
 from pyphi.utils import all_states
@@ -616,6 +618,169 @@ class TestCertifiedBoundsAgainstPipeline:
                 sum_phi_d
                 <= float(bounds.sum_phi_distinctions_upper_bound(n, bound="I")) + TOL
             )
+
+
+class TestMeasuredBounds:
+    """The measured state-keyed certificates: Eq 14's linear-program maximum
+    evaluated on the measured per-atom profile, plus the exact Eq 9
+    self-relation sum."""
+
+    @staticmethod
+    def _concrete(system):
+        """CES with enumerated relations; returns (distinctions, Σφ_r)."""
+        with config.override(relation_computation="CONCRETE"):
+            ces = _ces(system)
+        sum_phi_r = math.fsum(
+            float(r.phi)
+            for r in ces.relations  # pyright: ignore[reportGeneralTypeIssues]
+        )
+        return list(ces.distinctions), sum_phi_r
+
+    @pytest.mark.parametrize("config_name", sorted(DOMAIN_CONFIGS))
+    @pytest.mark.parametrize("example_name", ["basic", "grid3"])
+    def test_soundness_on_examples(self, config_name, example_name):
+        system = EXAMPLES["system"][example_name]()
+        with config.override(**DOMAIN_CONFIGS[config_name]):
+            distinctions, sum_phi_r = self._concrete(system)
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+        assert sum_phi_r <= float(measured) + TOL
+        assert measured.certified
+        assert measured.citation == "Eqs 9, 14"
+
+    def test_pqr_collapses_to_exact(self):
+        system = examples.pqr_system()
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            distinctions, sum_phi_r = self._concrete(system)
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+        assert sum_phi_r == pytest.approx(0.0, abs=TOL)
+        assert float(measured) == pytest.approx(sum_phi_r, abs=TOL)
+
+    def test_dominance_chain(self):
+        system = EXAMPLES["system"]["grid3"]()
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            with config.override(relation_computation="CONCRETE"):
+                ces = _ces(system)
+            distinctions = list(ces.distinctions)
+            exact_concrete = math.fsum(
+                float(r.phi)
+                for r in ces.relations  # pyright: ignore[reportGeneralTypeIssues]
+            )
+            exact_analytical = float(AnalyticalRelations(ces.distinctions).sum_phi())
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+            general = bounds.sum_phi_relations_upper_bound(
+                len(system.node_indices), bound="GENERAL"
+            )
+        # Identity: the analytical closed form equals the enumerated sum.
+        assert exact_analytical == pytest.approx(exact_concrete, abs=TOL)
+        # Chain: exact <= measured certificate <= worst-case ceiling.
+        assert exact_concrete <= float(measured) + TOL
+        assert float(measured) <= float(general) + TOL
+        # The measured certificate is far below the worst case on grid3
+        # (~9.94 vs 1270.29, a ~128x gap; assert a conservative 50x).
+        assert float(measured) < float(general) / 50
+
+    def test_big_phi_composition(self):
+        system = EXAMPLES["system"]["basic"]()
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            distinctions, sum_phi_r = self._concrete(system)
+            sum_phi_d = math.fsum(float(d.phi) for d in distinctions)
+            relation_bound = bounds.sum_phi_relations_measured_bound(distinctions)
+            big = bounds.big_phi_measured_bound(distinctions)
+        assert float(big) == pytest.approx(sum_phi_d + float(relation_bound), abs=1e-12)
+        # Dominates the structure's actual Φ = Σφ_d + Σφ_r.
+        assert sum_phi_d + sum_phi_r <= float(big) + TOL
+        assert big.certified
+        assert big.citation == "exact Σφ_d + Eqs 9, 14"
+
+    def test_empty_distinctions(self):
+        for fn in (
+            bounds.sum_phi_relations_measured_bound,
+            bounds.big_phi_measured_bound,
+        ):
+            result = fn(())
+            assert float(result) == 0.0
+            assert result.certified
+
+    def test_accepts_plain_iterable(self):
+        system = EXAMPLES["system"]["basic"]()
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            distinctions, _ = self._concrete(system)
+            from_list = bounds.sum_phi_relations_measured_bound(distinctions)
+            from_generator = bounds.sum_phi_relations_measured_bound(
+                d for d in distinctions
+            )
+        assert float(from_list) == float(from_generator)
+
+    def test_kary_system_no_guard(self):
+        # A ternary 2-unit substrate: the theorem has no binary-units
+        # assumption, so the measured bound must compute and hold where
+        # the size-based bounds refuse the substrate outright.
+        rng = np.random.default_rng(2027)
+        marginals = []
+        for _ in range(2):
+            f = rng.uniform(size=(3, 3, 3))
+            marginals.append(f / f.sum(axis=-1, keepdims=True))
+        substrate = Substrate(marginals=marginals, state_space=("LOW", "MID", "HIGH"))
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            system = System(substrate, (0, 0), substrate.node_indices)
+            distinctions, sum_phi_r = self._concrete(system)
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+        assert distinctions, "fixture must yield distinctions; adjust seed/state"
+        assert sum_phi_r <= float(measured) + TOL
+        with pytest.raises(ValueError, match="binary"):
+            bounds.report(substrate=substrate)
+
+    def test_no_measure_domain_guard(self):
+        # The distinctions are computed under a pinned in-domain config;
+        # the bound call then happens under an out-of-domain mechanism
+        # measure. The measured bound reads no config, so it returns the
+        # same value; the size-based bound refuses.
+        system = EXAMPLES["system"]["basic"]()
+        with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
+            distinctions, _ = self._concrete(system)
+            in_domain = bounds.sum_phi_relations_measured_bound(distinctions)
+        # Mechanism-level INTRINSIC_INFORMATION is a valid IIT_4_0_2026
+        # config but outside the bounds' confirmed (version, measure) set.
+        with (
+            config.override(**DOMAIN_CONFIGS["iit4_2026"]),
+            config.override(mechanism_phi_measure="INTRINSIC_INFORMATION"),
+        ):
+            out_of_domain = bounds.sum_phi_relations_measured_bound(distinctions)
+            assert float(out_of_domain) == float(in_domain)
+            with pytest.raises(ValueError, match="not confirmed"):
+                bounds.sum_phi_relations_upper_bound(3, bound="GENERAL")
+
+
+@pytest.mark.slow
+class TestMeasuredBoundPropertySlow:
+    """Soundness of the measured certificate on random small systems."""
+
+    @settings(
+        max_examples=25,
+        deadline=None,
+        suppress_health_check=[
+            HealthCheck.too_slow,
+            HealthCheck.function_scoped_fixture,
+            HealthCheck.data_too_large,
+        ],
+    )
+    @given(data=st.data())
+    def test_random_systems(self, data):
+        with config.override(
+            **DOMAIN_CONFIGS["iit4_2023"], validate_system_states=False
+        ):
+            system = data.draw(small_system(min_size=2, max_size=3))
+            with config.override(relation_computation="CONCRETE"):
+                ces = _ces(system)
+            distinctions = list(ces.distinctions)
+            sum_phi_r = math.fsum(
+                float(r.phi)
+                for r in ces.relations  # pyright: ignore[reportGeneralTypeIssues]
+            )
+            measured = bounds.sum_phi_relations_measured_bound(distinctions)
+            exact = float(AnalyticalRelations(ces.distinctions).sum_phi())
+        assert sum_phi_r <= float(measured) + TOL
+        assert exact <= float(measured) + TOL
 
 
 class TestConjectureProbes:

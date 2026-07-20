@@ -166,6 +166,13 @@ with citations, in `pyphi.formalism.iit4.bounds`: distinction φ is at most
 $|M|\,|Z|$ (Theorem 1), system $\varphi_s$ at most $n(n-1)$ (Table 2), the sum of
 distinction φ grows as $\approx \tfrac{n^2}{2}2^n$ (Eq. 6), and the sum of relation
 φ grows hyper-exponentially, $O(n^2\,2^{\,2^n})$ (Zaeemzadeh & Tononi, 2024).
+Alongside these worst-case, size-based ceilings, the same module provides
+*measured* certificates: given a computed distinction set,
+`sum_phi_relations_measured_bound` evaluates the paper's linear-program maximum
+on the measured per-atom profile — a certified bound on the sum of relation φ
+that is typically orders of magnitude tighter than the worst-case ceiling — and
+`big_phi_measured_bound` adds the exact distinction-φ sum to give a certified
+ceiling on Φ.
 
 ### How it scales in practice
 

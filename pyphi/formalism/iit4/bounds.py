@@ -559,6 +559,119 @@ def big_phi_upper_bound(n: int, bound: str = "I") -> UpperBound:
 
 
 ##############################################################################
+# Measured certificates (computed from a distinction set, not a size)
+##############################################################################
+
+_MEASURED_ASSUMPTIONS = (
+    "resolved distinction set (each mechanism at most once)",
+    "relations defined by congruent overlap of maximal-state purviews (Eqs 8-9)",
+)
+
+
+def sum_phi_relations_measured_bound(distinctions: Iterable[Any]) -> UpperBound:
+    """Certified upper bound on Σφ_r from a measured distinction set.
+
+    Evaluates the per-atom linear-program maximum (Eqs 13-14) on the
+    measured profile: each atom o — a unit in a state, drawn from the
+    distinctions' purview unions (Eq 10) — receives the total φ density
+    S(o) of the distinctions containing it, and contributes at most
+    S(o)·(2^k − 1 − k)/k, where k is the number of those distinctions.
+    The self-relation sum is carried exactly (Eq 9), a strict tightening
+    of Eq 15. Cost is O(D·n) for D distinctions over n units; no
+    relations are enumerated.
+
+    Parameters
+    ----------
+    distinctions : iterable
+        The distinctions of a Φ-structure. Must be a resolved set — each
+        mechanism at most once; duplicates would contribute their
+        densities twice.
+
+    Returns
+    -------
+    UpperBound
+        Certified. Unlike the size-based bounds, this holds with no
+        binary-units, TPM-factorization, or measure assumption: the
+        theorem is combinatorial over the relation formula and the
+        non-negativity of φ, so there is no config domain guard.
+
+    Notes
+    -----
+    Atoms are state-tagged units, exactly the objects in each
+    distinction's ``purview_union``. Grouping by bare unit index with
+    index-count denominators is unsound: when a purview union contains
+    the same unit in two states, the merged density can fall below the
+    true per-atom contribution, and the resulting value can fall below
+    Σφ_r itself.
+
+    The certificate holds because the true per-atom contribution (the
+    inner sum of Eq 11) satisfies the linear program's budget constraint
+    (Eq 13) with equality at the measured S(o), so it cannot exceed the
+    program's maximum (Eq 14). For a complete distinction set the exact
+    Σφ_r is available at the same cost via
+    :meth:`pyphi.relations.AnalyticalRelations.sum_phi`; this function's
+    value is the auditable certificate, directly comparable to the
+    worst-case ceiling of :func:`sum_phi_relations_upper_bound`.
+
+    A group of more than 1023 distinctions sharing an atom overflows the
+    2^k weight to ``inf``, a valid (if uninformative) ceiling.
+    """
+    self_terms: list[float] = []
+    groups: dict[Any, list[float]] = {}
+    for distinction in distinctions:
+        union = distinction.purview_union
+        if not union:
+            continue
+        density = float(distinction.phi) / len(union)
+        self_terms.append(len(distinction.purview_intersection) * density)
+        for atom in union:
+            groups.setdefault(atom, []).append(density)
+    cross_terms = [
+        math.fsum(densities)
+        * (2.0 ** len(densities) - 1.0 - len(densities))
+        / len(densities)
+        for densities in groups.values()
+        if len(densities) > 1
+    ]
+    return UpperBound(
+        value=math.fsum(self_terms) + math.fsum(cross_terms),
+        certified=True,
+        assumptions=_MEASURED_ASSUMPTIONS,
+        citation="Eqs 9, 14",
+    )
+
+
+def big_phi_measured_bound(distinctions: Iterable[Any]) -> UpperBound:
+    """Certified upper bound on Φ from a measured distinction set.
+
+    The exact sum of distinction φ plus the relation certificate of
+    :func:`sum_phi_relations_measured_bound`. For a complete distinction
+    set this is a certified ceiling on the Φ of the structure.
+
+    Parameters
+    ----------
+    distinctions : iterable
+        The distinctions of a Φ-structure. Must be a resolved set — each
+        mechanism at most once.
+
+    Returns
+    -------
+    UpperBound
+        Certified; same assumptions as
+        :func:`sum_phi_relations_measured_bound`.
+    """
+    distinctions = tuple(distinctions)
+    sum_phi_d = math.fsum(float(d.phi) for d in distinctions)
+    relations = sum_phi_relations_measured_bound(distinctions)
+    return UpperBound(
+        value=sum_phi_d + relations.value,
+        certified=True,
+        assumptions=relations.assumptions,
+        citation=f"exact Σφ_d + {relations.citation}",
+    )
+
+
+##############################################################################
 # High-selectivity construction (S3 Appendix, Sec 3)
 ##############################################################################
 
