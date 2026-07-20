@@ -507,18 +507,22 @@ def extract_phase_times(pstats_path: Path) -> dict[str, float]:
     return out
 
 
-def unique_path(directory: Path, stem: str, suffix: str) -> Path:
-    """Return a non-clobbering path: stem.suffix, then stem_v2.suffix, ..."""
-    directory.mkdir(parents=True, exist_ok=True)
-    base = directory / f"{stem}{suffix}"
-    if not base.exists():
-        return base
-    n = 2
-    while True:
-        candidate = directory / f"{stem}_v{n}{suffix}"
-        if not candidate.exists():
-            return candidate
-        n += 1
+try:
+    from pyphi.provenance import unique_path
+except ImportError:
+    # The pre-refactor generation has no pyphi.provenance; keep a local copy.
+    def unique_path(directory: Path, stem: str, suffix: str) -> Path:
+        """Return a non-clobbering path: stem.suffix, then stem_v2.suffix, ..."""
+        directory.mkdir(parents=True, exist_ok=True)
+        base = directory / f"{stem}{suffix}"
+        if not base.exists():
+            return base
+        n = 2
+        while True:
+            candidate = directory / f"{stem}_v{n}{suffix}"
+            if not candidate.exists():
+                return candidate
+            n += 1
 
 
 def write_record(record: dict[str, Any]) -> Path:

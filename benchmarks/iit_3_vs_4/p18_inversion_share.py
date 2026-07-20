@@ -35,6 +35,9 @@ from pathlib import Path
 
 import numpy as np
 
+from pyphi.provenance import format_stem
+from pyphi.provenance import unique_path
+
 CORE_N = 6
 CORE_DENSITY = 0.35
 COUPLING_MEAN = 1.0
@@ -112,15 +115,11 @@ def _profile_sia(system) -> dict:
 
 def _output_path(seed: int, run_label: str | None) -> Path:
     results_dir = Path(__file__).parent / "results"
-    results_dir.mkdir(exist_ok=True)
-    label = f"_{run_label}" if run_label else ""
-    base = f"p18_inversion_share_seed{seed}{label}"
-    path = results_dir / f"{base}.json"
-    version = 2
-    while path.exists():
-        path = results_dir / f"{base}_v{version}.json"
-        version += 1
-    return path
+    return unique_path(
+        results_dir,
+        format_stem("p18_inversion_share", {"seed": seed}, run_label),
+        ".json",
+    )
 
 
 def main() -> None:

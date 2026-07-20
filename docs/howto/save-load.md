@@ -133,6 +133,44 @@ except TypeError as error:
     print(error)
 ```
 
+## Experiment provenance writers
+
+Experiment scripts need two things beyond `pyphi.save`: output files that
+never overwrite earlier runs, and a record of how each file was produced.
+The writers in `pyphi.provenance` provide both. Parameters are encoded
+into the filename, a repeated save lands in a `_v2` file instead of
+clobbering the first, and every file embeds a full provenance record —
+pyphi version, git commit, timestamp, and seed.
+
+```{code-cell} python
+from pyphi import provenance
+
+path = provenance.save_json(
+    {"phi": 0.133873},
+    out,
+    "sweep_study",
+    params={"seed": 42, "trials": 60},
+)
+path.name
+```
+
+```{code-cell} python
+provenance.save_json(
+    {"phi": 0.5}, out, "sweep_study", params={"seed": 42, "trials": 60}
+).name
+```
+
+`save_npz` does the same for arrays of raw per-trial data, and
+`save_dataframe` writes a DataFrame as parquet — the format used for
+DataFrame outputs throughout PyPhi — with the metadata embedded in the
+parquet schema. `read_metadata` recovers the provenance and parameters
+from any of the three formats:
+
+```{code-cell} python
+metadata = provenance.read_metadata(path)
+{key: metadata["provenance"][key] for key in ("seed", "pyphi_version")}
+```
+
 ## Compatibility note
 
 This serializer is a deliberate format break from the `jsonify` layer used in

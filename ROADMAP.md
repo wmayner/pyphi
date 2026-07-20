@@ -633,9 +633,13 @@ extending B1's bound-certificate assertions.
   is gone. Spec: `docs/superpowers/specs/2026-07-19-result-serialization-design.md`.
 - **Thread-backend progress (M13).** The thread backend discards the progress policy on entry
   (an in-code deferral note); hook the progress bar into its futures loop.
-- **Script-facing provenance writer (M14).** `provenance.save_json`/`save_npz` with git SHA,
-  parameters encoded in the filename, and no-clobber versioning — consolidating the pattern
-  that experiment scripts repeatedly re-implement.
+- **Script-facing provenance writer (M14).** *Landed 2026-07-20:*
+  `provenance.save_json`/`save_npz`/`save_dataframe` (parquet, per the DataFrame-output
+  convention) with `format_stem` filename encoding, `unique_path` no-clobber versioning, an
+  embedded `Provenance` record, and `read_metadata` to read it back; the three benchmark
+  scripts with hand-rolled copies now import the shared helpers (the cross-generation
+  harness keeps a fallback for the pre-refactor side). Spec:
+  `docs/superpowers/specs/2026-07-20-provenance-writers-design.md`.
 
 Already tracked elsewhere (verified during the triage): the Wave 7 ii-gate (M4), the
 intervention/lesion surface (N14 ← M8), the Φ-structure distance surface (N16 ← M6), the
