@@ -106,6 +106,22 @@ for obj in [system.substrate, system, sia, ces]:
     print(f"{type(obj).__name__:<30} {round_tripped}")
 ```
 
+Batch-run results round-trip too: a `pyphi.sweep` table with its raw
+results, and an `optimize` outcome including the winning substrate and its
+analysis. Their DataFrames are embedded in the document as
+[parquet](https://parquet.apache.org/), so dtypes and NaN values survive
+exactly.
+
+```{code-cell} python
+import pandas as pd
+
+result = pyphi.sweep(system.substrate, states=[system.state], progress=False)
+pyphi.save(result, out / "sweep.json")
+loaded = pyphi.load(out / "sweep.json")
+pd.testing.assert_frame_equal(loaded.df, result.df)
+loaded.df
+```
+
 The `Analysis` wrapper returned by `pyphi.analyze` is *not* itself
 serializable — it is a convenience container. Save its components (`.ces`,
 `.sia`) instead:
