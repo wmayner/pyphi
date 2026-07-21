@@ -116,6 +116,7 @@ def merge_purview_rias(
     if others:
         # numerics: exact — reported margin, not a selection.
         best_rival = max(float(m.phi) for m in others)
+        # numerics: exact — reported margin, not a selection.
         winner.purview_margin = max(0.0, float(winner.phi) - best_rival)
     return winner
 

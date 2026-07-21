@@ -69,3 +69,20 @@ re-run preserves the previous attempt under an `attempt-N` name.
   of one computation over a live worker pool you already have connected —
   requires open ports between scheduler and workers, which CHTC generally
   does not provide.
+
+## Scoped CES campaigns
+
+For one system too large to analyze whole, `prepare_ces_campaign`
+distributes the cause-effect structure computation itself. Declare the
+combinatorially feasible surface as a **scope** — per-axis constraint
+objects such as `{"mechanisms": {"max_order": 3, "containing": ["A"]},
+"cause_purviews": {"within": ["A", "B", "C"]}}` — and the planner shards
+the scoped work to a per-job budget, descending mechanism → purview-range →
+partition-stride only where needed. `estimate_cost` accepts the same
+`scope` to price the surface first. The SIA is sharded too, or supplied
+precomputed via `sia_ref`. Collection (`collect_campaign`) merges shards
+exactly (tie sets preserved), assembles the `CauseEffectStructure` through
+the standard path, and returns a **scope report**: the computed Σφ_r is an
+exact lower bound for the full structure, with certified measured upper
+bounds on Σφ_r and Φ for what the scope excluded. Within the scope every
+value is exact — a scope narrows the computation, never approximates it.

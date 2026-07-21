@@ -148,3 +148,80 @@ If any single cell's estimate exceeds `infeasible_threshold` (default 10⁹),
 within CHTC's 72-hour slot and needs narrower axes or a dedicated fat-node
 run ({doc}`chtc`). Pass `strict=True` to make the warning an error. Every
 per-cell estimate and packing decision is recorded in `manifest.json`.
+
+## Declare the feasible surface (scope)
+
+For large systems the full distinction computation is combinatorially out of
+reach; a **scope** declares which part of it you compute. A scope changes
+*what* is computed — with the exclusions recorded and certified — never a
+silent approximation: within the scope, every value is exact.
+
+```python
+from pyphi.campaign.scope import AxisScope, CESScope
+
+scope = CESScope(
+    # Mechanisms up to order 3 that involve unit A:
+    mechanisms=AxisScope(containing=("A",), max_order=3),
+    # Purviews of any order, but only within these units:
+    cause_purviews=AxisScope(within=("A", "B", "C")),
+)
+```
+
+Each axis (`mechanisms`, `cause_purviews`, `effect_purviews`) accepts an
+explicit list of unit sets (`explicit=...`, exclusive of the other fields)
+or any combination of `min_order`, `max_order`, `containing` (must include
+all these units), and `within` (must be a subset), combined by
+intersection. Units may be labels or indices. Purview constraints only
+narrow the connectivity-pruned candidates; partition sweeps cannot be
+scoped — a partial sweep would silently change φ.
+
+`pyphi.estimate_analysis(substrate, compute="ces", scope=scope)` prices the
+scoped workload before you commit to it.
+
+## Distribute one system's cause-effect structure
+
+`prepare_ces` turns one system's scoped analysis into a campaign:
+
+```python
+status = campaign.prepare_ces(
+    substrate,
+    state=(1, 0, 0),
+    scope=scope,
+    directory="ces-campaign",
+    units_per_job=1e6,
+    seed=42,
+)
+```
+
+The planner descends only as deep as the budget requires: whole mechanisms
+are cost-balanced into jobs; a mechanism over budget splits its purview
+list into ranges; a single (mechanism, purview) pair over budget splits its
+partition sweep into interleaved strides. System-partition strides for the
+SIA are planned the same way — unless you pass a precomputed `sia=`, or a
+`resolution_state=` (in which case the collected structure carries no Φₛ
+and congruence resolves against the given state, or the system's
+intrinsic-information state by default).
+
+On sparse substrates, pass `ordering="bottleneck_first"` so each stride
+evaluates partitions that sever the fewest present connections first —
+reducibility then short-circuits within the first evaluations. Ordering
+never affects results.
+
+Submission, monitoring, and resubmission work exactly as for sweep
+campaigns. `collect()` merges the shards exactly — tie sets preserved,
+identical to what a single machine would have produced over the same
+scope — and assembles the `CauseEffectStructure` through the standard
+analysis path:
+
+```python
+ces = campaign.collect("ces-campaign")
+report = campaign.scope_report("ces-campaign")
+print(report)
+```
+
+The **scope report** records what was computed and what the scope
+excluded, with certificates: the computed Σφ_r is an exact lower bound for
+the full structure (partial structures are exact substructures), and the
+measured upper bounds on Σφ_r and Φ come from the certified bound
+machinery. Missing shard groups (from failed or pending tasks collected
+with `partial=True`) are listed separately from scope exclusions.
