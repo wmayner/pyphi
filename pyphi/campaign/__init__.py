@@ -43,10 +43,12 @@ from pyphi.sweep import _normalize_substrates
 from pyphi.warnings import PyPhiWarning
 
 __all__ = [
+    "CESShardTask",
     "CampaignStatus",
     "CampaignTask",
     "CampaignTaskOutput",
     "CellOutput",
+    "SIAShardTask",
     "collect",
     "prepare",
     "status",
@@ -74,11 +76,16 @@ class CampaignTask:
 
 @dataclass(frozen=True)
 class CellOutput:
-    """One cell's outcome: ``ok`` (with the result), ``skipped``, or ``error``."""
+    """One cell's outcome: ``ok`` (with the result), ``skipped``, or ``error``.
+
+    ``aux`` carries per-entry bookkeeping some task kinds need at merge
+    time (tie-set enumeration indices, the active partition scheme).
+    """
 
     status: str
     result: Any | None
     traceback: str | None
+    aux: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -88,6 +95,36 @@ class CampaignTaskOutput:
     task_id: int
     pyphi_version: str
     entries: tuple[CellOutput, ...]
+
+
+@dataclass(frozen=True)
+class CESShardTask:
+    """One shard of a scoped cause-effect computation for one system."""
+
+    task_id: int
+    kind: str
+    substrate_label: Any
+    state: tuple[int, ...]
+    subset: tuple[int, ...] | None
+    scope: Any
+    config_overrides: dict[str, Any]
+    formalism: str
+    spec: Any
+    ordering: str | None
+
+
+@dataclass(frozen=True)
+class SIAShardTask:
+    """One stride of the system-partition sweep for one system."""
+
+    task_id: int
+    kind: str
+    substrate_label: Any
+    state: tuple[int, ...]
+    subset: tuple[int, ...] | None
+    config_overrides: dict[str, Any]
+    formalism: str
+    stride: tuple[int, int]
 
 
 @dataclass(frozen=True)
