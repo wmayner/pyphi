@@ -1282,6 +1282,71 @@ def _register_sweep_result() -> None:
     _DECODERS[schema.SweepResultSchema] = _decode_sweep_result
 
 
+def _register_campaign() -> None:
+    from pyphi.campaign import CampaignTask
+    from pyphi.campaign import CampaignTaskOutput
+    from pyphi.campaign import CellOutput
+
+    _ENCODERS[CampaignTask] = lambda t: schema.CampaignTaskSchema(
+        task_id=t.task_id,
+        kind=t.kind,
+        compute=t.compute,
+        compute_ref=t.compute_ref,
+        config_overrides=dict(t.config_overrides),
+        cells=tuple(
+            (label, formalism, tuple(subset), tuple(state))
+            for label, formalism, subset, state in t.cells
+        ),
+        skip_uncomputable=t.skip_uncomputable,
+    )
+
+    def _decode_campaign_task(s: schema.CampaignTaskSchema) -> Any:
+        return CampaignTask(
+            task_id=s.task_id,
+            kind=s.kind,
+            compute=s.compute,
+            compute_ref=s.compute_ref,
+            config_overrides=dict(s.config_overrides),
+            cells=tuple(
+                (label, formalism, tuple(subset), tuple(state))
+                for label, formalism, subset, state in s.cells
+            ),
+            skip_uncomputable=s.skip_uncomputable,
+        )
+
+    _DECODERS[schema.CampaignTaskSchema] = _decode_campaign_task
+
+    _ENCODERS[CellOutput] = lambda e: schema.CellOutputSchema(
+        status=e.status,
+        result=None if e.result is None else to_schema(e.result),
+        traceback=e.traceback,
+    )
+
+    def _decode_cell_output(s: schema.CellOutputSchema) -> Any:
+        return CellOutput(
+            status=s.status,
+            result=None if s.result is None else from_schema(s.result),
+            traceback=s.traceback,
+        )
+
+    _DECODERS[schema.CellOutputSchema] = _decode_cell_output
+
+    _ENCODERS[CampaignTaskOutput] = lambda o: schema.CampaignTaskOutputSchema(
+        task_id=o.task_id,
+        pyphi_version=o.pyphi_version,
+        entries=tuple(to_schema(e) for e in o.entries),
+    )
+
+    def _decode_campaign_task_output(s: schema.CampaignTaskOutputSchema) -> Any:
+        return CampaignTaskOutput(
+            task_id=s.task_id,
+            pyphi_version=s.pyphi_version,
+            entries=tuple(from_schema(e) for e in s.entries),
+        )
+
+    _DECODERS[schema.CampaignTaskOutputSchema] = _decode_campaign_task_output
+
+
 def _register_optimization_result() -> None:
     from pyphi.optimize import OptimizationResult
 
@@ -1378,4 +1443,5 @@ def _ensure_registered() -> None:
     _register_substrate_posterior()
     _register_phi_posterior()
     _register_sweep_result()
+    _register_campaign()
     _register_optimization_result()
