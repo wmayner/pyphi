@@ -1,0 +1,1 @@
+Added the `campaign_walkthrough` MCP prompt: an interactive, step-ordered guide for setting up a cluster campaign for a large system — system intake, honest feasibility pricing, scope elicitation with re-estimation, SIA mode, budget and packing review, and the cluster hand-off.

@@ -69,6 +69,68 @@ def register(mcp: Any) -> None:
         )
 
     @mcp.prompt()
+    def campaign_walkthrough(description: str = "") -> str:
+        """Plan a cluster campaign for a large system, step by step.
+
+        Parameters
+        ----------
+        description : str, optional
+            Anything already known about the system and the desired
+            results (size, dynamics, which quantities matter, cluster
+            access). Leave empty to start from scratch.
+        """
+        context = f"What I know so far:\n\n{description}\n\n" if description else ""
+        return (
+            "Help me set up an HTCondor campaign (for example on UW-Madison's "
+            f"CHTC) to analyze a large system with PyPhi.\n\n{context}"
+            "First read the 'campaigns' and 'performance' reference topics "
+            "with get_iit_reference. Then walk me through the setup "
+            "interactively — one question at a time, each step's outcome "
+            "reviewed with me before the next:\n\n"
+            "1. The system. Get the substrate into the server: an example via "
+            "load_example, or build mine with build_substrate (use the "
+            "build_system_walkthrough approach if I only have a description). "
+            "Confirm it with describe_substrate. Establish the state to "
+            "analyze and what result I actually need: the cause-effect "
+            "structure of one system (a CES campaign), or many independent "
+            "runs across states/substrates/formalisms (a sweep campaign).\n"
+            "2. Honest feasibility. Price the full, unscoped workload with "
+            "estimate_cost. Work units are enumeration counts, not seconds; "
+            "as an anchor, a single 72-hour condor slot covers very roughly "
+            "10^8 to 10^10 units depending on per-unit cost, so counts far "
+            "beyond that per cell mean the full computation is out of reach "
+            "no matter how many jobs we use. Tell me plainly if it is.\n"
+            "3. Scope (CES campaigns). If the full surface is infeasible, "
+            "elicit a feasible one: which mechanisms matter to me (an "
+            "explicit list, an order bound, units that must be involved), "
+            "and any purview constraints. Re-run estimate_cost with the "
+            "scope until the total is tractable, showing me the numbers at "
+            "each step. Be clear about what exclusion means: within the "
+            "scope every value is exact, and the excluded remainder is "
+            "covered by certified bounds in the scope report — a scope "
+            "narrows the computation, it never approximates it.\n"
+            "4. The SIA. Decide how the system irreducibility analysis is "
+            "handled: sharded in the campaign (the default), supplied "
+            "precomputed (sia_ref, if I already have one), or skipped — in "
+            "which case congruence resolves against the intrinsic-"
+            "information state and the result carries no Φₛ.\n"
+            "5. Budget and packing. Choose units_per_job with me: enough "
+            "jobs to use the pool, each job minutes-to-hours of work, and "
+            "well under the 72-hour slot. Review the planned task ledger "
+            "and any admission-control warnings from prepare_ces_campaign "
+            "(or prepare_campaign for sweeps) before treating the campaign "
+            "as ready. Set a seed.\n"
+            "6. Hand-off. Give me the exact cluster steps: build the "
+            "container image, copy the campaign directory to the access "
+            "point, condor_submit pyphi.sub; then campaign_status to "
+            "monitor (resubmission is just condor_submit again), and "
+            "collect_campaign when done — including how to read the scope "
+            "report's Σφ_r lower bound and measured upper bounds.\n\n"
+            "Never prepare into an existing directory, and confirm my "
+            "choices at each numbered step before acting on them."
+        )
+
+    @mcp.prompt()
     def build_system_walkthrough(description: str) -> str:
         """Turn a description of some units into a valid substrate.
 
