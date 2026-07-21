@@ -51,6 +51,7 @@ __all__ = [
     "SIAShardTask",
     "collect",
     "prepare",
+    "prepare_ces",
     "status",
 ]
 
@@ -437,8 +438,30 @@ def prepare(
         "packing": {"jobs": jobs, "units_per_job": units_per_job},
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    _write_campaign_scaffold(
+        directory, len(tasks), container_image, request_memory, request_disk
+    )
+    return CampaignStatus(
+        directory=str(directory),
+        n_tasks=len(tasks),
+        n_cells=len(cells),
+        done=(),
+        failed=(),
+        pending=tuple(range(len(tasks))),
+        total_units=float(sum(weights)),
+    )
+
+
+def _write_campaign_scaffold(
+    directory: Path,
+    n_tasks: int,
+    container_image: str,
+    request_memory: str,
+    request_disk: str,
+) -> None:
+    """Write the scheduler-facing campaign files common to every kind."""
     (directory / "remaining.txt").write_text(
-        "".join(f"{task_id}\n" for task_id in range(len(tasks)))
+        "".join(f"{task_id}\n" for task_id in range(n_tasks))
     )
     run_task_sh = directory / "run_task.sh"
     run_task_sh.write_text(_RUN_TASK_SH)
@@ -452,14 +475,216 @@ def prepare(
             request_disk=request_disk,
         )
     )
+
+
+def prepare_ces(
+    substrate: Any,
+    *,
+    state: Any,
+    subset: Any = None,
+    scope: Any = None,
+    directory: Any,
+    units_per_job: float,
+    formalism: str | None = None,
+    sia: Any = None,
+    resolution_state: Any = None,
+    ordering: str | None = None,
+    infeasible_threshold: float = 1e9,
+    strict: bool = False,
+    container_image: str = "pyphi.sif",
+    request_memory: str = "4GB",
+    request_disk: str = "4GB",
+    seed: int | None = None,
+) -> CampaignStatus:
+    """Materialize one system's scoped CES analysis as a campaign.
+
+    Plans shards for the scoped distinction computation (and, unless a
+    precomputed ``sia`` or explicit ``resolution_state`` is given, for the
+    system irreducibility analysis), descending mechanism → purview-range →
+    partition-stride only where ``units_per_job`` requires. Shards are
+    independent condor jobs on the standard campaign scaffold; collection
+    merges them exactly (tie sets preserved) and assembles the cause-effect
+    structure through the standard analysis path.
+
+    Parameters
+    ----------
+    substrate
+        The substrate of the analyzed system.
+    state : tuple[int, ...]
+        The system state.
+    subset : optional
+        Node indices (or labels) of the candidate system; ``None`` uses
+        the whole substrate.
+    scope : CESScope, optional
+        The feasibility surface; ``None`` is the unconstrained scope.
+    directory
+        Target campaign directory; created, and must not already exist.
+    units_per_job : float
+        Target work units per shard — the planning ladder's budget.
+    formalism : str, optional
+        Preset name; ``None`` uses the active formalism version.
+    sia : optional
+        A precomputed system irreducibility analysis; suppresses SIA
+        shards and is used at collection.
+    resolution_state : optional
+        An explicit congruence-resolution state; suppresses SIA shards.
+        The collected structure then carries no Φₛ.
+    ordering : {"bottleneck_first", None}, optional
+        Reorder each partition-stride shard's slice so likely-reducible
+        partitions are evaluated first (sparse substrates short-circuit
+        sooner). Never affects results.
+    infeasible_threshold : float, optional
+        A shard whose estimate exceeds this triggers a warning (or an
+        error with ``strict``).
+    strict : bool, optional
+        Escalate admission-control warnings to errors.
+    container_image, request_memory, request_disk : str, optional
+        Substituted into the generated submit file.
+    seed : int, optional
+        Recorded in the manifest; stamped into result provenance by
+        :func:`collect`.
+
+    Returns
+    -------
+    CampaignStatus
+        The freshly prepared ledger (all tasks pending).
+    """
+    from pyphi.campaign import shards as _shards
+    from pyphi.campaign.scope import CESScope
+    from pyphi.campaign.scope import resolve_scope
+    from pyphi.cost import mechanism_workloads
+    from pyphi.system import System
+
+    directory = Path(directory)
+    if directory.exists():
+        raise FileExistsError(
+            f"campaign directory {directory} already exists; "
+            "campaign directories are never overwritten"
+        )
+    if sia is not None and resolution_state is not None:
+        raise ValueError("pass either sia or resolution_state, not both")
+    formalism_ = formalism if formalism is not None else config.formalism.iit.version
+    if formalism_ not in presets.by_name:
+        raise ValueError(f"unknown formalism {formalism_!r}")
+    scope = scope if scope is not None else CESScope()
+
+    with config.override(**presets.by_name[formalism_], progress_bars=False):
+        system = System.from_substrate(substrate, tuple(state), subset)
+        resolved = resolve_scope(scope, system.node_labels)
+        ces_specs = _shards.plan_ces_shards(system, resolved, units_per_job)
+        if not any(s.mechanisms or s.mechanism for s in ces_specs):
+            raise ValueError("the scope admits zero mechanisms")
+        sia_specs = (
+            _shards.plan_sia_shards(system, units_per_job)
+            if sia is None and resolution_state is None
+            else []
+        )
+        partition_scheme = config.formalism.iit.system_partition_scheme
+        mechanism_partition_scheme = config.formalism.iit.mechanism_partition_scheme
+        workloads = mechanism_workloads(
+            substrate, subset=system.node_indices, scope=resolved
+        )
+
+    for spec in ces_specs + sia_specs:
+        if spec.units > infeasible_threshold:
+            message = (
+                f"shard {spec!r} estimate {spec.units:.3g} exceeds "
+                f"infeasible_threshold {infeasible_threshold:.3g}"
+            )
+            if strict:
+                raise ValueError(message)
+            warnings.warn(message, PyPhiWarning, stacklevel=2)
+
+    directory.mkdir(parents=True)
+    (directory / "outputs").mkdir()
+    (directory / "logs").mkdir()
+    substrates_dir = directory / "substrates"
+    substrates_dir.mkdir()
+    serialize.save(substrate, substrates_dir / "substrate-system.json.gz")
+    serialize.save(resolved, directory / "scope.json.gz")
+    if sia is not None:
+        serialize.save(sia, directory / "sia.json.gz")
+    if resolution_state is not None:
+        serialize.save(resolution_state, directory / "resolution_state.json.gz")
+
+    tasks_dir = directory / "tasks"
+    tasks_dir.mkdir()
+    overrides = _wire_overrides()
+    subset_ = tuple(system.node_indices)
+    task_rows = []
+    task_id = 0
+    for spec in ces_specs:
+        shard_task = CESShardTask(
+            task_id=task_id,
+            kind="ces_shard",
+            substrate_label="system",
+            state=tuple(state),
+            subset=subset_,
+            scope=resolved,
+            config_overrides=overrides,
+            formalism=formalism_,
+            spec=spec,
+            ordering=ordering,
+        )
+        serialize.save(shard_task, tasks_dir / f"task-{task_id:04d}.json.gz")
+        task_rows.append({"task_id": task_id, "kind": "ces_shard", "units": spec.units})
+        task_id += 1
+    for spec in sia_specs:
+        assert spec.stride is not None, "SIA shards are always strides"
+        sia_task = SIAShardTask(
+            task_id=task_id,
+            kind="sia_shard",
+            substrate_label="system",
+            state=tuple(state),
+            subset=subset_,
+            config_overrides=overrides,
+            formalism=formalism_,
+            stride=spec.stride,
+        )
+        serialize.save(sia_task, tasks_dir / f"task-{task_id:04d}.json.gz")
+        task_rows.append({"task_id": task_id, "kind": "sia_shard", "units": spec.units})
+        task_id += 1
+
+    sia_mode = (
+        "precomputed"
+        if sia is not None
+        else "none"
+        if resolution_state is not None
+        else "shards"
+    )
+    manifest = {
+        "kind": "ces",
+        "pyphi_version": importlib.metadata.version("pyphi"),
+        "created": datetime.now(UTC).isoformat(),
+        "seed": seed,
+        "formalism": formalism_,
+        "state": list(state),
+        "subset": list(subset_),
+        "substrate_label": "system",
+        "sia_mode": sia_mode,
+        "ordering": ordering,
+        "tasks": task_rows,
+        "mechanism_workloads": {
+            ",".join(map(str, mechanism)): units
+            for mechanism, units in workloads.items()
+        },
+        "units_per_job": units_per_job,
+        "infeasible_threshold": infeasible_threshold,
+        "partition_scheme": partition_scheme,
+        "mechanism_partition_scheme": mechanism_partition_scheme,
+    }
+    (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    _write_campaign_scaffold(
+        directory, len(task_rows), container_image, request_memory, request_disk
+    )
     return CampaignStatus(
         directory=str(directory),
-        n_tasks=len(tasks),
-        n_cells=len(cells),
+        n_tasks=len(task_rows),
+        n_cells=len(task_rows),
         done=(),
         failed=(),
-        pending=tuple(range(len(tasks))),
-        total_units=float(sum(weights)),
+        pending=tuple(range(len(task_rows))),
+        total_units=float(sum(row["units"] for row in task_rows)),
     )
 
 
@@ -503,14 +728,18 @@ def status(directory: Any) -> CampaignStatus:
     (directory / "remaining.txt").write_text(
         "".join(f"{task_id}\n" for task_id in sorted(pending + failed))
     )
+    if "weights" in manifest:
+        total_units = float(sum(manifest["weights"]))
+    else:
+        total_units = float(sum(row["units"] for row in manifest["tasks"]))
     return CampaignStatus(
         directory=str(directory),
         n_tasks=len(manifest["tasks"]),
-        n_cells=len(manifest["cells"]),
+        n_cells=len(manifest.get("cells", manifest["tasks"])),
         done=tuple(done),
         failed=tuple(failed),
         pending=tuple(pending),
-        total_units=float(sum(manifest["weights"])),
+        total_units=total_units,
     )
 
 
