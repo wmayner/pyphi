@@ -32,6 +32,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.models.pandas import ToPandasMixin
 from pyphi.parallel.chunking import cost_balanced_partition
 from pyphi.sweep import SweepResult
 from pyphi.sweep import _build_df
@@ -90,7 +91,7 @@ class CampaignTaskOutput:
 
 
 @dataclass(frozen=True)
-class CampaignStatus(Displayable):
+class CampaignStatus(Displayable, ToPandasMixin):
     """A campaign's task ledger: which tasks are done, failed, or pending."""
 
     directory: str
@@ -100,6 +101,17 @@ class CampaignStatus(Displayable):
     failed: tuple[int, ...]
     pending: tuple[int, ...]
     total_units: float
+
+    def _pandas_record(self) -> dict:
+        return {
+            "directory": self.directory,
+            "n_tasks": self.n_tasks,
+            "n_cells": self.n_cells,
+            "done": len(self.done),
+            "failed": len(self.failed),
+            "pending": len(self.pending),
+            "total_units": self.total_units,
+        }
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         rows = [
