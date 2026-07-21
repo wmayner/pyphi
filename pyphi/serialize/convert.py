@@ -1346,6 +1346,43 @@ def _register_campaign() -> None:
 
     _DECODERS[schema.CampaignTaskOutputSchema] = _decode_campaign_task_output
 
+    from pyphi.campaign.scope import AxisScope
+    from pyphi.campaign.scope import CESScope
+
+    _ENCODERS[AxisScope] = lambda a: schema.AxisScopeSchema(
+        explicit=a.explicit,
+        min_order=a.min_order,
+        max_order=a.max_order,
+        containing=a.containing,
+        within=a.within,
+    )
+
+    def _decode_axis_scope(s: schema.AxisScopeSchema) -> Any:
+        return AxisScope(
+            explicit=None if s.explicit is None else tuple(tuple(e) for e in s.explicit),
+            min_order=s.min_order,
+            max_order=s.max_order,
+            containing=None if s.containing is None else tuple(s.containing),
+            within=None if s.within is None else tuple(s.within),
+        )
+
+    _DECODERS[schema.AxisScopeSchema] = _decode_axis_scope
+
+    _ENCODERS[CESScope] = lambda c: schema.CESScopeSchema(
+        mechanisms=to_schema(c.mechanisms),
+        cause_purviews=to_schema(c.cause_purviews),
+        effect_purviews=to_schema(c.effect_purviews),
+    )
+
+    def _decode_ces_scope(s: schema.CESScopeSchema) -> Any:
+        return CESScope(
+            mechanisms=from_schema(s.mechanisms),
+            cause_purviews=from_schema(s.cause_purviews),
+            effect_purviews=from_schema(s.effect_purviews),
+        )
+
+    _DECODERS[schema.CESScopeSchema] = _decode_ces_scope
+
 
 def _register_optimization_result() -> None:
     from pyphi.optimize import OptimizationResult

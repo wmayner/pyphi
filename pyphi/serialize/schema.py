@@ -542,6 +542,20 @@ class CampaignTaskOutputSchema(msgspec.Struct, frozen=True, tag="campaign_task_o
     entries: tuple[CellOutputSchema, ...]
 
 
+class AxisScopeSchema(msgspec.Struct, frozen=True, tag="axis_scope"):
+    explicit: tuple[tuple[int, ...], ...] | None
+    min_order: int | None
+    max_order: int | None
+    containing: tuple[int, ...] | None
+    within: tuple[int, ...] | None
+
+
+class CESScopeSchema(msgspec.Struct, frozen=True, tag="ces_scope"):
+    mechanisms: AxisScopeSchema
+    cause_purviews: AxisScopeSchema
+    effect_purviews: AxisScopeSchema
+
+
 class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):
     """An :func:`~pyphi.optimize.optimize` outcome.
 
@@ -619,4 +633,6 @@ Schema = (
     | CampaignTaskSchema
     | CellOutputSchema
     | CampaignTaskOutputSchema
+    | AxisScopeSchema
+    | CESScopeSchema
 )
