@@ -517,7 +517,7 @@ class DataFrameSchema(msgspec.Struct, frozen=True, tag="dataframe"):
 class SweepResultSchema(msgspec.Struct, frozen=True, tag="sweep_result"):
     df: DataFrameSchema
     results: tuple["Schema | float", ...]
-    skipped: tuple[tuple[str, tuple[int, ...], tuple[int, ...]], ...]
+    skipped: tuple[tuple["str | int", str, tuple[int, ...], tuple[int, ...]], ...]
 
 
 class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):

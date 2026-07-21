@@ -1,15 +1,17 @@
-"""Cartesian batch driver: run an IIT computation across states, subsystems,
-and formalisms, and collect the results into one tidy DataFrame.
+"""Cartesian batch driver: run an IIT computation across substrates, states,
+subsystems, and formalisms, and collect the results into one tidy DataFrame.
 
-``sweep`` takes a substrate and up to three axes (states, candidate subsets,
-formalisms), runs the chosen computation on the cartesian product, and returns
-a :class:`SweepResult` holding a long-format DataFrame and the aligned raw
-result objects. Each result carries its own configuration snapshot, so a row
-is independently reproducible.
+``sweep`` takes one or more substrates and up to three further axes (states,
+candidate subsets, formalisms), runs the chosen computation on the cartesian
+product, and returns a :class:`SweepResult` holding a long-format DataFrame
+and the aligned raw result objects. Each result carries its own configuration
+snapshot, so a row is independently reproducible.
 """
 
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import product
 from typing import Any
@@ -23,6 +25,7 @@ from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
 from pyphi.serializable import Serializable
+from pyphi.substrate import Substrate
 from pyphi.system import System
 
 # A dynamically-unreachable state has no defined cause/effect repertoire, so its
@@ -37,7 +40,7 @@ _UNREACHABLE = (
 class _Skipped:
     """Sentinel returned for a cell whose state is uncomputable (unreachable)."""
 
-    cell: tuple[Any, Any]
+    cell: tuple[Any, Any, Any]
 
 
 @dataclass(frozen=True)
@@ -46,14 +49,14 @@ class SweepResult(Serializable):
 
     ``df`` has one row per computed cell, indexed by the axes that vary.
     ``results`` holds the raw result objects aligned 1:1 with ``df`` rows.
-    ``skipped`` lists the ``(formalism, subset, state)`` cells dropped because
-    their state is dynamically unreachable (only when an axis is enumerated via
-    ``"all"``; explicit cells fail loud instead).
+    ``skipped`` lists the ``(substrate, formalism, subset, state)`` cells
+    dropped because their state is dynamically unreachable (only when an axis
+    is enumerated via ``"all"``; explicit cells fail loud instead).
     """
 
     df: pd.DataFrame
     results: list[Any]
-    skipped: list[tuple[str, tuple, tuple]]
+    skipped: list[tuple[Any, str, tuple, tuple]]
 
     def to_pandas(self) -> pd.DataFrame:
         return self.df
@@ -85,6 +88,50 @@ def _normalize_formalisms(formalisms: Any) -> list[str]:
     return list(formalisms)
 
 
+_LABEL_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def _normalize_substrates(substrates: Any) -> list[tuple[Any, Any]]:
+    """Normalize the substrates argument to labeled ``(label, substrate)`` pairs.
+
+    A mapping supplies its own labels; a bare substrate gets label ``0``; any
+    other iterable is labeled by position.
+    """
+    if isinstance(substrates, Mapping):
+        for label in substrates:
+            if not (isinstance(label, str) and _LABEL_RE.match(label)):
+                raise ValueError(
+                    f"substrate label {label!r} must match [A-Za-z0-9_-]+ "
+                    "(labels are used in filenames)"
+                )
+        return list(substrates.items())
+    if isinstance(substrates, Substrate):
+        return [(0, substrates)]
+    return list(enumerate(substrates))
+
+
+def _enumerate_cells(
+    labeled: list[tuple[Any, Any]],
+    states: Any,
+    subsets: Any,
+    formalisms_: list[str],
+) -> list[tuple[Any, str, tuple, tuple]]:
+    """Enumerate ``(label, formalism, subset, state)`` cells in canonical order.
+
+    Explicit ``states``/``subsets`` apply to every substrate; ``"all"`` is
+    enumerated per substrate, so substrates of different sizes coexist.
+    """
+    cells = []
+    for formalism in formalisms_:
+        for label, substrate in labeled:
+            for subset, state in product(
+                _normalize_subsets(substrate, subsets),
+                _normalize_states(substrate, states),
+            ):
+                cells.append((label, formalism, subset, state))
+    return cells
+
+
 # ---- per-cell compute + row extraction ----
 
 
@@ -100,17 +147,19 @@ def _dispatch_compute(system: System, compute: Any) -> Any:
     )
 
 
-def _run_cell(cell: tuple[Any, Any], *, substrate: Any, compute: Any, skip: bool) -> Any:
-    """Build the system for one (subset, state) cell and run its computation.
+def _run_cell(
+    cell: tuple[Any, Any, Any], *, substrates: dict, compute: Any, skip: bool
+) -> Any:
+    """Build the system for one (label, subset, state) cell and run its computation.
 
     Module-level and config-free so it is picklable for the process backend;
     the active formalism is installed in the worker via the propagated config
     snapshot, not set here. When ``skip`` is true, an unreachable (uncomputable)
     state yields a :class:`_Skipped` sentinel instead of raising.
     """
-    subset, state = cell
+    label, subset, state = cell
     try:
-        system = System(substrate, state, node_indices=subset)
+        system = System(substrates[label], state, node_indices=subset)
         return _dispatch_compute(system, compute)
     except _UNREACHABLE:
         if skip:
@@ -173,7 +222,7 @@ def _extract_row(result: Any, compute: Any) -> dict[str, Any]:
 
 
 def _run_cells_sequential(
-    substrate: Any,
+    substrates: dict,
     formalism: str,
     cells: list[Any],
     compute: Any,
@@ -186,13 +235,14 @@ def _run_cells_sequential(
     results: list[Any] = []
     with config.override(**presets.by_name[formalism], progress_bars=resolved_progress):
         results = [
-            _run_cell(c, substrate=substrate, compute=compute, skip=skip) for c in cells
+            _run_cell(c, substrates=substrates, compute=compute, skip=skip)
+            for c in cells
         ]
     return results
 
 
 def _run_cells_parallel(
-    substrate: Any,
+    substrates: dict,
     formalism: str,
     cells: list[Any],
     compute: Any,
@@ -206,7 +256,7 @@ def _run_cells_parallel(
     show = config.infrastructure.progress_bars if progress is None else progress
     # partial binds the per-cell args into a picklable callable (a module-level
     # function + picklable args) for the process backend.
-    cell_fn = partial(_run_cell, substrate=substrate, compute=compute, skip=skip)
+    cell_fn = partial(_run_cell, substrates=substrates, compute=compute, skip=skip)
     results: list[Any] = []
     # Install the formalism and disable inner parallelism in the worker config
     # snapshot the process backend captures; the outer map_reduce parallelizes
@@ -231,27 +281,28 @@ def _run_cells_parallel(
     return results
 
 
+_AXIS_NAMES = ("substrate", "formalism", "subset", "state")
+
+
 def _build_df(
-    keys: list[tuple[str, tuple, tuple]],
+    keys: list[tuple[Any, str, tuple, tuple]],
     rows: list[dict[str, Any]],
-    formalisms: list[str],
-    subsets: list[tuple],
-    states: list[tuple],
+    enumerated: list[tuple[Any, str, tuple, tuple]],
 ) -> pd.DataFrame:
+    """Build the tidy table; an axis is an index level iff it varies.
+
+    ``enumerated`` is the full cell enumeration (before unreachable-state
+    skips), so whether an axis varies is a property of what was asked for,
+    not of which cells happened to compute.
+    """
     df = pd.DataFrame(rows)
     levels: dict[str, list[Any]] = {}
-    if len(formalisms) > 1:
-        levels["formalism"] = [k[0] for k in keys]
-    else:
-        df["formalism"] = formalisms[0]
-    if len(subsets) > 1:
-        levels["subset"] = [k[1] for k in keys]
-    else:
-        df["subset"] = [subsets[0]] * len(df)
-    if len(states) > 1:
-        levels["state"] = [k[2] for k in keys]
-    else:
-        df["state"] = [states[0]] * len(df)
+    for pos, name in enumerate(_AXIS_NAMES):
+        distinct = {cell[pos] for cell in enumerated}
+        if len(distinct) > 1:
+            levels[name] = [k[pos] for k in keys]
+        else:
+            df[name] = [next(iter(distinct))] * len(df)
     if len(levels) == 1:
         name, values = next(iter(levels.items()))
         # tupleize_cols=False keeps tuple state/subset values as scalar index
@@ -265,7 +316,7 @@ def _build_df(
 
 
 def sweep(
-    substrate: Any,
+    substrates: Any,
     *,
     states: Any,
     subsets: Any = "full",
@@ -279,13 +330,16 @@ def sweep(
 
     Parameters
     ----------
-    substrate
-        The substrate to sweep over.
+    substrates
+        A single substrate, a sequence of substrates (labeled by position),
+        or a mapping of label to substrate.
     states
-        A state tuple, an iterable of states, or ``"all"``.
+        A state tuple, an iterable of states, or ``"all"``. Explicit states
+        apply to every substrate; ``"all"`` enumerates per substrate.
     subsets
         ``"full"`` (whole system), ``"all"`` (non-empty powerset), or an
-        iterable of node-index tuples.
+        iterable of node-index tuples. Explicit subsets apply to every
+        substrate; ``"full"`` and ``"all"`` are resolved per substrate.
     formalisms
         ``None`` (the active formalism) or an iterable of version names
         (``"IIT_3_0"``, ``"IIT_4_0_2023"``, ``"IIT_4_0_2026"``).
@@ -314,29 +368,34 @@ def sweep(
     # (uncomputable) cells; skip and record those. When every axis is given
     # explicitly, an uncomputable cell fails loud.
     skip_uncomputable = states == "all" or subsets == "all"
-    states_ = _normalize_states(substrate, states)
-    subsets_ = _normalize_subsets(substrate, subsets)
+    labeled = _normalize_substrates(substrates)
+    substrate_map = dict(labeled)
     formalisms_ = _normalize_formalisms(formalisms)
+    enumerated = _enumerate_cells(labeled, states, subsets, formalisms_)
     use_parallel = config.infrastructure.parallel if parallel is None else parallel
 
-    keys: list[tuple[str, tuple, tuple]] = []
+    keys: list[tuple[Any, str, tuple, tuple]] = []
     raw: list[Any] = []
-    skipped: list[tuple[str, tuple, tuple]] = []
+    skipped: list[tuple[Any, str, tuple, tuple]] = []
     for formalism in formalisms_:
-        cells = list(product(subsets_, states_))
+        cells = [
+            (label, subset, state)
+            for label, f, subset, state in enumerated
+            if f == formalism
+        ]
         if use_parallel:
             results = _run_cells_parallel(
-                substrate, formalism, cells, compute, skip_uncomputable, progress
+                substrate_map, formalism, cells, compute, skip_uncomputable, progress
             )
         else:
             results = _run_cells_sequential(
-                substrate, formalism, cells, compute, skip_uncomputable, progress
+                substrate_map, formalism, cells, compute, skip_uncomputable, progress
             )
-        for (subset, state), result in zip(cells, results, strict=True):
+        for (label, subset, state), result in zip(cells, results, strict=True):
             if isinstance(result, _Skipped):
-                skipped.append((formalism, subset, state))
+                skipped.append((label, formalism, subset, state))
             else:
-                keys.append((formalism, subset, state))
+                keys.append((label, formalism, subset, state))
                 raw.append(result)
 
     if seed is not None:
@@ -346,5 +405,5 @@ def sweep(
                 with_provenance(seed=seed)
 
     rows = [_extract_row(result, compute) for result in raw]
-    df = _build_df(keys, rows, formalisms_, subsets_, states_)
+    df = _build_df(keys, rows, enumerated)
     return SweepResult(df=df, results=raw, skipped=skipped)

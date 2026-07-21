@@ -1262,8 +1262,8 @@ def _register_sweep_result() -> None:
             obj if isinstance(obj, float) else to_schema(obj) for obj in r.results
         ),
         skipped=tuple(
-            (formalism, tuple(subset), tuple(state))
-            for formalism, subset, state in r.skipped
+            (label, formalism, tuple(subset), tuple(state))
+            for label, formalism, subset, state in r.skipped
         ),
     )
 
@@ -1274,8 +1274,8 @@ def _register_sweep_result() -> None:
                 obj if isinstance(obj, float) else from_schema(obj) for obj in s.results
             ],
             skipped=[
-                (formalism, tuple(subset), tuple(state))
-                for formalism, subset, state in s.skipped
+                (label, formalism, tuple(subset), tuple(state))
+                for label, formalism, subset, state in s.skipped
             ],
         )
 
