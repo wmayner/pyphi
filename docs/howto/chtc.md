@@ -56,8 +56,18 @@ Once PyPhi 2.0 is on PyPI the `%files` section can be dropped in favor of
 
 The canonical HTC workload: each condor job runs one self-contained PyPhi
 computation (one substrate/state/configuration cell), and you collect the
-saved results afterwards. Write results with `pyphi.provenance.save_json`
-(or `.save()` on result objects) so each output is self-describing.
+saved results afterwards.
+
+**The supported workflow for this pattern is a campaign** — see
+{doc}`campaigns`. `pyphi.campaign.prepare` materializes a sweep into a
+ready-to-submit directory (task files, substrates, submit file, cost-balanced
+packing), and `status`/`collect` handle monitoring, resubmission, and
+reassembly into the exact local-sweep result. Everything below the campaign
+workflow is generated for you.
+
+For workloads the sweep axes don't express, the manual recipe is: write
+results with `pyphi.provenance.save_json` (or `.save()` on result objects)
+so each output is self-describing, then collect the files afterwards.
 
 `run_cell.py` — one cell per job, selected by the process number:
 

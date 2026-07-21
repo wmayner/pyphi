@@ -191,4 +191,6 @@ The `dask` backend distributes the same parallel levels across a
 an HTCondor/Slurm pool via `dask-jobqueue`. Install the `cluster` extra
 (`pip install "pyphi[cluster]"`), connect a `distributed.Client`, and set
 `pyphi.config.parallel_backend = "dask"`. See {doc}`chtc` for cluster
-deployment, including UW–Madison's CHTC.
+deployment, including UW–Madison's CHTC. For batch sweeps on an HTCondor
+pool with no live worker connection, use a campaign instead — see
+{doc}`campaigns`.
