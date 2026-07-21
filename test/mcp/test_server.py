@@ -446,3 +446,41 @@ class TestCampaignTools:
         collected = srv.collect_campaign(directory=str(directory))
         assert "result_ref" in collected
         assert collected["rows"] >= 1
+
+
+class TestCESCampaignTools:
+    def test_ces_campaign_roundtrip(self, tmp_path):
+        handle = srv.load_example("basic")["handle"]
+        directory = tmp_path / "ces-camp"
+        prepared = srv.prepare_ces_campaign(
+            handle=handle,
+            state=[1, 0, 0],
+            formalism="IIT_4_0_2026",
+            directory=str(directory),
+            units_per_job=50.0,
+            scope={"mechanisms": {"max_order": 2}},
+        )
+        assert prepared["status"]["n_tasks"] >= 1
+
+        from pyphi.campaign.runner import run_task
+
+        for task_file in sorted((directory / "tasks").glob("task-*.json.gz")):
+            assert (
+                run_task(
+                    task_file,
+                    substrates_dir=directory / "substrates",
+                    outputs_dir=directory / "outputs",
+                )
+                == 0
+            )
+        collected = srv.collect_campaign(directory=str(directory))
+        assert collected["type"] == "CauseEffectStructure"
+        assert "scope_report" in collected
+
+    def test_estimate_cost_scope(self):
+        handle = srv.load_example("basic")["handle"]
+        full = srv.estimate_cost(handle, compute="ces")["estimate"]
+        scoped = srv.estimate_cost(
+            handle, compute="ces", scope={"mechanisms": {"max_order": 1}}
+        )["estimate"]
+        assert scoped["mechanisms"] < full["mechanisms"]

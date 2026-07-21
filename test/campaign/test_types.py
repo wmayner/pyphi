@@ -46,3 +46,70 @@ def test_campaign_task_output_roundtrip_with_embedded_result(tmp_path):
     assert [e.status for e in loaded.entries] == ["ok", "skipped", "error"]
     assert float(loaded.entries[0].result.phi) == float(sia.phi)
     assert loaded.entries[2].traceback == "Traceback: boom"
+
+
+def test_ces_shard_task_roundtrip(tmp_path):
+    from pyphi.campaign import CESShardTask
+    from pyphi.campaign.scope import AxisScope
+    from pyphi.campaign.scope import CESScope
+    from pyphi.campaign.shards import ShardSpec
+
+    task = CESShardTask(
+        task_id=1,
+        kind="ces_shard",
+        substrate_label="sys",
+        state=(1, 0, 0),
+        subset=(0, 1, 2),
+        scope=CESScope(mechanisms=AxisScope(max_order=2)),
+        config_overrides={"precision": 13},
+        formalism="IIT_4_0_2026",
+        spec=ShardSpec(
+            payload_kind="partition_stride",
+            mechanism=(0, 1),
+            direction="EFFECT",
+            purview=(0, 2),
+            stride=(1, 3),
+            units=4.0,
+        ),
+        ordering="bottleneck_first",
+    )
+    save(task, tmp_path / "t.json.gz")
+    assert load(tmp_path / "t.json.gz") == task
+
+
+def test_sia_shard_task_roundtrip(tmp_path):
+    from pyphi.campaign import SIAShardTask
+
+    task = SIAShardTask(
+        task_id=2,
+        kind="sia_shard",
+        substrate_label="sys",
+        state=(1, 0, 0),
+        subset=None,
+        config_overrides={},
+        formalism="IIT_4_0_2026",
+        stride=(0, 2),
+    )
+    save(task, tmp_path / "t.json.gz")
+    assert load(tmp_path / "t.json.gz") == task
+
+
+def test_cell_output_aux_roundtrip(tmp_path):
+    out = CampaignTaskOutput(
+        task_id=0,
+        pyphi_version="test",
+        entries=(
+            CellOutput(
+                status="ok",
+                result=None,
+                traceback=None,
+                aux={"tie_indices": {"(0, 1)": [4, 7]}, "scheme": "X"},
+            ),
+        ),
+    )
+    save(out, tmp_path / "o.json.gz")
+    loaded = load(tmp_path / "o.json.gz")
+    assert loaded.entries[0].aux == {
+        "tie_indices": {"(0, 1)": [4, 7]},
+        "scheme": "X",
+    }

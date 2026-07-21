@@ -534,12 +534,62 @@ class CellOutputSchema(msgspec.Struct, frozen=True, tag="campaign_cell_output"):
     status: str
     result: "Schema | None"
     traceback: "str | None"
+    aux: dict[str, Any] | None = None
 
 
 class CampaignTaskOutputSchema(msgspec.Struct, frozen=True, tag="campaign_task_output"):
     task_id: int
     pyphi_version: str
     entries: tuple[CellOutputSchema, ...]
+
+
+class AxisScopeSchema(msgspec.Struct, frozen=True, tag="axis_scope"):
+    explicit: tuple[tuple[int, ...], ...] | None
+    min_order: int | None
+    max_order: int | None
+    containing: tuple[int, ...] | None
+    within: tuple[int, ...] | None
+
+
+class CESScopeSchema(msgspec.Struct, frozen=True, tag="ces_scope"):
+    mechanisms: AxisScopeSchema
+    cause_purviews: AxisScopeSchema
+    effect_purviews: AxisScopeSchema
+
+
+class ShardSpecSchema(msgspec.Struct, frozen=True, tag="shard_spec"):
+    payload_kind: str
+    mechanisms: tuple[tuple[int, ...], ...]
+    mechanism: tuple[int, ...] | None
+    direction: "str | None"
+    purviews: tuple[tuple[int, ...], ...]
+    purview: tuple[int, ...] | None
+    stride: tuple[int, int] | None
+    units: float
+
+
+class CESShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_ces_task"):
+    task_id: int
+    kind: str
+    substrate_label: "str | int"
+    state: tuple[int, ...]
+    subset: tuple[int, ...] | None
+    scope: CESScopeSchema
+    config_overrides: dict[str, Any]
+    formalism: str
+    spec: ShardSpecSchema
+    ordering: "str | None"
+
+
+class SIAShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_sia_task"):
+    task_id: int
+    kind: str
+    substrate_label: "str | int"
+    state: tuple[int, ...]
+    subset: tuple[int, ...] | None
+    config_overrides: dict[str, Any]
+    formalism: str
+    stride: tuple[int, int]
 
 
 class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):
@@ -619,4 +669,9 @@ Schema = (
     | CampaignTaskSchema
     | CellOutputSchema
     | CampaignTaskOutputSchema
+    | AxisScopeSchema
+    | CESScopeSchema
+    | ShardSpecSchema
+    | CESShardTaskSchema
+    | SIAShardTaskSchema
 )

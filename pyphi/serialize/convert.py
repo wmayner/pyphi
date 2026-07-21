@@ -1320,6 +1320,7 @@ def _register_campaign() -> None:
         status=e.status,
         result=None if e.result is None else to_schema(e.result),
         traceback=e.traceback,
+        aux=None if e.aux is None else dict(e.aux),
     )
 
     def _decode_cell_output(s: schema.CellOutputSchema) -> Any:
@@ -1327,6 +1328,7 @@ def _register_campaign() -> None:
             status=s.status,
             result=None if s.result is None else from_schema(s.result),
             traceback=s.traceback,
+            aux=None if s.aux is None else dict(s.aux),
         )
 
     _DECODERS[schema.CellOutputSchema] = _decode_cell_output
@@ -1345,6 +1347,126 @@ def _register_campaign() -> None:
         )
 
     _DECODERS[schema.CampaignTaskOutputSchema] = _decode_campaign_task_output
+
+    from pyphi.campaign.scope import AxisScope
+    from pyphi.campaign.scope import CESScope
+
+    _ENCODERS[AxisScope] = lambda a: schema.AxisScopeSchema(
+        explicit=a.explicit,
+        min_order=a.min_order,
+        max_order=a.max_order,
+        containing=a.containing,
+        within=a.within,
+    )
+
+    def _decode_axis_scope(s: schema.AxisScopeSchema) -> Any:
+        return AxisScope(
+            explicit=None if s.explicit is None else tuple(tuple(e) for e in s.explicit),
+            min_order=s.min_order,
+            max_order=s.max_order,
+            containing=None if s.containing is None else tuple(s.containing),
+            within=None if s.within is None else tuple(s.within),
+        )
+
+    _DECODERS[schema.AxisScopeSchema] = _decode_axis_scope
+
+    _ENCODERS[CESScope] = lambda c: schema.CESScopeSchema(
+        mechanisms=to_schema(c.mechanisms),
+        cause_purviews=to_schema(c.cause_purviews),
+        effect_purviews=to_schema(c.effect_purviews),
+    )
+
+    def _decode_ces_scope(s: schema.CESScopeSchema) -> Any:
+        return CESScope(
+            mechanisms=from_schema(s.mechanisms),
+            cause_purviews=from_schema(s.cause_purviews),
+            effect_purviews=from_schema(s.effect_purviews),
+        )
+
+    _DECODERS[schema.CESScopeSchema] = _decode_ces_scope
+
+    from pyphi.campaign import CESShardTask
+    from pyphi.campaign import SIAShardTask
+    from pyphi.campaign.shards import ShardSpec
+
+    _ENCODERS[ShardSpec] = lambda s: schema.ShardSpecSchema(
+        payload_kind=s.payload_kind,
+        mechanisms=tuple(tuple(m) for m in s.mechanisms),
+        mechanism=None if s.mechanism is None else tuple(s.mechanism),
+        direction=s.direction,
+        purviews=tuple(tuple(p) for p in s.purviews),
+        purview=None if s.purview is None else tuple(s.purview),
+        stride=s.stride,
+        units=s.units,
+    )
+
+    def _decode_shard_spec(s: schema.ShardSpecSchema) -> Any:
+        return ShardSpec(
+            payload_kind=s.payload_kind,
+            mechanisms=tuple(tuple(m) for m in s.mechanisms),
+            mechanism=None if s.mechanism is None else tuple(s.mechanism),
+            direction=s.direction,
+            purviews=tuple(tuple(p) for p in s.purviews),
+            purview=None if s.purview is None else tuple(s.purview),
+            stride=None if s.stride is None else (s.stride[0], s.stride[1]),
+            units=s.units,
+        )
+
+    _DECODERS[schema.ShardSpecSchema] = _decode_shard_spec
+
+    _ENCODERS[CESShardTask] = lambda t: schema.CESShardTaskSchema(
+        task_id=t.task_id,
+        kind=t.kind,
+        substrate_label=t.substrate_label,
+        state=tuple(t.state),
+        subset=None if t.subset is None else tuple(t.subset),
+        scope=to_schema(t.scope),
+        config_overrides=dict(t.config_overrides),
+        formalism=t.formalism,
+        spec=to_schema(t.spec),
+        ordering=t.ordering,
+    )
+
+    def _decode_ces_shard_task(s: schema.CESShardTaskSchema) -> Any:
+        return CESShardTask(
+            task_id=s.task_id,
+            kind=s.kind,
+            substrate_label=s.substrate_label,
+            state=tuple(s.state),
+            subset=None if s.subset is None else tuple(s.subset),
+            scope=from_schema(s.scope),
+            config_overrides=dict(s.config_overrides),
+            formalism=s.formalism,
+            spec=from_schema(s.spec),
+            ordering=s.ordering,
+        )
+
+    _DECODERS[schema.CESShardTaskSchema] = _decode_ces_shard_task
+
+    _ENCODERS[SIAShardTask] = lambda t: schema.SIAShardTaskSchema(
+        task_id=t.task_id,
+        kind=t.kind,
+        substrate_label=t.substrate_label,
+        state=tuple(t.state),
+        subset=None if t.subset is None else tuple(t.subset),
+        config_overrides=dict(t.config_overrides),
+        formalism=t.formalism,
+        stride=(t.stride[0], t.stride[1]),
+    )
+
+    def _decode_sia_shard_task(s: schema.SIAShardTaskSchema) -> Any:
+        return SIAShardTask(
+            task_id=s.task_id,
+            kind=s.kind,
+            substrate_label=s.substrate_label,
+            state=tuple(s.state),
+            subset=None if s.subset is None else tuple(s.subset),
+            config_overrides=dict(s.config_overrides),
+            formalism=s.formalism,
+            stride=(s.stride[0], s.stride[1]),
+        )
+
+    _DECODERS[schema.SIAShardTaskSchema] = _decode_sia_shard_task
 
 
 def _register_optimization_result() -> None:

@@ -440,6 +440,7 @@ def estimate_cost(
     handle: str,
     compute: str = "full",
     formalism: str | None = None,
+    scope: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Count the workload of an analysis before running it.
 
@@ -473,9 +474,118 @@ def estimate_cost(
     overrides = presets.by_name[formalism] if formalism is not None else {}
     with pyphi.config.override(**overrides):
         estimate = estimate_analysis(
-            substrate, compute=None if compute == "full" else compute
+            substrate,
+            compute=None if compute == "full" else compute,
+            scope=_scope_from_json(scope, substrate),
         )
     return {"card": str(estimate), "estimate": asdict(estimate)}
+
+
+def _scope_from_json(scope: dict[str, Any] | None, substrate: Any) -> Any:
+    """Build a resolved CESScope from the tools' JSON scope shape.
+
+    The shape mirrors the scope objects:
+    ``{"mechanisms": {"max_order": 2, "containing": [0]},
+    "cause_purviews": {...}, "effect_purviews": {...}}`` — each axis with
+    any of ``explicit`` (list of unit lists), ``min_order``, ``max_order``,
+    ``containing``, ``within``. Units may be labels or indices.
+    """
+    if scope is None:
+        return None
+    from pyphi.campaign.scope import AxisScope
+    from pyphi.campaign.scope import CESScope
+    from pyphi.campaign.scope import resolve_scope
+
+    def axis(d: dict[str, Any] | None) -> AxisScope:
+        if not d:
+            return AxisScope()
+        return AxisScope(
+            explicit=None
+            if d.get("explicit") is None
+            else tuple(tuple(e) for e in d["explicit"]),
+            min_order=d.get("min_order"),
+            max_order=d.get("max_order"),
+            containing=None if d.get("containing") is None else tuple(d["containing"]),
+            within=None if d.get("within") is None else tuple(d["within"]),
+        )
+
+    built = CESScope(
+        mechanisms=axis(scope.get("mechanisms")),
+        cause_purviews=axis(scope.get("cause_purviews")),
+        effect_purviews=axis(scope.get("effect_purviews")),
+    )
+    return resolve_scope(built, substrate.node_labels)
+
+
+@mcp.tool()
+def prepare_ces_campaign(
+    handle: str,
+    state: list[int],
+    directory: str,
+    units_per_job: float,
+    subset: list[int] | None = None,
+    scope: dict[str, Any] | None = None,
+    formalism: str | None = None,
+    sia_ref: str | None = None,
+    ordering: str | None = None,
+    seed: int | None = None,
+) -> dict[str, Any]:
+    """Materialize one system's scoped CES analysis as an HTCondor campaign.
+
+    Plans shards for the scoped distinction computation (and the system
+    irreducibility analysis, unless ``sia_ref`` supplies a precomputed
+    one), descending mechanism → purview-range → partition-stride to meet
+    the per-job budget. Submit the directory with ``condor_submit
+    pyphi.sub``; monitor with ``campaign_status``; reassemble with
+    ``collect_campaign``. See the ``campaigns`` reference topic.
+
+    Parameters
+    ----------
+    handle : str
+        A substrate handle from ``load_example`` or ``build_substrate``.
+    state : list of int
+        The system state.
+    directory : str
+        Target campaign directory; must not already exist.
+    units_per_job : float
+        Target work units per shard.
+    subset : list of int, optional
+        Candidate-system node indices; the whole substrate when omitted.
+    scope : dict, optional
+        The feasibility surface: per-axis constraint objects as documented
+        on ``estimate_cost``.
+    formalism : str, optional
+        As in ``analyze``.
+    sia_ref : str, optional
+        A result handle holding a precomputed system irreducibility
+        analysis; suppresses SIA shards.
+    ordering : str, optional
+        ``"bottleneck_first"`` to evaluate likely-reducible partitions
+        first within each stride (sparse substrates short-circuit sooner).
+    seed : int, optional
+        Recorded in the manifest and stamped into provenance at collection.
+
+    Returns
+    -------
+    dict
+        A ``card`` and a ``status`` mapping with the task ledger.
+    """
+    from pyphi import campaign
+
+    substrate = _get_substrate(handle)
+    result = campaign.prepare_ces(
+        substrate,
+        state=tuple(state),
+        subset=None if subset is None else tuple(subset),
+        scope=_scope_from_json(scope, substrate),
+        directory=directory,
+        units_per_job=units_per_job,
+        formalism=formalism,
+        sia=None if sia_ref is None else _get_result(sia_ref),
+        ordering=ordering,
+        seed=seed,
+    )
+    return {"card": str(result), "status": asdict(result)}
 
 
 @mcp.tool()
@@ -585,14 +695,24 @@ def collect_campaign(directory: str, partial: bool = False) -> dict[str, Any]:
         The ``result_ref`` handle, the number of collected ``rows``, and
         the number of ``skipped`` cells.
     """
+    import dataclasses
+
     from pyphi import campaign
+    from pyphi.sweep import SweepResult
 
     result = campaign.collect(directory, partial=partial)
     ref = _register_result(result)
+    if isinstance(result, SweepResult):
+        return {
+            "result_ref": ref,
+            "rows": len(result.df),
+            "skipped": len(result.skipped),
+        }
     return {
         "result_ref": ref,
-        "rows": len(result.df),
-        "skipped": len(result.skipped),
+        "type": type(result).__name__,
+        "summary": _result_summary(result),
+        "scope_report": dataclasses.asdict(campaign.scope_report(directory)),
     }
 
 
