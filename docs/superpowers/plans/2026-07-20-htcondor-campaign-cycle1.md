@@ -960,6 +960,7 @@ Add to `pyphi/campaign/__init__.py` (extend `__all__` with
 `"CampaignStatus"`, `"prepare"`):
 
 ```python
+import importlib.metadata
 import json
 import math
 import stat
@@ -971,7 +972,6 @@ from pathlib import Path
 
 import msgspec
 
-import pyphi
 from pyphi import serialize
 from pyphi.conf import config
 from pyphi.conf import presets
@@ -1253,7 +1253,7 @@ def prepare(
 
     manifest = {
         "kind": "sweep_cells",
-        "pyphi_version": pyphi.__version__,
+        "pyphi_version": importlib.metadata.version("pyphi"),
         "created": datetime.now(UTC).isoformat(),
         "seed": seed,
         "compute": compute_name,
@@ -1480,12 +1480,12 @@ case.
 
 from __future__ import annotations
 
+import importlib.metadata
 import os
 import traceback as _traceback
 from pathlib import Path
 from typing import Any
 
-import pyphi
 from pyphi import serialize
 from pyphi.campaign import CampaignTask
 from pyphi.campaign import CampaignTaskOutput
@@ -1580,7 +1580,7 @@ def run_task(
             failed = True
     output = CampaignTaskOutput(
         task_id=task.task_id,
-        pyphi_version=pyphi.__version__,
+        pyphi_version=importlib.metadata.version("pyphi"),
         entries=tuple(entries),
     )
     _write_output(output, Path(outputs_dir))
