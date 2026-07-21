@@ -62,60 +62,19 @@ saved results afterwards.
 {doc}`campaigns`. `pyphi.campaign.prepare` materializes a sweep into a
 ready-to-submit directory (task files, substrates, submit file, cost-balanced
 packing), and `status`/`collect` handle monitoring, resubmission, and
-reassembly into the exact local-sweep result. Everything below the campaign
+reassembly into the exact local-sweep result; `prepare_ces` does the same
+for one system's scoped cause-effect analysis. Everything below the campaign
 workflow is generated for you.
 
-For workloads the sweep axes don't express, the manual recipe is: write
-results with `pyphi.provenance.save_json` (or `.save()` on result objects)
-so each output is self-describing, then collect the files afterwards.
-
-`run_cell.py` — one cell per job, selected by the process number:
-
-```python
-import sys
-
-import pyphi
-
-cell = int(sys.argv[1])
-
-# Define your substrates/states/configs however you like; index them by cell.
-substrate = pyphi.examples.basic_substrate()
-states = list(pyphi.utils.all_states(substrate.size))
-state = states[cell % len(states)]
-
-sia = pyphi.System(substrate, state).sia()
-sia.save(f"sia_state{cell}.json.gz")
-```
-
-`sweep.sub`:
-
-```
-universe = container
-container_image = pyphi.sif
-
-executable = run_cell.py
-arguments = $(Process)
-transfer_executable = false
-
-transfer_input_files = run_cell.py
-should_transfer_files = YES
-when_to_transfer_output = ON_EXIT
-
-request_cpus = 1
-request_memory = 4GB
-request_disk = 4GB
-
-log = sweep.log
-error = sweep.$(Process).err
-output = sweep.$(Process).out
-
-queue 8
-```
-
-Submit with `condor_submit sweep.sub`. Jobs have a 72-hour default runtime
-limit; keep per-job inputs/outputs under CHTC's file-transfer guidance
-(~100 MB per file) or arrange staging with CHTC. For dependent stages
-(compute → aggregate), see CHTC's DAGMan guides.
+For workloads campaigns don't express — heterogeneous per-job logic,
+non-PyPhi pipeline stages, DAGMan workflows — write your own submit file
+following the
+[CHTC HTC guides](https://chtc.cs.wisc.edu/uw-research-computing/htc-roadmap),
+run it in the PyPhi container, and write results with
+`pyphi.provenance.save_json` (or `.save()` on result objects) so each output
+is self-describing. Jobs have a 72-hour default runtime limit; keep per-job
+inputs and outputs under CHTC's file-transfer guidance (~100 MB per file) or
+arrange staging with CHTC.
 
 ## Pattern B — one big analysis on a fat node (fully supported)
 
