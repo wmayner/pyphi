@@ -27,7 +27,12 @@ from pyphi.models.pandas import ToPandasMixin
 if TYPE_CHECKING:
     from pyphi.substrate import Substrate
 
-__all__ = ["AnalysisEstimate", "estimate_analysis"]
+__all__ = [
+    "AnalysisEstimate",
+    "estimate_analysis",
+    "mechanism_workloads",
+    "partition_sweep_count",
+]
 
 _PARTITION_COUNT_CAP = 6
 
@@ -320,6 +325,7 @@ def estimate_analysis(
     subset: Any = None,
     compute: str | None = None,
     limit: int = 1_000_000,
+    scope: Any | None = None,
 ) -> AnalysisEstimate:
     """Count the workload of a single-system analysis, without running it.
 
@@ -344,6 +350,12 @@ def estimate_analysis(
         fresh partition enumerations each cost one unit, while memoized
         partition counts are free. A walk that exceeds the budget stops
         immediately and reports ``capped=True``.
+    scope : :class:`~pyphi.campaign.scope.CESScope`, optional
+        Restrict the counted mechanisms and purviews to the scope's
+        feasibility surface. Affects only the distinction axis; the
+        system-partition count and the structural ceilings
+        (``possible_distinctions``, ``possible_relations``) are properties
+        of the full system.
 
     Returns
     -------
@@ -381,6 +393,7 @@ def estimate_analysis(
     state_space_size = 1
     for i in indices:
         state_space_size *= int(alphabet[i])
+    unit_scope = scope
     scope = "full" if compute is None else compute
 
     counter = _Counter(limit)
@@ -393,12 +406,19 @@ def estimate_analysis(
         if scope in ("full", "sia"):
             system_partition_count = _system_partition_count(m, counter)
         if scope in ("full", "ces"):
-            mechanisms = 2**m - 1
+            mechanism_iter: Any = utils.powerset(indices, nonempty=True)
+            if unit_scope is not None:
+                mechanism_iter = unit_scope.mechanisms.select(mechanism_iter)
+            mechanisms = 0
             purview_evaluations = 0
             sweeps = 0
-            for mechanism in utils.powerset(indices, nonempty=True):
+            for mechanism in mechanism_iter:
+                mechanisms += 1
                 for direction in (Direction.CAUSE, Direction.EFFECT):
-                    for purview in cs.potential_purviews(direction, mechanism):
+                    purviews = cs.potential_purviews(direction, mechanism)
+                    if unit_scope is not None:
+                        purviews = list(unit_scope.purviews(direction).select(purviews))
+                    for purview in purviews:
                         counter.charge(1)
                         purview_evaluations += 1
                         sweeps += _mechanism_partition_count(
@@ -432,3 +452,71 @@ def estimate_analysis(
         possible_relations=possible_relations,
         capped=capped,
     )
+
+
+def partition_sweep_count(mechanism_size: int, purview_size: int) -> int:
+    """Memoized mechanism-partition count for one (mechanism, purview) pair
+    under the active mechanism partition scheme."""
+    counter = _Counter(2**63)
+    return _mechanism_partition_count(mechanism_size, purview_size, counter)
+
+
+def mechanism_workloads(
+    substrate: Substrate,
+    subset: Any = None,
+    scope: Any | None = None,
+    limit: int = 10_000_000,
+) -> dict[tuple[int, ...], int]:
+    """Per-mechanism workload under a scope, keyed by mechanism.
+
+    Each mechanism's workload is its scoped purview evaluations plus its
+    mechanism-partition sweeps; the sum over all mechanisms equals the
+    scoped :func:`estimate_analysis` totals for the distinction axis.
+
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate to analyze.
+    subset : optional
+        Node indices (or labels) of the candidate system; ``None`` uses
+        the whole substrate.
+    scope : :class:`~pyphi.campaign.scope.CESScope`, optional
+        Restrict the counted mechanisms and purviews.
+    limit : int, optional
+        Work budget for the counting walk.
+
+    Raises
+    ------
+    ValueError
+        If the counting walk exceeds ``limit`` — the workload is then too
+        large to plan; narrow the scope or raise the limit.
+    """
+    from pyphi import utils
+    from pyphi.direction import Direction
+    from pyphi.system import System
+
+    cs = System.from_substrate(substrate, (0,) * substrate.size, subset)
+    counter = _Counter(limit)
+    workloads: dict[tuple[int, ...], int] = {}
+    mechanism_iter: Any = utils.powerset(cs.node_indices, nonempty=True)
+    if scope is not None:
+        mechanism_iter = scope.mechanisms.select(mechanism_iter)
+    try:
+        for mechanism in mechanism_iter:
+            units = 0
+            for direction in (Direction.CAUSE, Direction.EFFECT):
+                purviews = cs.potential_purviews(direction, mechanism)
+                if scope is not None:
+                    purviews = list(scope.purviews(direction).select(purviews))
+                for purview in purviews:
+                    counter.charge(1)
+                    units += 1 + _mechanism_partition_count(
+                        len(mechanism), len(purview), counter
+                    )
+            workloads[tuple(mechanism)] = units
+    except _LimitReached:
+        raise ValueError(
+            f"mechanism workload walk exceeded limit={limit}; narrow the "
+            "scope or raise the limit"
+        ) from None
+    return workloads

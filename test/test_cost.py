@@ -217,3 +217,55 @@ class TestPresentation:
     def test_capped_card_uses_lower_bound_qualifier(self):
         est = estimate_analysis(_dense3(), limit=10)
         assert "≥" in str(est)
+
+
+class TestScopedEstimation:
+    def test_scope_narrows_counts(self):
+        from pyphi.campaign.scope import AxisScope
+        from pyphi.campaign.scope import CESScope
+
+        substrate = examples.basic_substrate()
+        full = estimate_analysis(substrate, compute="ces")
+        scoped = estimate_analysis(
+            substrate,
+            compute="ces",
+            scope=CESScope(mechanisms=AxisScope(max_order=1)),
+        )
+        assert scoped.mechanisms == 3  # singletons only
+        assert scoped.purview_evaluations < full.purview_evaluations
+        assert scoped.mechanism_partition_sweeps < full.mechanism_partition_sweeps
+
+    def test_purview_scope_narrows_purview_axis(self):
+        from pyphi.campaign.scope import AxisScope
+        from pyphi.campaign.scope import CESScope
+
+        substrate = examples.basic_substrate()
+        scope = CESScope(
+            cause_purviews=AxisScope(max_order=1),
+            effect_purviews=AxisScope(max_order=1),
+        )
+        full = estimate_analysis(substrate, compute="ces")
+        scoped = estimate_analysis(substrate, compute="ces", scope=scope)
+        assert scoped.mechanisms == full.mechanisms
+        assert scoped.purview_evaluations < full.purview_evaluations
+
+    def test_mechanism_workloads_sum_matches_estimate(self):
+        from pyphi.campaign.scope import AxisScope
+        from pyphi.campaign.scope import CESScope
+        from pyphi.cost import mechanism_workloads
+
+        substrate = examples.basic_substrate()
+        scope = CESScope(mechanisms=AxisScope(containing=(0,)))
+        workloads = mechanism_workloads(substrate, scope=scope)
+        scoped = estimate_analysis(substrate, compute="ces", scope=scope)
+        assert set(workloads) == {(0,), (0, 1), (0, 2), (0, 1, 2)}
+        assert sum(workloads.values()) == (
+            scoped.purview_evaluations + scoped.mechanism_partition_sweeps
+        )
+
+    def test_partition_sweep_count_matches_enumeration(self):
+        from pyphi.cost import partition_sweep_count
+
+        count = partition_sweep_count(2, 2)
+        enumerated = len(list(mechanism_partitions((0, 1), (0, 2))))
+        assert count == enumerated
