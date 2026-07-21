@@ -2,9 +2,9 @@
 
 Prompts are user-invokable templates that a client surfaces (for example, in a
 slash-command menu). They stitch the server's tools and reference material into
-the two tasks newcomers most often want help with: making sense of a result,
-and turning a description of some units into a valid transition probability
-matrix.
+guided workflows: making sense of a result, porting pre-2.0 code, turning a
+description of some units into a valid transition probability matrix, and
+planning a cluster campaign for a large system.
 """
 
 from __future__ import annotations
