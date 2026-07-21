@@ -65,6 +65,11 @@ TOPICS: dict[str, tuple[str, str]] = {
         "work actually parallelizes, the per-level options, which levels pay "
         "for which workloads, and the server's parallel controls.",
     ),
+    "campaigns": (
+        "campaigns.md",
+        "Distributing sweeps across an HTCondor cluster: prepare, submit, "
+        "monitor, and collect batch campaigns.",
+    ),
     "visualization": (
         "visualization.md",
         "Plotting the Φ-structure with plot_ces: the five views, the "

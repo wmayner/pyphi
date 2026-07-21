@@ -68,7 +68,9 @@ gated by the global `progress_bars` option).
   `"thread"` (a thread pool), or `"auto"` (threads on a free-threaded
   Python, processes otherwise). `"dask"` distributes across a
   user-connected `dask.distributed` cluster (requires the `cluster` extra
-  and an active `distributed.Client`).
+  and an active `distributed.Client`). For batch sweeps on an HTCondor
+  pool with no live worker connection, use a campaign instead — see the
+  `campaigns` reference topic.
 
 ## Recipes
 
