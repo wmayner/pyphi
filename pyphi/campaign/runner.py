@@ -170,17 +170,24 @@ def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
                     partitions=parts,
                 )
                 tie_indices = {}
+                pin_winner_indices = {}
                 for pin in getattr(ria, "_state_ties", None) or (ria,):
+                    key = repr(pin.specified_state.state)
                     pin_ties = getattr(pin, "_partition_ties", None) or (pin,)
-                    tie_indices[repr(pin.specified_state.state)] = _global_tie_indices(
-                        pin_ties, parts, indices
-                    )
+                    tie_indices[key] = _global_tie_indices(pin_ties, parts, indices)
+                    pin_winner_indices[key] = _global_tie_indices(
+                        (pin,), parts, indices
+                    )[0]
                 entries.append(
                     CellOutput(
                         status="ok",
                         result=ria,
                         traceback=None,
-                        aux={"tie_indices": tie_indices, "scheme": scheme},
+                        aux={
+                            "tie_indices": tie_indices,
+                            "pin_winner_indices": pin_winner_indices,
+                            "scheme": scheme,
+                        },
                     )
                 )
             else:

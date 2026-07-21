@@ -1,13 +1,13 @@
 """Tie-preserving merges of shard outputs.
 
 Every merge re-runs the same :mod:`pyphi.resolve_ties` machinery the
-single-machine code path uses, applied to the union of shard tie sets.
-Exactness: the global extremum is attained inside some shard, so any
-candidate within tolerance of the global extremum is within tolerance of
-its own shard's extremum and therefore present in that shard's tie set —
-the union loses nothing. Candidates are restored to global enumeration
-order before resolution, so the selected representative is identical to a
-full sweep's.
+single-machine code path uses, applied to per-shard winners (and, where
+serialization carries them, their tie sets) restored to global enumeration
+order. Exactness: the global extremum is attained inside some shard, and a
+candidate that would win the full sweep is necessarily its own shard's
+winner — strides preserve enumeration order within each shard — so
+resolving over the ordered shard winners selects the identical
+representative a full sweep selects.
 """
 
 from __future__ import annotations
@@ -62,28 +62,33 @@ def merge_stride_rias(entries: list[tuple[Any, dict]]) -> Any:
     """Merge the stride winners of one (mechanism, direction, purview).
 
     ``entries`` pairs each stride's winning RIA with its aux record, whose
-    ``tie_indices`` map each specified-state pin (by ``repr`` of its
-    state) to the global enumeration indices of that pin's partition-tie
-    members, in tie-set order.
+    ``pin_winner_indices`` map each specified-state pin (by ``repr`` of
+    its state) to the global enumeration index of that pin's winning
+    partition.
+
+    Per pin, the candidates are the per-shard pin winners restored to
+    global enumeration order. This selects the identical winner a full
+    sweep would: the full sweep's winner is the earliest cascade-tied
+    candidate in enumeration order, strides preserve that order within
+    each shard, so the full winner is necessarily its own shard's pin
+    winner. The merged tie set contains the cascade-tied shard winners;
+    the winning shard's own within-slice tie peers remain attached to the
+    winner it contributed.
     """
     per_pin: dict[str, list[tuple[int, Any]]] = {}
-    shard_best: dict[str, list[Any]] = {}
     for ria, aux in entries:
         for pin in getattr(ria, "_state_ties", None) or (ria,):
             key = _pin_key(pin)
-            ties = getattr(pin, "_partition_ties", None) or (pin,)
-            indices = aux["tie_indices"][key]
-            per_pin.setdefault(key, []).extend(zip(indices, ties, strict=True))
-            shard_best.setdefault(key, []).append(pin)
+            per_pin.setdefault(key, []).append((aux["pin_winner_indices"][key], pin))
     pin_winners = []
-    for key, indexed in per_pin.items():
+    for indexed in per_pin.values():
         indexed.sort(key=lambda pair: pair[0])
         candidates = [c for _, c in indexed]
         ties = tuple(resolve_ties.partitions(candidates))
         winner = ties[0]
         for tie in ties:
             tie.set_partition_ties(ties)
-        winner.partition_margin = _merged_partition_margin(winner, shard_best[key])
+        winner.partition_margin = _merged_partition_margin(winner, candidates)
         pin_winners.append(winner)
     state_ties = tuple(resolve_ties.states(pin_winners))
     for tie in state_ties:

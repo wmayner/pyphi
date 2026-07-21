@@ -33,13 +33,11 @@ def test_stride_merge_equals_full_find_mip():
             )
             ria = find_mip(system, direction, mechanism, purview, partitions=parts)
             local = {str(p): g for p, g in zip(parts, indices, strict=True)}
-            tie_indices = {}
-            for pin in ria._state_ties or (ria,):
-                pin_ties = pin._partition_ties or (pin,)
-                tie_indices[repr(pin.specified_state.state)] = [
-                    local[str(t.partition)] for t in pin_ties
-                ]
-            entries.append((ria, {"tie_indices": tie_indices}))
+            pin_winner_indices = {
+                repr(pin.specified_state.state): local[str(pin.partition)]
+                for pin in (ria._state_ties or (ria,))
+            }
+            entries.append((ria, {"pin_winner_indices": pin_winner_indices}))
         merged = merge_stride_rias(entries)
     assert float(merged.phi) == float(full.phi)
     assert str(merged.partition) == str(full.partition)
