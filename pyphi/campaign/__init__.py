@@ -33,7 +33,10 @@ from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.parallel.chunking import cost_balanced_partition
+from pyphi.sweep import SweepResult
+from pyphi.sweep import _build_df
 from pyphi.sweep import _enumerate_cells
+from pyphi.sweep import _extract_row
 from pyphi.sweep import _normalize_formalisms
 from pyphi.sweep import _normalize_substrates
 from pyphi.warnings import PyPhiWarning
@@ -43,7 +46,9 @@ __all__ = [
     "CampaignTask",
     "CampaignTaskOutput",
     "CellOutput",
+    "collect",
     "prepare",
+    "status",
 ]
 
 
@@ -407,3 +412,109 @@ def prepare(
         pending=tuple(range(len(tasks))),
         total_units=float(sum(weights)),
     )
+
+
+def _load_manifest(directory: Path) -> dict:
+    return json.loads((directory / "manifest.json").read_text())
+
+
+def _manifest_cells(manifest: dict) -> list[tuple[Any, str, tuple, tuple]]:
+    return [
+        (label, formalism, tuple(subset), tuple(state))
+        for label, formalism, subset, state in manifest["cells"]
+    ]
+
+
+def status(directory: Any) -> CampaignStatus:
+    """Classify every task from the output files and refresh ``remaining.txt``.
+
+    A task is done exactly when its output file exists, loads, and every
+    entry is ``ok`` or ``skipped``; it is failed when the output loads with
+    an ``error`` entry or does not load; otherwise it is pending. Pending
+    and failed task ids are rewritten to ``remaining.txt``, so resubmission
+    is running ``condor_submit pyphi.sub`` again.
+    """
+    directory = Path(directory)
+    manifest = _load_manifest(directory)
+    done, failed, pending = [], [], []
+    for task_id in range(len(manifest["tasks"])):
+        path = directory / "outputs" / f"task-{task_id:04d}.json.gz"
+        if not path.exists():
+            pending.append(task_id)
+            continue
+        try:
+            output = serialize.load(path)
+        except Exception:  # an unloadable output is a failed task
+            failed.append(task_id)
+            continue
+        if any(entry.status == "error" for entry in output.entries):
+            failed.append(task_id)
+        else:
+            done.append(task_id)
+    (directory / "remaining.txt").write_text(
+        "".join(f"{task_id}\n" for task_id in sorted(pending + failed))
+    )
+    return CampaignStatus(
+        directory=str(directory),
+        n_tasks=len(manifest["tasks"]),
+        n_cells=len(manifest["cells"]),
+        done=tuple(done),
+        failed=tuple(failed),
+        pending=tuple(pending),
+        total_units=float(sum(manifest["weights"])),
+    )
+
+
+def collect(directory: Any, partial: bool = False) -> SweepResult:
+    """Reassemble the campaign's outputs into the local-sweep result.
+
+    Cells are restored to their preparation order, so the result is
+    identical to what :func:`pyphi.sweep.sweep` returns over the same axes.
+    With missing or failed tasks the default is to raise with a per-task
+    summary; ``partial=True`` instead warns and returns the result built
+    from the completed tasks.
+    """
+    directory = Path(directory)
+    manifest = _load_manifest(directory)
+    st = status(directory)
+    incomplete = sorted(set(st.failed) | set(st.pending))
+    if incomplete:
+        summary = (
+            f"{len(incomplete)} of {st.n_tasks} tasks incomplete "
+            f"(failed: {list(st.failed)}, pending: {list(st.pending)}); "
+            "resubmit with condor_submit pyphi.sub"
+        )
+        if not partial:
+            raise RuntimeError(summary)
+        warnings.warn(summary, PyPhiWarning, stacklevel=2)
+    incomplete_set = set(incomplete)
+
+    cells = _manifest_cells(manifest)
+    compute = manifest["compute"] if manifest["compute"] is not None else "callable"
+    by_index: dict[int, tuple[str, Any]] = {}
+    for task_id, cell_indices in enumerate(manifest["tasks"]):
+        if task_id in incomplete_set:
+            continue
+        output = serialize.load(directory / "outputs" / f"task-{task_id:04d}.json.gz")
+        for cell_index, entry in zip(cell_indices, output.entries, strict=True):
+            by_index[cell_index] = (entry.status, entry.result)
+
+    keys, raw, skipped = [], [], []
+    for cell_index in sorted(by_index):
+        cell = cells[cell_index]
+        entry_status, result = by_index[cell_index]
+        if entry_status == "skipped":
+            skipped.append(cell)
+        else:
+            keys.append(cell)
+            raw.append(result)
+
+    if manifest["seed"] is not None:
+        for result in raw:
+            with_provenance = getattr(result, "with_provenance", None)
+            if with_provenance is not None:
+                with_provenance(seed=manifest["seed"])
+
+    rows = [_extract_row(result, compute) for result in raw]
+    df = _build_df(keys, rows, cells)
+    return SweepResult(df=df, results=raw, skipped=skipped)
