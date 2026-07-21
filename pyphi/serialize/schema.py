@@ -517,7 +517,29 @@ class DataFrameSchema(msgspec.Struct, frozen=True, tag="dataframe"):
 class SweepResultSchema(msgspec.Struct, frozen=True, tag="sweep_result"):
     df: DataFrameSchema
     results: tuple["Schema | float", ...]
-    skipped: tuple[tuple[str, tuple[int, ...], tuple[int, ...]], ...]
+    skipped: tuple[tuple["str | int", str, tuple[int, ...], tuple[int, ...]], ...]
+
+
+class CampaignTaskSchema(msgspec.Struct, frozen=True, tag="campaign_task"):
+    task_id: int
+    kind: str
+    compute: "str | None"
+    compute_ref: "str | None"
+    config_overrides: dict[str, Any]
+    cells: tuple[tuple["str | int", str, tuple[int, ...], tuple[int, ...]], ...]
+    skip_uncomputable: bool
+
+
+class CellOutputSchema(msgspec.Struct, frozen=True, tag="campaign_cell_output"):
+    status: str
+    result: "Schema | None"
+    traceback: "str | None"
+
+
+class CampaignTaskOutputSchema(msgspec.Struct, frozen=True, tag="campaign_task_output"):
+    task_id: int
+    pyphi_version: str
+    entries: tuple[CellOutputSchema, ...]
 
 
 class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):
@@ -594,4 +616,7 @@ Schema = (
     | PhiPosteriorSchema
     | SweepResultSchema
     | OptimizationResultSchema
+    | CampaignTaskSchema
+    | CellOutputSchema
+    | CampaignTaskOutputSchema
 )

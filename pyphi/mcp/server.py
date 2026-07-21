@@ -479,6 +479,124 @@ def estimate_cost(
 
 
 @mcp.tool()
+def prepare_campaign(
+    handles: list[str],
+    directory: str,
+    states: Any = "all",
+    subsets: Any = "full",
+    formalisms: list[str] | None = None,
+    compute: str = "sia",
+    jobs: int | None = None,
+    units_per_job: float | None = None,
+    seed: int | None = None,
+) -> dict[str, Any]:
+    """Materialize a sweep as an HTCondor campaign directory.
+
+    Enumerates the sweep cells over the given substrate handles, packs them
+    into cost-balanced condor tasks, and writes a self-contained campaign
+    directory (task files, substrates, submit file). The user submits it
+    with ``condor_submit pyphi.sub``; monitor with ``campaign_status`` and
+    reassemble results with ``collect_campaign``. See the ``campaigns``
+    reference topic for the workflow.
+
+    Parameters
+    ----------
+    handles : list of str
+        Substrate handles from ``load_example`` or ``build_substrate``; the
+        handle strings become the substrate labels in the result.
+    directory : str
+        Target campaign directory; must not already exist.
+    states, subsets, formalisms, compute
+        Sweep axes: explicit lists, or ``"all"`` / ``"full"``.
+    jobs : int, optional
+        Pack into exactly this many cost-balanced tasks.
+    units_per_job : float, optional
+        Target work units per task (mutually exclusive with ``jobs``).
+    seed : int, optional
+        Recorded in the manifest and stamped into provenance at collection.
+
+    Returns
+    -------
+    dict
+        A ``card`` (human-readable summary) and a ``status`` mapping with
+        the task ledger.
+    """
+    from pyphi import campaign
+
+    substrates = {handle: _get_substrate(handle) for handle in handles}
+    states_ = states if isinstance(states, str) else [tuple(s) for s in states]
+    subsets_ = subsets if isinstance(subsets, str) else [tuple(s) for s in subsets]
+    result = campaign.prepare(
+        substrates,
+        states=states_,
+        subsets=subsets_,
+        formalisms=formalisms,
+        compute=compute,
+        directory=directory,
+        jobs=jobs,
+        units_per_job=units_per_job,
+        seed=seed,
+    )
+    return {"card": str(result), "status": asdict(result)}
+
+
+@mcp.tool()
+def campaign_status(directory: str) -> dict[str, Any]:
+    """Report a campaign's task ledger and refresh its resubmission list.
+
+    Classifies every task purely from the campaign directory's output
+    files — done, failed, or pending — and rewrites ``remaining.txt`` so
+    that resubmitting is running ``condor_submit pyphi.sub`` again.
+
+    Parameters
+    ----------
+    directory : str
+        A campaign directory written by ``prepare_campaign``.
+
+    Returns
+    -------
+    dict
+        A ``card`` and a ``status`` mapping with the task ledger.
+    """
+    from pyphi import campaign
+
+    result = campaign.status(directory)
+    return {"card": str(result), "status": asdict(result)}
+
+
+@mcp.tool()
+def collect_campaign(directory: str, partial: bool = False) -> dict[str, Any]:
+    """Reassemble a campaign's outputs into a sweep result.
+
+    Returns the identical result a local sweep over the same axes would
+    produce, registered as a result handle for ``inspect``.
+
+    Parameters
+    ----------
+    directory : str
+        A campaign directory whose tasks have been executed.
+    partial : bool
+        Return the result built from completed tasks even when some are
+        missing or failed (default: raise with a per-task summary).
+
+    Returns
+    -------
+    dict
+        The ``result_ref`` handle, the number of collected ``rows``, and
+        the number of ``skipped`` cells.
+    """
+    from pyphi import campaign
+
+    result = campaign.collect(directory, partial=partial)
+    ref = _register_result(result)
+    return {
+        "result_ref": ref,
+        "rows": len(result.df),
+        "skipped": len(result.skipped),
+    }
+
+
+@mcp.tool()
 def configure_parallel(
     enable: bool | None = None,
     levels: list[str] | None = None,

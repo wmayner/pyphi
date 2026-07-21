@@ -159,3 +159,71 @@ def test_iit3_sia_rows_have_no_margins():
     row = result.df.iloc[0]
     assert row["partition_margin"] is None or math.isnan(row["partition_margin"])
     assert row["effectively_tied"] is None
+
+
+class TestSubstratesAxis:
+    def test_single_substrate_constant_column(self):
+        substrate = examples.basic_substrate()
+        result = sweep(
+            substrate,
+            states=[(1, 0, 0)],
+            formalisms=["IIT_4_0_2026"],
+            parallel=False,
+            progress=False,
+        )
+        assert list(result.df["substrate"]) == [0]
+
+    def test_dict_labels_become_index_level(self):
+        subs = {"basic": examples.basic_substrate(), "xor": examples.xor_substrate()}
+        result = sweep(
+            subs,
+            states=[(1, 0, 1)],
+            formalisms=["IIT_4_0_2026"],
+            parallel=False,
+            progress=False,
+        )
+        assert result.df.index.name == "substrate"
+        assert set(result.df.index) == {"basic", "xor"}
+
+    def test_sequence_labels_are_positions(self):
+        subs = [examples.basic_substrate(), examples.xor_substrate()]
+        result = sweep(
+            subs,
+            states=[(1, 0, 1)],
+            formalisms=["IIT_4_0_2026"],
+            parallel=False,
+            progress=False,
+        )
+        assert set(result.df.index) == {0, 1}
+
+    def test_all_states_enumerated_per_substrate(self):
+        # Substrates of different sizes coexist under states="all".
+        subs = {
+            "small": examples.basic_substrate(),
+            "fig4": examples.fig4_substrate(),
+        }
+        result = sweep(
+            subs,
+            states="all",
+            formalisms=["IIT_4_0_2026"],
+            parallel=False,
+            progress=False,
+        )
+        computed_plus_skipped = len(result.df) + len(result.skipped)
+        n_small = len(examples.basic_substrate())
+        n_fig4 = len(examples.fig4_substrate())
+        assert computed_plus_skipped == 2**n_small + 2**n_fig4
+
+    def test_skipped_entries_are_4_tuples(self):
+        result = sweep(
+            examples.basic_substrate(),
+            states="all",
+            formalisms=["IIT_4_0_2026"],
+            parallel=False,
+            progress=False,
+        )
+        assert len(result.skipped) > 0
+        for entry in result.skipped:
+            label, formalism, _subset, _state = entry
+            assert label == 0
+            assert formalism == "IIT_4_0_2026"

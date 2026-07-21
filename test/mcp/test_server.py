@@ -195,6 +195,7 @@ def test_reference_topics_load():
         "configuration",
         "performance",
         "parallelization",
+        "campaigns",
         "visualization",
     }
     for topic in topics:
@@ -407,3 +408,41 @@ def test_plot_tpm_kary_substrate():
     result = srv.plot(out["handle"], kind="tpm")
     assert isinstance(result, list)
     assert ".png" in result[0]
+
+
+class TestCampaignTools:
+    def test_prepare_status_collect_roundtrip(self, tmp_path):
+        handle = srv.load_example("basic")["handle"]
+        directory = tmp_path / "camp"
+        prepared = srv.prepare_campaign(
+            handles=[handle],
+            states="all",
+            formalisms=["IIT_4_0_2026"],
+            directory=str(directory),
+            jobs=2,
+        )
+        assert prepared["status"]["n_tasks"] == 2
+        assert "card" in prepared
+
+        # Execute the tasks locally (the runner, not condor).
+        from pyphi.campaign.runner import run_task
+
+        for task_file in sorted((directory / "tasks").glob("task-*.json.gz")):
+            assert (
+                run_task(
+                    task_file,
+                    substrates_dir=directory / "substrates",
+                    outputs_dir=directory / "outputs",
+                )
+                == 0
+            )
+
+        st = srv.campaign_status(directory=str(directory))
+        # dataclasses.asdict preserves tuples in-process; check emptiness,
+        # not list equality.
+        assert not st["status"]["failed"]
+        assert not st["status"]["pending"]
+
+        collected = srv.collect_campaign(directory=str(directory))
+        assert "result_ref" in collected
+        assert collected["rows"] >= 1

@@ -6,6 +6,7 @@
 configure
 parallel
 chtc
+campaigns
 cache
 save-load
 export
