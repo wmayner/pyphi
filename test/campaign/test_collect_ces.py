@@ -267,3 +267,67 @@ def test_assemble_without_sia_warns_when_resolution_state_missing(monkeypatch):
         distinctions = system.distinctions()
         with pytest.warns(PyPhiWarning, match="resolution_state"):
             campaign_mod._assemble_without_sia(system, distinctions, None)
+
+
+def test_multi_state_per_cell_resolution_matches_single_cell_campaigns(tmp_path):
+    """One campaign spanning several states with per-cell resolution states
+    plans the same shards the equivalent single-cell campaigns would and
+    collects each structure congruence-resolved against its own state."""
+    from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+    from pyphi.sweep import SweepResult
+
+    substrate = examples.basic_substrate()
+    states = [(1, 0, 0), (1, 1, 0)]
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        resolution = {tuple(s): _resolution_state(System(substrate, s)) for s in states}
+
+    multi_dir = tmp_path / "multi"
+    prepare_ces(
+        substrate,
+        states=states,
+        formalisms="IIT_4_0_2026",
+        directory=multi_dir,
+        units_per_job=5.0,
+        resolution_state=resolution,
+    )
+    _run_all(multi_dir)
+    result = collect(multi_dir)
+    assert isinstance(result, SweepResult)
+
+    multi_manifest = json.loads((multi_dir / "manifest.json").read_text())
+    per_cell: dict = {}
+    for row in multi_manifest["tasks"]:
+        per_cell.setdefault(row["cell"], []).append((row["kind"], row["units"]))
+
+    for i, s in enumerate(states):
+        single_dir = tmp_path / f"single{i}"
+        prepare_ces(
+            substrate,
+            states=s,
+            formalisms="IIT_4_0_2026",
+            directory=single_dir,
+            units_per_job=5.0,
+            resolution_state=resolution[tuple(s)],
+        )
+        _run_all(single_dir)
+        single = collect(single_dir)
+        structure = result.results[i]
+        assert isinstance(structure.sia, NullSystemIrreducibilityAnalysis)
+        got = sorted(
+            (d.mechanism, d.cause.purview, d.effect.purview, round(float(d.phi), 12))
+            for d in structure.distinctions
+        )
+        want = sorted(
+            (d.mechanism, d.cause.purview, d.effect.purview, round(float(d.phi), 12))
+            for d in single.distinctions
+        )
+        assert got == want
+        assert float(structure.relations.sum_phi()) == float(single.relations.sum_phi())
+        # Identical shard ladder, cell for cell.
+        single_manifest = json.loads((single_dir / "manifest.json").read_text())
+        assert per_cell[i] == [(r["kind"], r["units"]) for r in single_manifest["tasks"]]
+
+    # The collect-time override accepts the same mapping form.
+    again = collect(multi_dir, resolution_state=resolution)
+    assert isinstance(again, SweepResult)
+    assert len(again.results) == 2

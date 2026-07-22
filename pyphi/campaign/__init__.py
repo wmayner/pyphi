@@ -569,9 +569,15 @@ def prepare_ces(
         A precomputed system irreducibility analysis; suppresses SIA
         shards and is used at collection. Single-cell campaigns only.
     resolution_state : optional
-        An explicit congruence-resolution state; suppresses SIA shards.
-        The collected structure then carries no Φₛ. Single-cell
-        campaigns only.
+        Explicit congruence-resolution states; suppresses SIA shards, and
+        the collected structures then carry no Φₛ. One specification (the
+        result of
+        :func:`pyphi.formalism.iit4.system_intrinsic_information`) for a
+        single-cell campaign; for multi-cell campaigns, a mapping keyed by
+        the full ``(label, formalism, subset, state)`` cell tuples, a
+        mapping keyed by state alone (when the other axes are singletons),
+        or a callable ``cell -> specification``. Every cell must resolve;
+        values are validated here rather than at collect time.
     ordering : {"bottleneck_first", None}, optional
         Reorder each partition-stride shard's slice so likely-reducible
         partitions are evaluated first (sparse substrates short-circuit
@@ -640,8 +646,9 @@ def prepare_ces(
     cells = computable
     if not cells:
         raise ValueError("every enumerated cell has an unreachable state")
-    if (sia is not None or resolution_state is not None) and len(cells) > 1:
-        raise ValueError("sia and resolution_state apply only to single-cell campaigns")
+    if sia is not None and len(cells) > 1:
+        raise ValueError("sia applies only to single-cell campaigns")
+    resolution_states = _normalize_resolution_states(resolution_state, cells)
 
     # Plan once per (label, formalism, subset) group; the shard plan is
     # state-independent, so states replicate tasks, not planning.
@@ -676,7 +683,7 @@ def prepare_ces(
                 _shards.plan_sia_shards(
                     system, units_per_job, memory_floor_bytes=memory_floor
                 )
-                if sia is None and resolution_state is None
+                if sia is None and resolution_states is None
                 else []
             )
             group_data[key] = {
@@ -712,8 +719,12 @@ def prepare_ces(
     serialize.save(scope, directory / "scope.json.gz")
     if sia is not None:
         serialize.save(sia, directory / "sia.json.gz")
-    if resolution_state is not None:
-        serialize.save(resolution_state, directory / "resolution_state.json.gz")
+    if resolution_states is not None:
+        for cell_index, cell in enumerate(cells):
+            serialize.save(
+                resolution_states[_cell_key(cell)],
+                directory / f"resolution_state-{cell_index:04d}.json.gz",
+            )
 
     tasks_dir = directory / "tasks"
     tasks_dir.mkdir()
@@ -774,7 +785,7 @@ def prepare_ces(
         "precomputed"
         if sia is not None
         else "none"
-        if resolution_state is not None
+        if resolution_states is not None
         else "shards"
     )
     manifest = {
@@ -838,6 +849,96 @@ def prepare_ces(
 
 def _load_manifest(directory: Path) -> dict:
     return json.loads((directory / "manifest.json").read_text())
+
+
+def _cell_key(cell: Any) -> tuple:
+    """A cell in canonical key form: subset and state as tuples."""
+    label, formalism_, subset, state = cell
+    return (label, formalism_, tuple(subset), tuple(state))
+
+
+def _validate_resolution_spec(spec: Any, cell: tuple) -> None:
+    from pyphi.direction import Direction
+
+    try:
+        cause = spec[Direction.CAUSE]
+        effect = spec[Direction.EFFECT]
+    except Exception:
+        cause = effect = None
+    if not (hasattr(cause, "state") and hasattr(effect, "state")):
+        raise TypeError(
+            f"resolution_state for cell {cell!r} must be a system state "
+            "specification carrying CAUSE and EFFECT state specifications — "
+            "the result of pyphi.formalism.iit4.system_intrinsic_information — "
+            f"not {type(spec).__name__}"
+        )
+
+
+def _normalize_resolution_states(resolution_state: Any, cells: list) -> dict | None:
+    """Resolve ``resolution_state`` to one validated specification per cell.
+
+    Accepts a single specification (single-cell campaigns only), a mapping
+    keyed by the full ``(label, formalism, subset, state)`` cell tuples
+    ``_enumerate_cells`` produces, a mapping keyed by state alone (only when
+    the other three axes are singletons), or a callable
+    ``cell -> specification``. Every enumerated cell must resolve to a
+    specification; each is type-validated here, at preparation time, rather
+    than failing deep inside congruence resolution at collect time.
+    """
+    if resolution_state is None:
+        return None
+    keys = [_cell_key(cell) for cell in cells]
+    if isinstance(resolution_state, Mapping):
+        state_keyed = all(
+            isinstance(k, tuple) and all(isinstance(x, int) for x in k)
+            for k in resolution_state
+        )
+        if state_keyed:
+            for axis, values in (
+                ("substrate", {k[0] for k in keys}),
+                ("formalism", {k[1] for k in keys}),
+                ("subset", {k[2] for k in keys}),
+            ):
+                if len(values) > 1:
+                    raise ValueError(
+                        f"a state-keyed resolution_state mapping is ambiguous "
+                        f"when the {axis} axis is not a singleton; key the "
+                        "mapping by full cell tuples "
+                        "(label, formalism, subset, state) instead"
+                    )
+            label0, formalism0, subset0, _ = keys[0]
+            lookup = {
+                (label0, formalism0, subset0, tuple(state)): spec
+                for state, spec in resolution_state.items()
+            }
+        else:
+            lookup = {_cell_key(k): v for k, v in resolution_state.items()}
+    elif callable(resolution_state):
+        lookup = {}
+        for key in keys:
+            try:
+                lookup[key] = resolution_state(key)
+            except KeyError:
+                raise ValueError(
+                    f"resolution_state has no entry for cell {key!r}"
+                ) from None
+    else:
+        if len(cells) > 1:
+            raise ValueError(
+                "a single resolution_state applies only to single-cell "
+                "campaigns; pass a mapping keyed by cell tuple or state, "
+                "or a callable cell -> specification"
+            )
+        lookup = {keys[0]: resolution_state}
+
+    resolved: dict[tuple, Any] = {}
+    for key in keys:
+        if key not in lookup:
+            raise ValueError(f"resolution_state has no entry for cell {key!r}")
+        spec = lookup[key]
+        _validate_resolution_spec(spec, key)
+        resolved[key] = spec
+    return resolved
 
 
 def _manifest_cells(manifest: dict) -> list[tuple[Any, str, tuple, tuple]]:
@@ -921,8 +1022,11 @@ def collect(
         For CES campaigns: a system irreducibility analysis to use at
         assembly, overriding whatever the campaign planned.
     resolution_state : optional
-        For CES campaigns without any SIA: an explicit
-        congruence-resolution state.
+        For CES campaigns without any SIA: explicit congruence-resolution
+        states, in any of the forms :func:`prepare_ces` accepts (a single
+        specification for single-cell campaigns, a cell- or state-keyed
+        mapping, or a callable). Overrides the states stored at
+        preparation.
     """
     directory = Path(directory)
     manifest = _load_manifest(directory)
@@ -1262,8 +1366,6 @@ def _merge_cell(
     if sia is None and (directory / "sia.json.gz").exists():
         sia = serialize.load(directory / "sia.json.gz")
     resolution_state = resolution_state_override
-    if resolution_state is None and (directory / "resolution_state.json.gz").exists():
-        resolution_state = serialize.load(directory / "resolution_state.json.gz")
     if sia is None and sia_mode == "shards":
         n_sia_tasks = sum(1 for row in rows if row["kind"] == "sia_shard")
         if sia_entries and len(sia_entries) == n_sia_tasks:
@@ -1304,8 +1406,18 @@ def _collect_ces(
 
     cells = _manifest_cells(manifest)
     multi = len(cells) > 1
-    if multi and (sia_override is not None or resolution_state_override is not None):
-        raise ValueError("sia and resolution_state apply only to single-cell campaigns")
+    if multi and sia_override is not None:
+        raise ValueError("sia applies only to single-cell campaigns")
+    resolution_states = _normalize_resolution_states(resolution_state_override, cells)
+    if resolution_states is None:
+        loaded = {
+            _cell_key(cell): serialize.load(path)
+            for cell_index, cell in enumerate(cells)
+            if (
+                path := directory / f"resolution_state-{cell_index:04d}.json.gz"
+            ).exists()
+        }
+        resolution_states = loaded or None
     groups = {
         (g["label"], g["formalism"], tuple(g["subset"])): g for g in manifest["groups"]
     }
@@ -1343,7 +1455,9 @@ def _collect_ces(
                 system,
                 scope,
                 sia_override,
-                resolution_state_override,
+                resolution_states.get(_cell_key(cell))
+                if resolution_states is not None
+                else None,
             )
         structures.append(structure)
         reports.append((cell, report))

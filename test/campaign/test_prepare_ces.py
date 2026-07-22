@@ -225,3 +225,99 @@ def test_explicit_unreachable_state_fails_loud(tmp_path):
             units_per_job=1e9,
         )
     assert not (tmp_path / "camp").exists()
+
+
+def _resolution_state_for(substrate, state, formalism="IIT_4_0_2026"):
+    import pyphi
+    from pyphi.conf import presets as _presets
+    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    with pyphi.config.override(
+        **_presets.by_name[formalism], parallel=False, progress_bars=False
+    ):
+        system = pyphi.System(substrate, state)
+        return system_intrinsic_information(
+            system,
+            specification_measure=resolve_mechanism_measure(
+                pyphi.config.formalism.iit.specification_measure
+            ),
+        )
+
+
+def test_multi_state_resolution_state_mapping_suppresses_sia_shards(tmp_path):
+    substrate = examples.basic_substrate()
+    states = [(1, 0, 0), (1, 1, 0)]
+    resolution = {tuple(s): _resolution_state_for(substrate, s) for s in states}
+    directory = tmp_path / "camp"
+    prepare_ces(
+        substrate,
+        states=states,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=50.0,
+        resolution_state=resolution,
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["sia_mode"] == "none"
+    assert {t["kind"] for t in manifest["tasks"]} == {"ces_shard"}
+    assert (directory / "resolution_state-0000.json.gz").exists()
+    assert (directory / "resolution_state-0001.json.gz").exists()
+
+
+def test_resolution_state_callable_form(tmp_path):
+    substrate = examples.basic_substrate()
+    states = [(1, 0, 0), (1, 1, 0)]
+    specs = {tuple(s): _resolution_state_for(substrate, s) for s in states}
+    directory = tmp_path / "camp"
+    prepare_ces(
+        substrate,
+        states=states,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=50.0,
+        resolution_state=lambda cell: specs[tuple(cell[3])],
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["sia_mode"] == "none"
+    assert {t["kind"] for t in manifest["tasks"]} == {"ces_shard"}
+
+
+def test_resolution_state_type_validated_at_prepare(tmp_path):
+    with pytest.raises(TypeError, match="system_intrinsic_information"):
+        prepare_ces(
+            examples.basic_substrate(),
+            states=BASIC_STATE,
+            formalisms="IIT_4_0_2026",
+            directory=tmp_path / "camp",
+            units_per_job=50.0,
+            resolution_state=BASIC_STATE,  # a plain state tuple, not a specification
+        )
+
+
+def test_resolution_state_missing_cell_raises(tmp_path):
+    substrate = examples.basic_substrate()
+    resolution = {(1, 0, 0): _resolution_state_for(substrate, (1, 0, 0))}
+    with pytest.raises(ValueError, match="no entry"):
+        prepare_ces(
+            substrate,
+            states=[(1, 0, 0), (1, 1, 0)],
+            formalisms="IIT_4_0_2026",
+            directory=tmp_path / "camp",
+            units_per_job=50.0,
+            resolution_state=resolution,
+        )
+
+
+def test_state_keyed_mapping_requires_singleton_axes(tmp_path):
+    sub_a = examples.basic_substrate()
+    resolution = {(1, 0, 0): _resolution_state_for(sub_a, (1, 0, 0))}
+    with pytest.raises(ValueError, match="full cell"):
+        prepare_ces(
+            {"a": sub_a, "b": examples.basic_substrate()},
+            states=(1, 0, 0),
+            formalisms="IIT_4_0_2026",
+            directory=tmp_path / "camp",
+            units_per_job=50.0,
+            resolution_state=resolution,
+        )
