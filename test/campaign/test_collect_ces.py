@@ -47,8 +47,8 @@ def _campaign(tmp_path, formalism, **kwargs):
     directory = tmp_path / "camp"
     prepare_ces(
         examples.basic_substrate(),
-        state=BASIC_STATE,
-        formalism=formalism,
+        states=BASIC_STATE,
+        formalisms=formalism,
         directory=directory,
         units_per_job=5.0,  # tiny: forces all three ladder rungs
         **kwargs,
@@ -110,8 +110,8 @@ def test_no_sia_mode_carries_no_phi_s(tmp_path):
         state = _resolution_state(system)
     prepare_ces(
         examples.basic_substrate(),
-        state=BASIC_STATE,
-        formalism="IIT_4_0_2026",
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
         directory=directory,
         units_per_job=5.0,
         resolution_state=state,
@@ -145,3 +145,110 @@ def test_partial_collect_reports_missing_groups(tmp_path):
     report = scope_report(directory)
     assert report.missing_groups
     assert len(partial.distinctions) >= 0
+
+
+def test_multi_state_collect_returns_sweep_result(tmp_path):
+    import pyphi
+    from pyphi.sweep import SweepResult
+
+    substrate = examples.basic_substrate()
+    states = [(1, 0, 0), (1, 1, 0)]
+    directory = tmp_path / "camp"
+    prepare_ces(
+        substrate,
+        states=states,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    _run_all(directory)
+    result = collect(directory)
+    assert isinstance(result, SweepResult)
+    assert len(result.results) == 2
+    # each cell's structure equals the local computation
+    for state, structure in zip(states, result.results, strict=True):
+        with pyphi.config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+            local = pyphi.System(substrate, state).ces()
+        assert sorted(
+            (tuple(d.mechanism), round(float(d.phi), 10)) for d in structure.distinctions
+        ) == sorted(
+            (tuple(d.mechanism), round(float(d.phi), 10)) for d in local.distinctions
+        )
+    reports = scope_report(directory)
+    assert set(reports) == {
+        (0, "IIT_4_0_2026", (0, 1, 2), tuple(state)) for state in states
+    }
+
+
+def test_weakly_connected_subset_collects(tmp_path):
+    """A subset without strong connectivity short-circuits its SIA; shards
+    carry that result instead of failing."""
+    import pyphi
+
+    substrate = examples.basic_substrate()
+    directory = tmp_path / "camp"
+    prepare_ces(
+        substrate,
+        states=BASIC_STATE,
+        subsets=[(0, 1)],
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    _run_all(directory)
+    result = collect(directory)
+    with pyphi.config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        local = pyphi.System(substrate, BASIC_STATE, node_indices=(0, 1)).ces()
+    assert float(result.sia.phi) == float(local.sia.phi)
+    assert sorted(
+        (tuple(d.mechanism), round(float(d.phi), 10)) for d in result.distinctions
+    ) == sorted(
+        (tuple(d.mechanism), round(float(d.phi), 10)) for d in local.distinctions
+    )
+
+
+def test_multi_subset_sweep_collects_each_cell(tmp_path):
+    import pyphi
+    from pyphi.sweep import SweepResult
+
+    substrate = examples.basic_substrate()
+    subsets = [(0, 1, 2), (0, 1)]
+    directory = tmp_path / "camp"
+    prepare_ces(
+        substrate,
+        states=BASIC_STATE,
+        subsets=subsets,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    _run_all(directory)
+    result = collect(directory)
+    assert isinstance(result, SweepResult)
+    for subset, structure in zip(subsets, result.results, strict=True):
+        with pyphi.config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+            local = pyphi.System(substrate, BASIC_STATE, node_indices=subset).ces()
+        assert sorted(
+            (tuple(d.mechanism), round(float(d.phi), 10)) for d in structure.distinctions
+        ) == sorted(
+            (tuple(d.mechanism), round(float(d.phi), 10)) for d in local.distinctions
+        )
+
+
+def test_two_substrate_sweep_collects_per_label(tmp_path):
+    from pyphi.sweep import SweepResult
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        {"a": examples.basic_substrate(), "b": examples.basic_substrate()},
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    assert (directory / "substrates" / "substrate-a.json.gz").exists()
+    assert (directory / "substrates" / "substrate-b.json.gz").exists()
+    _run_all(directory)
+    result = collect(directory)
+    assert isinstance(result, SweepResult)
+    assert len(result.results) == 2

@@ -27,11 +27,13 @@ def test_prepare_writes_campaign_directory(tmp_path):
     assert (directory / "outputs").is_dir()
     assert (directory / "run_task.sh").stat().st_mode & 0o111
     submit = (directory / "pyphi.sub").read_text()
-    assert "queue task_id from remaining.txt" in submit
+    assert "queue task_id, memory from remaining.txt" in submit
     assert "container_image" in submit
     assert "pyphi.sif" in submit
-    remaining = (directory / "remaining.txt").read_text().split()
-    assert remaining == [str(t) for t in range(cs.n_tasks)]
+    remaining = (directory / "remaining.txt").read_text().splitlines()
+    assert [line.split(",")[0] for line in remaining] == [
+        str(t) for t in range(cs.n_tasks)
+    ]
     assert cs.pending == tuple(range(cs.n_tasks))
     assert cs.done == ()
 
@@ -113,3 +115,19 @@ def test_lambda_compute_rejected(tmp_path):
             compute=lambda _s: 0.0,
             directory=tmp_path / "c",
         )
+
+
+def test_sweep_scaffold_writes_uniform_memory_column(tmp_path):
+    directory = tmp_path / "camp"
+    prepare(
+        examples.basic_substrate(),
+        **AXES,
+        directory=directory,
+        request_memory="2GB",
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["request_memory"] == "2GB"
+    lines = (directory / "remaining.txt").read_text().splitlines()
+    assert lines
+    for line in lines:
+        assert line.split(",")[1].strip() == "2GB"

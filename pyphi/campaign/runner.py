@@ -129,12 +129,12 @@ def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
             if spec.payload_kind == "mechanisms":
                 for mechanism in spec.mechanisms:
                     cause_purviews = list(
-                        task.scope.purviews(Direction.CAUSE).select(
+                        task.scope.purview_axis(Direction.CAUSE, mechanism).select(
                             system.potential_purviews(Direction.CAUSE, mechanism)
                         )
                     )
                     effect_purviews = list(
-                        task.scope.purviews(Direction.EFFECT).select(
+                        task.scope.purview_axis(Direction.EFFECT, mechanism).select(
                             system.potential_purviews(Direction.EFFECT, mechanism)
                         )
                     )
@@ -215,11 +215,17 @@ def _run_sia_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
         parts, indices = _shards.enumerate_system_partition_stride(system, scheme, i, k)
         try:
             sia = system.sia(partitions=parts)
-            ties = getattr(sia, "ties", None) or (sia,)
-            aux = {
-                "tie_indices": _global_tie_indices(ties, parts, indices),
-                "scheme": scheme,
-            }
+            if getattr(sia, "reasons", None):
+                # A null short-circuit (e.g. no strong connectivity) never
+                # consults the partition restriction, so every stride of the
+                # cell produces this same result.
+                aux = {"short_circuit": True, "scheme": scheme}
+            else:
+                ties = getattr(sia, "ties", None) or (sia,)
+                aux = {
+                    "tie_indices": _global_tie_indices(ties, parts, indices),
+                    "scheme": scheme,
+                }
             return (
                 [CellOutput(status="ok", result=sia, traceback=None, aux=aux)],
                 False,

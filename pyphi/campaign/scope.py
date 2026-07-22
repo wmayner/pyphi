@@ -80,16 +80,60 @@ class AxisScope:
 
 @dataclass(frozen=True)
 class CESScope:
-    """The feasibility surface of a cause-effect structure computation."""
+    """The feasibility surface of a cause-effect structure computation.
+
+    ``max_purview_order_by_mechanism_order`` is an explicit table of
+    ``(mechanism order, max purview order)`` pairs applying to both purview
+    directions on top of the static axes; mechanism orders absent from the
+    table fall back to the static constraints alone. This expresses
+    order-tied purview bounds (e.g. purview order ≤ 2·order + 1) exactly
+    while the scope remains callable-free named data.
+    """
 
     mechanisms: AxisScope = field(default_factory=AxisScope)
     cause_purviews: AxisScope = field(default_factory=AxisScope)
     effect_purviews: AxisScope = field(default_factory=AxisScope)
+    max_purview_order_by_mechanism_order: tuple[tuple[int, int], ...] | None = None
+
+    def __post_init__(self) -> None:
+        table = self.max_purview_order_by_mechanism_order
+        if table is None:
+            return
+        orders = [mech_order for mech_order, _ in table]
+        if len(set(orders)) != len(orders):
+            raise ValueError("mechanism orders in the cap table must be unique")
+        if any(m < 1 or p < 1 for m, p in table):
+            raise ValueError("cap table orders must be positive")
 
     def purviews(self, direction: Direction) -> AxisScope:
         if direction == Direction.CAUSE:
             return self.cause_purviews
         return self.effect_purviews
+
+    def purview_axis(
+        self, direction: Direction, mechanism: tuple[int, ...]
+    ) -> AxisScope:
+        """The effective purview constraint for one mechanism.
+
+        The static axis for ``direction``, intersected with the cap table's
+        bound for ``len(mechanism)`` when one is listed. Every purview
+        selection — planning, counting, execution, and collection — goes
+        through this method, so they cannot disagree about the scope.
+        """
+        axis = self.purviews(direction)
+        if self.max_purview_order_by_mechanism_order is None:
+            return axis
+        cap = dict(self.max_purview_order_by_mechanism_order).get(len(mechanism))
+        if cap is None:
+            return axis
+        if axis.explicit is not None:
+            return AxisScope(explicit=tuple(e for e in axis.explicit if len(e) <= cap))
+        return AxisScope(
+            min_order=axis.min_order,
+            max_order=cap if axis.max_order is None else min(axis.max_order, cap),
+            containing=axis.containing,
+            within=axis.within,
+        )
 
 
 def _units_to_indices(units: tuple, node_labels) -> tuple[int, ...]:
@@ -118,4 +162,7 @@ def resolve_scope(scope: CESScope, node_labels) -> CESScope:
         mechanisms=_resolve_axis(scope.mechanisms, node_labels),
         cause_purviews=_resolve_axis(scope.cause_purviews, node_labels),
         effect_purviews=_resolve_axis(scope.effect_purviews, node_labels),
+        max_purview_order_by_mechanism_order=(
+            scope.max_purview_order_by_mechanism_order
+        ),
     )

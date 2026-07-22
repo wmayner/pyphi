@@ -57,7 +57,7 @@ my-campaign/
   tasks/            one task file per condor job
   outputs/          filled in by the jobs
   logs/             condor stdout/err/log
-  remaining.txt     task ids not yet done
+  remaining.txt     task id, memory rows not yet done
   run_task.sh       the wrapper each job executes
   pyphi.sub         the generated submit file
 ```
@@ -76,7 +76,8 @@ container section of {doc}`chtc`; the image path can be customized with
 $ condor_submit pyphi.sub
 ```
 
-The submit file queues one job per task id in `remaining.txt`. Each job runs
+The submit file queues one job per `task id, memory` row in `remaining.txt`,
+requesting each task's own memory. Each job runs
 `run_task.sh` inside the container, which executes the task file and writes
 its output document; condor transfers the output back into `outputs/`.
 
@@ -93,7 +94,8 @@ print(status)
 A task is **done** when its output file exists, loads, and every cell in it
 succeeded or was skipped; **failed** when the output records an error;
 **pending** when there is no output yet. `status` rewrites `remaining.txt`
-with the failed and pending ids, so resubmission is simply:
+with the failed and pending rows (memory column included), so resubmission is
+simply:
 
 ```console
 $ condor_submit pyphi.sub
@@ -178,20 +180,41 @@ scoped — a partial sweep would silently change φ.
 `pyphi.estimate_analysis(substrate, compute="ces", scope=scope)` prices the
 scoped workload before you commit to it.
 
-## Distribute one system's cause-effect structure
+## Distribute scoped cause-effect structures
 
-`prepare_ces` turns one system's scoped analysis into a campaign:
+`prepare_ces` turns a scoped analysis into a campaign. It takes the same
+axes as `prepare` — substrates, states, subsets, formalisms, with scalars
+accepted anywhere — all sharing one scope:
 
 ```python
 status = campaign.prepare_ces(
     substrate,
-    state=(1, 0, 0),
+    states=(1, 0, 0),
     scope=scope,
     directory="ces-campaign",
     units_per_job=1e6,
     seed=42,
 )
 ```
+
+A sweep over many states (or substrates, or formalisms) under the same
+scope is one campaign directory rather than many:
+
+```python
+status = campaign.prepare_ces(
+    substrate,
+    states=[(1, 0, 0), (1, 1, 0), (1, 0, 1)],
+    scope=scope,
+    directory="ces-sweep-campaign",
+    units_per_job=1e6,
+    seed=42,
+)
+```
+
+The shard plan depends only on the substrate, subset, and formalism — not
+the state — so cells differing only by state share one planning pass and
+replicate its shard tasks. For large scoped systems whose planning walk
+exceeds the default work budget, raise `limit=`.
 
 The planner descends only as deep as the budget requires: whole mechanisms
 are cost-balanced into jobs; a mechanism over budget splits its purview
@@ -200,7 +223,29 @@ partition sweep into interleaved strides. System-partition strides for the
 SIA are planned the same way — unless you pass a precomputed `sia=`, or a
 `resolution_state=` (in which case the collected structure carries no Φₛ
 and congruence resolves against the given state, or the system's
-intrinsic-information state by default).
+intrinsic-information state by default); both apply to single-cell
+campaigns only.
+
+Every shard requests memory sized to the largest purview repertoire it
+holds, and packing groups purviews by memory class, so small work never
+occupies a big-memory slot. `request_memory=` is the floor under those
+estimates (default `"4GB"`); a large floor effectively opts out of
+stratification.
+
+When purview size should track mechanism size, give the scope an explicit
+order table instead of one permissive fixed cap:
+
+```python
+scope = CESScope(
+    mechanisms=AxisScope(max_order=5),
+    max_purview_order_by_mechanism_order=(
+        (1, 3), (2, 5), (3, 7), (4, 9), (5, 11),
+    ),
+)
+```
+
+Mechanism orders absent from the table fall back to the static purview
+axes alone.
 
 On sparse substrates, pass `ordering="bottleneck_first"` so each stride
 evaluates partitions that sever the fewest present connections first —
@@ -210,8 +255,11 @@ never affects results.
 Submission, monitoring, and resubmission work exactly as for sweep
 campaigns. `collect()` merges the shards exactly — tie sets preserved,
 identical to what a single machine would have produced over the same
-scope — and assembles the `CauseEffectStructure` through the standard
-analysis path:
+scope — and assembles each cell's `CauseEffectStructure` through the
+standard analysis path. A single-cell campaign returns the structure; a
+multi-cell campaign returns the same `SweepResult` a whole-cell
+`compute="ces"` sweep produces, and `scope_report` returns one report per
+cell keyed by `(label, formalism, subset, state)`:
 
 ```python
 ces = campaign.collect("ces-campaign")
@@ -225,3 +273,24 @@ the full structure (partial structures are exact substructures), and the
 measured upper bounds on Σφ_r and Φ come from the certified bound
 machinery. Missing shard groups (from failed or pending tasks collected
 with `partial=True`) are listed separately from scope exclusions.
+
+## When one fat node beats a sharded campaign
+
+For a sparse, scoped, mid-size system (tens of units, mechanism order
+capped), the alternative to sharding is one job per state that runs the
+whole scoped analysis with native parallelism: `request_cpus = 32`,
+`request_memory` sized to the analysis, and `pyphi.config.parallel`
+enabled. Prefer the fat-node pattern when:
+
+- the shard count at your budget is large (thousands) while a single
+  state's whole analysis fits comfortably in one slot's memory and a
+  72-hour window — per-shard scheduling overhead then dominates; or
+- most shards' memory requests approach the whole-analysis footprint
+  anyway (peak memory is set by the largest purview repertoire, which
+  sharding cannot reduce).
+
+Prefer sharding when a single state cannot finish in one slot, when
+big-memory slots are scarce (stratified shard requests keep small work in
+small slots), or when you need per-shard retry granularity on a busy
+pool. Per-shard memory requests are estimated automatically, so holds
+from underestimated memory are no longer the deciding factor.

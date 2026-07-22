@@ -77,7 +77,7 @@ def test_missing_output_is_pending_and_resubmittable(tmp_path):
     (directory / "outputs" / "task-0001.json.gz").unlink()
     st = status(directory)
     assert st.pending == (1,)
-    assert (directory / "remaining.txt").read_text() == "1\n"
+    assert (directory / "remaining.txt").read_text() == "1, 4GB\n"
     with pytest.raises(RuntimeError, match="incomplete"):
         collect(directory)
     with pytest.warns(PyPhiWarning):
@@ -102,4 +102,4 @@ def test_failed_task_listed_for_resubmission(tmp_path):
     _run_all_tasks(directory, check=False)
     st = status(directory)
     assert st.failed == (0,)
-    assert (directory / "remaining.txt").read_text() == "0\n"
+    assert (directory / "remaining.txt").read_text() == "0, 4GB\n"

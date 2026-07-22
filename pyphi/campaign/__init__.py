@@ -14,6 +14,7 @@ import dataclasses
 import importlib.metadata
 import json
 import math
+import re
 import stat
 import warnings
 from collections.abc import Mapping
@@ -35,6 +36,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.models.pandas import ToPandasMixin
 from pyphi.parallel.chunking import cost_balanced_partition
+from pyphi.sweep import _UNREACHABLE
 from pyphi.sweep import SweepResult
 from pyphi.sweep import _build_df
 from pyphi.sweep import _enumerate_cells
@@ -286,13 +288,44 @@ transfer_output_remaps = "task-$(task_id).json.gz = outputs/task-$(task_id).json
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
 request_cpus        = 1
-request_memory      = {request_memory}
+request_memory      = $(memory)
 request_disk        = {request_disk}
 log                 = logs/task-$(task_id).log
 output              = logs/task-$(task_id).out
 error               = logs/task-$(task_id).err
-queue task_id from remaining.txt
+queue task_id, memory from remaining.txt
 """
+
+_MEMORY_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*(MB|GB)\s*$", re.IGNORECASE)
+
+
+def _parse_memory(value: str) -> int:
+    """Parse a scheduler memory string (``"4GB"``, ``"512MB"``) to bytes."""
+    match = _MEMORY_RE.match(value)
+    if match is None:
+        raise ValueError(
+            f"cannot parse memory value {value!r}; expected e.g. '4GB' or '512MB'"
+        )
+    number, unit = float(match.group(1)), match.group(2).upper()
+    return int(number * (1024**3 if unit == "GB" else 1024**2))
+
+
+def _format_memory(n: int) -> str:
+    return f"{n // 1024**2}MB"
+
+
+def _remaining_lines(memory_by_task: dict[int, str]) -> str:
+    return "".join(
+        f"{task_id}, {memory}\n" for task_id, memory in sorted(memory_by_task.items())
+    )
+
+
+def _task_memory_strings(manifest: dict) -> list[str]:
+    """Per-task memory request strings for either campaign kind."""
+    if manifest["kind"] == "sweep_cells":
+        return [manifest["request_memory"]] * len(manifest["tasks"])
+    return [_format_memory(row["memory_bytes"]) for row in manifest["tasks"]]
+
 
 _RUN_TASK_SH = (
     "#!/bin/bash\n"
@@ -439,10 +472,11 @@ def prepare(
         "skip_uncomputable": skip_uncomputable,
         "infeasible_threshold": infeasible_threshold,
         "packing": {"jobs": jobs, "units_per_job": units_per_job},
+        "request_memory": request_memory,
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _write_campaign_scaffold(
-        directory, len(tasks), container_image, request_memory, request_disk
+        directory, [request_memory] * len(tasks), container_image, request_disk
     )
     return CampaignStatus(
         directory=str(directory),
@@ -457,14 +491,13 @@ def prepare(
 
 def _write_campaign_scaffold(
     directory: Path,
-    n_tasks: int,
+    memory_by_task: list[str],
     container_image: str,
-    request_memory: str,
     request_disk: str,
 ) -> None:
     """Write the scheduler-facing campaign files common to every kind."""
     (directory / "remaining.txt").write_text(
-        "".join(f"{task_id}\n" for task_id in range(n_tasks))
+        _remaining_lines(dict(enumerate(memory_by_task)))
     )
     run_task_sh = directory / "run_task.sh"
     run_task_sh.write_text(_RUN_TASK_SH)
@@ -474,21 +507,21 @@ def _write_campaign_scaffold(
     (directory / "pyphi.sub").write_text(
         _SUBMIT_TEMPLATE.format(
             container_image=container_image,
-            request_memory=request_memory,
             request_disk=request_disk,
         )
     )
 
 
 def prepare_ces(
-    substrate: Any,
+    substrates: Any,
     *,
-    state: Any,
-    subset: Any = None,
+    states: Any,
+    subsets: Any = "full",
+    formalisms: Any = None,
     scope: Any = None,
     directory: Any,
     units_per_job: float,
-    formalism: str | None = None,
+    limit: int = 100_000_000,
     sia: Any = None,
     resolution_state: Any = None,
     ordering: str | None = None,
@@ -499,39 +532,46 @@ def prepare_ces(
     request_disk: str = "4GB",
     seed: int | None = None,
 ) -> CampaignStatus:
-    """Materialize one system's scoped CES analysis as a campaign.
+    """Materialize a scoped CES sweep as a campaign.
 
-    Plans shards for the scoped distinction computation (and, unless a
-    precomputed ``sia`` or explicit ``resolution_state`` is given, for the
-    system irreducibility analysis), descending mechanism → purview-range →
-    partition-stride only where ``units_per_job`` requires. Shards are
-    independent condor jobs on the standard campaign scaffold; collection
-    merges them exactly (tie sets preserved) and assembles the cause-effect
-    structure through the standard analysis path.
+    Enumerates exactly the cells :func:`pyphi.sweep.sweep` would run over
+    the same axes, all sharing one scope, and plans shards for each cell's
+    scoped distinction computation (and, unless a precomputed ``sia`` or
+    explicit ``resolution_state`` is given, for its system irreducibility
+    analysis), descending mechanism → purview-range → partition-stride
+    only where ``units_per_job`` requires. The shard plan depends only on
+    the substrate, subset, and formalism — not the state — so cells that
+    differ only by state share one planning pass and replicate its shard
+    tasks. Shards are independent condor jobs on the standard campaign
+    scaffold; collection merges them exactly (tie sets preserved) and
+    assembles each cell's cause-effect structure through the standard
+    analysis path.
 
     Parameters
     ----------
-    substrate
-        The substrate of the analyzed system.
-    state : tuple[int, ...]
-        The system state.
-    subset : optional
-        Node indices (or labels) of the candidate system; ``None`` uses
-        the whole substrate.
+    substrates
+        As in :func:`pyphi.sweep.sweep`: one substrate, a sequence, or a
+        ``{label: substrate}`` mapping.
+    states, subsets, formalisms
+        As in :func:`pyphi.sweep.sweep`; scalars are accepted anywhere.
     scope : CESScope, optional
-        The feasibility surface; ``None`` is the unconstrained scope.
+        One feasibility surface shared by every cell, resolved per
+        substrate; ``None`` is the unconstrained scope.
     directory
         Target campaign directory; created, and must not already exist.
     units_per_job : float
         Target work units per shard — the planning ladder's budget.
-    formalism : str, optional
-        Preset name; ``None`` uses the active formalism version.
+    limit : int, optional
+        Work budget for each planning walk. The walk raises
+        :class:`ValueError` past the limit — the workload is then too
+        large to plan; narrow the scope or raise the limit.
     sia : optional
         A precomputed system irreducibility analysis; suppresses SIA
-        shards and is used at collection.
+        shards and is used at collection. Single-cell campaigns only.
     resolution_state : optional
         An explicit congruence-resolution state; suppresses SIA shards.
-        The collected structure then carries no Φₛ.
+        The collected structure then carries no Φₛ. Single-cell
+        campaigns only.
     ordering : {"bottleneck_first", None}, optional
         Reorder each partition-stride shard's slice so likely-reducible
         partitions are evaluated first (sparse substrates short-circuit
@@ -541,8 +581,12 @@ def prepare_ces(
         error with ``strict``).
     strict : bool, optional
         Escalate admission-control warnings to errors.
-    container_image, request_memory, request_disk : str, optional
+    container_image, request_disk : str, optional
         Substituted into the generated submit file.
+    request_memory : str, optional
+        Minimum per-shard memory request (the floor). Every shard requests
+        the greater of this and its estimated peak, so a large floor
+        disables memory stratification.
     seed : int, optional
         Recorded in the manifest; stamped into result provenance by
         :func:`collect`.
@@ -566,45 +610,106 @@ def prepare_ces(
         )
     if sia is not None and resolution_state is not None:
         raise ValueError("pass either sia or resolution_state, not both")
-    formalism_ = formalism if formalism is not None else config.formalism.iit.version
-    if formalism_ not in presets.by_name:
-        raise ValueError(f"unknown formalism {formalism_!r}")
+    formalisms_ = _normalize_formalisms(formalisms)
+    for name in formalisms_:
+        if name not in presets.by_name:
+            raise ValueError(f"unknown formalism {name!r}")
     scope = scope if scope is not None else CESScope()
+    memory_floor = _parse_memory(request_memory)
+    labeled = _normalize_substrates(substrates)
+    substrate_map = dict(labeled)
+    cells = _enumerate_cells(labeled, states, subsets, formalisms_)
+    if not cells:
+        raise ValueError("the given axes enumerate no cells")
+    # As in the sweep: cells enumerated via "all" skip dynamically
+    # unreachable states; explicit cells fail loud.
+    skip_uncomputable = states == "all" or subsets == "all"
+    computable: list = []
+    skipped_cells: list = []
+    for cell in cells:
+        label, formalism_, subset, state = cell
+        with config.override(**presets.by_name[formalism_], progress_bars=False):
+            try:
+                System.from_substrate(substrate_map[label], tuple(state), subset)
+            except _UNREACHABLE:
+                if not skip_uncomputable:
+                    raise
+                skipped_cells.append(cell)
+                continue
+        computable.append(cell)
+    cells = computable
+    if not cells:
+        raise ValueError("every enumerated cell has an unreachable state")
+    if (sia is not None or resolution_state is not None) and len(cells) > 1:
+        raise ValueError("sia and resolution_state apply only to single-cell campaigns")
 
-    with config.override(**presets.by_name[formalism_], progress_bars=False):
-        system = System.from_substrate(substrate, tuple(state), subset)
-        resolved = resolve_scope(scope, system.node_labels)
-        ces_specs = _shards.plan_ces_shards(system, resolved, units_per_job)
-        if not any(s.mechanisms or s.mechanism for s in ces_specs):
-            raise ValueError("the scope admits zero mechanisms")
-        sia_specs = (
-            _shards.plan_sia_shards(system, units_per_job)
-            if sia is None and resolution_state is None
-            else []
-        )
-        partition_scheme = config.formalism.iit.system_partition_scheme
-        mechanism_partition_scheme = config.formalism.iit.mechanism_partition_scheme
-        workloads = mechanism_workloads(
-            substrate, subset=system.node_indices, scope=resolved
-        )
-
-    for spec in ces_specs + sia_specs:
-        if spec.units > infeasible_threshold:
-            message = (
-                f"shard {spec!r} estimate {spec.units:.3g} exceeds "
-                f"infeasible_threshold {infeasible_threshold:.3g}"
+    # Plan once per (label, formalism, subset) group; the shard plan is
+    # state-independent, so states replicate tasks, not planning.
+    group_keys: list[tuple[Any, str, tuple]] = []
+    group_data: dict[tuple[Any, str, tuple], dict] = {}
+    for label, formalism_, subset, state in cells:
+        key = (label, formalism_, subset)
+        if key in group_data:
+            continue
+        group_keys.append(key)
+        with config.override(**presets.by_name[formalism_], progress_bars=False):
+            # The plan is state-independent; the group's first cell state
+            # stands in for construction (and is validated here).
+            system = System.from_substrate(substrate_map[label], tuple(state), subset)
+            resolved = resolve_scope(scope, system.node_labels)
+            workloads = mechanism_workloads(
+                substrate_map[label],
+                subset=system.node_indices,
+                scope=resolved,
+                limit=limit,
             )
-            if strict:
-                raise ValueError(message)
-            warnings.warn(message, PyPhiWarning, stacklevel=2)
+            ces_specs = _shards.plan_ces_shards(
+                system,
+                resolved,
+                units_per_job,
+                workloads=workloads,
+                memory_floor_bytes=memory_floor,
+            )
+            if not any(s.mechanisms or s.mechanism for s in ces_specs):
+                raise ValueError("the scope admits zero mechanisms")
+            sia_specs = (
+                _shards.plan_sia_shards(
+                    system, units_per_job, memory_floor_bytes=memory_floor
+                )
+                if sia is None and resolution_state is None
+                else []
+            )
+            group_data[key] = {
+                "resolved": resolved,
+                "workloads": workloads,
+                "ces_specs": ces_specs,
+                "sia_specs": sia_specs,
+                "subset": tuple(system.node_indices),
+                "partition_scheme": config.formalism.iit.system_partition_scheme,
+                "mechanism_partition_scheme": (
+                    config.formalism.iit.mechanism_partition_scheme
+                ),
+            }
+
+    for data in group_data.values():
+        for spec in data["ces_specs"] + data["sia_specs"]:
+            if spec.units > infeasible_threshold:
+                message = (
+                    f"shard {spec!r} estimate {spec.units:.3g} exceeds "
+                    f"infeasible_threshold {infeasible_threshold:.3g}"
+                )
+                if strict:
+                    raise ValueError(message)
+                warnings.warn(message, PyPhiWarning, stacklevel=2)
 
     directory.mkdir(parents=True)
     (directory / "outputs").mkdir()
     (directory / "logs").mkdir()
     substrates_dir = directory / "substrates"
     substrates_dir.mkdir()
-    serialize.save(substrate, substrates_dir / "substrate-system.json.gz")
-    serialize.save(resolved, directory / "scope.json.gz")
+    for label, substrate in labeled:
+        serialize.save(substrate, substrates_dir / f"substrate-{label}.json.gz")
+    serialize.save(scope, directory / "scope.json.gz")
     if sia is not None:
         serialize.save(sia, directory / "sia.json.gz")
     if resolution_state is not None:
@@ -613,40 +718,57 @@ def prepare_ces(
     tasks_dir = directory / "tasks"
     tasks_dir.mkdir()
     overrides = _wire_overrides()
-    subset_ = tuple(system.node_indices)
-    task_rows = []
+    task_rows: list[dict] = []
     task_id = 0
-    for spec in ces_specs:
-        shard_task = CESShardTask(
-            task_id=task_id,
-            kind="ces_shard",
-            substrate_label="system",
-            state=tuple(state),
-            subset=subset_,
-            scope=resolved,
-            config_overrides=overrides,
-            formalism=formalism_,
-            spec=spec,
-            ordering=ordering,
-        )
-        serialize.save(shard_task, tasks_dir / f"task-{task_id:04d}.json.gz")
-        task_rows.append({"task_id": task_id, "kind": "ces_shard", "units": spec.units})
-        task_id += 1
-    for spec in sia_specs:
-        assert spec.stride is not None, "SIA shards are always strides"
-        sia_task = SIAShardTask(
-            task_id=task_id,
-            kind="sia_shard",
-            substrate_label="system",
-            state=tuple(state),
-            subset=subset_,
-            config_overrides=overrides,
-            formalism=formalism_,
-            stride=spec.stride,
-        )
-        serialize.save(sia_task, tasks_dir / f"task-{task_id:04d}.json.gz")
-        task_rows.append({"task_id": task_id, "kind": "sia_shard", "units": spec.units})
-        task_id += 1
+    for cell_index, (label, formalism_, subset, state) in enumerate(cells):
+        data = group_data[(label, formalism_, subset)]
+        for spec in data["ces_specs"]:
+            shard_task = CESShardTask(
+                task_id=task_id,
+                kind="ces_shard",
+                substrate_label=label,
+                state=tuple(state),
+                subset=data["subset"],
+                scope=data["resolved"],
+                config_overrides=overrides,
+                formalism=formalism_,
+                spec=spec,
+                ordering=ordering,
+            )
+            serialize.save(shard_task, tasks_dir / f"task-{task_id:04d}.json.gz")
+            task_rows.append(
+                {
+                    "task_id": task_id,
+                    "kind": "ces_shard",
+                    "units": spec.units,
+                    "memory_bytes": spec.memory_bytes,
+                    "cell": cell_index,
+                }
+            )
+            task_id += 1
+        for spec in data["sia_specs"]:
+            assert spec.stride is not None, "SIA shards are always strides"
+            sia_task = SIAShardTask(
+                task_id=task_id,
+                kind="sia_shard",
+                substrate_label=label,
+                state=tuple(state),
+                subset=data["subset"],
+                config_overrides=overrides,
+                formalism=formalism_,
+                stride=spec.stride,
+            )
+            serialize.save(sia_task, tasks_dir / f"task-{task_id:04d}.json.gz")
+            task_rows.append(
+                {
+                    "task_id": task_id,
+                    "kind": "sia_shard",
+                    "units": spec.units,
+                    "memory_bytes": spec.memory_bytes,
+                    "cell": cell_index,
+                }
+            )
+            task_id += 1
 
     sia_mode = (
         "precomputed"
@@ -660,30 +782,53 @@ def prepare_ces(
         "pyphi_version": importlib.metadata.version("pyphi"),
         "created": datetime.now(UTC).isoformat(),
         "seed": seed,
-        "formalism": formalism_,
-        "state": list(state),
-        "subset": list(subset_),
-        "substrate_label": "system",
         "sia_mode": sia_mode,
         "ordering": ordering,
+        "cells": [
+            [
+                label,
+                formalism_,
+                list(group_data[(label, formalism_, subset)]["subset"]),
+                list(state),
+            ]
+            for label, formalism_, subset, state in cells
+        ],
+        "skipped_cells": [
+            [label, formalism_, list(subset), list(state)]
+            for label, formalism_, subset, state in skipped_cells
+        ],
+        "groups": [
+            {
+                "label": label,
+                "formalism": formalism_,
+                "subset": list(group_data[key]["subset"]),
+                "partition_scheme": group_data[key]["partition_scheme"],
+                "mechanism_partition_scheme": group_data[key][
+                    "mechanism_partition_scheme"
+                ],
+                "mechanism_workloads": {
+                    ",".join(map(str, mechanism)): workload.units
+                    for mechanism, workload in group_data[key]["workloads"].items()
+                },
+            }
+            for key in group_keys
+            for label, formalism_, _subset in [key]
+        ],
         "tasks": task_rows,
-        "mechanism_workloads": {
-            ",".join(map(str, mechanism)): units
-            for mechanism, units in workloads.items()
-        },
         "units_per_job": units_per_job,
         "infeasible_threshold": infeasible_threshold,
-        "partition_scheme": partition_scheme,
-        "mechanism_partition_scheme": mechanism_partition_scheme,
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _write_campaign_scaffold(
-        directory, len(task_rows), container_image, request_memory, request_disk
+        directory,
+        [_format_memory(row["memory_bytes"]) for row in task_rows],
+        container_image,
+        request_disk,
     )
     return CampaignStatus(
         directory=str(directory),
         n_tasks=len(task_rows),
-        n_cells=len(task_rows),
+        n_cells=len(cells),
         done=(),
         failed=(),
         pending=tuple(range(len(task_rows))),
@@ -728,8 +873,11 @@ def status(directory: Any) -> CampaignStatus:
             failed.append(task_id)
         else:
             done.append(task_id)
+    memory = _task_memory_strings(manifest)
     (directory / "remaining.txt").write_text(
-        "".join(f"{task_id}\n" for task_id in sorted(pending + failed))
+        _remaining_lines(
+            {task_id: memory[task_id] for task_id in sorted(pending + failed)}
+        )
     )
     if "weights" in manifest:
         total_units = float(sum(manifest["weights"]))
@@ -892,14 +1040,27 @@ class ScopeReport(Displayable, ToPandasMixin):
         )
 
 
-def scope_report(directory: Any) -> ScopeReport:
-    """Read the scope report a CES campaign's collection wrote."""
+def scope_report(directory: Any) -> Any:
+    """Read the scope report(s) a CES campaign's collection wrote.
+
+    Returns one :class:`ScopeReport` for a single-cell campaign, or a dict
+    keyed by ``(label, formalism, subset, state)`` cell tuples for a
+    multi-cell one.
+    """
     path = Path(directory) / "scope_report.json"
     if not path.exists():
         raise FileNotFoundError(f"{path} does not exist; collect the campaign first")
     data = json.loads(path.read_text())
-    data["missing_groups"] = tuple(data["missing_groups"])
-    return ScopeReport(**data)
+    if "cells" not in data:
+        data["missing_groups"] = tuple(data["missing_groups"])
+        return ScopeReport(**data)
+    reports = {}
+    for entry in data["cells"]:
+        label, formalism_, subset, state = entry["cell"]
+        report = dict(entry["report"])
+        report["missing_groups"] = tuple(report["missing_groups"])
+        reports[(label, formalism_, tuple(subset), tuple(state))] = ScopeReport(**report)
+    return reports
 
 
 def _group_name(task: Any) -> str:
@@ -941,7 +1102,7 @@ def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any)
 
 
 def _build_scope_report(
-    manifest: dict,
+    group: dict,
     system: Any,
     result: Any,
     missing_groups: set,
@@ -959,7 +1120,7 @@ def _build_scope_report(
         upper_phi = None
     return ScopeReport(
         mechanisms_computed=len(resolved),
-        mechanisms_admitted=len(manifest["mechanism_workloads"]),
+        mechanisms_admitted=len(group["mechanism_workloads"]),
         mechanisms_possible=2**n - 1,
         missing_groups=tuple(sorted(missing_groups)),
         sum_phi_r_lower=float(result.relations.sum_phi()),
@@ -969,6 +1130,137 @@ def _build_scope_report(
     )
 
 
+def _merge_cell(
+    directory: Path,
+    manifest: dict,
+    group: dict,
+    rows: list[dict],
+    incomplete: set[int],
+    system: Any,
+    scope: Any,
+    sia_override: Any,
+    resolution_state_override: Any,
+) -> tuple[Any, ScopeReport]:
+    """Merge one cell's shard outputs into its structure and report."""
+    from pyphi.campaign import merge as _merge
+    from pyphi.direction import Direction
+    from pyphi.models.distinctions import UnresolvedDistinctions
+
+    # Group loaded outputs by reconstruction target.
+    whole_distinctions: dict[tuple, Any] = {}
+    purview_rias: dict[tuple, dict[tuple, Any]] = {}
+    stride_entries: dict[tuple, list[tuple[Any, dict]]] = {}
+    sia_entries: list[tuple[Any, dict]] = []
+    missing_groups: set[str] = set()
+
+    expected_schemes = {
+        "sia_shard": group["partition_scheme"],
+        "ces_shard": group["mechanism_partition_scheme"],
+    }
+    for row in rows:
+        task_id = row["task_id"]
+        task = serialize.load(directory / "tasks" / f"task-{task_id:04d}.json.gz")
+        if task_id in incomplete:
+            missing_groups.add(_group_name(task))
+            continue
+        output = serialize.load(directory / "outputs" / f"task-{task_id:04d}.json.gz")
+        # Stride semantics depend on the enumeration order, a property
+        # of the PyPhi version and partition scheme; refuse to merge
+        # outputs produced under a different one.
+        if output.pyphi_version != manifest["pyphi_version"]:
+            raise RuntimeError(
+                f"task {task_id} was run under pyphi "
+                f"{output.pyphi_version} but the campaign was prepared "
+                f"under {manifest['pyphi_version']}; re-run the task"
+            )
+        for entry in output.entries:
+            if entry.aux is not None and "scheme" in entry.aux:
+                expected = expected_schemes[row["kind"]]
+                if entry.aux["scheme"] != expected:
+                    raise RuntimeError(
+                        f"task {task_id} ran under partition scheme "
+                        f"{entry.aux['scheme']!r} but the manifest "
+                        f"records {expected!r}; re-run the task"
+                    )
+        if row["kind"] == "sia_shard":
+            entry = output.entries[0]
+            sia_entries.append((entry.result, entry.aux))
+            continue
+        spec = task.spec
+        if spec.payload_kind == "mechanisms":
+            for mechanism, entry in zip(spec.mechanisms, output.entries, strict=True):
+                whole_distinctions[tuple(mechanism)] = entry.result
+        elif spec.payload_kind == "purview_range":
+            bucket = purview_rias.setdefault((tuple(spec.mechanism), spec.direction), {})
+            for purview, entry in zip(spec.purviews, output.entries, strict=True):
+                bucket[tuple(purview)] = entry.result
+        elif spec.payload_kind == "partition_stride":
+            stride_entries.setdefault(
+                (tuple(spec.mechanism), spec.direction, tuple(spec.purview)),
+                [],
+            ).append((output.entries[0].result, output.entries[0].aux))
+
+    # Bottom-up: strides -> per-purview RIAs.
+    for (mechanism, direction, purview), entries in stride_entries.items():
+        if f"stride:{mechanism}:{direction}:{purview}" in missing_groups:
+            continue
+        merged = _merge.merge_stride_rias(entries)
+        purview_rias.setdefault((mechanism, direction), {})[purview] = merged
+
+    # Per-purview RIAs -> MICE -> distinctions for split mechanisms.
+    split_mechanisms: dict[tuple, dict[str, Any]] = {}
+    for (mechanism, direction), by_purview in purview_rias.items():
+        if f"range:{mechanism}:{direction}" in missing_groups:
+            continue
+        dir_ = Direction[direction]
+        canonical = list(
+            scope.purview_axis(dir_, tuple(mechanism)).select(
+                system.potential_purviews(dir_, mechanism)
+            )
+        )
+        if set(map(tuple, canonical)) - set(by_purview):
+            missing_groups.add(f"range:{mechanism}:{direction}")
+            continue
+        mice = _merge.merge_purview_rias(
+            dir_, [by_purview[tuple(p)] for p in canonical], canonical
+        )
+        split_mechanisms.setdefault(mechanism, {})[direction] = mice
+    for mechanism, mice_by_dir in split_mechanisms.items():
+        if "CAUSE" in mice_by_dir and "EFFECT" in mice_by_dir:
+            whole_distinctions[mechanism] = _merge.build_distinction(
+                mechanism, mice_by_dir["CAUSE"], mice_by_dir["EFFECT"]
+            )
+        else:
+            missing_groups.add(f"mechanism:{mechanism}")
+
+    distinctions = UnresolvedDistinctions(
+        tuple(d for d in whole_distinctions.values() if d)
+    )
+
+    # SIA per mode.
+    sia_mode = manifest["sia_mode"]
+    sia = sia_override
+    if sia is None and (directory / "sia.json.gz").exists():
+        sia = serialize.load(directory / "sia.json.gz")
+    resolution_state = resolution_state_override
+    if resolution_state is None and (directory / "resolution_state.json.gz").exists():
+        resolution_state = serialize.load(directory / "resolution_state.json.gz")
+    if sia is None and sia_mode == "shards":
+        n_sia_tasks = sum(1 for row in rows if row["kind"] == "sia_shard")
+        if sia_entries and len(sia_entries) == n_sia_tasks:
+            sia = _merge.merge_sia_strides(sia_entries)
+        else:
+            missing_groups.add("sia")
+
+    if sia is not None:
+        result = system.ces(sia=sia, distinctions=distinctions)
+    else:
+        result = _assemble_without_sia(system, distinctions, resolution_state)
+
+    report = _build_scope_report(group, system, result, missing_groups, sia_mode)
+    return result, report
+
+
 def _collect_ces(
     directory: Path,
     manifest: dict,
@@ -976,9 +1268,7 @@ def _collect_ces(
     sia_override: Any,
     resolution_state_override: Any,
 ) -> Any:
-    from pyphi.campaign import merge as _merge
-    from pyphi.direction import Direction
-    from pyphi.models.distinctions import UnresolvedDistinctions
+    from pyphi.campaign.scope import resolve_scope
     from pyphi.system import System
 
     st = status(directory)
@@ -993,149 +1283,85 @@ def _collect_ces(
             raise RuntimeError(summary)
         warnings.warn(summary, PyPhiWarning, stacklevel=3)
 
-    formalism_ = manifest["formalism"]
-    with config.override(
-        **presets.by_name[formalism_], parallel=False, progress_bars=False
-    ):
-        substrate = serialize.load(directory / "substrates" / "substrate-system.json.gz")
-        system = System(
-            substrate,
-            tuple(manifest["state"]),
-            node_indices=tuple(manifest["subset"]),
+    cells = _manifest_cells(manifest)
+    multi = len(cells) > 1
+    if multi and (sia_override is not None or resolution_state_override is not None):
+        raise ValueError("sia and resolution_state apply only to single-cell campaigns")
+    groups = {
+        (g["label"], g["formalism"], tuple(g["subset"])): g for g in manifest["groups"]
+    }
+    rows_by_cell: dict[int, list[dict]] = {}
+    for row in manifest["tasks"]:
+        rows_by_cell.setdefault(row["cell"], []).append(row)
+
+    # Substrate labels appear in filenames, so a bare substrate's label 0
+    # round-trips as the string "0".
+    substrates = {
+        path.name.removeprefix("substrate-").removesuffix(".json.gz"): serialize.load(
+            path
         )
-        scope = serialize.load(directory / "scope.json.gz")
+        for path in (directory / "substrates").glob("substrate-*.json.gz")
+    }
+    user_scope = serialize.load(directory / "scope.json.gz")
 
-        # Group loaded outputs by reconstruction target.
-        whole_distinctions: dict[tuple, Any] = {}
-        purview_rias: dict[tuple, dict[tuple, Any]] = {}
-        stride_entries: dict[tuple, list[tuple[Any, dict]]] = {}
-        sia_entries: list[tuple[Any, dict]] = []
-        missing_groups: set[str] = set()
-
-        expected_schemes = {
-            "sia_shard": manifest["partition_scheme"],
-            "ces_shard": manifest["mechanism_partition_scheme"],
-        }
-        for row in manifest["tasks"]:
-            task_id = row["task_id"]
-            task = serialize.load(directory / "tasks" / f"task-{task_id:04d}.json.gz")
-            if task_id in incomplete:
-                missing_groups.add(_group_name(task))
-                continue
-            output = serialize.load(
-                directory / "outputs" / f"task-{task_id:04d}.json.gz"
-            )
-            # Stride semantics depend on the enumeration order, a property
-            # of the PyPhi version and partition scheme; refuse to merge
-            # outputs produced under a different one.
-            if output.pyphi_version != manifest["pyphi_version"]:
-                raise RuntimeError(
-                    f"task {task_id} was run under pyphi "
-                    f"{output.pyphi_version} but the campaign was prepared "
-                    f"under {manifest['pyphi_version']}; re-run the task"
-                )
-            for entry in output.entries:
-                if entry.aux is not None and "scheme" in entry.aux:
-                    expected = expected_schemes[row["kind"]]
-                    if entry.aux["scheme"] != expected:
-                        raise RuntimeError(
-                            f"task {task_id} ran under partition scheme "
-                            f"{entry.aux['scheme']!r} but the manifest "
-                            f"records {expected!r}; re-run the task"
-                        )
-            if row["kind"] == "sia_shard":
-                entry = output.entries[0]
-                sia_entries.append((entry.result, entry.aux))
-                continue
-            spec = task.spec
-            if spec.payload_kind == "mechanisms":
-                for mechanism, entry in zip(
-                    spec.mechanisms, output.entries, strict=True
-                ):
-                    whole_distinctions[tuple(mechanism)] = entry.result
-            elif spec.payload_kind == "purview_range":
-                bucket = purview_rias.setdefault(
-                    (tuple(spec.mechanism), spec.direction), {}
-                )
-                for purview, entry in zip(spec.purviews, output.entries, strict=True):
-                    bucket[tuple(purview)] = entry.result
-            elif spec.payload_kind == "partition_stride":
-                stride_entries.setdefault(
-                    (tuple(spec.mechanism), spec.direction, tuple(spec.purview)),
-                    [],
-                ).append((output.entries[0].result, output.entries[0].aux))
-
-        # Bottom-up: strides -> per-purview RIAs.
-        for (mechanism, direction, purview), entries in stride_entries.items():
-            if f"stride:{mechanism}:{direction}:{purview}" in missing_groups:
-                continue
-            merged = _merge.merge_stride_rias(entries)
-            purview_rias.setdefault((mechanism, direction), {})[purview] = merged
-
-        # Per-purview RIAs -> MICE -> distinctions for split mechanisms.
-        split_mechanisms: dict[tuple, dict[str, Any]] = {}
-        for (mechanism, direction), by_purview in purview_rias.items():
-            if f"range:{mechanism}:{direction}" in missing_groups:
-                continue
-            dir_ = Direction[direction]
-            canonical = list(
-                scope.purviews(dir_).select(system.potential_purviews(dir_, mechanism))
-            )
-            if set(map(tuple, canonical)) - set(by_purview):
-                missing_groups.add(f"range:{mechanism}:{direction}")
-                continue
-            mice = _merge.merge_purview_rias(
-                dir_, [by_purview[tuple(p)] for p in canonical], canonical
-            )
-            split_mechanisms.setdefault(mechanism, {})[direction] = mice
-        for mechanism, mice_by_dir in split_mechanisms.items():
-            if "CAUSE" in mice_by_dir and "EFFECT" in mice_by_dir:
-                whole_distinctions[mechanism] = _merge.build_distinction(
-                    mechanism, mice_by_dir["CAUSE"], mice_by_dir["EFFECT"]
-                )
-            else:
-                missing_groups.add(f"mechanism:{mechanism}")
-
-        distinctions = UnresolvedDistinctions(
-            tuple(d for d in whole_distinctions.values() if d)
-        )
-
-        # SIA per mode.
-        sia_mode = manifest["sia_mode"]
-        sia = sia_override
-        if sia is None and (directory / "sia.json.gz").exists():
-            sia = serialize.load(directory / "sia.json.gz")
-        resolution_state = resolution_state_override
-        if (
-            resolution_state is None
-            and (directory / "resolution_state.json.gz").exists()
+    structures: list[Any] = []
+    reports: list[tuple[tuple, ScopeReport]] = []
+    for cell_index, cell in enumerate(cells):
+        label, formalism_, subset, state = cell
+        substrate = substrates[str(label)]
+        group = groups[(label, formalism_, tuple(subset))]
+        with config.override(
+            **presets.by_name[formalism_], parallel=False, progress_bars=False
         ):
-            resolution_state = serialize.load(directory / "resolution_state.json.gz")
-        if sia is None and sia_mode == "shards":
-            n_sia_tasks = sum(
-                1 for row in manifest["tasks"] if row["kind"] == "sia_shard"
+            system = System(substrate, tuple(state), node_indices=tuple(subset))
+            scope = resolve_scope(user_scope, system.node_labels)
+            structure, report = _merge_cell(
+                directory,
+                manifest,
+                group,
+                rows_by_cell.get(cell_index, []),
+                incomplete,
+                system,
+                scope,
+                sia_override,
+                resolution_state_override,
             )
-            if sia_entries and len(sia_entries) == n_sia_tasks:
-                sia = _merge.merge_sia_strides(sia_entries)
-            else:
-                missing_groups.add("sia")
+        structures.append(structure)
+        reports.append((cell, report))
+        with_provenance = getattr(structure, "with_provenance", None)
+        if with_provenance is not None:
+            note = json.dumps(
+                {
+                    "campaign": str(directory),
+                    "cell": [label, formalism_, list(subset), list(state)],
+                    "scope_report": dataclasses.asdict(report),
+                }
+            )
+            with_provenance(note=note, seed=manifest["seed"])
 
-        if sia is not None:
-            result = system.ces(sia=sia, distinctions=distinctions)
-        else:
-            result = _assemble_without_sia(system, distinctions, resolution_state)
-
-        report = _build_scope_report(manifest, system, result, missing_groups, sia_mode)
-    (directory / "scope_report.json").write_text(
-        json.dumps(dataclasses.asdict(report), indent=2)
-    )
-    with_provenance = getattr(result, "with_provenance", None)
-    if with_provenance is not None:
-        note = json.dumps(
-            {
-                "campaign": str(directory),
-                "scope_report": dataclasses.asdict(report),
-            }
+    if not multi:
+        (directory / "scope_report.json").write_text(
+            json.dumps(dataclasses.asdict(reports[0][1]), indent=2)
         )
-        with_provenance(note=note, seed=manifest["seed"])
-    return result
+        return structures[0]
+    (directory / "scope_report.json").write_text(
+        json.dumps(
+            {
+                "cells": [
+                    {
+                        "cell": [cell[0], cell[1], list(cell[2]), list(cell[3])],
+                        "report": dataclasses.asdict(report),
+                    }
+                    for cell, report in reports
+                ]
+            },
+            indent=2,
+        )
+    )
+    rows = [_extract_row(s, "ces") for s in structures]
+    df = _build_df(cells, rows, cells)
+    skipped = [
+        (label, formalism_, tuple(subset), tuple(state))
+        for label, formalism_, subset, state in manifest.get("skipped_cells", [])
+    ]
+    return SweepResult(df=df, results=structures, skipped=skipped)

@@ -528,6 +528,7 @@ def prepare_ces_campaign(
     formalism: str | None = None,
     sia_ref: str | None = None,
     ordering: str | None = None,
+    limit: int | None = None,
     seed: int | None = None,
 ) -> dict[str, Any]:
     """Materialize one system's scoped CES analysis as an HTCondor campaign.
@@ -535,9 +536,12 @@ def prepare_ces_campaign(
     Plans shards for the scoped distinction computation (and the system
     irreducibility analysis, unless ``sia_ref`` supplies a precomputed
     one), descending mechanism → purview-range → partition-stride to meet
-    the per-job budget. Submit the directory with ``condor_submit
+    the per-job budget. Each shard requests memory sized to its largest
+    purview repertoire. Submit the directory with ``condor_submit
     pyphi.sub``; monitor with ``campaign_status``; reassemble with
-    ``collect_campaign``. See the ``campaigns`` reference topic.
+    ``collect_campaign``. See the ``campaigns`` reference topic. Sweeps
+    over many states or substrates under one scope are a library-level
+    feature of ``pyphi.campaign.prepare_ces``.
 
     Parameters
     ----------
@@ -562,6 +566,9 @@ def prepare_ces_campaign(
     ordering : str, optional
         ``"bottleneck_first"`` to evaluate likely-reducible partitions
         first within each stride (sparse substrates short-circuit sooner).
+    limit : int, optional
+        Work budget for the planning walk; raise it for large scoped
+        systems whose walk exceeds the default.
     seed : int, optional
         Recorded in the manifest and stamped into provenance at collection.
 
@@ -573,17 +580,21 @@ def prepare_ces_campaign(
     from pyphi import campaign
 
     substrate = _get_substrate(handle)
+    kwargs: dict[str, Any] = {}
+    if limit is not None:
+        kwargs["limit"] = limit
     result = campaign.prepare_ces(
         substrate,
-        state=tuple(state),
-        subset=None if subset is None else tuple(subset),
+        states=tuple(state),
+        subsets="full" if subset is None else [tuple(subset)],
         scope=_scope_from_json(scope, substrate),
         directory=directory,
         units_per_job=units_per_job,
-        formalism=formalism,
+        formalisms=formalism,
         sia=None if sia_ref is None else _get_result(sia_ref),
         ordering=ordering,
         seed=seed,
+        **kwargs,
     )
     return {"card": str(result), "status": asdict(result)}
 

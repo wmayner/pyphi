@@ -259,7 +259,7 @@ class TestScopedEstimation:
         workloads = mechanism_workloads(substrate, scope=scope)
         scoped = estimate_analysis(substrate, compute="ces", scope=scope)
         assert set(workloads) == {(0,), (0, 1), (0, 2), (0, 1, 2)}
-        assert sum(workloads.values()) == (
+        assert sum(w.units for w in workloads.values()) == (
             scoped.purview_evaluations + scoped.mechanism_partition_sweeps
         )
 
@@ -269,3 +269,45 @@ class TestScopedEstimation:
         count = partition_sweep_count(2, 2)
         enumerated = len(list(mechanism_partitions((0, 1), (0, 2))))
         assert count == enumerated
+
+
+def test_estimate_analysis_respects_order_caps():
+    from pyphi import examples
+    from pyphi.campaign.scope import CESScope
+    from pyphi.cost import estimate_analysis
+
+    substrate = examples.basic_substrate()
+    base = estimate_analysis(substrate, compute="ces", scope=CESScope())
+    capped = estimate_analysis(
+        substrate,
+        compute="ces",
+        scope=CESScope(max_purview_order_by_mechanism_order=((1, 1),)),
+    )
+    assert capped.purview_evaluations < base.purview_evaluations
+
+
+def test_mechanism_workloads_records_max_repertoire_cells():
+    from pyphi import examples
+    from pyphi.cost import mechanism_workloads
+
+    substrate = examples.basic_substrate()  # 3 binary units
+    workloads = mechanism_workloads(substrate)
+    # connectivity restricts (0,) to cause purviews of size <= 2
+    assert workloads[(0,)].max_repertoire_cells == 2**2
+    assert workloads[(0, 1, 2)].max_repertoire_cells == 2**3
+    total = sum(w.units for w in workloads.values())
+    assert total > 0
+
+
+def test_shard_memory_bytes_and_rounding():
+    from pyphi.cost import BASE_MEMORY_BYTES
+    from pyphi.cost import REPERTOIRE_FACTOR
+    from pyphi.cost import round_memory_bytes
+    from pyphi.cost import shard_memory_bytes
+
+    assert shard_memory_bytes(0) == BASE_MEMORY_BYTES
+    assert shard_memory_bytes(100) == REPERTOIRE_FACTOR * 8 * 100 + BASE_MEMORY_BYTES
+    half_gb = 512 * 1024**2
+    assert round_memory_bytes(1) == half_gb
+    assert round_memory_bytes(half_gb) == half_gb
+    assert round_memory_bytes(half_gb + 1) == 2 * half_gb
