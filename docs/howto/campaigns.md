@@ -220,11 +220,39 @@ The planner descends only as deep as the budget requires: whole mechanisms
 are cost-balanced into jobs; a mechanism over budget splits its purview
 list into ranges; a single (mechanism, purview) pair over budget splits its
 partition sweep into interleaved strides. System-partition strides for the
-SIA are planned the same way — unless you pass a precomputed `sia=`, or a
-`resolution_state=` (in which case the collected structure carries no Φₛ
-and congruence resolves against the given state, or the system's
-intrinsic-information state by default); both apply to single-cell
-campaigns only.
+SIA are planned the same way — unless you pass a precomputed `sia=`
+(single-cell campaigns only) or a `resolution_state=`, in which case no
+SIA shards are planned, the collected structures carry no Φₛ, and each
+cell's congruence resolves against its own given state. A single-cell
+campaign takes one specification (the result of
+{func}`~pyphi.formalism.iit4.system_intrinsic_information`); a multi-cell
+campaign takes a mapping keyed by the full
+`(label, formalism, subset, state)` cell tuples, a mapping keyed by state
+alone when the other axes are singletons, or a callable
+`cell -> specification`. A sweep over many states of one substrate then
+plans once and resolves each state's structure against its own specified
+state:
+
+```python
+resolution = {
+    state: system_intrinsic_information(
+        pyphi.System(substrate, state), specification_measure=measure
+    )
+    for state in states
+}
+campaign.prepare_ces(
+    substrate,
+    states=states,
+    scope=scope,
+    directory="ces-campaign",
+    units_per_job=2000.0,
+    resolution_state=resolution,
+)
+```
+
+Values are validated at preparation time; without a `resolution_state`,
+collect falls back to computing the intrinsic-information state itself,
+which is infeasible for large systems.
 
 Every shard requests memory sized to the largest purview repertoire it
 holds, and packing groups purviews by memory class, so small work never
