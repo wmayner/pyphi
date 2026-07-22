@@ -65,6 +65,26 @@ class AxisScope:
             return False
         return self.within is None or set(units) <= set(self.within)
 
+    def order_bound(self) -> int | None:
+        """The tightest order bound derivable from this axis, or None.
+
+        Every admitted tuple has at most this many units, so an enumeration
+        restricted to this bound followed by :meth:`select` yields exactly
+        what an unbounded enumeration would — without constructing the
+        larger candidates.
+        """
+        if self.explicit is not None:
+            return max((len(e) for e in self.explicit), default=0)
+        bounds = [
+            b
+            for b in (
+                self.max_order,
+                len(self.within) if self.within is not None else None,
+            )
+            if b is not None
+        ]
+        return min(bounds, default=None)
+
     def select(self, candidates: Iterable[tuple[int, ...]]) -> Iterator[tuple[int, ...]]:
         """Yield the candidates this scope admits, preserving their order."""
         if self.explicit is not None:

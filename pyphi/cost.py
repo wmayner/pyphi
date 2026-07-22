@@ -457,13 +457,17 @@ def estimate_analysis(
             for mechanism in mechanism_iter:
                 mechanisms += 1
                 for direction in (Direction.CAUSE, Direction.EFFECT):
-                    purviews = cs.potential_purviews(direction, mechanism)
                     if unit_scope is not None:
+                        axis = unit_scope.purview_axis(direction, mechanism)
                         purviews = list(
-                            unit_scope.purview_axis(direction, mechanism).select(
-                                purviews
+                            axis.select(
+                                cs.potential_purviews(
+                                    direction, mechanism, max_order=axis.order_bound()
+                                )
                             )
                         )
+                    else:
+                        purviews = cs.potential_purviews(direction, mechanism)
                     for purview in purviews:
                         counter.charge(1)
                         purview_evaluations += 1
@@ -555,11 +559,17 @@ def mechanism_workloads(
             units = 0
             max_cells = 0
             for direction in (Direction.CAUSE, Direction.EFFECT):
-                purviews = cs.potential_purviews(direction, mechanism)
                 if scope is not None:
+                    axis = scope.purview_axis(direction, mechanism)
                     purviews = list(
-                        scope.purview_axis(direction, mechanism).select(purviews)
+                        axis.select(
+                            cs.potential_purviews(
+                                direction, mechanism, max_order=axis.order_bound()
+                            )
+                        )
                     )
+                else:
+                    purviews = cs.potential_purviews(direction, mechanism)
                 for purview in purviews:
                     counter.charge(1)
                     units += 1 + _mechanism_partition_count(

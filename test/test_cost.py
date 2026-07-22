@@ -311,3 +311,43 @@ def test_shard_memory_bytes_and_rounding():
     assert round_memory_bytes(1) == half_gb
     assert round_memory_bytes(half_gb) == half_gb
     assert round_memory_bytes(half_gb + 1) == 2 * half_gb
+
+
+def _spy_purview_calls(monkeypatch):
+    """Record the (direction, max_order) of every purview enumeration."""
+    from pyphi.substrate import Substrate
+
+    calls: list = []
+    orig = Substrate.potential_purviews
+
+    def spy(self, direction, mechanism, max_order=None):
+        calls.append((direction, max_order))
+        return orig(self, direction, mechanism, max_order=max_order)
+
+    monkeypatch.setattr(Substrate, "potential_purviews", spy)
+    return calls
+
+
+def test_scoped_walks_bound_the_purview_enumeration(monkeypatch):
+    """A scoped purview cap reaches the enumeration itself, not just the
+    post-filter — otherwise large substrates pay the full powerset."""
+    from pyphi.campaign.scope import AxisScope
+    from pyphi.campaign.scope import CESScope
+    from pyphi.cost import mechanism_workloads
+    from pyphi.direction import Direction
+
+    scope = CESScope(
+        cause_purviews=AxisScope(max_order=2),
+        effect_purviews=AxisScope(max_order=1),
+    )
+    substrate = _dense3()
+    calls = _spy_purview_calls(monkeypatch)
+
+    mechanism_workloads(substrate, scope=scope)
+    assert calls
+    assert all(mo == (2 if d == Direction.CAUSE else 1) for d, mo in calls)
+
+    calls.clear()
+    estimate_analysis(substrate, compute="ces", scope=scope)
+    assert calls
+    assert all(mo == (2 if d == Direction.CAUSE else 1) for d, mo in calls)

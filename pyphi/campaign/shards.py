@@ -207,8 +207,14 @@ def plan_ces_shards(
             continue
         # Rung 2: split this mechanism's (direction, purview) list.
         for direction in (Direction.CAUSE, Direction.EFFECT):
-            purviews = system.potential_purviews(direction, mechanism)
-            purviews = list(scope.purview_axis(direction, mechanism).select(purviews))
+            axis = scope.purview_axis(direction, mechanism)
+            purviews = list(
+                axis.select(
+                    system.potential_purviews(
+                        direction, mechanism, max_order=axis.order_bound()
+                    )
+                )
+            )
             if not purviews:
                 continue
             triples = [

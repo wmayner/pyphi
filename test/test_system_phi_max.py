@@ -156,3 +156,30 @@ def test_phi_max(cut, expected_phi_max, mechanism):
 
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
+
+
+def test_explicit_purviews_bound_the_enumeration(s, monkeypatch):
+    """An explicit purview list bounds the substrate-level enumeration to the
+    largest given purview; the result still equals the unbounded result
+    intersected with the given list."""
+    from pyphi.core import repertoire_algebra as ra
+    from pyphi.direction import Direction
+    from pyphi.substrate import Substrate
+
+    system = s
+    mechanism = (0,)
+    given = [(1,), (2,)]
+    unbounded = ra.potential_purviews(system, Direction.CAUSE, mechanism)
+    expected = {p for p in unbounded if p in set(given)}
+
+    calls = []
+    orig = Substrate.potential_purviews
+
+    def spy(self, direction, mech, max_order=None):
+        calls.append(max_order)
+        return orig(self, direction, mech, max_order=max_order)
+
+    monkeypatch.setattr(Substrate, "potential_purviews", spy)
+    result = ra.potential_purviews(system, Direction.CAUSE, mechanism, purviews=given)
+    assert set(result) == expected
+    assert calls == [1]

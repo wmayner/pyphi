@@ -1213,9 +1213,10 @@ def _merge_cell(
         if f"range:{mechanism}:{direction}" in missing_groups:
             continue
         dir_ = Direction[direction]
+        axis = scope.purview_axis(dir_, tuple(mechanism))
         canonical = list(
-            scope.purview_axis(dir_, tuple(mechanism)).select(
-                system.potential_purviews(dir_, mechanism)
+            axis.select(
+                system.potential_purviews(dir_, mechanism, max_order=axis.order_bound())
             )
         )
         if set(map(tuple, canonical)) - set(by_purview):

@@ -410,13 +410,18 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         return self._node_labels
 
     def potential_purviews(
-        self, direction: Direction, mechanism: Mechanism
+        self,
+        direction: Direction,
+        mechanism: Mechanism,
+        max_order: int | None = None,
     ) -> list[Purview]:
         """All purviews which are not clearly reducible for a mechanism.
 
         Depends only on connectivity, so the result is cached on
         ``_cm_fingerprint`` and shared across every substrate with the same
-        ``cm`` (a parameter sweep over a fixed topology reuses it).
+        ``cm`` (a parameter sweep over a fixed topology reuses it). The cache
+        key includes ``max_order``, so bounded and unbounded results never
+        alias.
 
         Parameters
         ----------
@@ -424,6 +429,12 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
             ``CAUSE`` or ``EFFECT``.
         mechanism : tuple[int, ...]
             The mechanism which all purviews are checked for reducibility over.
+        max_order : int, optional
+            Enumerate only purviews of at most this many units. Since
+            reducibility is checked per purview, the result equals the
+            unbounded result filtered to the cap — but the enumeration never
+            constructs the larger candidates, which matters on large
+            substrates. If None, all orders are enumerated.
 
         Returns
         -------
@@ -433,14 +444,14 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         from pyphi.conf import config as _config
 
         def compute() -> list[Purview]:
-            all_purviews = utils.powerset(self._node_indices)
+            all_purviews = utils.powerset(self._node_indices, max_size=max_order)
             return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
 
         fp = self._cm_fingerprint
         _PURVIEW_CACHE.observe(self, fp)
         return _PURVIEW_CACHE.get_or_compute(
             fp,
-            (direction, mechanism),
+            (direction, mechanism, max_order),
             compute,
             store=_config.infrastructure.cache_potential_purviews,
         )

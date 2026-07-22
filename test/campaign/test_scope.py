@@ -112,3 +112,13 @@ def test_order_cap_survives_resolution_and_serialization(tmp_path):
     path = tmp_path / "scope.json.gz"
     save(resolved, path)
     assert load(path).max_purview_order_by_mechanism_order == ((1, 2),)
+
+
+def test_order_bound_derivation():
+    assert AxisScope().order_bound() is None
+    assert AxisScope(max_order=2).order_bound() == 2
+    assert AxisScope(within=(1, 2, 3)).order_bound() == 3
+    assert AxisScope(max_order=4, within=(1, 2, 3)).order_bound() == 3
+    assert AxisScope(max_order=2, within=(1, 2, 3, 4)).order_bound() == 2
+    assert AxisScope(explicit=((0, 1), (2,))).order_bound() == 2
+    assert AxisScope(explicit=()).order_bound() == 0

@@ -189,3 +189,25 @@ def test_memory_classes_stratify_purview_ranges():
         for p in s.purviews:
             cells = _math.prod(alphabet[u] for u in p)
             assert round_memory_bytes(shard_memory_bytes(cells)) == s.memory_bytes
+
+
+def test_plan_bounds_the_purview_enumeration(monkeypatch):
+    """The planner's purview enumerations carry the scope's order bound."""
+    from pyphi.substrate import Substrate
+
+    calls = []
+    orig = Substrate.potential_purviews
+
+    def spy(self, direction, mechanism, max_order=None):
+        calls.append(max_order)
+        return orig(self, direction, mechanism, max_order=max_order)
+
+    monkeypatch.setattr(Substrate, "potential_purviews", spy)
+    scope = CESScope(
+        cause_purviews=AxisScope(max_order=2),
+        effect_purviews=AxisScope(max_order=2),
+    )
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        plan_ces_shards(_system(), scope, units_per_job=2.0)
+    assert calls
+    assert all(mo == 2 for mo in calls)

@@ -723,6 +723,7 @@ def potential_purviews(
     direction: Direction,
     mechanism: tuple[int, ...],
     purviews: Any | None = None,
+    max_order: int | None = None,
 ) -> list[tuple[int, ...]]:
     """Return all purviews that could belong to the MIC or MIE.
 
@@ -730,10 +731,20 @@ def potential_purviews(
     effect (MIE) only if it is not trivially reducible. Purviews that are
     trivially reducible against the (possibly cut) connectivity matrix of
     this candidate system are filtered out.
+
+    The substrate-level enumeration is bounded by ``max_order`` and, when an
+    explicit ``purviews`` list is given, by the largest purview in it — no
+    candidate above the bound can survive the intersection, so bounding the
+    enumeration is exact and avoids constructing the full powerset.
     """
     from pyphi.substrate import irreducible_purviews
 
-    _potential_purviews = set(cs.substrate.potential_purviews(direction, mechanism))
+    if purviews is not None:
+        given_bound = max((len(p) for p in purviews), default=0)
+        max_order = given_bound if max_order is None else min(max_order, given_bound)
+    _potential_purviews = set(
+        cs.substrate.potential_purviews(direction, mechanism, max_order=max_order)
+    )
     if purviews is None:
         purviews_set = _potential_purviews
     else:

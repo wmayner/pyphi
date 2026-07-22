@@ -204,3 +204,61 @@ def test_complexes_dispatches_to_iit3_cascade_under_iit3_version():
 def test_greedy_condensation_no_longer_exists():
     """_greedy_condensation was unreachable after the dispatch change; removed."""
     assert not hasattr(substrate_mod, "_greedy_condensation")
+
+
+def _sigmoid_substrate(W):
+    """A substrate whose TPM is a sigmoid of the weight matrix ``W``."""
+    n = W.shape[0]
+    idx = np.arange(2**n)
+    bits = ((idx[:, None] >> (n - 1 - np.arange(n))) & 1).astype(np.int8)
+    tpm = (1 / (1 + np.exp(-((2 * bits - 1.0) @ W)))).reshape((2,) * n + (n,))
+    return Substrate(tpm, cm=(W != 0).astype(int))
+
+
+def _dense_and_sparse_weights(n, seed=0):
+    rng = np.random.default_rng(seed)
+    dense = rng.normal(size=(n, n))
+    sparse = dense.copy()
+    sparse[np.abs(sparse) < 0.7] = 0.0
+    return dense, sparse
+
+
+def test_potential_purviews_max_order_matches_filtered_unbounded():
+    import itertools
+
+    n = 6
+    for W in _dense_and_sparse_weights(n):
+        sub = _sigmoid_substrate(W)
+        mechanisms = [m for r in (1, 2, 3) for m in itertools.combinations(range(n), r)]
+        for direction in (Direction.CAUSE, Direction.EFFECT):
+            for mechanism in mechanisms:
+                unbounded = sub.potential_purviews(direction, mechanism)
+                for max_order in (1, 2, None):
+                    bounded = sub.potential_purviews(
+                        direction, mechanism, max_order=max_order
+                    )
+                    if max_order is None:
+                        assert bounded == unbounded
+                    else:
+                        assert bounded == [p for p in unbounded if len(p) <= max_order]
+
+
+@config.override(cache_potential_purviews=True)
+def test_potential_purviews_max_order_never_aliases_cache():
+    """A bounded call must never poison the cache for an unbounded caller,
+    in either call order."""
+    W, _ = _dense_and_sparse_weights(5, seed=42)
+    sub = _sigmoid_substrate(W)
+
+    # Bounded first, then unbounded: the unbounded caller sees the full list.
+    bounded = sub.potential_purviews(Direction.CAUSE, (0,), max_order=1)
+    unbounded = sub.potential_purviews(Direction.CAUSE, (0,))
+    assert all(len(p) <= 1 for p in bounded)
+    assert any(len(p) > 1 for p in unbounded)
+    assert bounded == [p for p in unbounded if len(p) <= 1]
+
+    # Unbounded first, then bounded: the bounded caller sees the capped list.
+    full = sub.potential_purviews(Direction.EFFECT, (0, 1))
+    capped = sub.potential_purviews(Direction.EFFECT, (0, 1), max_order=1)
+    assert any(len(p) > 1 for p in full)
+    assert capped == [p for p in full if len(p) <= 1]
