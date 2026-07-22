@@ -660,6 +660,45 @@ ANALYTICAL relation-computation default flip (M10 — the documentation-overhaul
 item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-error work
 (B14 ← T3).
 
+### 2026-07-21 scoped-CES campaign follow-ups — surfaced by a large scoped-CES port
+
+> Porting a large hand-rolled CES-sharding workload (a mid-sized substrate, several
+> mechanism orders, scoped purviews) onto `pyphi.campaign.prepare_ces` exercised the
+> scoped-CES surface at a scale the P11 build had not, and surfaced five concrete gaps. The
+> first two block or degrade a real scoped campaign at mid-sized n; the rest are ergonomics
+> and documentation. Dispositions: `2.x` · `quick-win` · `doc`.
+
+- **Memory-aware shard sizing (prerequisite for large scoped campaigns).** *`2.x`.*
+  `cost.py` counts enumeration units only, and `prepare_ces` substitutes a single fixed
+  `request_memory` (default `4GB`) into the submit file for every task. A shard's peak
+  memory scales with its largest purview's repertoire (≈ alphabet^|purview| through the
+  mechanism-partition sweep), which the cost model ignores, so order-4/5 shards silently
+  exceed a 4 GB cgroup limit. `estimate_analysis`/`mechanism_workloads` should emit a
+  memory estimate and `prepare_ces` set per-shard `request_memory` (or split a shard on a
+  memory budget) instead of one fixed value.
+- **Expose `limit=` on `prepare_ces` (prerequisite; planning blocker).** *`quick-win`.*
+  `plan_ces_shards` already takes `limit` (default `10_000_000`) and forwards it to
+  `mechanism_workloads`, whose counting walk raises `ValueError` past the limit — but
+  `prepare_ces` never exposes it and always uses the default. A big-but-sparse scoped
+  system (mid-sized n, a few mechanism orders) can exceed 10 M scoped purview-evaluations
+  and cannot be planned without editing library code. Thread `limit=` through `prepare_ces`
+  (and consider a higher default for scoped single-system planning).
+- **Scoped multi-system sweep.** *`2.x`.* `prepare_ces` is single-system; the multi-cell
+  `prepare` sweep only runs whole-system `.ces()`. A workload over many states/substrates
+  sharing one `CESScope` (e.g. many states of one substrate) is scripted as N separate
+  campaigns. A
+  scoped sweep axis — states/substrates × one scope, one campaign directory — would unify
+  them and keep the distinction sets directly comparable across cells.
+- **Order-dependent purview caps.** *`2.x`.* `AxisScope.max_order` is a single fixed cap;
+  it cannot express a purview bound that grows with mechanism order (e.g. 2·order+1). A
+  per-mechanism-order purview bound in `AxisScope` would express order-tied caps exactly,
+  rather than forcing the single most permissive fixed cap across all orders.
+- **Fat-node vs. campaign crossover note.** *`doc`.* For a sparse, scoped, mid-n system
+  (mid-sized n, sparse connectivity, a few mechanism orders), one fat node per state (native
+  `parallel`, large `request_cpus`/`request_memory`) can beat sharding and sidesteps the
+  per-shard memory holds. A how-to note in `docs/howto/{campaigns,chtc}.md` on when the
+  crossover favors the fat-node pattern would help.
+
 ## Context
 
 PyPhi is a scientific library implementing Integrated Information Theory (IIT). It has
