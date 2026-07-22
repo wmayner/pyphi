@@ -101,3 +101,43 @@ def test_limit_threads_through_prepare_ces(tmp_path):
         )
     # The failed call must not leave a campaign directory behind.
     assert not (tmp_path / "camp").exists()
+
+
+def test_scaffold_requests_memory_per_task(tmp_path):
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        state=BASIC_STATE,
+        formalism="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=50.0,
+    )
+    sub = (directory / "pyphi.sub").read_text()
+    assert "request_memory      = $(memory)" in sub
+    assert "queue task_id, memory from remaining.txt" in sub
+    manifest = json.loads((directory / "manifest.json").read_text())
+    lines = (directory / "remaining.txt").read_text().splitlines()
+    assert len(lines) == len(manifest["tasks"])
+    for line, row in zip(lines, manifest["tasks"], strict=True):
+        task_id, memory = (part.strip() for part in line.split(","))
+        assert int(task_id) == row["task_id"]
+        assert memory == f"{row['memory_bytes'] // 1024**2}MB"
+    # default 4GB floor: no task requests less
+    assert all(row["memory_bytes"] >= 4 * 1024**3 for row in manifest["tasks"])
+
+
+def test_status_rewrite_preserves_memory_column(tmp_path):
+    from pyphi.campaign import status
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        state=BASIC_STATE,
+        formalism="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=50.0,
+    )
+    before = (directory / "remaining.txt").read_text()
+    (directory / "remaining.txt").write_text("")  # clobber
+    status(directory)  # all tasks pending: full rewrite
+    assert (directory / "remaining.txt").read_text() == before

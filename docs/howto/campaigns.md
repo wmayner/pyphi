@@ -57,7 +57,7 @@ my-campaign/
   tasks/            one task file per condor job
   outputs/          filled in by the jobs
   logs/             condor stdout/err/log
-  remaining.txt     task ids not yet done
+  remaining.txt     task id, memory rows not yet done
   run_task.sh       the wrapper each job executes
   pyphi.sub         the generated submit file
 ```
@@ -76,7 +76,8 @@ container section of {doc}`chtc`; the image path can be customized with
 $ condor_submit pyphi.sub
 ```
 
-The submit file queues one job per task id in `remaining.txt`. Each job runs
+The submit file queues one job per `task id, memory` row in `remaining.txt`,
+requesting each task's own memory. Each job runs
 `run_task.sh` inside the container, which executes the task file and writes
 its output document; condor transfers the output back into `outputs/`.
 
@@ -93,7 +94,8 @@ print(status)
 A task is **done** when its output file exists, loads, and every cell in it
 succeeded or was skipped; **failed** when the output records an error;
 **pending** when there is no output yet. `status` rewrites `remaining.txt`
-with the failed and pending ids, so resubmission is simply:
+with the failed and pending rows (memory column included), so resubmission is
+simply:
 
 ```console
 $ condor_submit pyphi.sub

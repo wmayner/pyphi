@@ -14,6 +14,7 @@ import dataclasses
 import importlib.metadata
 import json
 import math
+import re
 import stat
 import warnings
 from collections.abc import Mapping
@@ -286,13 +287,44 @@ transfer_output_remaps = "task-$(task_id).json.gz = outputs/task-$(task_id).json
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
 request_cpus        = 1
-request_memory      = {request_memory}
+request_memory      = $(memory)
 request_disk        = {request_disk}
 log                 = logs/task-$(task_id).log
 output              = logs/task-$(task_id).out
 error               = logs/task-$(task_id).err
-queue task_id from remaining.txt
+queue task_id, memory from remaining.txt
 """
+
+_MEMORY_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*(MB|GB)\s*$", re.IGNORECASE)
+
+
+def _parse_memory(value: str) -> int:
+    """Parse a scheduler memory string (``"4GB"``, ``"512MB"``) to bytes."""
+    match = _MEMORY_RE.match(value)
+    if match is None:
+        raise ValueError(
+            f"cannot parse memory value {value!r}; expected e.g. '4GB' or '512MB'"
+        )
+    number, unit = float(match.group(1)), match.group(2).upper()
+    return int(number * (1024**3 if unit == "GB" else 1024**2))
+
+
+def _format_memory(n: int) -> str:
+    return f"{n // 1024**2}MB"
+
+
+def _remaining_lines(memory_by_task: dict[int, str]) -> str:
+    return "".join(
+        f"{task_id}, {memory}\n" for task_id, memory in sorted(memory_by_task.items())
+    )
+
+
+def _task_memory_strings(manifest: dict) -> list[str]:
+    """Per-task memory request strings for either campaign kind."""
+    if manifest["kind"] == "sweep_cells":
+        return [manifest["request_memory"]] * len(manifest["tasks"])
+    return [_format_memory(row["memory_bytes"]) for row in manifest["tasks"]]
+
 
 _RUN_TASK_SH = (
     "#!/bin/bash\n"
@@ -439,10 +471,11 @@ def prepare(
         "skip_uncomputable": skip_uncomputable,
         "infeasible_threshold": infeasible_threshold,
         "packing": {"jobs": jobs, "units_per_job": units_per_job},
+        "request_memory": request_memory,
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _write_campaign_scaffold(
-        directory, len(tasks), container_image, request_memory, request_disk
+        directory, [request_memory] * len(tasks), container_image, request_disk
     )
     return CampaignStatus(
         directory=str(directory),
@@ -457,14 +490,13 @@ def prepare(
 
 def _write_campaign_scaffold(
     directory: Path,
-    n_tasks: int,
+    memory_by_task: list[str],
     container_image: str,
-    request_memory: str,
     request_disk: str,
 ) -> None:
     """Write the scheduler-facing campaign files common to every kind."""
     (directory / "remaining.txt").write_text(
-        "".join(f"{task_id}\n" for task_id in range(n_tasks))
+        _remaining_lines(dict(enumerate(memory_by_task)))
     )
     run_task_sh = directory / "run_task.sh"
     run_task_sh.write_text(_RUN_TASK_SH)
@@ -474,7 +506,6 @@ def _write_campaign_scaffold(
     (directory / "pyphi.sub").write_text(
         _SUBMIT_TEMPLATE.format(
             container_image=container_image,
-            request_memory=request_memory,
             request_disk=request_disk,
         )
     )
@@ -546,8 +577,12 @@ def prepare_ces(
         error with ``strict``).
     strict : bool, optional
         Escalate admission-control warnings to errors.
-    container_image, request_memory, request_disk : str, optional
+    container_image, request_disk : str, optional
         Substituted into the generated submit file.
+    request_memory : str, optional
+        Minimum per-shard memory request (the floor). Every shard requests
+        the greater of this and its estimated peak, so a large floor
+        disables memory stratification.
     seed : int, optional
         Recorded in the manifest; stamped into result provenance by
         :func:`collect`.
@@ -575,6 +610,7 @@ def prepare_ces(
     if formalism_ not in presets.by_name:
         raise ValueError(f"unknown formalism {formalism_!r}")
     scope = scope if scope is not None else CESScope()
+    memory_floor = _parse_memory(request_memory)
 
     with config.override(**presets.by_name[formalism_], progress_bars=False):
         system = System.from_substrate(substrate, tuple(state), subset)
@@ -583,12 +619,18 @@ def prepare_ces(
             substrate, subset=system.node_indices, scope=resolved, limit=limit
         )
         ces_specs = _shards.plan_ces_shards(
-            system, resolved, units_per_job, workloads=workloads
+            system,
+            resolved,
+            units_per_job,
+            workloads=workloads,
+            memory_floor_bytes=memory_floor,
         )
         if not any(s.mechanisms or s.mechanism for s in ces_specs):
             raise ValueError("the scope admits zero mechanisms")
         sia_specs = (
-            _shards.plan_sia_shards(system, units_per_job)
+            _shards.plan_sia_shards(
+                system, units_per_job, memory_floor_bytes=memory_floor
+            )
             if sia is None and resolution_state is None
             else []
         )
@@ -637,7 +679,14 @@ def prepare_ces(
             ordering=ordering,
         )
         serialize.save(shard_task, tasks_dir / f"task-{task_id:04d}.json.gz")
-        task_rows.append({"task_id": task_id, "kind": "ces_shard", "units": spec.units})
+        task_rows.append(
+            {
+                "task_id": task_id,
+                "kind": "ces_shard",
+                "units": spec.units,
+                "memory_bytes": spec.memory_bytes,
+            }
+        )
         task_id += 1
     for spec in sia_specs:
         assert spec.stride is not None, "SIA shards are always strides"
@@ -652,7 +701,14 @@ def prepare_ces(
             stride=spec.stride,
         )
         serialize.save(sia_task, tasks_dir / f"task-{task_id:04d}.json.gz")
-        task_rows.append({"task_id": task_id, "kind": "sia_shard", "units": spec.units})
+        task_rows.append(
+            {
+                "task_id": task_id,
+                "kind": "sia_shard",
+                "units": spec.units,
+                "memory_bytes": spec.memory_bytes,
+            }
+        )
         task_id += 1
 
     sia_mode = (
@@ -685,7 +741,10 @@ def prepare_ces(
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _write_campaign_scaffold(
-        directory, len(task_rows), container_image, request_memory, request_disk
+        directory,
+        [_format_memory(row["memory_bytes"]) for row in task_rows],
+        container_image,
+        request_disk,
     )
     return CampaignStatus(
         directory=str(directory),
@@ -735,8 +794,11 @@ def status(directory: Any) -> CampaignStatus:
             failed.append(task_id)
         else:
             done.append(task_id)
+    memory = _task_memory_strings(manifest)
     (directory / "remaining.txt").write_text(
-        "".join(f"{task_id}\n" for task_id in sorted(pending + failed))
+        _remaining_lines(
+            {task_id: memory[task_id] for task_id in sorted(pending + failed)}
+        )
     )
     if "weights" in manifest:
         total_units = float(sum(manifest["weights"]))
