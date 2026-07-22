@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           fetch-depth: 0   # asv needs history to benchmark commits
 
@@ -35,7 +35,7 @@ jobs:
         run: uv sync --python 3.13 --group dev --all-extras
 
       - name: Restore accumulated ASV results
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
           path: benchmarks/results
           key: asv-results-${{ github.run_id }}
@@ -70,7 +70,7 @@ jobs:
 
       - name: Open/update regression issue
         if: steps.detect.outputs.regressed == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         with:
           script: |
             const title = "Nightly benchmark regression detected";
