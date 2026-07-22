@@ -145,3 +145,36 @@ def test_partial_collect_reports_missing_groups(tmp_path):
     report = scope_report(directory)
     assert report.missing_groups
     assert len(partial.distinctions) >= 0
+
+
+def test_multi_state_collect_returns_sweep_result(tmp_path):
+    import pyphi
+    from pyphi.sweep import SweepResult
+
+    substrate = examples.basic_substrate()
+    states = [(1, 0, 0), (1, 1, 0)]
+    directory = tmp_path / "camp"
+    prepare_ces(
+        substrate,
+        states=states,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    _run_all(directory)
+    result = collect(directory)
+    assert isinstance(result, SweepResult)
+    assert len(result.results) == 2
+    # each cell's structure equals the local computation
+    for state, structure in zip(states, result.results, strict=True):
+        with pyphi.config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+            local = pyphi.System(substrate, state).ces()
+        assert sorted(
+            (tuple(d.mechanism), round(float(d.phi), 10)) for d in structure.distinctions
+        ) == sorted(
+            (tuple(d.mechanism), round(float(d.phi), 10)) for d in local.distinctions
+        )
+    reports = scope_report(directory)
+    assert set(reports) == {
+        (0, "IIT_4_0_2026", (0, 1, 2), tuple(state)) for state in states
+    }

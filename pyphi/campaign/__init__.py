@@ -1019,14 +1019,27 @@ class ScopeReport(Displayable, ToPandasMixin):
         )
 
 
-def scope_report(directory: Any) -> ScopeReport:
-    """Read the scope report a CES campaign's collection wrote."""
+def scope_report(directory: Any) -> Any:
+    """Read the scope report(s) a CES campaign's collection wrote.
+
+    Returns one :class:`ScopeReport` for a single-cell campaign, or a dict
+    keyed by ``(label, formalism, subset, state)`` cell tuples for a
+    multi-cell one.
+    """
     path = Path(directory) / "scope_report.json"
     if not path.exists():
         raise FileNotFoundError(f"{path} does not exist; collect the campaign first")
     data = json.loads(path.read_text())
-    data["missing_groups"] = tuple(data["missing_groups"])
-    return ScopeReport(**data)
+    if "cells" not in data:
+        data["missing_groups"] = tuple(data["missing_groups"])
+        return ScopeReport(**data)
+    reports = {}
+    for entry in data["cells"]:
+        label, formalism_, subset, state = entry["cell"]
+        report = dict(entry["report"])
+        report["missing_groups"] = tuple(report["missing_groups"])
+        reports[(label, formalism_, tuple(subset), tuple(state))] = ScopeReport(**report)
+    return reports
 
 
 def _group_name(task: Any) -> str:
@@ -1068,7 +1081,7 @@ def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any)
 
 
 def _build_scope_report(
-    manifest: dict,
+    group: dict,
     system: Any,
     result: Any,
     missing_groups: set,
@@ -1086,7 +1099,7 @@ def _build_scope_report(
         upper_phi = None
     return ScopeReport(
         mechanisms_computed=len(resolved),
-        mechanisms_admitted=len(manifest["mechanism_workloads"]),
+        mechanisms_admitted=len(group["mechanism_workloads"]),
         mechanisms_possible=2**n - 1,
         missing_groups=tuple(sorted(missing_groups)),
         sum_phi_r_lower=float(result.relations.sum_phi()),
@@ -1096,6 +1109,137 @@ def _build_scope_report(
     )
 
 
+def _merge_cell(
+    directory: Path,
+    manifest: dict,
+    group: dict,
+    rows: list[dict],
+    incomplete: set[int],
+    system: Any,
+    scope: Any,
+    sia_override: Any,
+    resolution_state_override: Any,
+) -> tuple[Any, ScopeReport]:
+    """Merge one cell's shard outputs into its structure and report."""
+    from pyphi.campaign import merge as _merge
+    from pyphi.direction import Direction
+    from pyphi.models.distinctions import UnresolvedDistinctions
+
+    # Group loaded outputs by reconstruction target.
+    whole_distinctions: dict[tuple, Any] = {}
+    purview_rias: dict[tuple, dict[tuple, Any]] = {}
+    stride_entries: dict[tuple, list[tuple[Any, dict]]] = {}
+    sia_entries: list[tuple[Any, dict]] = []
+    missing_groups: set[str] = set()
+
+    expected_schemes = {
+        "sia_shard": group["partition_scheme"],
+        "ces_shard": group["mechanism_partition_scheme"],
+    }
+    for row in rows:
+        task_id = row["task_id"]
+        task = serialize.load(directory / "tasks" / f"task-{task_id:04d}.json.gz")
+        if task_id in incomplete:
+            missing_groups.add(_group_name(task))
+            continue
+        output = serialize.load(directory / "outputs" / f"task-{task_id:04d}.json.gz")
+        # Stride semantics depend on the enumeration order, a property
+        # of the PyPhi version and partition scheme; refuse to merge
+        # outputs produced under a different one.
+        if output.pyphi_version != manifest["pyphi_version"]:
+            raise RuntimeError(
+                f"task {task_id} was run under pyphi "
+                f"{output.pyphi_version} but the campaign was prepared "
+                f"under {manifest['pyphi_version']}; re-run the task"
+            )
+        for entry in output.entries:
+            if entry.aux is not None and "scheme" in entry.aux:
+                expected = expected_schemes[row["kind"]]
+                if entry.aux["scheme"] != expected:
+                    raise RuntimeError(
+                        f"task {task_id} ran under partition scheme "
+                        f"{entry.aux['scheme']!r} but the manifest "
+                        f"records {expected!r}; re-run the task"
+                    )
+        if row["kind"] == "sia_shard":
+            entry = output.entries[0]
+            sia_entries.append((entry.result, entry.aux))
+            continue
+        spec = task.spec
+        if spec.payload_kind == "mechanisms":
+            for mechanism, entry in zip(spec.mechanisms, output.entries, strict=True):
+                whole_distinctions[tuple(mechanism)] = entry.result
+        elif spec.payload_kind == "purview_range":
+            bucket = purview_rias.setdefault((tuple(spec.mechanism), spec.direction), {})
+            for purview, entry in zip(spec.purviews, output.entries, strict=True):
+                bucket[tuple(purview)] = entry.result
+        elif spec.payload_kind == "partition_stride":
+            stride_entries.setdefault(
+                (tuple(spec.mechanism), spec.direction, tuple(spec.purview)),
+                [],
+            ).append((output.entries[0].result, output.entries[0].aux))
+
+    # Bottom-up: strides -> per-purview RIAs.
+    for (mechanism, direction, purview), entries in stride_entries.items():
+        if f"stride:{mechanism}:{direction}:{purview}" in missing_groups:
+            continue
+        merged = _merge.merge_stride_rias(entries)
+        purview_rias.setdefault((mechanism, direction), {})[purview] = merged
+
+    # Per-purview RIAs -> MICE -> distinctions for split mechanisms.
+    split_mechanisms: dict[tuple, dict[str, Any]] = {}
+    for (mechanism, direction), by_purview in purview_rias.items():
+        if f"range:{mechanism}:{direction}" in missing_groups:
+            continue
+        dir_ = Direction[direction]
+        canonical = list(
+            scope.purview_axis(dir_, tuple(mechanism)).select(
+                system.potential_purviews(dir_, mechanism)
+            )
+        )
+        if set(map(tuple, canonical)) - set(by_purview):
+            missing_groups.add(f"range:{mechanism}:{direction}")
+            continue
+        mice = _merge.merge_purview_rias(
+            dir_, [by_purview[tuple(p)] for p in canonical], canonical
+        )
+        split_mechanisms.setdefault(mechanism, {})[direction] = mice
+    for mechanism, mice_by_dir in split_mechanisms.items():
+        if "CAUSE" in mice_by_dir and "EFFECT" in mice_by_dir:
+            whole_distinctions[mechanism] = _merge.build_distinction(
+                mechanism, mice_by_dir["CAUSE"], mice_by_dir["EFFECT"]
+            )
+        else:
+            missing_groups.add(f"mechanism:{mechanism}")
+
+    distinctions = UnresolvedDistinctions(
+        tuple(d for d in whole_distinctions.values() if d)
+    )
+
+    # SIA per mode.
+    sia_mode = manifest["sia_mode"]
+    sia = sia_override
+    if sia is None and (directory / "sia.json.gz").exists():
+        sia = serialize.load(directory / "sia.json.gz")
+    resolution_state = resolution_state_override
+    if resolution_state is None and (directory / "resolution_state.json.gz").exists():
+        resolution_state = serialize.load(directory / "resolution_state.json.gz")
+    if sia is None and sia_mode == "shards":
+        n_sia_tasks = sum(1 for row in rows if row["kind"] == "sia_shard")
+        if sia_entries and len(sia_entries) == n_sia_tasks:
+            sia = _merge.merge_sia_strides(sia_entries)
+        else:
+            missing_groups.add("sia")
+
+    if sia is not None:
+        result = system.ces(sia=sia, distinctions=distinctions)
+    else:
+        result = _assemble_without_sia(system, distinctions, resolution_state)
+
+    report = _build_scope_report(group, system, result, missing_groups, sia_mode)
+    return result, report
+
+
 def _collect_ces(
     directory: Path,
     manifest: dict,
@@ -1103,9 +1247,7 @@ def _collect_ces(
     sia_override: Any,
     resolution_state_override: Any,
 ) -> Any:
-    from pyphi.campaign import merge as _merge
-    from pyphi.direction import Direction
-    from pyphi.models.distinctions import UnresolvedDistinctions
+    from pyphi.campaign.scope import resolve_scope
     from pyphi.system import System
 
     st = status(directory)
@@ -1120,151 +1262,81 @@ def _collect_ces(
             raise RuntimeError(summary)
         warnings.warn(summary, PyPhiWarning, stacklevel=3)
 
-    formalism_ = manifest["formalism"]
-    with config.override(
-        **presets.by_name[formalism_], parallel=False, progress_bars=False
-    ):
-        substrate = serialize.load(directory / "substrates" / "substrate-system.json.gz")
-        system = System(
-            substrate,
-            tuple(manifest["state"]),
-            node_indices=tuple(manifest["subset"]),
+    cells = _manifest_cells(manifest)
+    multi = len(cells) > 1
+    if multi and (sia_override is not None or resolution_state_override is not None):
+        raise ValueError("sia and resolution_state apply only to single-cell campaigns")
+    groups = {
+        (g["label"], g["formalism"], tuple(g["subset"])): g for g in manifest["groups"]
+    }
+    rows_by_cell: dict[int, list[dict]] = {}
+    for row in manifest["tasks"]:
+        rows_by_cell.setdefault(row["cell"], []).append(row)
+
+    # Substrate labels appear in filenames, so a bare substrate's label 0
+    # round-trips as the string "0".
+    substrates = {
+        path.name.removeprefix("substrate-").removesuffix(".json.gz"): serialize.load(
+            path
         )
-        scope = serialize.load(directory / "scope.json.gz")
+        for path in (directory / "substrates").glob("substrate-*.json.gz")
+    }
+    user_scope = serialize.load(directory / "scope.json.gz")
 
-        # Group loaded outputs by reconstruction target.
-        whole_distinctions: dict[tuple, Any] = {}
-        purview_rias: dict[tuple, dict[tuple, Any]] = {}
-        stride_entries: dict[tuple, list[tuple[Any, dict]]] = {}
-        sia_entries: list[tuple[Any, dict]] = []
-        missing_groups: set[str] = set()
-
-        expected_schemes = {
-            "sia_shard": manifest["partition_scheme"],
-            "ces_shard": manifest["mechanism_partition_scheme"],
-        }
-        for row in manifest["tasks"]:
-            task_id = row["task_id"]
-            task = serialize.load(directory / "tasks" / f"task-{task_id:04d}.json.gz")
-            if task_id in incomplete:
-                missing_groups.add(_group_name(task))
-                continue
-            output = serialize.load(
-                directory / "outputs" / f"task-{task_id:04d}.json.gz"
-            )
-            # Stride semantics depend on the enumeration order, a property
-            # of the PyPhi version and partition scheme; refuse to merge
-            # outputs produced under a different one.
-            if output.pyphi_version != manifest["pyphi_version"]:
-                raise RuntimeError(
-                    f"task {task_id} was run under pyphi "
-                    f"{output.pyphi_version} but the campaign was prepared "
-                    f"under {manifest['pyphi_version']}; re-run the task"
-                )
-            for entry in output.entries:
-                if entry.aux is not None and "scheme" in entry.aux:
-                    expected = expected_schemes[row["kind"]]
-                    if entry.aux["scheme"] != expected:
-                        raise RuntimeError(
-                            f"task {task_id} ran under partition scheme "
-                            f"{entry.aux['scheme']!r} but the manifest "
-                            f"records {expected!r}; re-run the task"
-                        )
-            if row["kind"] == "sia_shard":
-                entry = output.entries[0]
-                sia_entries.append((entry.result, entry.aux))
-                continue
-            spec = task.spec
-            if spec.payload_kind == "mechanisms":
-                for mechanism, entry in zip(
-                    spec.mechanisms, output.entries, strict=True
-                ):
-                    whole_distinctions[tuple(mechanism)] = entry.result
-            elif spec.payload_kind == "purview_range":
-                bucket = purview_rias.setdefault(
-                    (tuple(spec.mechanism), spec.direction), {}
-                )
-                for purview, entry in zip(spec.purviews, output.entries, strict=True):
-                    bucket[tuple(purview)] = entry.result
-            elif spec.payload_kind == "partition_stride":
-                stride_entries.setdefault(
-                    (tuple(spec.mechanism), spec.direction, tuple(spec.purview)),
-                    [],
-                ).append((output.entries[0].result, output.entries[0].aux))
-
-        # Bottom-up: strides -> per-purview RIAs.
-        for (mechanism, direction, purview), entries in stride_entries.items():
-            if f"stride:{mechanism}:{direction}:{purview}" in missing_groups:
-                continue
-            merged = _merge.merge_stride_rias(entries)
-            purview_rias.setdefault((mechanism, direction), {})[purview] = merged
-
-        # Per-purview RIAs -> MICE -> distinctions for split mechanisms.
-        split_mechanisms: dict[tuple, dict[str, Any]] = {}
-        for (mechanism, direction), by_purview in purview_rias.items():
-            if f"range:{mechanism}:{direction}" in missing_groups:
-                continue
-            dir_ = Direction[direction]
-            canonical = list(
-                scope.purview_axis(dir_, tuple(mechanism)).select(
-                    system.potential_purviews(dir_, mechanism)
-                )
-            )
-            if set(map(tuple, canonical)) - set(by_purview):
-                missing_groups.add(f"range:{mechanism}:{direction}")
-                continue
-            mice = _merge.merge_purview_rias(
-                dir_, [by_purview[tuple(p)] for p in canonical], canonical
-            )
-            split_mechanisms.setdefault(mechanism, {})[direction] = mice
-        for mechanism, mice_by_dir in split_mechanisms.items():
-            if "CAUSE" in mice_by_dir and "EFFECT" in mice_by_dir:
-                whole_distinctions[mechanism] = _merge.build_distinction(
-                    mechanism, mice_by_dir["CAUSE"], mice_by_dir["EFFECT"]
-                )
-            else:
-                missing_groups.add(f"mechanism:{mechanism}")
-
-        distinctions = UnresolvedDistinctions(
-            tuple(d for d in whole_distinctions.values() if d)
-        )
-
-        # SIA per mode.
-        sia_mode = manifest["sia_mode"]
-        sia = sia_override
-        if sia is None and (directory / "sia.json.gz").exists():
-            sia = serialize.load(directory / "sia.json.gz")
-        resolution_state = resolution_state_override
-        if (
-            resolution_state is None
-            and (directory / "resolution_state.json.gz").exists()
+    structures: list[Any] = []
+    reports: list[tuple[tuple, ScopeReport]] = []
+    for cell_index, cell in enumerate(cells):
+        label, formalism_, subset, state = cell
+        substrate = substrates[str(label)]
+        group = groups[(label, formalism_, tuple(subset))]
+        with config.override(
+            **presets.by_name[formalism_], parallel=False, progress_bars=False
         ):
-            resolution_state = serialize.load(directory / "resolution_state.json.gz")
-        if sia is None and sia_mode == "shards":
-            n_sia_tasks = sum(
-                1 for row in manifest["tasks"] if row["kind"] == "sia_shard"
+            system = System(substrate, tuple(state), node_indices=tuple(subset))
+            scope = resolve_scope(user_scope, system.node_labels)
+            structure, report = _merge_cell(
+                directory,
+                manifest,
+                group,
+                rows_by_cell.get(cell_index, []),
+                incomplete,
+                system,
+                scope,
+                sia_override,
+                resolution_state_override,
             )
-            if sia_entries and len(sia_entries) == n_sia_tasks:
-                sia = _merge.merge_sia_strides(sia_entries)
-            else:
-                missing_groups.add("sia")
+        structures.append(structure)
+        reports.append((cell, report))
+        with_provenance = getattr(structure, "with_provenance", None)
+        if with_provenance is not None:
+            note = json.dumps(
+                {
+                    "campaign": str(directory),
+                    "cell": [label, formalism_, list(subset), list(state)],
+                    "scope_report": dataclasses.asdict(report),
+                }
+            )
+            with_provenance(note=note, seed=manifest["seed"])
 
-        if sia is not None:
-            result = system.ces(sia=sia, distinctions=distinctions)
-        else:
-            result = _assemble_without_sia(system, distinctions, resolution_state)
-
-        report = _build_scope_report(manifest, system, result, missing_groups, sia_mode)
-    (directory / "scope_report.json").write_text(
-        json.dumps(dataclasses.asdict(report), indent=2)
-    )
-    with_provenance = getattr(result, "with_provenance", None)
-    if with_provenance is not None:
-        note = json.dumps(
-            {
-                "campaign": str(directory),
-                "scope_report": dataclasses.asdict(report),
-            }
+    if not multi:
+        (directory / "scope_report.json").write_text(
+            json.dumps(dataclasses.asdict(reports[0][1]), indent=2)
         )
-        with_provenance(note=note, seed=manifest["seed"])
-    return result
+        return structures[0]
+    (directory / "scope_report.json").write_text(
+        json.dumps(
+            {
+                "cells": [
+                    {
+                        "cell": [cell[0], cell[1], list(cell[2]), list(cell[3])],
+                        "report": dataclasses.asdict(report),
+                    }
+                    for cell, report in reports
+                ]
+            },
+            indent=2,
+        )
+    )
+    rows = [_extract_row(s, "ces") for s in structures]
+    df = _build_df(cells, rows, cells)
+    return SweepResult(df=df, results=structures, skipped=[])
