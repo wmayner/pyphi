@@ -124,3 +124,68 @@ def test_order_cap_restricts_planned_purviews():
     total = sum(s.units for s in base)
     capped_total = sum(s.units for s in capped_specs)
     assert capped_total < total
+
+
+def test_shards_carry_memory_and_respect_floor():
+    floor = 4 * 1024**3
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        specs = plan_ces_shards(
+            _system(), CESScope(), units_per_job=1e9, memory_floor_bytes=floor
+        )
+        sia = plan_sia_shards(_system(), 1e9, memory_floor_bytes=floor)
+    # tiny 3-unit system: every estimate is below the floor
+    assert all(s.memory_bytes == floor for s in specs + sia)
+
+
+def test_packing_never_mixes_memory_classes():
+    from pyphi.campaign.shards import ShardSpec
+    from pyphi.campaign.shards import _pack_specs
+
+    small = [
+        ShardSpec(
+            payload_kind="mechanisms",
+            mechanisms=((i,),),
+            units=1.0,
+            memory_bytes=2 * 1024**3,
+        )
+        for i in range(4)
+    ]
+    big = [
+        ShardSpec(
+            payload_kind="mechanisms",
+            mechanisms=((10 + i,),),
+            units=1.0,
+            memory_bytes=8 * 1024**3,
+        )
+        for i in range(2)
+    ]
+    packed = _pack_specs(small + big, units_per_job=100.0)
+    for spec in packed:
+        members = set(spec.mechanisms)
+        source_memories = {
+            s.memory_bytes for s in small + big if set(s.mechanisms) & members
+        }
+        assert len(source_memories) == 1
+        assert spec.memory_bytes == source_memories.pop()
+
+
+def test_memory_classes_stratify_purview_ranges():
+    """Purview-range shards carry the memory of their own purviews, not the
+    global maximum."""
+    import math as _math
+
+    from pyphi.cost import round_memory_bytes
+    from pyphi.cost import shard_memory_bytes
+
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        # tiny units budget forces rung 2 (purview-range) splitting
+        specs = plan_ces_shards(
+            _system(), CESScope(), units_per_job=3.0, memory_floor_bytes=0
+        )
+    ranges = [s for s in specs if s.payload_kind == "purview_range"]
+    assert ranges
+    alphabet = _system().substrate.factored_tpm.alphabet_sizes
+    for s in ranges:
+        for p in s.purviews:
+            cells = _math.prod(alphabet[u] for u in p)
+            assert round_memory_bytes(shard_memory_bytes(cells)) == s.memory_bytes

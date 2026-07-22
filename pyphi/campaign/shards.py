@@ -23,6 +23,8 @@ from pyphi.conf import config
 from pyphi.cost import MechanismWorkload
 from pyphi.cost import mechanism_workloads
 from pyphi.cost import partition_sweep_count
+from pyphi.cost import round_memory_bytes
+from pyphi.cost import shard_memory_bytes
 from pyphi.direction import Direction
 from pyphi.parallel.chunking import cost_balanced_partition
 from pyphi.partition import mechanism_partitions
@@ -52,6 +54,7 @@ class ShardSpec:
     purview: tuple[int, ...] | None = None
     stride: tuple[int, int] | None = None
     units: float = 0.0
+    memory_bytes: int = 0
 
 
 def enumerate_partition_stride(
@@ -120,21 +123,33 @@ def bottleneck_order(
     return [p for p, _ in keyed], [i for _, i in keyed]
 
 
+def _memory_class(cells: int, floor: int) -> int:
+    """The rounded, floored memory request for a shard holding ``cells``."""
+    return max(floor, round_memory_bytes(shard_memory_bytes(cells)))
+
+
 def _pack_specs(items: list[ShardSpec], units_per_job: float) -> list[ShardSpec]:
-    """Cost-balance whole-mechanism items into "mechanisms" shards."""
-    if not items:
-        return []
-    weights = [s.units for s in items]
-    jobs = max(1, math.ceil(sum(weights) / units_per_job))
-    bins = cost_balanced_partition(weights, jobs)
-    return [
-        ShardSpec(
-            payload_kind="mechanisms",
-            mechanisms=tuple(m for i in indices for m in items[i].mechanisms),
-            units=float(sum(items[i].units for i in indices)),
+    """Cost-balance whole-mechanism items into "mechanisms" shards.
+
+    Packing runs within each memory class, so one large-purview mechanism
+    never inflates the request of a shard of small ones.
+    """
+    packed: list[ShardSpec] = []
+    for memory in sorted({s.memory_bytes for s in items}):
+        group = [s for s in items if s.memory_bytes == memory]
+        weights = [s.units for s in group]
+        jobs = max(1, math.ceil(sum(weights) / units_per_job))
+        bins = cost_balanced_partition(weights, jobs)
+        packed.extend(
+            ShardSpec(
+                payload_kind="mechanisms",
+                mechanisms=tuple(m for i in indices for m in group[i].mechanisms),
+                units=float(sum(group[i].units for i in indices)),
+                memory_bytes=memory,
+            )
+            for indices in (sorted(b) for b in bins)
         )
-        for indices in (sorted(b) for b in bins)
-    ]
+    return packed
 
 
 def plan_ces_shards(
@@ -143,12 +158,13 @@ def plan_ces_shards(
     units_per_job: float,
     limit: int = 10_000_000,
     workloads: dict[tuple[int, ...], MechanismWorkload] | None = None,
+    memory_floor_bytes: int = 0,
 ) -> list[ShardSpec]:
     """Plan the shards of a scoped cause-effect computation.
 
     Descends mechanism → purview-range → partition-stride only where the
     budget requires. Deterministic for fixed inputs; every spec carries its
-    estimated work units.
+    estimated work units and its rounded memory request.
 
     Parameters
     ----------
@@ -164,11 +180,15 @@ def plan_ces_shards(
     workloads : dict, optional
         A precomputed :func:`pyphi.cost.mechanism_workloads` mapping for
         the same system and scope; when given, the walk is not repeated.
+    memory_floor_bytes : int, optional
+        Minimum per-shard memory request; every shard's ``memory_bytes``
+        is at least this.
     """
     if workloads is None:
         workloads = mechanism_workloads(
             system.substrate, subset=system.node_indices, scope=scope, limit=limit
         )
+    alphabet = system.substrate.factored_tpm.alphabet_sizes
     whole: list[ShardSpec] = []
     specs: list[ShardSpec] = []
     for mechanism, workload in workloads.items():
@@ -179,6 +199,9 @@ def plan_ces_shards(
                     payload_kind="mechanisms",
                     mechanisms=(mechanism,),
                     units=float(units),
+                    memory_bytes=_memory_class(
+                        workload.max_repertoire_cells, memory_floor_bytes
+                    ),
                 )
             )
             continue
@@ -188,34 +211,35 @@ def plan_ces_shards(
             purviews = list(scope.purview_axis(direction, mechanism).select(purviews))
             if not purviews:
                 continue
-            weights = [
-                1.0 + partition_sweep_count(len(mechanism), len(p)) for p in purviews
+            triples = [
+                (
+                    p,
+                    1.0 + partition_sweep_count(len(mechanism), len(p)),
+                    _memory_class(math.prod(alphabet[u] for u in p), memory_floor_bytes),
+                )
+                for p in purviews
             ]
-            oversized = [
-                (p, w)
-                for p, w in zip(purviews, weights, strict=True)
-                if w > units_per_job
-            ]
-            fitting = [
-                (p, w)
-                for p, w in zip(purviews, weights, strict=True)
-                if w <= units_per_job
-            ]
-            if fitting:
-                jobs = max(1, math.ceil(sum(w for _, w in fitting) / units_per_job))
-                bins = cost_balanced_partition([w for _, w in fitting], jobs)
+            oversized = [(p, w, m) for p, w, m in triples if w > units_per_job]
+            fitting = [(p, w, m) for p, w, m in triples if w <= units_per_job]
+            # Pack fitting purviews within each memory class, so one large
+            # purview never inflates the request of a shard of small ones.
+            for memory in sorted({m for _, _, m in fitting}):
+                group = [(p, w) for p, w, m in fitting if m == memory]
+                jobs = max(1, math.ceil(sum(w for _, w in group) / units_per_job))
+                bins = cost_balanced_partition([w for _, w in group], jobs)
                 specs.extend(
                     ShardSpec(
                         payload_kind="purview_range",
                         mechanism=mechanism,
                         direction=direction.name,
-                        purviews=tuple(fitting[i][0] for i in bin_indices),
-                        units=float(sum(fitting[i][1] for i in bin_indices)),
+                        purviews=tuple(group[i][0] for i in bin_indices),
+                        units=float(sum(group[i][1] for i in bin_indices)),
+                        memory_bytes=memory,
                     )
                     for bin_indices in (sorted(b) for b in bins)
                 )
             # Rung 3: stride each oversized pair.
-            for purview, weight in oversized:
+            for purview, weight, memory in oversized:
                 count = partition_sweep_count(len(mechanism), len(purview))
                 k = min(math.ceil(weight / units_per_job), count)
                 if weight / k > units_per_job:
@@ -235,15 +259,21 @@ def plan_ces_shards(
                         purview=purview,
                         stride=(i, k),
                         units=float(weight / k),
+                        memory_bytes=memory,
                     )
                     for i in range(k)
                 )
     return _pack_specs(whole, units_per_job) + specs
 
 
-def plan_sia_shards(system: Any, units_per_job: float) -> list[ShardSpec]:
+def plan_sia_shards(
+    system: Any, units_per_job: float, memory_floor_bytes: int = 0
+) -> list[ShardSpec]:
     """Plan system-partition strides for the system irreducibility analysis."""
     scheme = config.formalism.iit.system_partition_scheme
+    alphabet = system.substrate.factored_tpm.alphabet_sizes
+    cells = math.prod(alphabet[u] for u in system.node_indices)
+    memory = _memory_class(cells, memory_floor_bytes)
     total = sum(
         1
         for _ in system_partition_types[scheme](
@@ -257,6 +287,7 @@ def plan_sia_shards(system: Any, units_per_job: float) -> list[ShardSpec]:
             mechanism=None,
             stride=(i, k),
             units=float(total / k),
+            memory_bytes=memory,
         )
         for i in range(k)
     ]

@@ -1404,6 +1404,7 @@ def _register_campaign() -> None:
         purview=None if s.purview is None else tuple(s.purview),
         stride=s.stride,
         units=s.units,
+        memory_bytes=s.memory_bytes,
     )
 
     def _decode_shard_spec(s: schema.ShardSpecSchema) -> Any:
@@ -1416,6 +1417,7 @@ def _register_campaign() -> None:
             purview=None if s.purview is None else tuple(s.purview),
             stride=None if s.stride is None else (s.stride[0], s.stride[1]),
             units=s.units,
+            memory_bytes=s.memory_bytes,
         )
 
     _DECODERS[schema.ShardSpecSchema] = _decode_shard_spec

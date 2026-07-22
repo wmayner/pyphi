@@ -567,6 +567,7 @@ class ShardSpecSchema(msgspec.Struct, frozen=True, tag="shard_spec"):
     purview: tuple[int, ...] | None
     stride: tuple[int, int] | None
     units: float
+    memory_bytes: int = 0
 
 
 class CESShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_ces_task"):
