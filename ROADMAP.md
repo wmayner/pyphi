@@ -41,7 +41,7 @@ P0 · P1 · P2 · P3 · P4 · P5 · P6 · **P6a** (free-threaded 3.14t CI lane +
 | B15 `result.diff()` | ✅ landed | 2 | `a.diff(b)` on every top-level result (4.0/3.0 SIA, CES, RIA/MICE/Distinction, AcSIA/Account) returns a typed, `Displayable`, `to_pandas`-able `ResultDiff`: the signed Δφ (Δα for AC), whether the MIP genuinely changed vs a co-optimal tie-reshuffle (via `lex_key` over the tie set, which already encodes `EQUALITY_TOLERANCE`), distinctions/relations/account-links gained/lost/changed (keyed by mechanism/relata/direction+mechanism+purview), and config-diff attribution composing the landed `ConfigSnapshot.diff`. Cross-substrate diffs are allowed with a `substrate_note`; type mismatch raises `TypeError`; mechanism-level results and `Account` carry no `ConfigSnapshot` so their `config_diff` is `{}` by design. Pure comparison — no recompute, no φ/α change. `pyphi/models/diff.py`; `test/models/test_result_diff.py` (coverage invariant over every result type + MIP-reshuffle invariant). Pairs with B8 |
 | P11.8 Tier 2 | ✅ landed | 3 | Benchmark suite rebuilt on the golden harness (24 fixtures × {repertoires, mechanism_mips, phi_structure, sia} + parallel/cache/EMD/AC) driving an ASV nightly wall-time trend (results cached across runs; regression check is `asv continuous` HEAD~1 vs HEAD — adjacent commits only; issue alert, never blocks); a deterministic cProfile call-count gate (`test/integration/test_perf_counters.py`, exact pins in `test/data/perf/call_counts.json`, regen `scripts/gen_perf_counts.py`) **blocks PRs**; full-zoo counts tracked nightly as ASV `track_*`. Shared harness `test/golden/perf.py`; `.github/workflows/benchmark.yml`. Supersedes P15 "Layer D". |
 | P9.5 | ✅ landed | 4 | Math-fingerprint cache keys: label-free `blake2b-256` content fingerprints (`System`/`Substrate`/`MacroSystem`) key a refcounted `ContentCache` (`pyphi/cache/content.py`); the repertoire kernel cache keys on the System fingerprint and `potential_purviews` on the cm fingerprint, so equivalent/relabeled systems and same-topology weight sweeps reuse results. Refcounted GC eviction preserves prompt release. Surfaced + fixed a latent `MacroSystem` collision (overridden cause marginal was not in the inherited key). Byte-identical goldens; unblocks N4 |
-| P11 cluster backends | ✅ landed | 4 | Both halves shipped. **Dask backend** (2026-07-20): `DaskScheduler` distributes map-reduce over a user-connected `distributed.Client` (snapshot propagation, cost-balanced chunks, deterministic short-circuit prefixes; nested dispatch runs in-task); `cluster` extra; `docs/howto/chtc.md` covers CHTC (the Dask worker-pool pattern remains documented as a pilot pending CHTC port-access confirmation — an external facilitation question, not code work). **Campaign surface** (cycles 1+2, 2026-07-20/21): `pyphi.campaign` tasks-as-data batch campaigns — sweep cells (substrates axis on `sweep()`, cost-balanced packing, admission control, condor emitter, campaign ≡ local sweep proven end-to-end) and scoped CES sharding for one system: declarative `AxisScope`/`CESScope` (explicit lists, order bounds, unit containment; serialized into tasks and provenance), scope-aware `estimate_analysis` + per-mechanism `mechanism_workloads`, a three-rung planner (mechanism → purview-range → partition-stride, `bottleneck_first` ordering for sparse reducibility), exact tie-preserving merges (sharded ≡ unsharded verified under both IIT 4.0 presets, winner identity included — per-shard winners restored to global enumeration order), three SIA modes (merged strides / precomputed / intrinsic-state with no Φₛ), version+scheme merge guards, and a certified scope report (exact Σφ_r lower bound + measured upper bounds from `iit4/bounds.py`). MCP: `prepare_campaign`, `prepare_ces_campaign`, `campaign_status`, `collect_campaign`, scope-aware `estimate_cost`, `campaigns` topic; `docs/howto/campaigns.md`. Specs: `docs/superpowers/specs/2026-07-20-htcondor-campaign-design.md` + `2026-07-20-ces-sharding-design.md`. |
+| P11 cluster backends | ✅ landed | 4 | Both halves shipped. **Dask backend** (2026-07-20): `DaskScheduler` distributes map-reduce over a user-connected `distributed.Client` (snapshot propagation, cost-balanced chunks, deterministic short-circuit prefixes; nested dispatch runs in-task); `cluster` extra; `docs/howto/chtc.md` covers CHTC (the Dask worker-pool pattern remains documented as a pilot pending CHTC port-access confirmation — an external facilitation question, not code work). **Campaign surface** (cycles 1+2, 2026-07-20/21): `pyphi.campaign` tasks-as-data batch campaigns — sweep cells (substrates axis on `sweep()`, cost-balanced packing, admission control, condor emitter, campaign ≡ local sweep proven end-to-end) and scoped CES sharding for one system: declarative `AxisScope`/`CESScope` (explicit lists, order bounds, unit containment; serialized into tasks and provenance), scope-aware `estimate_analysis` + per-mechanism `mechanism_workloads`, a three-rung planner (mechanism → purview-range → partition-stride, `bottleneck_first` ordering for sparse reducibility), exact tie-preserving merges (sharded ≡ unsharded verified under both IIT 4.0 presets, winner identity included — per-shard winners restored to global enumeration order), three SIA modes (merged strides / precomputed / intrinsic-state with no Φₛ), version+scheme merge guards, and a certified scope report (exact Σφ_r lower bound + measured upper bounds from `iit4/bounds.py`). MCP: `prepare_campaign`, `prepare_ces_campaign`, `campaign_status`, `collect_campaign`, scope-aware `estimate_cost`, `campaigns` topic; `docs/howto/campaigns.md`. Specs: `docs/superpowers/specs/2026-07-20-htcondor-campaign-design.md` + `2026-07-20-ces-sharding-design.md`. **Follow-ups (2026-07-21, merge `c2229d20`):** `prepare_ces` now sweeps substrates × states × subsets × formalisms under one scope (plan-once-per-group, multi-cell `SweepResult` collection, per-cell scope reports); per-shard `request_memory` estimated from the largest purview repertoire with memory-stratified packing (`request_memory` = floor); order-dependent purview caps (`CESScope.max_purview_order_by_mechanism_order` via the single `purview_axis` selection point); `limit=` threading with a single planning walk; SIA short-circuit handling on weakly-connected subsets; fat-node crossover criteria in the how-tos. Spec: `2026-07-21-scoped-ces-campaign-followups-design.md`. |
 | Parallel engine unification | ✅ landed | 4 | Collapsed the two coexisting map-reduce implementations into one flat path: replaced the one-shot `MapReduce` class with a `pyphi.parallel.map_reduce()` function over the Scheduler Protocol, migrated all 10 call-sites, deleted the vestigial execution tree (`tree.py`/`test_tree.py` + dead `branch_factor`/`max_*` kwargs), and deduped the ~5 copied helpers. Backend selection (`config.parallel_backend`) is now honored from the public entry. Net ~900 lines removed; result-preserving (N2 + goldens + perf gate green). Prerequisite for B18. Spec/plan: `docs/superpowers/{specs,plans}/2026-06-23-unify-parallel-engine*` |
 | B18 adaptive chunking | ✅ landed | 4 | Activated `ChunkingPolicy.size_func`: a pure `cost_balanced_partition` LPT-packs items into cost-balanced chunks, and the chunk count is floored at `num_workers` (a general core-utilization win, de-risked empirically — 2.8–3× at every per-item cost, no overhead penalty). Cheap `size_func` proxies wired at the heterogeneous sites — relations (`overlap×degree`), purview eval (`2^|purview|`), concept eval (`2^|mechanism|`). Result-preserving (N2 incl. a forced-chunk concept test, goldens, perf gate). `pyphi/parallel/chunking.py`; spec/plan `docs/superpowers/{specs,plans}/2026-06-23-cost-balanced-chunking*`. **Dispatch-gate follow-up (2026-07-07)**: measured the below-chunksize regime (`benchmarks/b18_dispatch_gate.py` + `benchmarks/b18_dispatch_gate_results/`) and flipped the gate — `sequential_threshold` is now the sole dispatch gate; an explicit `chunksize` governs granularity only (a cost-sampled chunksize still gates, since it estimates ~1 s of work). Wins: purview eval 3–4× at 64–230 purviews, system partitions 2.5–4× at 64–2048, complexes 1.2–1.6× at 16–31 candidates; no regression on reducible short-circuiting systems. Per-level thresholds retuned to measured per-item costs (partition 1024→64, mech-partition & relations 1024→8192). The study also surfaced and fixed a per-item `hash(repr(snapshot))` (~1.3 ms) in the process-scheduler worker wrapper that dominated cheap-item workloads (~250× sequential relations speedup on its own) |
 | P15 | 🟡 partial | 5 | Import-surface cleanup landed (eager submodule walk → explicit registry imports + PEP-562 lazy `__getattr__`, guarded by a registry-contents test). jsonify→msgspec landed (`pyphi.serialize` replaces `pyphi.jsonify`; the per-class `to_json`/`from_json` hooks removed) **plus its loading surface** (path-based `serialize.save`/`load`, top-level `pyphi.save`/`pyphi.load`, `.save()`/`.load()` on the result types via a delegation-only `Serializable` mixin, deferred type registration, `substrate.from_json` removed, transparent gzip on `.gz` paths). pandas-extend done (display → B21). Project-stage markers stripped from `pyphi/` + a docstring narrative-removal slice landed. PR triage done (audit against `main`: nothing left to absorb; closes pending a maintainer). Test suite reorganized to mirror the `pyphi/` package layout (`test/<subpackage>/` + `test/integration/`). Remaining: the comprehensive docstring/docs sweep (now its own [Documentation overhaul](#documentation-overhaul-20--iit-40) project), changelog condense |
@@ -664,40 +664,42 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
 
 > Porting a large hand-rolled CES-sharding workload (a mid-sized substrate, several
 > mechanism orders, scoped purviews) onto `pyphi.campaign.prepare_ces` exercised the
-> scoped-CES surface at a scale the P11 build had not, and surfaced five concrete gaps. The
-> first two block or degrade a real scoped campaign at mid-sized n; the rest are ergonomics
-> and documentation. Dispositions: `2.x` · `quick-win` · `doc`.
+> scoped-CES surface at a scale the P11 build had not, and surfaced five concrete gaps.
+> **All five landed 2026-07-21** (merge `c2229d20`; spec
+> `docs/superpowers/specs/2026-07-21-scoped-ces-campaign-followups-design.md`). The
+> review pass additionally fixed two latent multi-cell crashes: SIA shards on subsets
+> without strong connectivity (the null short-circuit never consults the stride's
+> partition slice), and `states="all"` (unreachable states now skip as in `sweep`,
+> recorded in the manifest and surfaced in the collected result).
 
-- **Memory-aware shard sizing (prerequisite for large scoped campaigns).** *`2.x`.*
-  `cost.py` counts enumeration units only, and `prepare_ces` substitutes a single fixed
-  `request_memory` (default `4GB`) into the submit file for every task. A shard's peak
-  memory scales with its largest purview's repertoire (≈ alphabet^|purview| through the
-  mechanism-partition sweep), which the cost model ignores, so order-4/5 shards silently
-  exceed a 4 GB cgroup limit. `estimate_analysis`/`mechanism_workloads` should emit a
-  memory estimate and `prepare_ces` set per-shard `request_memory` (or split a shard on a
-  memory budget) instead of one fixed value.
-- **Expose `limit=` on `prepare_ces` (prerequisite; planning blocker).** *`quick-win`.*
-  `plan_ces_shards` already takes `limit` (default `10_000_000`) and forwards it to
-  `mechanism_workloads`, whose counting walk raises `ValueError` past the limit — but
-  `prepare_ces` never exposes it and always uses the default. A big-but-sparse scoped
-  system (mid-sized n, a few mechanism orders) can exceed 10 M scoped purview-evaluations
-  and cannot be planned without editing library code. Thread `limit=` through `prepare_ces`
-  (and consider a higher default for scoped single-system planning).
-- **Scoped multi-system sweep.** *`2.x`.* `prepare_ces` is single-system; the multi-cell
-  `prepare` sweep only runs whole-system `.ces()`. A workload over many states/substrates
-  sharing one `CESScope` (e.g. many states of one substrate) is scripted as N separate
-  campaigns. A
-  scoped sweep axis — states/substrates × one scope, one campaign directory — would unify
-  them and keep the distinction sets directly comparable across cells.
-- **Order-dependent purview caps.** *`2.x`.* `AxisScope.max_order` is a single fixed cap;
-  it cannot express a purview bound that grows with mechanism order (e.g. 2·order+1). A
-  per-mechanism-order purview bound in `AxisScope` would express order-tied caps exactly,
-  rather than forcing the single most permissive fixed cap across all orders.
-- **Fat-node vs. campaign crossover note.** *`doc`.* For a sparse, scoped, mid-n system
-  (mid-sized n, sparse connectivity, a few mechanism orders), one fat node per state (native
-  `parallel`, large `request_cpus`/`request_memory`) can beat sharding and sidesteps the
-  per-shard memory holds. A how-to note in `docs/howto/{campaigns,chtc}.md` on when the
-  crossover favors the fat-node pattern would help.
+- **✅ Memory-aware shard sizing.** Landed as per-shard `request_memory` plus
+  memory-stratified packing (not a hard memory budget — a single purview's repertoire
+  is indivisible, so the planner requests what each shard needs instead).
+  `mechanism_workloads` returns `MechanismWorkload` records with
+  `max_repertoire_cells`; `shard_memory_bytes`/`round_memory_bytes` in `pyphi/cost.py`;
+  packing runs within memory classes; the submit file requests `$(memory)` from
+  `task id, memory` rows in `remaining.txt` (uniform for whole-cell sweeps);
+  `request_memory` is now the floor under the estimates. Calibration constants
+  (`REPERTOIRE_FACTOR`, `BASE_MEMORY_BYTES`) to be validated against Condor's
+  `MemoryUsage` on the first real campaign.
+- **✅ `limit=` on `prepare_ces`.** Threaded through with default `100_000_000` (10×
+  the bare walk default), and the planning walk now runs once — `prepare_ces` passes
+  its workloads into `plan_ces_shards` instead of walking twice.
+- **✅ Scoped multi-system sweep.** `prepare_ces` adopts the full sweep axis surface
+  (substrates × states × subsets × formalisms, shared `pyphi.sweep` helpers) under one
+  scope, plans once per (substrate, subset, formalism) group (the plan is
+  state-independent), and replicates shard tasks per state; multi-cell campaigns
+  collect into the same `SweepResult` a whole-cell CES sweep produces, with per-cell
+  scope reports.
+- **✅ Order-dependent purview caps.** Landed on `CESScope` (not `AxisScope`, which
+  stays mechanism-blind): `max_purview_order_by_mechanism_order`, an explicit
+  (mechanism order → max purview order) table; `CESScope.purview_axis(direction,
+  mechanism)` is the single selection point used by the planner, the workload walk,
+  `estimate_analysis`, execution, and collection, so they cannot disagree.
+- **✅ Fat-node vs. campaign crossover note.** Crossover criteria in
+  `docs/howto/campaigns.md` (+ pointer in `docs/howto/chtc.md`, mirrored in the MCP
+  `campaigns` topic): with per-shard memory requests now accurate, the criterion is
+  scheduling overhead, not memory holds.
 
 ## Context
 
