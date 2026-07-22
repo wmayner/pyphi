@@ -36,6 +36,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.models.pandas import ToPandasMixin
 from pyphi.parallel.chunking import cost_balanced_partition
+from pyphi.sweep import _UNREACHABLE
 from pyphi.sweep import SweepResult
 from pyphi.sweep import _build_df
 from pyphi.sweep import _enumerate_cells
@@ -620,6 +621,25 @@ def prepare_ces(
     cells = _enumerate_cells(labeled, states, subsets, formalisms_)
     if not cells:
         raise ValueError("the given axes enumerate no cells")
+    # As in the sweep: cells enumerated via "all" skip dynamically
+    # unreachable states; explicit cells fail loud.
+    skip_uncomputable = states == "all" or subsets == "all"
+    computable: list = []
+    skipped_cells: list = []
+    for cell in cells:
+        label, formalism_, subset, state = cell
+        with config.override(**presets.by_name[formalism_], progress_bars=False):
+            try:
+                System.from_substrate(substrate_map[label], tuple(state), subset)
+            except _UNREACHABLE:
+                if not skip_uncomputable:
+                    raise
+                skipped_cells.append(cell)
+                continue
+        computable.append(cell)
+    cells = computable
+    if not cells:
+        raise ValueError("every enumerated cell has an unreachable state")
     if (sia is not None or resolution_state is not None) and len(cells) > 1:
         raise ValueError("sia and resolution_state apply only to single-cell campaigns")
 
@@ -702,9 +722,6 @@ def prepare_ces(
     task_id = 0
     for cell_index, (label, formalism_, subset, state) in enumerate(cells):
         data = group_data[(label, formalism_, subset)]
-        with config.override(**presets.by_name[formalism_], progress_bars=False):
-            # Validate every cell's state at prepare time, not on the cluster.
-            System(substrate_map[label], tuple(state), node_indices=data["subset"])
         for spec in data["ces_specs"]:
             shard_task = CESShardTask(
                 task_id=task_id,
@@ -775,6 +792,10 @@ def prepare_ces(
                 list(state),
             ]
             for label, formalism_, subset, state in cells
+        ],
+        "skipped_cells": [
+            [label, formalism_, list(subset), list(state)]
+            for label, formalism_, subset, state in skipped_cells
         ],
         "groups": [
             {
@@ -1339,4 +1360,8 @@ def _collect_ces(
     )
     rows = [_extract_row(s, "ces") for s in structures]
     df = _build_df(cells, rows, cells)
-    return SweepResult(df=df, results=structures, skipped=[])
+    skipped = [
+        (label, formalism_, tuple(subset), tuple(state))
+        for label, formalism_, subset, state in manifest.get("skipped_cells", [])
+    ]
+    return SweepResult(df=df, results=structures, skipped=skipped)

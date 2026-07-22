@@ -129,7 +129,16 @@ def build_distinction(mechanism: Any, mic: Any, mie: Any) -> Any:
 
 
 def merge_sia_strides(entries: list[tuple[Any, dict]]) -> Any:
-    """Merge SIA stride winners (union of tie sets, global order restored)."""
+    """Merge SIA stride winners (union of tie sets, global order restored).
+
+    A stride whose analysis short-circuited to a null result (e.g. the
+    system lacks strong connectivity) never consulted its partition slice;
+    every stride of the cell then carries the identical result, and any
+    one of them is the merge.
+    """
+    for sia, aux in entries:
+        if aux.get("short_circuit"):
+            return sia
     indexed: list[tuple[int, Any]] = []
     for sia, aux in entries:
         ties = getattr(sia, "ties", None) or (sia,)

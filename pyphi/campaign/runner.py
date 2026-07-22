@@ -215,11 +215,17 @@ def _run_sia_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
         parts, indices = _shards.enumerate_system_partition_stride(system, scheme, i, k)
         try:
             sia = system.sia(partitions=parts)
-            ties = getattr(sia, "ties", None) or (sia,)
-            aux = {
-                "tie_indices": _global_tie_indices(ties, parts, indices),
-                "scheme": scheme,
-            }
+            if getattr(sia, "reasons", None):
+                # A null short-circuit (e.g. no strong connectivity) never
+                # consults the partition restriction, so every stride of the
+                # cell produces this same result.
+                aux = {"short_circuit": True, "scheme": scheme}
+            else:
+                ties = getattr(sia, "ties", None) or (sia,)
+                aux = {
+                    "tie_indices": _global_tie_indices(ties, parts, indices),
+                    "scheme": scheme,
+                }
             return (
                 [CellOutput(status="ok", result=sia, traceback=None, aux=aux)],
                 False,

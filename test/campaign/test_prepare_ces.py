@@ -196,3 +196,32 @@ def test_formalisms_accepts_bare_string(tmp_path):
     )
     manifest = json.loads((tmp_path / "camp" / "manifest.json").read_text())
     assert manifest["cells"][0][1] == "IIT_4_0_2026"
+
+
+def test_states_all_skips_unreachable_cells(tmp_path):
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states="all",
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    # basic substrate: 2 of 8 states are dynamically unreachable
+    assert len(manifest["cells"]) == 6
+    assert len(manifest["skipped_cells"]) == 2
+
+
+def test_explicit_unreachable_state_fails_loud(tmp_path):
+    from pyphi.exceptions import StateUnreachableError
+
+    with pytest.raises(StateUnreachableError):
+        prepare_ces(
+            examples.basic_substrate(),
+            states=(0, 1, 0),
+            formalisms="IIT_4_0_2026",
+            directory=tmp_path / "camp",
+            units_per_job=1e9,
+        )
+    assert not (tmp_path / "camp").exists()
