@@ -63,8 +63,11 @@ saved results afterwards.
 ready-to-submit directory (task files, substrates, submit file, cost-balanced
 packing), and `status`/`collect` handle monitoring, resubmission, and
 reassembly into the exact local-sweep result; `prepare_ces` does the same
-for one system's scoped cause-effect analysis. Everything below the campaign
-workflow is generated for you.
+for scoped cause-effect analyses (one system, or a sweep of states and
+substrates under one scope). Everything below the campaign workflow is
+generated for you. For sparse scoped systems of moderate size, one fat node
+per state can beat sharding; see the crossover criteria in
+{doc}`campaigns`.
 
 For workloads campaigns don't express — heterogeneous per-job logic,
 non-PyPhi pipeline stages, DAGMan workflows — write your own submit file
