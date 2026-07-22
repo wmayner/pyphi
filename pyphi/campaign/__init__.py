@@ -488,6 +488,7 @@ def prepare_ces(
     scope: Any = None,
     directory: Any,
     units_per_job: float,
+    limit: int = 100_000_000,
     formalism: str | None = None,
     sia: Any = None,
     resolution_state: Any = None,
@@ -524,6 +525,10 @@ def prepare_ces(
         Target campaign directory; created, and must not already exist.
     units_per_job : float
         Target work units per shard — the planning ladder's budget.
+    limit : int, optional
+        Work budget for the planning walk. The walk raises
+        :class:`ValueError` past the limit — the workload is then too
+        large to plan; narrow the scope or raise the limit.
     formalism : str, optional
         Preset name; ``None`` uses the active formalism version.
     sia : optional
@@ -574,7 +579,12 @@ def prepare_ces(
     with config.override(**presets.by_name[formalism_], progress_bars=False):
         system = System.from_substrate(substrate, tuple(state), subset)
         resolved = resolve_scope(scope, system.node_labels)
-        ces_specs = _shards.plan_ces_shards(system, resolved, units_per_job)
+        workloads = mechanism_workloads(
+            substrate, subset=system.node_indices, scope=resolved, limit=limit
+        )
+        ces_specs = _shards.plan_ces_shards(
+            system, resolved, units_per_job, workloads=workloads
+        )
         if not any(s.mechanisms or s.mechanism for s in ces_specs):
             raise ValueError("the scope admits zero mechanisms")
         sia_specs = (
@@ -584,9 +594,6 @@ def prepare_ces(
         )
         partition_scheme = config.formalism.iit.system_partition_scheme
         mechanism_partition_scheme = config.formalism.iit.mechanism_partition_scheme
-        workloads = mechanism_workloads(
-            substrate, subset=system.node_indices, scope=resolved
-        )
 
     for spec in ces_specs + sia_specs:
         if spec.units > infeasible_threshold:

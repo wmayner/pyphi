@@ -99,3 +99,18 @@ def test_sia_shards_cover_system_partitions():
     ks = {s.stride[1] for s in specs}
     assert len(ks) == 1
     assert sorted(s.stride[0] for s in specs) == list(range(ks.pop()))
+
+
+def test_precomputed_workloads_match_internal_walk():
+    from pyphi.cost import mechanism_workloads
+
+    system = _system()
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        workloads = mechanism_workloads(
+            system.substrate, subset=system.node_indices, scope=CESScope()
+        )
+        a = plan_ces_shards(_system(), CESScope(), units_per_job=5.0)
+        b = plan_ces_shards(
+            _system(), CESScope(), units_per_job=5.0, workloads=workloads
+        )
+    assert a == b

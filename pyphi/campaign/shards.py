@@ -141,16 +141,33 @@ def plan_ces_shards(
     scope: Any,
     units_per_job: float,
     limit: int = 10_000_000,
+    workloads: dict[tuple[int, ...], int] | None = None,
 ) -> list[ShardSpec]:
     """Plan the shards of a scoped cause-effect computation.
 
     Descends mechanism → purview-range → partition-stride only where the
     budget requires. Deterministic for fixed inputs; every spec carries its
     estimated work units.
+
+    Parameters
+    ----------
+    system
+        The system to analyze.
+    scope
+        The resolved feasibility surface.
+    units_per_job : float
+        Target work units per shard.
+    limit : int, optional
+        Work budget for the counting walk (ignored when ``workloads`` is
+        given).
+    workloads : dict, optional
+        A precomputed :func:`pyphi.cost.mechanism_workloads` mapping for
+        the same system and scope; when given, the walk is not repeated.
     """
-    workloads = mechanism_workloads(
-        system.substrate, subset=system.node_indices, scope=scope, limit=limit
-    )
+    if workloads is None:
+        workloads = mechanism_workloads(
+            system.substrate, subset=system.node_indices, scope=scope, limit=limit
+        )
     whole: list[ShardSpec] = []
     specs: list[ShardSpec] = []
     for mechanism, units in workloads.items():

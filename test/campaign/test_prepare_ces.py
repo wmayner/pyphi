@@ -87,3 +87,17 @@ def test_empty_scope_is_an_error(tmp_path):
             directory=tmp_path / "camp",
             units_per_job=1.0,
         )
+
+
+def test_limit_threads_through_prepare_ces(tmp_path):
+    with pytest.raises(ValueError, match="narrow the scope or raise the limit"):
+        prepare_ces(
+            examples.basic_substrate(),
+            state=BASIC_STATE,
+            formalism="IIT_4_0_2026",
+            directory=tmp_path / "camp",
+            units_per_job=50.0,
+            limit=1,
+        )
+    # The failed call must not leave a campaign directory behind.
+    assert not (tmp_path / "camp").exists()
