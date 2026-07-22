@@ -923,22 +923,50 @@ def _register_ces() -> None:
     _DECODERS[schema.NullCESSchema] = lambda s: _decode_ces(s, NullCauseEffectStructure)
 
 
+def _encode_factor(f: Any) -> tuple[bytes, bool]:
+    """Encode one conditional factor, storing only the on-probability slice
+    of a binary factor whose off slice is its exact float complement.
+
+    The trim is applied only after verifying ``factor[..., 0] == 1.0 −
+    factor[..., 1]`` elementwise, so reconstruction on decode is exact; any
+    factor failing the check (including every non-binary factor) is stored
+    in full.
+    """
+    arr = np.asarray(f)
+    if arr.shape[-1] == 2 and np.array_equal(arr[..., 0], 1.0 - arr[..., 1]):
+        return arrays.array_to_bytes(np.ascontiguousarray(arr[..., 1])), True
+    return arrays.array_to_bytes(arr), False
+
+
+def _decode_factor(data: bytes, trimmed: bool) -> np.ndarray:
+    arr = arrays.bytes_to_array(data)
+    if trimmed:
+        return np.stack([1.0 - arr, arr], axis=-1)
+    return arr
+
+
 def _register_substrate() -> None:
     from pyphi.core.tpm.factored import FactoredTPM
     from pyphi.substrate import Substrate
 
-    _ENCODERS[Substrate] = lambda s: schema.SubstrateSchema(
-        factors=tuple(
-            arrays.array_to_bytes(np.asarray(f)) for f in s.factored_tpm.factors
-        ),
-        state_space=tuple(tuple(labels) for labels in s.factored_tpm.state_space),
-        cm=arrays.array_to_bytes(np.asarray(s.cm)),
-        node_labels=_enc_labels(s.node_labels),
-    )
+    def _encode_substrate(s: Substrate) -> schema.SubstrateSchema:
+        encoded = [_encode_factor(f) for f in s.factored_tpm.factors]
+        return schema.SubstrateSchema(
+            factors=tuple(data for data, _ in encoded),
+            state_space=tuple(tuple(labels) for labels in s.factored_tpm.state_space),
+            cm=arrays.array_to_bytes(np.asarray(s.cm)),
+            node_labels=_enc_labels(s.node_labels),
+            factors_trimmed=tuple(trimmed for _, trimmed in encoded),
+        )
+
+    _ENCODERS[Substrate] = _encode_substrate
 
     def _decode_substrate(s: schema.SubstrateSchema) -> Substrate:
+        trimmed = s.factors_trimmed or (False,) * len(s.factors)
         factored = FactoredTPM(
-            factors=tuple(arrays.bytes_to_array(f) for f in s.factors),
+            factors=tuple(
+                _decode_factor(f, t) for f, t in zip(s.factors, trimmed, strict=True)
+            ),
             state_space=s.state_space,
         )
         return Substrate.from_factored(

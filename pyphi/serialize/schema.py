@@ -379,6 +379,7 @@ class SubstrateSchema(msgspec.Struct, frozen=True, tag="substrate"):
     state_space: tuple[tuple[int | str, ...], ...]
     cm: bytes
     node_labels: NodeLabelsSchema | None
+    factors_trimmed: tuple[bool, ...] | None = None
 
 
 class SystemSchema(msgspec.Struct, frozen=True, tag="system"):

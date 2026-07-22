@@ -18,7 +18,7 @@ import msgspec
 from . import convert
 from . import schema
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
 
 
 class _Document(msgspec.Struct, frozen=True):
