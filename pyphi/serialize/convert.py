@@ -1374,6 +1374,7 @@ def _register_campaign() -> None:
         mechanisms=to_schema(c.mechanisms),
         cause_purviews=to_schema(c.cause_purviews),
         effect_purviews=to_schema(c.effect_purviews),
+        max_purview_order_by_mechanism_order=c.max_purview_order_by_mechanism_order,
     )
 
     def _decode_ces_scope(s: schema.CESScopeSchema) -> Any:
@@ -1381,6 +1382,11 @@ def _register_campaign() -> None:
             mechanisms=from_schema(s.mechanisms),
             cause_purviews=from_schema(s.cause_purviews),
             effect_purviews=from_schema(s.effect_purviews),
+            max_purview_order_by_mechanism_order=(
+                None
+                if s.max_purview_order_by_mechanism_order is None
+                else tuple((m, p) for m, p in s.max_purview_order_by_mechanism_order)
+            ),
         )
 
     _DECODERS[schema.CESScopeSchema] = _decode_ces_scope

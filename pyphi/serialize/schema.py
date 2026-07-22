@@ -555,6 +555,7 @@ class CESScopeSchema(msgspec.Struct, frozen=True, tag="ces_scope"):
     mechanisms: AxisScopeSchema
     cause_purviews: AxisScopeSchema
     effect_purviews: AxisScopeSchema
+    max_purview_order_by_mechanism_order: tuple[tuple[int, int], ...] | None = None
 
 
 class ShardSpecSchema(msgspec.Struct, frozen=True, tag="shard_spec"):
