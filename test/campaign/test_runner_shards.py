@@ -22,8 +22,8 @@ def test_shard_outputs_align_with_items(tmp_path):
     directory = tmp_path / "camp"
     prepare_ces(
         examples.basic_substrate(),
-        state=BASIC_STATE,
-        formalism="IIT_4_0_2026",
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
         directory=directory,
         units_per_job=5.0,
     )
@@ -55,8 +55,8 @@ def test_bottleneck_ordering_gives_same_results(tmp_path):
     for directory, ordering in ((a, None), (b, "bottleneck_first")):
         prepare_ces(
             examples.basic_substrate(),
-            state=BASIC_STATE,
-            formalism="IIT_4_0_2026",
+            states=BASIC_STATE,
+            formalisms="IIT_4_0_2026",
             directory=directory,
             units_per_job=5.0,
             ordering=ordering,
@@ -79,8 +79,8 @@ def test_order_cap_agrees_between_planning_and_execution(tmp_path):
     directory = tmp_path / "camp"
     prepare_ces(
         examples.basic_substrate(),
-        state=BASIC_STATE,
-        formalism="IIT_4_0_2026",
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
         scope=CESScope(max_purview_order_by_mechanism_order=((1, 1), (2, 2))),
         directory=directory,
         units_per_job=1e9,

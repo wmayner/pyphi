@@ -512,15 +512,15 @@ def _write_campaign_scaffold(
 
 
 def prepare_ces(
-    substrate: Any,
+    substrates: Any,
     *,
-    state: Any,
-    subset: Any = None,
+    states: Any,
+    subsets: Any = "full",
+    formalisms: Any = None,
     scope: Any = None,
     directory: Any,
     units_per_job: float,
     limit: int = 100_000_000,
-    formalism: str | None = None,
     sia: Any = None,
     resolution_state: Any = None,
     ordering: str | None = None,
@@ -531,43 +531,46 @@ def prepare_ces(
     request_disk: str = "4GB",
     seed: int | None = None,
 ) -> CampaignStatus:
-    """Materialize one system's scoped CES analysis as a campaign.
+    """Materialize a scoped CES sweep as a campaign.
 
-    Plans shards for the scoped distinction computation (and, unless a
-    precomputed ``sia`` or explicit ``resolution_state`` is given, for the
-    system irreducibility analysis), descending mechanism → purview-range →
-    partition-stride only where ``units_per_job`` requires. Shards are
-    independent condor jobs on the standard campaign scaffold; collection
-    merges them exactly (tie sets preserved) and assembles the cause-effect
-    structure through the standard analysis path.
+    Enumerates exactly the cells :func:`pyphi.sweep.sweep` would run over
+    the same axes, all sharing one scope, and plans shards for each cell's
+    scoped distinction computation (and, unless a precomputed ``sia`` or
+    explicit ``resolution_state`` is given, for its system irreducibility
+    analysis), descending mechanism → purview-range → partition-stride
+    only where ``units_per_job`` requires. The shard plan depends only on
+    the substrate, subset, and formalism — not the state — so cells that
+    differ only by state share one planning pass and replicate its shard
+    tasks. Shards are independent condor jobs on the standard campaign
+    scaffold; collection merges them exactly (tie sets preserved) and
+    assembles each cell's cause-effect structure through the standard
+    analysis path.
 
     Parameters
     ----------
-    substrate
-        The substrate of the analyzed system.
-    state : tuple[int, ...]
-        The system state.
-    subset : optional
-        Node indices (or labels) of the candidate system; ``None`` uses
-        the whole substrate.
+    substrates
+        As in :func:`pyphi.sweep.sweep`: one substrate, a sequence, or a
+        ``{label: substrate}`` mapping.
+    states, subsets, formalisms
+        As in :func:`pyphi.sweep.sweep`; scalars are accepted anywhere.
     scope : CESScope, optional
-        The feasibility surface; ``None`` is the unconstrained scope.
+        One feasibility surface shared by every cell, resolved per
+        substrate; ``None`` is the unconstrained scope.
     directory
         Target campaign directory; created, and must not already exist.
     units_per_job : float
         Target work units per shard — the planning ladder's budget.
     limit : int, optional
-        Work budget for the planning walk. The walk raises
+        Work budget for each planning walk. The walk raises
         :class:`ValueError` past the limit — the workload is then too
         large to plan; narrow the scope or raise the limit.
-    formalism : str, optional
-        Preset name; ``None`` uses the active formalism version.
     sia : optional
         A precomputed system irreducibility analysis; suppresses SIA
-        shards and is used at collection.
+        shards and is used at collection. Single-cell campaigns only.
     resolution_state : optional
         An explicit congruence-resolution state; suppresses SIA shards.
-        The collected structure then carries no Φₛ.
+        The collected structure then carries no Φₛ. Single-cell
+        campaigns only.
     ordering : {"bottleneck_first", None}, optional
         Reorder each partition-stride shard's slice so likely-reducible
         partitions are evaluated first (sparse substrates short-circuit
@@ -606,54 +609,87 @@ def prepare_ces(
         )
     if sia is not None and resolution_state is not None:
         raise ValueError("pass either sia or resolution_state, not both")
-    formalism_ = formalism if formalism is not None else config.formalism.iit.version
-    if formalism_ not in presets.by_name:
-        raise ValueError(f"unknown formalism {formalism_!r}")
+    formalisms_ = _normalize_formalisms(formalisms)
+    for name in formalisms_:
+        if name not in presets.by_name:
+            raise ValueError(f"unknown formalism {name!r}")
     scope = scope if scope is not None else CESScope()
     memory_floor = _parse_memory(request_memory)
+    labeled = _normalize_substrates(substrates)
+    substrate_map = dict(labeled)
+    cells = _enumerate_cells(labeled, states, subsets, formalisms_)
+    if not cells:
+        raise ValueError("the given axes enumerate no cells")
+    if (sia is not None or resolution_state is not None) and len(cells) > 1:
+        raise ValueError("sia and resolution_state apply only to single-cell campaigns")
 
-    with config.override(**presets.by_name[formalism_], progress_bars=False):
-        system = System.from_substrate(substrate, tuple(state), subset)
-        resolved = resolve_scope(scope, system.node_labels)
-        workloads = mechanism_workloads(
-            substrate, subset=system.node_indices, scope=resolved, limit=limit
-        )
-        ces_specs = _shards.plan_ces_shards(
-            system,
-            resolved,
-            units_per_job,
-            workloads=workloads,
-            memory_floor_bytes=memory_floor,
-        )
-        if not any(s.mechanisms or s.mechanism for s in ces_specs):
-            raise ValueError("the scope admits zero mechanisms")
-        sia_specs = (
-            _shards.plan_sia_shards(
-                system, units_per_job, memory_floor_bytes=memory_floor
+    # Plan once per (label, formalism, subset) group; the shard plan is
+    # state-independent, so states replicate tasks, not planning.
+    group_keys: list[tuple[Any, str, tuple]] = []
+    group_data: dict[tuple[Any, str, tuple], dict] = {}
+    for label, formalism_, subset, state in cells:
+        key = (label, formalism_, subset)
+        if key in group_data:
+            continue
+        group_keys.append(key)
+        with config.override(**presets.by_name[formalism_], progress_bars=False):
+            # The plan is state-independent; the group's first cell state
+            # stands in for construction (and is validated here).
+            system = System.from_substrate(substrate_map[label], tuple(state), subset)
+            resolved = resolve_scope(scope, system.node_labels)
+            workloads = mechanism_workloads(
+                substrate_map[label],
+                subset=system.node_indices,
+                scope=resolved,
+                limit=limit,
             )
-            if sia is None and resolution_state is None
-            else []
-        )
-        partition_scheme = config.formalism.iit.system_partition_scheme
-        mechanism_partition_scheme = config.formalism.iit.mechanism_partition_scheme
+            ces_specs = _shards.plan_ces_shards(
+                system,
+                resolved,
+                units_per_job,
+                workloads=workloads,
+                memory_floor_bytes=memory_floor,
+            )
+            if not any(s.mechanisms or s.mechanism for s in ces_specs):
+                raise ValueError("the scope admits zero mechanisms")
+            sia_specs = (
+                _shards.plan_sia_shards(
+                    system, units_per_job, memory_floor_bytes=memory_floor
+                )
+                if sia is None and resolution_state is None
+                else []
+            )
+            group_data[key] = {
+                "resolved": resolved,
+                "workloads": workloads,
+                "ces_specs": ces_specs,
+                "sia_specs": sia_specs,
+                "subset": tuple(system.node_indices),
+                "partition_scheme": config.formalism.iit.system_partition_scheme,
+                "mechanism_partition_scheme": (
+                    config.formalism.iit.mechanism_partition_scheme
+                ),
+            }
 
-    for spec in ces_specs + sia_specs:
-        if spec.units > infeasible_threshold:
-            message = (
-                f"shard {spec!r} estimate {spec.units:.3g} exceeds "
-                f"infeasible_threshold {infeasible_threshold:.3g}"
-            )
-            if strict:
-                raise ValueError(message)
-            warnings.warn(message, PyPhiWarning, stacklevel=2)
+    for data in group_data.values():
+        for spec in data["ces_specs"] + data["sia_specs"]:
+            if spec.units > infeasible_threshold:
+                message = (
+                    f"shard {spec!r} estimate {spec.units:.3g} exceeds "
+                    f"infeasible_threshold {infeasible_threshold:.3g}"
+                )
+                if strict:
+                    raise ValueError(message)
+                warnings.warn(message, PyPhiWarning, stacklevel=2)
 
     directory.mkdir(parents=True)
     (directory / "outputs").mkdir()
     (directory / "logs").mkdir()
     substrates_dir = directory / "substrates"
     substrates_dir.mkdir()
-    serialize.save(substrate, substrates_dir / "substrate-system.json.gz")
-    serialize.save(resolved, directory / "scope.json.gz")
+    for label, substrate in labeled:
+        serialize.save(substrate, substrates_dir / f"substrate-{label}.json.gz")
+    serialize.save(scope, directory / "scope.json.gz")
     if sia is not None:
         serialize.save(sia, directory / "sia.json.gz")
     if resolution_state is not None:
@@ -662,54 +698,60 @@ def prepare_ces(
     tasks_dir = directory / "tasks"
     tasks_dir.mkdir()
     overrides = _wire_overrides()
-    subset_ = tuple(system.node_indices)
-    task_rows = []
+    task_rows: list[dict] = []
     task_id = 0
-    for spec in ces_specs:
-        shard_task = CESShardTask(
-            task_id=task_id,
-            kind="ces_shard",
-            substrate_label="system",
-            state=tuple(state),
-            subset=subset_,
-            scope=resolved,
-            config_overrides=overrides,
-            formalism=formalism_,
-            spec=spec,
-            ordering=ordering,
-        )
-        serialize.save(shard_task, tasks_dir / f"task-{task_id:04d}.json.gz")
-        task_rows.append(
-            {
-                "task_id": task_id,
-                "kind": "ces_shard",
-                "units": spec.units,
-                "memory_bytes": spec.memory_bytes,
-            }
-        )
-        task_id += 1
-    for spec in sia_specs:
-        assert spec.stride is not None, "SIA shards are always strides"
-        sia_task = SIAShardTask(
-            task_id=task_id,
-            kind="sia_shard",
-            substrate_label="system",
-            state=tuple(state),
-            subset=subset_,
-            config_overrides=overrides,
-            formalism=formalism_,
-            stride=spec.stride,
-        )
-        serialize.save(sia_task, tasks_dir / f"task-{task_id:04d}.json.gz")
-        task_rows.append(
-            {
-                "task_id": task_id,
-                "kind": "sia_shard",
-                "units": spec.units,
-                "memory_bytes": spec.memory_bytes,
-            }
-        )
-        task_id += 1
+    for cell_index, (label, formalism_, subset, state) in enumerate(cells):
+        data = group_data[(label, formalism_, subset)]
+        with config.override(**presets.by_name[formalism_], progress_bars=False):
+            # Validate every cell's state at prepare time, not on the cluster.
+            System(substrate_map[label], tuple(state), node_indices=data["subset"])
+        for spec in data["ces_specs"]:
+            shard_task = CESShardTask(
+                task_id=task_id,
+                kind="ces_shard",
+                substrate_label=label,
+                state=tuple(state),
+                subset=data["subset"],
+                scope=data["resolved"],
+                config_overrides=overrides,
+                formalism=formalism_,
+                spec=spec,
+                ordering=ordering,
+            )
+            serialize.save(shard_task, tasks_dir / f"task-{task_id:04d}.json.gz")
+            task_rows.append(
+                {
+                    "task_id": task_id,
+                    "kind": "ces_shard",
+                    "units": spec.units,
+                    "memory_bytes": spec.memory_bytes,
+                    "cell": cell_index,
+                }
+            )
+            task_id += 1
+        for spec in data["sia_specs"]:
+            assert spec.stride is not None, "SIA shards are always strides"
+            sia_task = SIAShardTask(
+                task_id=task_id,
+                kind="sia_shard",
+                substrate_label=label,
+                state=tuple(state),
+                subset=data["subset"],
+                config_overrides=overrides,
+                formalism=formalism_,
+                stride=spec.stride,
+            )
+            serialize.save(sia_task, tasks_dir / f"task-{task_id:04d}.json.gz")
+            task_rows.append(
+                {
+                    "task_id": task_id,
+                    "kind": "sia_shard",
+                    "units": spec.units,
+                    "memory_bytes": spec.memory_bytes,
+                    "cell": cell_index,
+                }
+            )
+            task_id += 1
 
     sia_mode = (
         "precomputed"
@@ -723,21 +765,37 @@ def prepare_ces(
         "pyphi_version": importlib.metadata.version("pyphi"),
         "created": datetime.now(UTC).isoformat(),
         "seed": seed,
-        "formalism": formalism_,
-        "state": list(state),
-        "subset": list(subset_),
-        "substrate_label": "system",
         "sia_mode": sia_mode,
         "ordering": ordering,
+        "cells": [
+            [
+                label,
+                formalism_,
+                list(group_data[(label, formalism_, subset)]["subset"]),
+                list(state),
+            ]
+            for label, formalism_, subset, state in cells
+        ],
+        "groups": [
+            {
+                "label": label,
+                "formalism": formalism_,
+                "subset": list(group_data[key]["subset"]),
+                "partition_scheme": group_data[key]["partition_scheme"],
+                "mechanism_partition_scheme": group_data[key][
+                    "mechanism_partition_scheme"
+                ],
+                "mechanism_workloads": {
+                    ",".join(map(str, mechanism)): workload.units
+                    for mechanism, workload in group_data[key]["workloads"].items()
+                },
+            }
+            for key in group_keys
+            for label, formalism_, _subset in [key]
+        ],
         "tasks": task_rows,
-        "mechanism_workloads": {
-            ",".join(map(str, mechanism)): workload.units
-            for mechanism, workload in workloads.items()
-        },
         "units_per_job": units_per_job,
         "infeasible_threshold": infeasible_threshold,
-        "partition_scheme": partition_scheme,
-        "mechanism_partition_scheme": mechanism_partition_scheme,
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))
     _write_campaign_scaffold(
@@ -749,7 +807,7 @@ def prepare_ces(
     return CampaignStatus(
         directory=str(directory),
         n_tasks=len(task_rows),
-        n_cells=len(task_rows),
+        n_cells=len(cells),
         done=(),
         failed=(),
         pending=tuple(range(len(task_rows))),

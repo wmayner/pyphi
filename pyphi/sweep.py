@@ -85,6 +85,8 @@ def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
 def _normalize_formalisms(formalisms: Any) -> list[str]:
     if formalisms is None:
         return [config.formalism.iit.version]
+    if isinstance(formalisms, str):
+        return [formalisms]
     return list(formalisms)
 
 

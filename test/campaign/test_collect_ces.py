@@ -47,8 +47,8 @@ def _campaign(tmp_path, formalism, **kwargs):
     directory = tmp_path / "camp"
     prepare_ces(
         examples.basic_substrate(),
-        state=BASIC_STATE,
-        formalism=formalism,
+        states=BASIC_STATE,
+        formalisms=formalism,
         directory=directory,
         units_per_job=5.0,  # tiny: forces all three ladder rungs
         **kwargs,
@@ -110,8 +110,8 @@ def test_no_sia_mode_carries_no_phi_s(tmp_path):
         state = _resolution_state(system)
     prepare_ces(
         examples.basic_substrate(),
-        state=BASIC_STATE,
-        formalism="IIT_4_0_2026",
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
         directory=directory,
         units_per_job=5.0,
         resolution_state=state,
