@@ -675,8 +675,8 @@ def prepare_ces(
         "ordering": ordering,
         "tasks": task_rows,
         "mechanism_workloads": {
-            ",".join(map(str, mechanism)): units
-            for mechanism, units in workloads.items()
+            ",".join(map(str, mechanism)): workload.units
+            for mechanism, workload in workloads.items()
         },
         "units_per_job": units_per_job,
         "infeasible_threshold": infeasible_threshold,

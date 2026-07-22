@@ -20,6 +20,7 @@ from itertools import islice
 from typing import Any
 
 from pyphi.conf import config
+from pyphi.cost import MechanismWorkload
 from pyphi.cost import mechanism_workloads
 from pyphi.cost import partition_sweep_count
 from pyphi.direction import Direction
@@ -141,7 +142,7 @@ def plan_ces_shards(
     scope: Any,
     units_per_job: float,
     limit: int = 10_000_000,
-    workloads: dict[tuple[int, ...], int] | None = None,
+    workloads: dict[tuple[int, ...], MechanismWorkload] | None = None,
 ) -> list[ShardSpec]:
     """Plan the shards of a scoped cause-effect computation.
 
@@ -170,7 +171,8 @@ def plan_ces_shards(
         )
     whole: list[ShardSpec] = []
     specs: list[ShardSpec] = []
-    for mechanism, units in workloads.items():
+    for mechanism, workload in workloads.items():
+        units = workload.units
         if units <= units_per_job:
             whole.append(
                 ShardSpec(

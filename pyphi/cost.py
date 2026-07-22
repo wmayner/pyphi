@@ -14,6 +14,7 @@ the machine and configuration and is never predicted.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing import Any
@@ -29,12 +30,53 @@ if TYPE_CHECKING:
 
 __all__ = [
     "AnalysisEstimate",
+    "MechanismWorkload",
     "estimate_analysis",
     "mechanism_workloads",
     "partition_sweep_count",
+    "round_memory_bytes",
+    "shard_memory_bytes",
 ]
 
 _PARTITION_COUNT_CAP = 6
+
+REPERTOIRE_FACTOR = 4
+"""Repertoires concurrently alive during a mechanism-partition sweep."""
+
+BASE_MEMORY_BYTES = 1 << 30
+"""Per-task overhead: interpreter, imports, substrate TPM, task payload."""
+
+_MEMORY_STEP_BYTES = 512 * 1024**2
+
+
+@dataclass(frozen=True)
+class MechanismWorkload:
+    """One mechanism's scoped workload and peak-memory driver.
+
+    ``units`` counts purview evaluations plus mechanism-partition sweeps;
+    ``max_repertoire_cells`` is the state-space size of the largest scoped
+    purview (the product of its units' state counts), which sets the
+    mechanism's peak repertoire memory.
+    """
+
+    units: int
+    max_repertoire_cells: int
+
+
+def shard_memory_bytes(max_repertoire_cells: int) -> int:
+    """Estimated peak memory of a shard from its largest repertoire.
+
+    ``REPERTOIRE_FACTOR × 8 bytes × max_repertoire_cells +
+    BASE_MEMORY_BYTES``. The factor and base are calibration constants
+    validated against scheduler-reported memory usage; requests derived
+    from this estimate are rounded with :func:`round_memory_bytes`.
+    """
+    return REPERTOIRE_FACTOR * 8 * max_repertoire_cells + BASE_MEMORY_BYTES
+
+
+def round_memory_bytes(n: int) -> int:
+    """Round a byte count up to the next 512 MB request boundary."""
+    return max(1, math.ceil(n / _MEMORY_STEP_BYTES)) * _MEMORY_STEP_BYTES
 
 
 class _LimitReached(Exception):
@@ -470,12 +512,14 @@ def mechanism_workloads(
     subset: Any = None,
     scope: Any | None = None,
     limit: int = 10_000_000,
-) -> dict[tuple[int, ...], int]:
+) -> dict[tuple[int, ...], MechanismWorkload]:
     """Per-mechanism workload under a scope, keyed by mechanism.
 
-    Each mechanism's workload is its scoped purview evaluations plus its
-    mechanism-partition sweeps; the sum over all mechanisms equals the
-    scoped :func:`estimate_analysis` totals for the distinction axis.
+    Each mechanism's :class:`MechanismWorkload` counts its scoped purview
+    evaluations plus its mechanism-partition sweeps, and records the
+    state-space size of its largest scoped purview; the summed units over
+    all mechanisms equal the scoped :func:`estimate_analysis` totals for
+    the distinction axis.
 
     Parameters
     ----------
@@ -500,14 +544,16 @@ def mechanism_workloads(
     from pyphi.system import System
 
     cs = System.from_substrate(substrate, (0,) * substrate.size, subset)
+    alphabet = substrate.factored_tpm.alphabet_sizes
     counter = _Counter(limit)
-    workloads: dict[tuple[int, ...], int] = {}
+    workloads: dict[tuple[int, ...], MechanismWorkload] = {}
     mechanism_iter: Any = utils.powerset(cs.node_indices, nonempty=True)
     if scope is not None:
         mechanism_iter = scope.mechanisms.select(mechanism_iter)
     try:
         for mechanism in mechanism_iter:
             units = 0
+            max_cells = 0
             for direction in (Direction.CAUSE, Direction.EFFECT):
                 purviews = cs.potential_purviews(direction, mechanism)
                 if scope is not None:
@@ -519,7 +565,10 @@ def mechanism_workloads(
                     units += 1 + _mechanism_partition_count(
                         len(mechanism), len(purview), counter
                     )
-            workloads[tuple(mechanism)] = units
+                    max_cells = max(max_cells, math.prod(alphabet[u] for u in purview))
+            workloads[tuple(mechanism)] = MechanismWorkload(
+                units=units, max_repertoire_cells=max_cells
+            )
     except _LimitReached:
         raise ValueError(
             f"mechanism workload walk exceeded limit={limit}; narrow the "
