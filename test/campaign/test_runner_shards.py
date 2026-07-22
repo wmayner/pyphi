@@ -69,3 +69,27 @@ def test_bottleneck_ordering_gives_same_results(tmp_path):
         for ea, eb in zip(oa.entries, ob.entries, strict=True):
             if ea.result is not None and hasattr(ea.result, "phi"):
                 assert float(ea.result.phi) == float(eb.result.phi)
+
+
+def test_order_cap_agrees_between_planning_and_execution(tmp_path):
+    """Every collected distinction's purviews obey the per-order cap."""
+    from pyphi.campaign import collect
+    from pyphi.campaign.scope import CESScope
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        state=BASIC_STATE,
+        formalism="IIT_4_0_2026",
+        scope=CESScope(max_purview_order_by_mechanism_order=((1, 1), (2, 2))),
+        directory=directory,
+        units_per_job=1e9,
+    )
+    _run_all(directory)
+    result = collect(directory)
+    caps = {1: 1, 2: 2}
+    for d in result.distinctions:
+        cap = caps.get(len(d.mechanism))
+        if cap is not None:
+            assert len(d.cause.purview) <= cap
+            assert len(d.effect.purview) <= cap

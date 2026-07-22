@@ -1086,7 +1086,9 @@ def _collect_ces(
                 continue
             dir_ = Direction[direction]
             canonical = list(
-                scope.purviews(dir_).select(system.potential_purviews(dir_, mechanism))
+                scope.purview_axis(dir_, tuple(mechanism)).select(
+                    system.potential_purviews(dir_, mechanism)
+                )
             )
             if set(map(tuple, canonical)) - set(by_purview):
                 missing_groups.add(f"range:{mechanism}:{direction}")

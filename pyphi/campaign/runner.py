@@ -129,12 +129,12 @@ def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
             if spec.payload_kind == "mechanisms":
                 for mechanism in spec.mechanisms:
                     cause_purviews = list(
-                        task.scope.purviews(Direction.CAUSE).select(
+                        task.scope.purview_axis(Direction.CAUSE, mechanism).select(
                             system.potential_purviews(Direction.CAUSE, mechanism)
                         )
                     )
                     effect_purviews = list(
-                        task.scope.purviews(Direction.EFFECT).select(
+                        task.scope.purview_axis(Direction.EFFECT, mechanism).select(
                             system.potential_purviews(Direction.EFFECT, mechanism)
                         )
                     )

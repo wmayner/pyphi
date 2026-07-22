@@ -417,7 +417,11 @@ def estimate_analysis(
                 for direction in (Direction.CAUSE, Direction.EFFECT):
                     purviews = cs.potential_purviews(direction, mechanism)
                     if unit_scope is not None:
-                        purviews = list(unit_scope.purviews(direction).select(purviews))
+                        purviews = list(
+                            unit_scope.purview_axis(direction, mechanism).select(
+                                purviews
+                            )
+                        )
                     for purview in purviews:
                         counter.charge(1)
                         purview_evaluations += 1
@@ -507,7 +511,9 @@ def mechanism_workloads(
             for direction in (Direction.CAUSE, Direction.EFFECT):
                 purviews = cs.potential_purviews(direction, mechanism)
                 if scope is not None:
-                    purviews = list(scope.purviews(direction).select(purviews))
+                    purviews = list(
+                        scope.purview_axis(direction, mechanism).select(purviews)
+                    )
                 for purview in purviews:
                     counter.charge(1)
                     units += 1 + _mechanism_partition_count(

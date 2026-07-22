@@ -269,3 +269,18 @@ class TestScopedEstimation:
         count = partition_sweep_count(2, 2)
         enumerated = len(list(mechanism_partitions((0, 1), (0, 2))))
         assert count == enumerated
+
+
+def test_estimate_analysis_respects_order_caps():
+    from pyphi import examples
+    from pyphi.campaign.scope import CESScope
+    from pyphi.cost import estimate_analysis
+
+    substrate = examples.basic_substrate()
+    base = estimate_analysis(substrate, compute="ces", scope=CESScope())
+    capped = estimate_analysis(
+        substrate,
+        compute="ces",
+        scope=CESScope(max_purview_order_by_mechanism_order=((1, 1),)),
+    )
+    assert capped.purview_evaluations < base.purview_evaluations

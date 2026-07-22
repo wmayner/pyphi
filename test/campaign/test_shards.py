@@ -114,3 +114,13 @@ def test_precomputed_workloads_match_internal_walk():
             _system(), CESScope(), units_per_job=5.0, workloads=workloads
         )
     assert a == b
+
+
+def test_order_cap_restricts_planned_purviews():
+    capped = CESScope(max_purview_order_by_mechanism_order=((1, 1),))
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        base = plan_ces_shards(_system(), CESScope(), units_per_job=1e9)
+        capped_specs = plan_ces_shards(_system(), capped, units_per_job=1e9)
+    total = sum(s.units for s in base)
+    capped_total = sum(s.units for s in capped_specs)
+    assert capped_total < total
