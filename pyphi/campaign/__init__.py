@@ -278,21 +278,30 @@ def _pack(
     return [sorted(b) for b in bins]
 
 
+# Task files are written zero-padded (``task-{task_id:04d}.json.gz``), and
+# collection reads them back with the same padding, so every filename the
+# scheduler forms from ``task_id`` must pad identically. ``{pad}`` is filled
+# with HTCondor's ``$INT(task_id,%04d)``, which pads from the unpadded
+# ``task_id`` column in ``remaining.txt`` (which ``status`` regenerates
+# unpadded), keeping the submit file correct across resubmits. A bare
+# ``$(task_id)`` here would expand to ``task-0.json.gz`` and every job would
+# fail its input-file transfer.
+_TASK_ID_PAD = "$INT(task_id,%04d)"
 _SUBMIT_TEMPLATE = """\
 universe            = container
 container_image     = {container_image}
 executable          = run_task.sh
-arguments           = $(task_id)
-transfer_input_files = tasks/task-$(task_id).json.gz, substrates/
-transfer_output_remaps = "task-$(task_id).json.gz = outputs/task-$(task_id).json.gz"
+arguments           = {pad}
+transfer_input_files = tasks/task-{pad}.json.gz, substrates/
+transfer_output_remaps = "task-{pad}.json.gz = outputs/task-{pad}.json.gz"
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
 request_cpus        = 1
 request_memory      = $(memory)
 request_disk        = {request_disk}
-log                 = logs/task-$(task_id).log
-output              = logs/task-$(task_id).out
-error               = logs/task-$(task_id).err
+log                 = logs/task-{pad}.log
+output              = logs/task-{pad}.out
+error               = logs/task-{pad}.err
 queue task_id, memory from remaining.txt
 """
 
@@ -508,6 +517,7 @@ def _write_campaign_scaffold(
         _SUBMIT_TEMPLATE.format(
             container_image=container_image,
             request_disk=request_disk,
+            pad=_TASK_ID_PAD,
         )
     )
 

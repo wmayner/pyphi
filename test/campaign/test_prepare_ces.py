@@ -321,3 +321,66 @@ def test_state_keyed_mapping_requires_singleton_axes(tmp_path):
             units_per_job=50.0,
             resolution_state=resolution,
         )
+
+
+def _expand_condor_macros(pattern: str, task_id: str) -> str:
+    """Emulate HTCondor's expansion of the macros the submit template uses.
+
+    ``$INT(task_id,%0Nd)`` -> the task id zero-padded to N digits;
+    ``$(task_id)`` -> the raw id. Enough to reconstruct the filename the
+    scheduler would transfer for a given ``remaining.txt`` row.
+    """
+    import re
+
+    pattern = re.sub(
+        r"\$INT\(task_id,\s*%0(\d+)d\)",
+        lambda m: str(int(task_id)).zfill(int(m.group(1))),
+        pattern,
+    )
+    return pattern.replace("$(task_id)", task_id)
+
+
+def test_submit_filenames_match_padded_task_files(tmp_path):
+    """Every input file the submit template references for a task must be the
+    zero-padded name that ``prepare`` actually wrote (regression: a bare
+    ``$(task_id)`` expanded to ``task-0.json.gz`` and held every job)."""
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=50.0,
+    )
+    import re
+
+    submit = (directory / "pyphi.sub").read_text()
+    # The value can hold commas inside ``$INT(task_id,%04d)``, so match the
+    # ``tasks/...json.gz`` token directly instead of splitting on commas.
+    input_pattern = next(
+        re.search(r"tasks/\S*\.json\.gz", line).group(0)
+        for line in submit.splitlines()
+        if line.strip().startswith("transfer_input_files")
+    )
+    remap_lhs = next(
+        line.split("=", 1)[1].split("=", 1)[0].strip().strip('"')
+        for line in submit.splitlines()
+        if line.strip().startswith("transfer_output_remaps")
+    )
+    task_ids = [
+        line.split(",", 1)[0].strip()
+        for line in (directory / "remaining.txt").read_text().splitlines()
+        if line.strip()
+    ]
+    assert task_ids
+    for task_id in task_ids:
+        # The file the scheduler transfers in must be the one on disk.
+        transferred = _expand_condor_macros(input_pattern, task_id)
+        assert (directory / transferred).exists(), (
+            f"submit references {transferred} but it does not exist"
+        )
+        # The remap's source name must match what the runner writes back
+        # (``task-{task_id:04d}.json.gz``), or output transfer silently fails.
+        assert _expand_condor_macros(remap_lhs, task_id) == (
+            f"task-{int(task_id):04d}.json.gz"
+        )
