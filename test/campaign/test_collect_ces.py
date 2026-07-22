@@ -246,8 +246,8 @@ def test_two_substrate_sweep_collects_per_label(tmp_path):
         directory=directory,
         units_per_job=1e9,
     )
-    assert (directory / "substrates" / "substrate-a.json.gz").exists()
-    assert (directory / "substrates" / "substrate-b.json.gz").exists()
+    assert (directory / "substrates" / "substrate-a.msgpack.gz").exists()
+    assert (directory / "substrates" / "substrate-b.msgpack.gz").exists()
     _run_all(directory)
     result = collect(directory)
     assert isinstance(result, SweepResult)

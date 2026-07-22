@@ -37,7 +37,7 @@ def _task_labels(task: Any) -> set:
 
 def _load_substrates(task: Any, substrates_dir: Path) -> dict:
     return {
-        label: serialize.load(substrates_dir / f"substrate-{label}.json.gz")
+        label: serialize.load(substrates_dir / f"substrate-{label}.msgpack.gz")
         for label in _task_labels(task)
     }
 

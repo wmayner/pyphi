@@ -20,7 +20,7 @@ def test_prepare_writes_campaign_directory(tmp_path):
     assert len(manifest["cells"]) == 8  # 2**3 states x 1 subset x 1 formalism
     assert len(manifest["weights"]) == 8
     assert sorted(i for task in manifest["tasks"] for i in task) == list(range(8))
-    assert (directory / "substrates" / "substrate-0.json.gz").exists()
+    assert (directory / "substrates" / "substrate-0.msgpack.gz").exists()
     task = load(directory / "tasks" / "task-0000.json.gz")
     assert task.kind == "sweep_cells"
     assert task.skip_uncomputable is True

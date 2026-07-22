@@ -432,7 +432,7 @@ def prepare(
     substrates_dir = directory / "substrates"
     substrates_dir.mkdir()
     for label, substrate in labeled:
-        serialize.save(substrate, substrates_dir / f"substrate-{label}.json.gz")
+        serialize.save(substrate, substrates_dir / f"substrate-{label}.msgpack.gz")
 
     tasks_dir = directory / "tasks"
     tasks_dir.mkdir()
@@ -708,7 +708,7 @@ def prepare_ces(
     substrates_dir = directory / "substrates"
     substrates_dir.mkdir()
     for label, substrate in labeled:
-        serialize.save(substrate, substrates_dir / f"substrate-{label}.json.gz")
+        serialize.save(substrate, substrates_dir / f"substrate-{label}.msgpack.gz")
     serialize.save(scope, directory / "scope.json.gz")
     if sia is not None:
         serialize.save(sia, directory / "sia.json.gz")
@@ -1298,10 +1298,10 @@ def _collect_ces(
     # Substrate labels appear in filenames, so a bare substrate's label 0
     # round-trips as the string "0".
     substrates = {
-        path.name.removeprefix("substrate-").removesuffix(".json.gz"): serialize.load(
+        path.name.removeprefix("substrate-").removesuffix(".msgpack.gz"): serialize.load(
             path
         )
-        for path in (directory / "substrates").glob("substrate-*.json.gz")
+        for path in (directory / "substrates").glob("substrate-*.msgpack.gz")
     }
     user_scope = serialize.load(directory / "scope.json.gz")
 
