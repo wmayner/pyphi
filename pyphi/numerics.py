@@ -55,6 +55,23 @@ def is_nonpositive(x: float) -> bool:
     return bool(x <= 0)
 
 
+def eq_mask(array: np.ndarray, value: float) -> np.ndarray:
+    """Return a boolean mask of the elements equal to ``value`` up to
+    ``config.numerics.precision``.
+
+    Elementwise-equivalent to :func:`eq`. The comparison replicates
+    ``math.isclose`` — a symmetric relative tolerance with an absolute
+    floor, and non-finite values equal only to themselves — which differs
+    from ``np.isclose``'s asymmetric additive form.
+    """
+    epsilon = _epsilon()
+    a = np.asarray(array, dtype=float)
+    if not math.isfinite(value):
+        return a == value
+    tol = np.maximum(epsilon * np.maximum(np.abs(a), abs(value)), epsilon)
+    return np.isfinite(a) & (np.abs(a - value) <= tol)
+
+
 def positive_mask(array: np.ndarray) -> np.ndarray:
     """Return a boolean mask of the elements positive up to
     ``config.numerics.precision``.

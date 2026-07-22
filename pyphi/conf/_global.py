@@ -205,6 +205,14 @@ class _GlobalConfig:
         sub-namespace shorthand (``iit.version``) or the full path
         (``formalism.iit.version``). Unknown names raise
         :class:`ConfigurationError`.
+
+        Notes
+        -----
+        The context object is a plain class, not a generator: an override
+        entered without holding a reference to it stays applied for the
+        life of the process (garbage collection never reverts it). For a
+        process-lifetime override, plain assignment
+        (``config.field = value``) expresses the intent more directly.
         """
         merged: dict[str, Any] = dict(_paths) if _paths else {}
         merged.update(kwargs)

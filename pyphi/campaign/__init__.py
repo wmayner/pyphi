@@ -1074,6 +1074,13 @@ def _group_name(task: Any) -> str:
     return f"stride:{tuple(spec.mechanism)}:{spec.direction}:{tuple(spec.purview)}"
 
 
+_RESOLUTION_STATE_WARN_UNITS = 12
+"""System size above which collect warns before computing the
+congruence-resolution state itself: ``system_intrinsic_information``
+enumerates every system state against every mechanism state (~4ⁿ), taking
+hours beyond ~12 units and raising as infeasible beyond ~16."""
+
+
 def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any):
     """Assemble a structure whose congruence state comes without any Φₛ."""
     from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
@@ -1083,6 +1090,17 @@ def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any)
     from pyphi.relations import relations as compute_relations
 
     if resolution_state is None:
+        n = len(system.node_indices)
+        if n > _RESOLUTION_STATE_WARN_UNITS:
+            warnings.warn(
+                f"no resolution_state was given, so collect will compute "
+                f"system_intrinsic_information over {n} units; its cost "
+                f"grows ~4^n (hours beyond ~{_RESOLUTION_STATE_WARN_UNITS} "
+                f"units) and may dwarf the collected computation. Pass "
+                f"resolution_state (or a precomputed sia) to skip this.",
+                PyPhiWarning,
+                stacklevel=2,
+            )
         resolution_state = system_intrinsic_information(
             system,
             specification_measure=resolve_mechanism_measure(

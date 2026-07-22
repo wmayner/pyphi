@@ -14,6 +14,7 @@ see :mod:`pyphi.cache`.
 from __future__ import annotations
 
 import functools
+import math
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
@@ -475,21 +476,48 @@ def forward_repertoire(
     raise AssertionError("unreachable")
 
 
+_MAX_UNCONSTRAINED_FORWARD_STATES = 2**16
+"""Largest mechanism-state count the unconstrained forward effect repertoire
+will average over. Each state costs one forward effect repertoire, so the time
+grows with the state count regardless of memory; above this bound the
+computation raises instead of silently grinding for days."""
+
+
 @_memoize
 def unconstrained_forward_effect_repertoire(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
 ) -> Any:
-    """Unconstrained forward effect repertoire — average over all mechanism states."""
+    """Unconstrained forward effect repertoire — average over all mechanism states.
+
+    The average is accumulated one repertoire at a time, so memory stays at a
+    single repertoire regardless of the mechanism-state count.
+
+    Notes
+    -----
+    Sequential accumulation can differ from a stacked ``mean`` in the final
+    floating-point bits once numpy's pairwise summation engages (above 128
+    states); tolerance-based comparisons downstream absorb this.
+    """
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     mech_k = tuple(alphabet_sizes[i] for i in mechanism)
-    all_mech_states: list[tuple[int, ...]] = list(_utils.all_states(mech_k))
-    repertoires = np.stack(
-        [
-            forward_effect_repertoire(cs, mechanism, purview, mechanism_state=state)
-            for state in all_mech_states
-        ]
-    )
-    return repertoires.mean(axis=0)
+    n_states = math.prod(mech_k)
+    if n_states > _MAX_UNCONSTRAINED_FORWARD_STATES:
+        raise ValueError(
+            f"unconstrained forward effect repertoire over mechanism "
+            f"{mechanism} is infeasible at this size: it averages over "
+            f"{n_states:,} mechanism states, each requiring a full forward "
+            f"effect repertoire "
+            f"(limit {_MAX_UNCONSTRAINED_FORWARD_STATES:,})"
+        )
+    total: np.ndarray | None = None
+    for state in _utils.all_states(mech_k):
+        rep = forward_effect_repertoire(cs, mechanism, purview, mechanism_state=state)
+        if total is None:
+            total = np.array(rep, dtype=float)
+        else:
+            total += rep
+    assert total is not None
+    return total / n_states
 
 
 @_memoize
@@ -639,12 +667,7 @@ def intrinsic_information(
     returned specification's ``ties``); the returned specification is the
     first tied state in enumeration order.
     """
-    from pyphi.models.state_specification import StateSpecification
-
-    if states is None:
-        alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
-        purview_k = tuple(alphabet_sizes[i] for i in purview)
-        states = list(_utils.all_states(purview_k))
+    full_state_space = states is None
 
     if satisfies_composite_measure(specification_measure):
         from typing import cast
@@ -661,6 +684,42 @@ def intrinsic_information(
         )
         dist = dist.squeeze()
 
+        if full_state_space:
+            # Vectorized over the full state space. The array flattened in
+            # Fortran order matches ``all_states`` enumeration order (index 0
+            # varies fastest), so the winner and tie family are found without
+            # materializing one Python tuple per state — only the (small) tie
+            # family is ever materialized.
+            flat = np.asarray(dist, dtype=float).ravel(order="F")
+            shape = np.asarray(dist).shape
+
+            def flat_state(index: int) -> tuple[int, ...]:
+                return tuple(int(c) for c in np.unravel_index(index, shape, order="F"))
+
+            max_information = float(flat.max())
+            tied_indices = np.flatnonzero(numerics.eq_mask(flat, max_information))
+            tied_states = [(flat_state(int(i)), float(flat[i])) for i in tied_indices]
+            winner_index = int(tied_indices[0])
+            if flat.size > 1:
+                # The highest raw value among non-winner states; ``argmax``
+                # takes the first occurrence in enumeration order, matching a
+                # stable descending sort.
+                others = np.flatnonzero(np.arange(flat.size) != winner_index)
+                runner_index = int(others[np.argmax(flat[others])])
+                runner_up_state = flat_state(runner_index)
+                runner_up_information = float(flat[runner_index])
+            else:
+                runner_up_state = runner_up_information = None
+            return _build_state_specification(
+                direction,
+                purview,
+                tied_states,
+                rep,
+                unconstrained_rep,
+                runner_up_state,
+                runner_up_information,
+            )
+
         def evaluate_state(state: Any) -> float:
             return float(dist[state])
     else:
@@ -674,6 +733,11 @@ def intrinsic_information(
                 state=state,
                 repertoire_distance=specification_measure,
             )
+
+    if states is None:
+        alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
+        purview_k = tuple(alphabet_sizes[i] for i in purview)
+        states = list(_utils.all_states(purview_k))
 
     state_to_information = {state: evaluate_state(state) for state in states}
     # The raw maximum anchors the tie cluster; membership is tolerance-based,
@@ -697,6 +761,29 @@ def intrinsic_information(
         runner_up_information = float(runner_up[1])
     else:
         runner_up_state = runner_up_information = None
+    return _build_state_specification(
+        direction,
+        purview,
+        tied_states,
+        rep,
+        unconstrained_rep,
+        runner_up_state,
+        runner_up_information,
+    )
+
+
+def _build_state_specification(
+    direction: Direction,
+    purview: tuple[int, ...],
+    tied_states: list[tuple[tuple[int, ...], float]],
+    rep: Any,
+    unconstrained_rep: Any,
+    runner_up_state: tuple[int, ...] | None,
+    runner_up_information: float | None,
+) -> Any:
+    """Build the tie family of state specifications and return the winner."""
+    from pyphi.models.state_specification import StateSpecification
+
     ties = [
         StateSpecification(
             direction=direction,

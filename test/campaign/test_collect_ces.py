@@ -252,3 +252,18 @@ def test_two_substrate_sweep_collects_per_label(tmp_path):
     result = collect(directory)
     assert isinstance(result, SweepResult)
     assert len(result.results) == 2
+
+
+def test_assemble_without_sia_warns_when_resolution_state_missing(monkeypatch):
+    """With no resolution state, collect computes
+    system_intrinsic_information itself — ~4^n, so large systems get a
+    warning pointing at the escape hatches before the computation starts."""
+    import pyphi.campaign as campaign_mod
+    from pyphi.warnings import PyPhiWarning
+
+    monkeypatch.setattr(campaign_mod, "_RESOLUTION_STATE_WARN_UNITS", 2)
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        distinctions = system.distinctions()
+        with pytest.warns(PyPhiWarning, match="resolution_state"):
+            campaign_mod._assemble_without_sia(system, distinctions, None)

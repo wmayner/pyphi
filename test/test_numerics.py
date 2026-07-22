@@ -66,3 +66,29 @@ def test_round_to_precision():
     assert numerics.round_to_precision(0.5 + 4e-15) == round(0.5 + 4e-15, 13)
     with pyphi.config.override(precision=6):
         assert numerics.round_to_precision(0.1234567891) == pytest.approx(0.123457)
+
+
+def test_eq_mask_matches_eq_elementwise():
+    """eq_mask replicates eq (math.isclose semantics) exactly, including
+    the non-finite special cases."""
+    import numpy as np
+
+    from pyphi import numerics
+
+    values = np.array(
+        [
+            0.0,
+            1e-14,
+            1.0,
+            1.0 - 1e-15,
+            1e6,
+            1e6 * (1 + 1e-14),
+            -1.0,
+            np.inf,
+            -np.inf,
+            np.nan,
+        ]
+    )
+    for target in (1.0, 0.0, 1e6, -1.0, np.inf, np.nan):
+        expected = [numerics.eq(v, target) for v in values]
+        assert list(numerics.eq_mask(values, target)) == expected
