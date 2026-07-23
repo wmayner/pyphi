@@ -323,3 +323,56 @@ def test_sum_of_minimum_over_size_among_subsets_zero_values_contribute_nothing()
         combinatorics.sum_of_minimum_over_size_among_subsets(np.ones(1000)),
         rel=1e-12,
     )
+
+
+def test_sum_of_minimum_of_size_among_subsets_saturates_to_inf():
+    """Binomial counts past float64 range saturate instead of raising on
+    the int-to-float conversion."""
+    import numpy as np
+
+    values = list(np.ones(1100))
+    result = combinatorics.sum_of_minimum_of_size_among_subsets(values, size=550)
+    assert result == math.inf
+
+
+def test_sum_of_minimum_of_size_zero_values_contribute_nothing():
+    values = [0.0] * 1100 + [1.0]
+    # Every huge-count position holds a zero; the single 1.0 is the largest
+    # value, minimum only of the C(0, size-1)=0 subsets -> total 0.
+    assert combinatorics.sum_of_minimum_of_size_among_subsets(values, size=550) == 0.0
+
+
+@given(
+    st.lists(
+        st.floats(min_value=0.0, max_value=1e6, allow_nan=False),
+        min_size=2,
+        max_size=200,
+    )
+)
+def test_sum_of_minimum_among_subsets_matches_bigint_oracle(values):
+    n = len(values)
+    expected = math.fsum(
+        v * float((1 << (n - 1 - i)) - 1) for i, v in enumerate(sorted(values))
+    )
+    assert combinatorics.sum_of_minimum_among_subsets(values) == pytest.approx(
+        expected, rel=1e-9, abs=1e-9
+    )
+
+
+@given(
+    st.lists(
+        st.floats(min_value=0.0, max_value=1e6, allow_nan=False),
+        min_size=2,
+        max_size=200,
+    )
+)
+def test_sum_of_minimum_over_size_among_subsets_matches_bigint_oracle(values):
+    n = len(values)
+    expected = math.fsum(
+        v * ((2 ** (a + 1) - 1 - (a + 1)) / (a + 1))
+        for i, v in enumerate(sorted(values))
+        if (a := n - 1 - i) > 0
+    )
+    assert combinatorics.sum_of_minimum_over_size_among_subsets(values) == pytest.approx(
+        expected, rel=1e-9, abs=1e-9
+    )

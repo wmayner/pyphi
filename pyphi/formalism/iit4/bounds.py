@@ -43,6 +43,7 @@ from typing import Any
 
 import numpy as np
 
+from pyphi import combinatorics
 from pyphi import utils
 from pyphi.conf import config
 from pyphi.models.partitions import JointPartition
@@ -634,10 +635,9 @@ def sum_phi_relations_measured_bound(distinctions: Iterable[Any]) -> UpperBound:
         total = math.fsum(densities)
         if total == 0.0:
             continue  # weight may be inf below; 0 * inf would be nan
-        # 2^k - 1 - k, the per-atom weight; CPython float ** raises
-        # OverflowError for k >= 1024 rather than returning inf, so
-        # saturate to the intended uninformative ceiling explicitly.
-        weight = math.inf if k >= 1024 else 2.0**k - 1.0 - k
+        # 2^k - 1 - k, the per-atom weight, under the shared saturation
+        # policy: inf past float64 range, a valid uninformative ceiling.
+        weight = float(combinatorics.saturating_pow2(k)) - 1.0 - k
         cross_terms.append(total * weight / k)
     return UpperBound(
         value=math.fsum(self_terms) + math.fsum(cross_terms),

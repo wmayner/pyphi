@@ -104,32 +104,45 @@ def num_subsets_larger_than_one_element(n: int) -> int:
     return 2**n - n - 1  # type: ignore[no-any-return]
 
 
-def sum_of_minimum_among_subsets(values: Sequence[float]) -> float:
-    """Return the sum of the minimum of all subsets with size >1 of the values."""
+def saturating_pow2(exponents: Any) -> np.ndarray:
+    """Return ``2.0 ** exponents`` in float64, saturating to ``inf``.
+
+    The shared overflow policy for closed-form subset counts, whose ``2^k``
+    growth outruns every fixed-width type: powers are exact for integer
+    exponents through 1023 (every power of two in float64's range is exactly
+    representable) and saturate to ``inf`` beyond — a valid, uninformative
+    ceiling — without raising or warning. Callers must mask values that may
+    not multiply an infinite count (a zero value contributes zero, not
+    ``0 × inf = nan``), and may let an overflowing downstream *sum* saturate
+    the same way, since a total beyond float64 range is exactly ``inf``.
+    """
+    with np.errstate(over="ignore"):
+        return 2.0 ** np.asarray(exponents, dtype=float)
+
+
+def sum_of_minimum_among_subsets(values: Sequence[float] | np.ndarray) -> float:
+    """Return the sum of the minimum of all subsets with size >1 of the values.
+
+    Totals beyond float64 range saturate to ``inf`` (see
+    :func:`saturating_pow2`).
+    """
     # This series counts, from i = 0 to (len(values) - 1), the number of subsets
     # of values of size >1 such that value i is included in all subsets.
     # Since each value is fixed to be in all subsets, this formula differs from
     # `num_subsets_larger_than_one_element`.
+    # Sorting ensures that we're taking the minimum of values for each subset.
     exponents = np.arange(len(values), 0, -1) - 1
     sorted_values = np.sort(np.asarray(values, dtype=float))
+    counts = saturating_pow2(exponents) - 1.0
     with np.errstate(over="ignore", invalid="ignore"):
-        if len(values) <= 63:
-            # Exact: 2**exp fits int64 (exp <= 62).
-            counts = (2**exponents - 1).astype(float)
-        else:
-            # int64 2**exp silently wraps for exp > 62 (corrupting Σφ_r); float
-            # exponentiation stays correct up to 2^53 and saturates to +inf for
-            # exp >= 1024 — a valid uninformative ceiling once a single atom is
-            # shared by that many distinctions.
-            counts = 2.0**exponents - 1.0
         terms = sorted_values * counts
         terms[sorted_values == 0.0] = 0.0  # a zero value contributes 0, not 0*inf=nan
-        # Each term can fit float64 while their sum does not; an overflowed
-        # sum is exactly the saturated infinite total.
         return float(np.sum(terms))
 
 
-def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
+def sum_of_minimum_over_size_among_subsets(
+    values: Sequence[float] | np.ndarray,
+) -> float:
     """Return the sum of ``min(S) / |S|`` over all subsets ``S`` with size > 1.
 
     For values sorted ascending as ``v_0 <= ... <= v_{n-1}``, ``v_i`` is the
@@ -141,23 +154,17 @@ def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
 
     via the hockey-stick identity, so the result is a sorted dot product.
     This is the apportioned (``φ_r / |r|``) analogue of
-    :func:`sum_of_minimum_among_subsets`.
+    :func:`sum_of_minimum_among_subsets`. Totals beyond float64 range
+    saturate to ``inf`` (see :func:`saturating_pow2`).
     """
     n = len(values)
     if n < 2:
         return 0.0
     sorted_values = np.sort(np.asarray(values, dtype=float))
-    coefficients = np.zeros(n)
-    for i in range(n):
-        a = n - 1 - i
-        if a > 0:
-            if a + 1 >= 1024:
-                # 2**(a + 1) exceeds float64 range (the division would raise);
-                # the coefficient saturates to +inf, the same uninformative
-                # ceiling as in :func:`sum_of_minimum_among_subsets`.
-                coefficients[i] = math.inf
-            else:
-                coefficients[i] = (2 ** (a + 1) - 1 - (a + 1)) / (a + 1)
+    a_plus_one = np.arange(n, 0, -1, dtype=float)
+    # At a = 0 the closed form is (2^1 - 1 - 1) / 1 = 0: a value with no
+    # larger companions is the minimum of no size->1 subset.
+    coefficients = (saturating_pow2(a_plus_one) - 1.0 - a_plus_one) / a_plus_one
     with np.errstate(over="ignore", invalid="ignore"):
         terms = sorted_values * coefficients
         terms[sorted_values == 0.0] = 0.0  # a zero value contributes 0, not 0*inf=nan
@@ -171,15 +178,27 @@ def sum_of_minimum_of_size_among_subsets(values: Sequence[float], size: int) -> 
     exactly ``C(n − 1 − i, size − 1)`` subsets of size ``size`` (its
     companions must all come from the larger positions), so the result is a
     sorted dot product with binomial coefficients. This is the
-    fixed-degree analogue of :func:`sum_of_minimum_among_subsets`.
+    fixed-degree analogue of :func:`sum_of_minimum_among_subsets`. Counts
+    beyond float64 range saturate the total to ``inf`` (the policy of
+    :func:`saturating_pow2`).
     """
     if size < 1 or size > len(values):
         return 0.0
     ordered = sorted(values)
     n = len(ordered)
-    return math.fsum(
-        value * math.comb(n - 1 - i, size - 1) for i, value in enumerate(ordered)
-    )
+
+    def term(i: int, value: float) -> float:
+        count = math.comb(n - 1 - i, size - 1)
+        try:
+            return value * count
+        except OverflowError:  # count beyond float64 range
+            return math.inf * value if value else 0.0
+
+    terms = [term(i, value) for i, value in enumerate(ordered)]
+    try:
+        return math.fsum(terms)
+    except OverflowError:  # finite terms whose exact total exceeds float64
+        return sum(terms)  # IEEE addition saturates to the signed infinity
 
 
 def intersection_closure(sets: Iterable[frozenset]) -> set[frozenset]:
