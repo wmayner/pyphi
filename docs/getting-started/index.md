@@ -152,7 +152,7 @@ with the *relations* among them.
 ```{code-cell} python
 ces = analysis.ces
 print("distinctions:", len(ces.distinctions))
-print("relations:   ", len(ces.relations))
+print("relations:   ", ces.relations.num_relations())
 ```
 
 Its `big_phi` attribute is the structure integrated information $\Phi$, the

@@ -158,7 +158,7 @@ def test_analytical_relations_iteration_raises_guided_error():
         assert "CONCRETE" in message
 
     # The closed-form count still works — only enumeration is unavailable.
-    assert isinstance(len(rels), int)
+    assert isinstance(rels.num_relations(), int)
 
 
 def test_analytical_relations_rejects_unsupported_kwargs():
@@ -170,12 +170,11 @@ def test_analytical_relations_rejects_unsupported_kwargs():
         analytical_relations((), max_degree=2)
 
 
-def test_analytical_relations_len_raises_only_when_over_maxsize(monkeypatch):
-    """__len__ returns the count when it fits (small structures keep working)
-    and raises an actionable error — not the bare interpreter OverflowError —
-    once the ~2^(2^n) count exceeds sys.maxsize."""
-    import sys
-
+def test_analytical_relations_have_no_len():
+    """Analytical relations hold no relation objects (iteration raises), so
+    they define no length at any scale; the count is ``num_relations()``.
+    ``len()`` on a closed form would otherwise work at small sizes and raise
+    at production sizes — a size-dependent API."""
     import pyphi
     from pyphi.conf import presets
     from pyphi.relations import AnalyticalRelations
@@ -186,11 +185,8 @@ def test_analytical_relations_len_raises_only_when_over_maxsize(monkeypatch):
     ):
         s = System.from_substrate(examples.basic_substrate(), (1, 0, 0), None)
         ar = AnalyticalRelations(s.distinctions())
-    # small count fits: len() works
-    assert isinstance(len(ar), int)
-    # emulate a production-scale count that overflows len()
-    monkeypatch.setattr(
-        AnalyticalRelations, "num_relations", lambda _self: sys.maxsize + 1
-    )
-    with pytest.raises(OverflowError, match="num_relations"):
+    assert isinstance(ar.num_relations(), int)
+    with pytest.raises(TypeError, match="len"):
         len(ar)
+    # Truthiness must not fall back to the missing __len__.
+    assert bool(ar)

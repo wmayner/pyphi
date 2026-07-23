@@ -109,7 +109,7 @@ how irreducible it is. The second question — the structure — is answered by
 the $\Phi$-structure it specifies:
 
 ```{code-cell} python
-(len(analysis.ces.distinctions), len(analysis.ces.relations), round(float(analysis.ces.big_phi), 3))
+(len(analysis.ces.distinctions), analysis.ces.relations.num_relations(), round(float(analysis.ces.big_phi), 3))
 ```
 
 Three distinctions, seven relations, and a structure integrated information

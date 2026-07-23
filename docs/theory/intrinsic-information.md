@@ -143,7 +143,7 @@ as rich as ever:
 
 ```{code-cell} python
 ces = analysis.ces
-(len(ces.distinctions), len(ces.relations), float(ces.big_phi))
+(len(ces.distinctions), ces.relations.num_relations(), float(ces.big_phi))
 ```
 
 What changes is the system's claim to existence: with $\varphi_s = 0$, the
