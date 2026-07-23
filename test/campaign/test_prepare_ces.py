@@ -401,3 +401,114 @@ def test_submit_preserves_relative_paths(tmp_path):
     )
     assert "preserve_relative_paths = true" in (directory / "pyphi.sub").read_text()
     assert "tasks/task-" in (directory / "run_task.sh").read_text()
+
+
+def _parse_submit(submit: str) -> dict:
+    entries = {}
+    for line in submit.splitlines():
+        if "=" in line and not line.strip().startswith("queue"):
+            key, _, value = line.partition("=")
+            entries[key.strip()] = value.strip()
+    return entries
+
+
+def _emulate_condor_transfer(campaign_dir, scratch, inputs, preserve: bool):
+    """Copy inputs into the scratch sandbox per HTCondor's transfer rules.
+
+    Without ``preserve_relative_paths``, a listed file lands at the scratch
+    root under its basename, and a directory listed with a trailing slash
+    lands as its contents at the root; with it, the listed relative paths
+    are kept.
+    """
+    import shutil
+    from pathlib import Path
+
+    for item in inputs:
+        contents_only = item.endswith("/")
+        src = campaign_dir / item.rstrip("/")
+        if src.is_dir():
+            for f in (p for p in src.rglob("*") if p.is_file()):
+                if preserve:
+                    dest = scratch / f.relative_to(campaign_dir)
+                elif contents_only:
+                    dest = scratch / f.relative_to(src)
+                else:
+                    dest = scratch / Path(src.name) / f.relative_to(src)
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dest)
+        else:
+            dest = scratch / item if preserve else scratch / src.name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+
+
+def test_condor_transfer_sandbox_end_to_end(tmp_path):
+    """Run every job of a prepared campaign inside a sandbox that emulates
+    HTCondor's file transfer for the generated submit file — transfer the
+    listed inputs per the transfer rules, execute run_task.sh from the
+    scratch directory, apply the output remaps — then collect and compare
+    against the direct local computation. Catches submit-file/runner layout
+    mismatches the local runner cannot see."""
+    import os
+    import shutil
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    import pyphi
+    from pyphi import config
+    from pyphi.campaign import collect
+    from pyphi.conf import presets
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    submit = (directory / "pyphi.sub").read_text()
+    entries = _parse_submit(submit)
+    preserve = entries.get("preserve_relative_paths", "false").lower() == "true"
+    remap = entries["transfer_output_remaps"].strip('"')
+
+    env = os.environ.copy()
+    env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env["PATH"]
+    for line in (directory / "remaining.txt").read_text().splitlines():
+        task_id = line.split(",")[0].strip()
+        scratch = tmp_path / f"scratch-{task_id}"
+        scratch.mkdir()
+        # Expand macros before splitting: $INT(task_id,%04d) contains a comma.
+        inputs = [
+            item.strip()
+            for item in _expand_condor_macros(
+                entries["transfer_input_files"], task_id
+            ).split(",")
+        ]
+        _emulate_condor_transfer(directory, scratch, inputs, preserve)
+        shutil.copy2(directory / entries["executable"], scratch / entries["executable"])
+        argument = _expand_condor_macros(entries["arguments"], task_id)
+        proc = subprocess.run(
+            ["bash", str(scratch / entries["executable"]), argument],
+            cwd=scratch,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert proc.returncode == 0, proc.stderr
+        lhs, _, rhs = _expand_condor_macros(remap, task_id).partition("=")
+        produced = scratch / lhs.strip()
+        assert produced.exists(), f"job wrote no {lhs.strip()}"
+        dest = directory / rhs.strip()
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(produced, dest)
+
+    result = collect(directory)
+    with config.override(
+        **presets.by_name["IIT_4_0_2026"], parallel=False, progress_bars=False
+    ):
+        reference = pyphi.System(examples.basic_substrate(), BASIC_STATE).ces()
+    assert float(result.sia.phi) == float(reference.sia.phi)
+    assert len(result.distinctions) == len(reference.distinctions)
