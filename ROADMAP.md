@@ -535,6 +535,25 @@ making implicit theory objects named, checkable runtime types (B7/B8/B16).
   relations, to back a pruning or "which distinctions carry the relational structure"
   diagnostic.
 
+- **N25 — Log-space Σφ_r for saturated magnitudes.** *`2.x`; design recorded, no consumer
+  yet.* Closed-form Σφ_r saturates to ``inf`` past float64 range (the
+  `combinatorics.saturating_pow2` policy, 2026-07-23). The magnitude the saturation
+  discards decomposes into quantities already reported exactly (`num_relations()`, an
+  exact big int) or precisely (the float density profile), so exact big-number
+  arithmetic (`Fraction`/`mpmath`) would add false precision beyond the float64 φ
+  inputs while forcing a non-float type on every consumer — ruled out. If the
+  magnitude is ever needed, the right tool is **log-space**: ``log₂ Σφ_r`` is
+  computable from the same sorted-values × 2^k structure via log-sum-exp over
+  exponents (~10 lines, no dependency, returns an ordinary float even at 21 units,
+  where log₂ Σφ_r ~ 10⁶). Two candidate consumers: plotting doubly-exponential Σφ_r
+  growth against system size (log-space is the natural axis), and discriminating
+  substrate-exclusion Composition-cascade tie-breaks when both candidates' Φ
+  saturate (today such a pair compares equal and falls to the next deterministic
+  tie-break; whether φ_s ties ever co-occur with saturated Σφ_r in practice is
+  unobserved). Build ``log2_sum_phi()`` (and, if the cascade case materializes,
+  route saturated Composition comparisons through it) only when one of these
+  consumers becomes real.
+
 *Two paper-derived validation directions* (tests/invariants, not user features): the S1 tie
 cascade's **terminal non-existence branches** (systems tied in both φ_s and Φ yield no complex;
 an intrinsic-vs-extrinsic tie must be discriminated) warrant symmetric-by-construction
