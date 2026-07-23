@@ -8,6 +8,7 @@ import itertools
 import math
 import random
 import statistics
+import sys
 from collections import Counter
 from collections import defaultdict
 from collections.abc import Iterable
@@ -1389,7 +1390,18 @@ class AnalyticalRelations(Relations):
         return sum(combinatorics.exact_intersection_counts(mice_purviews).values())
 
     def __len__(self):
-        return self.num_relations()
+        # num_relations() is a closed-form count (~2^(2^n)); on large systems
+        # it exceeds sys.maxsize, where the len() builtin can only raise a bare
+        # "cannot fit 'int' into an index-sized integer". Return it when it
+        # fits (so len() and length-hint keep working on small structures), and
+        # raise an actionable error otherwise.
+        count = self.num_relations()
+        if count > sys.maxsize:
+            raise OverflowError(
+                "AnalyticalRelations has ~2^(2^n) relations, which does not fit "
+                "len(); use .num_relations() (exact int) or .sum_phi() instead."
+            )
+        return count
 
 
 class AnalyticalFoldRelations(AnalyticalRelations):

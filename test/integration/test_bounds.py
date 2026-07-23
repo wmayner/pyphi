@@ -885,3 +885,26 @@ class TestConstructionParity:
             for distinction in system.distinctions():
                 achieved += float(distinction.effect.phi)
         assert achieved <= bound_iii + 1e-9
+
+
+def test_measured_bound_saturates_on_large_shared_atom_group():
+    """A single-unit purview atom shared by >1023 distinctions makes the 2^k
+    cross-term weight overflow CPython float ** (OverflowError). The fix
+    saturates it to the intended +inf ceiling instead of crashing collect."""
+    import math
+    from types import SimpleNamespace
+
+    from pyphi.formalism.iit4.bounds import sum_phi_relations_measured_bound
+
+    def mk(union, inter, phi):
+        return SimpleNamespace(
+            purview_union=frozenset(union),
+            purview_intersection=frozenset(inter),
+            phi=phi,
+        )
+
+    big = [mk({0, i + 1}, {0}, 0.1) for i in range(1100)]
+    result = sum_phi_relations_measured_bound(big)
+    assert result.value == math.inf and result.certified
+    small = [mk({0, 1}, {0}, 0.2), mk({0, 2}, {0}, 0.3)]
+    assert math.isfinite(sum_phi_relations_measured_bound(small).value)

@@ -295,6 +295,10 @@ arguments           = {pad}
 transfer_input_files = tasks/task-{pad}.json.gz, substrates/
 transfer_output_remaps = "task-{pad}.json.gz = outputs/task-{pad}.json.gz"
 should_transfer_files = YES
+# Keep the tasks/ and substrates/ layout on the execute node; without this
+# HTCondor flattens tasks/task-XXXX.json.gz to the scratch root and
+# run_task.sh's "tasks/task-$1.json.gz" cannot find it.
+preserve_relative_paths = true
 when_to_transfer_output = ON_EXIT_OR_EVICT
 request_cpus        = 1
 request_memory      = $(memory)

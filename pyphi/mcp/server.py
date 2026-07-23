@@ -209,7 +209,11 @@ def _result_summary(result: Any) -> dict[str, Any]:
         if hasattr(ces, "distinctions"):
             summary["num_distinctions"] = len(ces.distinctions)
         if hasattr(ces, "relations"):
-            summary["num_relations"] = len(ces.relations)
+            try:
+                summary["num_relations"] = len(ces.relations)
+            except OverflowError:
+                # Analytical relations count ~2^(2^n), too large for len().
+                summary["num_relations"] = ces.relations.num_relations()
     return summary
 
 

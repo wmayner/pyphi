@@ -626,13 +626,19 @@ def sum_phi_relations_measured_bound(distinctions: Iterable[Any]) -> UpperBound:
         self_terms.append(len(distinction.purview_intersection) * density)
         for atom in union:
             groups.setdefault(atom, []).append(density)
-    cross_terms = [
-        math.fsum(densities)
-        * (2.0 ** len(densities) - 1.0 - len(densities))
-        / len(densities)
-        for densities in groups.values()
-        if len(densities) > 1
-    ]
+    cross_terms = []
+    for densities in groups.values():
+        k = len(densities)
+        if k <= 1:
+            continue
+        total = math.fsum(densities)
+        if total == 0.0:
+            continue  # weight may be inf below; 0 * inf would be nan
+        # 2^k - 1 - k, the per-atom weight; CPython float ** raises
+        # OverflowError for k >= 1024 rather than returning inf, so
+        # saturate to the intended uninformative ceiling explicitly.
+        weight = math.inf if k >= 1024 else 2.0**k - 1.0 - k
+        cross_terms.append(total * weight / k)
     return UpperBound(
         value=math.fsum(self_terms) + math.fsum(cross_terms),
         certified=True,

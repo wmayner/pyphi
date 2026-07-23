@@ -271,3 +271,25 @@ def test_exact_intersection_counts_match_brute_force(seed):
             if intersection:
                 expected[intersection] = expected.get(intersection, 0) + 1
     assert combinatorics.exact_intersection_counts(sets) == expected
+
+
+def test_sum_of_minimum_among_subsets_no_int64_overflow():
+    """The 2**k subset weight overflowed int64 for k>62, silently corrupting
+    Σφ_r once an atom was shared by >63 distinctions. The fix stays exact for
+    small groups and saturates to +inf (a valid ceiling) at extreme scale."""
+    import math
+
+    from pyphi.combinatorics import sum_of_minimum_among_subsets as f
+
+    def ref(values):  # exact via Python big ints
+        vs = sorted(values)
+        n = len(vs)
+        return float(sum(vs[i] * (2 ** (n - 1 - i) - 1) for i in range(n)))
+
+    for n in (2, 10, 40, 63):
+        v = [0.1 * (i + 1) for i in range(n)]
+        assert math.isclose(f(v), ref(v), rel_tol=1e-9)
+    v70 = [0.1] * 70  # old int64 path wrapped here
+    assert math.isclose(f(v70), ref(v70), rel_tol=1e-9) and f(v70) > 1e18
+    assert f([0.1] * 1100) == math.inf  # saturates, no raise
+    assert f([0.0] * 1100 + [0.2]) == 0.0  # zeros give 0, not 0*inf=nan

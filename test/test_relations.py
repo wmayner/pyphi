@@ -168,3 +168,29 @@ def test_analytical_relations_rejects_unsupported_kwargs():
 
     with pytest.raises(TypeError, match="analytical relation computation"):
         analytical_relations((), max_degree=2)
+
+
+def test_analytical_relations_len_raises_only_when_over_maxsize(monkeypatch):
+    """__len__ returns the count when it fits (small structures keep working)
+    and raises an actionable error — not the bare interpreter OverflowError —
+    once the ~2^(2^n) count exceeds sys.maxsize."""
+    import sys
+
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.relations import AnalyticalRelations
+    from pyphi.system import System
+
+    with pyphi.config.override(
+        **presets.by_name["IIT_4_0_2026"], progress_bars=False, parallel=False
+    ):
+        s = System.from_substrate(examples.basic_substrate(), (1, 0, 0), None)
+        ar = AnalyticalRelations(s.distinctions())
+    # small count fits: len() works
+    assert isinstance(len(ar), int)
+    # emulate a production-scale count that overflows len()
+    monkeypatch.setattr(
+        AnalyticalRelations, "num_relations", lambda _self: sys.maxsize + 1
+    )
+    with pytest.raises(OverflowError, match="num_relations"):
+        len(ar)

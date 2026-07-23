@@ -384,3 +384,20 @@ def test_submit_filenames_match_padded_task_files(tmp_path):
         assert _expand_condor_macros(remap_lhs, task_id) == (
             f"task-{int(task_id):04d}.json.gz"
         )
+
+
+def test_submit_preserves_relative_paths(tmp_path):
+    """run_task.sh invokes `tasks/task-$1.json.gz`, so the submit file must keep
+    the tasks/ layout on the execute node; without preserve_relative_paths
+    HTCondor flattens the input to the scratch root and the runner can't find
+    it (FileNotFoundError, no output)."""
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=50.0,
+    )
+    assert "preserve_relative_paths = true" in (directory / "pyphi.sub").read_text()
+    assert "tasks/task-" in (directory / "run_task.sh").read_text()

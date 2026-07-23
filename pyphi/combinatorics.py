@@ -110,9 +110,21 @@ def sum_of_minimum_among_subsets(values: Sequence[float]) -> float:
     # of values of size >1 such that value i is included in all subsets.
     # Since each value is fixed to be in all subsets, this formula differs from
     # `num_subsets_larger_than_one_element`.
-    counts = 2 ** (np.arange(len(values), 0, -1) - 1) - 1
-    # Sorting ensures that we're taking the minimum of values for each subset
-    return float(np.sum(np.sort(values) * counts))
+    exponents = np.arange(len(values), 0, -1) - 1
+    sorted_values = np.sort(np.asarray(values, dtype=float))
+    with np.errstate(over="ignore", invalid="ignore"):
+        if len(values) <= 63:
+            # Exact: 2**exp fits int64 (exp <= 62).
+            counts = (2**exponents - 1).astype(float)
+        else:
+            # int64 2**exp silently wraps for exp > 62 (corrupting Σφ_r); float
+            # exponentiation stays correct up to 2^53 and saturates to +inf for
+            # exp >= 1024 — a valid uninformative ceiling once a single atom is
+            # shared by that many distinctions.
+            counts = 2.0**exponents - 1.0
+        terms = sorted_values * counts
+    terms[sorted_values == 0.0] = 0.0  # a zero value contributes 0, not 0*inf=nan
+    return float(np.sum(terms))
 
 
 def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
