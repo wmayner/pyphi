@@ -220,7 +220,7 @@ class TestCauseEffectStructureIIT40:
         # Golden values computed with IIT 4.0 defaults
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2
-        assert len(result.relations) == 0
+        assert result.relations.num_relations() == 0
 
     def test_phi_structure_system_creation(self):
         """Golden test: phi_structure with explicit system (IIT 4.0).
@@ -237,7 +237,7 @@ class TestCauseEffectStructureIIT40:
 
         assert result.big_phi == pytest.approx(1.0, rel=1e-6)
         assert len(result.distinctions) == 2
-        assert len(result.relations) == 0
+        assert result.relations.num_relations() == 0
 
 
 class TestSubstrateMethodsIIT40:
