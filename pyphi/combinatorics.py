@@ -123,8 +123,10 @@ def sum_of_minimum_among_subsets(values: Sequence[float]) -> float:
             # shared by that many distinctions.
             counts = 2.0**exponents - 1.0
         terms = sorted_values * counts
-    terms[sorted_values == 0.0] = 0.0  # a zero value contributes 0, not 0*inf=nan
-    return float(np.sum(terms))
+        terms[sorted_values == 0.0] = 0.0  # a zero value contributes 0, not 0*inf=nan
+        # Each term can fit float64 while their sum does not; an overflowed
+        # sum is exactly the saturated infinite total.
+        return float(np.sum(terms))
 
 
 def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
@@ -149,8 +151,17 @@ def sum_of_minimum_over_size_among_subsets(values: Sequence[float]) -> float:
     for i in range(n):
         a = n - 1 - i
         if a > 0:
-            coefficients[i] = (2 ** (a + 1) - 1 - (a + 1)) / (a + 1)
-    return float(np.sum(sorted_values * coefficients))
+            if a + 1 >= 1024:
+                # 2**(a + 1) exceeds float64 range (the division would raise);
+                # the coefficient saturates to +inf, the same uninformative
+                # ceiling as in :func:`sum_of_minimum_among_subsets`.
+                coefficients[i] = math.inf
+            else:
+                coefficients[i] = (2 ** (a + 1) - 1 - (a + 1)) / (a + 1)
+    with np.errstate(over="ignore", invalid="ignore"):
+        terms = sorted_values * coefficients
+        terms[sorted_values == 0.0] = 0.0  # a zero value contributes 0, not 0*inf=nan
+        return float(np.sum(terms))
 
 
 def sum_of_minimum_of_size_among_subsets(values: Sequence[float], size: int) -> float:

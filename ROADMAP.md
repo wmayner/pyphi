@@ -744,6 +744,26 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
   above a feasibility bound, and `collect` warns before computing a missing
   resolution state past ~12 units.
 
+### 2026-07-23 CHTC smoke-test fixes
+
+> The first real condor submission (13 shards on a production pool; the collected
+> structure matched the local run exactly) surfaced six bugs. Two were already fixed
+> (submit-file task-id padding via `$INT(task_id,%04d)`; the `request_memory` column,
+> landed with the 2026-07-21 follow-ups — the report was written against an older
+> checkout). **The other four landed 2026-07-23:** `preserve_relative_paths = true` in
+> the submit template (HTCondor flattens single transferred files to the scratch root,
+> so every job died on `FileNotFoundError`; invisible to the local runner, which
+> bypasses the submit file); int64 wraparound in
+> `combinatorics.sum_of_minimum_among_subsets` past 63 shared distinctions — silent
+> Σφ_r corruption in `AnalyticalRelations.sum_phi()` and the scope report — now exact
+> through int64's range and saturating to `inf` beyond float64's, with the same
+> saturation in `sum_of_minimum_over_size_among_subsets` (which raised `OverflowError`
+> past 1023 values); the measured bounds' `2.0**k` weight saturating to the documented
+> `inf` ceiling instead of raising past 1023 shared distinctions (crashed `collect`'s
+> scope report at production scale); and a clear `OverflowError` from
+> `AnalyticalRelations.__len__` pointing at `.num_relations()` when the closed-form
+> count exceeds `sys.maxsize` (the MCP result summary falls back accordingly).
+
 ## Context
 
 PyPhi is a scientific library implementing Integrated Information Theory (IIT). It has

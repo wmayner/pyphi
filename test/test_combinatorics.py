@@ -293,3 +293,33 @@ def test_sum_of_minimum_among_subsets_no_int64_overflow():
     assert math.isclose(f(v70), ref(v70), rel_tol=1e-9) and f(v70) > 1e18
     assert f([0.1] * 1100) == math.inf  # saturates, no raise
     assert f([0.0] * 1100 + [0.2]) == 0.0  # zeros give 0, not 0*inf=nan
+
+
+def test_sum_of_minimum_among_subsets_boundary_sum_saturates():
+    """At n=1024 every count fits float64 but their sum does not; the total
+    saturates to inf instead of escalating an overflow warning."""
+    import numpy as np
+
+    assert combinatorics.sum_of_minimum_among_subsets(np.ones(1024)) == math.inf
+
+
+def test_sum_of_minimum_over_size_among_subsets_saturates_to_inf():
+    """Raised OverflowError once a group exceeded 1023 values."""
+    import numpy as np
+
+    values = np.ones(1100)
+    assert combinatorics.sum_of_minimum_over_size_among_subsets(values) == math.inf
+
+
+def test_sum_of_minimum_over_size_among_subsets_zero_values_contribute_nothing():
+    """Zero values carry the overflowing coefficients but contribute 0, so
+    the total reduces to the nonzero tail's."""
+    import numpy as np
+
+    values = np.concatenate([np.zeros(300), np.ones(1000)])
+    result = combinatorics.sum_of_minimum_over_size_among_subsets(values)
+    assert math.isfinite(result)
+    assert result == pytest.approx(
+        combinatorics.sum_of_minimum_over_size_among_subsets(np.ones(1000)),
+        rel=1e-12,
+    )
