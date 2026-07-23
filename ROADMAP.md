@@ -763,6 +763,21 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
 > scope report at production scale); and a clear `OverflowError` from
 > `AnalyticalRelations.__len__` pointing at `.num_relations()` when the closed-form
 > count exceeds `sys.maxsize` (the MCP result summary falls back accordingly).
+>
+> **Follow-ups (same day):** closed-form subset counts share one overflow policy
+> (`combinatorics.saturating_pow2`: exact through float64's range, `inf` beyond,
+> never raising) across both subset-minimum sums, the fixed-degree variant (which
+> still raised on huge binomial counts), and the measured bounds, with Hypothesis
+> property tests against exact big-integer oracles; a condor-transfer sandbox test
+> emulates HTCondor's file-transfer rules for the generated submit file and runs
+> every job end-to-end (it reproduces the flattening failure exactly when
+> `preserve_relative_paths` is removed — the submit contract is no longer untested);
+> and `AnalyticalRelations` drops `len()` entirely (closed forms hold no relation
+> objects; the previous length worked on small systems and raised at scale) — the
+> count is `num_relations()`, which the tutorials and MCP summary now use.
+> `RelationSample` keeps its uniformly `(estimate, stderr)`-valued API: consistency
+> is per abstraction — enumerable containers have lengths, closed forms have
+> counts, samples have estimates.
 
 ## Context
 
