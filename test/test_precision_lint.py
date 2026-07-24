@@ -45,7 +45,7 @@ def _waived(lines: list[str], lineno: int) -> bool:
 
 
 def _violations(path: Path) -> list[str]:
-    source = path.read_text()
+    source = path.read_text(encoding="utf-8")
     lines = source.splitlines()
     tree = ast.parse(source)
     found = []

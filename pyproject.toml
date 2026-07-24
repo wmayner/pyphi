@@ -280,6 +280,11 @@ filterwarnings = [
     # reused as a zombie and the next parallel test deadlocks in
     # `future.result()`. Keep it a visible warning, never an error.
     "default:A worker stopped while some jobs were given to the executor:UserWarning",
+    # Emitted by the compiler, so escalating it turns any dependency's stale
+    # escape sequence into a SyntaxError the first time its source is compiled
+    # (POT 0.9.6 under Python 3.14 aborts conftest this way). PyPhi's own
+    # sources are covered by ruff's W605.
+    "default::SyntaxWarning",
 ]
 
 [tool.coverage.run]

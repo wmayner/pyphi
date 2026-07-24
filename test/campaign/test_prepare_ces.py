@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 
@@ -442,6 +443,9 @@ def _emulate_condor_transfer(campaign_dir, scratch, inputs, preserve: bool):
             shutil.copy2(src, dest)
 
 
+@pytest.mark.skipif(
+    os.name != "posix", reason="run_task.sh needs a POSIX shell and HTCondor is Linux"
+)
 def test_condor_transfer_sandbox_end_to_end(tmp_path):
     """Run every job of a prepared campaign inside a sandbox that emulates
     HTCondor's file transfer for the generated submit file — transfer the

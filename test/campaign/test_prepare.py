@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 
@@ -25,7 +26,8 @@ def test_prepare_writes_campaign_directory(tmp_path):
     assert task.kind == "sweep_cells"
     assert task.skip_uncomputable is True
     assert (directory / "outputs").is_dir()
-    assert (directory / "run_task.sh").stat().st_mode & 0o111
+    if os.name == "posix":  # Windows has no executable bit to set
+        assert (directory / "run_task.sh").stat().st_mode & 0o111
     submit = (directory / "pyphi.sub").read_text()
     assert "queue task_id, memory from remaining.txt" in submit
     assert "container_image" in submit

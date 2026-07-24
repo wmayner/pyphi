@@ -77,7 +77,9 @@ def test_import_writes_no_log_file(tmp_path):
     import subprocess
     import sys
 
-    env = {"PYPHI_WELCOME_OFF": "1", "PATH": os.environ["PATH"]}
+    # Inherit the environment: a hand-built one drops the variables Windows
+    # needs to initialize sockets, and `import asyncio` then fails.
+    env = os.environ | {"PYPHI_WELCOME_OFF": "1"}
     subprocess.run(
         [sys.executable, "-c", "import pyphi"],
         cwd=tmp_path,
