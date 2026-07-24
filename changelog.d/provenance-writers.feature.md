@@ -1,1 +1,0 @@
-Added script-facing provenance writers: `pyphi.provenance.save_json`, `save_npz`, and `save_dataframe` (parquet) encode parameters in the filename, never overwrite existing files (`_v2`/`_v3` versioning), and embed a full `Provenance` record (git SHA, seed, versions) in every output; `read_metadata` reads it back from any of the three formats.

@@ -1,1 +1,0 @@
-`analyze()` gained a `grains` argument: `analyze(substrate, state, grains=True)` (or `grains=SearchBounds(...)`) runs the bounded intrinsic-unit grain search over the whole substrate and returns its `ComplexesResult`, making the grain search reachable from the front door.

@@ -1,1 +1,0 @@
-Added `Complex.exclusion_margin` (the φₛ gap to the best overlapping rival the complex beat) and `Complex.effectively_tied`, surfaced on the display card and in `to_pandas`. Higher-φₛ shadows in the exclusion records (possible under recursive condensation) do not enter the margin.

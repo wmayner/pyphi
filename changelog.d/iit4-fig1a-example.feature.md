@@ -1,1 +1,0 @@
-Added `pyphi.examples.iit4_2023_fig1a_substrate()` and `iit4_2023_fig1a_system()`: the 3-unit logistic network the IIT 4.0 paper introduces the theory with (Figs 1, 2, 4), previously available only inside the test suite.

@@ -1,1 +1,0 @@
-Added a how-to guide for the relations query surface (`docs/howto/query-relations.md`): closed-form degree spectra, moments, histograms, the binding matrix, lazy `strongest(k)`, and unbiased sampling on both relation backends.

@@ -1,1 +1,0 @@
-Added `SearchBounds.estimate(substrate)`: an analytic pre-flight for the grain search that counts candidate systems, assemblies, partition sweeps, and construction keys — by pure counting through the search's own enumeration, with no TPM construction and no φₛ. Level-1 judgment counts are exact; deeper levels report an exact worst case.

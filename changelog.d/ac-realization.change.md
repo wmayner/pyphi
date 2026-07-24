@@ -1,1 +1,0 @@
-Actual causation now enforces the Realization principle of Albantakis et al. (2019): `Transition` construction raises `TransitionUnreachableError` for occurrence pairs with zero probability, and `transitions()`, `nexus()`, `causal_nexus()`, `events()`, and `true_events()` reject observed state pairs that are impossible under the substrate dynamics.

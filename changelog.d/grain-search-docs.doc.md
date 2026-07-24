@@ -1,1 +1,0 @@
-Documented the grain search across the docs: a how-to recipe (`docs/howto/grain-search.md`), a theory page on macro units and exclusion across grains, blackboxing and temporal-grain tutorial sections (with a substrate whose maximal complex is a τ=2 unit), and a cost section on the complexity page.

@@ -326,6 +326,9 @@ directory = "changelog.d"
 filename = "CHANGELOG.md"
 title_format = "{version}"
 underlines = ["-", "", ""]
+# Must match the marker comment in CHANGELOG.md; without it, towncrier
+# prepends new sections above the file header instead of inserting there.
+start_string = "<!-- Towncrier will insert release notes here. See changelog.d/ for fragments. -->\n"
 
 # Fragment types matching PyPhi's existing CHANGELOG categories
 [[tool.towncrier.type]]

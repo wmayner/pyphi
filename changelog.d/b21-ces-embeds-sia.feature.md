@@ -1,1 +1,0 @@
-At the ``FULL`` verbosity level (``config.infrastructure.repr_verbosity = 3``), the ``CauseEffectStructure`` card embeds the ``SystemIrreducibilityAnalysis``: its sections (system summary, cause, effect, MIP) are appended flat to the structure's card — matching how every other card embeds a sub-object, without nested boxes.

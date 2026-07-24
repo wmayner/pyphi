@@ -1,1 +1,0 @@
-`pyphi.optimize()`: a seeded, population-based black-box optimizer that searches over substrate connection weights for a maximizer of signed normalized φₛ (or another IIT quantity), with `weight_axes` building the search space and a saved per-evaluation trajectory.

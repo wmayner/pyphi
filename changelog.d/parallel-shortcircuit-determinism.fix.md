@@ -1,1 +1,0 @@
-Made short-circuiting parallel map-reduce collect results in submission order rather than completion order, so a short-circuited candidate set (and any order-sensitive reduction over it, such as MIP tie resolution) no longer depends on worker scheduling. Parallel SIA/MIP evaluation now matches sequential evaluation deterministically.
