@@ -45,6 +45,18 @@ cached are still served.
 pyphi.config.maximum_cache_memory_percentage
 ```
 
+That percentage is measured against the machine's total RAM, which is the
+wrong quantity when the process may only use part of the machine — a batch job
+with a memory request, a container, or a cgroup. In that case set
+`maximum_cache_memory_bytes` to what the process is actually allowed, and the
+caches stop storing at that figure instead. Campaign shards do this for
+themselves, using the memory each shard requested.
+
+```{code-cell} python
+with pyphi.config.override(maximum_cache_memory_bytes=2 * 1024**3):
+    print(pyphi.config.maximum_cache_memory_bytes)
+```
+
 ### Inspecting the caches
 
 `pyphi.cache.info()` returns per-cache hit/miss/size statistics for every
@@ -142,6 +154,7 @@ pyphi.config.disk_cache_results = False
 | `cache_repertoires` | `True` | Memoize cause/effect repertoire computations. |
 | `cache_potential_purviews` | `True` | Memoize potential-purview enumeration. |
 | `maximum_cache_memory_percentage` | `50` | Upper bound on in-memory cache size, as a percentage of RAM. |
+| `maximum_cache_memory_bytes` | `None` | Upper bound in bytes, for a process confined to less than the whole machine. Replaces the percentage when set. |
 | `clear_system_caches_after_computing_sia` | `False` | Clear per-system caches after each SIA. |
 | `disk_cache_results` | `False` | Persist SIA and CES results to `__pyphi_cache__/`. |
 

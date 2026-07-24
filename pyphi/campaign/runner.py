@@ -23,6 +23,7 @@ from pyphi.campaign import CellOutput
 from pyphi.campaign import _resolve_compute_ref
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.cost import shard_cache_budget_bytes
 from pyphi.sweep import _run_cell
 from pyphi.sweep import _Skipped
 
@@ -96,12 +97,26 @@ def _run_sweep_task(task: Any, substrates: dict) -> tuple[list[CellOutput], bool
 
 
 def _shard_config(task: Any) -> dict[str, Any]:
-    return {
+    overrides = {
         **task.config_overrides,
         **presets.by_name[task.formalism],
         "parallel": False,
         "progress_bars": False,
     }
+    # Bound the shard's caches by its own memory request: entries accumulate
+    # across every mechanism the shard carries, and the default percentage of
+    # physical memory is no bound at all on a machine larger than the request.
+    # An explicit ceiling configured at preparation time is left alone.
+    spec = getattr(task, "spec", None)
+    if (
+        spec is not None
+        and spec.memory_bytes
+        and overrides.get("maximum_cache_memory_bytes") is None
+    ):
+        overrides["maximum_cache_memory_bytes"] = shard_cache_budget_bytes(
+            spec.memory_bytes
+        )
+    return overrides
 
 
 def _global_tie_indices(ties: Any, slice_parts: list, indices: list[int]) -> list[int]:

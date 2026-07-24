@@ -1,7 +1,9 @@
 import json
+from dataclasses import replace
 
 from pyphi import examples
 from pyphi.campaign import prepare_ces
+from pyphi.campaign.runner import _shard_config
 from pyphi.campaign.runner import run_task
 from pyphi.serialize import load
 
@@ -47,6 +49,39 @@ def test_shard_outputs_align_with_items(tmp_path):
             assert aux is not None and "tie_indices" in aux
             saw_stride_aux = True
     assert saw_stride_aux
+
+
+def test_shard_execution_bounds_caches_by_its_memory_request(tmp_path):
+    """Every CES shard runs with a cache ceiling inside its own request."""
+    from pyphi.cost import shard_cache_budget_bytes
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=5.0,
+    )
+    seen = 0
+    for task_file in sorted((directory / "tasks").glob("task-*.json.gz")):
+        task = load(task_file)
+        if task.kind != "ces_shard":
+            continue
+        budget = _shard_config(task)["maximum_cache_memory_bytes"]
+        assert budget == shard_cache_budget_bytes(task.spec.memory_bytes)
+        assert 0 < budget < task.spec.memory_bytes
+        # A ceiling configured at preparation time wins over the derived one.
+        pinned = replace(
+            task,
+            config_overrides={
+                **task.config_overrides,
+                "maximum_cache_memory_bytes": 7,
+            },
+        )
+        assert _shard_config(pinned)["maximum_cache_memory_bytes"] == 7
+        seen += 1
+    assert seen
 
 
 def test_bottleneck_ordering_gives_same_results(tmp_path):

@@ -2,6 +2,38 @@ from pyphi import Direction
 from pyphi import config
 
 
+def test_memory_full_honors_absolute_budget():
+    """An absolute budget bounds caching; unset, the percentage still rules."""
+    from pyphi.cache import cache_utils
+
+    with config.override(maximum_cache_memory_bytes=1):
+        assert cache_utils.memory_full()
+    with config.override(maximum_cache_memory_bytes=1 << 60):
+        assert not cache_utils.memory_full()
+    with config.override(maximum_cache_memory_percentage=100):
+        assert not cache_utils.memory_full()
+    with config.override(maximum_cache_memory_percentage=0):
+        assert cache_utils.memory_full()
+
+
+def test_kernel_cache_stops_storing_over_budget():
+    """A budget below current usage stops new entries, growth and all."""
+    from pyphi import examples
+    from pyphi.core import repertoire_algebra
+
+    repertoire_algebra.clear_caches()
+    system = examples.basic_system()
+    try:
+        with config.override(maximum_cache_memory_bytes=1):
+            system.cause_repertoire((0,), (1,))
+            assert all(c.size == 0 for c in repertoire_algebra._kernel_caches.values())
+        with config.override(maximum_cache_memory_bytes=1 << 60):
+            system.cause_repertoire((0,), (1,))
+            assert any(c.size > 0 for c in repertoire_algebra._kernel_caches.values())
+    finally:
+        repertoire_algebra.clear_caches()
+
+
 def test_cache_repertoires_config_option():
     """The option gates whether the kernel cache stores repertoires."""
     from pyphi import examples

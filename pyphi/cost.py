@@ -35,6 +35,7 @@ __all__ = [
     "mechanism_workloads",
     "partition_sweep_count",
     "round_memory_bytes",
+    "shard_cache_budget_bytes",
     "shard_memory_bytes",
 ]
 
@@ -45,6 +46,20 @@ REPERTOIRE_FACTOR = 4
 
 BASE_MEMORY_BYTES = 1 << 30
 """Per-task overhead: interpreter, imports, substrate TPM, task payload."""
+
+CACHE_HEADROOM_BYTES = 1 << 30
+"""Memory a shard's request grants its repertoire caches.
+
+A shard evaluates every mechanism it carries against one long-lived
+``System``, whose cached repertoires are released only when that ``System``
+is collected, so cache occupancy grows with the number of mechanisms packed
+into a shard rather than with the size of any one repertoire. Granting the
+allowance in the request and enforcing it during execution (see
+:func:`shard_cache_budget_bytes`) bounds that growth whatever the shard
+packs.
+"""
+
+_CACHE_RESERVE_BYTES = 256 * 1024**2
 
 _MEMORY_STEP_BYTES = 512 * 1024**2
 
@@ -67,11 +82,28 @@ def shard_memory_bytes(max_repertoire_cells: int) -> int:
     """Estimated peak memory of a shard from its largest repertoire.
 
     ``REPERTOIRE_FACTOR × 8 bytes × max_repertoire_cells +
-    BASE_MEMORY_BYTES``. The factor and base are calibration constants
-    validated against scheduler-reported memory usage; requests derived
-    from this estimate are rounded with :func:`round_memory_bytes`.
+    BASE_MEMORY_BYTES + CACHE_HEADROOM_BYTES``. The factor and base are
+    calibration constants validated against scheduler-reported memory
+    usage; the headroom is the cache allowance that
+    :func:`shard_cache_budget_bytes` enforces during execution. Requests
+    derived from this estimate are rounded with
+    :func:`round_memory_bytes`.
     """
-    return REPERTOIRE_FACTOR * 8 * max_repertoire_cells + BASE_MEMORY_BYTES
+    return (
+        REPERTOIRE_FACTOR * 8 * max_repertoire_cells
+        + BASE_MEMORY_BYTES
+        + CACHE_HEADROOM_BYTES
+    )
+
+
+def shard_cache_budget_bytes(memory_bytes: int) -> int:
+    """Cache ceiling for a shard whose memory request is ``memory_bytes``.
+
+    The request less a reserve for the allocations in flight when the
+    ceiling is reached, since the caches stop storing at the ceiling but
+    the computation continues to allocate above it.
+    """
+    return max(0, memory_bytes - _CACHE_RESERVE_BYTES)
 
 
 def round_memory_bytes(n: int) -> int:

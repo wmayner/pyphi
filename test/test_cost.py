@@ -301,12 +301,14 @@ def test_mechanism_workloads_records_max_repertoire_cells():
 
 def test_shard_memory_bytes_and_rounding():
     from pyphi.cost import BASE_MEMORY_BYTES
+    from pyphi.cost import CACHE_HEADROOM_BYTES
     from pyphi.cost import REPERTOIRE_FACTOR
     from pyphi.cost import round_memory_bytes
     from pyphi.cost import shard_memory_bytes
 
-    assert shard_memory_bytes(0) == BASE_MEMORY_BYTES
-    assert shard_memory_bytes(100) == REPERTOIRE_FACTOR * 8 * 100 + BASE_MEMORY_BYTES
+    floor = BASE_MEMORY_BYTES + CACHE_HEADROOM_BYTES
+    assert shard_memory_bytes(0) == floor
+    assert shard_memory_bytes(100) == REPERTOIRE_FACTOR * 8 * 100 + floor
     half_gb = 512 * 1024**2
     assert round_memory_bytes(1) == half_gb
     assert round_memory_bytes(half_gb) == half_gb

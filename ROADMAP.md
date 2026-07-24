@@ -699,9 +699,11 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
   `max_repertoire_cells`; `shard_memory_bytes`/`round_memory_bytes` in `pyphi/cost.py`;
   packing runs within memory classes; the submit file requests `$(memory)` from
   `task id, memory` rows in `remaining.txt` (uniform for whole-cell sweeps);
-  `request_memory` is now the floor under the estimates. Calibration constants
-  (`REPERTOIRE_FACTOR`, `BASE_MEMORY_BYTES`) to be validated against Condor's
-  `MemoryUsage` on the first real campaign.
+  `request_memory` is now the floor under the estimates. The first production
+  campaign found the estimate structurally incomplete rather than mis-calibrated —
+  see the 2026-07-24 section below. The calibration constants
+  (`REPERTOIRE_FACTOR`, `BASE_MEMORY_BYTES`, `CACHE_HEADROOM_BYTES`) still want
+  validation against Condor's `MemoryUsage`.
 - **✅ `limit=` on `prepare_ces`.** Threaded through with default `100_000_000` (10×
   the bare walk default), and the planning walk now runs once — `prepare_ces` passes
   its workloads into `plan_ces_shards` instead of walking twice.
@@ -798,6 +800,36 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
 > `RelationSample` keeps its uniformly `(estimate, stderr)`-valued API: consistency
 > is per abstraction — enumerable containers have lengths, closed forms have
 > counts, samples have estimates.
+
+### 2026-07-24 shard cache memory bound
+
+> A production campaign needed a 16 GB `request_memory` floor because real peak
+> memory ran roughly ten times over `shard_memory_bytes`. The reported cause — that
+> the estimate models only the largest single repertoire, so it degenerates to the
+> base overhead at low purview order — was true but secondary. A shard evaluates
+> every mechanism it carries against one long-lived `System`, and kernel repertoire
+> entries are keyed on that `System`'s fingerprint and evicted only when it is
+> collected, so cache occupancy grows with `units_per_job` under a bound that is
+> combinatorial in substrate size. The one brake, `cache_utils.memory_full()`,
+> compared resident memory to `maximum_cache_memory_percentage` of *total physical
+> memory*: on an execute node far larger than the job's allocation it permits tens
+> of GB of cache while the scheduler kills the job at its request. The brake existed
+> and was unreachable.
+
+- **✅ Cache ceiling tied to the shard's own request.** New
+  `infrastructure.maximum_cache_memory_bytes` (default `None`) gives an absolute
+  resident-memory ceiling and replaces the percentage when set — what any process
+  confined to less than the whole machine needs (a scheduler-managed job, a
+  container, a cgroup). `shard_memory_bytes` grants `CACHE_HEADROOM_BYTES` on top of
+  the working set, `shard_cache_budget_bytes` derives the enforced ceiling from a
+  request (less a reserve for allocations in flight), and shard execution installs
+  it from `spec.memory_bytes`, deferring to a ceiling configured at preparation
+  time. The request and the enforced bound come from one figure, so the estimate
+  cannot drift from what the job is actually allowed. An order-3 purview shard goes
+  from a 1.5 GB request with no effective ceiling to a 2.5 GB request with caching
+  stopping at 2.25 GB, and the 16 GB floor is no longer needed. The 1 GB headroom
+  is a design allowance, not yet a measured constant — peak `MemoryUsage` from a
+  real shard under this build would settle it.
 
 ## Context
 

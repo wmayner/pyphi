@@ -84,6 +84,13 @@ class InfrastructureConfig:
     parallel_backend: str = "local"
 
     maximum_cache_memory_percentage: int = 50
+    # An absolute ceiling on process resident memory, above which in-memory
+    # caches stop storing new entries (already-stored entries are still
+    # served). When set, it replaces `maximum_cache_memory_percentage`, which
+    # measures against total physical memory and so cannot bound a process
+    # confined to an allocation smaller than the machine — a scheduler-managed
+    # job, a container, or a cgroup.
+    maximum_cache_memory_bytes: int | None = None
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True
     # When True (default), the macro TPM construction caches its
@@ -160,6 +167,8 @@ class InfrastructureConfig:
             "maximum_cache_memory_percentage",
             self.maximum_cache_memory_percentage,
         )
+        if self.maximum_cache_memory_bytes is not None:
+            _check_int("maximum_cache_memory_bytes", self.maximum_cache_memory_bytes)
         _check_bool("cache_repertoires", self.cache_repertoires)
         _check_bool("cache_potential_purviews", self.cache_potential_purviews)
         _check_bool("cache_macro_construction", self.cache_macro_construction)

@@ -41,7 +41,12 @@ option-by-option reference, loaded only when working with this directory.
 - **`cache_potential_purviews`**: Cache purviews (default: true)
 - **`cache_macro_construction`**: Cache mapping-independent macro-construction intermediates (default: true)
 - **`clear_system_caches_after_computing_sia`**: Clear after each SIA (default: false)
-- **`maximum_cache_memory_percentage`**: Memory limit for in-memory caches (default: 50)
+- **`maximum_cache_memory_percentage`**: Memory limit for in-memory caches, as a percentage of total physical memory (default: 50)
+- **`maximum_cache_memory_bytes`**: Absolute resident-memory ceiling above which
+  the caches stop storing (default: `None`). Replaces the percentage when set,
+  which is what a process confined to less than the whole machine needs — a
+  scheduler-managed job, a container, a cgroup. Campaign shard execution sets it
+  from the shard's own memory request.
 
 ## Measures (`config.formalism.iit`)
 

@@ -12,8 +12,16 @@ _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 
 
 def memory_full():
-    """Check if the memory is too full for further caching."""
+    """Check if the memory is too full for further caching.
+
+    Measures resident memory against ``maximum_cache_memory_bytes`` when that
+    is set, and otherwise against ``maximum_cache_memory_percentage`` of total
+    physical memory.
+    """
     current_process = psutil.Process(os.getpid())
+    budget = config.infrastructure.maximum_cache_memory_bytes
+    if budget is not None:
+        return current_process.memory_info().rss > budget
     return (
         current_process.memory_percent()
         > config.infrastructure.maximum_cache_memory_percentage
