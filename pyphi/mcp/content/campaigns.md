@@ -43,9 +43,13 @@ purely from the campaign directory, from any machine, at any time.
 Cells are weighted by `estimate_analysis` counts under each cell's
 formalism preset. Pass `jobs=K` to pack into exactly K cost-balanced tasks,
 or `units_per_job=X` to target X work units per task; with neither, each
-cell is its own job (the canonical high-throughput shape). Work units are
-enumeration counts, not seconds — use them to balance and compare, not to
-predict wall time. A single cell whose estimate exceeds the infeasibility
+cell is its own job (the canonical high-throughput shape). A work unit is
+one mechanism partition, and a purview evaluation counts for twelve — its
+measured relative cost — so a unit means the same work whatever mix produces
+it. `pyphi.cost.units_for_runtime(seconds)` turns a per-shard runtime target
+into a `units_per_job` budget, at the reference `SECONDS_PER_UNIT`; each task
+output records its own wall and CPU seconds so the constant can be
+re-derived per machine. A single cell whose estimate exceeds the infeasibility
 threshold triggers a loud warning at prepare time: that cell likely cannot
 finish within a typical 72-hour slot and needs narrower axes or a dedicated
 fat-node run.

@@ -1,0 +1,964 @@
+{
+ "params": {
+  "units": 14,
+  "radius": 2,
+  "temperature": 0.25,
+  "max_order": 3,
+  "max_mechanism_order": 6,
+  "samples": 3,
+  "seed": 1,
+  "run_label": ""
+ },
+ "platform": {
+  "machine": "arm64",
+  "python": "3.13.13"
+ },
+ "rows": [
+  {
+   "units": 14,
+   "mechanism": [
+    6
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    5
+   ],
+   "psize": 1,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.009973999999999927,
+   "phi": 0.3156997488278144
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    6
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    5,
+    8
+   ],
+   "psize": 2,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0003900000000001125,
+   "phi": 0.3530291197053857
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    6
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    4,
+    5,
+    8
+   ],
+   "psize": 3,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0004930000000000767,
+   "phi": 0.24989757595012385
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    6
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    5
+   ],
+   "psize": 1,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00020799999999998597,
+   "phi": 0.3156997488278105
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    6
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    5,
+    8
+   ],
+   "psize": 2,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00023700000000004273,
+   "phi": 0.43403421078042376
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    6
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    4,
+    5,
+    8
+   ],
+   "psize": 3,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0002910000000000412,
+   "phi": 0.44754318817308025
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    7
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    6
+   ],
+   "psize": 1,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0002140000000001585,
+   "phi": 0.3156997488278144
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    7
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    5,
+    8
+   ],
+   "psize": 2,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0002649999999999597,
+   "phi": 0.3530291197053857
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    7
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    5,
+    8,
+    9
+   ],
+   "psize": 3,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0004220000000001445,
+   "phi": 0.24989757595012385
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    7
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    6
+   ],
+   "psize": 1,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00018600000000001948,
+   "phi": 0.3156997488278105
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    7
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    5,
+    8
+   ],
+   "psize": 2,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00024599999999996847,
+   "phi": 0.43403421078042376
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    7
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    5,
+    8,
+    9
+   ],
+   "psize": 3,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00028600000000000847,
+   "phi": 0.44754318817308025
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    10
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    12
+   ],
+   "psize": 1,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00021899999999996922,
+   "phi": 0.3156997488278144
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    10
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    9,
+    12
+   ],
+   "psize": 2,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00027800000000000047,
+   "phi": 0.3530291197053857
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    10
+   ],
+   "msize": 1,
+   "direction": "CAUSE",
+   "purview": [
+    8,
+    9,
+    12
+   ],
+   "psize": 3,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0004729999999999457,
+   "phi": 0.24989757595012385
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    10
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    12
+   ],
+   "psize": 1,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00018399999999996197,
+   "phi": 0.3156997488278105
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    10
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    9,
+    12
+   ],
+   "psize": 2,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.00024500000000005073,
+   "phi": 0.43403421078042376
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    10
+   ],
+   "msize": 1,
+   "direction": "EFFECT",
+   "purview": [
+    8,
+    9,
+    12
+   ],
+   "psize": 3,
+   "model_units": 2,
+   "partition_count": 1,
+   "n_states": 1,
+   "evaluations": 1,
+   "cpu_s": 0.0002830000000000332,
+   "phi": 0.44754318817308025
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    5,
+    9
+   ],
+   "msize": 2,
+   "direction": "CAUSE",
+   "purview": [
+    7
+   ],
+   "psize": 1,
+   "model_units": 5,
+   "partition_count": 4,
+   "n_states": 1,
+   "evaluations": 4,
+   "cpu_s": 0.0004579999999998474,
+   "phi": 0.7611301989098007
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    5,
+    9
+   ],
+   "msize": 2,
+   "direction": "CAUSE",
+   "purview": [
+    3,
+    7
+   ],
+   "psize": 2,
+   "model_units": 11,
+   "partition_count": 10,
+   "n_states": 1,
+   "evaluations": 10,
+   "cpu_s": 0.0007800000000000029,
+   "phi": 0.18340345158725002
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    5,
+    9
+   ],
+   "msize": 2,
+   "direction": "CAUSE",
+   "purview": [
+    7,
+    10,
+    11
+   ],
+   "psize": 3,
+   "model_units": 29,
+   "partition_count": 28,
+   "n_states": 1,
+   "evaluations": 28,
+   "cpu_s": 0.001819000000000015,
+   "phi": 0.05805740647683264
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    5,
+    9
+   ],
+   "msize": 2,
+   "direction": "EFFECT",
+   "purview": [
+    7
+   ],
+   "psize": 1,
+   "model_units": 5,
+   "partition_count": 4,
+   "n_states": 1,
+   "evaluations": 4,
+   "cpu_s": 0.0004010000000000957,
+   "phi": 0.30428656586314157
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    5,
+    9
+   ],
+   "msize": 2,
+   "direction": "EFFECT",
+   "purview": [
+    3,
+    7
+   ],
+   "psize": 2,
+   "model_units": 11,
+   "partition_count": 10,
+   "n_states": 1,
+   "evaluations": 10,
+   "cpu_s": 0.0008949999999998681,
+   "phi": 0.2091714991156494
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    5,
+    9
+   ],
+   "msize": 2,
+   "direction": "EFFECT",
+   "purview": [
+    7,
+    10,
+    11
+   ],
+   "psize": 3,
+   "model_units": 29,
+   "partition_count": 28,
+   "n_states": 1,
+   "evaluations": 28,
+   "cpu_s": 0.0015859999999998653,
+   "phi": 0.14378786627723375
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    1
+   ],
+   "msize": 2,
+   "direction": "CAUSE",
+   "purview": [
+    2
+   ],
+   "psize": 1,
+   "model_units": 5,
+   "partition_count": 4,
+   "n_states": 1,
+   "evaluations": 4,
+   "cpu_s": 0.0004629999999998802,
+   "phi": 0.7611301989098008
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    1
+   ],
+   "msize": 2,
+   "direction": "CAUSE",
+   "purview": [
+    12,
+    13
+   ],
+   "psize": 2,
+   "model_units": 11,
+   "partition_count": 10,
+   "n_states": 1,
+   "evaluations": 10,
+   "cpu_s": 0.0008169999999998456,
+   "phi": 0.18340345158725002
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    1
+   ],
+   "msize": 2,
+   "direction": "CAUSE",
+   "purview": [
+    2,
+    3,
+    13
+   ],
+   "psize": 3,
+   "model_units": 29,
+   "partition_count": 28,
+   "n_states": 1,
+   "evaluations": 28,
+   "cpu_s": 0.0017850000000001476,
+   "phi": 0.18453167468549977
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    1
+   ],
+   "msize": 2,
+   "direction": "EFFECT",
+   "purview": [
+    2
+   ],
+   "psize": 1,
+   "model_units": 5,
+   "partition_count": 4,
+   "n_states": 1,
+   "evaluations": 4,
+   "cpu_s": 0.00043999999999999595,
+   "phi": 0.30428656586314157
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    1
+   ],
+   "msize": 2,
+   "direction": "EFFECT",
+   "purview": [
+    12,
+    13
+   ],
+   "psize": 2,
+   "model_units": 11,
+   "partition_count": 10,
+   "n_states": 1,
+   "evaluations": 10,
+   "cpu_s": 0.0007610000000000117,
+   "phi": 0.2091714991156494
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    1
+   ],
+   "msize": 2,
+   "direction": "EFFECT",
+   "purview": [
+    2,
+    3,
+    13
+   ],
+   "psize": 3,
+   "model_units": 29,
+   "partition_count": 28,
+   "n_states": 1,
+   "evaluations": 28,
+   "cpu_s": 0.001614999999999922,
+   "phi": 0.36597996599328764
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    8,
+    12
+   ],
+   "msize": 3,
+   "direction": "CAUSE",
+   "purview": [
+    0,
+    10
+   ],
+   "psize": 2,
+   "model_units": 45,
+   "partition_count": 44,
+   "n_states": 1,
+   "evaluations": 44,
+   "cpu_s": 0.0023560000000000247,
+   "phi": 0.22449341839894485
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    8,
+    12
+   ],
+   "msize": 3,
+   "direction": "CAUSE",
+   "purview": [
+    3,
+    10,
+    13
+   ],
+   "psize": 3,
+   "model_units": 147,
+   "partition_count": 146,
+   "n_states": 1,
+   "evaluations": 146,
+   "cpu_s": 0.006631999999999971,
+   "phi": 0.14284949029174687
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    8,
+    12
+   ],
+   "msize": 3,
+   "direction": "EFFECT",
+   "purview": [
+    0,
+    10
+   ],
+   "psize": 2,
+   "model_units": 45,
+   "partition_count": 44,
+   "n_states": 1,
+   "evaluations": 44,
+   "cpu_s": 0.0024969999999999715,
+   "phi": 0.2661997152997292
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    8,
+    12
+   ],
+   "msize": 3,
+   "direction": "EFFECT",
+   "purview": [
+    3,
+    10,
+    13
+   ],
+   "psize": 3,
+   "model_units": 147,
+   "partition_count": 146,
+   "n_states": 1,
+   "evaluations": 146,
+   "cpu_s": 0.007624999999999993,
+   "phi": 0.18298998299664385
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    2,
+    3,
+    6
+   ],
+   "msize": 4,
+   "direction": "CAUSE",
+   "purview": [
+    3,
+    4
+   ],
+   "psize": 2,
+   "model_units": 186,
+   "partition_count": 185,
+   "n_states": 1,
+   "evaluations": 185,
+   "cpu_s": 0.007729000000000097,
+   "phi": 0.24995836495269966
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    2,
+    3,
+    6
+   ],
+   "msize": 4,
+   "direction": "CAUSE",
+   "purview": [
+    0,
+    4,
+    8
+   ],
+   "psize": 3,
+   "model_units": 700,
+   "partition_count": 699,
+   "n_states": 1,
+   "evaluations": 699,
+   "cpu_s": 0.02665699999999993,
+   "phi": 0.15905332674028783
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    2,
+    3,
+    6
+   ],
+   "msize": 4,
+   "direction": "EFFECT",
+   "purview": [
+    3,
+    4
+   ],
+   "psize": 2,
+   "model_units": 186,
+   "partition_count": 185,
+   "n_states": 1,
+   "evaluations": 185,
+   "cpu_s": 0.0084430000000002,
+   "phi": 0.1685340700125397
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    2,
+    3,
+    6
+   ],
+   "msize": 4,
+   "direction": "EFFECT",
+   "purview": [
+    0,
+    4,
+    8
+   ],
+   "psize": 3,
+   "model_units": 700,
+   "partition_count": 699,
+   "n_states": 1,
+   "evaluations": 699,
+   "cpu_s": 0.02843400000000007,
+   "phi": 0.1158530412822764
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    9,
+    10,
+    12
+   ],
+   "msize": 4,
+   "direction": "CAUSE",
+   "purview": [
+    11,
+    13
+   ],
+   "psize": 2,
+   "model_units": 186,
+   "partition_count": 185,
+   "n_states": 1,
+   "evaluations": 185,
+   "cpu_s": 0.00819700000000001,
+   "phi": 0.24995836495269946
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    9,
+    10,
+    12
+   ],
+   "msize": 4,
+   "direction": "CAUSE",
+   "purview": [
+    10,
+    11,
+    12
+   ],
+   "psize": 3,
+   "model_units": 700,
+   "partition_count": 699,
+   "n_states": 1,
+   "evaluations": 699,
+   "cpu_s": 0.027662000000000075,
+   "phi": 0.18379761438394618
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    9,
+    10,
+    12
+   ],
+   "msize": 4,
+   "direction": "EFFECT",
+   "purview": [
+    11,
+    13
+   ],
+   "psize": 2,
+   "model_units": 186,
+   "partition_count": 185,
+   "n_states": 1,
+   "evaluations": 185,
+   "cpu_s": 0.011291999999999858,
+   "phi": 0.1685340700125397
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    9,
+    10,
+    12
+   ],
+   "msize": 4,
+   "direction": "EFFECT",
+   "purview": [
+    10,
+    11,
+    12
+   ],
+   "psize": 3,
+   "model_units": 700,
+   "partition_count": 699,
+   "n_states": 1,
+   "evaluations": 699,
+   "cpu_s": 0.03012899999999985,
+   "phi": 0.14743904755828416
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    5,
+    6,
+    11,
+    12
+   ],
+   "msize": 5,
+   "direction": "CAUSE",
+   "purview": [
+    3,
+    7,
+    13
+   ],
+   "psize": 3,
+   "model_units": 3473,
+   "partition_count": 3472,
+   "n_states": 1,
+   "evaluations": 3472,
+   "cpu_s": 0.15669599999999995,
+   "phi": 0.19415633608131677
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    1,
+    5,
+    6,
+    11,
+    12
+   ],
+   "msize": 5,
+   "direction": "EFFECT",
+   "purview": [
+    3,
+    7,
+    13
+   ],
+   "psize": 3,
+   "model_units": 3473,
+   "partition_count": 3472,
+   "n_states": 1,
+   "evaluations": 3472,
+   "cpu_s": 0.13341200000000009,
+   "phi": 0.14743904755828416
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    7,
+    8,
+    9,
+    10,
+    13
+   ],
+   "msize": 6,
+   "direction": "CAUSE",
+   "purview": [
+    8,
+    9,
+    12
+   ],
+   "psize": 3,
+   "model_units": 18307,
+   "partition_count": 18306,
+   "n_states": 1,
+   "evaluations": 18306,
+   "cpu_s": 0.7541130000000003,
+   "phi": 0.1220123241761959
+  },
+  {
+   "units": 14,
+   "mechanism": [
+    0,
+    7,
+    8,
+    9,
+    10,
+    13
+   ],
+   "msize": 6,
+   "direction": "EFFECT",
+   "purview": [
+    8,
+    9,
+    12
+   ],
+   "psize": 3,
+   "model_units": 18307,
+   "partition_count": 18306,
+   "n_states": 1,
+   "evaluations": 18306,
+   "cpu_s": 0.7782910000000003,
+   "phi": 0.19258266810877983
+  }
+ ]
+}

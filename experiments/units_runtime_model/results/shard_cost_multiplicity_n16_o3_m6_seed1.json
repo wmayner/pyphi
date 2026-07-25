@@ -1,0 +1,90 @@
+{
+ "params": {
+  "units": 16,
+  "radius": 2,
+  "temperature": 0.25,
+  "purview_order": 3,
+  "mechanism_order": 6,
+  "arm": "multiplicity",
+  "units_per_job": 200000.0,
+  "target_units": 200000.0,
+  "max_shards": 4,
+  "formalism": "IIT_4_0_2026",
+  "seed": 1,
+  "run_label": ""
+ },
+ "platform": {
+  "machine": "arm64",
+  "python": "3.13.13"
+ },
+ "rows": [
+  {
+   "cpu_s": 9.191998999999996,
+   "wall_s": 9.41275100002531,
+   "evaluations": 199544,
+   "cache_hits": 695052,
+   "cache_misses": 74126,
+   "cache_evictions": 0,
+   "payload_kind": "mechanisms",
+   "units": 201138.0,
+   "n_mechanisms": 66,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 66,
+   "failed": false,
+   "arm": "multiplicity",
+   "mechanism_order": 3
+  },
+  {
+   "cpu_s": 8.937179,
+   "wall_s": 8.97441812499892,
+   "evaluations": 213564,
+   "cache_hits": 1478843,
+   "cache_misses": 97531,
+   "cache_evictions": 0,
+   "payload_kind": "mechanisms",
+   "units": 213896.0,
+   "n_mechanisms": 24,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 24,
+   "failed": false,
+   "arm": "multiplicity",
+   "mechanism_order": 4
+  },
+  {
+   "cpu_s": 10.155641000000003,
+   "wall_s": 10.241683333995752,
+   "evaluations": 246328,
+   "cache_hits": 2438953,
+   "cache_misses": 110159,
+   "cache_evictions": 0,
+   "payload_kind": "mechanisms",
+   "units": 246402.0,
+   "n_mechanisms": 6,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 6,
+   "failed": false,
+   "arm": "multiplicity",
+   "mechanism_order": 5
+  },
+  {
+   "cpu_s": 36.895453,
+   "wall_s": 37.232766083907336,
+   "evaluations": 849944,
+   "cache_hits": 5942716,
+   "cache_misses": 125135,
+   "cache_evictions": 0,
+   "payload_kind": "mechanisms",
+   "units": 849992.0,
+   "n_mechanisms": 4,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 4,
+   "failed": false,
+   "arm": "multiplicity",
+   "mechanism_order": 6
+  }
+ ]
+}

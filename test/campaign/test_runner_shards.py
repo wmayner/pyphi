@@ -1,6 +1,8 @@
 import json
 from dataclasses import replace
 
+import pytest
+
 from pyphi import examples
 from pyphi.campaign import prepare_ces
 from pyphi.campaign.runner import _shard_config
@@ -202,3 +204,66 @@ def test_shard_output_records_what_the_shard_cost(tmp_path):
             assert metrics["memory_bytes"] == row["memory_bytes"]
             seen_kinds.add(metrics["payload_kind"])
     assert "mechanisms" in seen_kinds
+
+
+def _ring_substrate(units, radius=2):
+    """Periodic Ising chain — mechanisms local enough to have small purviews."""
+    import numpy as np
+
+    from pyphi.substrate_generator import build_substrate
+    from pyphi.substrate_generator import ising
+
+    weights = np.zeros((units, units))
+    for i in range(units):
+        for d in range(-radius, radius + 1):
+            if d:
+                weights[i, (i + d) % units] = 1.0
+    return build_substrate([ising.probability] * units, weights, temperature=0.25)
+
+
+@pytest.mark.slow
+def test_planned_units_predict_runtime_across_shard_forms(tmp_path):
+    """Shards packed to one budget take comparable time per unit.
+
+    A unit has to mean the same amount of work whichever ladder rung produced
+    the shard carrying it, or ``units_per_job`` cannot bound runtime. The
+    fixture exercises whole-mechanism packing and purview-range splitting
+    together, which is where the two forms' cost per unit can diverge.
+    """
+    from pyphi.campaign.scope import AxisScope
+    from pyphi.campaign.scope import CESScope
+    from pyphi.cost import runtime_seconds
+
+    directory = tmp_path / "camp"
+    units = 6
+    prepare_ces(
+        _ring_substrate(units),
+        states=(0,) * units,
+        formalisms="IIT_4_0_2026",
+        scope=CESScope(
+            mechanisms=AxisScope(max_order=4),
+            cause_purviews=AxisScope(max_order=3),
+            effect_purviews=AxisScope(max_order=3),
+        ),
+        directory=directory,
+        units_per_job=4000.0,
+    )
+    _run_all(directory)
+    manifest = json.loads((directory / "manifest.json").read_text())
+    observed = {}
+    for row in manifest["tasks"]:
+        if row["kind"] != "ces_shard":
+            continue
+        metrics = load(
+            directory / "outputs" / f"task-{row['task_id']:04d}.json.gz"
+        ).metrics
+        observed.setdefault(metrics["payload_kind"], []).append(
+            metrics["cpu_s"] / metrics["units"]
+        )
+    assert {"mechanisms", "purview_range"} <= set(observed), sorted(observed)
+    per_form = {kind: sorted(rates)[len(rates) // 2] for kind, rates in observed.items()}
+    slowest, fastest = max(per_form.values()), min(per_form.values())
+    assert slowest / fastest < 4.0, per_form
+    # And the calibration is in the right decade for this hardware, so a
+    # runtime target translates into a usable budget.
+    assert 0.05 < runtime_seconds(1.0) / slowest < 20.0, per_form

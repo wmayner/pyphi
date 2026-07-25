@@ -29,6 +29,7 @@ from pyphi import serialize
 from pyphi.conf import presets
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.cost import estimate_analysis
+from pyphi.cost import runtime_seconds
 
 from . import content
 
@@ -453,8 +454,14 @@ def estimate_cost(
     mechanisms, connectivity-pruned purview evaluations, and
     mechanism-partition sweeps — without computing any φ. The counts
     reflect the partition schemes, connectivity, and alphabet under the
-    requested formalism. Wall time is machine-dependent and is not
-    predicted; use the counts to compare candidate systems and settings.
+    requested formalism.
+
+    ``estimated_cpu_seconds`` converts the distinction axis to time at
+    ``pyphi.cost.SECONDS_PER_UNIT``, which is calibrated on reference
+    hardware and holds to roughly 20% there. It excludes the
+    system-partition axis, whose cost per partition is not calibrated
+    against the same unit, and it is ``None`` when the distinction axis was
+    not counted.
 
     Parameters
     ----------
@@ -469,8 +476,9 @@ def estimate_cost(
     Returns
     -------
     dict
-        A ``card`` (human-readable text) and an ``estimate`` mapping with
-        the counts; ``capped=true`` marks counts that are lower bounds.
+        A ``card`` (human-readable text), an ``estimate`` mapping with the
+        counts, and ``estimated_cpu_seconds``; ``capped=true`` marks counts
+        that are lower bounds.
     """
     substrate = _get_substrate(handle)
     if formalism is not None and formalism not in presets.by_name:
@@ -483,7 +491,12 @@ def estimate_cost(
             compute=None if compute == "full" else compute,
             scope=_scope_from_json(scope, substrate),
         )
-    return {"card": str(estimate), "estimate": asdict(estimate)}
+    units = estimate.distinction_units
+    return {
+        "card": str(estimate),
+        "estimate": asdict(estimate),
+        "estimated_cpu_seconds": (None if units is None else runtime_seconds(units)),
+    }
 
 
 def _scope_from_json(scope: dict[str, Any] | None, substrate: Any) -> Any:

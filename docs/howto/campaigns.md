@@ -136,14 +136,31 @@ with the full traceback).
 ## Packing and admission control
 
 Each cell is weighted by {func}`~pyphi.cost.estimate_analysis` counts under
-its formalism preset. Work units are enumeration counts — partition sweeps,
-purview evaluations — not seconds; use them to balance tasks and compare
-workloads, not to predict wall time.
+its formalism preset. A work unit is one mechanism partition; a purview
+evaluation counts for twelve, its measured cost relative to a partition
+({data}`~pyphi.cost.PURVIEW_EVALUATION_UNITS`). Weighting the two axes this
+way means a unit is the same amount of work whatever mix produces it, so
+units both balance tasks and, through
+{data}`~pyphi.cost.SECONDS_PER_UNIT`, estimate CPU time.
 
 - Default: one cell per condor job (the canonical high-throughput shape).
 - `jobs=K`: pack the cells into exactly K cost-balanced tasks.
 - `units_per_job=X`: target X work units per task; the task count is
   `ceil(total / X)`.
+
+To budget by runtime instead of by work, convert the deadline:
+
+```python
+from pyphi.cost import units_for_runtime
+
+prepare_ces(..., units_per_job=units_for_runtime(3600))  # ~1 h per shard
+```
+
+`SECONDS_PER_UNIT` is calibrated on reference hardware, so treat it as an
+order-of-magnitude figure until you have measured your own. Every task
+output records its wall and CPU seconds alongside the units it was packed
+against (`CampaignTaskOutput.metrics`), which is enough to re-derive the
+constant from a campaign of your own and re-plan against it.
 
 If any single cell's estimate exceeds `infeasible_threshold` (default 10⁹),
 `prepare` warns loudly naming the cell — such a cell likely cannot finish

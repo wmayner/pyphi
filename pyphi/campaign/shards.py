@@ -20,6 +20,7 @@ from itertools import islice
 from typing import Any
 
 from pyphi.conf import config
+from pyphi.cost import PURVIEW_EVALUATION_UNITS
 from pyphi.cost import MechanismWorkload
 from pyphi.cost import mechanism_workloads
 from pyphi.cost import partition_sweep_count
@@ -220,7 +221,8 @@ def plan_ces_shards(
             triples = [
                 (
                     p,
-                    1.0 + partition_sweep_count(len(mechanism), len(p)),
+                    PURVIEW_EVALUATION_UNITS
+                    + partition_sweep_count(len(mechanism), len(p)),
                     _memory_class(math.prod(alphabet[u] for u in p), memory_floor_bytes),
                 )
                 for p in purviews

@@ -252,6 +252,7 @@ class TestScopedEstimation:
     def test_mechanism_workloads_sum_matches_estimate(self):
         from pyphi.campaign.scope import AxisScope
         from pyphi.campaign.scope import CESScope
+        from pyphi.cost import PURVIEW_EVALUATION_UNITS
         from pyphi.cost import mechanism_workloads
 
         substrate = examples.basic_substrate()
@@ -260,7 +261,8 @@ class TestScopedEstimation:
         scoped = estimate_analysis(substrate, compute="ces", scope=scope)
         assert set(workloads) == {(0,), (0, 1), (0, 2), (0, 1, 2)}
         assert sum(w.units for w in workloads.values()) == (
-            scoped.purview_evaluations + scoped.mechanism_partition_sweeps
+            PURVIEW_EVALUATION_UNITS * scoped.purview_evaluations
+            + scoped.mechanism_partition_sweeps
         )
 
     def test_partition_sweep_count_matches_enumeration(self):

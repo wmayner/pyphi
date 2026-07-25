@@ -8,8 +8,12 @@ Counts are produced by driving the same enumeration machinery the
 analysis uses under the active configuration, so the partition schemes,
 the connectivity, and the alphabet are all reflected exactly.
 
-All quantities are counts and structural weights. Wall time depends on
-the machine and configuration and is never predicted.
+Counts are turned into work units by weighting each axis by its measured
+relative cost, so a unit is the same amount of work whatever mix of
+purview evaluations and partition sweeps produces it. One further
+constant, :data:`SECONDS_PER_UNIT`, converts units to CPU seconds on
+reference hardware; :func:`units_for_runtime` inverts it, which is how a
+per-shard runtime target becomes a ``units_per_job`` budget.
 """
 
 from __future__ import annotations
@@ -35,11 +39,44 @@ __all__ = [
     "mechanism_workloads",
     "partition_sweep_count",
     "round_memory_bytes",
+    "runtime_seconds",
     "shard_cache_budget_bytes",
     "shard_memory_bytes",
+    "units_for_runtime",
 ]
 
 _PARTITION_COUNT_CAP = 6
+
+PURVIEW_EVALUATION_UNITS = 12
+"""Work units one purview evaluation costs, taking one partition as the unit.
+
+Before any partition is swept, a (mechanism, direction, purview) pair
+computes its unpartitioned repertoire and searches the candidate specified
+states. Regressing per-pair CPU time on the pair's partition count over
+mechanism orders 1 to 6 and purview orders 1 to 3 puts that fixed cost at
+about twelve partition evaluations (524 µs against 41.8 µs). Charging it as
+one, as a plain operation count does, undercounts a scope whose purviews are
+small enough that few partitions amortize it, by up to 2.5× on the smallest
+pairs.
+
+The measurement is in ``experiments/units_runtime_model``.
+"""
+
+SECONDS_PER_UNIT = 4.4e-5
+"""CPU seconds one work unit costs on reference hardware.
+
+Calibrated against per-shard CPU time over eleven shards spanning 16- and
+21-unit Ising substrates, both payload kinds, 0.2 M to 20 M units, 1 to 66
+distinct mechanisms packed, and cache ceilings from unlimited to fully
+binding. Cost per unit held between 41 and 51 µs across all of them; the
+widest departures are the largest shard (+15%, part of it plausibly
+memory-bandwidth contention) and a starved cache (+12%).
+
+Hardware differs, so treat this as the reference for
+:func:`units_for_runtime` and re-derive it from a campaign's own recorded
+metrics (``CampaignTaskOutput.metrics``) when planning against a hard
+runtime deadline.
+"""
 
 REPERTOIRE_FACTOR = 4
 """Repertoires concurrently alive during a mechanism-partition sweep."""
@@ -109,6 +146,33 @@ def shard_cache_budget_bytes(memory_bytes: int) -> int:
 def round_memory_bytes(n: int) -> int:
     """Round a byte count up to the next 512 MB request boundary."""
     return max(1, math.ceil(n / _MEMORY_STEP_BYTES)) * _MEMORY_STEP_BYTES
+
+
+def runtime_seconds(units: float) -> float:
+    """Estimated CPU seconds to compute ``units`` work units.
+
+    Examples
+    --------
+    >>> round(runtime_seconds(1e6))
+    44
+    """
+    return units * SECONDS_PER_UNIT
+
+
+def units_for_runtime(seconds: float) -> float:
+    """The ``units_per_job`` budget targeting ``seconds`` of CPU per shard.
+
+    Pass the result to :func:`pyphi.campaign.prepare_ces` to plan shards
+    against a runtime deadline rather than an abstract work count. The
+    estimate holds while a shard's caches fit its memory request; a starved
+    cache costs roughly a further 20%.
+
+    Examples
+    --------
+    >>> round(units_for_runtime(3600))  # a one-hour shard
+    81818182
+    """
+    return seconds / SECONDS_PER_UNIT
 
 
 class _LimitReached(Exception):
@@ -333,6 +397,23 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
     possible_relations: int | None
     capped: bool
 
+    @property
+    def distinction_units(self) -> int | None:
+        """Work units on the distinction axis, or ``None`` if not counted.
+
+        The weighted sum :func:`mechanism_workloads` charges — purview
+        evaluations at :data:`PURVIEW_EVALUATION_UNITS` each plus every
+        mechanism partition — so :func:`runtime_seconds` applies to it. The
+        system-partition axis is excluded: its cost per partition has not
+        been calibrated against this unit.
+        """
+        if self.purview_evaluations is None or self.mechanism_partition_sweeps is None:
+            return None
+        return (
+            PURVIEW_EVALUATION_UNITS * self.purview_evaluations
+            + self.mechanism_partition_sweeps
+        )
+
     def _qualifier(self) -> str:
         return "≥" if self.capped else "="
 
@@ -551,11 +632,13 @@ def mechanism_workloads(
 ) -> dict[tuple[int, ...], MechanismWorkload]:
     """Per-mechanism workload under a scope, keyed by mechanism.
 
-    Each mechanism's :class:`MechanismWorkload` counts its scoped purview
-    evaluations plus its mechanism-partition sweeps, and records the
-    state-space size of its largest scoped purview; the summed units over
-    all mechanisms equal the scoped :func:`estimate_analysis` totals for
-    the distinction axis.
+    Each mechanism's :class:`MechanismWorkload` weighs its scoped purview
+    evaluations against its mechanism-partition sweeps by their measured
+    relative cost, and records the state-space size of its largest scoped
+    purview. Summed over all mechanisms, the units equal
+    ``PURVIEW_EVALUATION_UNITS`` × the scoped
+    :attr:`AnalysisEstimate.purview_evaluations` plus the scoped
+    :attr:`AnalysisEstimate.mechanism_partition_sweeps`.
 
     Parameters
     ----------
@@ -604,7 +687,7 @@ def mechanism_workloads(
                     purviews = cs.potential_purviews(direction, mechanism)
                 for purview in purviews:
                     counter.charge(1)
-                    units += 1 + _mechanism_partition_count(
+                    units += PURVIEW_EVALUATION_UNITS + _mechanism_partition_count(
                         len(mechanism), len(purview), counter
                     )
                     max_cells = max(max_cells, math.prod(alphabet[u] for u in purview))

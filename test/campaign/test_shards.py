@@ -178,9 +178,10 @@ def test_memory_classes_stratify_purview_ranges():
     from pyphi.cost import shard_memory_bytes
 
     with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
-        # tiny units budget forces rung 2 (purview-range) splitting
+        # A budget above the costliest single purview but below any whole
+        # mechanism forces rung 2 (purview-range) splitting.
         specs = plan_ces_shards(
-            _system(), CESScope(), units_per_job=3.0, memory_floor_bytes=0
+            _system(), CESScope(), units_per_job=200.0, memory_floor_bytes=0
         )
     ranges = [s for s in specs if s.payload_kind == "purview_range"]
     assert ranges

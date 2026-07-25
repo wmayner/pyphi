@@ -1,0 +1,90 @@
+{
+ "params": {
+  "units": 21,
+  "radius": 2,
+  "temperature": 0.25,
+  "purview_order": 3,
+  "mechanism_order": 6,
+  "arm": "size",
+  "pack_order": 4,
+  "size_targets": [
+   1000000.0,
+   5000000.0,
+   20000000.0
+  ],
+  "split_order": 7,
+  "ceiling_mib": [],
+  "units_per_job": 200000.0,
+  "target_units": 200000.0,
+  "max_shards": 4,
+  "formalism": "IIT_4_0_2026",
+  "seed": 1,
+  "run_label": "lru"
+ },
+ "platform": {
+  "machine": "arm64",
+  "python": "3.13.13"
+ },
+ "rows": [
+  {
+   "cpu_s": 86.582486,
+   "wall_s": 86.93866795895156,
+   "evaluations": 1967624,
+   "cache_hits": 8085009,
+   "cache_misses": 31223,
+   "cache_evictions": 0,
+   "ceiling_bytes": null,
+   "rss_before": 1606418432,
+   "rss_after": 211959808,
+   "payload_kind": "mechanisms",
+   "units": 1967876.0,
+   "n_mechanisms": 4,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 4,
+   "failed": false,
+   "arm": "size",
+   "target_units": 1000000.0
+  },
+  {
+   "cpu_s": 246.119426,
+   "wall_s": 247.16524554102216,
+   "evaluations": 5466272,
+   "cache_hits": 30402352,
+   "cache_misses": 118750,
+   "cache_evictions": 0,
+   "ceiling_bytes": null,
+   "rss_before": 211992576,
+   "rss_after": 250658816,
+   "payload_kind": "mechanisms",
+   "units": 5467138.0,
+   "n_mechanisms": 13,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 13,
+   "failed": false,
+   "arm": "size",
+   "target_units": 5000000.0
+  },
+  {
+   "cpu_s": 1017.3420940000001,
+   "wall_s": 1037.7196393330814,
+   "evaluations": 20082464,
+   "cache_hits": 111623652,
+   "cache_misses": 348118,
+   "cache_evictions": 0,
+   "ceiling_bytes": null,
+   "rss_before": 250691584,
+   "rss_after": 433881088,
+   "payload_kind": "mechanisms",
+   "units": 20087266.0,
+   "n_mechanisms": 69,
+   "n_purviews": null,
+   "memory_bytes": 0,
+   "n_entries": 69,
+   "failed": false,
+   "arm": "size",
+   "target_units": 20000000.0
+  }
+ ]
+}
