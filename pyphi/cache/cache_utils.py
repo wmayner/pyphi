@@ -4,6 +4,7 @@
 import os
 from collections import namedtuple
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -30,21 +31,94 @@ def _process_handle(pid: int) -> psutil.Process:
     return psutil.Process(pid)
 
 
+def _cgroup_memory_limit(
+    cgroup_root: Path = Path("/sys/fs/cgroup"),
+    self_cgroup: Path = Path("/proc/self/cgroup"),
+) -> int | None:
+    """Resident-memory limit of this process's cgroup, or ``None`` if unconfined.
+
+    Reads ``memory.max`` for the process's own group under cgroup v2, falling
+    back to the v1 ``memory.limit_in_bytes``, and finally to the hierarchy root
+    as seen from inside a container's cgroup namespace. A literal ``max``, or a
+    value at or above total physical memory, means no limit — cgroup v1
+    represents "unlimited" as a number near the word size rather than as a
+    sentinel.
+
+    Parameters
+    ----------
+    cgroup_root : pathlib.Path, optional
+        Mount point of the cgroup hierarchy.
+    self_cgroup : pathlib.Path, optional
+        The file naming this process's groups.
+
+    Returns
+    -------
+    int or None
+        The limit in bytes, or ``None`` when the process may use the whole
+        machine or the limit cannot be read.
+    """
+    candidates = []
+    try:
+        for line in self_cgroup.read_text().splitlines():
+            hierarchy, _, remainder = line.partition(":")
+            controllers, _, relative = remainder.partition(":")
+            relative = relative.strip().lstrip("/")
+            if hierarchy == "0" and not controllers:
+                candidates.append(cgroup_root / relative / "memory.max")
+            elif "memory" in controllers.split(","):
+                candidates.append(
+                    cgroup_root / "memory" / relative / "memory.limit_in_bytes"
+                )
+    except OSError:
+        pass
+    candidates.append(cgroup_root / "memory.max")
+    candidates.append(cgroup_root / "memory" / "memory.limit_in_bytes")
+
+    total = psutil.virtual_memory().total
+    for path in candidates:
+        try:
+            raw = path.read_text().strip()
+        except OSError:
+            continue
+        try:
+            value = int(raw)
+        except ValueError:
+            continue  # "max" under v2
+        if 0 < value < total:
+            return value
+    return None
+
+
+@lru_cache(maxsize=1)
+def memory_limit_bytes() -> int:
+    """Resident memory this process may use.
+
+    The process's cgroup allowance when it is confined to less than the
+    machine — a scheduler-managed job, a container, a cgroup — and total
+    physical memory otherwise. Cached, since the allowance is fixed when the
+    process starts.
+    """
+    limit = _cgroup_memory_limit()
+    return limit if limit is not None else psutil.virtual_memory().total
+
+
 def memory_full():
     """Check if the memory is too full for further caching.
 
     Measures resident memory against ``maximum_cache_memory_bytes`` when that
-    is set, and otherwise against ``maximum_cache_memory_percentage`` of total
-    physical memory.
+    is set, and otherwise against ``maximum_cache_memory_percentage`` of the
+    memory this process may use (see :func:`memory_limit_bytes`) — which is the
+    machine's total only when the process is free to use all of it.
     """
     current_process = _process_handle(os.getpid())
     budget = config.infrastructure.maximum_cache_memory_bytes
-    if budget is not None:
-        return current_process.memory_info().rss > budget
-    return (
-        current_process.memory_percent()
-        > config.infrastructure.maximum_cache_memory_percentage
-    )
+    if budget is None:
+        budget = (
+            memory_limit_bytes()
+            * config.infrastructure.maximum_cache_memory_percentage
+            // 100
+        )
+    return current_process.memory_info().rss > budget
 
 
 _ENTRY_OVERHEAD_BYTES = 512

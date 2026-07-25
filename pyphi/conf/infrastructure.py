@@ -83,13 +83,16 @@ class InfrastructureConfig:
     parallel_workers: int = -1
     parallel_backend: str = "local"
 
+    # Share of the memory this process may use that in-memory caches may
+    # occupy. The denominator is the process's cgroup allowance where it has
+    # one — a scheduler-managed job, a container — and total physical memory
+    # otherwise, so the share bounds a confined process rather than measuring
+    # against a machine it cannot fill.
     maximum_cache_memory_percentage: int = 50
     # An absolute ceiling on process resident memory, above which in-memory
     # caches hold their occupancy steady, admitting new entries by evicting
-    # least recently used ones. When set, it replaces
-    # `maximum_cache_memory_percentage`, which measures against total physical
-    # memory and so cannot bound a process confined to an allocation smaller
-    # than the machine — a scheduler-managed job, a container, or a cgroup.
+    # least recently used ones. Replaces `maximum_cache_memory_percentage` when
+    # set, for an allowance no cgroup reports.
     maximum_cache_memory_bytes: int | None = None
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True

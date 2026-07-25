@@ -863,6 +863,20 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
   into the function body); the effect version averages over every mechanism
   state, worth 10× a lookup at |m|=1 and 99× at |m|=3 and growing, so it keeps
   its cache as insurance against an expensive miss.
+- **✅ The ceiling measured against the memory the process is actually allowed.**
+  `maximum_cache_memory_percentage` took its denominator from total physical
+  memory, and shard execution took its absolute ceiling from the request
+  recorded at *planning* time — so a job granted more memory than planning
+  predicted kept the smaller ceiling. That silently defeated the paired control
+  behind the "cache starvation is not the constraint" reading: a shard rerun at
+  a four-times-larger request plateaued at exactly the same 3907 MiB as the
+  original because both enforced the planned figure, not because occupancy had
+  saturated. `cache_utils._cgroup_memory_limit()` reads the process's allowance
+  (v2 `memory.max`, v1 `memory.limit_in_bytes`, and the hierarchy root inside a
+  container's cgroup namespace); `memory_limit_bytes()` falls back to physical
+  memory, and `_shard_config` falls back to the planned request. Fixture-driven
+  tests cover both cgroup generations, the v1 unlimited sentinel, the
+  namespaced-container case, and an unreadable hierarchy.
 - **✅ The same bound on the module-level `@cache` caches.** `@cache` holds its
   entries in a shared `ByteBoundedStore` (`cache/cache_utils.py`), which both it
   and `ContentCache` use, so one policy governs every in-process cache. A byte

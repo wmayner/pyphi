@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from pyphi import serialize
+from pyphi.cache import cache_utils
 from pyphi.campaign import CampaignTaskOutput
 from pyphi.campaign import CellOutput
 from pyphi.campaign import _resolve_compute_ref
@@ -103,19 +104,21 @@ def _shard_config(task: Any) -> dict[str, Any]:
         "parallel": False,
         "progress_bars": False,
     }
-    # Bound the shard's caches by its own memory request: entries accumulate
-    # across every mechanism the shard carries, and the default percentage of
-    # physical memory is no bound at all on a machine larger than the request.
-    # An explicit ceiling configured at preparation time is left alone.
+    # Bound the shard's caches by the memory it is actually allowed: entries
+    # accumulate across every mechanism the shard carries, and the default
+    # percentage of physical memory is no bound at all on a machine larger than
+    # the allocation. The allocation the process runs under takes precedence
+    # over the one planning predicted, so raising a job's request raises the
+    # ceiling with it; the planned figure stands in where the allocation cannot
+    # be read. An explicit ceiling configured at preparation time is left alone.
     spec = getattr(task, "spec", None)
     if (
         spec is not None
         and spec.memory_bytes
         and overrides.get("maximum_cache_memory_bytes") is None
     ):
-        overrides["maximum_cache_memory_bytes"] = shard_cache_budget_bytes(
-            spec.memory_bytes
-        )
+        allowance = cache_utils._cgroup_memory_limit() or spec.memory_bytes
+        overrides["maximum_cache_memory_bytes"] = shard_cache_budget_bytes(allowance)
     return overrides
 
 

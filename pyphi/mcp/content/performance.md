@@ -26,14 +26,15 @@ PyPhi caches at two levels.
 **In-memory (on by default).** Repertoire and potential-purview computations are
 memoized within a process, so work is reused within a single analysis. The
 combined footprint is bounded by `maximum_cache_memory_percentage` (default 50%
-of RAM); past that, occupancy holds steady and new entries displace the least
-recently used ones. Inspect with `pyphi.cache.info()`, which reports hits,
+of the memory the process may use — its cgroup allowance under a scheduler or
+container, total RAM otherwise); past that, occupancy holds steady and new
+entries displace the least recently used ones. Inspect with `pyphi.cache.info()`, which reports hits,
 misses, entry count, bytes, and evictions per cache, and clear with
 `pyphi.cache.clear_all()`. Analyzing many systems in a loop and
 watching memory climb? Set `clear_system_caches_after_computing_sia = True` to
 trade recomputation for a lower ceiling. Under a batch scheduler, a container,
-or a cgroup, a percentage of the machine's RAM is no bound at all — set
-`maximum_cache_memory_bytes` to the process's actual allowance instead.
+or a cgroup, the allowance is detected from the cgroup; set
+`maximum_cache_memory_bytes` explicitly where none is reported.
 
 **Disk-backed result cache (opt-in, off by default).** This is the one to reach
 for on expensive work:
