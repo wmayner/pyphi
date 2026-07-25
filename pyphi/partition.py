@@ -32,7 +32,7 @@ from .registry import Registry
 # TODO: move purely combinatorial functions to `combinatorics`
 
 
-@cache(cache={}, maxmem=None)
+@cache()
 def bipartition_indices(N: int) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
     """Return indices for undirected bipartitions of a sequence.
 
@@ -95,7 +95,7 @@ def bipartition(seq: Sequence, nontrivial: bool = False) -> list[tuple[tuple, tu
     return bipartitions
 
 
-@cache(cache={}, maxmem=None)
+@cache()
 def directed_bipartition_indices(
     N: int,
 ) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
@@ -229,7 +229,7 @@ def directed_bipartition_of_one(seq):
     return chain(bipartitions, reverse_elements(bipartitions))
 
 
-@cache(cache={}, maxmem=None)
+@cache()
 def directed_tripartition_indices(
     N: int,
 ) -> list[tuple[tuple[int, ...], tuple[int, ...], tuple[int, ...]]]:

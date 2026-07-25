@@ -43,8 +43,9 @@ option-by-option reference, loaded only when working with this directory.
 - **`clear_system_caches_after_computing_sia`**: Clear after each SIA (default: false)
 - **`maximum_cache_memory_percentage`**: Memory limit for in-memory caches, as a percentage of total physical memory (default: 50)
 - **`maximum_cache_memory_bytes`**: Absolute resident-memory ceiling above which
-  the caches stop storing (default: `None`). Replaces the percentage when set,
-  which is what a process confined to less than the whole machine needs — a
+  the caches hold occupancy steady, evicting least recently used entries to
+  admit new ones (default: `None`). Replaces the percentage when set, which is
+  what a process confined to less than the whole machine needs — a
   scheduler-managed job, a container, a cgroup. Campaign shard execution sets it
   from the shard's own memory request.
 

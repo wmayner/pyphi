@@ -211,7 +211,7 @@ def unflatten(
     return repertoire.reshape(repertoire_shape(range(N), purview), order=order)
 
 
-@cache(cache={}, maxmem=None)
+@cache()
 def max_entropy_distribution(
     all_node_indices: NodeIndices,
     purview: Purview,

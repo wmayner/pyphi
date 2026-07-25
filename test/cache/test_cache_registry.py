@@ -109,10 +109,10 @@ def test_module_level_cache_decorator_registers_adapter():
     """A function decorated with @cache(...) registers a policy under
     f'{module}.{qualname}' on import."""
     from pyphi import cache as cache_module
-    from pyphi import combinatorics  # noqa: F401
+    from pyphi import partition  # noqa: F401
 
     info = cache_module.info()
-    expected_name = "pyphi.combinatorics.num_subsets_larger_than_one_element"
+    expected_name = "pyphi.partition.bipartition_indices"
     assert expected_name in info, (
         f"expected {expected_name} in registry, got keys: {sorted(info.keys())}"
     )
@@ -121,7 +121,6 @@ def test_module_level_cache_decorator_registers_adapter():
 def test_module_level_caches_present_for_partition_and_distribution():
     """Each module that uses @cache(...) shows up under its qualified name."""
     from pyphi import cache as cache_module
-    from pyphi import combinatorics  # noqa: F401
     from pyphi import distribution  # noqa: F401
     from pyphi import partition  # noqa: F401
 
@@ -132,9 +131,6 @@ def test_module_level_caches_present_for_partition_and_distribution():
     )
     assert any(k.startswith("pyphi.distribution.") for k in keys), (
         f"no pyphi.distribution.* entries; got: {sorted(keys)}"
-    )
-    assert any(k.startswith("pyphi.combinatorics.") for k in keys), (
-        f"no pyphi.combinatorics.* entries; got: {sorted(keys)}"
     )
 
 

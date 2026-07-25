@@ -35,16 +35,20 @@ class _DictCacheAdapter:
     Used by the module-level ``@cache(...)`` decorator and by ``ContentCache``
     instances. The ``stats`` callable returns ``(hits, misses)`` so the
     adapter doesn't need to mutate them — the wrapper closure that updates
-    the counts owns them.
+    the counts owns them. The optional ``weigh`` callable returns
+    ``(nbytes, evictions)`` for caches that track occupancy in bytes; caches
+    that do not report zero for both.
     """
 
     name: str
     backing: dict[Any, Any]
     stats: Callable[[], tuple[int, int]]
+    weigh: Callable[[], tuple[int, int]] | None = None
 
     def info(self) -> _CacheInfo:
         hits, misses = self.stats()
-        return _CacheInfo(hits, misses, len(self.backing))
+        nbytes, evictions = self.weigh() if self.weigh else (0, 0)
+        return _CacheInfo(hits, misses, len(self.backing), nbytes, evictions)
 
     def clear(self) -> None:
         self.backing.clear()

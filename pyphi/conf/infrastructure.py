@@ -85,11 +85,11 @@ class InfrastructureConfig:
 
     maximum_cache_memory_percentage: int = 50
     # An absolute ceiling on process resident memory, above which in-memory
-    # caches stop storing new entries (already-stored entries are still
-    # served). When set, it replaces `maximum_cache_memory_percentage`, which
-    # measures against total physical memory and so cannot bound a process
-    # confined to an allocation smaller than the machine — a scheduler-managed
-    # job, a container, or a cgroup.
+    # caches hold their occupancy steady, admitting new entries by evicting
+    # least recently used ones. When set, it replaces
+    # `maximum_cache_memory_percentage`, which measures against total physical
+    # memory and so cannot bound a process confined to an allocation smaller
+    # than the machine — a scheduler-managed job, a container, or a cgroup.
     maximum_cache_memory_bytes: int | None = None
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True

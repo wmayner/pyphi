@@ -28,15 +28,13 @@ See :mod:`pyphi.cache.policy` for the CachePolicy Protocol and
 :mod:`pyphi.cache.registry` for the registry implementation.
 """
 
-import os
 from functools import update_wrapper
 
 import joblib
-import psutil
 
 from pyphi import constants
-from pyphi.conf import config
 
+from .cache_utils import ByteBoundedStore
 from .cache_utils import _CacheInfo
 from .cache_utils import _make_key
 
@@ -44,25 +42,24 @@ from .cache_utils import _make_key
 joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
 
 
-def cache(
-    cache=None,
-    maxmem: int | None = config.infrastructure.maximum_cache_memory_percentage,
-    typed: bool = False,
-):
-    """Memory-limited memoization decorator.
+def cache(typed: bool = False):
+    """Memoization decorator bounded by bytes.
 
-    Arguments to the cached function must be hashable.
+    Arguments to the cached function must be hashable. Entries are held in a
+    :class:`pyphi.cache.cache_utils.ByteBoundedStore`, so the cache grows
+    freely until resident memory reaches the configured ceiling and then holds
+    its occupancy steady, evicting least recently used entries to admit new
+    ones.
+
+    A byte bound rather than an entry bound because the argument spaces here
+    differ in kind: the combinatorial index tables are keyed on a sequence
+    length alone, giving at most one entry per system size but values that grow
+    as 2ᴺ or 3ᴺ, while :func:`pyphi.distribution.max_entropy_distribution` is
+    keyed on a purview, giving one entry per subset. Neither is bounded by a
+    count.
 
     Parameters
     ----------
-    cache : dict, optional
-        Backing store for cached results. A fresh empty dict is created when
-        omitted; passing one shares the store across decorated functions.
-    maxmem : float or None, optional
-        Maximum percentage of physical memory the cache may use, between 0 and
-        100 inclusive. ``None`` (or 0) means unlimited. Once the process
-        exceeds this fraction of memory, no new entries are stored, though
-        entries already cached are still served.
     typed : bool, optional
         If ``True``, arguments of different types are cached separately: for
         example, ``f(3.0)`` and ``f(3)`` are treated as distinct calls with
@@ -71,71 +68,46 @@ def cache(
     Notes
     -----
     The decorated function exposes ``cache_info()``, which returns a
-    ``(hits, misses, currsize)`` named tuple; ``cache_clear()``, which empties
-    the cache and resets its statistics; and ``__wrapped__``, the underlying
-    function.
+    ``(hits, misses, currsize, nbytes, evictions)`` named tuple;
+    ``cache_clear()``, which empties the cache and resets its statistics; and
+    ``__wrapped__``, the underlying function.
     """
-    # Constants shared by all lru cache instances:
+    store = ByteBoundedStore()
+    entries = store.data
     # Unique object used to signal cache misses.
-    if cache is None:
-        cache = {}
     sentinel = object()
     # Build a key from the function arguments.
     make_key = _make_key
 
     def decorating_function(user_function, hits=0, misses=0):
-        full = False
         # Bound method to look up a key or return None.
-        cache_get = cache.get
+        cache_get = entries.get
 
-        if not maxmem:
-
-            def wrapper(*args, **kwds):
-                # Simple caching without memory limit.
-                nonlocal hits, misses
-                key = make_key(args, kwds, typed)
-                result = cache_get(key, sentinel)
-                if result is not sentinel:
-                    hits += 1
-                    return result
-                result = user_function(*args, **kwds)
-                cache[key] = result
-                misses += 1
+        def wrapper(*args, **kwds):
+            nonlocal hits, misses
+            key = make_key(args, kwds, typed)
+            result = cache_get(key, sentinel)
+            if result is not sentinel:
+                hits += 1
+                # Reinsert to move the entry to the recent end of the store's
+                # iteration order, which is the eviction order.
+                del entries[key]
+                entries[key] = result
                 return result
-
-        else:
-            # Type narrowing: maxmem is not None in this branch
-            assert maxmem is not None, "maxmem should not be None in else branch"
-            maxmem_value = maxmem
-
-            def wrapper(*args, **kwds):
-                # Memory-limited caching.
-                nonlocal hits, misses, full
-                key = make_key(args, kwds, typed)
-                result = cache_get(key)
-                if result is not None:
-                    hits += 1
-                    return result
-                result = user_function(*args, **kwds)
-                if not full:
-                    cache[key] = result
-                    # Cache is full if the total recursive usage is greater
-                    # than the maximum allowed percentage.
-                    current_process = psutil.Process(os.getpid())
-                    full = current_process.memory_percent() > maxmem_value
-                misses += 1
-                return result
+            result = user_function(*args, **kwds)
+            store.admit(key, result)
+            misses += 1
+            return result
 
         def cache_info():
             """Report cache statistics."""
-            return _CacheInfo(hits, misses, len(cache))
+            return _CacheInfo(hits, misses, len(entries), store.nbytes, store.evictions)
 
         def cache_clear():
             """Clear the cache and cache statistics."""
-            nonlocal hits, misses, full
-            cache.clear()
+            nonlocal hits, misses
+            store.clear()
             hits = misses = 0
-            full = False
 
         wrapper.cache_info = cache_info  # type: ignore[attr-defined]
         wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
@@ -147,8 +119,9 @@ def cache(
         _register_policy(
             _DictCacheAdapter(
                 name=f"{user_function.__module__}.{user_function.__qualname__}",
-                backing=cache,
-                stats=lambda: (cache_info().hits, cache_info().misses),
+                backing=entries,
+                stats=lambda: (hits, misses),
+                weigh=lambda: (store.nbytes, store.evictions),
             )
         )
 

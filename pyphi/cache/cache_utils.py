@@ -3,12 +3,31 @@
 
 import os
 from collections import namedtuple
+from functools import lru_cache
+from typing import Any
 
+import numpy as np
 import psutil
 
 from pyphi.conf import config
 
-_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
+_CacheInfo = namedtuple(
+    "CacheInfo",
+    ["hits", "misses", "currsize", "nbytes", "evictions"],
+    defaults=(0, 0),
+)
+
+
+@lru_cache(maxsize=1)
+def _process_handle(pid: int) -> psutil.Process:
+    """The psutil handle for ``pid``, kept for reuse.
+
+    Constructing the handle costs ten times as much as reading resident
+    memory from an existing one, and :func:`memory_full` is called on every
+    cache miss. Holding only the newest handle means a forked child replaces
+    its parent's rather than reusing it.
+    """
+    return psutil.Process(pid)
 
 
 def memory_full():
@@ -18,7 +37,7 @@ def memory_full():
     is set, and otherwise against ``maximum_cache_memory_percentage`` of total
     physical memory.
     """
-    current_process = psutil.Process(os.getpid())
+    current_process = _process_handle(os.getpid())
     budget = config.infrastructure.maximum_cache_memory_bytes
     if budget is not None:
         return current_process.memory_info().rss > budget
@@ -26,6 +45,157 @@ def memory_full():
         current_process.memory_percent()
         > config.infrastructure.maximum_cache_memory_percentage
     )
+
+
+_ENTRY_OVERHEAD_BYTES = 512
+"""Non-payload cost of one entry: its key, the value object, and a dict slot.
+
+Calibrated against the resident-memory growth of a scoped cause-effect
+structure sweep, where entries averaged roughly 900 bytes by a walk of the live
+objects and roughly 540 bytes by the process's own resident growth. It is a
+single constant rather than a per-entry measurement because sizing each key
+exactly would cost more than the admission it informs.
+"""
+
+_ARRAY_DIM_BYTES = 16
+"""Per-dimension cost of an ndarray's shape and strides, one intp each."""
+
+_RECHECK_INTERVAL = 4096
+"""Admissions between ceiling re-checks once a store is bounded.
+
+Re-checking lets a bound that was latched during a transient spike be lifted,
+and keeps the cost of the check off all but one admission in this many.
+"""
+
+_MISSING = object()
+
+
+def entry_weight(value: Any) -> int:
+    """Estimated bytes one cached value occupies, including its key and slot.
+
+    An ndarray view's buffer belongs to the array it derives from, so only the
+    view object itself is charged. A sequence — the combinatorial index tables
+    are lists of tuples — is charged per element, since its cost is the
+    elements rather than any single buffer.
+    """
+    if isinstance(value, np.ndarray):
+        payload = value.nbytes if value.base is None else 0
+        return _ENTRY_OVERHEAD_BYTES + _ARRAY_DIM_BYTES * value.ndim + payload
+    if isinstance(value, list | tuple):
+        return _ENTRY_OVERHEAD_BYTES + sum(map(_element_weight, value))
+    return _ENTRY_OVERHEAD_BYTES
+
+
+_SEQUENCE_HEADER_BYTES = 56
+"""Object header of a tuple or list, before its element pointers."""
+
+_POINTER_BYTES = 8
+
+_SCALAR_BYTES = 32
+"""A small int or similar leaf, counted once rather than by identity.
+
+Small integers are interned, so charging each occurrence overstates a table of
+index tuples. The overstatement is uniform across entries, which is what the
+bound compares.
+"""
+
+_MAX_WEIGHT_DEPTH = 4
+
+
+def _element_weight(element: Any, depth: int = 0) -> int:
+    """Bytes one element of a cached sequence occupies.
+
+    Recurses through nested sequences to a fixed depth, since the index tables
+    nest two or three levels and a bound that stopped at the first would
+    undercount them by the width of every inner tuple.
+    """
+    if depth < _MAX_WEIGHT_DEPTH and isinstance(element, tuple | list):
+        return (
+            _SEQUENCE_HEADER_BYTES
+            + _POINTER_BYTES * len(element)
+            + sum(_element_weight(x, depth + 1) for x in element)
+        )
+    return _SCALAR_BYTES
+
+
+class ByteBoundedStore:
+    """A dict that holds its byte weight steady once memory reaches the ceiling.
+
+    Insertion order is the recency order, so the least recently used entry is
+    the first one iteration yields; a caller reinserts an entry on a hit to
+    move it to the recent end. Until resident memory reaches the cache ceiling
+    (see :func:`memory_full`) the store grows freely. From then on it admits an
+    entry by evicting least recently used ones, and refuses one too large to
+    fit an empty store rather than flushing everything to hold it.
+
+    Holding the weight steady, rather than shrinking it, is what the ceiling
+    can deliver: freeing Python objects returns their memory to the process
+    allocator for reuse but rarely to the operating system, so eviction does
+    not lower resident memory. What it buys is spending a fixed allocation on
+    recently used entries instead of on whichever were computed first.
+
+    Not internally synchronized. A caller sharing a store across threads holds
+    its own lock across :meth:`admit` and :meth:`discard`.
+    """
+
+    def __init__(self) -> None:
+        self.data: dict[Any, Any] = {}
+        self.evictions = 0
+        self._weight = 0
+        self._budget: int | None = None
+        self._admissions = 0
+
+    @property
+    def nbytes(self) -> int:
+        """Estimated bytes held by this store's entries."""
+        return self._weight
+
+    def admit(self, key: Any, value: Any) -> None:
+        """Store an entry, evicting least recently used ones to make room."""
+        weight = entry_weight(value)
+        self._admissions += 1
+        # Consult the ceiling while unbounded, periodically once bounded, and
+        # whenever the bound is about to refuse an entry outright, so a bound
+        # latched during a transient spike cannot persist.
+        if (
+            self._budget is None
+            or self._admissions % _RECHECK_INTERVAL == 0
+            or weight > self._budget
+        ):
+            if memory_full():
+                # Hold occupancy here and trade old entries for new ones.
+                if self._budget is None:
+                    self._budget = self._weight
+            else:
+                # Room again, whether because the spike that set the bound has
+                # passed or because memory was released elsewhere.
+                self._budget = None
+        if self._budget is not None:
+            while self.data and self._weight + weight > self._budget:
+                oldest, evicted = next(iter(self.data.items()))
+                del self.data[oldest]
+                self._weight -= entry_weight(evicted)
+                self.evictions += 1
+            if self._weight + weight > self._budget:
+                # Does not fit even in an empty store. Storing it would evict
+                # the whole working set for one entry.
+                return
+        self.discard(key)
+        self.data[key] = value
+        self._weight += weight
+
+    def discard(self, key: Any) -> None:
+        """Remove an entry if present, crediting back its weight."""
+        previous = self.data.pop(key, _MISSING)
+        if previous is not _MISSING:
+            self._weight -= entry_weight(previous)
+
+    def clear(self) -> None:
+        self.data.clear()
+        self.evictions = 0
+        self._weight = 0
+        self._budget = None
+        self._admissions = 0
 
 
 class _HashedSeq(list):

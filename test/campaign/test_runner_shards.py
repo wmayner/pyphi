@@ -84,6 +84,49 @@ def test_shard_execution_bounds_caches_by_its_memory_request(tmp_path):
     assert seen
 
 
+def test_shard_results_are_unchanged_by_a_binding_cache_ceiling(tmp_path):
+    """A ceiling that evicts throughout a shard's run does not alter results."""
+    from pyphi.cache import cache_utils
+    from pyphi.core import repertoire_algebra
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=5.0,
+    )
+    _run_all(directory)
+    unbounded = {
+        f.name: load(f) for f in sorted((directory / "outputs").glob("task-*.json.gz"))
+    }
+
+    bounded_dir = tmp_path / "camp_bounded"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=bounded_dir,
+        units_per_job=5.0,
+    )
+    repertoire_algebra.clear_caches()
+    real_memory_full = cache_utils.memory_full
+    cache_utils.memory_full = lambda: True
+    try:
+        _run_all(bounded_dir)
+    finally:
+        cache_utils.memory_full = real_memory_full
+        repertoire_algebra.clear_caches()
+
+    for name, expected in unbounded.items():
+        got = load(bounded_dir / "outputs" / name)
+        assert [e.status for e in got.entries] == [e.status for e in expected.entries]
+        assert [str(e.result) for e in got.entries] == [
+            str(e.result) for e in expected.entries
+        ]
+
+
 def test_bottleneck_ordering_gives_same_results(tmp_path):
     a = tmp_path / "plain"
     b = tmp_path / "ordered"
