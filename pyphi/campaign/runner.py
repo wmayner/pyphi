@@ -13,6 +13,7 @@ every case.
 from __future__ import annotations
 
 import importlib.metadata
+import os
 import time
 import traceback as _traceback
 from pathlib import Path
@@ -22,6 +23,7 @@ from pyphi import serialize
 from pyphi.cache import cache_utils
 from pyphi.campaign import CampaignTaskOutput
 from pyphi.campaign import CellOutput
+from pyphi.campaign import _parse_memory
 from pyphi.campaign import _resolve_compute_ref
 from pyphi.conf import config
 from pyphi.conf import presets
@@ -108,19 +110,42 @@ def _shard_config(task: Any) -> dict[str, Any]:
     # Bound the shard's caches by the memory it is actually allowed: entries
     # accumulate across every mechanism the shard carries, and the default
     # percentage of physical memory is no bound at all on a machine larger than
-    # the allocation. The allocation the process runs under takes precedence
-    # over the one planning predicted, so raising a job's request raises the
-    # ceiling with it; the planned figure stands in where the allocation cannot
-    # be read. An explicit ceiling configured at preparation time is left alone.
+    # the allocation. Precedence runs from the most authoritative source down:
+    # the cgroup the process runs under, then the request the scheduler was
+    # asked for, then the figure planning predicted. So raising a job's request
+    # raises the ceiling with it even on a pool that does not enforce memory
+    # through cgroups. An explicit ceiling configured at preparation time is
+    # left alone.
     spec = getattr(task, "spec", None)
-    if (
-        spec is not None
-        and spec.memory_bytes
-        and overrides.get("maximum_cache_memory_bytes") is None
-    ):
-        allowance = cache_utils._cgroup_memory_limit() or spec.memory_bytes
+    allowance = (
+        cache_utils._cgroup_memory_limit()
+        or _granted_memory_bytes()
+        or (spec.memory_bytes if spec is not None else 0)
+    )
+    if allowance and overrides.get("maximum_cache_memory_bytes") is None:
         overrides["maximum_cache_memory_bytes"] = shard_cache_budget_bytes(allowance)
     return overrides
+
+
+def _granted_memory_bytes() -> int:
+    """The allocation the scheduler granted this job, or 0 if it said nothing.
+
+    The submit file exports its ``request_memory`` as ``PYPHI_SHARD_MEMORY``.
+    This is what the scheduler was asked for rather than what the kernel
+    enforces, so it stands behind
+    :func:`~pyphi.cache.cache_utils._cgroup_memory_limit` and ahead of the
+    figure planning recorded — it covers a pool that grants memory without
+    confining the job to it, where no cgroup limit is readable and the planned
+    figure would cap the caches at the original request however much memory
+    the job was actually given.
+    """
+    value = os.environ.get("PYPHI_SHARD_MEMORY", "").strip()
+    if not value:
+        return 0
+    try:
+        return _parse_memory(value)
+    except ValueError:
+        return 0
 
 
 def _cache_totals() -> tuple[int, int, int]:

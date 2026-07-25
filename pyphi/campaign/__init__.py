@@ -311,6 +311,10 @@ preserve_relative_paths = true
 when_to_transfer_output = ON_EXIT_OR_EVICT
 request_cpus        = 1
 request_memory      = $(memory)
+# The granted allocation, so the shard's cache ceiling tracks the request
+# rather than the value planning recorded in the task file. Editing a row in
+# remaining.txt then moves both together.
+environment         = "PYPHI_SHARD_MEMORY=$(memory)"
 request_disk        = {request_disk}
 log                 = logs/task-{pad}.log
 output              = logs/task-{pad}.out

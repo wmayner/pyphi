@@ -86,6 +86,44 @@ def test_shard_execution_bounds_caches_by_its_memory_request(tmp_path):
     assert seen
 
 
+def test_granted_memory_sets_the_cache_ceiling(tmp_path, monkeypatch):
+    """The request the scheduler was asked for beats the planned one.
+
+    With no cgroup limit to read — a pool that grants memory without
+    confining the job to it — the exported request is the only signal that
+    a resubmission was given more room than planning predicted.
+    """
+    from pyphi.cache import cache_utils
+    from pyphi.cost import shard_cache_budget_bytes
+
+    monkeypatch.setattr(cache_utils, "_cgroup_memory_limit", lambda: None)
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=5.0,
+        request_memory="1GB",
+    )
+    task = next(
+        t
+        for t in map(load, sorted((directory / "tasks").glob("task-*.json.gz")))
+        if t.kind == "ces_shard"
+    )
+    monkeypatch.setenv("PYPHI_SHARD_MEMORY", "8GB")
+    assert _shard_config(task)["maximum_cache_memory_bytes"] == shard_cache_budget_bytes(
+        8 * 1024**3
+    )
+    # Anything unparseable falls back to the planned request rather than
+    # leaving the caches unbounded.
+    monkeypatch.setenv("PYPHI_SHARD_MEMORY", "lots")
+    assert _shard_config(task)["maximum_cache_memory_bytes"] == shard_cache_budget_bytes(
+        task.spec.memory_bytes
+    )
+
+
 def test_shard_results_are_unchanged_by_a_binding_cache_ceiling(tmp_path):
     """A ceiling that evicts throughout a shard's run does not alter results."""
     from pyphi.cache import cache_utils
