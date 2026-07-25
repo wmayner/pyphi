@@ -55,12 +55,12 @@ def _memoize(fn: Callable) -> Callable:
 
     Distinct-but-equivalent Systems (re-constructed, or label-distinct) share
     entries via :class:`~pyphi.cache.content.ContentCache`. A fingerprint's
-    entries are evicted when its last live carrier is garbage-collected. Stops
-    inserting new entries when ``cache_repertoires`` is false or when
-    ``cache_utils.memory_full()`` reports process memory above
-    ``maximum_cache_memory_percentage`` — already-computed values are still
-    returned, just not cached. Returned arrays are read-only;
-    callers that need a mutable copy must copy explicitly.
+    entries are evicted when its last live carrier is garbage-collected. Once
+    resident memory reaches the configured cache ceiling, occupancy is held
+    steady by evicting least recently used entries; setting
+    ``cache_repertoires`` to false stops caching entirely, in which case
+    computed values are returned but not stored. Returned arrays are
+    read-only; callers that need a mutable copy must copy explicitly.
 
     Cache keys carry the resolved cause-side background convention, so
     cause-side entries never cross conventions (effect-side entries are
@@ -520,7 +520,6 @@ def unconstrained_forward_effect_repertoire(
     return total / n_states
 
 
-@_memoize
 def unconstrained_forward_cause_repertoire(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
 ) -> Any:
@@ -528,6 +527,16 @@ def unconstrained_forward_cause_repertoire(
 
     Since ``m`` is fixed and we average over ``Z``, the per-state
     probabilities are all equal to the mean — fill with that value.
+
+    Notes
+    -----
+    Deliberately not memoized, unlike its effect-direction counterpart. The
+    work it depends on is :func:`forward_cause_repertoire`, which is memoized;
+    what remains is a mean, an allocation, and a fill, worth about 4 µs against
+    the roughly 0.7 µs a lookup costs — and that margin does not grow with
+    mechanism size, since the cost is set by the purview. Reaching it needs the
+    same ``(mechanism, purview)`` evaluated twice, which
+    :func:`intrinsic_information` does not do within one analysis.
     """
     mean_forward_cause_probability = forward_cause_repertoire(
         cs, mechanism, purview, None
@@ -539,7 +548,9 @@ def unconstrained_forward_cause_repertoire(
         )
     )
     result.fill(mean_forward_cause_probability)
-    return result
+    # Read-only like every other repertoire the kernel returns; the memoizing
+    # decorator does this for the functions it wraps.
+    return _freeze(result)
 
 
 def unconstrained_forward_repertoire(

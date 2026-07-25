@@ -827,9 +827,58 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
   time. The request and the enforced bound come from one figure, so the estimate
   cannot drift from what the job is actually allowed. An order-3 purview shard goes
   from a 1.5 GB request with no effective ceiling to a 2.5 GB request with caching
-  stopping at 2.25 GB, and the 16 GB floor is no longer needed. The 1 GB headroom
+  bounded at 2.25 GB, and the 16 GB floor is no longer needed. The 1 GB headroom
   is a design allowance, not yet a measured constant — peak `MemoryUsage` from a
   real shard under this build would settle it.
+- **✅ Eviction at the ceiling instead of a permanent freeze.** Reaching the ceiling
+  used to stop a cache storing anything for the rest of the process, so its contents
+  were fixed by computation order and every later lookup missed. `ContentCache` now
+  holds the byte weight it had reached and admits new entries by discarding the
+  least recently used, measuring occupancy in bytes because repertoire size varies
+  by orders of magnitude with purview order. Measured on a 10-unit substrate,
+  order-3 purviews, 175 mechanisms, with the ceiling binding over the last 102:
+  freeze cost **1.455×** the unbounded control, eviction **1.037×** (paired per
+  mechanism, eviction faster on 81/102, median ratio 1.48); hit rate 72.6% → 95.5%
+  against an unbounded 95.6%, on roughly half the entries; peak resident memory
+  312 MiB against freeze's 338 MiB. Eviction cannot *lower* resident memory —
+  clearing 477 MiB of entries returned none of it to the OS, since freed objects go
+  back to the process allocator — so the policy holds occupancy steady rather than
+  shrinking it. Ownership was confirmed first: `RepertoireIrreducibilityAnalysis`
+  copies its repertoires (`np.array`), so results never alias cached arrays.
+  Related: the ceiling check built a fresh `psutil.Process` on every cache miss at
+  14.5 µs a call, which was **most of the freeze policy's measured cost** (19 s of a
+  208 s run) rather than the recomputation it forced; reusing the handle brings it
+  to 1.59 µs. The `@cache` decorator's `maxmem` branch, which the audit began from,
+  was dead — all five call sites passed `maxmem=None` and its default bound the
+  config at import — and is deleted, along with its unused `cache=` backing-store
+  parameter (every call site passed a fresh dict, so no store was ever shared).
+  Two kernel caches (`unconstrained_forward_{cause,effect}_repertoire`) took
+  **zero hits** across a full 175-mechanism sweep, 11.4% of cache bytes never
+  read — structurally, since `intrinsic_information` is called once per
+  `(direction, mechanism, purview)`, so a hit needs the same pair evaluated
+  twice. Dropping both was measured 2.4% faster and 107 MiB smaller. They split
+  on what a hit is worth: the cause version saves a flat ~4 µs against a 0.7 µs
+  lookup, because its expensive input `forward_cause_repertoire` is already
+  memoized, so **its memoization is removed** (the read-only guarantee moves
+  into the function body); the effect version averages over every mechanism
+  state, worth 10× a lookup at |m|=1 and 99× at |m|=3 and growing, so it keeps
+  its cache as insurance against an expensive miss.
+- **✅ The same bound on the module-level `@cache` caches.** `@cache` holds its
+  entries in a shared `ByteBoundedStore` (`cache/cache_utils.py`), which both it
+  and `ContentCache` use, so one policy governs every in-process cache. A byte
+  bound rather than a count because the two argument spaces fail a count in
+  opposite ways: the combinatorial index tables key on a sequence length alone —
+  at most one entry per system size, but values growing as 2ᴺ or 3ᴺ
+  (`directed_tripartition_indices(12)` is a single 317 MiB entry) — while
+  `max_entropy_distribution` keys on a purview, giving 2ⁿ − 1 entries (4,095 and
+  6 MiB at n=12; 65,535 and 363 MiB at n=16). The estimator tracks a walk of the
+  live objects to within 1.0–1.2× on large values, erring high. Exposure is
+  confined to IIT 3.0: measured over `ces()`, `sia()`, and 127 campaign shards,
+  **no IIT 4.0 path touches these caches at all** — `max_entropy_distribution` is
+  reached only from `cause_repertoire` with an empty mechanism, and IIT 4.0 takes
+  the `unconstrained_forward_*` kernel route instead. `num_subsets_larger_than_one_element`
+  is no longer memoized: at 109 ns it is cheaper to evaluate than the ~250 ns a
+  lookup costs, so its cache was a 2× loss on a function with no callers.
 
 ## Context
 
