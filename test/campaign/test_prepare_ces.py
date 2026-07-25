@@ -516,3 +516,62 @@ def test_condor_transfer_sandbox_end_to_end(tmp_path):
         reference = pyphi.System(examples.basic_substrate(), BASIC_STATE).ces()
     assert float(result.sia.phi) == float(reference.sia.phi)
     assert len(result.distinctions) == len(reference.distinctions)
+
+
+def test_workloads_override_replaces_the_counting_walk(tmp_path):
+    from pyphi.cost import MechanismWorkload
+
+    override = {(0,): MechanismWorkload(units=7, max_repertoire_cells=2)}
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+        workloads=override,
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["groups"][0]["mechanism_workloads"] == {"0": 7}
+    ces_tasks = [t for t in manifest["tasks"] if t["kind"] == "ces_shard"]
+    assert [t["units"] for t in ces_tasks] == [7.0]
+    spec = load(directory / f"tasks/task-{ces_tasks[0]['task_id']:04d}.json.gz").spec
+    assert spec.payload_kind == "mechanisms"
+    assert spec.mechanisms == ((0,),)
+
+
+def test_workloads_override_splits_a_mechanism_the_model_would_not(tmp_path):
+    """An inflated charge drives the ladder down to purview ranges."""
+    from pyphi.cost import MechanismWorkload
+
+    override = {(0, 1, 2): MechanismWorkload(units=10**6, max_repertoire_cells=8)}
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=200.0,
+        workloads=override,
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    kinds = {
+        load(directory / f"tasks/task-{t['task_id']:04d}.json.gz").spec.payload_kind
+        for t in manifest["tasks"]
+        if t["kind"] == "ces_shard"
+    }
+    assert kinds == {"purview_range"}
+
+
+def test_workloads_override_rejects_multiple_planning_groups(tmp_path):
+    from pyphi.cost import MechanismWorkload
+
+    with pytest.raises(ValueError, match="single planning group"):
+        prepare_ces(
+            {"a": examples.basic_substrate(), "b": examples.basic_substrate()},
+            states=BASIC_STATE,
+            formalisms="IIT_4_0_2026",
+            directory=tmp_path / "camp",
+            units_per_job=1e9,
+            workloads={(0,): MechanismWorkload(units=7, max_repertoire_cells=2)},
+        )

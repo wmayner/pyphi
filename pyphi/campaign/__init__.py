@@ -549,6 +549,7 @@ def prepare_ces(
     directory: Any,
     units_per_job: float,
     limit: int = 100_000_000,
+    workloads: dict[tuple[int, ...], Any] | None = None,
     sia: Any = None,
     resolution_state: Any = None,
     ordering: str | None = None,
@@ -592,6 +593,14 @@ def prepare_ces(
         Work budget for each planning walk. The walk raises
         :class:`ValueError` past the limit — the workload is then too
         large to plan; narrow the scope or raise the limit.
+    workloads : dict, optional
+        Per-mechanism workloads to plan against, replacing the counting
+        walk — a :func:`pyphi.cost.mechanism_workloads` mapping, or one
+        derived from measured runtimes when the caller knows the cost
+        better than the analytic model does. Applies to a campaign with a
+        single planning group (one substrate, formalism, and subset);
+        :class:`ValueError` otherwise, since a group's workloads are
+        specific to its substrate and subset.
     sia : optional
         A precomputed system irreducibility analysis; suppresses SIA
         shards and is used at collection. Single-cell campaigns only.
@@ -681,6 +690,12 @@ def prepare_ces(
     # state-independent, so states replicate tasks, not planning.
     group_keys: list[tuple[Any, str, tuple]] = []
     group_data: dict[tuple[Any, str, tuple], dict] = {}
+    if workloads is not None and len({(c[0], c[1], c[2]) for c in cells}) > 1:
+        raise ValueError(
+            "workloads applies to a single planning group; this campaign has "
+            "several (substrate, formalism, subset) groups, whose workloads "
+            "differ"
+        )
     for label, formalism_, subset, state in cells:
         key = (label, formalism_, subset)
         if key in group_data:
@@ -691,17 +706,21 @@ def prepare_ces(
             # stands in for construction (and is validated here).
             system = System.from_substrate(substrate_map[label], tuple(state), subset)
             resolved = resolve_scope(scope, system.node_labels)
-            workloads = mechanism_workloads(
-                substrate_map[label],
-                subset=system.node_indices,
-                scope=resolved,
-                limit=limit,
+            group_workloads = (
+                workloads
+                if workloads is not None
+                else mechanism_workloads(
+                    substrate_map[label],
+                    subset=system.node_indices,
+                    scope=resolved,
+                    limit=limit,
+                )
             )
             ces_specs = _shards.plan_ces_shards(
                 system,
                 resolved,
                 units_per_job,
-                workloads=workloads,
+                workloads=group_workloads,
                 memory_floor_bytes=memory_floor,
             )
             if not any(s.mechanisms or s.mechanism for s in ces_specs):
@@ -715,7 +734,7 @@ def prepare_ces(
             )
             group_data[key] = {
                 "resolved": resolved,
-                "workloads": workloads,
+                "workloads": group_workloads,
                 "ces_specs": ces_specs,
                 "sia_specs": sia_specs,
                 "subset": tuple(system.node_indices),

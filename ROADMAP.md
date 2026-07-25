@@ -894,6 +894,86 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
   is no longer memoized: at 109 ns it is cheaper to evaluate than the ~250 ns a
   lookup costs, so its cache was a 2× loss on a function with no callers.
 
+### 2026-07-25 do work units predict shard runtime?
+
+> `units_per_job` is the only budget bounding a scoped-CES shard's runtime, and it
+> was calibrated against a raw operation count that had never been regressed
+> against time — unlike `shard_memory_bytes`, which carries measured constants. A
+> production campaign reported shards of nearly equal units differing several-fold
+> in runtime by which rung of the planning ladder produced them: `mechanisms`
+> shards at ~99.8 M units had accumulated ≥4 h 55 m CPU and not finished, while a
+> `purview_range` shard at 70.4 M units finished in 63 min. The leading hypothesis
+> was cache locality — a shard packing many distinct mechanisms reuses nothing,
+> trips the memory ceiling, and recomputes from then on. Measurements are in
+> `experiments/units_runtime_model/`, on a periodic Ising ring at 14, 16, and 21
+> units under `IIT_4_0_2026`, purview order ≤ 3, against the eviction policy of
+> the section above.
+
+- **✅ The operation count is exact.** Across 46 (mechanism, purview) pairs over
+  mechanism orders 1–6, `evaluate_partition` was called exactly as many times as
+  the charged partition count — ratio 1.000, no exceptions. Both ways that could
+  have failed stayed inert: the zero-φ short-circuit never fired (every sampled
+  mechanism was irreducible), and every pair had a single tied specified state, so
+  the per-state repetition of the sweep in `_find_mip_iit4` never multiplied the
+  work. On a substrate where either does fire, the charge becomes an upper bound
+  and the sign of the error is known.
+- **✅ The model's one real error is the relative weight of its two axes, worth
+  ~5%.** Per-pair CPU time regresses on partition count as 524 µs per purview
+  evaluation plus 41.8 µs per partition: a purview evaluation costs about **12.5
+  partitions**, where the model charged 1. It computes the unpartitioned
+  repertoire and searches the candidate specified states before any partition is
+  swept. Cost per unit therefore runs 105 µs at (|m|=1, |p|=1) against a 41 µs
+  asymptote by (|m|=5, |p|=3) — an undercount that only bites where purviews are
+  small enough that few partitions amortize the fixed cost.
+  `pyphi.cost.PURVIEW_EVALUATION_UNITS = 12` now carries the measured weight, in
+  the counting walk and in the planner's rung-2 split alike.
+- **✅ `SECONDS_PER_UNIT` closes the loop from a runtime target to a budget.**
+  4.4e-5 CPU seconds per unit, with `units_for_runtime()` and `runtime_seconds()`
+  either side of it — the units→time calibration the memory model already had and
+  the time model did not. Cost per unit held within about 17% of it across both
+  payload kinds, 4 to 66 packed mechanisms, 14/16/21-unit substrates, and cache
+  ceilings from unlimited to fully binding.
+- **❌ Cache locality refuted, in both of its forms.** Neither the payload path nor
+  mechanism multiplicity changes cost per unit: at 21 units and matched charges,
+  one order-7 mechanism split across purviews cost 44.8 µs/unit against 42.1 for
+  21 packed order-4 mechanisms (1.06×, the split form marginally slower); at a
+  fixed unit total, shards of 66/24/6/4 distinct mechanisms cost 45.7/41.8/41.2/43.4
+  µs/unit. Miss rate does track packing strongly (9.6% at 66 mechanisms against
+  2.1% at 4), so the structural claim behind the hypothesis is real — but the
+  paired ceiling test settles what it is worth: under a ceiling below the process's
+  own baseline resident memory, so that nothing is admitted at all, misses per unit
+  rose 13× and 19× for the two forms while cost per unit rose **1.17× and 1.09×**.
+  Recomputing a repertoire is cheap beside the sweep it feeds. Units alone predict
+  CPU time across these shards to within 5.3%, and adding a per-miss term does not
+  improve the fit — its coefficient comes out negative.
+- **✅ A fallback for pools that grant memory without enforcing it.** The ceiling
+  bug behind the uninformative 4 GB vs. 16 GB control is fixed above, by reading
+  the process's cgroup allowance. A pool that does not confine a job to its
+  request reports no allowance, and shard execution would fall back to the
+  planned figure again — so the generated submit file exports its
+  `request_memory` as `PYPHI_SHARD_MEMORY` and the runner consults it between
+  the cgroup limit and the planned figure. What the kernel enforces still wins
+  over what the scheduler was asked for.
+- **✅ Shards now record what they cost.** `CampaignTaskOutput.metrics` carries wall
+  and CPU seconds, cache hit/miss/eviction counts, and the shard's planned units,
+  payload kind, and memory request. Nothing in the campaign path had ever recorded
+  a runtime, which is why a several-fold mispredicton could stand unexplained; a
+  campaign's own outputs now recalibrate `pyphi.cost` against its own hardware.
+- **✅ `prepare_ces(workloads=…)`.** `plan_ces_shards` already accepted a workload
+  override; `prepare_ces` did not expose it, so a caller who knew their workload
+  better than the model had no way to say so. Single planning group only, since a
+  group's workloads are specific to its substrate and subset.
+- **🔴 Open: the production discrepancy is not reproduced.** The production
+  `purview_range` shard (53.7 µs/unit) agrees with these measurements to 1.2×; its
+  `mechanisms` shards (≥177 µs/unit) do not. Shard size, the one axis production
+  ran two orders of magnitude beyond these arms, drifts only mildly: at 21 units
+  the same composition at 2.0 M / 5.5 M / 20.1 M units cost 44.00 / 45.02 / 50.65
+  µs/unit, about 1.15× per decade (part of which may be memory-bandwidth
+  contention — the largest run shared the machine), extrapolating to perhaps 1.25×
+  at 100 M. Compounded with cache starvation that is 1.35×, against a ≥4× gap.
+  What remains is outside the cost model: the execute nodes the two shard forms
+  landed on. The recorded metrics make the next campaign decide it.
+
 ## Context
 
 PyPhi is a scientific library implementing Integrated Information Theory (IIT). It has
