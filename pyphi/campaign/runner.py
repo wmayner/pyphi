@@ -13,6 +13,7 @@ every case.
 from __future__ import annotations
 
 import importlib.metadata
+import time
 import traceback as _traceback
 from pathlib import Path
 from typing import Any
@@ -120,6 +121,32 @@ def _shard_config(task: Any) -> dict[str, Any]:
         allowance = cache_utils._cgroup_memory_limit() or spec.memory_bytes
         overrides["maximum_cache_memory_bytes"] = shard_cache_budget_bytes(allowance)
     return overrides
+
+
+def _cache_totals() -> tuple[int, int, int]:
+    """Summed (hits, misses, evictions) over this process's caches."""
+    from pyphi.cache import registry
+
+    infos = registry.info().values()
+    return (
+        sum(i.hits for i in infos),
+        sum(i.misses for i in infos),
+        sum(i.evictions for i in infos),
+    )
+
+
+def _spec_metrics(task: Any) -> dict[str, Any]:
+    """The planned cost a shard task was packed against, if it is one."""
+    spec = getattr(task, "spec", None)
+    if spec is None:
+        stride = getattr(task, "stride", None)
+        return {"stride": list(stride)} if stride is not None else {}
+    return {
+        "payload_kind": spec.payload_kind,
+        "units": spec.units,
+        "memory_bytes": spec.memory_bytes,
+        "n_mechanisms": len(spec.mechanisms) if spec.mechanisms else 1,
+    }
 
 
 def _global_tie_indices(ties: Any, slice_parts: list, indices: list[int]) -> list[int]:
@@ -291,16 +318,27 @@ def run_task(
     task = serialize.load(task_path)
     substrates = _load_substrates(task, Path(substrates_dir))
     kind = getattr(task, "kind", "sweep_cells")
+    wall, cpu = time.perf_counter(), time.process_time()
+    before = _cache_totals()
     if kind == "ces_shard":
         entries, failed = _run_ces_shard(task, substrates)
     elif kind == "sia_shard":
         entries, failed = _run_sia_shard(task, substrates)
     else:
         entries, failed = _run_sweep_task(task, substrates)
+    after = _cache_totals()
     output = CampaignTaskOutput(
         task_id=task.task_id,
         pyphi_version=importlib.metadata.version("pyphi"),
         entries=tuple(entries),
+        metrics={
+            "wall_s": time.perf_counter() - wall,
+            "cpu_s": time.process_time() - cpu,
+            "cache_hits": after[0] - before[0],
+            "cache_misses": after[1] - before[1],
+            "cache_evictions": after[2] - before[2],
+            **_spec_metrics(task),
+        },
     )
     _write_output(output, Path(outputs_dir))
     return 1 if failed else 0

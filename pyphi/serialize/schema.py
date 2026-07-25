@@ -542,6 +542,7 @@ class CampaignTaskOutputSchema(msgspec.Struct, frozen=True, tag="campaign_task_o
     task_id: int
     pyphi_version: str
     entries: tuple[CellOutputSchema, ...]
+    metrics: dict[str, Any] | None = None
 
 
 class AxisScopeSchema(msgspec.Struct, frozen=True, tag="axis_scope"):

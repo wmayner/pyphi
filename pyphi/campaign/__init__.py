@@ -96,11 +96,20 @@ class CellOutput:
 
 @dataclass(frozen=True)
 class CampaignTaskOutput:
-    """A task's per-cell outcomes, aligned 1:1 with the task's cells."""
+    """A task's per-cell outcomes, aligned 1:1 with the task's cells.
+
+    ``metrics`` records what the task cost to run: ``wall_s``, ``cpu_s``,
+    ``cache_hits``, ``cache_misses``, ``cache_evictions``, and for a shard
+    task the ``payload_kind``, ``units``, ``memory_bytes``, and
+    ``n_mechanisms`` it was packed against. These are the observed side of
+    what :mod:`pyphi.cost` predicts, so a campaign's own outputs recalibrate
+    :data:`pyphi.cost.SECONDS_PER_UNIT` for the hardware it ran on.
+    """
 
     task_id: int
     pyphi_version: str
     entries: tuple[CellOutput, ...]
+    metrics: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

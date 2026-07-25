@@ -1365,6 +1365,7 @@ def _register_campaign() -> None:
         task_id=o.task_id,
         pyphi_version=o.pyphi_version,
         entries=tuple(to_schema(e) for e in o.entries),
+        metrics=o.metrics,
     )
 
     def _decode_campaign_task_output(s: schema.CampaignTaskOutputSchema) -> Any:
@@ -1372,6 +1373,7 @@ def _register_campaign() -> None:
             task_id=s.task_id,
             pyphi_version=s.pyphi_version,
             entries=tuple(from_schema(e) for e in s.entries),
+            metrics=s.metrics,
         )
 
     _DECODERS[schema.CampaignTaskOutputSchema] = _decode_campaign_task_output

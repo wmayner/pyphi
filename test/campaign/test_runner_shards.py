@@ -171,3 +171,34 @@ def test_order_cap_agrees_between_planning_and_execution(tmp_path):
         if cap is not None:
             assert len(d.cause.purview) <= cap
             assert len(d.effect.purview) <= cap
+
+
+def test_shard_output_records_what_the_shard_cost(tmp_path):
+    """Every task's output carries the observed cost of running it."""
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_4_0_2026",
+        directory=directory,
+        units_per_job=1e9,
+    )
+    _run_all(directory)
+    manifest = json.loads((directory / "manifest.json").read_text())
+    seen_kinds = set()
+    for row in manifest["tasks"]:
+        out = load(directory / "outputs" / f"task-{row['task_id']:04d}.json.gz")
+        metrics = out.metrics
+        assert metrics is not None
+        assert metrics["cpu_s"] >= 0
+        assert metrics["wall_s"] >= metrics["cpu_s"] * 0.5
+        assert metrics["cache_hits"] >= 0
+        assert metrics["cache_misses"] > 0
+        assert metrics["cache_evictions"] == 0
+        if row["kind"] == "ces_shard":
+            # The planned charge travels with the observed cost, so a
+            # campaign's outputs alone calibrate units against runtime.
+            assert metrics["units"] == row["units"]
+            assert metrics["memory_bytes"] == row["memory_bytes"]
+            seen_kinds.add(metrics["payload_kind"])
+    assert "mechanisms" in seen_kinds
