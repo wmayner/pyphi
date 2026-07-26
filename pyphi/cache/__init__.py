@@ -51,12 +51,9 @@ def cache(typed: bool = False):
     its occupancy steady, evicting least recently used entries to admit new
     ones.
 
-    A byte bound rather than an entry bound because the argument spaces here
-    differ in kind: the combinatorial index tables are keyed on a sequence
-    length alone, giving at most one entry per system size but values that grow
-    as 2ᴺ or 3ᴺ, while :func:`pyphi.distribution.max_entropy_distribution` is
-    keyed on a purview, giving one entry per subset. Neither is bounded by a
-    count.
+    The bound is on bytes rather than on entry count because a cached value
+    may be anything from a scalar to an array whose size grows exponentially
+    in the size of the system.
 
     Parameters
     ----------

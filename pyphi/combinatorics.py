@@ -97,12 +97,6 @@ def num_subsets_larger_than_one_element(n: int) -> int:
         |X| = |P(n)| - |{S ∈ P(n) | |S| = 1}| - |{S ∈ P(n) | |S| = 0}|
             = 2^n    - (n choose 1)             - |{ø}|
             = 2^n    - n                        - 1
-
-    Notes
-    -----
-    Deliberately not memoized: the expression evaluates in about 66 ns, well
-    under the roughly 250 ns a cache lookup costs, so caching it was a net
-    loss of about a factor of four.
     """
     return 2**n - n - 1  # type: ignore[no-any-return]
 
