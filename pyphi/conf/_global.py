@@ -230,6 +230,7 @@ class _GlobalConfig:
         nests them under.
         """
         from pyphi.conf._field_routing import FIELD_TO_LAYER
+        from pyphi.conf._field_routing import RENAMED_FIELDS
         from pyphi.conf._field_routing import ConfigurationError
         from pyphi.conf._io import load_yaml as _load
 
@@ -241,10 +242,13 @@ class _GlobalConfig:
                 for field_name, value in fields_dict.items():
                     layer, _ = FIELD_TO_LAYER.get(field_name, (None, None))
                     if layer != section_name:
+                        renamed = RENAMED_FIELDS.get(field_name)
+                        hint = f"; it is now {renamed!r}" if renamed else ""
                         raise ConfigurationError(
                             f"config field {field_name!r} is nested under "
                             f"{section_name!r} but belongs to "
                             f"{layer if layer is not None else 'no known layer'!r}"
+                            f"{hint}"
                         )
                     setattr(self, field_name, value)
             for sub_name in ("iit", "actual_causation"):

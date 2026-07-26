@@ -1,6 +1,6 @@
 In-memory caches now evict under memory pressure instead of freezing. Once
-resident memory reaches `maximum_cache_memory_bytes` (or
-`maximum_cache_memory_percentage`), a cache used to refuse every new entry for
+resident memory reaches `memory_ceiling_bytes` (or
+`memory_ceiling_percentage`), a cache used to refuse every new entry for
 the rest of the process, so which results stayed cached was decided by whichever
 happened to be computed first. It now holds its occupancy at the level it had
 reached and admits new entries by discarding the least recently used ones. On a

@@ -45,7 +45,7 @@ infrastructure:
   # Backend for parallel computation: "local" (ProcessPoolExecutor) or "auto".
   parallel_backend: local
   # Memory ceiling (percent) for in-memory caches.
-  maximum_cache_memory_percentage: 100
+  memory_ceiling_percentage: 100
   # Repertoire and purview caches.
   cache_repertoires: true
   cache_potential_purviews: true

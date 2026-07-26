@@ -10,9 +10,9 @@ Hamming matrices, ...) through a uniform process-local cache surface in
 - ``pyphi.cache.clear(name)``: clear one named cache.
 
 The total memory footprint of in-memory caches is bounded by the
-``config.infrastructure.maximum_cache_memory_percentage`` option, or, for a
+``config.infrastructure.memory_ceiling_percentage`` option, or, for a
 process allowed only part of the machine, by
-``config.infrastructure.maximum_cache_memory_bytes``.
+``config.infrastructure.memory_ceiling_bytes``.
 
 Setting ``config.infrastructure.disk_cache_results = True`` additionally
 persists whole SIA and cause-effect-structure results to a

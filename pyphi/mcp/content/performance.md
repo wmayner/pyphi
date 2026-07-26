@@ -25,7 +25,7 @@ PyPhi caches at two levels.
 
 **In-memory (on by default).** Repertoire and potential-purview computations are
 memoized within a process, so work is reused within a single analysis. The
-combined footprint is bounded by `maximum_cache_memory_percentage` (default 50%
+combined footprint is bounded by `memory_ceiling_percentage` (default 50%
 of the memory the process may use — its cgroup allowance under a scheduler or
 container, total RAM otherwise); past that, occupancy holds steady and new
 entries displace the least recently used ones. Inspect with `pyphi.cache.info()`, which reports hits,
@@ -34,7 +34,20 @@ misses, entry count, bytes, and evictions per cache, and clear with
 watching memory climb? Set `clear_system_caches_after_computing_sia = True` to
 trade recomputation for a lower ceiling. Under a batch scheduler, a container,
 or a cgroup, the allowance is detected from the cgroup; set
-`maximum_cache_memory_bytes` explicitly where none is reported.
+`memory_ceiling_bytes` explicitly where none is reported.
+
+Both options bound **total resident memory**, not the caches alone, so size
+them from what the process may use rather than from how big you expect the
+caches to get. On a sampled 21-unit cause-effect-structure shard the caches
+held 70–130 MB while the process held 2.6 GB — the rest being the interpreter,
+the substrate TPM, and numpy working space — so the allowance the caches
+actually receive is the ceiling less that baseline.
+
+Note also what the ceiling means for a scheduled job: because it follows the
+memory actually granted, asking the scheduler for more memory grows the caches
+to match rather than leaving the extra as free headroom. To buy headroom
+without growing them, raise the request *and* pin
+`memory_ceiling_bytes` to the ceiling you want.
 
 **Disk-backed result cache (opt-in, off by default).** This is the one to reach
 for on expensive work:

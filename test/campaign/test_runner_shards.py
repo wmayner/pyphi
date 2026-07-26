@@ -70,7 +70,7 @@ def test_shard_execution_bounds_caches_by_its_memory_request(tmp_path):
         task = load(task_file)
         if task.kind != "ces_shard":
             continue
-        budget = _shard_config(task)["maximum_cache_memory_bytes"]
+        budget = _shard_config(task)["memory_ceiling_bytes"]
         assert budget == shard_cache_budget_bytes(task.spec.memory_bytes)
         assert 0 < budget < task.spec.memory_bytes
         # A ceiling configured at preparation time wins over the derived one.
@@ -78,10 +78,10 @@ def test_shard_execution_bounds_caches_by_its_memory_request(tmp_path):
             task,
             config_overrides={
                 **task.config_overrides,
-                "maximum_cache_memory_bytes": 7,
+                "memory_ceiling_bytes": 7,
             },
         )
-        assert _shard_config(pinned)["maximum_cache_memory_bytes"] == 7
+        assert _shard_config(pinned)["memory_ceiling_bytes"] == 7
         seen += 1
     assert seen
 
@@ -113,13 +113,13 @@ def test_granted_memory_sets_the_cache_ceiling(tmp_path, monkeypatch):
         if t.kind == "ces_shard"
     )
     monkeypatch.setenv("PYPHI_SHARD_MEMORY", "8GB")
-    assert _shard_config(task)["maximum_cache_memory_bytes"] == shard_cache_budget_bytes(
+    assert _shard_config(task)["memory_ceiling_bytes"] == shard_cache_budget_bytes(
         8 * 1024**3
     )
     # Anything unparseable falls back to the planned request rather than
     # leaving the caches unbounded.
     monkeypatch.setenv("PYPHI_SHARD_MEMORY", "lots")
-    assert _shard_config(task)["maximum_cache_memory_bytes"] == shard_cache_budget_bytes(
+    assert _shard_config(task)["memory_ceiling_bytes"] == shard_cache_budget_bytes(
         task.spec.memory_bytes
     )
 

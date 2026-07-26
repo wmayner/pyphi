@@ -25,6 +25,18 @@ class ConfigurationError(ValueError):
     """Raised on config schema problems (collisions, unknown options, etc.)."""
 
 
+RENAMED_FIELDS = {
+    "maximum_cache_memory_bytes": "memory_ceiling_bytes",
+    "maximum_cache_memory_percentage": "memory_ceiling_percentage",
+}
+"""Former names of config fields, mapped to what they are called now.
+
+Consulted only to add a pointer to the error raised for an unrecognized field,
+so a configuration file written against an earlier version says what to change
+rather than only that something is wrong.
+"""
+
+
 def _build_field_map() -> dict[str, tuple[str, str | None]]:
     out: dict[str, tuple[str, str | None]] = {}
     flat_layers: list[tuple[str, type]] = [

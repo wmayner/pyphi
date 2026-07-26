@@ -112,7 +112,7 @@ def run_spec(
         state=tuple(system.state),
         subset=tuple(system.node_indices),
         scope=scope,
-        config_overrides={"maximum_cache_memory_bytes": ceiling_bytes},
+        config_overrides={"memory_ceiling_bytes": ceiling_bytes},
         formalism=formalism,
         spec=spec,
         ordering=None,

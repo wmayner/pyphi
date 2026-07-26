@@ -241,7 +241,7 @@ def test_kernel_cache_admits_past_the_ceiling(monkeypatch):
     repertoire_algebra.clear_caches()
     system = examples.basic_system()
     try:
-        with config.override(maximum_cache_memory_bytes=1 << 60):
+        with config.override(memory_ceiling_bytes=1 << 60):
             system.cause_repertoire((0,), (1,))
         sizes = {n: c.size for n, c in repertoire_algebra._kernel_caches.items()}
         assert any(size > 0 for size in sizes.values())

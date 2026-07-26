@@ -122,8 +122,8 @@ def _shard_config(task: Any) -> dict[str, Any]:
         or _granted_memory_bytes()
         or (spec.memory_bytes if spec is not None else 0)
     )
-    if allowance and overrides.get("maximum_cache_memory_bytes") is None:
-        overrides["maximum_cache_memory_bytes"] = shard_cache_budget_bytes(allowance)
+    if allowance and overrides.get("memory_ceiling_bytes") is None:
+        overrides["memory_ceiling_bytes"] = shard_cache_budget_bytes(allowance)
     return overrides
 
 

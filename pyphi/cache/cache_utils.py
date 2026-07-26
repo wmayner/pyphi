@@ -105,18 +105,16 @@ def memory_limit_bytes() -> int:
 def memory_full():
     """Check if the memory is too full for further caching.
 
-    Measures resident memory against ``maximum_cache_memory_bytes`` when that
-    is set, and otherwise against ``maximum_cache_memory_percentage`` of the
+    Measures resident memory against ``memory_ceiling_bytes`` when that
+    is set, and otherwise against ``memory_ceiling_percentage`` of the
     memory this process may use (see :func:`memory_limit_bytes`) — which is the
     machine's total only when the process is free to use all of it.
     """
     current_process = _process_handle(os.getpid())
-    budget = config.infrastructure.maximum_cache_memory_bytes
+    budget = config.infrastructure.memory_ceiling_bytes
     if budget is None:
         budget = (
-            memory_limit_bytes()
-            * config.infrastructure.maximum_cache_memory_percentage
-            // 100
+            memory_limit_bytes() * config.infrastructure.memory_ceiling_percentage // 100
         )
     return current_process.memory_info().rss > budget
 
@@ -124,11 +122,11 @@ def memory_full():
 _ENTRY_OVERHEAD_BYTES = 512
 """Non-payload cost of one entry: its key, the value object, and a dict slot.
 
-Calibrated against the resident-memory growth of a scoped cause-effect
-structure sweep, where entries averaged roughly 900 bytes by a walk of the live
-objects and roughly 540 bytes by the process's own resident growth. It is a
-single constant rather than a per-entry measurement because sizing each key
-exactly would cost more than the admission it informs.
+One constant rather than a per-entry measurement, since sizing each key exactly
+would cost more than the admission it informs. Its accuracy governs which
+entries are evicted rather than how many: a store's budget is latched from its
+own tracked weight, so a uniform error cancels from the total and changes only
+the weight of a large array relative to a small one.
 """
 
 _ARRAY_DIM_BYTES = 16
@@ -202,11 +200,9 @@ class ByteBoundedStore:
     entry by evicting least recently used ones, and refuses one too large to
     fit an empty store rather than flushing everything to hold it.
 
-    Holding the weight steady, rather than shrinking it, is what the ceiling
-    can deliver: freeing Python objects returns their memory to the process
-    allocator for reuse but rarely to the operating system, so eviction does
-    not lower resident memory. What it buys is spending a fixed allocation on
-    recently used entries instead of on whichever were computed first.
+    Eviction holds occupancy steady; it does not reduce resident memory, since
+    freeing a Python object returns its memory to the process allocator for
+    reuse rather than to the operating system.
 
     Not internally synchronized. A caller sharing a store across threads holds
     its own lock across :meth:`admit` and :meth:`discard`.

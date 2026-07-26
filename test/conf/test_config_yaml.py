@@ -91,6 +91,25 @@ class TestNestedYAMLLoader:
         with pytest.raises(ConfigurationError, match="rename map"):
             config.load_yaml(str(path))
 
+    def test_renamed_field_error_names_its_replacement(self, tmp_path):
+        """A config written against an earlier name says what to change."""
+        from pyphi.conf._field_routing import RENAMED_FIELDS
+
+        for old, new in RENAMED_FIELDS.items():
+            path = tmp_path / f"config_{old}.yml"
+            path.write_text(f"infrastructure:\n  {old}: 1\n")
+            with pytest.raises(ConfigurationError, match=f"it is now '{new}'"):
+                config.load_yaml(str(path))
+
+    def test_every_renamed_field_points_at_a_real_one(self):
+        """The rename map cannot outlive the fields it points to."""
+        from pyphi.conf._field_routing import FIELD_TO_LAYER
+        from pyphi.conf._field_routing import RENAMED_FIELDS
+
+        for old, new in RENAMED_FIELDS.items():
+            assert new in FIELD_TO_LAYER, f"{old!r} points at unknown field {new!r}"
+            assert old not in FIELD_TO_LAYER, f"{old!r} is still a live field"
+
     def test_unknown_top_level_key_raises(self, tmp_path):
         path = tmp_path / "config.yml"
         path.write_text("nonexistent: 1\n")

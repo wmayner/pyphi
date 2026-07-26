@@ -811,13 +811,13 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
 > entries are keyed on that `System`'s fingerprint and evicted only when it is
 > collected, so cache occupancy grows with `units_per_job` under a bound that is
 > combinatorial in substrate size. The one brake, `cache_utils.memory_full()`,
-> compared resident memory to `maximum_cache_memory_percentage` of *total physical
+> compared resident memory to `memory_ceiling_percentage` of *total physical
 > memory*: on an execute node far larger than the job's allocation it permits tens
 > of GB of cache while the scheduler kills the job at its request. The brake existed
 > and was unreachable.
 
 - **✅ Cache ceiling tied to the shard's own request.** New
-  `infrastructure.maximum_cache_memory_bytes` (default `None`) gives an absolute
+  `infrastructure.memory_ceiling_bytes` (default `None`) gives an absolute
   resident-memory ceiling and replaces the percentage when set — what any process
   confined to less than the whole machine needs (a scheduler-managed job, a
   container, a cgroup). `shard_memory_bytes` grants `CACHE_HEADROOM_BYTES` on top of
@@ -859,12 +859,29 @@ item), mutation testing (N3/N17 ← T2), and the matching exact-oracle/standard-
   twice. Dropping both was measured 2.4% faster and 107 MiB smaller. They split
   on what a hit is worth: the cause version saves a flat ~4 µs against a 0.7 µs
   lookup, because its expensive input `forward_cause_repertoire` is already
-  memoized, so **its memoization is removed** (the read-only guarantee moves
-  into the function body); the effect version averages over every mechanism
-  state, worth 10× a lookup at |m|=1 and 99× at |m|=3 and growing, so it keeps
-  its cache as insurance against an expensive miss.
+  memoized. **Both memoizations are now removed** (the read-only guarantee moves
+  into each function body). The effect side was kept at first, on the grounds
+  that a hit is worth 10× a lookup at |m|=1 and 99× at |m|=3; a production
+  campaign then recorded **100.1 million stores, 54.1 million evictions, and
+  zero reads**, so the insurance never paid. Zero reuse is structural, not an
+  artifact of the campaign's `purview_max=3`: lifting the cap roughly doubles the
+  call count and leaves repeats at exactly zero (n=6 and n=7, capped and
+  uncapped), because `intrinsic_information` requests each pair once.
+- **✅ Production validation of the eviction policy.** A 1,242-shard scoped-CES
+  campaign (21-unit substrate, `purview_max=3`, `k_cross=4`, CHTC) puts the fix
+  at **≥9.2×**: four shards that had not finished in 18 h 19 m under the freeze
+  completed in 2.0–2.8 h, and the campaign went from unviable to a day of
+  wall-clock. The local 1.46× figure understated it roughly sixfold because the
+  local workload was too small to reach the regime where the ceiling binds
+  continuously. `_effect_repertoire_inner` carries the work at 93.4e9 hits and
+  96.9%. Peak memory stayed inside the 256 MB reserve on every shard (overshoot
+  median 62 MB, p95 102, max 177), so `CACHE_HEADROOM_BYTES` and
+  `_ENTRY_OVERHEAD_BYTES` stand as they are. An apparent 311 MB overshoot in the
+  first analysis was an artifact of Condor's `MemoryUsage` ClassAd, which buckets
+  to four distinct values where the job log records 195 — size these constants
+  against the job log, never against `MemoryUsage`.
 - **✅ The ceiling measured against the memory the process is actually allowed.**
-  `maximum_cache_memory_percentage` took its denominator from total physical
+  `memory_ceiling_percentage` took its denominator from total physical
   memory, and shard execution took its absolute ceiling from the request
   recorded at *planning* time — so a job granted more memory than planning
   predicted kept the smaller ceiling. That silently defeated the paired control

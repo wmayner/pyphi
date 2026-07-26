@@ -93,7 +93,7 @@ collected, so releasing references frees entries. To bound or disable it:
 ```python
 pyphi.config.cache_repertoires = False
 # or bound the footprint:
-pyphi.config.maximum_cache_memory_percentage = 25
+pyphi.config.memory_ceiling_percentage = 25
 ```
 `config.infrastructure.disk_cache_results` (default off) additionally persists
 `System.sia()`/`ces()` results to `__pyphi_cache__/`.

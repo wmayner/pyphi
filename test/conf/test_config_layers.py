@@ -152,7 +152,7 @@ class TestInfrastructureConfig:
         assert cfg.cache_repertoires is True
         assert cfg.cache_potential_purviews is True
         assert cfg.clear_system_caches_after_computing_sia is False
-        assert cfg.maximum_cache_memory_percentage == 50
+        assert cfg.memory_ceiling_percentage == 50
         assert cfg.progress_bars is True
         assert cfg.repr_verbosity == 2
         assert cfg.print_fractions is True

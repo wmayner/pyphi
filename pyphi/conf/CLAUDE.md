@@ -41,14 +41,18 @@ option-by-option reference, loaded only when working with this directory.
 - **`cache_potential_purviews`**: Cache purviews (default: true)
 - **`cache_macro_construction`**: Cache mapping-independent macro-construction intermediates (default: true)
 - **`clear_system_caches_after_computing_sia`**: Clear after each SIA (default: false)
-- **`maximum_cache_memory_percentage`**: Memory limit for in-memory caches, as a
+- **`memory_ceiling_percentage`**: Memory limit for in-memory caches, as a
   percentage of the memory the process may use (default: 50) — its cgroup
   allowance where it has one, total physical memory otherwise
-- **`maximum_cache_memory_bytes`**: Absolute resident-memory ceiling above which
+- **`memory_ceiling_bytes`**: Absolute resident-memory ceiling above which
   the caches hold occupancy steady, evicting least recently used entries to
   admit new ones (default: `None`). Replaces the percentage when set, for an
   allowance no cgroup reports. Campaign shard execution sets it from the memory
   the shard is actually allowed, falling back to its planned request.
+  **Despite the name it bounds the whole process, not the caches** — it is
+  compared against total RSS, of which the caches are a small part (70–130 MB
+  against 2.6 GB resident on a sampled 21-unit CES shard). Size it from the
+  process's allowance; the caches get that ceiling less the non-cache baseline.
 
 ## Measures (`config.formalism.iit`)
 

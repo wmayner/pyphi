@@ -113,8 +113,8 @@ def test_percentage_bounds_against_the_allowance_not_the_machine(detected_limit)
 
     resident = cache_utils._process_handle(os.getpid()).memory_info().rss
     unbounded = {
-        "maximum_cache_memory_bytes": None,
-        "maximum_cache_memory_percentage": 100,
+        "memory_ceiling_bytes": None,
+        "memory_ceiling_percentage": 100,
     }
 
     # An allowance below current usage: the percentage trips even though the
@@ -155,18 +155,18 @@ def test_shard_ceiling_prefers_the_actual_allocation(monkeypatch, tmp_path):
 
     # Undetectable allocation: the planned request stands in.
     monkeypatch.setattr(cache_utils, "_cgroup_memory_limit", lambda: None)
-    planned = _shard_config(task)["maximum_cache_memory_bytes"]
+    planned = _shard_config(task)["memory_ceiling_bytes"]
     assert planned == shard_cache_budget_bytes(task.spec.memory_bytes)
 
     # A job actually granted more than planning predicted gets the extra room.
     monkeypatch.setattr(cache_utils, "_cgroup_memory_limit", lambda: 16 * GIB)
-    assert _shard_config(task)["maximum_cache_memory_bytes"] == (
+    assert _shard_config(task)["memory_ceiling_bytes"] == (
         shard_cache_budget_bytes(16 * GIB)
     )
 
     # A ceiling pinned at preparation time still wins.
     pinned = replace(
         task,
-        config_overrides={**task.config_overrides, "maximum_cache_memory_bytes": 7},
+        config_overrides={**task.config_overrides, "memory_ceiling_bytes": 7},
     )
-    assert _shard_config(pinned)["maximum_cache_memory_bytes"] == 7
+    assert _shard_config(pinned)["memory_ceiling_bytes"] == 7

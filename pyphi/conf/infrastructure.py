@@ -88,12 +88,19 @@ class InfrastructureConfig:
     # one — a scheduler-managed job, a container — and total physical memory
     # otherwise, so the share bounds a confined process rather than measuring
     # against a machine it cannot fill.
-    maximum_cache_memory_percentage: int = 50
+    memory_ceiling_percentage: int = 50
     # An absolute ceiling on process resident memory, above which in-memory
     # caches hold their occupancy steady, admitting new entries by evicting
-    # least recently used ones. Replaces `maximum_cache_memory_percentage` when
+    # least recently used ones. Replaces `memory_ceiling_percentage` when
     # set, for an allowance no cgroup reports.
-    maximum_cache_memory_bytes: int | None = None
+    #
+    # Size it from what the process may use, not from expected cache size: it
+    # is compared against total resident memory, of which the caches are
+    # usually a small part. Sampled through a 21-unit scoped cause-effect
+    # structure shard, they held 70-130 MB against 2.6 GB resident, the rest
+    # being the interpreter, the substrate TPM, and numpy working space. The
+    # allowance the caches actually get is this ceiling less that baseline.
+    memory_ceiling_bytes: int | None = None
     cache_repertoires: bool = True
     cache_potential_purviews: bool = True
     # When True (default), the macro TPM construction caches its
@@ -167,11 +174,11 @@ class InfrastructureConfig:
         _check_bool("parallel", self.parallel)
         _check_int("parallel_workers", self.parallel_workers)
         _check_int(
-            "maximum_cache_memory_percentage",
-            self.maximum_cache_memory_percentage,
+            "memory_ceiling_percentage",
+            self.memory_ceiling_percentage,
         )
-        if self.maximum_cache_memory_bytes is not None:
-            _check_int("maximum_cache_memory_bytes", self.maximum_cache_memory_bytes)
+        if self.memory_ceiling_bytes is not None:
+            _check_int("memory_ceiling_bytes", self.memory_ceiling_bytes)
         _check_bool("cache_repertoires", self.cache_repertoires)
         _check_bool("cache_potential_purviews", self.cache_potential_purviews)
         _check_bool("cache_macro_construction", self.cache_macro_construction)
