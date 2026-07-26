@@ -483,7 +483,6 @@ grows with the state count regardless of memory; above this bound the
 computation raises instead of silently grinding for days."""
 
 
-@_memoize
 def unconstrained_forward_effect_repertoire(
     cs: Any, mechanism: tuple[int, ...], purview: tuple[int, ...]
 ) -> Any:
@@ -497,6 +496,10 @@ def unconstrained_forward_effect_repertoire(
     Sequential accumulation can differ from a stacked ``mean`` in the final
     floating-point bits once numpy's pairwise summation engages (above 128
     states); tolerance-based comparisons downstream absorb this.
+
+    Results are not memoized. Callers request each ``(mechanism, purview)``
+    once, so a cached entry would rarely be read back; the per-state loop's own
+    repertoires are cached by :func:`effect_repertoire`.
     """
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     mech_k = tuple(alphabet_sizes[i] for i in mechanism)
@@ -517,7 +520,9 @@ def unconstrained_forward_effect_repertoire(
         else:
             total += rep
     assert total is not None
-    return total / n_states
+    # Read-only like every other repertoire the kernel returns; the memoizing
+    # decorator does this for the functions it wraps.
+    return _freeze(total / n_states)
 
 
 def unconstrained_forward_cause_repertoire(
@@ -528,15 +533,9 @@ def unconstrained_forward_cause_repertoire(
     Since ``m`` is fixed and we average over ``Z``, the per-state
     probabilities are all equal to the mean — fill with that value.
 
-    Notes
-    -----
-    Deliberately not memoized, unlike its effect-direction counterpart. The
-    work it depends on is :func:`forward_cause_repertoire`, which is memoized;
-    what remains is a mean, an allocation, and a fill, worth about 4 µs against
-    the roughly 0.7 µs a lookup costs — and that margin does not grow with
-    mechanism size, since the cost is set by the purview. Reaching it needs the
-    same ``(mechanism, purview)`` evaluated twice, which
-    :func:`intrinsic_information` does not do within one analysis.
+    Results are not memoized. Callers request each ``(mechanism, purview)``
+    once, and the work this depends on is cached by
+    :func:`forward_cause_repertoire`.
     """
     mean_forward_cause_probability = forward_cause_repertoire(
         cs, mechanism, purview, None
