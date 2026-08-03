@@ -121,7 +121,7 @@ def _active_formalism(version: str) -> Any:
         return None
 
 
-def _compatible_measures(version: str) -> frozenset[str] | None | object:
+def _compatible_measures(version: str) -> frozenset[str] | object | None:
     """Return the active formalism's ``compatible_measures`` (or the ``None`` /
     :data:`_FORMALISM_UNAVAILABLE` sentinels from :func:`_active_formalism`)."""
     formalism = _active_formalism(version)
