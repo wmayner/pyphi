@@ -123,6 +123,10 @@ class InfrastructureConfig:
     print_fractions: bool = True
     label_separator: str = ""
     welcome_off: bool = False
+    # Suppress the note printed to stderr when PyPhi is imported under an AI
+    # coding agent. Independent of ``welcome_off``: the two messages have
+    # different audiences and different channels.
+    agent_note_off: bool = False
 
     validate_system_states: bool = True
     validate_conditional_independence: bool = True
@@ -190,6 +194,7 @@ class InfrastructureConfig:
         _check_bool("progress_bars", self.progress_bars)
         _check_bool("print_fractions", self.print_fractions)
         _check_bool("welcome_off", self.welcome_off)
+        _check_bool("agent_note_off", self.agent_note_off)
         _check_bool("validate_system_states", self.validate_system_states)
         _check_bool(
             "validate_conditional_independence", self.validate_conditional_independence

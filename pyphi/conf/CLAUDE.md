@@ -86,4 +86,10 @@ option-by-option reference, loaded only when working with this directory.
   option; not set through `pyphi_config.yml`.)
 - **`progress_bars`**: Show progress bars (default: true)
 - **`repr_verbosity`**: Detail level in `repr()` output (default: 2)
-- **`welcome_off`**: Suppress welcome message (default: false)
+- **`welcome_off`**: Suppress the welcome message (default: false). Controls
+  only the welcome; the agent note has its own switch.
+- **`agent_note_off`**: Suppress the note printed to stderr when PyPhi is
+  imported under an AI coding agent — detected via `CLAUDECODE`, or
+  `PYPHI_AGENT` for any other harness (default: false). Also settable with the
+  `PYPHI_AGENT_NOTE_OFF` environment variable. The note goes to stderr rather
+  than stdout because stdout is the MCP server's JSON-RPC channel.

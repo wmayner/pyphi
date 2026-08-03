@@ -73,6 +73,7 @@ import importlib
 import logging
 import os
 import pkgutil
+import sys
 from types import ModuleType
 
 # Populate the registries. Each built-in measure, partition scheme,
@@ -206,6 +207,9 @@ def __dir__() -> list[str]:
     )
 
 
+# Written to stderr, not stdout: stdout is the MCP server's JSON-RPC channel,
+# and a banner emitted there lands in the protocol stream ahead of the first
+# message.
 if not (config.infrastructure.welcome_off or "PYPHI_WELCOME_OFF" in os.environ):
     print(
         """
@@ -232,5 +236,53 @@ To suppress this message, either:
     `pyphi_config.yml` file, or
   - Set the environment variable PYPHI_WELCOME_OFF to any value in your shell:
         export PYPHI_WELCOME_OFF='yes'
-"""
+""",
+        file=sys.stderr,
+    )
+
+
+#: Environment variables whose presence indicates PyPhi was imported by an AI
+#: coding agent rather than a person. ``PYPHI_AGENT`` lets any harness opt in.
+_AGENT_ENV_VARS = ("CLAUDECODE", "PYPHI_AGENT")
+
+
+def _running_under_agent() -> bool:
+    return any(name in os.environ for name in _AGENT_ENV_VARS)
+
+
+# Printed to stderr, never stdout: stdout is the MCP server's JSON-RPC channel,
+# and anything written there corrupts the protocol stream.
+if (
+    _running_under_agent()
+    and not config.infrastructure.agent_note_off
+    and "PYPHI_AGENT_NOTE_OFF" not in os.environ
+):
+    print(
+        """\
+PyPhi — notes for AI assistants
+
+  Where the PyPhi MCP server is connected, use its tools for exploration and
+  for interpreting results: they report which formalism produced each number,
+  refuse runs too large to finish, and keep φ_s and Φ distinct. The server
+  holds results only in memory, so anything that has to be reproducible belongs
+  in a script — where these same facts still apply.
+
+  φ_s and Φ are different quantities under IIT 4.0. `analyze(...).phi` is φ_s,
+  the system integrated information, which decides whether the system exists
+  as one whole. `.big_phi` is Φ, the structure integrated information: the sum
+  of φ over the Φ-structure's distinctions and relations. Reporting one as the
+  other is the most common mistake made with this library.
+
+  States are little-endian — the first node is the least-significant bit.
+
+  Read the bundled reference before interpreting any result: through the MCP
+  server's get_iit_reference("theory") and ("gotchas") where it is connected,
+  or directly with
+
+      python -c "from pyphi.mcp import content; print(content.load('gotchas'))"
+
+  Suppress this note with PYPHI_AGENT_NOTE_OFF=1, or `agent_note_off: true`
+  under `infrastructure:` in pyphi_config.yml.
+""",
+        file=sys.stderr,
     )
