@@ -24,7 +24,7 @@ repos:
         exclude: '(^test/data/|^profiling/|\.svg$)'
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.16.1
     hooks:
       # Run the linter
       - id: ruff-check
@@ -46,7 +46,7 @@ repos:
   - repo: https://github.com/mwouts/jupytext
     # Must match uv.lock's jupytext version: paired .md front matter embeds
     # jupytext_version, so a mismatched hook rewrites pairs on every commit.
-    rev: v1.19.4
+    rev: v1.19.5
     hooks:
       - id: jupytext
         args: [--sync]
