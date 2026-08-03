@@ -1210,6 +1210,21 @@ def _register_complex() -> None:
     )
 
 
+def _register_analysis() -> None:
+    from pyphi.analyze import Analysis
+
+    _ENCODERS[Analysis] = lambda a: schema.AnalysisSchema(
+        system=to_schema(a.system),
+        sia=to_schema(a.sia),
+        ces=to_schema(a.ces),
+    )
+    _DECODERS[schema.AnalysisSchema] = lambda s: Analysis(
+        system=from_schema(s.system),
+        sia=from_schema(s.sia),
+        ces=from_schema(s.ces),
+    )
+
+
 def _register_coverage_report() -> None:
     from pyphi.estimate import CoverageReport
 
@@ -1599,6 +1614,7 @@ def _ensure_registered() -> None:
     _register_account()
     _register_ac_sia()
     _register_complex()
+    _register_analysis()
     _register_coverage_report()
     _register_substrate_posterior()
     _register_phi_posterior()

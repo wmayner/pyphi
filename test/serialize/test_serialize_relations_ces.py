@@ -151,3 +151,31 @@ def test_ces_analytical_relations_share_decoded_distinctions():
     loaded = serialize.loads(serialize.dumps(analytical))
     assert isinstance(loaded.relations, AnalyticalRelations)
     assert loaded.relations.distinctions is loaded.distinctions
+
+
+@pytest.mark.parametrize("formalism", ["IIT_4_0_2026", "IIT_4_0_2023", "IIT_3_0"])
+def test_analysis_roundtrips(formalism):
+    """`analyze`'s own return type round-trips, under every formalism.
+
+    IIT 4.0 wraps the distinctions in a Φ-structure while IIT 3.0's cause-effect
+    structure is the bare distinction sequence, so the `ces` field is a union.
+    """
+    pyphi.config.progress_bars = False
+    result = pyphi.analyze(
+        pyphi.examples.basic_substrate(), (1, 0, 0), formalism=formalism
+    )
+    restored = serialize.loads(serialize.dumps(result))
+    assert type(restored) is pyphi.Analysis
+    assert restored.phi == result.phi
+    assert restored.ces == result.ces
+    assert restored.system == result.system
+    if formalism != "IIT_3_0":
+        assert restored.big_phi == result.big_phi
+
+
+def test_analysis_saves_and_loads(tmp_path):
+    pyphi.config.progress_bars = False
+    result = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 0, 0))
+    path = tmp_path / "analysis.pyphi.gz"
+    result.save(path)
+    assert pyphi.Analysis.load(path).phi == result.phi

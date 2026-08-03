@@ -122,15 +122,15 @@ pd.testing.assert_frame_equal(loaded.df, result.df)
 loaded.df
 ```
 
-The `Analysis` wrapper returned by `pyphi.analyze` is *not* itself
-serializable — it is a convenience container. Save its components (`.ces`,
-`.sia`) instead:
+The `Analysis` returned by `pyphi.analyze` saves as a whole, carrying its
+system, system-irreducibility analysis, and cause-effect structure together, so
+you do not have to save the components separately:
 
 ```{code-cell} python
-try:
-    pyphi.save(analysis, out / "analysis.json")
-except TypeError as error:
-    print(error)
+pyphi.save(analysis, out / "analysis.json")
+reloaded = pyphi.load(out / "analysis.json")
+
+print(f"φ_s = {reloaded.phi:.4f}   |   Φ = {reloaded.big_phi:.4f}")
 ```
 
 ## Experiment provenance writers

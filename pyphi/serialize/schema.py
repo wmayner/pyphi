@@ -457,6 +457,14 @@ class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
 # --- Complex (embeds a substrate, hence after the substrate schema) -----------
 
 
+class AnalysisSchema(msgspec.Struct, frozen=True, tag="analysis"):
+    system: "SystemSchema"
+    sia: SIASchema
+    # IIT 4.0 wraps the distinctions in a Φ-structure; IIT 3.0's cause-effect
+    # structure is the bare distinction sequence.
+    ces: "CESSchema | NullCESSchema | DistinctionsAnySchema"
+
+
 class ComplexSchema(msgspec.Struct, frozen=True, tag="complex"):
     sia: SIASchema
     substrate: SubstrateSchema
@@ -665,6 +673,7 @@ Schema = (
     | DirectedAccountSchema
     | AcSIASchema
     | ComplexSchema
+    | AnalysisSchema
     | CoverageReportSchema
     | SubstratePosteriorSchema
     | PhiPosteriorSchema

@@ -25,11 +25,12 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
+from pyphi.serializable import Serializable
 from pyphi.system import System
 
 
 @dataclass(frozen=True, repr=False)
-class Analysis(Displayable):
+class Analysis(Displayable, Serializable):
     """A single system's analysis: its SIA, its CES, and their scalar values.
 
     Uniform across formalisms: under IIT 4.0 the cause-effect structure embeds
