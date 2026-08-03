@@ -130,7 +130,13 @@ def _parallel_state() -> dict[str, Any]:
     }
 
 
-_INSTRUCTIONS = content.load("primer")
+# The gotchas are loaded rather than linked. They are the list of mistakes that
+# produce wrong results — reporting φₛ as Φ, reading a state as big-endian — and
+# an instruction to go read them is skipped exactly when the task feels small
+# enough not to need theory. The remaining topics stay behind
+# ``get_iit_reference``; only this one has to be present before the first tool
+# call. It costs roughly 1,900 tokens.
+_INSTRUCTIONS = f"{content.load('primer')}\n\n{content.load('gotchas')}"
 
 mcp = FastMCP("pyphi", instructions=_INSTRUCTIONS)
 

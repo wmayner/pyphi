@@ -1,9 +1,10 @@
 # PyPhi MCP server — primer
 
 This server computes Integrated Information Theory (IIT) quantities with PyPhi
-and helps explain them. Read the reference before interpreting results:
-`get_iit_reference("theory")`, `get_iit_reference("gotchas")`, and
-`get_iit_reference("equations")`. The same documents are also available as
+and helps explain them. The gotchas — the mistakes that produce wrong results —
+follow this primer, already loaded. For anything beyond them, read
+`get_iit_reference("theory")` and `get_iit_reference("equations")` before
+interpreting results; the same documents are also available as
 `pyphi://theory/*` resources.
 
 ## What IIT computes
@@ -56,20 +57,11 @@ at https://pyphi.readthedocs.io, or the installed package's own docstrings
 When you run PyPhi in a shell rather than through these tools, use the project's
 virtual environment — `uv run python` if it is a uv project, otherwise the
 environment's own `python` — never the bare system `python`. Running PyPhi in a
-shell does not exempt you from this reference: before stating what a number
-means, or answering a question about the theory, read
-`get_iit_reference("theory")` and `get_iit_reference("gotchas")` rather than
-answering from memory. IIT's quantities are easy to name plausibly and get
-wrong, and a wrong claim written into a project's notes or scripts propagates
-into every later answer.
-
-## Two things to keep straight from the start
-
-- **States are little-endian.** The *first* node is the least-significant bit,
-  the opposite of ordinary positional notation. A state is given as a tuple in
-  node order, e.g. `(1, 1, 0)`.
-- **φₛ = 0 means the system is reducible**, not that it has no structure. A
-  positive value is what indicates irreducible integrated information.
+shell does not exempt you from this reference: the gotchas below govern a
+result however it was computed, and for anything they do not cover, read
+`get_iit_reference("theory")` rather than answering from memory. IIT's
+quantities are easy to name plausibly and get wrong, and a wrong claim written
+into a project's notes or scripts propagates into every later answer.
 
 ## Configuring and running PyPhi
 

@@ -486,3 +486,18 @@ class TestCESCampaignTools:
             handle, compute="ces", scope={"mechanisms": {"max_order": 1}}
         )["estimate"]
         assert scoped["mechanisms"] < full["mechanisms"]
+
+
+def test_instructions_carry_the_gotchas():
+    """The gotchas load with the primer rather than waiting behind a tool call.
+
+    An instruction to go read them is skipped exactly when the task feels too
+    small to need theory, which is when these mistakes get made.
+    """
+    from pyphi.mcp.server import _INSTRUCTIONS
+
+    assert "φₛ and Φ are different quantities" in _INSTRUCTIONS
+    assert "States are little-endian" in _INSTRUCTIONS
+    assert "no possible predecessor" in _INSTRUCTIONS
+    # The primer's own abbreviated version is gone, not duplicated.
+    assert "Two things to keep straight" not in _INSTRUCTIONS

@@ -187,12 +187,13 @@ code for 2.0).
 
 - **The assistant is taught the theory.** A citation-checked reference (the
   postulates, the key equations, and the subtleties that most often mislead)
-  ships with the server as its startup instructions, as `pyphi://theory/*`
-  resources, and through `get_iit_reference`. This is what keeps it from, for
-  example, reading Φ = 0 as "no structure" (it means *reducible*) or confusing
-  φₛ with Φ. If you are new to IIT, asking the assistant to read
-  `get_iit_reference("theory")` and `get_iit_reference("gotchas")` first is
-  worthwhile.
+  ships with the server as `pyphi://theory/*` resources and through
+  `get_iit_reference`. The orientation primer and the gotchas load as the
+  server's startup instructions, so the mistakes that produce wrong results —
+  reading Φ = 0 as "no structure" when it means *reducible*, confusing φₛ with
+  Φ — are in front of the assistant before its first tool call rather than
+  waiting behind one. If you are new to IIT, asking it to read
+  `get_iit_reference("theory")` as well is worthwhile.
 - **Big analyses are guarded.** Φ is combinatorially expensive (the practical
   ceiling for an exact analysis is about 10–12 units), so `analyze` refuses a
   full analysis of a large substrate unless you confirm it. A full Φ-structure
