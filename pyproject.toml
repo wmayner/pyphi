@@ -205,8 +205,10 @@ max-statements = 100
     "T201",    # Print statements (debugging)
     "T203",    # Pretty print statements (debugging)
 ]
-# Allow print statements in main init (welcome message) and profiling scripts
+# Allow print statements in main init (welcome message), the install command
+# line, and profiling scripts
 "pyphi/__init__.py" = ["T201"]
+"pyphi/mcp/install.py" = ["T201"]
 "profiling/**/*.py" = ["T201"]
 "benchmarks/**/*.py" = ["T201"]
 "scripts/**/*.py" = ["T201", "E501", "C408"]

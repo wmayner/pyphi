@@ -46,8 +46,38 @@ server from the main branch.
 
 ### Claude Code
 
-Add the server with `claude mcp add` — everything after `--` is the launch
-command. From PyPI:
+`pyphi-mcp install`, run in your project directory, does both halves of the
+setup:
+
+```bash
+pyphi-mcp install
+```
+
+It registers the server in `.mcp.json` and writes a short block of PyPhi facts
+into `AGENTS.md` — the two quantities φₛ and Φ, the little-endian state order,
+and the cost of an analysis. That block matters because a server's
+`instructions` only reach an assistant that connects to it, and one that
+decides to drive PyPhi from a shell never sees them. A project's instruction
+file is read before anything else happens.
+
+Claude Code reads `CLAUDE.md` rather than `AGENTS.md`, so `install` also adds
+an `@AGENTS.md` import line to `CLAUDE.md`. Both files are safe to already
+have: the block sits between markers and a later `install` replaces only what
+is between them, and the import is not added twice. `pyphi-mcp uninstall`
+removes both, and anything you wrote around them survives.
+
+Use `--from` to install from somewhere other than PyPI, `--scope user` to
+register for every project rather than this one, `--client claude-desktop` for
+Claude Desktop, and `--print` to see what would be written without writing it:
+
+```bash
+pyphi-mcp install --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
+```
+
+#### Registering by hand
+
+To register the server without the instruction block, use `claude mcp add` —
+everything after `--` is the launch command. From PyPI:
 
 ```bash
 claude mcp add pyphi -- uvx --from "pyphi[mcp]" pyphi-mcp

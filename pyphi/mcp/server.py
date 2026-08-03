@@ -1044,9 +1044,20 @@ def _render_figure(fig: Any, kind: str, plt: Any) -> Any:
     return [f"Plot written to {png_path}.", Image(data=data, format="png")]
 
 
-def main() -> None:
-    """Run the PyPhi MCP server over stdio (the ``pyphi-mcp`` entry point)."""
-    mcp.run()
+def main(argv: list[str] | None = None) -> int:
+    """The ``pyphi-mcp`` entry point.
+
+    With no subcommand, runs the server over stdio. ``install`` and
+    ``uninstall`` set the server up in a project instead; see
+    :mod:`pyphi.mcp.install`.
+    """
+    from . import install as install_module
+
+    args = install_module.build_parser().parse_args(argv)
+    if args.command is None:
+        mcp.run()
+        return 0
+    return install_module.run(args)
 
 
 # Assemble the rest of the application. These modules receive ``mcp`` through
