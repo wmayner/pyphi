@@ -60,8 +60,10 @@ def test_load_and_describe_substrate(basic_handle):
 def test_analyze_basic_known_phi(basic_handle):
     result = srv.analyze(basic_handle, BASIC_STATE)
     summary = result["summary"]
-    assert summary["phi"] == pytest.approx(BASIC_PHI_S)
     assert summary["system_phi"] == pytest.approx(BASIC_PHI_S)
+    # φₛ and Φ are different quantities; the summary must not conflate them.
+    assert "phi" not in summary
+    assert summary["system_phi"] != summary["big_phi"]
     assert summary["big_phi"] == pytest.approx(BASIC_BIG_PHI)
     assert summary["num_distinctions"] == 3
     assert summary["num_relations"] == 4
@@ -71,7 +73,7 @@ def test_analyze_basic_known_phi(basic_handle):
 
 def test_analyze_sia_only(basic_handle):
     result = srv.analyze(basic_handle, BASIC_STATE, compute="sia")
-    assert result["summary"]["phi"] == pytest.approx(BASIC_PHI_S)
+    assert result["summary"]["system_phi"] == pytest.approx(BASIC_PHI_S)
     # A system irreducibility analysis has no cause-effect structure counts.
     assert "num_distinctions" not in result["summary"]
 
@@ -88,7 +90,7 @@ def test_analyze_2026_differentiation_cap(basic_handle):
     result = srv.analyze(
         basic_handle, BASIC_STATE, formalism="IIT_4_0_2026", compute="sia"
     )
-    assert result["summary"]["phi"] == pytest.approx(0.0)
+    assert result["summary"]["system_phi"] == pytest.approx(0.0)
 
 
 def test_inspect_distinction(basic_handle):
@@ -127,7 +129,7 @@ def test_build_substrate_from_tpm():
     built = srv.build_substrate(tpm, node_labels=["A", "B", "C"])
     assert built["num_nodes"] == 3
     result = srv.analyze(built["handle"], BASIC_STATE)
-    assert result["summary"]["phi"] == pytest.approx(BASIC_PHI_S)
+    assert result["summary"]["system_phi"] == pytest.approx(BASIC_PHI_S)
 
 
 def test_analyze_guardrail_refuses_large_without_confirmation():
@@ -239,7 +241,7 @@ def test_analyze_parallel_matches_sequential(basic_handle):
     # every sequential_threshold, so the test exercises the override
     # plumbing and result invariance, not worker-pool spin-up.)
     result = srv.analyze(basic_handle, BASIC_STATE, parallel=True, workers=2)
-    assert result["summary"]["phi"] == pytest.approx(BASIC_PHI_S)
+    assert result["summary"]["system_phi"] == pytest.approx(BASIC_PHI_S)
     assert result["summary"]["big_phi"] == pytest.approx(BASIC_BIG_PHI)
     # The per-call override is scoped: the configuration is restored.
     assert pyphi.config.infrastructure.parallel is False
@@ -273,7 +275,7 @@ def test_configure_parallel_roundtrip():
 def test_analyze_parallel_false_overrides_server_config(basic_handle):
     srv.configure_parallel(enable=True)
     result = srv.analyze(basic_handle, BASIC_STATE, compute="sia", parallel=False)
-    assert result["summary"]["phi"] == pytest.approx(BASIC_PHI_S)
+    assert result["summary"]["system_phi"] == pytest.approx(BASIC_PHI_S)
     # The per-call setting is scoped; the server configuration persists.
     assert pyphi.config.infrastructure.parallel is True
 
@@ -289,7 +291,7 @@ def test_analyze_guardrail_unchanged_with_parallel():
 @pytest.mark.skipif(not HAS_EMD, reason="IIT 3.0 needs the emd extra")
 def test_analyze_iit3_differs_from_iit4(basic_handle):
     v3 = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0", compute="sia")
-    assert v3["summary"]["phi"] == pytest.approx(0.1875)
+    assert v3["summary"]["system_phi"] == pytest.approx(0.1875)
 
 
 @pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")

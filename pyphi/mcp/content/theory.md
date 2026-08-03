@@ -58,7 +58,8 @@ over content.
 
 So: φₛ decides existence-as-one; Φ measures quantity-of-content. A system can
 have modest φₛ but large Φ, or vice versa. In PyPhi, `analyze(...).phi` and
-`.sia.phi` are φₛ; `.ces.big_phi` is Φ.
+`.sia.phi` are φₛ; `analyze(...).big_phi` and `.ces.big_phi` are Φ. Result cards
+print them as separate rows, `φ_s` and `Φ`.
 
 ## Distinctions and relations
 

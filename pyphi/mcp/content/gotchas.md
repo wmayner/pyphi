@@ -25,9 +25,13 @@ the system is empty or uninteresting. Feed-forward systems, for instance, have
 `analyze(...).phi` (and `.sia.phi`) is **φₛ**, system integrated information:
 whether the system exists as one whole, computed as the minimum over the cause
 and effect sides, over the normalized minimum information partition.
-`.ces.big_phi` is **Φ**, structure integrated information: the plain sum of φ
-over all distinctions and relations. φₛ decides existence; Φ measures the
-quantity of structure. Do not report one as if it were the other.
+`analyze(...).big_phi` (and `.ces.big_phi`) is **Φ**, structure integrated
+information: the plain sum of φ over all distinctions and relations. φₛ decides
+existence; Φ measures the quantity of structure. Do not report one as if it were
+the other. The result card prints both, labelled `φ_s` and `Φ`; the `analyze`
+tool's summary returns them as `system_phi` and `big_phi`. Under IIT 3.0 there
+are no relations and no structure integrated information, so that formalism's Φ
+*is* the system-level value, and `.big_phi` raises.
 
 ## 4. Ties are common in small toy networks
 
@@ -87,7 +91,27 @@ recording) without checking these properties is not a technically valid input,
 though users may nonetheless want to conduct analyses on such data. If the user
 appears unaware of this caveat, alert them.
 
-## 9. Cost grows very fast
+## 9. A system must be in a state it could have reached
+
+IIT evaluates a system that *is* in a state, and the intrinsicality postulate
+requires that state to have been produced by the system's own cause–effect
+power. A state with no possible predecessor could not have been, so PyPhi
+refuses it: `analyze` raises `StateUnreachableForwardsError`. The check runs at
+two levels — the substrate's joint marginal probability of the state must be
+positive, and the subsystem's own state must be producible by its dynamics with
+the background conditioned on the external state.
+
+This is common in small deterministic toy models. In the 3-node XOR network
+every unit is the XOR of the other two, so every state the network can produce
+has even parity. The four odd-parity states — `(1,0,0)`, `(0,1,0)`, `(0,0,1)`,
+`(1,1,1)` — have no preimage and each raises. They are states the units can be
+*put into* by an outside intervention, but not states the system can have
+arrived at on its own, so IIT assigns them no Φ-structure rather than assigning
+one that would rest on a past that could not have happened. This is a different
+error from actual causation's `TransitionUnreachableError` (§11), which is about
+a *pair* of states.
+
+## 10. Cost grows very fast
 
 The computation is exponential in the number of units (roughly O(n·5³ⁿ)), and
 the number of *possible relations* grows doubly-exponentially (2^(2^(N−1))−1).
@@ -99,7 +123,7 @@ the analytical backend (the default) does not enumerate relations; for
 individual relations, cap the degree. The `analyze` tool refuses large full/CES
 requests unless `confirm_large=True`.
 
-## 10. Actual causation answers a different question
+## 11. Actual causation answers a different question
 
 IIT proper asks about a system's **potential** cause–effect power over all
 possible states (φₛ, Φ, complexes). **Actual causation** asks about a single

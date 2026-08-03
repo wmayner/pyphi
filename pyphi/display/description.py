@@ -10,6 +10,32 @@ from dataclasses import dataclass
 from typing import Any
 
 
+def system_phi_label(config: Any) -> str:
+    """The label for a system irreducibility value under ``config``'s formalism.
+
+    Under IIT 3.0 the system-level irreducibility value *is* big phi, so it is
+    labelled ``Φ``. Under IIT 4.0 it is φₛ, and ``Φ`` names a different
+    quantity — the structure integrated information, the sum of φ over the
+    Φ-structure's distinctions and relations. Labelling φₛ as Φ under IIT 4.0
+    reports one quantity as if it were the other.
+
+    Parameters
+    ----------
+    config : ConfigSnapshot or None
+        The snapshot carried by the result being displayed. ``None`` falls back
+        to the IIT 4.0 label.
+
+    Returns
+    -------
+    str
+        ``"Φ"`` under IIT 3.0, ``"φ_s"`` otherwise.
+    """
+    version = getattr(
+        getattr(getattr(config, "formalism", None), "iit", None), "version", None
+    )
+    return "Φ" if version == "IIT_3_0" else "φ_s"
+
+
 @dataclass(frozen=True)
 class Row:
     """One aligned key/value line with optional trailing extra fields.

@@ -31,7 +31,9 @@ class StateUnreachableForwardsError(StateUnreachableError):
     def __init__(self, state: tuple[int, ...]) -> None:
         message = (
             f"The state {state} cannot be reached from any previous state "
-            "(forward TPM check)."
+            "(forward TPM check). IIT evaluates a system that arrived at its "
+            "state through its own cause-effect power, so a state with no "
+            "possible predecessor has no defined analysis."
         )
         super().__init__(state, message)
 

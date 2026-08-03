@@ -36,6 +36,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
 from pyphi.provenance import HasProvenance
@@ -133,14 +134,19 @@ class CauseEffectStructure(
             self.relations.sum_phi() if hasattr(self.relations, "sum_phi") else None
         )
         sia_phi = getattr(self.sia, "phi", None)
+        phi_label = system_phi_label(self.config)
 
         summary_rows = [
-            Row("Φ", sia_phi),
+            Row(phi_label, sia_phi),
             Row("Distinctions", num_d),
             Row("Σφ_d", sum_phi_d),
             Row("Relations", num_r),
             Row("Σφ_r", sum_phi_r),
         ]
+        if phi_label != "Φ" and sum_phi_r is not None:
+            # Under IIT 4.0, Φ is the structure integrated information — the
+            # sum of the two rows above it — and is distinct from φₛ.
+            summary_rows.insert(0, Row("Φ", sum_phi_d + sum_phi_r))
 
         distinctions_body = (
             capped_table(
@@ -187,7 +193,7 @@ class CauseEffectStructure(
         return Description(
             title=cls,
             sections=tuple(sections),
-            compact=f"{cls}(Φ={format_value(sia_phi)})",
+            compact=f"{cls}({phi_label}={format_value(sia_phi)})",
         )
 
     @property

@@ -114,7 +114,7 @@ def test_analyze_repr_compact_at_low_verbosity():
         result = analyze(substrate, state)
         with config.override(repr_verbosity=LOW):
             compact = repr(result)
-    assert compact.startswith("Analysis(Φ=")
+    assert compact.startswith("Analysis(φ_s=")
     assert "\n" not in compact  # one line at LOW
 
 
@@ -134,7 +134,14 @@ def test_analyze_to_pandas_one_row_columns():
         result = analyze(substrate, state)
     df = result.to_pandas()
     assert len(df) == 1
-    assert set(df.columns) == {"phi", "normalized_phi", "n_distinctions", "sum_phi_r"}
+    assert set(df.columns) == {
+        "phi",
+        "normalized_phi",
+        "big_phi",
+        "n_distinctions",
+        "sum_phi_d",
+        "sum_phi_r",
+    }
     assert math.isclose(float(df.iloc[0]["phi"]), result.phi)
 
 
@@ -210,3 +217,30 @@ def test_analyze_grains_rejects_non_bounds():
     # False is a confusion signal, not "no search".
     with pytest.raises(ValueError, match="must be True or a SearchBounds"):
         analyze(substrate, state, grains=False)
+
+
+def test_analyze_card_distinguishes_phi_s_from_big_phi():
+    """Under IIT 4.0 the card's Φ row is Σφ_d + Σφ_r, not the SIA's φₛ.
+
+    `basic` in state (1, 0, 0) is the case where they diverge visibly: φₛ = 0
+    under the 2026 formalism while Φ = 1.0.
+    """
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2026):
+        result = analyze(substrate, (1, 0, 0))
+    rows = {r.label: r.value for sec in result._describe(2).sections for r in sec.rows}
+    assert rows["φ_s"] == result.phi == 0.0
+    assert rows["Φ"] == result.big_phi == 1.0
+    assert rows["Φ"] == rows["Σφ_d"] + rows["Σφ_r"]
+
+
+def test_analyze_big_phi_undefined_under_iit3():
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit3):
+        result = analyze(substrate, state)
+        with pytest.raises(AttributeError, match="no structure integrated"):
+            _ = result.big_phi
+        # IIT 3.0's system-level value *is* its Φ, so the card says so.
+        with config.override(repr_verbosity=LOW):
+            assert repr(result).startswith("Analysis(Φ=")

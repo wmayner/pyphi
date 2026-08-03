@@ -1,7 +1,8 @@
 # models/complex.py
 """The :class:`~pyphi.models.complex.Complex` — an irreducible system selected
-as a local maximum of Φ under the exclusion postulate — and the lightweight
-record of a candidate excluded in its favor."""
+as a local maximum of system irreducibility (φₛ under IIT 4.0, Φ under IIT 3.0)
+under the exclusion postulate — and the lightweight record of a candidate
+excluded in its favor."""
 
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
 from pyphi.serializable import Serializable
 
@@ -172,7 +174,8 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     @property
     def phi(self) -> Any:  # type: ignore[override]
-        """The Φ value of this complex."""
+        """The system irreducibility value of this complex: φₛ under IIT 4.0,
+        Φ under IIT 3.0."""
         return self.sia.phi
 
     @property
@@ -244,8 +247,9 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
         num_excluded = len(self.excluded)
+        phi_label = system_phi_label(getattr(self.sia, "config", None))
         rows = [
-            Row("Φ", self.phi),
+            Row(phi_label, self.phi),
             Row("Nodes", str(self.node_indices)),
             Row("Is maximal", self.is_maximal),
             Row("Excluded candidates", num_excluded),
@@ -260,7 +264,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
             title=cls,
             sections=(Section(rows=tuple(rows)),),
             compact=(
-                f"{cls}({self.node_indices}, Φ={format_value(self.phi)},"
+                f"{cls}({self.node_indices}, {phi_label}={format_value(self.phi)},"
                 f" is_maximal={self.is_maximal})"
             ),
         )

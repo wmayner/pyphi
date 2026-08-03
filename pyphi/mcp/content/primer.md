@@ -55,7 +55,13 @@ at https://pyphi.readthedocs.io, or the installed package's own docstrings
 
 When you run PyPhi in a shell rather than through these tools, use the project's
 virtual environment — `uv run python` if it is a uv project, otherwise the
-environment's own `python` — never the bare system `python`.
+environment's own `python` — never the bare system `python`. Running PyPhi in a
+shell does not exempt you from this reference: before stating what a number
+means, or answering a question about the theory, read
+`get_iit_reference("theory")` and `get_iit_reference("gotchas")` rather than
+answering from memory. IIT's quantities are easy to name plausibly and get
+wrong, and a wrong claim written into a project's notes or scripts propagates
+into every later answer.
 
 ## Two things to keep straight from the start
 

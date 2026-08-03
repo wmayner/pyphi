@@ -820,7 +820,8 @@ def test_complex_describe_structure():
     desc = cx._describe(2)
     assert desc.title == "Complex"
     all_row_labels = [r.label for sec in desc.sections for r in sec.rows]
-    assert "Φ" in all_row_labels
+    # A complex's system-level value is φₛ under IIT 4.0, not Φ.
+    assert "φ_s" in all_row_labels
     assert "Nodes" in all_row_labels
     assert "Is maximal" in all_row_labels
     assert "Excluded candidates" in all_row_labels
@@ -830,7 +831,7 @@ def test_complex_repr_is_card():
     cx = _basic_complex()
     out = repr(cx)
     assert out.startswith("╭─ Complex")
-    assert "Φ" in out
+    assert "φ_s" in out
     assert "Is maximal" in out
 
 
@@ -844,7 +845,7 @@ def test_complex_low_verbosity_compact():
     with pyphi.config.override(repr_verbosity=0):
         out = repr(cx)
     assert out.startswith("Complex(")
-    assert "Φ=" in out
+    assert "φ_s=" in out
     assert "is_maximal=" in out
 
 

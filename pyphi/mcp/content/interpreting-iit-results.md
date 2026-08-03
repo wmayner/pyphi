@@ -4,13 +4,16 @@ How to read an analysis result and explain it in plain language.
 
 ## What `analyze` gives back
 
-- `summary.phi` / `summary.system_phi` — **φₛ**, system integrated information.
-  Positive means the system exists as one integrated whole; 0 means it is
-  reducible. `summary.cause_phi` and `summary.effect_phi` are the two sides;
-  φₛ is the smaller of them.
+- `summary.system_phi` — **φₛ**, system integrated information. Positive means
+  the system exists as one integrated whole; 0 means it is reducible.
+  `summary.cause_phi` and `summary.effect_phi` are the two sides; φₛ is the
+  smaller of them. Under IIT 3.0 this value is that formalism's Φ.
 - `summary.mip` — the minimum information partition, the system's weakest link.
 - `summary.big_phi` — **Φ**, the total structure integrated information (the sum
-  over distinctions and relations).
+  over distinctions and relations). IIT 4.0 only, and never equal to
+  `system_phi` by definition — if you find yourself reporting the same number
+  for both, you have read the wrong field.
+- `summary.formalism` — which version produced these numbers.
 - `summary.num_distinctions` / `summary.num_relations` and their φ sums —
   the size and weight of the Φ-structure.
 - `card` — a ready-made human-readable summary.

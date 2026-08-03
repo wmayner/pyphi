@@ -3,7 +3,8 @@
 ``analyze`` takes a substrate and a state, builds the candidate system, runs
 the analysis under the active (or a named) formalism, and returns an
 :class:`Analysis` — a small bundle exposing the system irreducibility analysis,
-the cause-effect structure, and the scalar Φ uniformly across formalisms. A
+the cause-effect structure, and their scalar values uniformly across
+formalisms. A
 ``compute`` argument selects a cheaper or custom result instead of the bundle;
 a ``grains`` argument runs the bounded intrinsic-unit search over the whole
 substrate instead, returning its complexes.
@@ -22,18 +23,29 @@ from pyphi.conf import presets
 from pyphi.display import FULL
 from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
 from pyphi.system import System
 
 
 @dataclass(frozen=True, repr=False)
 class Analysis(Displayable):
-    """A single system's analysis: its SIA, its CES, and the scalar Φ.
+    """A single system's analysis: its SIA, its CES, and their scalar values.
 
     Uniform across formalisms: under IIT 4.0 the cause-effect structure embeds
     its own SIA, while under IIT 3.0 the CES is the bare set of distinctions and
     the SIA is computed separately; either way ``sia`` / ``ces`` / ``phi`` are
     populated.
+
+    Notes
+    -----
+    ``phi`` and ``big_phi`` are different quantities under IIT 4.0. ``phi`` is
+    φₛ, the system integrated information, which decides whether the system
+    exists as one whole; ``big_phi`` is Φ, the structure integrated
+    information, the sum of φ over the Φ-structure's distinctions and
+    relations. A system can have φₛ = 0 — it is reducible — while its
+    distinctions still sum to a nonzero Φ. Under IIT 3.0 the system-level
+    quantity ``phi`` *is* that formalism's Φ, and ``big_phi`` is not defined.
     """
 
     system: System
@@ -42,21 +54,48 @@ class Analysis(Displayable):
 
     @property
     def phi(self) -> float:
+        """float: φₛ, the system integrated information (Φ under IIT 3.0)."""
         return float(self.sia.phi)
+
+    @property
+    def _phi_label(self) -> str:
+        # Under IIT 3.0 the CES is a bare distinction sequence carrying no
+        # config snapshot; the SIA always carries one.
+        config = getattr(self.ces, "config", None) or getattr(self.sia, "config", None)
+        return system_phi_label(config)
+
+    @property
+    def big_phi(self) -> float:
+        """float: Φ, the structure integrated information — the sum of φ over
+        the Φ-structure's distinctions and relations. IIT 4.0 only.
+
+        Raises
+        ------
+        AttributeError
+            Under IIT 3.0, which has no relations and so no structure
+            integrated information. That formalism's Φ is :attr:`phi`.
+        """
+        if self._phi_label == "Φ":
+            raise AttributeError(
+                "IIT 3.0 has no structure integrated information; its Φ is the "
+                "system-level value on `.phi`."
+            )
+        return float(self.ces.big_phi)
 
     def _describe(self, verbosity: int) -> Description:
         # Reuse the cause-effect structure's flat rich card. Under IIT 4.0 it
         # already folds in the embedded SIA; under IIT 3.0 the CES is bare
         # Distinctions, so append the separately-computed SIA's sections flat
-        # (capped at FULL) so the card still leads with Φ.
+        # (capped at FULL) so the card still leads with the system-level value.
         desc = self.ces._describe(verbosity)
         sections = list(desc.sections)
         if getattr(self.ces, "sia", None) is None:
             sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
+        phi_label = self._phi_label
         return Description(
             title="Analysis",
             sections=tuple(sections),
-            compact=f"Analysis(Φ={format_value(self.phi)})",
+            compact=f"Analysis({phi_label}={format_value(self.phi)})",
         )
 
     def to_pandas(self) -> pd.DataFrame:
@@ -65,6 +104,12 @@ class Analysis(Displayable):
         distinctions = getattr(self.ces, "distinctions", self.ces)
         relations = getattr(self.ces, "relations", None)
         sum_phi_r = float(relations.sum_phi()) if relations is not None else float("nan")
+        sum_phi_d = float(distinctions.sum_phi())
+        # ``phi`` is φₛ; ``big_phi`` is Φ. See the class Notes.
+        try:
+            big_phi = self.big_phi
+        except AttributeError:
+            big_phi = float("nan")
         return pd.DataFrame(
             [
                 {
@@ -72,7 +117,9 @@ class Analysis(Displayable):
                     "normalized_phi": float(
                         getattr(self.sia, "normalized_phi", float("nan"))
                     ),
+                    "big_phi": big_phi,
                     "n_distinctions": len(distinctions),
+                    "sum_phi_d": sum_phi_d,
                     "sum_phi_r": sum_phi_r,
                 }
             ]

@@ -182,6 +182,16 @@ def _result_summary(result: Any) -> dict[str, Any]:
     different result types ``analyze`` can return (a full analysis, a system
     irreducibility analysis, or a cause-effect structure) across all three
     formalism versions.
+
+    Notes
+    -----
+    ``system_phi`` and ``big_phi`` are different quantities and must not be
+    reported as one another. ``system_phi`` is φₛ, the system integrated
+    information, which decides whether the system exists as one whole (it is
+    IIT 3.0's Φ under that formalism). ``big_phi`` is IIT 4.0's Φ, the
+    structure integrated information: the sum of φ over the Φ-structure's
+    distinctions and relations. The ``formalism`` key says which version
+    produced them.
     """
     summary: dict[str, Any] = {"type": type(result).__name__}
 
@@ -190,13 +200,19 @@ def _result_summary(result: Any) -> dict[str, Any]:
         if value is not None:
             summary[key] = float(value)
 
-    add_float("phi", result, "phi")
     sia = getattr(result, "sia", result)
+    version = getattr(
+        getattr(getattr(sia, "config", None), "formalism", None), "iit", None
+    )
+    if version is not None:
+        summary["formalism"] = version.version
     add_float("system_phi", sia, "phi")
     add_float("cause_phi", getattr(sia, "cause", None), "phi")
     add_float("effect_phi", getattr(sia, "effect", None), "phi")
     if getattr(sia, "partition", None) is not None:
-        summary["mip"] = str(sia.partition)
+        from pyphi.models.partitions import concise_partition
+
+        summary["mip"] = concise_partition(sia.partition)
 
     # A full analysis carries its cause-effect structure on ``.ces``; a bare
     # cause-effect structure result is one itself (it has ``big_phi``).
@@ -204,7 +220,10 @@ def _result_summary(result: Any) -> dict[str, Any]:
     if ces is None and hasattr(result, "big_phi"):
         ces = result
     if ces is not None:
-        add_float("big_phi", ces, "big_phi")
+        # IIT 3.0 has no relations, so its structure has no Φ; the sum of
+        # distinction φ is not that formalism's big phi.
+        if summary.get("formalism") != "IIT_3_0":
+            add_float("big_phi", ces, "big_phi")
         add_float("sum_phi_distinctions", ces, "sum_phi_distinctions")
         add_float("sum_phi_relations", ces, "sum_phi_relations")
         if hasattr(ces, "distinctions"):
