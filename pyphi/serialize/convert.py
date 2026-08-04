@@ -199,14 +199,14 @@ def _register_state_specification() -> None:
 def _register_system_state_specification() -> None:
     from pyphi.models.state_specification import SystemStateSpecification
 
-    _ENCODERS[SystemStateSpecification] = (
-        lambda s: schema.SystemStateSpecificationSchema(
+    _ENCODERS[SystemStateSpecification] = lambda s: (
+        schema.SystemStateSpecificationSchema(
             cause=to_schema(s.cause),
             effect=to_schema(s.effect),
         )
     )
-    _DECODERS[schema.SystemStateSpecificationSchema] = (
-        lambda s: SystemStateSpecification(
+    _DECODERS[schema.SystemStateSpecificationSchema] = lambda s: (
+        SystemStateSpecification(
             cause=from_schema(s.cause),
             effect=from_schema(s.effect),
         )
