@@ -23,6 +23,19 @@ class TestRegistration:
             "args": ["-m", "pyphi.mcp"],
         }
 
+    def test_a_temporary_environment_is_refused(self, monkeypatch, tmp_path):
+        # The name uv gives an environment built for one `uv run --with` or
+        # `uvx` invocation, which it later discards.
+        monkeypatch.setattr(sys, "prefix", str(tmp_path / ".tmpAbC123"))
+        with pytest.raises(RuntimeError, match="temporary environment"):
+            mod.registration()
+
+    def test_a_temporary_environment_still_allows_a_specification(
+        self, monkeypatch, tmp_path
+    ):
+        monkeypatch.setattr(sys, "prefix", str(tmp_path / ".tmpAbC123"))
+        assert mod.registration("pyphi[mcp]")["command"] == "uvx"
+
     def test_a_specification_launches_through_uvx(self):
         assert mod.registration("pyphi[mcp]") == {
             "command": "uvx",

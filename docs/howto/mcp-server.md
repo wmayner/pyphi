@@ -37,6 +37,21 @@ setup:
 pyphi-mcp install
 ```
 
+The `pyphi-mcp` command comes with the `mcp` extra, so that bare name works when
+the environment you installed PyPhi into is the active one. Otherwise call it by
+its full path:
+
+```bash
+/path/to/your/venv/bin/pyphi-mcp install
+```
+
+`uv run pyphi-mcp install` works when PyPhi is a dependency of the project you
+are standing in, and not otherwise — `uv run` looks in that project's
+environment. Do not reach for `uv run --with` or `uvx` here: those build an
+environment for the one command and then discard it, so there would be nothing
+left for a client to launch. `install` refuses to register such an interpreter
+and tells you so.
+
 It registers the server in `.mcp.json` and writes a short block of PyPhi facts
 into `AGENTS.md` — the two quantities φₛ and Φ, the little-endian state order,
 and the cost of an analysis. That block matters because a server's

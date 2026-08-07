@@ -79,15 +79,33 @@ def registration(spec: str | None = None) -> dict[str, Any]:
         None, the entry runs this interpreter, whose environment already
         provides the server.
 
+    Raises
+    ------
+    RuntimeError
+        If ``spec`` is None and this interpreter belongs to a temporary
+        environment, which a client would not find again.
+
     Notes
     -----
     Resolving a specification names a version rather than an environment, so
     the server a client starts need not be the one that wrote the entry. The
     interpreter form has no such gap, and starts without a network.
     """
-    if spec is None:
-        return {"command": sys.executable, "args": ["-m", "pyphi.mcp"]}
-    return {"command": "uvx", "args": ["--from", spec, "pyphi-mcp"]}
+    if spec is not None:
+        return {"command": "uvx", "args": ["--from", spec, "pyphi-mcp"]}
+    # uv gives the environment it builds for a single `uv run --with` or `uvx`
+    # invocation a name beginning with `.tmp`, and discards it with the rest of
+    # its cache. Registering that interpreter writes an entry that works until
+    # it does not.
+    if Path(sys.prefix).name.startswith(".tmp"):
+        raise RuntimeError(
+            f"this interpreter is a temporary environment ({sys.prefix}), which "
+            "a client would not find again.\n"
+            "Install PyPhi into an environment that persists and run `install` "
+            "from there, or pass --from <specification> to register a `uvx` "
+            "launch command instead."
+        )
+    return {"command": sys.executable, "args": ["-m", "pyphi.mcp"]}
 
 
 def config_path(directory: Path, scope: str, client: str) -> Path:
@@ -394,14 +412,14 @@ def build_parser() -> argparse.ArgumentParser:
 def run(args: argparse.Namespace) -> int:
     """Carry out an ``install`` or ``uninstall`` and report what happened."""
     if args.command == "install":
-        if args.print_only:
-            config = {"mcpServers": {"pyphi": registration(args.spec)}}
-            print(f"{config_path(args.directory, args.scope, args.client)}:")
-            print(json.dumps(config, indent=2))
-            print(f"\n{args.directory / INSTRUCTIONS_FILE}:")
-            print(block())
-            return 0
         try:
+            if args.print_only:
+                config = {"mcpServers": {"pyphi": registration(args.spec)}}
+                print(f"{config_path(args.directory, args.scope, args.client)}:")
+                print(json.dumps(config, indent=2))
+                print(f"\n{args.directory / INSTRUCTIONS_FILE}:")
+                print(block())
+                return 0
             actions = install(
                 args.directory,
                 scope=args.scope,
@@ -409,7 +427,7 @@ def run(args: argparse.Namespace) -> int:
                 spec=args.spec,
                 force=args.force,
             )
-        except FileExistsError as error:
+        except (FileExistsError, RuntimeError) as error:
             print(error)
             return 1
     else:
