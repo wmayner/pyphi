@@ -2129,7 +2129,7 @@ requires-dist = [
     { name = "dask-jobqueue", marker = "extra == 'cluster'", specifier = ">=0.8.0" },
     { name = "joblib", specifier = ">=0.8.0" },
     { name = "matplotlib", marker = "extra == 'visualize'" },
-    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.2" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.2,<2" },
     { name = "more-itertools", specifier = ">=8.13.0" },
     { name = "msgspec", specifier = ">=0.18" },
     { name = "networkx", marker = "extra == 'visualize'", specifier = ">=2.6.2" },
