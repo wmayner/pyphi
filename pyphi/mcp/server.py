@@ -30,18 +30,23 @@ from pyphi.conf import presets
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.cost import estimate_analysis
 from pyphi.cost import runtime_seconds
+from pyphi.models.distinctions import Distinctions
 
 from . import content
 
 # Soft guards against accidentally starting an hours-long run, not hard limits
 # on what PyPhi can compute. The guard counts the requested analysis's workload
 # with pyphi.cost.estimate_analysis, so the partition schemes, connectivity,
-# and alphabet all inform the refusal. _SIA_PARTITION_LIMIT is the
-# DIRECTED_SET_PARTITION count for 9 fully connected binary units — the
-# largest system-level analysis admitted without confirmation.
-# _CES_SWEEP_LIMIT admits a fully connected 6-unit binary cause-effect
-# structure under JOINT_PARTITION_ALL (31,938,830 sweeps) and refuses the
-# 7-unit one (1,450,456,298 sweeps).
+# and alphabet all inform the refusal. Each limit governs one work axis, and
+# every axis the requested analysis walks is checked: a cause-effect structure
+# under IIT 4.0 computes a system irreducibility analysis before unfolding
+# distinctions, so it answers to both.
+#
+# _SIA_PARTITION_LIMIT is the DIRECTED_SET_PARTITION count for 9 fully
+# connected binary units — the largest system-level analysis admitted without
+# confirmation. _CES_SWEEP_LIMIT admits a fully connected 6-unit binary
+# cause-effect structure under JOINT_PARTITION_ALL (31,938,830 sweeps) and
+# refuses the 7-unit one (1,450,456,298 sweeps).
 #
 # _GUARD_COUNT_BUDGET bounds the guard's own counting work (purview
 # evaluations plus fresh partition enumerations; memoized counts are free),
@@ -180,14 +185,18 @@ def _substrate_summary(substrate: Any) -> dict[str, Any]:
     }
 
 
-def _result_summary(result: Any) -> dict[str, Any]:
+def _result_summary(result: Any, formalism: str | None = None) -> dict[str, Any]:
     """Build a compact, JSON-safe summary of an analysis result.
 
     Reads only the scalar fields (φ, φₛ, counts) so the summary stays small
     even when the underlying result serializes to megabytes. Tolerant of the
     different result types ``analyze`` can return (a full analysis, a system
-    irreducibility analysis, or a cause-effect structure) across all three
-    formalism versions.
+    irreducibility analysis, a cause-effect structure, or bare distinctions)
+    across all three formalism versions.
+
+    ``formalism`` names the version that produced ``result``, for results
+    that carry no configuration snapshot of their own; a full analysis and a
+    system irreducibility analysis both report their own.
 
     Notes
     -----
@@ -198,8 +207,18 @@ def _result_summary(result: Any) -> dict[str, Any]:
     structure integrated information: the sum of φ over the Φ-structure's
     distinctions and relations. The ``formalism`` key says which version
     produced them.
+
+    A bare distinctions result whose congruence is unresolved reports its
+    count and φ sum under ``_upper_bound`` key names, because congruence
+    filtering only ever removes distinctions — sometimes all of them.
     """
     summary: dict[str, Any] = {"type": type(result).__name__}
+
+    if isinstance(result, Distinctions):
+        if formalism is not None:
+            summary["formalism"] = formalism
+        summary.update(_distinctions_summary(result, formalism))
+        return summary
 
     def add_float(key: str, obj: Any, attr: str) -> None:
         value = getattr(obj, attr, None)
@@ -230,6 +249,12 @@ def _result_summary(result: Any) -> dict[str, Any]:
         # distinction φ is not that formalism's big phi.
         if summary.get("formalism") != "IIT_3_0":
             add_float("big_phi", ces, "big_phi")
+        # Under IIT 3.0 the cause-effect structure *is* the distinctions.
+        if isinstance(ces, Distinctions):
+            summary.update(
+                _distinctions_summary(ces, summary.get("formalism", formalism))
+            )
+            return summary
         add_float("sum_phi_distinctions", ces, "sum_phi_distinctions")
         add_float("sum_phi_relations", ces, "sum_phi_relations")
         if hasattr(ces, "distinctions"):
@@ -242,6 +267,46 @@ def _result_summary(result: Any) -> dict[str, Any]:
                 else len(relations)
             )
     return summary
+
+
+def _distinctions_summary(
+    distinctions: Any, formalism: str | None = None
+) -> dict[str, Any]:
+    """Summarize a bare distinctions result, flagging unresolved congruence.
+
+    An IIT 4.0 cause-effect structure keeps only the distinctions congruent
+    with the system's specified state. Distinctions that have not been
+    through that filter are reported under ``_upper_bound`` key names, so
+    their count and φ sum cannot be read as the structure's — filtering can
+    remove any number of them, including all. IIT 3.0 has no congruence
+    filter, so its distinctions are always the structure's.
+    """
+    from pyphi.models.distinctions import UnresolvedDistinctions
+
+    count = len(distinctions)
+    total = float(distinctions.sum_phi())
+    if formalism == "IIT_3_0":
+        return {"num_distinctions": count, "sum_phi_distinctions": total}
+    if isinstance(distinctions, UnresolvedDistinctions):
+        return {
+            "congruence": "unresolved",
+            "num_distinctions_upper_bound": count,
+            "sum_phi_distinctions_upper_bound": total,
+            "note": (
+                "The system's specified state is tied, and the tie is broken "
+                "by the φₛ cascade over the tied cause/effect pairs, which "
+                "needs the system-partition search. These distinctions have "
+                "not been filtered for congruence, so the count and φ sum are "
+                "upper bounds on the cause-effect structure's — filtering can "
+                "remove any number of them, including all. Run "
+                "compute='ces' for the congruent set."
+            ),
+        }
+    return {
+        "congruence": "resolved",
+        "num_distinctions": count,
+        "sum_phi_distinctions": total,
+    }
 
 
 @mcp.tool()
@@ -356,6 +421,59 @@ def describe_substrate(handle: str) -> dict[str, Any]:
     }
 
 
+def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
+    """Raise when an analysis's estimated workload exceeds a soft limit.
+
+    Every axis the analysis actually walks is checked against its own limit.
+    Under IIT 4.0 a cause-effect structure computes a system irreducibility
+    analysis before unfolding distinctions, so it is charged on both the
+    system-partition axis and the mechanism-partition axis; over a sparse
+    substrate the first can dominate the second by orders of magnitude. An
+    axis the estimate left uncounted is not checked.
+    """
+    axes = (
+        ("system partitions", estimate.system_partitions, _SIA_PARTITION_LIMIT),
+        (
+            "mechanism-partition sweeps",
+            estimate.mechanism_partition_sweeps,
+            _CES_SWEEP_LIMIT,
+        ),
+    )
+    over = [
+        (axis, count, limit)
+        for axis, count, limit in axes
+        if count is not None and count > limit
+    ]
+    if over:
+        # Report the axis that overshoots its limit by the widest margin.
+        axis, count, limit = max(over, key=lambda item: item[1] / item[2])
+        qualifier = "at least " if estimate.capped else ""
+        estimated = f"{qualifier}{count:,} {axis} (soft limit {limit:,})"
+        blames_sia = axis == "system partitions"
+    elif estimate.capped:
+        estimated = "beyond the guard's own counting budget"
+        blames_sia = estimate.system_partitions is None
+    else:
+        return
+
+    if blames_sia and compute != "sia":
+        cheaper = (
+            ", or use compute='distinctions' for the distinctions alone, which "
+            "skips the system-partition search"
+        )
+    elif compute in ("full", "ces"):
+        cheaper = ", or use compute='sia' for a cheaper system-level result"
+    else:
+        # Already the cheapest analysis the tool offers.
+        cheaper = ""
+    raise ValueError(
+        f"A '{compute}' analysis of this {n_nodes}-node substrate is "
+        f"estimated at {estimated}; it may run for a very long time. Pass "
+        f"confirm_large=true to proceed anyway, use the estimate_cost tool "
+        f"to inspect the workload{cheaper}."
+    )
+
+
 @mcp.tool()
 def analyze(
     handle: str,
@@ -382,8 +500,18 @@ def analyze(
         2026 variant drives a fully deterministic system's φₛ to zero.
     compute : str
         ``"full"`` (default: system integrated information φₛ *and* the full
-        Φ-structure), ``"sia"`` (φₛ only — cheaper, no relations), or ``"ces"``
-        (the cause-effect structure).
+        Φ-structure), ``"sia"`` (φₛ only), ``"ces"`` (the cause-effect
+        structure), or ``"distinctions"`` (the distinctions alone).
+
+        ``"distinctions"`` is the only one that skips the system-partition
+        search, which under IIT 4.0 a cause-effect structure otherwise runs
+        before unfolding anything; over a sparse substrate that search is
+        almost the entire cost. It reports ``congruence`` in the summary:
+        ``"resolved"`` means the distinctions are exactly the Φ-structure's,
+        while ``"unresolved"`` means the system's specified state is tied and
+        the congruent subset is undetermined — the counts then come back
+        under ``_upper_bound`` names and must not be reported as the
+        structure's.
     detail : str
         ``"summary"`` (default: a readable card plus scalar values) or
         ``"full"`` (also embeds the complete serialized result, which can be
@@ -416,39 +544,15 @@ def analyze(
         *reducible*, not that it has no structure.
     """
     substrate = _get_substrate(handle)
+    compute_arg = None if compute == "full" else compute
     if not confirm_large:
-        unfolds_structure = compute in ("full", "ces")
-        threshold = _CES_SWEEP_LIMIT if unfolds_structure else _SIA_PARTITION_LIMIT
         overrides = presets.by_name.get(formalism, {}) if formalism else {}
         with pyphi.config.override(**overrides):
             estimate = estimate_analysis(
-                substrate,
-                compute="ces" if unfolds_structure else "sia",
-                limit=_GUARD_COUNT_BUDGET,
+                substrate, compute=compute_arg, limit=_GUARD_COUNT_BUDGET
             )
-        gauge = (
-            estimate.mechanism_partition_sweeps
-            if unfolds_structure
-            else estimate.system_partitions
-        )
-        axis = "mechanism-partition sweeps" if unfolds_structure else "system partitions"
-        if estimate.capped or (gauge is not None and gauge > threshold):
-            if gauge is None:
-                estimated = f"beyond the guard's counting budget in {axis}"
-            elif estimate.capped:
-                estimated = f"at least {gauge:,} {axis}"
-            else:
-                estimated = f"{gauge:,} {axis}"
-            raise ValueError(
-                f"A '{compute}' analysis of this {substrate.size}-node "
-                f"substrate is estimated at {estimated} (soft limit "
-                f"{threshold:,}); it may run for a very long time. Pass "
-                f"confirm_large=true to proceed anyway, use the "
-                f"estimate_cost tool to inspect the workload, or use "
-                f"compute='sia' for a cheaper system-level result."
-            )
+        _refuse_if_large(estimate, compute, substrate.size)
 
-    compute_arg = None if compute == "full" else compute
     with pyphi.config.override(**_parallel_overrides(parallel, workers)):
         result = pyphi.analyze(
             substrate, tuple(state), formalism=formalism, compute=compute_arg
@@ -458,7 +562,9 @@ def analyze(
     out: dict[str, Any] = {
         "result_ref": ref,
         "card": str(result),
-        "summary": _result_summary(result),
+        "summary": _result_summary(
+            result, formalism or pyphi.config.formalism.iit.version
+        ),
     }
     if detail == "full":
         target = getattr(result, "ces", result)
@@ -493,8 +599,11 @@ def estimate_cost(
     handle : str
         A substrate handle from ``load_example`` or ``build_substrate``.
     compute : str
-        ``"full"`` (default), ``"sia"``, or ``"ces"`` — the analysis whose
-        workload to estimate, as in ``analyze``.
+        ``"full"`` (default), ``"sia"``, ``"ces"``, or ``"distinctions"`` —
+        the analysis whose workload to estimate, as in ``analyze``. Under
+        IIT 4.0, ``"ces"`` is charged on the system-partition axis too,
+        since unfolding a cause-effect structure computes a system
+        irreducibility analysis first.
     formalism : str, optional
         As in ``analyze``.
 

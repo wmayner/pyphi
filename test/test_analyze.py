@@ -13,6 +13,9 @@ from pyphi.analyze import analyze
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.display import LOW
+from pyphi.formalism import iit4
+from pyphi.models.distinctions import ResolvedDistinctions
+from pyphi.models.distinctions import UnresolvedDistinctions
 
 
 def test_analyze_bundle_parity_with_substrate_sia():
@@ -244,3 +247,61 @@ def test_analyze_big_phi_undefined_under_iit3():
         # IIT 3.0's system-level value *is* its Φ, so the card says so.
         with config.override(repr_verbosity=LOW):
             assert repr(result).startswith("Analysis(Φ=")
+
+
+def test_analyze_compute_distinctions_matches_the_ces_when_untied():
+    """A cause-effect structure filters its distinctions for congruence with
+    the specified state the SIA carries. When that state is untied, the SIA
+    leaves it exactly as the system's intrinsic information produced it, so
+    the distinctions can be filtered without any system partition — and the
+    result must be identical."""
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2026):
+        result = analyze(substrate, (1, 0, 0), compute="distinctions")
+        ces = analyze(substrate, (1, 0, 0), compute="ces")
+    assert isinstance(result, ResolvedDistinctions)
+    assert result == ces.distinctions
+
+
+def test_analyze_compute_distinctions_leaves_a_tied_state_unresolved():
+    """A tie in the specified state is broken by the φ_s cascade over the
+    tied cause/effect pairs, which needs the partition search; the cheap path
+    must return the unfiltered distinctions rather than guess."""
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2026):
+        result = analyze(substrate, (1, 1, 0), compute="distinctions")
+    assert isinstance(result, UnresolvedDistinctions)
+
+
+def test_analyze_compute_distinctions_is_resolved_under_iit3():
+    """IIT 3.0 has no tied specified states and no congruence filter, so its
+    distinctions are the cause-effect structure as computed."""
+    substrate = examples.basic_substrate()
+    state = examples.basic_state()
+    with config.override(**presets.iit3):
+        result = analyze(substrate, state, compute="distinctions")
+        ces = analyze(substrate, state, compute="ces")
+    assert isinstance(result, ResolvedDistinctions)
+    assert result == ces
+
+
+def test_analyze_compute_distinctions_enumerates_no_system_partition(monkeypatch):
+    """The saving is the partition sweep itself, which for a sparse substrate
+    is the whole cost of a cause-effect structure."""
+    from pyphi import partition
+
+    calls = []
+    original = partition.system_partitions
+
+    def spy(*args, **kwargs):
+        calls.append(args)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(partition, "system_partitions", spy)
+    monkeypatch.setattr(iit4, "system_partitions", spy)
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2026):
+        analyze(substrate, (1, 0, 0), compute="distinctions")
+        assert not calls
+        analyze(substrate, (1, 0, 0), compute="ces")
+    assert calls

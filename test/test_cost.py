@@ -136,11 +136,31 @@ class TestScope:
         assert est.possible_distinctions is None
         assert est.possible_relations is None
 
-    def test_ces_scope(self):
+    def test_ces_scope_charges_the_iit4_system_partition_axis(self):
+        # Under IIT 4.0 unfolding a cause-effect structure computes a system
+        # irreducibility analysis first (Eq. 57), so a 'ces' estimate that
+        # left this axis out would undercount by the entire partition sweep —
+        # unboundedly, for a sparse substrate whose distinction axis is small.
         est = estimate_analysis(_dense3(), compute="ces")
         assert est.compute == "ces"
+        assert est.system_partitions == 22
+        assert est.mechanism_partition_sweeps == 1102
+
+    def test_ces_scope_omits_the_axis_under_iit3(self):
+        with IIT_3_CONFIG:
+            est = estimate_analysis(_dense3(), compute="ces")
+        assert est.system_partitions is None
+        assert est.mechanism_partition_sweeps is not None
+
+    def test_distinctions_scope(self):
+        est = estimate_analysis(_dense3(), compute="distinctions")
+        assert est.compute == "distinctions"
         assert est.system_partitions is None
         assert est.mechanism_partition_sweeps == 1102
+        # Distinctions stop before relations.
+        assert est.relations_closed_form is None
+        assert est.possible_relations is None
+        assert est.possible_distinctions == 2**3 - 1
 
     def test_unknown_compute_raises(self):
         with pytest.raises(ValueError, match="compute"):

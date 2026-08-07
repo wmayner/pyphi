@@ -1367,6 +1367,51 @@ class NullCauseEffectStructure(CauseEffectStructure):
         super().__init__(**kwargs)
 
 
+def congruent_distinctions(
+    system: System,
+    *,
+    specification_measure: (
+        DistributionMeasure
+        | StateAwareMeasure
+        | StatefulDistributionMeasure
+        | CompositeMeasure
+    ),
+    **kwargs: Any,
+) -> Distinctions:
+    """Return the system's distinctions without the system-partition search.
+
+    The specified state used for congruence filtering is taken from the
+    system's intrinsic information (Eq. 53) rather than from a system
+    irreducibility analysis, so no system partition is evaluated.
+
+    Returns
+    -------
+    ResolvedDistinctions
+        When neither direction's specified state ties. These are exactly
+        the distinctions of the system's :func:`ces`: a :func:`sia` over an
+        untied specified state evaluates every partition against that same
+        state and leaves it unchanged, so the cause-effect structure
+        filters congruence against it too.
+    UnresolvedDistinctions
+        When either direction's specified state ties. The tie is broken by
+        the φₛ cascade over the tied (cause, effect) pairs (Albantakis et
+        al. 2023, S1 Text), which needs the partition search, so which
+        distinctions are congruent is not determined here. Their number and
+        Σφ_d are upper bounds on the cause-effect structure's.
+    """
+    distinctions = iit3._compute_distinctions(system, **kwargs)  # type: ignore[arg-type]
+    system_state = system_intrinsic_information(
+        system, specification_measure=specification_measure
+    )
+    tied = (
+        len(_spec_candidates(system_state.cause)) > 1
+        or len(_spec_candidates(system_state.effect)) > 1
+    )
+    if tied:
+        return distinctions
+    return distinctions.resolve_congruence(system_state)
+
+
 def ces(
     system: System,
     *,

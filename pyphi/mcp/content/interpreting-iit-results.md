@@ -18,6 +18,30 @@ How to read an analysis result and explain it in plain language.
   the size and weight of the Φ-structure.
 - `card` — a ready-made human-readable summary.
 
+## What `compute="distinctions"` gives back
+
+`analyze(..., compute="distinctions")` returns the distinctions on their own,
+skipping the system-partition search that an IIT 4.0 cause-effect structure
+runs before it unfolds anything. Over a sparse substrate that search is most of
+the running time, so this is the cheap way to see which mechanisms specify what
+when you do not need φₛ, Φ, or the relations.
+
+Read `summary.congruence` first:
+
+- `"resolved"` — the system's specified state was untied, so these are exactly
+  the distinctions the Φ-structure has. `num_distinctions` and
+  `sum_phi_distinctions` mean what they usually mean.
+- `"unresolved"` — the specified state ties, and the tie is broken by the φₛ
+  cascade over the tied cause/effect pairs, which needs the search that was
+  skipped. The counts come back as `num_distinctions_upper_bound` and
+  `sum_phi_distinctions_upper_bound`, because a Φ-structure keeps only the
+  distinctions congruent with the system's specified state and that filter can
+  remove any number of them, including all. Report these as upper bounds, or
+  rerun with `compute="ces"` for the actual set.
+
+IIT 3.0 has no congruence filter, so it reports no `congruence` key and its
+distinctions are the structure as computed.
+
 ## How to narrate it
 
 1. **Lead with the two headline numbers, and keep them distinct.** "This
@@ -42,3 +66,5 @@ How to read an analysis result and explain it in plain language.
   produced a tie.
 - Comparing φ values across formalism versions as if they were the same
   quantity — they are defined differently.
+- Quoting a `_upper_bound` count from `compute="distinctions"` as the number of
+  distinctions the Φ-structure has. Congruence filtering has not run yet.

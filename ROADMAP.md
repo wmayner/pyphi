@@ -658,6 +658,24 @@ extending B1's bound-certificate assertions.
   ≈1.45 × 10⁹ sweeps, now asks for confirmation), and a new `estimate_cost` MCP tool
   exposes the estimate. Spec:
   `docs/superpowers/specs/2026-07-20-analysis-cost-estimate-design.md`.
+  *Corrected 2026-08-07:* `compute="ces"` reported `system_partitions=None` under every
+  formalism, but an IIT 4.0 cause-effect structure computes a SIA first (Eq. 57), so the
+  estimate — and the MCP guard reading it — undercounted a `ces`/`full` request by the
+  whole partition sweep. The guard also weighed only the one axis matching `compute`; it
+  now checks every axis the analysis walks against that axis's own limit. Measured on
+  `propagation_delay` (9 sparse units): 4,419,572 system partitions and 195 s of a 196 s
+  `ces` run were invisible behind a count of 54 mechanism-partition sweeps.
+- **Distinctions without the partition search.** *Landed 2026-08-07:*
+  `analyze(compute="distinctions")`, `System.distinctions(congruent=True)`,
+  `iit4.congruent_distinctions`, and the matching MCP `analyze`/`estimate_cost` option.
+  Congruence is filtered against the specified state taken from the system's intrinsic
+  information, which equals the SIA's whenever that state is untied (verified exact on
+  46/46 untied cells over six substrates × all states × both 4.0 presets); a tied state
+  returns `UnresolvedDistinctions`, since the tie is broken by the φₛ cascade over tied
+  pairs, which needs the search. Raw unfiltered distinctions differed from the
+  structure's in 46 of 78 cells (worst case 7 distinctions, Σφ_d 7.008, against a
+  structure with none), so the MCP summary reports the unfiltered counts under
+  `_upper_bound` names.
 - **`SweepResult`/`OptimizationResult` serialization (M12).** *Landed 2026-07-20:* both are
   registered in `pyphi.serialize` with full-fidelity `save`/`load` (DataFrames embedded as
   parquet; pyarrow is now a core dependency); the lossy bespoke `OptimizationResult.save`

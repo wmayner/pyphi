@@ -353,10 +353,13 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         repertoire evaluation. Reported as a weight, never multiplied into
         the counts.
     compute : str
-        ``"full"``, ``"sia"``, or ``"ces"``.
+        ``"full"``, ``"sia"``, ``"ces"``, or ``"distinctions"``.
     system_partitions : int or None
         Partitions the system irreducibility analysis sweeps, under the
-        active system partition scheme.
+        active system partition scheme. Counted for a ``"ces"`` analysis
+        under IIT 4.0, whose cause-effect structure embeds a system
+        irreducibility analysis, but not under IIT 3.0, whose structure is
+        the bare distinctions.
     mechanisms : int or None
         Candidate mechanisms: 2ⁿ − 1 for n units.
     purview_evaluations : int or None
@@ -499,7 +502,10 @@ def estimate_analysis(
         the whole substrate.
     compute : str or None, optional
         ``None`` estimates the full analysis; ``"sia"`` only the
-        system-partition axis; ``"ces"`` only the distinction axis.
+        system-partition axis; ``"distinctions"`` only the distinction
+        axis; ``"ces"`` the distinction axis, plus the system-partition
+        axis under IIT 4.0, where unfolding a cause-effect structure
+        computes a system irreducibility analysis first.
     limit : int, optional
         Work budget for the counting walk itself: purview evaluations and
         fresh partition enumerations each cost one unit, while memoized
@@ -520,7 +526,8 @@ def estimate_analysis(
     Raises
     ------
     ValueError
-        If ``compute`` is not ``"sia"``, ``"ces"``, or ``None``.
+        If ``compute`` is not ``"sia"``, ``"ces"``, ``"distinctions"``, or
+        ``None``.
 
     Examples
     --------
@@ -531,10 +538,10 @@ def estimate_analysis(
     >>> est.system_partitions
     22
     """
-    if compute not in (None, "sia", "ces"):
+    if compute not in (None, "sia", "ces", "distinctions"):
         raise ValueError(
-            f"unknown compute: {compute!r}; expected 'sia', 'ces', or None "
-            "for the full analysis"
+            f"unknown compute: {compute!r}; expected 'sia', 'ces', "
+            "'distinctions', or None for the full analysis"
         )
     from pyphi import utils
     from pyphi.conf import config
@@ -550,6 +557,16 @@ def estimate_analysis(
         state_space_size *= int(alphabet[i])
     unit_scope = scope
     scope = "full" if compute is None else compute
+    version = config.formalism.iit.version
+
+    # Under IIT 4.0 a cause-effect structure embeds its own system
+    # irreducibility analysis (Eq. 57), so it pays the system-partition axis
+    # too; under IIT 3.0 the structure is the bare distinctions. Only
+    # ``"distinctions"`` skips that axis under every formalism.
+    counts_system_partitions = scope in ("full", "sia") or (
+        scope == "ces" and version.startswith("IIT_4_0")
+    )
+    counts_distinctions = scope in ("full", "ces", "distinctions")
 
     counter = _Counter(limit)
     capped = False
@@ -558,9 +575,9 @@ def estimate_analysis(
     purview_evaluations = None
     sweeps = None
     try:
-        if scope in ("full", "sia"):
+        if counts_system_partitions:
             system_partition_count = _system_partition_count(m, counter)
-        if scope in ("full", "ces"):
+        if counts_distinctions:
             mechanism_iter: Any = utils.powerset(indices, nonempty=True)
             if unit_scope is not None:
                 mechanism_iter = unit_scope.mechanisms.select(mechanism_iter)
@@ -590,17 +607,22 @@ def estimate_analysis(
     except _LimitReached:
         capped = True
 
-    version = config.formalism.iit.version
     relations_closed_form = None
     possible_distinctions = None
     possible_relations = None
-    if version.startswith("IIT_4_0") and scope in ("full", "ces"):
-        relations_closed_form = config.formalism.iit.relation_computation == "ANALYTICAL"
-        if all(int(alphabet[i]) == 2 for i in indices):
-            from pyphi.formalism.iit4 import bounds
+    if version.startswith("IIT_4_0") and counts_distinctions:
+        from pyphi.formalism.iit4 import bounds
 
+        # A ``"distinctions"`` analysis stops before relations.
+        unfolds_relations = scope != "distinctions"
+        if unfolds_relations:
+            relations_closed_form = (
+                config.formalism.iit.relation_computation == "ANALYTICAL"
+            )
+        if all(int(alphabet[i]) == 2 for i in indices):
             possible_distinctions = bounds.number_of_possible_distinctions(m)
-            possible_relations = bounds.number_of_possible_relations(m)
+            if unfolds_relations:
+                possible_relations = bounds.number_of_possible_relations(m)
 
     return AnalysisEstimate(
         n_units=m,

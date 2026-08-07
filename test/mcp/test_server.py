@@ -501,3 +501,82 @@ def test_instructions_carry_the_gotchas():
     assert "no possible predecessor" in _INSTRUCTIONS
     # The primer's own abbreviated version is gone, not duplicated.
     assert "Two things to keep straight" not in _INSTRUCTIONS
+
+
+def test_analyze_distinctions_only(basic_handle):
+    # (1, 0, 0) leaves the system's specified state untied, so the congruent
+    # distinctions are exactly the cause-effect structure's.
+    out = srv.analyze(basic_handle, [1, 0, 0], compute="distinctions")
+    ces = srv.analyze(basic_handle, [1, 0, 0], compute="ces")["summary"]
+    summary = out["summary"]
+    assert summary["congruence"] == "resolved"
+    assert summary["num_distinctions"] == ces["num_distinctions"]
+    assert summary["sum_phi_distinctions"] == pytest.approx(ces["sum_phi_distinctions"])
+    # No Φ is claimed: relations were never computed.
+    assert "big_phi" not in summary
+    assert "num_relations" not in summary
+
+
+def test_analyze_distinctions_flags_an_unresolved_count_as_an_upper_bound(
+    basic_handle,
+):
+    # (1, 1, 0) ties the specified state, so congruence stays undetermined.
+    # The counts must not be reportable as the structure's: congruence
+    # filtering can drop any number of distinctions, including all of them.
+    summary = srv.analyze(basic_handle, [1, 1, 0], compute="distinctions")["summary"]
+    assert summary["congruence"] == "unresolved"
+    assert "num_distinctions" not in summary
+    assert "sum_phi_distinctions" not in summary
+    assert summary["num_distinctions_upper_bound"] >= 0
+    assert "upper bounds" in summary["note"]
+
+
+def test_analyze_distinctions_under_iit3_reports_the_structure(basic_handle):
+    # IIT 3.0 has no congruence filter, so the key would name a step that
+    # formalism never takes.
+    summary = srv.analyze(
+        basic_handle, BASIC_STATE, formalism="IIT_3_0", compute="distinctions"
+    )["summary"]
+    assert "congruence" not in summary
+    assert summary["num_distinctions"] > 0
+
+
+def test_iit3_full_analysis_reports_its_distinction_counts(basic_handle):
+    # Under IIT 3.0 the cause-effect structure is the bare distinctions, which
+    # carry the counts on themselves rather than on a structure object.
+    summary = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0")["summary"]
+    assert summary["num_distinctions"] > 0
+    assert summary["sum_phi_distinctions"] > 0
+    # IIT 3.0 has no relations, so no structure integrated information.
+    assert "big_phi" not in summary
+
+
+def test_guard_charges_a_ces_analysis_the_system_partition_axis(
+    basic_handle, monkeypatch
+):
+    # Under IIT 4.0 a cause-effect structure computes a system irreducibility
+    # analysis first, so the guard must weigh that axis for 'ces' too — a
+    # sparse substrate can be trivial on the distinction axis and enormous on
+    # this one.
+    monkeypatch.setattr(srv, "_SIA_PARTITION_LIMIT", 1)
+    with pytest.raises(ValueError, match="system partitions"):
+        srv.analyze(basic_handle, BASIC_STATE, compute="ces")
+    # The refusal points at the analysis that skips that axis.
+    with pytest.raises(ValueError, match="compute='distinctions'"):
+        srv.analyze(basic_handle, BASIC_STATE, compute="ces")
+    # ...which is itself admitted, since it never sweeps a system partition.
+    assert "result_ref" in srv.analyze(basic_handle, BASIC_STATE, compute="distinctions")
+
+
+def test_guard_leaves_iit3_ces_off_the_system_partition_axis(basic_handle, monkeypatch):
+    # IIT 3.0's cause-effect structure is the bare distinctions; no system
+    # partition is swept, so that limit does not apply.
+    monkeypatch.setattr(srv, "_SIA_PARTITION_LIMIT", 1)
+    out = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0", compute="ces")
+    assert "result_ref" in out
+
+
+def test_estimate_cost_distinctions_scope(basic_handle):
+    est = srv.estimate_cost(basic_handle, compute="distinctions")["estimate"]
+    assert est["system_partitions"] is None
+    assert est["mechanism_partition_sweeps"] > 0

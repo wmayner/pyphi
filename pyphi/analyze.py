@@ -157,9 +157,12 @@ def analyze(
         (``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``) applies that
         formalism for this call only.
     compute : optional
-        ``None`` returns an :class:`Analysis` bundle; ``"sia"`` or ``"ces"``
-        returns the raw result object; a callable returns ``compute(system)``.
-        Incompatible with ``grains``.
+        ``None`` returns an :class:`Analysis` bundle; ``"sia"``, ``"ces"``,
+        or ``"distinctions"`` returns the raw result object; a callable
+        returns ``compute(system)``. Incompatible with ``grains``.
+        ``"distinctions"`` skips the system-partition search, which under
+        IIT 4.0 is the whole cost of a cause-effect structure over a sparse
+        substrate; see :meth:`~pyphi.system.System.distinctions`.
     grains : optional
         ``None`` analyzes the single candidate system. ``True`` runs the
         bounded intrinsic-unit search with default
@@ -182,10 +185,10 @@ def analyze(
     ------
     ValueError
         If ``formalism`` is not a known version name; if ``compute`` is not
-        ``"sia"``, ``"ces"``, a callable, or ``None``; if ``grains`` is not
-        ``True``, a :class:`~pyphi.macro.SearchBounds`, or ``None``; if
-        ``grains`` is combined with ``subset`` or ``compute``; or if
-        ``parallel_kwargs`` is given without ``grains``.
+        ``"sia"``, ``"ces"``, ``"distinctions"``, a callable, or ``None``; if
+        ``grains`` is not ``True``, a :class:`~pyphi.macro.SearchBounds`, or
+        ``None``; if ``grains`` is combined with ``subset`` or ``compute``;
+        or if ``parallel_kwargs`` is given without ``grains``.
     """
     if formalism is not None and formalism not in presets.by_name:
         valid = ", ".join(sorted(presets.by_name))
@@ -241,10 +244,13 @@ def analyze(
                 result = system.sia()
             elif compute == "ces":
                 result = system.ces()
+            elif compute == "distinctions":
+                result = system.distinctions(congruent=True)
             elif compute is not None:
                 raise ValueError(
-                    f"unknown compute: {compute!r}; expected 'sia', 'ces', a "
-                    "callable, or None for the full Analysis bundle"
+                    f"unknown compute: {compute!r}; expected 'sia', 'ces', "
+                    "'distinctions', a callable, or None for the full "
+                    "Analysis bundle"
                 )
             else:
                 ces = system.ces()

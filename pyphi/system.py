@@ -843,11 +843,33 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         return maybe_disk_cached(self, "ces", kwargs, _compute)
 
-    def distinctions(self, **kwargs: Any) -> Any:
+    def distinctions(self, congruent: bool = False, **kwargs: Any) -> Any:
         """Return the :class:`Distinctions` of this system.
 
         The set of irreducible cause-effect distinctions specified by
         mechanisms in the system, without the relations that bind them.
+
+        Parameters
+        ----------
+        congruent : bool
+            Filter to the distinctions congruent with the system's specified
+            state, as the cause-effect structure does, but without the
+            system-partition search. Under IIT 4.0 the result is a
+            :class:`~pyphi.models.distinctions.ResolvedDistinctions` equal to
+            ``ces().distinctions`` when the specified state is untied, and
+            the unfiltered
+            :class:`~pyphi.models.distinctions.UnresolvedDistinctions` when it
+            ties (see
+            :func:`~pyphi.formalism.iit4.congruent_distinctions`). IIT 3.0
+            has no tied specified states, so its distinctions are congruent
+            as computed.
+
+        Notes
+        -----
+        Congruence filtering can remove every distinction — a system whose
+        mechanisms specify states incongruent with the system's own has a
+        nonempty unfiltered set and an empty cause-effect structure. The
+        unfiltered count and Σφ_d are therefore upper bounds, not estimates.
         """
         from pyphi.conf import config as _config
 
@@ -856,8 +878,19 @@ class System(Displayable, ToPandasMixin, Serializable):
             from pyphi.formalism.iit3 import (
                 _compute_distinctions as _distinctions,  # pyright: ignore[reportPrivateUsage]
             )
+            from pyphi.models.distinctions import ResolvedDistinctions
 
-            return _distinctions(self, **kwargs)
+            distinctions = _distinctions(self, **kwargs)
+            return ResolvedDistinctions(distinctions) if congruent else distinctions
+        if congruent:
+            from pyphi.formalism.iit4 import congruent_distinctions
+            from pyphi.measures.distribution import resolve_mechanism_measure
+
+            kwargs.setdefault(
+                "specification_measure",
+                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
+            )
+            return congruent_distinctions(self, **kwargs)
         from pyphi.formalism import all_distinctions as _all_distinctions
 
         return _all_distinctions(self, **kwargs)
