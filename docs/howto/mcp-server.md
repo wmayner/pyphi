@@ -9,48 +9,46 @@ It is meant to be useful in two ways: as a calculator and interpreter for
 researchers using AI assistance, and as a tutor for newcomers exploring the
 theory.
 
-## Install
+## Set up a project with Claude Code
 
-The server arrived in PyPhi 2.0, which has not been released yet, so install it
-with the `mcp` extra from the `main` branch:
-
-```bash
-pip install "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
-```
-
-Plotting needs the visualization stack, so add that extra too if you want it:
+Four commands take you from nothing to an assistant that can compute Φ. Each
+one is explained below.
 
 ```bash
-pip install "pyphi[mcp,visualize] @ git+https://github.com/wmayner/pyphi.git@main"
+uv init my-iit-project
+cd my-iit-project
+uv add "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
+uv run pyphi-mcp install
 ```
 
-Once 2.0 is on PyPI, `pip install "pyphi[mcp]"` will get you the same thing.
-Until then that command installs PyPhi 1.2.0, which has no `mcp` extra and no
-server.
+Then open the project with `claude`. Claude Code asks once whether to trust the
+server this project registers; approve it, and the PyPhi tools are available for
+the rest of that session and every later one. `claude mcp list` reports its
+status if you want to check before starting.
 
-### Claude Code
+### What each step does
 
-`pyphi-mcp install`, run in your project directory, does both halves of the
-setup:
+`uv init` creates the project and `uv add` installs PyPhi into its environment.
+The `mcp` extra brings in the server and its `pyphi-mcp` command. Add
+`visualize` as well — `"pyphi[mcp,visualize] @ …"` — if you want the `plot` tool,
+which needs the visualization stack.
 
-```bash
-pyphi-mcp install
-```
+The `@main` reference is there because the server arrived in PyPhi 2.0, which is
+not released yet. Once 2.0 is on PyPI, `uv add "pyphi[mcp]"` will get you the
+same thing; until then that shorter form installs PyPhi 1.2.0, which has no
+`mcp` extra and no server.
 
-The `pyphi-mcp` command comes with the `mcp` extra, so that bare name works when
-the environment you installed PyPhi into is the active one. Otherwise call it by
-its full path:
+`uv run` finds `pyphi-mcp` because PyPhi is now a dependency of the project you
+are standing in, so the command needs no activated environment and no absolute
+path. This is the one thing `uv run` is good for here — `uv run --with` and
+`uvx` build an environment for a single command and then throw it away, so a
+registration written from one would point at a directory that no longer exists.
+`install` refuses to write such an entry rather than let you find out later.
 
-```bash
-/path/to/your/venv/bin/pyphi-mcp install
-```
+Outside a uv project, run `pyphi-mcp install` with the environment holding PyPhi
+activated, or call it by its full path, `/path/to/venv/bin/pyphi-mcp install`.
 
-`uv run pyphi-mcp install` works when PyPhi is a dependency of the project you
-are standing in, and not otherwise — `uv run` looks in that project's
-environment. Do not reach for `uv run --with` or `uvx` here: those build an
-environment for the one command and then discard it, so there would be nothing
-left for a client to launch. `install` refuses to register such an interpreter
-and tells you so.
+### What `install` writes
 
 It registers the server in `.mcp.json` and writes a short block of PyPhi facts
 into `AGENTS.md` — the two quantities φₛ and Φ, the little-endian state order,
@@ -67,13 +65,13 @@ removes both, and anything you wrote around them survives.
 
 The registration names the Python interpreter you ran `pyphi-mcp install` with,
 so the client starts the server from the same environment you installed PyPhi
-into:
+into — in a uv project, that project's own `.venv`:
 
 ```json
 {
   "mcpServers": {
     "pyphi": {
-      "command": "/path/to/your/venv/bin/python",
+      "command": "/path/to/my-iit-project/.venv/bin/python",
       "args": ["-m", "pyphi.mcp"]
     }
   }
@@ -81,8 +79,10 @@ into:
 ```
 
 Because that is an absolute path, the client needs nothing on its `PATH` and
-resolves no packages at startup. If you move or delete the environment, run
-`pyphi-mcp install --force` from the new one.
+resolves no packages at startup. It is also specific to your machine, so someone
+who clones the project runs `uv sync` and then `uv run pyphi-mcp install --force`
+to point the entry at their own environment. The same command fixes it if you
+move the project or rebuild its environment somewhere else.
 
 Use `--scope user` to register for every project rather than this one,
 `--client claude-desktop` for Claude Desktop, and `--print` to see what would be
@@ -102,16 +102,22 @@ both are required, and there is no list of known servers to look a bare name up
 in.
 
 ```bash
-claude mcp add pyphi -- /path/to/your/venv/bin/python -m pyphi.mcp
+claude mcp add pyphi -- /path/to/my-iit-project/.venv/bin/python -m pyphi.mcp
 ```
+
+If that command opens a Claude session instead of registering anything, a shell
+alias is shadowing the subcommand — `claude` aliased to `claude <some flag>`
+makes `mcp` parse as a prompt rather than a command. Run the executable itself,
+which `which -a claude` prints.
 
 This writes an entry to `.mcp.json` (or `~/.claude.json`), which you can also
 create by hand — it is the same JSON shown above.
 
-### Claude Desktop
+## Claude Desktop
 
-`pyphi-mcp install --client claude-desktop` writes the entry for you. To do it
-by hand, add this to `claude_desktop_config.json`:
+`pyphi-mcp install --client claude-desktop` writes the entry for you, run the
+same way as above from the environment holding PyPhi. To do it by hand, add this
+to `claude_desktop_config.json`:
 
 ```json
 {
