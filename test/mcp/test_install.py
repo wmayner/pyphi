@@ -5,6 +5,7 @@ These exercise :mod:`pyphi.mcp.install`, which does not import the optional
 """
 
 import json
+import sys
 
 import pytest
 
@@ -16,6 +17,18 @@ def _install(tmp_path, **kwargs):
 
 
 class TestRegistration:
+    def test_default_launches_the_environment_that_installed_it(self):
+        assert mod.registration() == {
+            "command": sys.executable,
+            "args": ["-m", "pyphi.mcp"],
+        }
+
+    def test_a_specification_launches_through_uvx(self):
+        assert mod.registration("pyphi[mcp]") == {
+            "command": "uvx",
+            "args": ["--from", "pyphi[mcp]", "pyphi-mcp"],
+        }
+
     def test_written_into_an_empty_directory(self, tmp_path):
         _install(tmp_path)
         config = json.loads((tmp_path / ".mcp.json").read_text())

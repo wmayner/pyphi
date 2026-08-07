@@ -11,38 +11,22 @@ theory.
 
 ## Install
 
-Install PyPhi with the `mcp` extra. From PyPI:
-
-```bash
-pip install "pyphi[mcp]"
-```
-
-Plotting needs the visualization stack, so add that extra too if you want it:
-
-```bash
-pip install "pyphi[mcp,visualize]"
-```
-
-### From the GitHub main branch
-
-To run the newest, unreleased code, install directly from the `main` branch
-instead of from PyPI. This picks up fixes and features that have not made it
-into a release yet.
+The server arrived in PyPhi 2.0, which has not been released yet, so install it
+with the `mcp` extra from the `main` branch:
 
 ```bash
 pip install "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
 ```
 
-Add the `visualize` extra the same way if you want plotting:
+Plotting needs the visualization stack, so add that extra too if you want it:
 
 ```bash
 pip install "pyphi[mcp,visualize] @ git+https://github.com/wmayner/pyphi.git@main"
 ```
 
-The client launch commands below take the same `@main` reference — anywhere
-they name `pyphi[mcp]`, substitute
-`pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main` to launch the
-server from the main branch.
+Once 2.0 is on PyPI, `pip install "pyphi[mcp]"` will get you the same thing.
+Until then that command installs PyPhi 1.2.0, which has no `mcp` extra and no
+server.
 
 ### Claude Code
 
@@ -62,13 +46,34 @@ file is read before anything else happens.
 
 Claude Code reads `CLAUDE.md` rather than `AGENTS.md`, so `install` also adds
 an `@AGENTS.md` import line to `CLAUDE.md`. Both files are safe to already
-have: the block sits between markers and a later `install` replaces only what
-is between them, and the import is not added twice. `pyphi-mcp uninstall`
+have: the block is written between markers and a later `install` replaces only
+what is between them, and the import is not added twice. `pyphi-mcp uninstall`
 removes both, and anything you wrote around them survives.
 
-Use `--from` to install from somewhere other than PyPI, `--scope user` to
-register for every project rather than this one, `--client claude-desktop` for
-Claude Desktop, and `--print` to see what would be written without writing it:
+The registration names the Python interpreter you ran `pyphi-mcp install` with,
+so the client starts the server from the same environment you installed PyPhi
+into:
+
+```json
+{
+  "mcpServers": {
+    "pyphi": {
+      "command": "/path/to/your/venv/bin/python",
+      "args": ["-m", "pyphi.mcp"]
+    }
+  }
+}
+```
+
+Because that is an absolute path, the client needs nothing on its `PATH` and
+resolves no packages at startup. If you move or delete the environment, run
+`pyphi-mcp install --force` from the new one.
+
+Use `--scope user` to register for every project rather than this one,
+`--client claude-desktop` for Claude Desktop, and `--print` to see what would be
+written without writing it. `--from` registers a `uvx` launch command instead,
+which resolves the given package specification each time the server starts
+rather than using a fixed environment:
 
 ```bash
 pyphi-mcp install --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
@@ -76,66 +81,37 @@ pyphi-mcp install --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@
 
 #### Registering by hand
 
-To register the server without the instruction block, use `claude mcp add` —
-everything after `--` is the launch command. From PyPI:
+To register the server without the instruction block, use `claude mcp add`. It
+takes a name for the server and then, after `--`, the command that starts it;
+both are required, and there is no list of known servers to look a bare name up
+in.
 
 ```bash
-claude mcp add pyphi -- uvx --from "pyphi[mcp]" pyphi-mcp
-```
-
-Or, for the latest code from the main branch:
-
-```bash
-claude mcp add pyphi -- uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main" pyphi-mcp
+claude mcp add pyphi -- /path/to/your/venv/bin/python -m pyphi.mcp
 ```
 
 This writes an entry to `.mcp.json` (or `~/.claude.json`), which you can also
-create by hand:
-
-```json
-{
-  "mcpServers": {
-    "pyphi": {
-      "command": "uvx",
-      "args": ["--from", "pyphi[mcp]", "pyphi-mcp"]
-    }
-  }
-}
-```
-
-Claude Code inherits your shell's `PATH`, so as long as `uv` is on it this needs
-no absolute paths.
+create by hand — it is the same JSON shown above.
 
 ### Claude Desktop
 
-Add it to `claude_desktop_config.json`:
+`pyphi-mcp install --client claude-desktop` writes the entry for you. To do it
+by hand, add this to `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "pyphi": {
-      "command": "uvx",
-      "args": ["--from", "pyphi[mcp]", "pyphi-mcp"]
+      "command": "/path/to/your/venv/bin/python",
+      "args": ["-m", "pyphi.mcp"]
     }
   }
 }
 ```
 
 Claude Desktop is a GUI application and does not inherit your shell's `PATH`; it
-launches subprocesses with a minimal system `PATH`. If `uvx` (or `pyphi-mcp`) is
-not found there, give the absolute path to the executable — the one that
-`which uvx` prints in your shell:
-
-```json
-{
-  "mcpServers": {
-    "pyphi": {
-      "command": "/Users/you/.local/bin/uvx",
-      "args": ["--from", "pyphi[mcp]", "pyphi-mcp"]
-    }
-  }
-}
-```
+launches subprocesses with a minimal system `PATH`. An absolute path to the
+interpreter, which is what `install` writes, sidesteps that.
 
 ## A first conversation
 
@@ -195,7 +171,9 @@ image.
 - `analyze` — compute system integrated information φₛ and the Φ-structure of a
   substrate in a state (under the default IIT 4.0 formalism, or an earlier
   version if you ask for one), optionally on multiple cores for that call
-  (`parallel`, `workers`).
+  (`parallel`, `workers`). `compute` narrows the work to φₛ alone (`"sia"`),
+  the cause-effect structure (`"ces"`), or the distinctions alone
+  (`"distinctions"`, the only one that skips the system-partition search).
 - `configure_parallel` — read or persistently set the server's parallelization
   configuration; a per-call `analyze` setting takes precedence.
 - `inspect` — drill into one part of a result (a distinction, a repertoire).
@@ -241,14 +219,19 @@ you rarely run it by hand.
 
 A client launches that subprocess with its own environment rather than your
 shell's, so a bare `pyphi-mcp` is found only if it is on the client's `PATH` —
-which a project virtual environment usually is not. Two ways to make the launch
-reliable without hardcoding a path:
+which a project virtual environment usually is not. Three ways to make the
+launch reliable:
 
-- **Run it through `uv`** (recommended). `uvx` resolves an isolated environment
-  and runs the entry point, so nothing needs to be installed or activated first.
-  From PyPI the launch command is `uvx --from "pyphi[mcp]" pyphi-mcp`; from the
-  main branch it is
-  `uvx --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main" pyphi-mcp`.
+- **Give the absolute path to the interpreter** (recommended), as
+  `pyphi-mcp install` does: command `/path/to/your/venv/bin/python`, arguments
+  `["-m", "pyphi.mcp"]`. `PATH` stops mattering and no packages are resolved at
+  startup.
 - **Install it as a tool** with `uv tool install "pyphi[mcp]"` (or
   `pipx install "pyphi[mcp]"`), which places `pyphi-mcp` on a stable `PATH`
   entry so the bare name works everywhere.
+- **Run it through `uv`**, as `pyphi-mcp install --from <specification>` writes:
+  `uvx --from "<specification>" pyphi-mcp` resolves an isolated environment and
+  runs the entry point, so nothing needs to be installed or activated first. Be
+  aware that when the resolved package provides no such executable, `uvx` falls
+  back to running whatever `pyphi-mcp` is on `PATH`, which can quietly start a
+  different installation than the one you named.

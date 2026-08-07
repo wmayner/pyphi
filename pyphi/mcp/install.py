@@ -17,12 +17,9 @@ from __future__ import annotations
 import argparse
 import json
 import platform
+import sys
 from pathlib import Path
 from typing import Any
-
-#: Default package specification for the launch command. ``--from`` replaces it
-#: with, for example, a main-branch or local-checkout reference.
-DEFAULT_SPEC = "pyphi[mcp]"
 
 #: The instruction file the block is written to. Codex, Cursor and others read
 #: this name; Claude Code reads ``CLAUDE.md`` and is bridged by an import.
@@ -71,15 +68,25 @@ def block() -> str:
     return f"{BLOCK_BEGIN}\n{BLOCK_BODY}\n{BLOCK_END}"
 
 
-def registration(spec: str = DEFAULT_SPEC) -> dict[str, Any]:
+def registration(spec: str | None = None) -> dict[str, Any]:
     """The client configuration entry that launches the server.
 
     Parameters
     ----------
     spec : str, optional
-        The package specification ``uvx`` resolves, such as
-        ``"pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"``.
+        A package specification for ``uvx`` to resolve at each launch, such as
+        ``"pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"``. If
+        None, the entry runs this interpreter, whose environment already
+        provides the server.
+
+    Notes
+    -----
+    Resolving a specification names a version rather than an environment, so
+    the server a client starts need not be the one that wrote the entry. The
+    interpreter form has no such gap, and starts without a network.
     """
+    if spec is None:
+        return {"command": sys.executable, "args": ["-m", "pyphi.mcp"]}
     return {"command": "uvx", "args": ["--from", spec, "pyphi-mcp"]}
 
 
@@ -277,7 +284,7 @@ def install(
     *,
     scope: str = "project",
     client: str = "claude-code",
-    spec: str = DEFAULT_SPEC,
+    spec: str | None = None,
     force: bool = False,
 ) -> list[str]:
     """Register the server and write the instruction block.
@@ -359,8 +366,11 @@ def build_parser() -> argparse.ArgumentParser:
     install_parser.add_argument(
         "--from",
         dest="spec",
-        default=DEFAULT_SPEC,
-        help=f"package specification to launch (default: {DEFAULT_SPEC})",
+        default=None,
+        help=(
+            "launch through `uvx` with this package specification, instead of "
+            "through the interpreter running this command"
+        ),
     )
     install_parser.add_argument(
         "--print",
