@@ -6,31 +6,7 @@ This document provides context and guidelines for AI assistants working on PyPhi
 
 ---
 
-## Table of Contents
-
-1. [Project Overview](#project-overview)
-2. [Critical Context](#critical-context)
-3. [Architecture & Organization](#architecture--organization)
-4. [Development Guidelines](#development-guidelines)
-5. [Testing Strategy](#testing-strategy)
-6. [Configuration System](#configuration-system)
-7. [Common Pitfalls](#common-pitfalls)
-8. [Maintenance Notes](#maintenance-notes)
-
----
-
 ## Project Overview
-
-### What is PyPhi?
-
-PyPhi is a computational implementation of **Integrated Information Theory (IIT)**, a mathematical framework for understanding consciousness and integrated information in physical systems. The library computes **Φ (phi)**, the measure of integrated information, along with related quantities.
-
-### Scientific Context
-
-- **Domain**: Neuroscience, consciousness studies, complex systems
-- **Primary users**: Researchers, academics, computational neuroscientists
-- **Computational characteristics**: Heavy numerical computation, combinatorially expensive operations
-- **Theory versions**: Supports both IIT 3.0 and IIT 4.0 (currently on 4.0)
 
 ### Key Papers
 
@@ -51,13 +27,6 @@ PyPhi is a computational implementation of **Integrated Information Theory (IIT)
 
 Additional key theoretical papers are in @papers.
 
-### Resources
-
-- **Documentation**: https://pyphi.readthedocs.io
-- **Repository**: https://github.com/wmayner/pyphi
-- **User group**: https://groups.google.com/forum/#!forum/pyphi-users
-- **Tutorial**: IIT 4.0 demo notebook in `docs/examples/IIT_4.0_demo.ipynb`
-
 ---
 
 ## Critical Context
@@ -67,9 +36,11 @@ Additional key theoretical papers are in @papers.
 **This is scientific software implementing a precise mathematical formalism.**
 
 - Small bugs can invalidate research results
-- Numerical precision matters deeply (configured via `PRECISION` setting)
+- Numerical precision matters deeply (configured via `config.numerics.precision`)
 - Changes to core computation logic require extreme care
 - When in doubt, consult the IIT papers and existing tests
+
+**Correctness > performance > elegance.**
 
 ### Don't defer confirmation experiments
 
@@ -97,68 +68,6 @@ investigation and exposed the bug.
 ---
 
 ## Architecture & Organization
-
-### Core Abstractions (pre v2.0 refactoring)
-
-The library is built around these primary objects:
-
-1. **`Network`** (`pyphi/network.py`)
-   - Represents a system of nodes with causal relationships
-   - Defined by a Transition Probability Matrix (TPM) and connectivity matrix
-   - Main object on which computations are performed
-
-2. **`Subsystem`** (`pyphi/subsystem.py`)
-   - A subset of nodes from a Network in a particular state
-   - Φ is computed over subsystems
-   - Handles repertoire computation, mechanism evaluation
-
-4. **TPM (Transition Probability Matrix)** (`pyphi/tpm.py`)
-   - Core data structure defining system dynamics
-   - Can be deterministic or probabilistic
-   - Multiple representations: state-by-node, state-by-state
-
-### Module Organization (pre v2.0 refactoring)
-
-```
-pyphi/
-├── __init__.py              # Main entry point, lifts key interfaces
-├── compute/                 # Main computational entry points
-│   ├── network.py           # Network-level computations
-│   └── subsystem.py         # Subsystem-level computations
-├── models/                  # Data structures for results
-│   ├── subsystem.py         # CauseEffectStructure, Concept, etc.
-│   ├── mechanism.py         # RepertoireIrreducibilityAnalysis
-│   ├── cuts.py              # Partition/cut representations
-│   └── ...
-├── metrics/                 # Distance measures for integration
-│   ├── ces.py               # Cause-effect structure distances
-│   └── distribution.py      # Repertoire distance measures
-├── new_big_phi/             # IIT 4.0 implementation
-│   └── __init__.py          # System-level analysis (Φ_s)
-├── partition.py             # Partitioning schemes
-├── repertoire.py            # Repertoire computation
-├── parallel/                # Parallelization infrastructure
-│   ├── tree.py              # Parallel tree computation
-│   └── progress.py          # Progress bar management
-├── cache/                   # Caching systems
-│   ├── redis.py             # Redis cache backend
-│   └── cache_utils.py       # Cache utilities
-├── network_generator/       # Generate example networks
-├── visualize/               # Visualization tools (optional dep)
-└── ...
-```
-
-### IIT Version Switching (pre v2.0 refactoring)
-
-The library supports both IIT 3.0 and IIT 4.0:
-
-- **Config setting**: `IIT_VERSION: 4.0` in `pyphi_config.yml`
-- **IIT 4.0 code**: Primarily in `pyphi/new_big_phi/`
-- **IIT 3.0 code**: Distributed throughout the codebase (legacy)
-
-The formalism differences are significant:
-- IIT 3.0: Focuses on cause-effect structure (Φ)
-- IIT 4.0: Adds system-level integration (Φ_s), relations, distinctions
 
 ### Key Computational Concepts
 
@@ -199,7 +108,7 @@ The formalism differences are significant:
 
 3. **Check configuration**
    - Many behaviors are configurable
-   - See [pyphi_config.yml](file:///pyphi_config.yml) and [pyphi/conf.py](file:///pyphi/conf.py)
+   - See [pyphi_config.yml](file:///pyphi_config.yml) and [pyphi/conf/](file:///pyphi/conf/)
 
 ### Code Quality Standards
 
@@ -210,42 +119,9 @@ The formalism differences are significant:
 
 2. **Documentation — docstring style (enforced)**
 
-   All `pyphi/**` docstrings follow one standard, enforced by the docs build
-   (`napoleon_google_docstring = False`, so a Google-style section fails the
-   `-W` build). New and modified docstrings must match it:
-
-   - **NumPy style, not Google.** Underlined sections — `Parameters`,
-     `Returns`, `Yields`, `Raises`, and, where they add value, `Notes` and
-     `References` (never `Args:`/`Returns:` colon headers). A param is
-     `name : type` with the description indented beneath.
-   - **Final-state, impersonal voice.** Describe what the thing *is* and
-     *does*, in the present tense. Never what it was, replaced, or how it was
-     built; no first person, no development-process or planning narrative. The
-     test: would the sentence still make sense to someone who uses PyPhi for
-     years and never sees its git history?
-   - **Substantive insight is welcome.** A mathematical fact, a complexity
-     bound, a numerical-stability caveat, or a subtle usage requirement belongs
-     in `Notes` (NumPy-docstring spirit). The rule bans *process* narrative,
-     not *subject-matter* explanation. Anything asserted must be verifiable
-     against the code or a cited source.
-   - **Plain, precise prose.** Prefer plain words where they are equally exact;
-     never sacrifice precision for simplicity. Avoid compressed shorthand
-     (quoted-phrase adjectives, hyphen-chain nouns, stacked modifiers).
-   - **Symbols: Unicode, not RST substitutions.** Write `Φ`, `φ`, `φₛ`, `𝒜`,
-     `α`, `×`, `−` directly (they read correctly under `help()`); use Unicode
-     sub/superscripts where they exist. These are whitelisted in ruff's
-     `allowed-confusables`. Reserve the `:math:` role for genuine multi-part
-     formulae (fractions, sums) that Unicode cannot express. Do **not**
-     reintroduce `|big_phi|`-style substitution markup — there is no
-     `rst_prolog` defining it.
-   - **Cite the literature** where a docstring documents a paper result — the
-     exact equation/section/figure number, verified against the actual paper
-     (`papers/`) — in a `References` section (`[1]_` entries) or inline
-     short-form ("Albantakis et al. (2023), Eq. 33"). Never cite a number from
-     memory. `graphify-out/bridge-edges.json` maps code files to paper
-     concepts.
-   - **Doctests are executable and tested** (`--doctest-modules`); keep `>>>`
-     lines and their output correct.
+   All `pyphi/**` docstrings follow one NumPy-style standard, enforced by
+   the docs build. See [pyphi/CLAUDE.md](file:///pyphi/CLAUDE.md) for the full
+   rules (loads automatically when working in that directory).
 
 3. **Testing**
    - Write tests for all new functionality
@@ -272,46 +148,10 @@ The formalism differences are significant:
 Always use `uv run` for running any python development commands (for example,
 `uv run python`). Use `uv pip` when pip is needed.
 
-### Development Workflow
-
-```bash
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Create virtual environment
-uv venv
-
-# Install development dependencies
-uv pip install -e ".[dev,parallel,visualize,graphs,emd,caching]"
-
-# Run type checking
-uv run pyright pyphi
-
-# Run benchmarks (quick, current env)
-just bench
-
-# Build documentation
-just docs
-
-# Check configuration
-uv run python -c "import pyphi; print(pyphi.config)"
-```
-
 ### Code Style
 
-- **Formatting & Linting**: Project uses Ruff (configured in `pyproject.toml`)
-  - **Enabled rule sets**: pycodestyle, pyflakes, isort, bugbear, comprehensions, pyupgrade, return statements, unused arguments, pathlib, pylint, performance, and Ruff-specific rules
-  - **Special allowances**: Relaxed limits for scientific computing (complex functions, many arguments, magic values)
-  - **Per-file ignores**: Tests allow fixtures and assertions, profiling allows print statements
-  - **Do not run unsafe fixes with Ruff without first getting permission from the user.**
-- **Type Checking**: pyright (configured in `pyproject.toml`)
-  - Uses "standard" type checking mode
-  - Better numpy type inference than mypy
-  - Faster and more accurate for scientific Python code
-- **Pre-commit hooks**: Configured in `.pre-commit-config.yaml`
-  - Ruff linter and formatter
-  - pyright type checker
-  - Standard file checks (trailing whitespace, large files, etc.)
+**Do not run unsafe fixes with Ruff without first getting permission from
+the user.**
 
 ## Python version
 
@@ -321,68 +161,11 @@ uv run python -c "import pyphi; print(pyphi.config)"
 
 ## Testing Strategy
 
-### Test Organization
+### Running tests
 
-```
-pyphi/                       # Doctests
-docs/                        # Doctests
-test/                        # Unit, regression, and e2e tests
-├── conftest.py              # Pytest configuration and fixtures
-├── example_networks.py      # Reusable network definitions
-├── test_*.py                # ~460 test functions across ~30 files
-└── data/                    # Test data (JSON, etc.)
-    ├── PQR_CES.json
-    └── ...
-```
+`just test` runs the suite and forwards extra arguments to pytest.
 
-**Note**: Test configuration is now in `pyproject.toml` under `[tool.pytest.ini_options]`.
-
-### Testing Approaches
-
-1. **Unit Tests**: Test individual functions and methods
-2. **Integration Tests**: Test complete computations (e.g., full Φ calculation)
-3. **Property-Based Tests**: Use Hypothesis for invariant testing
-4. **Regression Tests**: Ensure results match expected values from papers
-5. **Doctests**: Ensure documentation is current and documented behavior is as expected
-
-### Example Networks
-
-Use the pre-defined networks in `pyphi.examples`:
-```python
-from pyphi import examples
-
-# Standard test networks
-network = examples.basic_network()
-network = examples.xor_network()
-network = examples.fig1a()  # From IIT 3.0 paper
-```
-
-### Running Tests
-
-```bash
-# All tests, including doctests
-uv run pytest
-
-# Test suite
-uv run pytest test/
-
-# Specific test file
-uv run pytest test/test_subsystem.py
-
-# Specific test function
-uv run pytest test/test_subsystem.py::test_cause_repertoire
-
-# With coverage
-uv run coverage run --source pyphi -m pytest
-uv run coverage html
-
-# Run the test suite (forwards args to pytest)
-just test
-```
-
-**Note**: Coverage configuration is now in `pyproject.toml` under `[tool.coverage.*]`.
-
-#### Doctest scope — important
+### Doctest scope — important
 
 The pytest config in `pyproject.toml` sets ``testpaths = ["pyphi",
 "test"]`` and ``addopts = ["--doctest-modules", "--doctest-glob=*.rst",
@@ -403,7 +186,7 @@ in testpaths even though `--doctest-glob=*.rst` would match. Treat
 `docs/*.rst` doctests as documentation that users can copy — verify by
 reading, not by pytest.
 
-#### Formalism pinning (tests that assert φ values)
+### Formalism pinning (tests that assert φ values)
 
 A φ value is only meaningful relative to a formalism. Any test that asserts a
 φ value must **pin its formalism explicitly** — never rely on the ambient
@@ -496,124 +279,19 @@ directory).
 
 ---
 
-## Maintenance Notes
+## Repository Conventions
 
-### Known Issues & Technical Debt
+### Surfacing new functionality
 
-From [TODO.md](file:///TODO.md) and codebase inspection:
+When adding a feature, consider the MCP server (`pyphi/mcp/`): decide
+whether the new information or functionality should be surfaced there — as
+a tool in `server.py`, a resource in `resources.py`, or reference content
+in `pyphi/mcp/content/` — and update those surfaces if so.
 
-1. **Type Hints Incomplete**
-   - Many functions lack type annotations
-   - Gradually add when touching code
-
-2. **API Documentation Outdated**
-   - Needs regeneration after recent reorganization
-   - Use `apidoc` or similar tool
-
-3. **Redis Cache Underutilized**
-   - Infrastructure exists but may not be fully leveraged
-   - Consider for distributed computation scenarios
-
-4. **Unified Partitioning Scheme Needed**
-   - Multiple partition types, could be more consistent
-   - See `pyphi/partition.py`
-
-5. **IIT 3.0 Module Separation**
-   - IIT 3.0 code should be isolated for clarity
-   - Currently mixed throughout codebase
-
-### File Hygiene Issues
-
-**Untracked files to ignore**:
-- `test-iit4.ipynb`, `visualize-example.ipynb` - Experimental notebooks
-- `test/test_parallel2.py`, `test/test_serialization.py` - Experimental tests
-
-### Code Organization Observations
-
-**Strengths**:
-- Clear separation of concerns (compute, models, metrics)
-- Registry pattern for extensibility
-- Comprehensive configuration system
-- Good test coverage of core functionality
-
-**Areas for Improvement**:
-- Some modules are quite large (`subsystem.py` ~1,900 lines, `conf.py` ~1,000 lines)
-- IIT 3.0 vs 4.0 code not clearly separated (except `new_big_phi/`)
-- Circular import issues managed with deferred imports
-- Some inconsistency in naming conventions
-
-### Refactoring Priorities
-
-When improving the codebase, prioritize:
-
-1. **Add type hints** - Improves IDE support and catches bugs
-2. **Improve test coverage** - Especially edge cases
-3. **Separate IIT versions** - Make version differences explicit
-4. **Document complex algorithms** - Especially partition evaluation
-5. **Reduce code duplication** - Look for repeated patterns
-6. **Performance profiling** - Identify bottlenecks before optimizing
-
-### Testing Improvements Needed
-
-1. **Increase coverage** of edge cases
-2. **Property-based tests** for mathematical invariants
-3. **Performance regression tests** via benchmarking
-4. **Integration tests** for IIT 4.0 (newer code path)
-5. **Parallel computation tests** (may require special setup)
-
----
-
-## Working with AI Assistants
-
-### Effective Collaboration
-
-**Do**:
-- Ask for explanations of unfamiliar IIT concepts
-- Request code review before submitting changes
-- Ask for help writing property-based tests
-- Request refactoring suggestions with justification
-
-**Don't**:
-- Make changes to core computation logic without understanding
-- Assume existing code is bug-free (it needs maintenance!)
-- Skip testing because "it's just a small change"
-- Ignore numerical precision requirements
-
-### Example Workflows
-
-#### Adding a New Feature
-1. Read relevant existing code
-2. Write tests first (TDD)
-3. Implement feature
-4. Run tests and fix failures
-5. Add documentation
-6. Consider the MCP server (`pyphi/mcp/`): decide whether the new
-   information or functionality should be surfaced there — as a tool in
-   `server.py`, a resource in `resources.py`, or reference content in
-   `pyphi/mcp/content/` — and update those surfaces if so
-7. Create changelog fragment in `changelog.d/`
-8. Request code review
-
-#### Fixing a Bug
-1. Write a failing test that reproduces the bug
-2. Investigate root cause
-3. Fix the issue
-4. Verify test passes
-5. Check for similar bugs elsewhere
-6. Add regression test
-7. Create changelog fragment in `changelog.d/`
-
-#### Refactoring
-1. Ensure tests exist for current behavior
-2. Make incremental changes
-3. Run tests after each change
-4. Verify performance hasn't regressed
-5. Update documentation if API changes
-
-#### Commit messages
+### Commit messages
 Commit messages must succinctly describe what changed and why. Do not include anything related to the narrative flow of conversations with the user, or context that is irrelevant to the actual final set of changes. BAD: "User flagged an important issue. This commit fixes…". GOOD: "This commit fixes a bug where…".
 
-#### Committing specs and plans
+### Committing specs and plans
 Design specs and implementation plans (e.g. under `docs/superpowers/`) must
 only be committed **after the user has explicitly approved them**. Do not
 commit a spec or plan in the same breath as writing it — write it, ask the
@@ -621,7 +299,7 @@ user to review, and commit only once they sign off. The same applies to
 substantive revisions of an already-approved spec/plan: re-confirm before
 committing the revision.
 
-#### Using worktrees
+### Using worktrees
 
 The default is to work on whatever branch the conversation starts on. However, for significant chunks of work that require discussion and planning, you should prefer working in a git worktree (after confirming with the user).
 **Create worktrees in `.claude/worktrees/`.**
@@ -666,14 +344,6 @@ open docs/_build/html/index.html
 pre-commit run --all-files
 ```
 
-### Getting Help
-
-- **Documentation**: https://pyphi.readthedocs.io
-- **Issues**: https://github.com/wmayner/pyphi/issues
-- **Discussion**: https://groups.google.com/forum/#!forum/pyphi-users
-- **IIT 4.0 Paper**: https://doi.org/10.1371/journal.pcbi.1011465
-- **PyPhi Paper**: https://doi.org/10.1371/journal.pcbi.1006343
-
 ---
 
 ## Keeping this file up to date
@@ -698,14 +368,6 @@ already happened: three theory gates were settled experimentally but left the da
 them as still-gated. When an experiment discharges (or kills) a gate, propagate the outcome to the
 row, and to any wishlist entry or `PAPER-IDEAS.md` idea that cited the open question.
 
-## Final Notes
-
-PyPhi implements a complex mathematical theory with real-world scientific applications. Changes to this codebase can affect research results. Approach all modifications with care, test thoroughly, and when in doubt, consult the theoretical papers and existing tests.
-
-The project needs maintenance and refactoring work, which presents an opportunity to improve code quality while preserving mathematical correctness. Incremental improvements with comprehensive testing are the best approach.
-
-**Remember**: This is scientific software. Correctness > performance > elegance.
-
 ## graphify
 
 This project can build a knowledge graph under graphify-out/ (god nodes, community structure, cross-file relationships) plus hand-built edges linking IIT paper concepts to the code that implements them (`implements`/`cites`), which answer "which function implements Theorem 1 / the intrinsic-difference measure / a given equation". Only the curated bridge edges are committed — `graphify-out/bridge-edges.json` (238 `implements`/`cites` edges + their endpoint nodes). The full `graph.json` and `GRAPH_REPORT.md` are large and regenerable, so they are **local-only** (gitignored) along with the rest of graphify-out/. Build them with `graphify update .`, then restore the committed bridge edges with `uv run python scripts/graphify_bridge.py inject`.
@@ -720,3 +382,29 @@ When to use it (optional — graphify is a convenience, not a required first ste
 Keeping it current:
 - `graph.json`/`GRAPH_REPORT.md` are local. Run `graphify update .` to refresh the structural (AST) layer (cheap, deterministic, no API cost), then `uv run python scripts/graphify_bridge.py inject` to merge the committed bridge edges back into the freshly built graph.
 - The committed `graphify-out/bridge-edges.json` is the version-controlled asset. The bridge edges do NOT refresh with `graphify update`; rebuild them deliberately (a focused multi-agent pass reading the IIT papers alongside their implementing modules, emitting `implements`/`cites` edges) after a release or before onboarding, then run `uv run python scripts/graphify_bridge.py extract` to refresh the committed sidecar (review the diff like a golden).
+
+<!-- pyphi:begin — managed by `pyphi-mcp install`; edits inside are overwritten -->
+## PyPhi
+
+φₛ and Φ are different quantities under IIT 4.0. `analyze(...).phi` is φₛ,
+system integrated information — whether the system exists as one whole.
+`.big_phi` is Φ, structure integrated information — the sum of φ over the
+Φ-structure's distinctions and relations.
+
+States are little-endian: the first node is the least-significant bit.
+
+Analyses are superexponential in substrate size. `pyphi.cost.estimate_analysis`
+is free; call it before any run over more than a handful of units.
+
+These three are the ones that go wrong unaided; the rest of the reference is
+`get_iit_reference("theory")` and `("equations")` where the MCP server is
+connected, or
+`python -c "from pyphi.mcp import content; print(content.load('gotchas'))"`
+otherwise.
+
+Where the server is connected, use its tools for exploration and for
+interpreting results: they report which formalism produced each number, refuse
+runs too large to finish, and keep φₛ and Φ distinct. The server holds results
+only in memory, so anything that has to be reproducible belongs in a script —
+where these same facts still apply.
+<!-- pyphi:end -->
