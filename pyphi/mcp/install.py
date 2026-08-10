@@ -21,6 +21,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from pyphi.mcp import agents
+
 #: The instruction file the block is written to. Codex, Cursor and others read
 #: this name; Claude Code reads ``CLAUDE.md`` and is bridged by an import.
 INSTRUCTIONS_FILE = "AGENTS.md"
@@ -343,7 +345,7 @@ def uninstall(
         actions.append(f"removed the PyPhi block from {directory / INSTRUCTIONS_FILE}")
     if remove_claude_import(directory / CLAUDE_FILE):
         actions.append(f"removed `{CLAUDE_IMPORT}` from {directory / CLAUDE_FILE}")
-    return actions or ["nothing to remove"]
+    return actions
 
 
 def _add_common(parser: argparse.ArgumentParser) -> None:
@@ -363,6 +365,24 @@ def _add_common(parser: argparse.ArgumentParser) -> None:
         type=Path,
         default=Path.cwd(),
         help="the project directory (default: the working directory)",
+    )
+    parser.add_argument(
+        "--agent",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help=(
+            "install skills for this agent whether or not it was detected "
+            f"({', '.join(agents.AGENTS)}); repeatable"
+        ),
+    )
+    parser.add_argument(
+        "--agent-path",
+        action="append",
+        default=[],
+        type=Path,
+        metavar="DIR",
+        help="a skills directory to write to; repeatable",
     )
 
 
@@ -401,6 +421,20 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="replace an existing, different pyphi registration",
     )
+    skills = install_parser.add_mutually_exclusive_group()
+    skills.add_argument(
+        "--skills",
+        dest="skills",
+        action="store_true",
+        default=None,
+        help="install the agent skills without asking",
+    )
+    skills.add_argument(
+        "--no-skills",
+        dest="skills",
+        action="store_false",
+        help="do not install the agent skills",
+    )
 
     uninstall_parser = sub.add_parser(
         "uninstall", help="remove what install wrote, leaving the rest alone"
@@ -411,14 +445,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run(args: argparse.Namespace) -> int:
     """Carry out an ``install`` or ``uninstall`` and report what happened."""
-    if args.command == "install":
-        try:
+    try:
+        if args.command == "install":
             if args.print_only:
                 config = {"mcpServers": {"pyphi": registration(args.spec)}}
                 print(f"{config_path(args.directory, args.scope, args.client)}:")
                 print(json.dumps(config, indent=2))
                 print(f"\n{args.directory / INSTRUCTIONS_FILE}:")
                 print(block())
+                for line in agents.describe(names=args.agent, paths=args.agent_path):
+                    print(f"\n{line}")
                 return 0
             actions = install(
                 args.directory,
@@ -427,11 +463,16 @@ def run(args: argparse.Namespace) -> int:
                 spec=args.spec,
                 force=args.force,
             )
-        except (FileExistsError, RuntimeError) as error:
-            print(error)
-            return 1
-    else:
-        actions = uninstall(args.directory, scope=args.scope, client=args.client)
+            actions += agents.install_step(
+                skills=args.skills, names=args.agent, paths=args.agent_path
+            )
+        else:
+            actions = uninstall(args.directory, scope=args.scope, client=args.client)
+            actions += agents.remove_step(names=args.agent, paths=args.agent_path)
+            actions = actions or ["nothing to remove"]
+    except (FileExistsError, RuntimeError, ValueError) as error:
+        print(error)
+        return 1
     for action in actions:
         print(action)
     return 0

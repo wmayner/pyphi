@@ -95,6 +95,14 @@ class TestDelivery:
         mod.deliver(mod.Target("x", "X", tmp_path))
         assert not (tmp_path / "iit" / "references").exists()
 
+    def test_a_dropped_reference_does_not_survive_a_reinstall(self, tmp_path):
+        target = mod.Target("x", "X", tmp_path)
+        mod.deliver(target)
+        stale = tmp_path / "pyphi" / "references" / "renamed-away.md"
+        stale.write_text("from an older PyPhi")
+        mod.deliver(target)
+        assert not stale.exists()
+
     def test_delivering_twice_refreshes_rather_than_failing(self, tmp_path):
         target = mod.Target("x", "X", tmp_path)
         mod.deliver(target)
@@ -128,6 +136,117 @@ class TestRemoval:
         mod.deliver(mod.Target("x", "X", tmp_path))
         mod.remove(mod.Target("x", "X", tmp_path))
         assert (other / "SKILL.md").read_text() == "other"
+
+
+class TestFlow:
+    def _home(self, tmp_path):
+        (tmp_path / ".claude").mkdir()
+        return tmp_path
+
+    def test_no_agents_means_no_report_and_no_writes(self, tmp_path):
+        assert mod.install_step(skills=True, names=[], paths=[], home=tmp_path) == []
+
+    def test_declining_writes_nothing(self, tmp_path):
+        home = self._home(tmp_path)
+        assert mod.install_step(skills=False, names=[], paths=[], home=home) == []
+        assert not (home / ".claude" / "skills").exists()
+
+    def test_accepting_writes_without_prompting(self, tmp_path, monkeypatch):
+        home = self._home(tmp_path)
+        monkeypatch.setattr(mod, "confirm", lambda _question: pytest.fail("prompted"))
+        actions = mod.install_step(skills=True, names=[], paths=[], home=home)
+        assert (home / ".claude" / "skills" / "iit" / "SKILL.md").is_file()
+        assert any("Claude Code" in line or "skills" in line for line in actions)
+
+    def test_non_interactive_skips_and_says_how_to_do_it_later(
+        self, tmp_path, monkeypatch
+    ):
+        home = self._home(tmp_path)
+        monkeypatch.setattr(mod, "interactive", lambda: False)
+        (action,) = mod.install_step(skills=None, names=[], paths=[], home=home)
+        assert "--skills" in action
+        assert not (home / ".claude" / "skills").exists()
+
+    def test_interactive_yes_installs(self, tmp_path, monkeypatch):
+        home = self._home(tmp_path)
+        monkeypatch.setattr(mod, "interactive", lambda: True)
+        monkeypatch.setattr(mod, "confirm", lambda _question: True)
+        mod.install_step(skills=None, names=[], paths=[], home=home)
+        assert (home / ".claude" / "skills" / "pyphi" / "SKILL.md").is_file()
+
+    def test_interactive_no_writes_nothing(self, tmp_path, monkeypatch):
+        home = self._home(tmp_path)
+        monkeypatch.setattr(mod, "interactive", lambda: True)
+        monkeypatch.setattr(mod, "confirm", lambda _question: False)
+        assert mod.install_step(skills=None, names=[], paths=[], home=home) == []
+
+    def test_the_prompt_names_every_detected_agent(self, tmp_path, monkeypatch):
+        home = tmp_path
+        (home / ".claude").mkdir()
+        (home / ".codex").mkdir()
+        monkeypatch.setattr(mod, "interactive", lambda: True)
+        asked = []
+        monkeypatch.setattr(mod, "confirm", asked.append)
+        mod.install_step(skills=None, names=[], paths=[], home=home)
+        assert "Claude Code, Codex" in asked[0]
+
+    def test_one_failing_agent_does_not_stop_the_others(self, tmp_path, monkeypatch):
+        home = tmp_path
+        (home / ".claude").mkdir()
+        (home / ".codex").mkdir()
+        real = mod.deliver
+
+        def failing(target):
+            if target.name == "claude-code":
+                raise OSError("permission denied")
+            real(target)
+
+        monkeypatch.setattr(mod, "deliver", failing)
+        actions = mod.install_step(skills=True, names=[], paths=[], home=home)
+        assert (home / ".codex" / "skills" / "iit").is_dir()
+        assert any("could not" in line for line in actions)
+
+    def test_the_report_gives_full_paths(self, tmp_path):
+        home = self._home(tmp_path)
+        actions = mod.install_step(skills=True, names=[], paths=[], home=home)
+        assert str(home / ".claude" / "skills") in "\n".join(actions)
+
+    def test_removal_reports_what_it_removed(self, tmp_path):
+        home = self._home(tmp_path)
+        mod.install_step(skills=True, names=[], paths=[], home=home)
+        actions = mod.remove_step(names=[], paths=[], home=home)
+        assert any("iit" in line for line in actions)
+
+    def test_describe_writes_nothing(self, tmp_path):
+        home = self._home(tmp_path)
+        lines = mod.describe(names=[], paths=[], home=home)
+        assert not (home / ".claude" / "skills").exists()
+        assert any("iit" in line for line in lines)
+
+
+class TestConfirm:
+    @pytest.mark.parametrize("answer", ["", "y", "Y", "yes", " YES "])
+    def test_accepting_answers(self, answer, monkeypatch):
+        monkeypatch.setattr("builtins.input", lambda _prompt: answer)
+        assert mod.confirm("Install?")
+
+    @pytest.mark.parametrize("answer", ["n", "no", "nope"])
+    def test_declining_answers(self, answer, monkeypatch):
+        monkeypatch.setattr("builtins.input", lambda _prompt: answer)
+        assert not mod.confirm("Install?")
+
+    def test_end_of_input_declines(self, monkeypatch):
+        def raise_eof(_prompt):
+            raise EOFError
+
+        monkeypatch.setattr("builtins.input", raise_eof)
+        assert not mod.confirm("Install?")
+
+
+class TestInteractive:
+    def test_ci_is_not_interactive(self, monkeypatch):
+        monkeypatch.setenv("CI", "true")
+        assert not mod.interactive()
 
 
 class TestShippedSkills:

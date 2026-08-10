@@ -12,12 +12,16 @@ Nothing here imports the optional ``mcp`` dependency.
 
 from __future__ import annotations
 
+import os
 import shutil
+import sys
 from dataclasses import dataclass
 from importlib import metadata
 from importlib import resources
 from importlib.resources.abc import Traversable
 from pathlib import Path
+
+from pyphi.mcp import content
 
 #: Agent name mapped to the directory probed under the home directory and the
 #: name shown to the user. An agent keeps its skills in ``<probe>/skills``.
@@ -155,10 +159,6 @@ def deliver(target: Target) -> None:
     OSError
         If the target directory cannot be written.
     """
-    # Imported here so that detection and a declined prompt cost nothing:
-    # loading the reference documents imports PyPhi itself.
-    from pyphi.mcp import content
-
     for name in skill_names():
         destination = target.path / name
         with resources.as_file(_source() / name) as source:
@@ -166,7 +166,10 @@ def deliver(target: Target) -> None:
         (destination / SENTINEL).write_text(_version() + "\n", encoding="utf-8")
         if name in REFERENCED:
             references = destination / "references"
-            references.mkdir(exist_ok=True)
+            # Rebuilt rather than merged, so a topic that was renamed or
+            # dropped does not leave its old document behind on re-install.
+            shutil.rmtree(references, ignore_errors=True)
+            references.mkdir()
             for topic in content.topics():
                 (references / f"{topic}.md").write_text(
                     content.load(topic), encoding="utf-8"
@@ -193,3 +196,96 @@ def remove(target: Target) -> list[str]:
             shutil.rmtree(destination)
             removed.append(name)
     return removed
+
+
+def interactive() -> bool:
+    """Whether a question can be put to a person.
+
+    False on a pipe, under a scheduler, and wherever ``CI`` is set, so an
+    unattended run never blocks waiting for an answer.
+    """
+    return sys.stdin.isatty() and sys.stdout.isatty() and not os.environ.get("CI")
+
+
+def confirm(question: str) -> bool:
+    """Ask ``question`` and return whether the answer was yes.
+
+    An empty answer accepts. End of input declines, so a closed pipe does not
+    raise.
+    """
+    try:
+        answer = input(f"{question} [Y/n] ").strip().lower()
+    except EOFError:
+        return False
+    return answer in ("", "y", "yes")
+
+
+def install_step(
+    *,
+    skills: bool | None,
+    names: list[str],
+    paths: list[Path],
+    home: Path | None = None,
+) -> list[str]:
+    """Offer the skills, install them where accepted, and report what happened.
+
+    Parameters
+    ----------
+    skills : bool or None
+        True installs without asking, False skips, None asks where a person is
+        there to answer and skips otherwise.
+    names : list of str
+        Agents named explicitly, whether or not they were detected.
+    paths : list of Path
+        Skills directories given explicitly.
+    home : Path, optional
+        The directory agents are resolved under. If None, the user's home
+        directory.
+
+    Returns
+    -------
+    list of str
+        One line per action taken, empty where nothing was written.
+    """
+    targets = resolve(names, paths, home=home)
+    if not targets or skills is False:
+        return []
+    if skills is None:
+        if not interactive():
+            return ["skipped the skills; run `pyphi-mcp install --skills` to add them"]
+        displayed = ", ".join(target.display for target in targets)
+        if not confirm(f"Install the PyPhi skills for {displayed}?"):
+            return []
+    installed = ", ".join(skill_names())
+    actions = []
+    for target in targets:
+        try:
+            deliver(target)
+        except OSError as error:
+            actions.append(f"could not write skills to {target.path}: {error}")
+        else:
+            actions.append(f"installed the {installed} skills in {target.path}")
+    return actions
+
+
+def remove_step(
+    *, names: list[str], paths: list[Path], home: Path | None = None
+) -> list[str]:
+    """Delete the installed skills and report what was removed."""
+    actions = []
+    for target in resolve(names, paths, home=home):
+        removed = remove(target)
+        if removed:
+            actions.append(f"removed the {', '.join(removed)} skills from {target.path}")
+    return actions
+
+
+def describe(
+    *, names: list[str], paths: list[Path], home: Path | None = None
+) -> list[str]:
+    """Return what :func:`install_step` would write, writing nothing."""
+    installed = ", ".join(skill_names())
+    return [
+        f"{target.path}: the {installed} skills"
+        for target in resolve(names, paths, home=home)
+    ]

@@ -177,8 +177,11 @@ class TestUninstall:
             "other": {"command": "foo"}
         }
 
-    def test_is_safe_to_run_when_nothing_is_installed(self, tmp_path):
-        assert mod.uninstall(tmp_path) == ["nothing to remove"]
+    def test_is_safe_to_run_when_nothing_is_installed(self, tmp_path, capsys):
+        assert mod.uninstall(tmp_path) == []
+        args = mod.build_parser().parse_args(["uninstall", "--directory", str(tmp_path)])
+        assert mod.run(args) == 0
+        assert "nothing to remove" in capsys.readouterr().out
 
 
 class TestCommandLine:
@@ -205,3 +208,36 @@ class TestCommandLine:
     def test_scope_defaults_to_project(self):
         args = mod.build_parser().parse_args(["install"])
         assert args.scope == "project"
+
+    def test_skills_defaults_to_asking(self):
+        assert mod.build_parser().parse_args(["install"]).skills is None
+
+    def test_no_skills_is_false(self):
+        assert mod.build_parser().parse_args(["install", "--no-skills"]).skills is False
+
+    def test_skills_is_true(self):
+        assert mod.build_parser().parse_args(["install", "--skills"]).skills is True
+
+    def test_agents_are_repeatable(self):
+        args = mod.build_parser().parse_args(
+            ["install", "--agent", "codex", "--agent", "cursor"]
+        )
+        assert args.agent == ["codex", "cursor"]
+
+    def test_uninstall_takes_agent_flags(self):
+        args = mod.build_parser().parse_args(["uninstall", "--agent", "codex"])
+        assert args.agent == ["codex"]
+
+    def test_install_does_not_write_skills_without_agents(self, tmp_path):
+        args = mod.build_parser().parse_args(
+            ["install", "--skills", "--directory", str(tmp_path)]
+        )
+        assert mod.run(args) == 0
+
+    @pytest.mark.parametrize("command", ["install", "uninstall"])
+    def test_an_unknown_agent_exits_nonzero(self, command, tmp_path, capsys):
+        args = mod.build_parser().parse_args(
+            [command, "--agent", "nope", "--directory", str(tmp_path)]
+        )
+        assert mod.run(args) == 1
+        assert "unknown agent" in capsys.readouterr().out
