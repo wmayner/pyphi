@@ -63,6 +63,35 @@ have: the block is written between markers and a later `install` replaces only
 what is between them, and the import is not added twice. `pyphi-mcp uninstall`
 removes both, and anything you wrote around them survives.
 
+### Skills for your coding agent
+
+`install` also offers to write two skills into every AI coding agent it finds:
+`iit`, which stops an assistant answering about the theory from recollection
+and points it at the reference, and `pyphi`, which covers the 2.0 API, the
+formalism requirement, state ordering, cost estimation, and the conventions for
+a reproducible script.
+
+It probes `~/.claude`, `~/.codex` and `~/.cursor`, and asks before writing:
+
+```
+Install the PyPhi skills for Claude Code, Codex? [Y/n]
+```
+
+`--skills` and `--no-skills` answer it without a terminal, which is what a
+script or a continuous-integration run needs; with neither flag and no
+terminal, nothing is written. `--agent NAME` reaches an agent that was not
+detected, and `--agent-path DIR` reaches one PyPhi does not know about. Both
+are repeatable.
+
+Skills are written under your home directory whatever `--scope` says, because
+they are about IIT and PyPhi rather than about one project, and the report
+prints the full path of each one. `pyphi-mcp uninstall` removes them again; it
+deletes only directories PyPhi wrote, so a skill of your own that shares a name
+is left alone.
+
+Running `install` again refreshes the skills, which is how you update them
+after upgrading PyPhi.
+
 The registration names the Python interpreter you ran `pyphi-mcp install` with,
 so the client starts the server from the same environment you installed PyPhi
 into — in a uv project, that project's own `.venv`:
