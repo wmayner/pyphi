@@ -12,7 +12,11 @@ Nothing here imports the optional ``mcp`` dependency.
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
+from importlib import metadata
+from importlib import resources
+from importlib.resources.abc import Traversable
 from pathlib import Path
 
 #: Agent name mapped to the directory probed under the home directory and the
@@ -22,6 +26,16 @@ AGENTS: dict[str, tuple[str, str]] = {
     "codex": (".codex", "Codex"),
     "cursor": (".cursor", "Cursor"),
 }
+
+#: Written inside every installed skill directory, holding the PyPhi version
+#: that wrote it. Removal touches only directories containing this file, so a
+#: hand-written skill that shares a name is left alone.
+SENTINEL = ".pyphi-skill"
+
+#: Skills whose ``references/`` is filled from the reference topics at install
+#: time. The gate skill carries none: it sends the reader to the reference
+#: rather than shipping a copy of it.
+REFERENCED: frozenset[str] = frozenset({"pyphi"})
 
 
 @dataclass(frozen=True)
@@ -111,3 +125,71 @@ def resolve(
     if names or paths:
         return chosen(names, paths, home=home)
     return detect(home=home)
+
+
+def _source() -> Traversable:
+    return resources.files(__package__) / "skills"
+
+
+def skill_names() -> list[str]:
+    """Return the names of the skills shipped with this PyPhi."""
+    return sorted(entry.name for entry in _source().iterdir() if entry.is_dir())
+
+
+def _version() -> str:
+    try:
+        return metadata.version("pyphi")
+    except metadata.PackageNotFoundError:
+        return "unknown"
+
+
+def deliver(target: Target) -> None:
+    """Write every shipped skill into ``target``, replacing earlier copies.
+
+    The ``references/`` directory of each skill in :data:`REFERENCED` is filled
+    from :mod:`pyphi.mcp.content`, so the reference documents have one source
+    rather than a copy per surface.
+
+    Raises
+    ------
+    OSError
+        If the target directory cannot be written.
+    """
+    # Imported here so that detection and a declined prompt cost nothing:
+    # loading the reference documents imports PyPhi itself.
+    from pyphi.mcp import content
+
+    for name in skill_names():
+        destination = target.path / name
+        with resources.as_file(_source() / name) as source:
+            shutil.copytree(source, destination, dirs_exist_ok=True)
+        (destination / SENTINEL).write_text(_version() + "\n", encoding="utf-8")
+        if name in REFERENCED:
+            references = destination / "references"
+            references.mkdir(exist_ok=True)
+            for topic in content.topics():
+                (references / f"{topic}.md").write_text(
+                    content.load(topic), encoding="utf-8"
+                )
+
+
+def remove(target: Target) -> list[str]:
+    """Delete the skills written by :func:`deliver` from ``target``.
+
+    Only directories holding a :data:`SENTINEL` file are removed, so a
+    hand-written skill that shares a name survives.
+
+    Returns
+    -------
+    list of str
+        The names removed.
+    """
+    if not target.path.is_dir():
+        return []
+    removed = []
+    for name in skill_names():
+        destination = target.path / name
+        if (destination / SENTINEL).is_file():
+            shutil.rmtree(destination)
+            removed.append(name)
+    return removed

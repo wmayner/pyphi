@@ -62,3 +62,69 @@ class TestExplicitTargets:
     def test_resolve_detects_when_nothing_is_explicit(self, tmp_path):
         (tmp_path / ".claude").mkdir()
         assert [t.name for t in mod.resolve([], [], home=tmp_path)] == ["claude-code"]
+
+
+class TestDelivery:
+    def test_ships_both_skills(self):
+        assert sorted(mod.skill_names()) == ["iit", "pyphi"]
+
+    def test_writes_every_skill(self, tmp_path):
+        mod.deliver(mod.Target("x", "X", tmp_path))
+        for name in mod.skill_names():
+            assert (tmp_path / name / "SKILL.md").is_file()
+
+    def test_stamps_a_sentinel_holding_the_version(self, tmp_path):
+        mod.deliver(mod.Target("x", "X", tmp_path))
+        stamp = (tmp_path / "iit" / mod.SENTINEL).read_text().strip()
+        assert stamp
+
+    def test_fills_references_from_the_content_topics(self, tmp_path):
+        from pyphi.mcp import content
+
+        mod.deliver(mod.Target("x", "X", tmp_path))
+        references = tmp_path / "pyphi" / "references"
+        written = {path.stem for path in references.glob("*.md")}
+        assert written == set(content.topics())
+
+    def test_the_configuration_reference_keeps_its_generated_half(self, tmp_path):
+        mod.deliver(mod.Target("x", "X", tmp_path))
+        text = (tmp_path / "pyphi" / "references" / "configuration.md").read_text()
+        assert "Complete option reference" in text
+
+    def test_the_gate_skill_has_no_references(self, tmp_path):
+        mod.deliver(mod.Target("x", "X", tmp_path))
+        assert not (tmp_path / "iit" / "references").exists()
+
+    def test_delivering_twice_refreshes_rather_than_failing(self, tmp_path):
+        target = mod.Target("x", "X", tmp_path)
+        mod.deliver(target)
+        (tmp_path / "iit" / "SKILL.md").write_text("stale")
+        mod.deliver(target)
+        assert (tmp_path / "iit" / "SKILL.md").read_text() != "stale"
+
+
+class TestRemoval:
+    def test_removes_what_deliver_wrote(self, tmp_path):
+        target = mod.Target("x", "X", tmp_path)
+        mod.deliver(target)
+        assert sorted(mod.remove(target)) == ["iit", "pyphi"]
+        assert not (tmp_path / "iit").exists()
+        assert not (tmp_path / "pyphi").exists()
+
+    def test_leaves_a_hand_written_skill_of_the_same_name(self, tmp_path):
+        mine = tmp_path / "iit"
+        mine.mkdir(parents=True)
+        (mine / "SKILL.md").write_text("mine")
+        assert mod.remove(mod.Target("x", "X", tmp_path)) == []
+        assert (mine / "SKILL.md").read_text() == "mine"
+
+    def test_is_safe_where_nothing_was_installed(self, tmp_path):
+        assert mod.remove(mod.Target("x", "X", tmp_path / "absent")) == []
+
+    def test_leaves_unrelated_skills_alone(self, tmp_path):
+        other = tmp_path / "other"
+        other.mkdir(parents=True)
+        (other / "SKILL.md").write_text("other")
+        mod.deliver(mod.Target("x", "X", tmp_path))
+        mod.remove(mod.Target("x", "X", tmp_path))
+        assert (other / "SKILL.md").read_text() == "other"
