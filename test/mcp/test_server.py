@@ -199,6 +199,7 @@ def test_reference_topics_load():
         "parallelization",
         "campaigns",
         "visualization",
+        "reproducible-work",
     }
     for topic in topics:
         assert len(content.load(topic)) > 100
