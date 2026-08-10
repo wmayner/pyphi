@@ -128,3 +128,69 @@ class TestRemoval:
         mod.deliver(mod.Target("x", "X", tmp_path))
         mod.remove(mod.Target("x", "X", tmp_path))
         assert (other / "SKILL.md").read_text() == "other"
+
+
+class TestShippedSkills:
+    def _front_matter(self, name):
+        from importlib import resources
+
+        text = (resources.files("pyphi.mcp") / "skills" / name / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        assert text.startswith("---\n")
+        return text.split("---\n", 2)[1], text
+
+    def test_front_matter_names_match_their_directories(self):
+        for name in mod.skill_names():
+            front, _ = self._front_matter(name)
+            assert f"name: {name}\n" in front
+
+    def test_every_skill_has_a_description(self):
+        for name in mod.skill_names():
+            front, _ = self._front_matter(name)
+            assert "description:" in front
+
+    def test_the_gate_says_not_to_answer_from_recollection(self):
+        _, text = self._front_matter("iit")
+        assert "recollection" in text
+
+    def test_the_library_skill_warns_about_the_swapped_names(self):
+        _, text = self._front_matter("pyphi")
+        assert "CauseEffectStructure" in text
+        assert "Distinctions" in text
+
+    def test_referenced_topics_named_in_the_body_exist(self):
+        from pyphi.mcp import content
+
+        _, text = self._front_matter("pyphi")
+        for topic in ("migration", "building-systems", "reproducible-work"):
+            assert f"references/{topic}.md" in text
+            assert topic in content.topics()
+
+
+@pytest.mark.slow
+def test_the_skills_reach_a_built_wheel(tmp_path):
+    """A wheel built from this tree carries the skill files.
+
+    Guards the Hatchling configuration: ``pyphi/mcp/skills/**`` ships only
+    because non-Python files under a packaged directory are included by
+    default, which a future build change could silently undo.
+    """
+    import subprocess
+    import zipfile
+
+    result = subprocess.run(
+        ["uv", "build", "--wheel", "-o", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    (wheel,) = tmp_path.glob("*.whl")
+    shipped = {
+        name
+        for name in zipfile.ZipFile(wheel).namelist()
+        if name.startswith("pyphi/mcp/skills/")
+    }
+    assert "pyphi/mcp/skills/iit/SKILL.md" in shipped
+    assert "pyphi/mcp/skills/pyphi/SKILL.md" in shipped
