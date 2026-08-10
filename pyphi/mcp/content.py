@@ -75,6 +75,12 @@ TOPICS: dict[str, tuple[str, str]] = {
         "Plotting the Φ-structure with plot_ces: the five views, the "
         "analytical max_relations rule, hand-built structures, and export.",
     ),
+    "reproducible-work": (
+        "reproducible-work.md",
+        "Writing a PyPhi script whose results can be rerun and cited: "
+        "seeding, the provenance writers, filename and no-clobber "
+        "conventions, and saving raw values alongside summaries.",
+    ),
 }
 
 
