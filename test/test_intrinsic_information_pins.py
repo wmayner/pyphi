@@ -184,12 +184,50 @@ def test_unconstrained_forward_effect_repertoire_matches_stacked_mean():
     assert np.array_equal(np.asarray(result), expected)
 
 
+def _tiny_system(n: int = 3):
+    tpm = np.full([2] * n + [n], 0.5)
+    return pyphi.System(pyphi.Substrate(tpm), (0,) * n)
+
+
 def test_unconstrained_forward_effect_repertoire_size_guard(monkeypatch):
     """Above the guard threshold the computation refuses with an estimate
     instead of grinding."""
-    monkeypatch.setattr(ra, "_MAX_UNCONSTRAINED_FORWARD_STATES", 2)
-    n = 3
-    tpm = np.full([2] * n + [n], 0.5)
-    system = pyphi.System(pyphi.Substrate(tpm), (0,) * n)
+    monkeypatch.setattr(ra, "_MAX_FORWARD_SWEEP_STATES", 2)
     with pytest.raises(ValueError, match="infeasible"):
-        ra.unconstrained_forward_effect_repertoire(system, (0, 1), (0, 2))
+        ra.unconstrained_forward_effect_repertoire(_tiny_system(), (0, 1), (0, 2))
+
+
+def test_forward_cause_repertoire_size_guard(monkeypatch):
+    """The cause sweep is bounded too, and it is the one walked first.
+
+    ``Direction.both()`` orders the cause direction ahead of the effect one, so
+    a bound on the effect sweep alone lets an oversized system spend the whole
+    cause sweep before anything refuses.
+    """
+    monkeypatch.setattr(ra, "_MAX_FORWARD_SWEEP_STATES", 2)
+    with pytest.raises(ValueError, match="infeasible"):
+        ra.forward_cause_repertoire(_tiny_system(), (0, 1), (0, 2))
+
+
+def test_forward_cause_repertoire_single_state_is_not_a_sweep(monkeypatch):
+    """Asking for one state walks one state, whatever the sweep bound is."""
+    monkeypatch.setattr(ra, "_MAX_FORWARD_SWEEP_STATES", 2)
+    assert (
+        ra.forward_cause_repertoire(_tiny_system(), (0, 1), (0, 2), (1, 1)) is not None
+    )
+
+
+def test_both_sweep_guards_fire_before_the_specified_state_search_runs(monkeypatch):
+    """The intrinsic-information search refuses rather than half-running."""
+    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    monkeypatch.setattr(ra, "_MAX_FORWARD_SWEEP_STATES", 2)
+    system = _tiny_system()
+    with pytest.raises(ValueError, match="infeasible"):
+        system_intrinsic_information(
+            system,
+            specification_measure=resolve_mechanism_measure(
+                pyphi.config.formalism.iit.specification_measure
+            ),
+        )

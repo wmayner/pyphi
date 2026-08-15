@@ -13,9 +13,12 @@ see :mod:`pyphi.cache`.
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import math
 from collections.abc import Callable
+from collections.abc import Iterator
+from contextvars import ContextVar
 from functools import wraps
 from typing import Any
 
@@ -42,6 +45,39 @@ from pyphi.measures.protocols import satisfies_composite_measure
 # One ContentCache per memoized function name.
 _kernel_caches: dict[str, ContentCache] = {}
 
+_transient: ContextVar[bool] = ContextVar("pyphi_transient_repertoires", default=False)
+
+
+@contextlib.contextmanager
+def transient_repertoires() -> Iterator[None]:
+    """Compute repertoires without storing them in the kernel cache.
+
+    Within this scope every memoized kernel function returns its value
+    without admitting it, leaving the cache's occupancy unchanged. Reads
+    still hit entries admitted outside the scope.
+
+    Notes
+    -----
+    A sweep that evaluates a repertoire at every state of a mechanism or
+    purview reads each of its intermediates exactly once, while the
+    intermediates themselves are full repertoires. Admitting them costs
+    the product of the state count and the repertoire size — for an
+    n-unit system, order 4ⁿ cells to answer 2ⁿ single-use questions — for
+    a hit rate of zero within the sweep. Suppressing admission there bounds
+    its memory at one repertoire and adds no recomputation inside it. A
+    later single-state probe of the same repertoire recomputes rather than
+    hitting a retained entry, which is one evaluation against the state
+    count's worth of retained cells.
+
+    Scoped to the calling thread (and to the current task under asyncio),
+    so a worker suppressing admission does not disturb the others.
+    """
+    token = _transient.set(True)
+    try:
+        yield
+    finally:
+        _transient.reset(token)
+
 
 def _freeze(result: Any) -> Any:
     """Make an ndarray result read-only; other values pass through."""
@@ -59,8 +95,9 @@ def _memoize(fn: Callable) -> Callable:
     resident memory reaches the configured cache ceiling, occupancy is held
     steady by evicting least recently used entries; setting
     ``cache_repertoires`` to false stops caching entirely, in which case
-    computed values are returned but not stored. Returned arrays are
-    read-only; callers that need a mutable copy must copy explicitly.
+    computed values are returned but not stored, as does the narrower
+    :func:`transient_repertoires` scope. Returned arrays are read-only;
+    callers that need a mutable copy must copy explicitly.
 
     Cache keys carry the resolved cause-side background convention, so
     cause-side entries never cross conventions (effect-side entries are
@@ -79,7 +116,7 @@ def _memoize(fn: Callable) -> Callable:
             fp,
             key_args,
             lambda: _freeze(fn(cs, *args)),
-            store=config.infrastructure.cache_repertoires,
+            store=config.infrastructure.cache_repertoires and not _transient.get(),
         )
 
     return wrapper
@@ -429,13 +466,21 @@ def forward_cause_repertoire(
         # rather than uninitialized memory.
         result = np.full(purview_k, np.nan)
         if purview_state is None:
+            _validate_sweep_size(
+                math.prod(purview_k), "forward cause repertoire over purview", purview
+            )
             purview_states = itertools.product(*[range(k) for k in purview_k])
+            # Each state's probability is read off a full effect repertoire
+            # used only here; see ``transient_repertoires``.
+            scope = transient_repertoires()
         else:
             purview_states = iter([purview_state])
-        for state in purview_states:
-            result[state] = forward_cause_probability(
-                cs, mechanism, purview, state, mechanism_state=mechanism_state
-            )
+            scope = contextlib.nullcontext()
+        with scope:
+            for state in purview_states:
+                result[state] = forward_cause_probability(
+                    cs, mechanism, purview, state, mechanism_state=mechanism_state
+                )
         # The buffer's axes follow the purview-argument order; restore
         # ascending node-index order to match the repertoire shape.
         result = result.transpose(tuple(np.argsort(purview)))
@@ -476,11 +521,26 @@ def forward_repertoire(
     raise AssertionError("unreachable")
 
 
-_MAX_UNCONSTRAINED_FORWARD_STATES = 2**16
-"""Largest mechanism-state count the unconstrained forward effect repertoire
-will average over. Each state costs one forward effect repertoire, so the time
-grows with the state count regardless of memory; above this bound the
-computation raises instead of silently grinding for days."""
+_MAX_FORWARD_SWEEP_STATES = 2**16
+"""Largest state count a full-state forward sweep will walk.
+
+Both sweeps cost one full repertoire per state — the unconstrained forward
+effect repertoire over the mechanism's states, the forward cause repertoire
+over the purview's — so their time grows with the state count regardless of
+memory. Above this bound they raise instead of silently grinding for days.
+
+Checked in each sweep rather than once at the intrinsic-information boundary,
+so a direct call to either is bounded too."""
+
+
+def _validate_sweep_size(states: int, what: str, over: tuple[int, ...]) -> None:
+    """Raise when a full-state sweep would walk more states than it can finish."""
+    if states > _MAX_FORWARD_SWEEP_STATES:
+        raise ValueError(
+            f"{what} over {over} is infeasible at this size: it walks "
+            f"{states:,} states, each requiring a full forward repertoire "
+            f"(limit {_MAX_FORWARD_SWEEP_STATES:,})"
+        )
 
 
 def unconstrained_forward_effect_repertoire(
@@ -488,8 +548,9 @@ def unconstrained_forward_effect_repertoire(
 ) -> Any:
     """Unconstrained forward effect repertoire — average over all mechanism states.
 
-    The average is accumulated one repertoire at a time, so memory stays at a
-    single repertoire regardless of the mechanism-state count.
+    The average is accumulated one repertoire at a time, and the per-state
+    repertoires are computed under :func:`transient_repertoires`, so memory
+    stays at a single repertoire regardless of the mechanism-state count.
 
     Notes
     -----
@@ -498,27 +559,25 @@ def unconstrained_forward_effect_repertoire(
     states); tolerance-based comparisons downstream absorb this.
 
     Results are not memoized. Callers request each ``(mechanism, purview)``
-    once, so a cached entry would rarely be read back; the per-state loop's own
-    repertoires are cached by :func:`effect_repertoire`.
+    once, so a cached entry would rarely be read back — which holds for the
+    loop's own per-state repertoires too, hence the transient scope.
     """
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     mech_k = tuple(alphabet_sizes[i] for i in mechanism)
     n_states = math.prod(mech_k)
-    if n_states > _MAX_UNCONSTRAINED_FORWARD_STATES:
-        raise ValueError(
-            f"unconstrained forward effect repertoire over mechanism "
-            f"{mechanism} is infeasible at this size: it averages over "
-            f"{n_states:,} mechanism states, each requiring a full forward "
-            f"effect repertoire "
-            f"(limit {_MAX_UNCONSTRAINED_FORWARD_STATES:,})"
-        )
+    _validate_sweep_size(
+        n_states, "unconstrained forward effect repertoire over mechanism", mechanism
+    )
     total: np.ndarray | None = None
-    for state in _utils.all_states(mech_k):
-        rep = forward_effect_repertoire(cs, mechanism, purview, mechanism_state=state)
-        if total is None:
-            total = np.array(rep, dtype=float)
-        else:
-            total += rep
+    with transient_repertoires():
+        for state in _utils.all_states(mech_k):
+            rep = forward_effect_repertoire(
+                cs, mechanism, purview, mechanism_state=state
+            )
+            if total is None:
+                total = np.array(rep, dtype=float)
+            else:
+                total += rep
     assert total is not None
     # Read-only like every other repertoire the kernel returns; the memoizing
     # decorator does this for the functions it wraps.
