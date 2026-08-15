@@ -53,3 +53,16 @@ class Counts:
         return self.counts["conf/:override"]
 
     track_config_override.unit = "calls"  # type: ignore[attr-defined]
+
+    # Collision-handling frames. These stay near zero while cache-key hashes
+    # separate their keys, and grow with the square of the cache's size when
+    # one stops; no count of PyPhi operations moves when that happens.
+    def track_mapping_eq(self, fixture_name: str, grain: str) -> int:
+        return self.counts["_collections_abc:__eq__"]
+
+    track_mapping_eq.unit = "calls"  # type: ignore[attr-defined]
+
+    def track_frozen_map_getitem(self, fixture_name: str, grain: str) -> int:
+        return self.counts["frozen_map.py:__getitem__"]
+
+    track_frozen_map_getitem.unit = "calls"  # type: ignore[attr-defined]

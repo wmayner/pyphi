@@ -32,6 +32,7 @@ GATE_SUBSET = [
     ("basic_iit4_2023", "phi_structure"),
     ("multivalued_k3_tiny_iit4_2023", "sia"),
     ("rule110_iit4_2023", "phi_structure"),
+    ("ring10_iit4_2026", "specified_state"),
 ]
 
 _OUT = (

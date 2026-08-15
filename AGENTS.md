@@ -186,6 +186,37 @@ in testpaths even though `--doctest-glob=*.rst` would match. Treat
 `docs/*.rst` doctests as documentation that users can copy — verify by
 reading, not by pytest.
 
+### Performance regressions the φ goldens cannot see
+
+Correctness tests are blind to cost, so two other gates carry it, and a change
+that touches caching, hashing, or a full-state sweep should be checked against
+both.
+
+`test/integration/test_perf_counters.py` pins deterministic cProfile call
+counts for the frames in `test/golden/perf.py::FRAMES`, which cover two
+regression classes. *Redundant work* — the same operation performed more often
+than necessary — is counted at PyPhi frames. *Cost per operation* — the same
+operations, each more expensive — is counted at the frames dictionary collision
+handling passes through (`Mapping.__eq__`, `FrozenMap.__getitem__`), because a
+cache-key type whose hash stops separating distinct keys leaves every PyPhi
+count identical while making each cache operation a linear scan. A new
+cache-key type must also be declared in
+`test/data_structures/test_hash_quality.py`, whose companion test instruments
+the cache during real analyses and fails on an undeclared type.
+
+Neither gate sees memory. Cache *occupancy* is asserted directly in
+`test/cache/test_transient_repertoires.py`: a full-state sweep must admit a
+number of entries that scales with the unit count, not the state count.
+
+Fixture size is its own axis. The golden zoo tops out at four units, so costs
+driven by the size of the whole system rather than of a mechanism are invisible
+to it; the `specified_state` grain and the ring fixtures in
+`test/golden/perf_fixtures.py` exist for that range and are perf-only (no φ
+goldens, absent from `ALL_FIXTURES`).
+
+When adding a guard here, verify it fails against the reverted defect. A pin
+that cannot move is not a gate.
+
 ### Formalism pinning (tests that assert φ values)
 
 A φ value is only meaningful relative to a formalism. Any test that asserts a

@@ -41,6 +41,9 @@ GATE_SUBSET = frozenset(
         "basic_iit4_2026::sia",
         "multivalued_k3_tiny_iit4_2023::sia",
         "rule110_iit4_2023::phi_structure",
+        # A ten-unit system: the only entry whose cost is driven by the size
+        # of the system rather than of a mechanism.
+        "ring10_iit4_2026::specified_state",
     }
 )
 _GOLDEN_KEYS = sorted(GATE_SUBSET - {"actual_causation::account"})
