@@ -84,6 +84,23 @@ def evaluate_partition(
     )
 
 
+def _partition_total(
+    known: int | None, mechanism: tuple[int, ...], purview: tuple[int, ...]
+) -> int:
+    """The number of partitions a complete sweep would evaluate.
+
+    ``known`` is the length of a caller-supplied partition list; ``None`` means
+    the partitions came from the active scheme, whose count depends only on the
+    mechanism and purview sizes and is memoized, so a lazily consumed sweep can
+    still tell a complete pass from one the short-circuit truncated.
+    """
+    if known is not None:
+        return known
+    from pyphi.cost import partition_sweep_count
+
+    return partition_sweep_count(len(mechanism), len(purview))
+
+
 def _find_mip_single_state(
     cs: System,
     specified_state: Any,
@@ -101,9 +118,15 @@ def _find_mip_single_state(
     mechanism partitions for a (state, direction, mechanism, purview)
     combination.
     """
-    partitions = list(
-        fallback(partitions, mechanism_partitions(mechanism, purview, cs.node_labels))
-    )
+    # The sweep below stops at the first reducible partition, so the scheme's
+    # partitions are consumed lazily and their construction stops with it. A
+    # caller-supplied set is a concrete collection and is taken as given.
+    if partitions is None:
+        partitions = mechanism_partitions(mechanism, purview, cs.node_labels)
+        n_partitions = None
+    else:
+        partitions = list(partitions)
+        n_partitions = len(partitions)
 
     def _eval(partition: Any) -> Any:
         return evaluate_partition(
@@ -152,9 +175,9 @@ def _find_mip_single_state(
     others = [c for c in candidates if c is not winner]
     if (
         others
-        and len(candidates) == len(partitions)
         and winner.normalized_phi is not None
         and all(c.normalized_phi is not None for c in others)
+        and len(candidates) == _partition_total(n_partitions, mechanism, purview)
     ):
         # numerics: exact — reported margin, not a selection.
         gap = min(float(c.normalized_phi) for c in others) - float(winner.normalized_phi)
