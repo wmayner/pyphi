@@ -86,11 +86,11 @@ Six independent reasons, each sufficient on its own.
   `store=False` keyword through three public functions: the scope covers the
   whole call subtree, is per-thread by construction, and changes no signature.
 
-A fast `FrozenMap.__eq__` was evaluated and **rejected**: it gives no measured
-speedup once the hash is fixed (medians over three trials with cleared caches:
-1.27 s vs 1.25 s at 12 units, 3.39 s vs 3.21 s at 13), and it bypasses the two
-generic frames the collision sentinel below relies on, narrowing that guard
-from any Mapping-based key type to `FrozenMap` alone.
+A fast `FrozenMap.__eq__` was evaluated and rejected here, then adopted in the
+follow-up below. The rejection measured it on the specified-state search, where
+`__eq__` runs 76 times per analysis and the change is worth nothing (medians
+over three trials with cleared caches: 1.27 s vs 1.25 s at 12 units, 3.39 s vs
+3.21 s at 13). That is a fact about the workload, not about the change.
 
 ### The guards
 
@@ -149,3 +149,42 @@ audit of all 38 custom `__hash__` implementations by hand — the registry cover
 those that are actually cache keys, and the discovery test surfaces any new
 one. Wall-time budget assertions on large fixtures — the deterministic counters
 cover the same ground without CI flakiness.
+
+## Follow-up: the slowest test in the suite (2026-08-15)
+
+`test_iit4_2023_fig6d_specialized` runs for 290 s, about 40% of the slow lane.
+The cost is real — 63 mechanisms over 7,938 (mechanism, purview, direction)
+triples on a fully connected 6-unit system, which `estimate_analysis` counts at
+31,938,830 candidate partitions — but a third of it was avoidable.
+
+**The MIP sweep materialized its partitions.** `_find_mip_single_state` opened
+with `partitions = list(...)`, so every candidate was constructed before the
+first was evaluated, while the short-circuit stopped evaluation after 4.4
+million. 86% of the construction was discarded, and the full-system pair alone
+held a list of 2.2 million partition objects. The `list()` existed only to give
+`len(partitions)` to the margin guard, and that number is available from the
+memoized `cost.partition_sweep_count` — whose seeds an existing test already
+pins against real enumeration. Consuming the partitions lazily takes the
+unfolding from 233 s to 187 s and its peak memory from 2.01 GiB to 0.78 GiB.
+
+**The `__eq__` decision reversed.** On this workload `Mapping.__eq__` runs 18.4
+million times rather than 76, and the fast path is worth 8.6% (medians of three
+interleaved pairs: 245.9 s → 224.8 s). The sentinel concern was answered rather
+than accepted: `frozen_map.py:__eq__` joins the pinned frames, `Mapping.__eq__`
+stays to cover any key type that inherits its equality, and reverting the hash
+still fails exactly the same 11 tests as before.
+
+Both were verified by comparing full-precision fingerprints between the patched
+and unpatched trees — φₛ, Σφ_d, Σφ_r, all 27 distinctions with their purviews,
+specified states and MIPs, and all 52 partition margins, every value identical
+to the last bit.
+
+**Not taken:** skipping the cache's LRU reinsert while the store is unbounded,
+worth 5.9%. It degrades eviction to insertion order for the first round after
+the budget latches, and that policy was tuned deliberately (the freeze-versus-
+LRU study measured 1.037× against 1.455×).
+
+**The lesson from the reversal:** a performance measurement is about a
+workload, not a change. The first `__eq__` result was correct and its
+generalization was not, and only profiling a second, differently shaped
+workload exposed the difference.
