@@ -9,10 +9,18 @@ hangs.
 
 Cost is countable before you commit: the `estimate_cost` tool reports the
 workload of an `analyze` call — system partitions, purview evaluations,
-mechanism-partition sweeps — without computing anything (in Python,
-`pyphi.estimate_analysis`). The `analyze` guard itself runs on these
-counts, so `confirm_large` is requested exactly when the workload is
-actually large under the active formalism, scheme, and connectivity.
+mechanism-partition sweeps, specified-state evaluations — without computing
+anything (in Python, `pyphi.estimate_analysis`). The `analyze` guard itself
+runs on these counts, so `confirm_large` is requested exactly when the workload
+is actually large under the active formalism, scheme, and connectivity.
+
+Watch the specified-state axis in particular on a sparse substrate. The other
+axes shrink as connectivity thins, because pruning leaves fewer purviews to
+evaluate; that one does not. Searching for the system's specified cause and
+effect states (Eq. 53) evaluates one forward repertoire per system state per
+direction, over an array of that same size, so it grows fourfold per unit added
+no matter how the units are wired. It is the axis that dominates a large
+sparse system, and the only one whose cost follows from the unit count alone.
 
 Besides the caching and checkpointing covered here, the other lever for
 expensive work is running on multiple cores. That has its own topic and its

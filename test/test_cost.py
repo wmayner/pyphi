@@ -375,3 +375,69 @@ def test_scoped_walks_bound_the_purview_enumeration(monkeypatch):
     estimate_analysis(substrate, compute="ces", scope=scope)
     assert calls
     assert all(mo == (2 if d == Direction.CAUSE else 1) for d, mo in calls)
+
+
+class TestSpecifiedStateAxis:
+    """The specified-state search is an axis of its own.
+
+    Its cost grows with the size of the system rather than of any mechanism,
+    so none of the mechanism-oriented axes bound it.
+    """
+
+    def test_counted_for_analyses_that_search_for_a_specified_state(self):
+        for compute in (None, "sia", "ces"):
+            est = estimate_analysis(_dense3(), compute=compute)
+            assert est.specified_state_evaluations == 2 * est.state_space_size
+
+    def test_not_counted_for_a_bare_distinction_sweep(self):
+        assert (
+            estimate_analysis(
+                _dense3(), compute="distinctions"
+            ).specified_state_evaluations
+            is None
+        )
+
+    def test_not_counted_under_iit_3(self):
+        with IIT_3_CONFIG:
+            assert estimate_analysis(_dense3()).specified_state_evaluations is None
+
+    def test_appears_in_the_record_and_the_card(self):
+        est = estimate_analysis(_dense3())
+        assert est.to_pandas()["specified_state_evaluations"] == 16
+        assert "Specified-state evaluations" in str(est)
+
+    @pytest.mark.parametrize("n", [3, 4, 5])
+    def test_estimate_matches_the_evaluations_actually_performed(self, n, monkeypatch):
+        """Pin the axis against the real sweep, not against its own formula.
+
+        The search performs two forward repertoire evaluations per system
+        state, plus a constant few for the selectivity repertoires; the
+        estimate is exact to that constant.
+        """
+        from pyphi.core import repertoire_algebra as ra
+        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.measures.distribution import resolve_mechanism_measure
+        from pyphi.system import System
+        from test.golden.perf_fixtures import noisy_ring
+
+        calls = []
+        original = ra.effect_repertoire
+        monkeypatch.setattr(
+            ra,
+            "effect_repertoire",
+            lambda *a, **kw: (calls.append(1), original(*a, **kw))[1],
+        )
+
+        substrate = noisy_ring(n, seed=11)
+        system = System(substrate, (0,) * n, substrate.node_indices)
+        system_intrinsic_information(
+            system,
+            specification_measure=resolve_mechanism_measure(
+                pyphi.config.formalism.iit.specification_measure
+            ),
+        )
+
+        estimated = estimate_analysis(
+            substrate, compute="sia"
+        ).specified_state_evaluations
+        assert estimated <= len(calls) <= estimated + 4

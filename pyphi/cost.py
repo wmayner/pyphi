@@ -360,6 +360,19 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         under IIT 4.0, whose cause-effect structure embeds a system
         irreducibility analysis, but not under IIT 3.0, whose structure is
         the bare distinctions.
+    specified_state_evaluations : int or None
+        Forward-repertoire evaluations the specified-state search performs
+        (Albantakis et al. 2023, Eq. 53). The search maximizes intrinsic
+        information over the whole system as both mechanism and purview, so
+        it evaluates one repertoire per system state per direction: twice
+        the state space, each evaluation over an array of that same size.
+        Unlike the other axes this one grows with the size of the system
+        rather than of any mechanism. Counted under IIT 4.0 for a ``"sia"``,
+        ``"ces"``, or full analysis; ``None`` under IIT 3.0, which has no
+        specified state. A ``"distinctions"`` analysis performs no search,
+        though filtering those distinctions for congruence
+        (:meth:`~pyphi.system.System.distinctions` with ``congruent=True``)
+        performs one.
     mechanisms : int or None
         Candidate mechanisms: 2ⁿ − 1 for n units.
     purview_evaluations : int or None
@@ -392,6 +405,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
     state_space_size: int
     compute: str
     system_partitions: int | None
+    specified_state_evaluations: int | None
     mechanisms: int | None
     purview_evaluations: int | None
     mechanism_partition_sweeps: int | None
@@ -426,6 +440,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
             "state_space_size": self.state_space_size,
             "compute": self.compute,
             "system_partitions": self.system_partitions,
+            "specified_state_evaluations": self.specified_state_evaluations,
             "mechanisms": self.mechanisms,
             "purview_evaluations": self.purview_evaluations,
             "mechanism_partition_sweeps": self.mechanism_partition_sweeps,
@@ -443,6 +458,13 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         ]
         if self.system_partitions is not None:
             rows.append(Row("System partitions", f"{q} {_fmt(self.system_partitions)}"))
+        if self.specified_state_evaluations is not None:
+            rows.append(
+                Row(
+                    "Specified-state evaluations",
+                    _fmt(self.specified_state_evaluations),
+                )
+            )
         if self.mechanisms is not None:
             rows.append(Row("Mechanisms", _fmt(self.mechanisms)))
         if self.purview_evaluations is not None:
@@ -568,6 +590,16 @@ def estimate_analysis(
     )
     counts_distinctions = scope in ("full", "ces", "distinctions")
 
+    # The specified-state search runs wherever a system irreducibility
+    # analysis does, and only under IIT 4.0. Its cost follows from the state
+    # space alone — one forward repertoire per system state per direction —
+    # so no enumeration walk is needed and the work budget never caps it.
+    specified_state_evaluations = (
+        2 * state_space_size
+        if counts_system_partitions and version.startswith("IIT_4_0")
+        else None
+    )
+
     counter = _Counter(limit)
     capped = False
     system_partition_count = None
@@ -629,6 +661,7 @@ def estimate_analysis(
         state_space_size=state_space_size,
         compute=scope,
         system_partitions=system_partition_count,
+        specified_state_evaluations=specified_state_evaluations,
         mechanisms=mechanisms,
         purview_evaluations=purview_evaluations,
         mechanism_partition_sweeps=sweeps,

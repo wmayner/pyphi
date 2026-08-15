@@ -581,3 +581,63 @@ def test_estimate_cost_distinctions_scope(basic_handle):
     est = srv.estimate_cost(basic_handle, compute="distinctions")["estimate"]
     assert est["system_partitions"] is None
     assert est["mechanism_partition_sweeps"] > 0
+
+
+def _estimate(**overrides):
+    """An AnalysisEstimate with every axis trivial except those overridden."""
+    from pyphi.cost import AnalysisEstimate
+
+    fields = {
+        "n_units": 16,
+        "state_space_size": 2**16,
+        "compute": "ces",
+        "system_partitions": 1,
+        "specified_state_evaluations": 1,
+        "mechanisms": 1,
+        "purview_evaluations": 1,
+        "mechanism_partition_sweeps": 1,
+        "relations_closed_form": True,
+        "possible_distinctions": 1,
+        "possible_relations": 1,
+        "capped": False,
+    }
+    return AnalysisEstimate(**{**fields, **overrides})
+
+
+def test_guard_checks_the_specified_state_axis_on_its_own():
+    """The axis that dominates a large system's cost is checked in isolation.
+
+    Over sparse connectivity every mechanism-oriented axis can stay modest
+    while the specified-state search still sweeps the whole state space, so an
+    axis-blind guard admits a run that spends its time in a single call.
+    """
+    estimate = _estimate(specified_state_evaluations=2 * 2**17)
+    with pytest.raises(ValueError, match="262,144 specified-state evaluations"):
+        srv._refuse_if_large(estimate, "ces", 17)
+
+
+def test_guard_offers_the_distinction_sweep_when_the_search_is_the_problem():
+    """A bare distinction sweep performs no specified-state search."""
+    estimate = _estimate(specified_state_evaluations=2 * 2**17)
+    with pytest.raises(ValueError, match="compute='distinctions'"):
+        srv._refuse_if_large(estimate, "ces", 17)
+
+
+def test_guard_admits_a_specified_state_search_within_the_limit():
+    # Sixteen units: 131,072 evaluations, at the limit — about a minute.
+    srv._refuse_if_large(_estimate(specified_state_evaluations=2 * 2**16), "ces", 16)
+
+
+def test_the_specified_state_limit_matches_the_kernels_own_sweep_bound():
+    """The guard refuses exactly what the sweeps would refuse, but earlier.
+
+    A looser limit here would admit a call the kernel then rejects partway
+    through its first sweep; a tighter one would refuse sizes that complete.
+    """
+    from pyphi.core.repertoire_algebra import _MAX_FORWARD_SWEEP_STATES
+
+    assert srv._SPECIFIED_STATE_LIMIT == 2 * _MAX_FORWARD_SWEEP_STATES
+
+
+def test_guard_ignores_the_axis_when_the_formalism_has_no_specified_state():
+    srv._refuse_if_large(_estimate(specified_state_evaluations=None), "ces", 16)

@@ -53,8 +53,17 @@ from . import content
 # keeping the pre-flight to a few seconds. A walk that exceeds it is
 # refused conservatively: a workload too large to count cheaply is treated
 # as too large to run unconfirmed.
+# _SPECIFIED_STATE_LIMIT admits a 16-unit binary system — two forward
+# repertoire evaluations per system state, measured at about a minute and
+# under 0.2 GiB — and refuses larger ones, where the axis grows fourfold per
+# added unit while the partition axes above may still look modest over sparse
+# connectivity. It coincides with the kernel's own
+# ``_MAX_FORWARD_SWEEP_STATES``: past this size the sweeps refuse anyway, and
+# the guard's contribution is to say so before any work rather than partway
+# through the first sweep.
 _SIA_PARTITION_LIMIT = 4_419_572
 _CES_SWEEP_LIMIT = 100_000_000
+_SPECIFIED_STATE_LIMIT = 131_072
 _GUARD_COUNT_BUDGET = 3_000_000
 
 # Friendly level names mapped to the per-level parallelization options. The
@@ -430,28 +439,45 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
     system-partition axis and the mechanism-partition axis; over a sparse
     substrate the first can dominate the second by orders of magnitude. An
     axis the estimate left uncounted is not checked.
+
+    The specified-state axis follows from the state space alone rather than
+    from the counting walk, so it is exact even for a capped estimate — and
+    reportable when the walk gave up before reaching any other axis, which is
+    precisely the case of a large system whose cost the search dominates.
     """
+    # (name, count, limit, exact) — ``exact`` marks an axis whose count does
+    # not depend on the counting walk, so capping never makes it a lower bound.
     axes = (
-        ("system partitions", estimate.system_partitions, _SIA_PARTITION_LIMIT),
+        ("system partitions", estimate.system_partitions, _SIA_PARTITION_LIMIT, False),
         (
             "mechanism-partition sweeps",
             estimate.mechanism_partition_sweeps,
             _CES_SWEEP_LIMIT,
+            False,
+        ),
+        (
+            "specified-state evaluations",
+            estimate.specified_state_evaluations,
+            _SPECIFIED_STATE_LIMIT,
+            True,
         ),
     )
+    # Axes a bare distinction sweep does not walk; overshooting one of them
+    # leaves ``compute='distinctions'`` as a cheaper answer.
+    system_level = ("system partitions", "specified-state evaluations")
     over = [
-        (axis, count, limit)
-        for axis, count, limit in axes
+        (axis, count, limit, exact)
+        for axis, count, limit, exact in axes
         if count is not None and count > limit
     ]
     if over:
         # Report the axis that overshoots its limit by the widest margin.
-        axis, count, limit = max(over, key=lambda item: item[1] / item[2])
-        qualifier = "at least " if estimate.capped else ""
+        axis, count, limit, exact = max(over, key=lambda item: item[1] / item[2])
+        qualifier = "" if exact or not estimate.capped else "at least "
         estimated = f"{qualifier}{count:,} {axis} (soft limit {limit:,})"
-        blames_sia = axis == "system partitions"
+        blames_sia = axis in system_level
     elif estimate.capped:
-        estimated = "beyond the guard's own counting budget"
+        estimated = "more work than the guard's own counting budget could measure"
         blames_sia = estimate.system_partitions is None
     else:
         return
@@ -459,7 +485,7 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
     if blames_sia and compute != "sia":
         cheaper = (
             ", or use compute='distinctions' for the distinctions alone, which "
-            "skips the system-partition search"
+            "skips the system-level search"
         )
     elif compute in ("full", "ces"):
         cheaper = ", or use compute='sia' for a cheaper system-level result"
@@ -468,7 +494,8 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
         cheaper = ""
     raise ValueError(
         f"A '{compute}' analysis of this {n_nodes}-node substrate is "
-        f"estimated at {estimated}; it may run for a very long time. Pass "
+        f"estimated to require {estimated}; it may run for a very long time. "
+        f"Pass "
         f"confirm_large=true to proceed anyway, use the estimate_cost tool "
         f"to inspect the workload{cheaper}."
     )
