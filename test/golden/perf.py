@@ -49,9 +49,11 @@ GRAINS = (
 # Counted at the frames that dictionary collision handling passes through.
 # Cache keys are hashed containers, so a key type whose hash stops separating
 # distinct keys leaves every count above unchanged while making each cache
-# operation a linear scan; ``Mapping.__eq__`` and ``FrozenMap.__getitem__``
-# are where that scan spends its time. Both counts are deterministic and
-# independent of ``PYTHONHASHSEED``.
+# operation a linear scan. ``FrozenMap.__eq__`` is where that scan spends its
+# time for the key type PyPhi memoizes repertoires on; ``Mapping.__eq__``
+# covers any key type that inherits its equality instead, including one not
+# yet written. ``FrozenMap.__getitem__`` tracks per-key iteration cost. All
+# three counts are deterministic and independent of ``PYTHONHASHSEED``.
 FRAMES: list[tuple[str, str]] = [
     ("repertoire_algebra.py", "cause_repertoire"),
     ("repertoire_algebra.py", "effect_repertoire"),
@@ -59,6 +61,7 @@ FRAMES: list[tuple[str, str]] = [
     ("relations.py", "relations"),
     ("conf/", "override"),
     ("_collections_abc", "__eq__"),
+    ("frozen_map.py", "__eq__"),
     ("frozen_map.py", "__getitem__"),
 ]
 

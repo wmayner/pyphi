@@ -45,6 +45,18 @@ class FrozenMap(typing.Mapping[K, V]):
     def __repr__(self) -> str:
         return f"FrozenMap({self._dict!r})"
 
+    def __eq__(self, other: object) -> bool:
+        # Comparison against another FrozenMap is one dict comparison; the
+        # inherited Mapping equality builds a dict from each operand through
+        # __getitem__ first, which a cache lookup pays on every hit. Any other
+        # mapping type falls through to that inherited comparison, so equality
+        # with a plain dict is unchanged.
+        if isinstance(other, FrozenMap):
+            return self._dict == other._dict  # pyright: ignore[reportUnknownMemberType]
+        return super().__eq__(other)
+
+    # Defining __eq__ in a class body sets __hash__ to None unless __hash__ is
+    # defined alongside it, which would make instances unusable as cache keys.
     def __hash__(self) -> int:
         if self._hash is None:
             self._hash = hash(frozenset(self._dict.items()))

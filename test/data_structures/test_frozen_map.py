@@ -94,3 +94,37 @@ def test_replace_returns_a_new_map():
     assert a["x"] == 1
     assert b["x"] == 2
     assert hash(a) != hash(b)
+
+
+def test_defining_equality_left_the_type_hashable():
+    """Equality and hashing must be defined together.
+
+    Defining ``__eq__`` in a class body sets ``__hash__`` to ``None`` unless
+    ``__hash__`` is defined alongside it, which would make instances unusable
+    as the cache keys they exist to be.
+    """
+    assert FrozenMap.__hash__ is not None
+    assert isinstance(hash(FrozenMap({1: 2})), int)
+
+
+def test_equality_with_a_frozen_map_does_not_go_through_getitem():
+    """The fast path compares the underlying dicts directly.
+
+    The inherited mapping equality builds a dict from each operand through
+    ``__getitem__``, which a cache lookup would pay on every hit.
+    """
+    calls = []
+    a = FrozenMap({1: 2, 3: 4})
+    b = FrozenMap({1: 2, 3: 4})
+    original = FrozenMap.__getitem__
+
+    def counting(self, key):
+        calls.append(key)
+        return original(self, key)
+
+    FrozenMap.__getitem__ = counting  # type: ignore[method-assign]
+    try:
+        assert a == b
+    finally:
+        FrozenMap.__getitem__ = original  # type: ignore[method-assign]
+    assert calls == []
