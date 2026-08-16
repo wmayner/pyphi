@@ -548,3 +548,97 @@ YAML setting it.
 **Fix:** whatever `analyze()` reads `normalized_phi` for must handle the IIT 3.0 SIA
 type (which has no such attribute), and F10's validator gap should close so the
 config never reaches that point with an incompatible `ces_measure`.
+
+---
+
+## F12. ★★ ROOT CAUSE of F9 — the IIT 4.0 "largest congruent purview" rule is unreachable
+
+**File:** `pyphi/resolve_ties.py:392-402`; enabled by `pyphi/models/mice.py:232-240`
+**Severity:** CRITICAL — understates Φ on the shipping default path
+**Status:** FULLY CONFIRMED. Supersedes F9's diagnosis; F9's symptom and fix remain valid but treat the surface.
+
+Surfaced by a round-3 agent (whose own follow-up run was killed by a container
+restart); I reproduced and instrumented it.
+
+```python
+if state_ties:                                   # ALWAYS truthy — see below
+    congruent_state = [m for m in state_ties if m.is_congruent(system_state_spec)]
+    if congruent_state:
+        return congruent_state[0]                # returns the enumeration-order winner
+if purview_ties:                                 # <-- S1 rule, never reached
+    congruent_purview = [m for m in purview_ties if m.is_congruent(system_state_spec)]
+    if congruent_purview:
+        return max(congruent_purview, key=lambda m: len(m.purview))
+```
+
+`MaximallyIrreducibleCauseOrEffect.state_ties` (`models/mice.py:232-240`) returns
+`(self, *peers)` — it **always contains `self`**, even with no state tie at all. So
+`if state_ties:` is always true, and whenever the enumeration-order purview winner is
+congruent the function returns it immediately. The cross-purview branch implementing
+the IIT 4.0 S1 rule "typically favors larger purviews" is dead code.
+
+### Instrumented proof — full IIT 4.0 CES over `examples.basic_system()`
+
+```
+calls          : 4
+state branch   : 4
+purview branch : 0     <-- S1 "largest congruent purview" never fires
+no congruent   : 0
+```
+
+Mechanism `(2,)`, EFFECT: purviews `(1,)` and `(0,1)` tie at φ = 1.0, both congruent.
+PyPhi selects the *smaller* `(1,)`. A smaller purview means a smaller `purview_union`,
+so fewer relations are generated and Φ is understated:
+
+```
+shipped (state-first, S1 unreachable) : sum_phi_d=1.0  relations=0.0    big_phi=1.0
+purview-first (S1 reachable)          : sum_phi_d=1.0  relations=0.125  big_phi=1.125
+```
+
+### This unifies F9
+
+Three independent routes give **1.125**, and only the shipped default gives 1.0:
+
+| route | big_phi |
+|---|---|
+| shipped default | **1.0** |
+| relabel nodes 1↔2 (F9) | 1.125 |
+| `purview_tie_resolution=["PHI","PURVIEW_SIZE"]` (F9 bisection) | 1.125 |
+| make the S1 purview branch reachable (this finding) | 1.125 |
+
+F9 asked why the IIT 4.0 default `purview_tie_resolution` is a bare `"PHI"` with no
+secondary key. This is the answer: the larger-purview preference was **delegated** to
+`resolve_distinction_tie`, and the delegation silently never executes. The bare
+default is not an oversight in isolation — it is correct *given* a working
+delegation, and wrong because the delegation is dead.
+
+So F9's "change the default" fix works but treats the symptom. The root fix belongs
+in the tie function.
+
+### Fix — needs a theory decision, not just a code change
+
+The docstring at `resolve_ties.py:385-390` explicitly documents the current
+precedence ("State-tie congruence is preferred over purview-tie heuristic ... only
+when none is congruent does the cross-purview branch fire"), so the ordering is
+deliberate. But given `state_ties` always contains `self`, that documented ordering
+makes the second branch unreachable by construction rather than merely
+lower-priority.
+
+Two candidate repairs:
+1. Guard the state branch on a *real* tie — `if len(state_ties) > 1:` — so a
+   degenerate single-element `state_ties` falls through to the purview rule.
+2. Run the purview rule first when `len(purview_ties) > 1`, as the round-3 agent's
+   patch did.
+
+**Maintainer call:** which precedence does IIT 4.0 actually specify — state-tie
+congruence before purview size, or purview size before state congruence? Whichever
+is chosen, the golden zoo moves (Φ 1.0 → 1.125 on `basic`, relations 0 → 1).
+
+### Open — the paper reproductions
+
+An agent was mid-way through comparing `test/integration/test_paper_reproduction.py`
+under both variants when the container restarted. Both runs passed identically
+through 13 of 19 tests (78%) before being killed, so the comparison is **suggestive
+but incomplete**. It should be finished before either repair lands — those tests pin
+published IIT 4.0, IIT 3.0, AC, and Gomez values, and are the real check on whether
+this changes a reproduced result.
