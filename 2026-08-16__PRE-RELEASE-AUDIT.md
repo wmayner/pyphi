@@ -1046,3 +1046,158 @@ in a new place: a correct assertion pinned to a fixture that cannot fail it.
 argmax — i.e. do the cross-stride **min per pin first**, and only then the max over
 pins. Then extend the guard to a fixture with real tie structure (`rule110_system`)
 and parametrise over direction and k; a single-tuple assertion cannot see this class.
+
+---
+
+# Round 3 hand-verified findings (Tier A of the handoff)
+
+All six Tier A candidates were verified with executed repros on this machine
+(2026-08-17). **All six are real.** One (R10) needed a scope correction: the
+raw finding's evidence overstated where the failure manifests.
+
+## R5. `fig5b_substrate` implements B as an OR gate; the paper and its own diagram say AND
+
+**File:** `pyphi/examples.py:1031`
+**Severity:** HIGH — a golden-fixture substrate is not the published one
+**Status:** CONFIRMED (TPM tabulation + reading the 2014 paper figure)
+
+The docstring diagram labels B `(AND)`. The shipped TPM column for B equals
+`OR(A, C)` in all 8 rows — row `(1,0,0) -> B'=1` alone rules out AND. The
+rendered figure (papers/2014__oizumi-et-al__iit-3.0.pdf, p. 8, panel B)
+unambiguously labels the units NULL (A), AND (B), OR (C); C = `OR(A, B)` is
+correctly transcribed. The sibling `fig5a_substrate` was verified correct
+earlier, so this is a transcription error, not a labeling convention.
+Consequence: `fig5b` goldens in `test/formalism/test_iit4.py` /
+`test_iit4_robust.py` are locked to a substrate that is not Figure 5B.
+Fixing the TPM (B column `[0,0,0,0,0,1,0,1]`) moves those goldens.
+
+## R6. `differentiation_macro_tpm` divides the p² term by 3
+
+**File:** `pyphi/examples.py:1531`
+**Severity:** MEDIUM — public example returns a fabricated number (unused in-repo)
+**Status:** CONFIRMED (by inspection; the ε=0 limit is decisive)
+
+The comment defines the coarse-graining: micro `(1,1) -> ` macro 1, all other
+micro states `->` macro 0. The macro row-0 probability is the uniform average
+of P(next micro = (1,1)) over three micro states: `p² + (2/3)·p·ε`. The code
+computes `(p*p + 2*p*epsilon) / 3`, also dividing p² by 3. At ε=0 the three
+micro states have literally identical dynamics, so any defensible averaging
+gives p²; the code gives p²/3. Fix: `p*p + 2*p*epsilon/3`.
+
+## R7. AC MIP search returns None when tied partitions share an edge cut — links dropped, non-minimal purviews reported
+
+**File:** `pyphi/formalism/actual_causation/compute.py:315`; cascade at
+`pyphi/resolve_ties.py:283-288`
+**Severity:** HIGH — silently wrong causal accounts
+**Status:** CONFIRMED (live repro, 5 hits in 10 random 3-node substrates)
+
+`resolve_ac_partition_tie` has two levels: argmin |α|, then argmin
+`partition.lex_key()`. `lex_key()` is the cut-matrix bytes, and
+`JOINT_PARTITION_ALL` generates the complete cut in two structurally distinct
+forms for any mechanism of size ≥ 2 (`[(mech,∅),(∅,purview)]` and the
+per-element split). Both forms share the cut matrix and the partitioned
+probability, so both cascade levels leave two survivors, `cascade()` returns
+`resolved=None`, `_find_mip` returns None (violating its documented return
+type), and `_find_causal_link` silently drops that purview at
+`compute.py:402`.
+
+Repro (seed 20260817, ten random 3-node deterministic substrates, all
+realizable transitions): 1003 (mechanism, purview) cells with all-positive α;
+**5 returned None**. Damage confirmed on the first case: mechanism (1,2),
+EFFECT — purview `(0,)` at α=0.415037 was dropped and the link reported
+purview `(0,2)` instead, a non-minimal purview under the paper's Exclusion
+minimality (Definition 1). The 2-unit OR-AND paper example never trips it
+(0 of its cells), which is why the paper-reproduction suite is green.
+
+Fix note: the two survivors are the *same partition* (identical edge cut), so
+resolving to either is sound — dedupe candidates by `lex_key` before the
+cascade, or take any survivor on exhaustion.
+
+## R8. Sharded SIA merge selects a different MIP and specified system state
+
+**File:** `pyphi/campaign/merge.py:144` (`merge_sia_strides`)
+**Severity:** HIGH — sharded campaigns resolve congruence against a different state
+**Status:** CONFIRMED (rule110 k=3 state flip reproduced; xor MIP flips at k=2 and k=3)
+
+Each stride's `sia()` runs the full (cause, effect) system-state cascade
+using stride-local φₛ and reports only the post-cascade tie set; partitions
+belonging to a pair that lost locally never reach the merge. Reproduced with
+`shortcircuit_sia=False` under IIT_4_0_2026:
+
+```
+xor_system      k=2: merged MIP ≠ full MIP (6-edge complete cut vs 4-edge cut)
+xor_system      k=3: merged MIP ≠ full MIP (different 4-edge cut)
+rule110_system  k=3: merged specified CAUSE state (1,1,1) vs full (0,0,0);
+                     merged MIP also differs. φₛ = 0 in both.
+```
+
+`sia.system_state` is what `ces()` passes to `resolve_congruence`, so a
+sharded campaign can produce a different Φ-structure than the same analysis
+unsharded. No φₛ divergence surfaced on these fixtures (all mismatches at
+φₛ=0), matching the raw finding; the max-of-min hazard for φₛ itself remains
+demonstrated only at the distinction level (R4). The existing guard
+`test_sia_stride_merge_equals_full` uses `basic_substrate` k=2, which cannot
+fail (same blind-spot class as R4's guard).
+
+## R9. `sweep(formalisms=None)` silently replaces the ambient formalism with the version preset
+
+**File:** `pyphi/sweep.py:87` (`_normalize_formalisms`); override sites at
+`:238` and `:266`
+**Severity:** HIGH — silent wrong values in a documented API path
+**Status:** CONFIRMED (2.13× Φ discrepancy demonstrated)
+
+The docstring documents `formalisms=None` as "the active formalism", but the
+code resolves None to `config.formalism.iit.version` and then applies
+`config.override(**presets.by_name[formalism])` — resetting every iit field
+to the preset. Demonstration: ambient config = IIT_3_0 preset with
+`ces_measure="SUM_SMALL_PHI"`, `basic_substrate` (1,0,0):
+
+```
+analyze under ambient config:  Φ = 1.083333
+sweep under the same ambient:  Φ = 2.312499   (the pure-preset value)
+```
+
+The sweep's `formalism` column reads `IIT_3_0` either way, so the table
+looks correct. `analyze` (nullcontext when formalism is None) and
+`optimize._eval_batch` both honor the ambient config; `sweep` is the odd one
+out. Method note: the first attempted demonstration customized
+`background_conditioning` — that field is inert on full-system analyses of
+these fixtures (control: 0 of 72 cells changed), a reminder that a passing
+comparison without a positive control is no evidence.
+
+## R10. AC cause repertoires weight background units by the observed-state posterior instead of fixing them — scope corrected
+
+**File:** `pyphi/system.py:363-386` (`cause_marginal` ignores
+`external_indices` under CAUSAL_MARGINALIZATION);
+`pyphi/core/tpm/marginalization.py:121`; docstring contradiction at
+`pyphi/actual.py:132-136`
+**Severity:** HIGH — wrong cause-side α whenever a background unit's observed
+transition is informative about its past
+**Status:** CONFIRMED, with the raw finding's evidence corrected
+
+`TransitionSystem._underlying_system` sets `external_indices = substrate −
+cause_indices` and its docstring claims those units "are held fixed in their
+actual state as background conditions (Albantakis et al. 2019, Section
+3.3)". The effect side does exactly that (`effect_marginal` conditions on
+`external_indices`). The cause side cannot: under the pinned
+`CAUSAL_MARGINALIZATION` convention, `System.cause_marginal` calls
+`_marginalize_cause(tpm, state, node_indices)` — `external_indices` never
+reaches it — and background past states are weighted by the IIT 4.0 Eq. 4
+posterior `pr_bg/norm` computed from the observed after state.
+
+**Scope correction:** the raw finding claimed pyphi returns 1.2345 on the
+paper's Figure 8B itself. Not quite — modeling the inputs as self-loop
+copies (the natural realizable encoding), the Eq. 4 posterior for background
+D collapses onto its actual state, and pyphi reproduces **both** 8A and 8B
+exactly (all seven 8B effect links 1.0, cause link 3.0000). The deviation
+appears the moment the background unit's dynamics make its observed
+transition informative without being determining. Discriminating fixture:
+same majority gate, D stochastic with p(D'=0|D=0)=0.2, p(D'=0|D=1)=0.8.
+Paper semantics (D fixed at 0) still give cause α = 3.0; pyphi returns
+**1.2345** = log2(8/(0.2+4·0.8)) — the exact Eq.-4-posterior prediction —
+while the seven effect links stay at 1.0. The asymmetry between the two
+directions is the contract violation; which behavior is *wanted* for AC is a
+theory decision (the paper is explicit: "the background variables are fixed
+in their actual state U = u"), but the docstring is false as shipped either
+way. Also confirms the sibling finding that `noise_background` is a no-op on
+the cause side (nothing consumes `external_indices` there).
