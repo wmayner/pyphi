@@ -1,0 +1,1 @@
+Fixed the build configuration so wheels and sdists actually contain the package source: the hatchling `include` allowlists shipped only `pyphi/data/`, producing artifacts with zero `.py` files that still imported as an empty namespace package. The CI wheel smoke test now asserts real source is present.

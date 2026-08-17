@@ -64,9 +64,20 @@ jobs:
 
       - name: Test import
         shell: bash
+        # A bare `import pyphi` succeeds even on a wheel with no .py files
+        # (pyphi/data/ installs as a PEP 420 namespace package), so assert
+        # real source is present and a public symbol resolves.
         run: |
           if [ -f ".venv/bin/python" ]; then
-            .venv/bin/python -c "import pyphi; print('PyPhi imported successfully')"
+            PY=".venv/bin/python"
           else
-            .venv/Scripts/python -c "import pyphi; print('PyPhi imported successfully')"
+            PY=".venv/Scripts/python"
           fi
+          "$PY" -c "
+          import pyphi
+          assert pyphi.__file__ is not None, 'installed as a namespace package: wheel has no source'
+          pyphi.analyze
+          import pyphi.examples
+          pyphi.examples.basic_substrate()
+          print('PyPhi imported successfully')
+          "
