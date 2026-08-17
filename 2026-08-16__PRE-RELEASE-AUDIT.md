@@ -642,3 +642,146 @@ through 13 of 19 tests (78%) before being killed, so the comparison is **suggest
 but incomplete**. It should be finished before either repair lands — those tests pin
 published IIT 4.0, IIT 3.0, AC, and Gomez values, and are the real check on whether
 this changes a reproduced result.
+# Addendum — local audit rerun (2026-08-17)
+
+Verified on `/Users/will/projects/pyphi`, branch `claude/pyphi-2.0-audit-r8qolt`.
+New findings; the first pass's thirteen are in `2026-08-16__PRE-RELEASE-AUDIT.md`.
+
+Run: 307 agents, 3 rounds. **182 completed, 125 failed on the account's monthly spend
+limit** (including the synthesis agent and the entire tail of the drain).
+
+---
+
+## F14. ★★ `complexes()` reports a different major complex run-to-run under parallel evaluation
+
+**File:** `pyphi/substrate.py:810` (the `map_reduce` call in `all_sias`)
+**Severity:** CRITICAL — identical input, different scientific answer on rerun
+**Status:** HAND-VERIFIED, with a sequential control
+
+Fixture: one 4-unit substrate with two *independent* noisy copy-loop pairs `{A,B}` and
+`{C,D}`, `p = 0.9`, state `(1,1,1,1)`. Both tie at φₛ = 0.304006187.
+
+```
+parallel complex evaluation ON, 12 runs:
+  (0,1), (2,3), (2,3), (2,3), (0,1), (2,3), …   -> 2 distinct major complexes
+parallel complex evaluation OFF (default), 12 runs:
+  -> 1 distinct: ((2,3), 0.304006187)
+```
+
+The sequential control rules out the tie being resolved randomly elsewhere: sequential
+is perfectly stable, so the nondeterminism is the parallel path.
+
+Causal chain, every link checked against the code:
+1. `parallel/__init__.py:166` — `map_reduce` defaults to `ordered: bool = False`.
+2. Process backend collects via `as_completed` → worker-completion order.
+3. `substrate.py:810` — `all_sias` passes neither `ordered=True` nor a re-sort.
+4. `condensation.py:241` — docstring: *"Within-tier presentation order follows the input order."*
+5. `condensation.py:251-252` — `tier_accepted.sort(key=lambda c: position[id(c)])` — sorts by input position.
+6. `substrate.py:890` — `complexes()` stamps `is_maximal=(i == 0)`.
+
+**Qualifier:** `parallel_complex_evaluation["parallel"]` is False by default, so a stock
+install is unaffected. It is enabled by a documented switch (`pyphi.config`, MCP
+`configure_parallel(levels=["complexes"])`) — so it hits the users who turned on
+parallelism for large substrates, i.e. the runs most expensive to repeat and least
+likely to be spot-checked.
+
+**Fix:** `ordered=True` at `substrate.py:810`. `all_sias` has no short-circuit predicate
+and no `size_func`, so ordering is free (`map_reduce` rejects `size_func` with
+`ordered=True` at `parallel/__init__.py:195-198`; not applicable here). Or sort
+`candidate_sias` canonically in `complexes()` — `queries.py:349` already does this for
+the purview sweep. Regression test: repeated `complexes()` under
+`parallel_complex_evaluation` on the tied fixture; confirm it fails unfixed.
+
+Same disease as the two confirmed tie bugs, but worse: those are *wrong*, this one is
+*non-reproducible*.
+
+---
+
+## F15. `towncrier build` DOES abort — correcting my own earlier refutation
+
+**File:** `CHANGELOG.md:6`
+**Severity:** HIGH — blocks cutting the 2.0.0 release notes
+**Status:** HAND-VERIFIED. **This reverses a "refuted" verdict I issued earlier.**
+
+I previously tested `towncrier build --version 2.0.0 --draft`, saw exit 0 and a
+well-formed changelog, and called the finding refuted. **That test was inadequate:**
+`--draft` only renders; it never calls `append_to_newsfile`, which is where the failure
+lives. The real write path aborts:
+
+```
+$ uv run towncrier build --version 2.0.0 --keep
+ValueError: It seems you've already produced newsfiles for this version?
+  towncrier/_writer.py:53, in append_to_newsfile
+```
+
+Cause: a hand-written `2.0.0` section already sits directly below the insertion marker.
+`CHANGELOG.md:4` is the marker
+(`<!-- Towncrier will insert release notes here. … -->`); `CHANGELOG.md:6-8` is
+`2.0.0` / `-----` / `_(unreleased)_`. towncrier refuses to insert a version it can
+already see.
+
+(Run with `--keep` and the file restored from git immediately after; all 31 fragments
+intact, tree clean.)
+
+**Fix (maintainer's call):** either delete the hand-written 2.0.0 section and let
+towncrier generate it from the 31 fragments, or keep the hand-written notes and consume
+the fragments some other way. The two cannot coexist as they stand.
+
+**Lesson for the rest of this report:** a smoke test that avoids the mutating path can
+"pass" a broken pipeline. Same shape as the release blocker in the first pass, where CI's
+`import pyphi` passed on an empty wheel.
+
+---
+
+## The other 45 confirmed findings — READ THE VERIFICATION TIER
+
+The run returned **47 confirmed (46 after dedup): 7 critical, 39 high**. I have
+hand-verified only the two above. The rest carry the panel's word alone, and that word
+is worth less than it looks:
+
+**The 3-vote adversarial panel refuted nothing.** All 124 entries in the `rejected` list
+have empty reasoning — they are agents that *failed on the spend limit*, not findings
+that were argued down. Across three rounds the panel confirmed every finding it actually
+adjudicated. A verifier that never says no is not verifying.
+
+Independently, I disproved one panel-confirmed "critical" by hand in the first pass
+(`.python-version` breaking CI — CI overrides the pin), and nearly disproved a second
+incorrectly (above).
+
+So treat the list below as **candidates ranked by plausibility**, not findings.
+
+### Confirmed criticals (deduped) — none hand-verified except where noted
+
+| File:line | Claim |
+|---|---|
+| `campaign/merge.py:80` | Sharded CES campaigns return wrong φ_d, wrong distinctions and wrong Φ — partition-stride merge |
+| `serialize/schema.py:138` | Distinction `normalized_phi` silently recomputed from ambient global config on deserialization |
+| `system.py:806` | `sia()` excludes `system_state` from the disk-cache key; a non-canonical state poisons the entry |
+| `conf/_global.py:535` | `config.override()` is process-global, not thread-local; concurrent scopes return φ under the wrong config |
+| `serialize/convert.py:596` | Saving a `Complex` from `macro.complexes` crashes on the default path |
+| `docs/howto/configure.md:147` | Documented config example selects IIT 4.0 2023 by version alone, silently computes 2026 |
+
+`campaign/merge.py:80` is the one I would check first: a wrong-Φ claim in a shipping
+feature, and the same file appears again at `:52` for an exact-tie margin bug.
+
+### Recurring themes in the high tier
+
+- **`relations.py:153`** (3 separate agents) — `Relation` declares `OrderableByPhi` but
+  `frozenset` wins the MRO, so `max()`/`sorted()` over relations order by *subset*, not φ.
+- **`cache/policy.py:53-54`** (4 agents) — `clear_all()`/`clear()` bypass the owning
+  store, leaving stale byte weight and a latched budget that can disable the cache.
+- **`conf/_global.py`** (4 agents) — thread-scoping of `config.override()`, plus
+  `:480` direct writes skipping the cross-field validator.
+- **`serialize/convert.py`** (5 agents) — `result.config` degrading from `ConfigSnapshot`
+  to plain `dict` across save/load, relabelling IIT 3.0's Φ as φₛ; MICE purview-tie
+  tuples gaining a duplicate member.
+- **`measures/distribution.py:1407`** (3 agents) — cause-side intrinsic differentiation
+  from unnormalized likelihoods, contra Eqs. 6 and 8.
+- **`pyphi_config_3.0.yml`** — shipped reference config cannot be loaded (stale field
+  name) and does not reproduce the IIT 3.0 formalism it claims to mirror.
+
+### Never adjudicated
+
+**124 findings** were never verified — their agents died on the spend limit. They are
+neither confirmed nor refuted. The synthesis agent died the same way, which is why this
+section is written by hand.
