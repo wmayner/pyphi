@@ -807,6 +807,11 @@ def all_sias(
         _config.infrastructure.parallel_complex_evaluation,
         **(parallel_kwargs or {}),
     )
+    # Results must follow candidate enumeration order: downstream tie
+    # resolution (condensation tiers, is_maximal stamping) is
+    # input-order-dependent, so worker-completion order would make the
+    # reported major complex nondeterministic under ties.
+    pkwargs["ordered"] = True
     result = map_reduce(
         sia_fn,
         iterable,

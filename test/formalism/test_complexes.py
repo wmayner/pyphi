@@ -451,3 +451,22 @@ class TestMaximalComplexWrapperIIT40:
         assert float(mc.phi) == 0.0
         assert mc.is_maximal is True
         assert mc.excluded == ()
+
+
+def test_all_sias_forces_ordered_map_reduce(s, monkeypatch):
+    """Candidate order must be preserved: downstream tie resolution is
+    input-order-dependent, so worker-completion order would make the
+    reported major complex nondeterministic under ties."""
+    from pyphi import parallel as pyphi_parallel
+
+    captured = {}
+    real_map_reduce = pyphi_parallel.map_reduce
+
+    def capturing_map_reduce(*args, **kwargs):
+        captured.update(kwargs)
+        return real_map_reduce(*args, **kwargs)
+
+    monkeypatch.setattr(pyphi_parallel, "map_reduce", capturing_map_reduce)
+    with IIT_4_CONFIG:
+        s.substrate.complexes(s.state)
+    assert captured.get("ordered") is True

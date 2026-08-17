@@ -190,3 +190,34 @@ def test_analytical_relations_have_no_len():
         len(ar)
     # Truthiness must not fall back to the missing __len__.
     assert bool(ar)
+
+
+def test_relation_face_orders_by_phi():
+    """max()/sorted() on faces follow φ, not frozenset subset comparison."""
+    lo = relations.RelationFace(["a"], phi=0.1)
+    hi = relations.RelationFace(["b"], phi=0.9)
+    assert lo < hi
+    assert hi > lo
+    assert (hi < lo) is False
+    assert max([lo, hi]) is hi
+    assert max([hi, lo]) is hi
+    # Equality and hashing remain set semantics.
+    assert lo == relations.RelationFace(["a"], phi=0.1)
+    assert hash(lo) == hash(relations.RelationFace(["a"], phi=0.1))
+    assert lo != hi
+
+
+def test_relation_orders_by_phi():
+    """max()/sorted() on relations follow φ, not frozenset subset comparison."""
+    lo = relations.Relation(["a"])
+    hi = relations.Relation(["b"])
+    # Seed the cached phi property; ordering must read it.
+    lo.__dict__["phi"] = 0.1
+    hi.__dict__["phi"] = 0.9
+    assert lo < hi
+    assert hi > lo
+    assert max([lo, hi]) is hi
+    assert max([hi, lo]) is hi
+    # Equality and hashing remain set semantics.
+    assert lo == relations.Relation(["a"])
+    assert lo != hi

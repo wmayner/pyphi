@@ -13,7 +13,6 @@ from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Iterator
 from functools import cached_property
-from functools import total_ordering
 from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
@@ -47,8 +46,12 @@ if TYPE_CHECKING:
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
-class RelationFace(Displayable, ToPandasMixin, frozenset):
-    """A set of (potentially) related causes/effects."""
+class RelationFace(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
+    """A set of (potentially) related causes/effects.
+
+    Ordering compares φ (via :class:`~pyphi.models.cmp.OrderableByPhi`);
+    equality and hashing are set semantics inherited from ``frozenset``.
+    """
 
     phi: float  # Set in __new__
 
@@ -66,12 +69,17 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
             self.phi = float(phi)  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
         return self
 
-    @total_ordering  # type: ignore[arg-type]  # total_ordering expects a class not instance
-    def __lt__(self, other):
-        # Exact total order for deterministic sorted(); selection among
-        # relations goes through resolve_ties.
-        # numerics: exact — total order for sorting, not a selection.
-        return self.phi < other.phi  # type: ignore[attr-defined]  # phi is set in __new__
+    # Orderable.__eq__ raises NotImplementedError; keep frozenset's set
+    # semantics for equality and hashing. Comparisons (φ order) come from
+    # OrderableByPhi, which precedes frozenset in the MRO.
+    def __eq__(self, other: object) -> bool:
+        return frozenset.__eq__(self, other)
+
+    def __ne__(self, other: object) -> bool:
+        return frozenset.__ne__(self, other)
+
+    def __hash__(self) -> int:
+        return frozenset.__hash__(self)
 
     @cached_property
     def overlap(self):
@@ -150,8 +158,12 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
         return Displayable._repr_html_(self)
 
 
-class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
-    """A set of relation faces forming the relation among a set of distinctions."""
+class Relation(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
+    """A set of relation faces forming the relation among a set of distinctions.
+
+    Ordering compares φ (via :class:`~pyphi.models.cmp.OrderableByPhi`);
+    equality and hashing are set semantics inherited from ``frozenset``.
+    """
 
     @property
     def is_self_relation(self):

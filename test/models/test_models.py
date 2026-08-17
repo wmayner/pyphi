@@ -305,6 +305,17 @@ def test_numpy_aware_eq_array_shape_mismatch_returns_false():
     assert not models.cmp.numpy_aware_eq(a_, b_)
 
 
+def test_numpy_aware_eq_broadcastable_shape_mismatch_returns_false():
+    """Broadcastable but unequal shapes must also compare unequal.
+
+    ``np.allclose`` broadcasts, so without an explicit shape check a
+    ``(1, 3)`` array compares equal to a ``(3,)`` array.
+    """
+    assert not models.cmp.numpy_aware_eq(np.zeros((1, 3)), np.zeros(3))
+    assert not models.cmp.numpy_aware_eq(np.zeros((3, 1)), np.zeros((3, 3)))
+    assert not models.cmp.numpy_aware_eq(np.float64(0.0), np.zeros(3))
+
+
 def test_numpy_aware_eq_nan_scalar_not_equal():
     """NaN ≠ NaN preserved (math.isclose default behavior)."""
     assert not models.cmp.numpy_aware_eq(float("nan"), float("nan"))

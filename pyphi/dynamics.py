@@ -15,10 +15,17 @@ from .exceptions import NonConvergenceError
 def mean_dynamics(
     tpm: ArrayLike,
     repetitions: int = 100,
+    seed: int | None = None,
     **kwargs,
 ):
-    """Return a sample of the dynamics averaged over all initial states."""
+    """Return a sample of the dynamics averaged over all initial states.
+
+    A single generator seeded with ``seed`` is shared across all
+    repetitions, so a given seed reproduces the whole sample. An explicit
+    ``rng`` keyword argument takes precedence over ``seed``.
+    """
     tpm = np.asarray(tpm, dtype=float)
+    kwargs.setdefault("rng", np.random.default_rng(seed))
     clamp = kwargs.get("clamp", {})
     initial_states = [
         insert_clamp(clamp, state)
@@ -42,14 +49,41 @@ def simulate(
     timesteps: int | None = 100,
     clamp: Iterable[Mapping] | Mapping | None = None,
     rng: np.random.Generator | None = None,
+    seed: int | None = None,
 ):
-    """Return a simulated timeseries of system states."""
+    """Return a simulated timeseries of system states.
+
+    Parameters
+    ----------
+    tpm : pandas.DataFrame or numpy.ndarray
+        A state-by-state DataFrame (rows indexed by state tuples), or a
+        state-by-node multidimensional binary TPM.
+    initial_state : tuple[int, ...], optional
+        The starting state. If None, drawn uniformly from the state space
+        (for the state-by-state form, from the TPM's own state labels, so
+        non-binary units are sampled over their full alphabet).
+    timesteps : int, optional
+        Number of steps to simulate.
+    clamp : Mapping or Iterable[Mapping], optional
+        Units held fixed to a given value, either one mapping applied every
+        step or one mapping per step.
+    rng : numpy.random.Generator, optional
+        Generator to draw from. Takes precedence over ``seed``.
+    seed : int, optional
+        Seed for the generator created when ``rng`` is None. If both are
+        None, the trajectory is not reproducible.
+    """
     if rng is None:
-        rng = np.random.default_rng(seed=None)
+        rng = np.random.default_rng(seed)
 
     if isinstance(tpm, pd.DataFrame):
         N = len(tpm.index[0])  # pyright: ignore[reportIndexIssue, reportAttributeAccessIssue]
         step = _state_by_state_stepper(tpm, rng)
+        if initial_state is None:
+            # Sample from the TPM's own state labels so every unit is drawn
+            # over its full alphabet, not just {0, 1}.
+            labels = tpm.index  # pyright: ignore[reportAttributeAccessIssue]
+            initial_state = tuple(labels[int(rng.integers(len(labels)))])
     else:
         # Assumes state-by-node multidimensional TPM.
         step = _state_by_node_stepper(np.asarray(tpm, dtype=float), rng)

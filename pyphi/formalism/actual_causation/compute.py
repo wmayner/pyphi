@@ -473,6 +473,7 @@ def _directed_account(
 def _account(
     transition,
     direction=Direction.BIDIRECTIONAL,
+    allow_neg=False,
     *,
     alpha_measure: DistributionMeasure | None = None,
     partitioned_repertoire_scheme=None,
@@ -492,6 +493,9 @@ def _account(
     direction : Direction
         By default (``Direction.BIDIRECTIONAL``) the account contains actual
         causes and actual effects.
+    allow_neg : bool
+        If true, α is allowed to be negative. Otherwise, negative values of α
+        are treated as if they were zero.
     alpha_measure : DistributionMeasure, optional
         Resolved alpha measure callable. When ``None``,
         ``config.formalism.actual_causation.alpha_measure`` is resolved at the
@@ -505,6 +509,7 @@ def _account(
         return _directed_account(
             transition,
             direction,
+            allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )
@@ -513,12 +518,14 @@ def _account(
         _directed_account(
             transition,
             Direction.CAUSE,
+            allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )
         + _directed_account(
             transition,
             Direction.EFFECT,
+            allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )

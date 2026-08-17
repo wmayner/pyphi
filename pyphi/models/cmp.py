@@ -137,6 +137,8 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         try:
+            if np.shape(a) != np.shape(b):
+                return False
             return np.allclose(a, b, rtol=EQUALITY_TOLERANCE, atol=EQUALITY_TOLERANCE)
         except (ValueError, TypeError):
             return False

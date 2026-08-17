@@ -206,3 +206,38 @@ def test_simulate_timesteps_none_with_mapping_clamp_raises():
             initial_state=(0, 0),
             rng=np.random.default_rng(0),
         )
+
+
+def test_simulate_seed_reproducible():
+    tpm = convert.to_multidimensional(
+        np.array([[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]])
+    )
+    a = simulate(tpm, timesteps=20, seed=42)
+    b = simulate(tpm, timesteps=20, seed=42)
+    c = simulate(tpm, timesteps=20, seed=43)
+    assert a == b
+    assert a != c
+
+
+def test_mean_dynamics_seed_reproducible():
+    tpm = convert.to_multidimensional(
+        np.array([[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]])
+    )
+    a = mean_dynamics(tpm, repetitions=3, timesteps=5, seed=7)
+    b = mean_dynamics(tpm, repetitions=3, timesteps=5, seed=7)
+    assert np.array_equal(a, b)
+
+
+def test_simulate_state_by_state_initial_state_covers_full_alphabet():
+    """The random initial state must be drawn from the TPM's own state
+    labels, so non-binary units can start in states >= 2."""
+    import pandas as pd
+
+    states = [(0,), (1,), (2,)]
+    tpm = pd.DataFrame(
+        np.full((3, 3), 1 / 3),
+        index=pd.Index(states),
+        columns=pd.Index(states),
+    )
+    initials = {simulate(tpm, timesteps=1, seed=seed)[0] for seed in range(60)}
+    assert (2,) in initials

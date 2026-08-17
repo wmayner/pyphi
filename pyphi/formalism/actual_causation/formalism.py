@@ -100,6 +100,7 @@ class AC2019Formalism:
             return compute._account(
                 transition,
                 direction,
+                allow_neg=allow_neg,
                 alpha_measure=alpha_measure,
                 partitioned_repertoire_scheme=scheme,
             )

@@ -1512,3 +1512,51 @@ def test_find_actual_cause_returns_null_link_when_no_positive_alpha():
     assert link.alpha == 0.0
     # Comparison works on null links.
     assert isinstance(link == other, bool)
+
+
+def test_transition_system_equality_includes_noise_background():
+    from pyphi.actual import TransitionSystem
+
+    kwargs = {
+        "substrate": _ts_substrate(),
+        "before_state": (0, 1, 1),
+        "after_state": (1, 0, 0),
+        "cause_indices": (1, 2),
+        "effect_indices": (0,),
+        "direction": Direction.CAUSE,
+    }
+    frozen = TransitionSystem(**kwargs)
+    noised = TransitionSystem(**kwargs, noise_background=True)
+    assert frozen != noised
+    assert hash(frozen) != hash(noised)
+
+
+def test_account_equality_is_order_insensitive():
+    substrate = examples.actual_causation_substrate()
+    transition = actual.Transition(substrate, (1, 0), (1, 0), (0, 1), (0, 1))
+    account = actual.account(transition)
+    assert len(account) > 1
+    reordered = models.Account(tuple(reversed(account.causal_links)))
+    assert account == reordered
+    assert hash(account) == hash(reordered)
+
+
+def test_account_honors_allow_neg():
+    """account(allow_neg=True) must thread the flag to both directions.
+
+    On this stochastic fixture the flag changes Σα, so a silently dropped
+    flag reproduces the default account.
+    """
+    tpm = np.array([[0.63, 0.90], [0.78, 0.23], [0.30, 0.87], [0.01, 0.82]])
+    transition = actual.Transition(Substrate(tpm), (0, 0), (0, 0), (0, 1), (0, 1))
+    base = actual.account(transition)
+    neg = actual.account(transition, allow_neg=True)
+
+    def sum_alpha(account):
+        return sum(float(link.alpha) for link in account)
+
+    assert sum_alpha(base) != sum_alpha(neg)
+    directed = actual.directed_account(
+        transition, Direction.CAUSE, allow_neg=True
+    ) + actual.directed_account(transition, Direction.EFFECT, allow_neg=True)
+    assert neg == models.Account(tuple(directed))
