@@ -1201,3 +1201,56 @@ theory decision (the paper is explicit: "the background variables are fixed
 in their actual state U = u"), but the docstring is false as shipped either
 way. Also confirms the sibling finding that `noise_background` is a no-op on
 the cause side (nothing consumes `external_indices` there).
+
+---
+
+# Fixes applied on this branch (2026-08-17)
+
+## F7 — FIXED, with a path clarification worth recording
+
+Reproduction detail the original writeup lacked: the defect is **path-dependent**.
+`uv build --wheel` (direct from the source tree) produced a *complete* wheel with
+all 183 `.py` files even under the broken config — only the default path
+(`uv build`, which builds the wheel **from the sdist**) produced the empty
+artifact, because the sdist allowlist is what dropped the source. A negative
+control that builds only the wheel directly "refutes" F7; the default path
+reproduces it exactly. (Same lesson as F15 and R9: the check must go through
+the failing path.)
+
+Also surfaced while fixing: the sdist allowlist patterns were **unanchored**, so
+`LICENSE.md` matched every `LICENSE.md` under a local virtualenv (24 junk files
+in the sdist). Patterns are now anchored with a leading `/`.
+
+Fix landed: wheel target uses `packages = ["pyphi"]` alone; sdist allowlist
+gains `/pyphi/**`; `build.yml` gate now asserts `pyphi.__file__ is not None`
+and resolves `pyphi.analyze` + `pyphi.examples.basic_substrate()`. Verified:
+fixed artifacts install into a clean venv and run a real φₛ analysis; the
+hardened gate fails against the broken wheel (old gate passes it).
+
+## Tier B contract violations — FIXED (one commit)
+
+All seven of the handoff's Tier B items landed with regression tests:
+`numpy_aware_eq` shape guard · `complexes()` deterministic candidate order
+under parallel evaluation (F14; guard test verified to fail with the fix
+reverted) · `TransitionSystem.__eq__`/`__hash__` include `noise_background` ·
+`Relation`/`RelationFace` order by φ (equality/hash keep set semantics) ·
+`Account` order-insensitive equality/hash · `actual.account()` threads
+`allow_neg` (fixture: stochastic 2-node TPM where Σα differs 1.1206 vs
+1.4474) · `dynamics.simulate()` k-ary initial states + `seed` argument on
+`simulate`/`mean_dynamics`.
+
+Full suite after all fixes: **4312 passed, 290 skipped, 0 failed** (the two
+baseline failures did not appear in this run).
+
+## Still open (unchanged by this branch)
+
+- F15 towncrier (maintainer's call: hand-written 2.0.0 section vs fragments).
+- R5/R6 example fixtures (fixing `fig5b_substrate` moves the golden zoo — needs
+  the maintainer to bless golden regeneration; `differentiation_macro_tpm` is a
+  one-liner but is grouped with it as a published-numbers change).
+- R7 AC partition-tie None return (fix is mechanical — dedupe candidates by
+  `lex_key` before the cascade — but changes published accounts; grouped with
+  the wrong-value tier).
+- R8/R4 sharded merges, R9 sweep preset substitution, R10 AC cause-side
+  background, F9/F12 tie precedence, F10 `ces_measure` validation, F8
+  `_fingerprint`, F6 `Complex.__hash__` — as documented above.
