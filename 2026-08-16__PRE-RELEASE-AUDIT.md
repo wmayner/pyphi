@@ -861,7 +861,16 @@ since the existing one cannot fail against this defect.
 
 ---
 
-## R2. `complexes()` order nondeterminism under parallel — NOT REPRODUCED
+## R2. `complexes()` order nondeterminism — SUPERSEDED BY F14 (my test was too weak)
+
+> **SUPERSEDED.** F14 above confirms this defect with a stronger experiment: a
+> purpose-built 4-unit fixture (two independent noisy copy-loop pairs, both tied at
+> φₛ = 0.304006187) flips between 2 distinct major complexes over 12 parallel runs,
+> with a stable sequential control. My test below used `grid3_substrate` and saw no
+> flip in 10 runs — that fixture lacks the tie structure needed to expose it, so this
+> is a weaker experiment, **not** a refutation. Retained only for the mechanism trace
+> and the `ordered=True` recommendation, both of which still stand.
+
 
 **File:** `pyphi/substrate.py:810` (inside `all_sias`), consumed via
 `irreducible_sias` → `complexes`; tie-break at `pyphi/condensation.py:116,252,372`
