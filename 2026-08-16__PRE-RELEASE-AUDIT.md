@@ -785,3 +785,255 @@ feature, and the same file appears again at `:52` for an exact-tie margin bug.
 **124 findings** were never verified — their agents died on the spend limit. They are
 neither confirmed nor refuted. The synthesis agent died the same way, which is why this
 section is written by hand.
+# Round 2 hand-verified findings (local machine)
+
+---
+
+## R1. `numpy_aware_eq` broadcasts — docstring false, test gives false assurance
+
+**File:** `pyphi/models/cmp.py:138-141` (docstring claim at `:135-136`); test at
+`test/models/test_models.py:301`
+**Severity:** LOW — real defect, **not reachable** through any current caller
+**Status:** CONFIRMED as a defect; the alarming reachability claim is REFUTED
+
+Surfaced by a completeness critic, which claimed it "blinds every golden fixture in
+the suite." That part is wrong — see below.
+
+The docstring states: *"Shape-mismatched or non-numeric arrays compare unequal rather
+than raising."* The implementation delegates to `np.allclose`, which **broadcasts**:
+
+```
+(2,)   vs (2,2)   all ones      -> eq=True
+(2,)   vs ()      scalar 1.0    -> eq=True
+(0,)   vs (1,0)   empty         -> eq=True
+(2,1)  vs (2,2)   repertoire    -> eq=True
+(2,)   vs (3,)    non-broadcast -> eq=False   <- the only False
+```
+
+`np.allclose` raises `ValueError` only for *non-broadcastable* shapes, so the
+`except` clause catches exactly the one case the test exercises:
+
+```python
+def test_numpy_aware_eq_array_shape_mismatch_returns_false():
+    a_ = np.zeros(3); b_ = np.zeros(4)      # non-broadcastable
+    assert not models.cmp.numpy_aware_eq(a_, b_)
+```
+
+The test pins the docstring's claim using the one shape pair where it happens to
+hold. Every broadcast-compatible mismatch silently compares equal.
+
+Same family as the already-fixed set-vs-list positional-zip bug (`cbe4ac71`): that
+change repaired the set branch and left the array branch broadcasting.
+
+### Reachability — REFUTED (this is the important correction)
+
+The critic's theory was that repertoires over different purviews differ only in
+singleton axes, so two RIAs over *different purviews* could compare equal. They
+cannot. Every caller guards on purview first, and repertoire shape is determined by
+the purview:
+
+| caller | guard before `numpy_aware_eq` |
+|---|---|
+| `models/ria.py:510` | `self.purview != other.purview` at `:504` |
+| `models/distinction.py:320,322` | `cause_purview` `:313`, `effect_purview` `:315` |
+| `models/state_specification.py:202,204` | `self.purview != other.purview` at `:196` |
+
+Those are the only three call sites in `pyphi/`. So no current path reaches the
+broadcast case, and the golden fixtures are **not** blinded.
+
+**What it actually is:** a latent trap. Any future caller comparing arrays whose
+shapes are not already pinned by a preceding guard gets silent wrong equality, and
+both the docstring and the test say that cannot happen.
+
+**Fix:** compare shapes explicitly before `allclose`.
+
+```python
+if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+    if np.shape(a) != np.shape(b):
+        return False
+    try:
+        return np.allclose(a, b, rtol=EQUALITY_TOLERANCE, atol=EQUALITY_TOLERANCE)
+    except (ValueError, TypeError):
+        return False
+```
+Add a broadcast-compatible case to the test — `np.zeros(2)` vs `np.zeros((2, 2))` —
+since the existing one cannot fail against this defect.
+
+---
+
+## R2. `complexes()` order nondeterminism under parallel — NOT REPRODUCED
+
+**File:** `pyphi/substrate.py:810` (inside `all_sias`), consumed via
+`irreducible_sias` → `complexes`; tie-break at `pyphi/condensation.py:116,252,372`
+**Severity:** LOW as demonstrated — mechanism is real, impact not shown
+**Status:** claim NOT reproduced in 10 runs on a genuinely tied case
+
+The agent claimed `complexes()` / `maximal_complex()` pick a different major complex
+run-to-run under parallel evaluation. What I found:
+
+### The mechanism is real in the code
+
+- `map_reduce` signature defaults to `ordered: bool = False`
+  (`pyphi/parallel/__init__.py:166`), and the call at `substrate.py:810` does not
+  override it — so under parallelism results can arrive in completion order.
+- The call chain is as claimed: `complexes()` (`:837`) → `irreducible_sias()`
+  (`:822`) → `all_sias()` (`:782`) → that `map_reduce`.
+- Condensation breaks φ-ties **by input position**: `condensation.py:109` sorts by
+  `-phi` (stable), `:116` re-sorts each tolerant tier by the original index
+  `pair[0]`, and `:252`/`:372` sort by a recorded `position[id(c)]`. So if input
+  order varies, tie order varies with it.
+
+### But it did not reproduce
+
+`grid3_substrate` at `(0,0,0)` yields a genuine tie — complexes `(2,)` and `(0,)`
+both at φ = 0.070096726353:
+
+```
+sequential order : ((2,), (0,), (1,))
+10 parallel runs : ((2,), (0,), (1,))  x10
+distinct orders  : 1
+major complex    : (2,)   — stable, never flipped
+```
+
+`iit4_2023_fig1a_substrate` at `(0,0,0)` has distinct φ (0.214 / 0.065 / 0.039), so
+the `-phi` sort determines order there regardless of arrival — also stable over 10 runs.
+
+**Caveat on my own test:** an attempt to instrument `map_reduce` to confirm the
+parallel branch actually engaged came back with no recorded calls, which I could not
+explain. So I cannot prove parallelism was exercised, and the 10 stable runs may
+reflect a workload too small to reorder rather than a real guarantee.
+
+### Recommendation
+
+Not worth further reachability work. The fix is one keyword argument and removes the
+question permanently:
+
+```python
+result = map_reduce(sia_fn, iterable, ordered=True, ...)   # substrate.py:810
+```
+
+Ordering a few thousand candidate SIAs costs nothing next to computing them, and the
+downstream tie-break at `condensation.py:116` explicitly assumes input position is
+meaningful. Either pass `ordered=True`, or make the tie-break independent of input
+order (e.g. secondary key on sorted node indices) so the assumption is not load-bearing.
+
+---
+
+## R3. `Relation` / `RelationFace` ordering is frozenset subset logic, not φ — `max()` returns the wrong face
+
+**File:** `pyphi/relations.py:153` (`Relation` bases) and `:69` (`RelationFace.__lt__`)
+**Severity:** HIGH as a public-API contract break; latent internally
+**Status:** CONFIRMED, and worse than reported
+
+```python
+class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
+```
+
+`frozenset` precedes `OrderableByPhi` in the MRO, so the φ ordering is shadowed:
+
+```
+Relation MRO        : Relation, Displayable, ToPandasMixin, frozenset, OrderableByPhi, Orderable
+Relation.__lt__     -> frozenset.__lt__      (subset test)
+Relation.__gt__     -> frozenset.__gt__      (superset test)
+RelationFace.__lt__ -> RelationFace.__lt__   (phi, correct)
+RelationFace.__gt__ -> frozenset.__gt__      (superset test)
+```
+
+`RelationFace` is the worse case, because its operators are *mixed*. With
+`lo = RelationFace({1,2,3}, phi=0.01)` and `hi = RelationFace({1}, phi=99.0)`:
+
+```
+lo <  hi : True     (phi ordering, correct)
+hi >  lo : False    (superset test — DISAGREES with the line above)
+max(lo, hi).phi = 0.01     <- max returns the LOWER phi
+sorted([lo, hi]) -> [0.01, 99.0]   <- sorted is correct
+```
+
+So `a < b` and `b > a` disagree (antisymmetry broken), and `sorted()` and `max()`
+disagree with each other on the same pair. `max` uses `>`, which is the inherited
+superset test.
+
+The `@total_ordering` at `:69` is applied to the **method** `__lt__` rather than to
+the class — the in-repo `type: ignore` comment even notes "total_ordering expects a
+class not instance" — so it never fills in the missing operators.
+
+### Reachability — latent
+
+Production avoids bare comparison: `max_phi()` (`:606`) extracts `float(relation.phi)`
+before `max`, and `strongest()` sorts with an explicit `key=`. I found no production
+site doing `max(faces)` or comparing two Relations directly.
+
+The exposure is the public API. `Relation` and `RelationFace` are public types with a
+`phi` attribute and an ordering mixin that advertises φ ordering; `max(faces)` is the
+obvious thing to write and silently returns the wrong one.
+
+**Fix:** put `cmp.OrderableByPhi` before `frozenset` in the bases, or define all four
+operators explicitly on both classes. Apply `@total_ordering` to the class, not the
+method. Add a test asserting `max()` picks max φ and that `a < b` implies `b > a`.
+
+---
+
+## R4. ★★ Sharded campaign merge inflates distinction φ — reports distinctions that do not exist
+
+**File:** `pyphi/campaign/merge.py:80` (`merge_stride_rias`); pin filtering at
+`pyphi/formalism/iit4/formalism.py:259`
+**Severity:** CRITICAL — wrong φ in the sharded/cluster path
+**Status:** FULLY CONFIRMED and quantified
+
+### The unsound step
+
+φ for a pin is a **minimum over partitions**; selection among pins is a **maximum**.
+Each stride reports `ria._state_ties`, which `_find_mip_iit4` has already reduced to
+that stride's maximum-φ pins. `merge_stride_rias` then takes, per pin, the minimum
+over *only the strides that reported it*.
+
+Collapsing the max before the cross-stride min is unsound: if the partition that
+drives pin *p* to its global minimum lies in a stride where some other pin *q* wins
+locally, *p* is absent from that stride's report and its minimising value is never seen.
+
+### Reproduced — `rule110_system`, mechanism (0,1), CAUSE, purview (0,2), k=3
+
+```
+FULL sweep:      phi = 0.0   state = (0, 0)
+  stride 0/3: pins = [((0,0), 0.207519)]
+  stride 1/3: pins = [((1,1), 0.207519)]   <- (0,0) dropped; this stride holds its phi=0 partition
+  stride 2/3: pins = [((0,0), 0.207519), ((1,1), 0.207519)]
+MERGED (sharded): phi = 0.20751874963942188   state = (0, 0)
+```
+
+A distinction that is genuinely **reducible (φ = 0)** is reported with **φ = 0.2075**.
+A sharded campaign therefore reports distinctions that do not exist, which propagates
+through `merge_purview_rias` → MICE → distinction → Φ-structure.
+
+### Scope — swept every (mechanism, direction, purview, k) on two systems
+
+```
+basic_substrate (1,0,0)  : 84 combos checked, 0 mismatches
+rule110_system           : 84 combos checked, 4 mismatches
+   mech=(0,1) CAUSE  purv=(0,2)   k=3  full 0.0  -> merged 0.2075
+   mech=(0,1) EFFECT purv=(0,1,2) k=3  full 0.25 -> merged 0.3538
+   mech=(0,2) CAUSE  purv=(1,2)   k=3  full 0.0  -> merged 0.2075
+   mech=(1,2) CAUSE  purv=(0,1)   k=3  full 0.0  -> merged 0.2075   state (0,0) -> (1,1)
+```
+
+Three of four turn a non-existent distinction into an existing one; one also changes
+the specified state, which changes congruence resolution and therefore the relations.
+
+### Why the guard missed it — fixture structure, not tuple choice
+
+`test/campaign/test_merge.py:20 test_stride_merge_equals_full_find_mip` asserts
+exactly the right invariant (merged φ, partition and specified state all equal the
+full sweep). It runs it on **one** tuple: `basic_substrate` at (1,0,0), mechanism
+(0,1), purview (0,2), EFFECT, k=3.
+
+The sweep above shows `basic_substrate` has **zero** mismatches across all 84
+combinations — the bug cannot manifest on that fixture at all. It needs enough
+tie structure for a pin to lose locally in the stride holding its minimising
+partition. So this is the project's own documented blind spot (`CLAUDE.md`: the
+golden zoo tops out at four units and size-driven costs are invisible to it),
+in a new place: a correct assertion pinned to a fixture that cannot fail it.
+
+**Fix:** strides must report every pin's φ per stride, not only the stride-local
+argmax — i.e. do the cross-stride **min per pin first**, and only then the max over
+pins. Then extend the guard to a fixture with real tie structure (`rule110_system`)
+and parametrise over direction and k; a single-tuple assertion cannot see this class.
