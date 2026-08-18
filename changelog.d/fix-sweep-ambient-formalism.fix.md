@@ -1,0 +1,1 @@
+`sweep(formalisms=None)` now computes under the active configuration exactly as `pyphi.analyze()` does. Previously it silently replaced the ambient config with the complete version preset, discarding runtime customizations for the duration of the sweep.

@@ -227,3 +227,33 @@ class TestSubstratesAxis:
             label, formalism, _subset, _state = entry
             assert label == 0
             assert formalism == "IIT_4_0_2026"
+
+
+def test_sweep_default_formalism_honors_ambient_customizations():
+    """sweep(formalisms=None) must compute under the live config, exactly as
+    pyphi.analyze does — not silently reset it to the version preset.
+
+    The fixture has power: under IIT_3_0 the customized ces_measure changes
+    Phi from 2.3125 (preset) to 1.0833, so a preset substitution is visible.
+    """
+    from dataclasses import replace
+
+    substrate = examples.basic_substrate()
+    state = (1, 0, 0)
+    preset = presets.by_name["IIT_3_0"]
+    custom_iit = replace(preset["iit"], ces_measure="SUM_SMALL_PHI")
+    with config.override(
+        **{k: v for k, v in preset.items() if k != "iit"},
+        iit=custom_iit,
+        parallel=False,
+        progress_bars=False,
+    ):
+        direct = float(System(substrate, state).sia().phi)
+        preset_value = None
+        with config.override(iit=preset["iit"]):
+            preset_value = float(System(substrate, state).sia().phi)
+        assert direct != preset_value  # the customization has an effect
+        result = sweep(substrate, states=[state], parallel=False)
+        assert float(result.df["phi"].iloc[0]) == direct
+        # The table still reports the active version name.
+        assert result.df["formalism"].iloc[0] == "IIT_3_0"
