@@ -1332,3 +1332,15 @@ the "inert_unit" CES-incompleteness counterexample dissolved — the larger
 congruent purview absorbs a frozen unit, whose state then distinguishes the
 substrates; the exhaustive n=2 re-search finds no surviving
 different-constant pair with a nonempty CES.
+
+## R10 — RESOLVED (2026-08-18): clamped background in both directions
+
+The cause direction now fixes background inputs at the observed
+before-state (`System.background_state`, pinned by `TransitionSystem`),
+matching the effect direction and the paper's U = u causal model. Fig 8B
+reproduces at 3.0 bits on the informative-background fixture (now a
+paper-reproduction test); `noise_background` reaches the cause side; the
+May-locked test was rewritten (it discriminated only after-vs-before, not
+fix-vs-integrate); the IIT 3.0 two-OR cause ratio returns to 0, which the
+test's own history records as the value its log2(4/3) assertion replaced.
+Confirmation question for Larissa remains drafted in the question doc.
