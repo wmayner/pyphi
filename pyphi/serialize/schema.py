@@ -535,7 +535,7 @@ class CampaignTaskSchema(msgspec.Struct, frozen=True, tag="campaign_task"):
     compute: "str | None"
     compute_ref: "str | None"
     config_overrides: dict[str, Any]
-    cells: tuple[tuple["str | int", str, tuple[int, ...], tuple[int, ...]], ...]
+    cells: tuple[tuple["str | int", str | None, tuple[int, ...], tuple[int, ...]], ...]
     skip_uncomputable: bool
 
 
@@ -588,7 +588,7 @@ class CESShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_ces_task"):
     subset: tuple[int, ...] | None
     scope: CESScopeSchema
     config_overrides: dict[str, Any]
-    formalism: str
+    formalism: str | None
     spec: ShardSpecSchema
     ordering: "str | None"
 
@@ -600,7 +600,7 @@ class SIAShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_sia_task"):
     state: tuple[int, ...]
     subset: tuple[int, ...] | None
     config_overrides: dict[str, Any]
-    formalism: str
+    formalism: str | None
     stride: tuple[int, int]
 
 

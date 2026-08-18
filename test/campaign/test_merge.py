@@ -1,8 +1,12 @@
+import pytest
+
 from pyphi import examples
 from pyphi.campaign.merge import build_distinction
 from pyphi.campaign.merge import merge_purview_rias
 from pyphi.campaign.merge import merge_sia_strides
 from pyphi.campaign.merge import merge_stride_rias
+from pyphi.campaign.runner import partition_stride_entries
+from pyphi.campaign.runner import sia_stride_entries
 from pyphi.campaign.shards import enumerate_partition_stride
 from pyphi.campaign.shards import enumerate_system_partition_stride
 from pyphi.conf import config
@@ -19,25 +23,48 @@ def _system():
     return System(examples.basic_substrate(), (1, 0, 0))
 
 
-def test_stride_merge_equals_full_find_mip():
-    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
-        system = _system()
-        mechanism, purview = (0, 1), (0, 2)
-        direction = Direction.EFFECT
-        full = find_mip(system, direction, mechanism, purview)
-        k = 3
-        entries = []
-        for i in range(k):
-            parts, indices = enumerate_partition_stride(
-                mechanism, purview, system.node_labels, i, k
+def _stride_entries(system, direction, mechanism, purview, k):
+    """Build the per-stride payloads exactly as the shard runner does."""
+    scheme = config.formalism.iit.mechanism_partition_scheme
+    entries = []
+    for i in range(k):
+        parts, indices = enumerate_partition_stride(
+            mechanism, purview, system.node_labels, i, k
+        )
+        entries.extend(
+            (cell.result, cell.aux)
+            for cell in partition_stride_entries(
+                system, direction, mechanism, purview, parts, indices, scheme
             )
-            ria = find_mip(system, direction, mechanism, purview, partitions=parts)
-            local = {str(p): g for p, g in zip(parts, indices, strict=True)}
-            pin_winner_indices = {
-                repr(pin.specified_state.state): local[str(pin.partition)]
-                for pin in (ria._state_ties or (ria,))
-            }
-            entries.append((ria, {"pin_winner_indices": pin_winner_indices}))
+        )
+    return entries
+
+
+# The rule110 combinations are the confirmed divergence cases: pins that
+# lose their own stride's local selection hold the globally minimizing
+# partitions, so a merge that only sees stride-local winners inflates φ
+# (reporting a reducible distinction as real) or flips the specified state.
+_STRIDE_CASES = [
+    ("basic", (1, 0, 0), (0, 1), Direction.EFFECT, (0, 2), 3),
+    ("rule110", (0, 0, 0), (0, 1), Direction.CAUSE, (0, 2), 3),
+    ("rule110", (0, 0, 0), (0, 1), Direction.EFFECT, (0, 1, 2), 3),
+    ("rule110", (0, 0, 0), (0, 2), Direction.CAUSE, (1, 2), 3),
+    ("rule110", (0, 0, 0), (1, 2), Direction.CAUSE, (0, 1), 3),
+    ("rule110", (0, 0, 0), (0, 1), Direction.CAUSE, (0, 2), 2),
+]
+
+
+@pytest.mark.parametrize(
+    ("example", "state", "mechanism", "direction", "purview", "k"), _STRIDE_CASES
+)
+def test_stride_merge_equals_full_find_mip(
+    example, state, mechanism, direction, purview, k
+):
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        substrate = getattr(examples, f"{example}_substrate")()
+        system = System(substrate, state)
+        full = find_mip(system, direction, mechanism, purview)
+        entries = _stride_entries(system, direction, mechanism, purview, k)
         merged = merge_stride_rias(entries)
     assert float(merged.phi) == float(full.phi)
     assert str(merged.partition) == str(full.partition)
@@ -71,21 +98,36 @@ def test_distinction_assembly_matches_direct():
     assert built.mechanism == direct.mechanism
 
 
-def test_sia_stride_merge_equals_full():
+_SIA_CASES = [
+    ("basic", (1, 0, 0), 2),
+    ("xor", (0, 0, 0), 2),
+    ("xor", (0, 0, 0), 3),
+    ("rule110", (0, 0, 0), 2),
+    ("rule110", (0, 0, 0), 3),
+    ("fig5a", (0, 0, 0), 3),
+]
+
+
+@pytest.mark.parametrize(("example", "state", "k"), _SIA_CASES)
+def test_sia_stride_merge_equals_full(example, state, k):
+    """The merged SIA must match the unsharded sia() exactly: φ_s, the MIP,
+    and — because congruence resolution consumes it — the specified system
+    state. The xor and rule110 cases have (cause, effect) state ties whose
+    per-pair minima span strides, the class of case a stride-local state
+    cascade gets wrong."""
     with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
-        system = _system()
+        substrate = getattr(examples, f"{example}_substrate")()
+        system = System(substrate, state)
         full = system.sia()
         scheme = config.formalism.iit.system_partition_scheme
         entries = []
-        k = 2
         for i in range(k):
             parts, indices = enumerate_system_partition_stride(system, scheme, i, k)
-            sia = system.sia(partitions=parts)
-            local = {str(p): g for p, g in zip(parts, indices, strict=True)}
-            ties = getattr(sia, "ties", None) or (sia,)
-            entries.append(
-                (sia, {"tie_indices": [local[str(t.partition)] for t in ties]})
+            entries.extend(
+                (cell.result, cell.aux)
+                for cell in sia_stride_entries(system, parts, indices, scheme)
             )
-        merged = merge_sia_strides(entries)
+        merged = merge_sia_strides(entries, system=system)
     assert float(merged.phi) == float(full.phi)
     assert str(merged.partition) == str(full.partition)
+    assert str(merged.system_state) == str(full.system_state)

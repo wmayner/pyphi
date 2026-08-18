@@ -1254,3 +1254,62 @@ baseline failures did not appear in this run).
 - R8/R4 sharded merges, R9 sweep preset substitution, R10 AC cause-side
   background, F9/F12 tie precedence, F10 `ces_measure` validation, F8
   `_fingerprint`, F6 `Complex.__hash__` — as documented above.
+
+---
+
+# Second fix wave (2026-08-17, worktree on the audit branch)
+
+Directed item by item; every fix carries a regression test verified where
+noted.
+
+- **Changelog staging (F15)** — RESOLVED without discarding either artifact:
+  the curated 2.0.0 section moved to `RELEASE-NOTES-2.0.0.md` (release-day
+  merge steps in its header), CHANGELOG.md keeps the marker and released
+  history, `just changelog-draft` renders pending fragments. The real build
+  path (`towncrier build --version 2.0.0 --keep`) verified working, 40
+  fragments intact.
+- **R9 sweep preset substitution** — FIXED: `formalisms=None` is now a
+  no-preset sentinel; ambient config honored exactly as `analyze` honors it;
+  table reports the active version name. Regression test asserts
+  sweep == direct compute on a fixture where the customization moves Φ 2.13×.
+- **F10/F8/F6 consistency trio** — FIXED: `ces_measure` validated against
+  formalism-declared `compatible_ces_measures` (IIT 3.0 keeps the published
+  Gómez SUM_SMALL_PHI configuration — the raw finding's "append to
+  compatible_measures" fix would have broken that paper reproduction);
+  `_fingerprint` digests factor shapes (F8; test verified to fail reverted);
+  `Complex.__eq__` includes `node_indices` (F6, the macro-footprint reading).
+- **R5/R6 example fixtures** — FIXED: fig5b B = AND(A, C) per the 2014 paper
+  (golden regenerated; still exactly one distinction; panel values ci=0,
+  ei=0.5 reproduce); `differentiation_macro_tpm` = p² + 2pε/3. Gate-level
+  tests added; test-module misattribution of fig4/5a/5b to the 4.0 paper
+  corrected.
+- **R7 AC partition ties** — FIXED both ways per direction: (a)
+  `JOINT_PARTITION_ALL` yields each induced cut once (structural rule proven
+  equivalent to lex-key dedupe on 9 sizes; O(1) memory; counts regenerated
+  from a closed form verified on 14 sizes; perf pins regenerated — every
+  count decreased); (b) the AC cascade resolves identical-cut survivors
+  instead of returning None (verified to fail reverted). ~15% fewer
+  repertoire computations on the rule110 phi-structure frame.
+- **R4 + R8 sharded merges** — RE-ENGINEERED: strides report every
+  specified-state candidate's local minimum (one entry per pin at the
+  distinction level, per (cause, effect) pair at the SIA level); the merge
+  takes the cross-stride min per candidate, then runs the same selection the
+  unsharded path runs (`_resolve_pair_sias`, extracted for reuse). Found in
+  the process: under IIT 4.0 (2026) the intrinsic-information cap applied
+  inside strides destroys the uncapped normalized-φ ordering the MIP
+  selection needs — strides now search uncapped and the merge caps once the
+  global MIP per pair is chosen. Guard tests parametrized over the exact
+  divergence cases (rule110/xor, k∈{2,3}); campaign end-to-end
+  sharded==unsharded green under both 4.0 presets.
+- **R10 AC cause-side background** — ARCHEOLOGY DONE, no behavior change:
+  the after-state convention was deliberately confirmed by Larissa
+  (2026-05-29) and locked; but the freeze-vs-posterior-weight axis was not
+  the question she was asked, the locked test cannot discriminate it, and
+  the paper's own examples cannot either. The false docstring is fixed; a
+  precise follow-up question (with the discriminating 3.0-vs-1.2345 fixture)
+  is appended to `ignore/planning/AC_CAUSE_WEIGHTING_QUESTION.md`.
+- **Dependabot** — CLEARED: all 14 alerts were transitive optional deps
+  (12 × Pillow < 12.3.0 via visualize; cryptography < 50 via the mcp
+  extra's pyjwt). Lockfile bumped to pillow 12.3.0 / cryptography 50.0.0.
+
+Still open: F12/F9 tie precedence (theory decision), P15 docs sweep.

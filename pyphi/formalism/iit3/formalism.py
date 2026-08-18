@@ -42,6 +42,8 @@ class IIT3Formalism:
     compatible_ces_measures: ClassVar[frozenset[str]] = frozenset(
         {"EMD", "SUM_SMALL_PHI"}
     )
+    # IIT 3.0 MIP searches are plain minima with no specified-state pins.
+    has_state_pins: ClassVar[bool] = False
     partition_scheme: ClassVar[str | None] = "JOINT_BIPARTITION"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"}

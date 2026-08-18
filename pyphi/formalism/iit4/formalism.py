@@ -274,6 +274,9 @@ class IIT4_2023Formalism:
     )
     # IIT 4.0's Φ is the sum of φ over distinctions and relations.
     compatible_ces_measures: ClassVar[frozenset[str]] = frozenset({"SUM_SMALL_PHI"})
+    # The mechanism and system MIP searches maximize over specified-state
+    # candidates (pins / pairs); campaign shards enumerate them per stride.
+    has_state_pins: ClassVar[bool] = True
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
@@ -438,6 +441,9 @@ class IIT4_2026Formalism:
     )
     # IIT 4.0's Φ is the sum of φ over distinctions and relations.
     compatible_ces_measures: ClassVar[frozenset[str]] = frozenset({"SUM_SMALL_PHI"})
+    # The mechanism and system MIP searches maximize over specified-state
+    # candidates (pins / pairs); campaign shards enumerate them per stride.
+    has_state_pins: ClassVar[bool] = True
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
