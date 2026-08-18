@@ -357,3 +357,31 @@ def test_all_joint_partitions_yields_unique_cuts(m, p):
     from pyphi.cost import partition_sweep_count
 
     assert len(partitions) == partition_sweep_count(m, p)
+
+
+# The two TEMPORAL schemes are deliberately absent: they enumerate each
+# split in both causal directions, but no evaluation path currently reads
+# a system partition's direction, so their direction pairs share a cut and
+# evaluate identically. Whether to wire direction into evaluation, collapse
+# the pairs, or retire the schemes is an open maintainer decision.
+_SYSTEM_SCHEMES = [
+    "DIRECTED_BIPARTITION",
+    "DIRECTED_BIPARTITION_CUT_ONE",
+    "DIRECTED_BIPARTITION_SEQUENTIAL",
+    "EDGE_CUT_ALL",
+    "EDGE_CUT_BIDIRECTIONAL",
+    "DIRECTED_SET_PARTITION",
+]
+
+
+@pytest.mark.parametrize("scheme", _SYSTEM_SCHEMES)
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_system_partition_schemes_yield_unique_cuts(scheme, n):
+    """No system scheme may yield the same induced edge cut twice: the
+    evaluation depends only on the cut, so a repeated cut is the same
+    physical partition evaluated again."""
+    from pyphi.partition import system_partition_types
+
+    parts = list(system_partition_types[scheme](tuple(range(n))))
+    keys = [p.lex_key() for p in parts]
+    assert len(keys) == len(set(keys))

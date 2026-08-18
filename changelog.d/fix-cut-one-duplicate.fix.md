@@ -1,0 +1,1 @@
+The `DIRECTED_BIPARTITION_CUT_ONE` system partition scheme (and its temporal variant) no longer yields the same two-node bipartition twice, and a guard test asserts every system partition scheme yields each induced edge cut exactly once.

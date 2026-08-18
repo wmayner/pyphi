@@ -226,7 +226,14 @@ def directed_bipartition_of_one(seq):
          ((1, 2), (3,))]
     """
     bipartitions = list(bipartition_of_one(seq))
-    return chain(bipartitions, reverse_elements(bipartitions))
+    # For two elements the reversed splits coincide with the originals;
+    # yield each bipartition once.
+    seen = set()
+    return (
+        b
+        for b in chain(bipartitions, reverse_elements(bipartitions))
+        if not (b in seen or seen.add(b))
+    )
 
 
 @cache()
