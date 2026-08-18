@@ -845,40 +845,6 @@ def directed_bipartitions_sequential(
     return partitions
 
 
-def _bipartitions_to_temporal_directed_bipartitions(func):
-    """Decorator to yield temporally directed DirectedBipartition objects from a
-    set of bipartitions.
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args, node_labels=None, **kwargs):
-        for bipartition in func(*args, **kwargs):
-            for direction in Direction.both():
-                yield DirectedBipartition(
-                    direction,
-                    bipartition[0],
-                    bipartition[1],
-                    node_labels=node_labels,
-                )
-
-    return wrapper
-
-
-@system_partition_types.register("TEMPORAL_DIRECTED_BIPARTITION")
-@_bipartitions_to_temporal_directed_bipartitions
-def temporal_directed_bipartitions(nodes):
-    """Yield directed bipartitions in both temporal directions."""
-    # Don't consider trivial partitions where one part is empty
-    return directed_bipartition(nodes, nontrivial=True)
-
-
-@system_partition_types.register("TEMPORAL_DIRECTED_BIPARTITION_CUT_ONE")
-@_bipartitions_to_temporal_directed_bipartitions
-def temporal_directed_bipartitions_cut_one(nodes):
-    """Yield temporal directed bipartitions where one part has a single node."""
-    return directed_bipartition_of_one(nodes)
-
-
 def _cut_matrices(n, symmetric=False):
     """Generate binary cut matrices for ``n`` nodes.
 

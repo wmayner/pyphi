@@ -359,11 +359,6 @@ def test_all_joint_partitions_yields_unique_cuts(m, p):
     assert len(partitions) == partition_sweep_count(m, p)
 
 
-# The two TEMPORAL schemes are deliberately absent: they enumerate each
-# split in both causal directions, but no evaluation path currently reads
-# a system partition's direction, so their direction pairs share a cut and
-# evaluate identically. Whether to wire direction into evaluation, collapse
-# the pairs, or retire the schemes is an open maintainer decision.
 _SYSTEM_SCHEMES = [
     "DIRECTED_BIPARTITION",
     "DIRECTED_BIPARTITION_CUT_ONE",

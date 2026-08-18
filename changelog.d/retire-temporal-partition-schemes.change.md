@@ -1,0 +1,1 @@
+Removed the `TEMPORAL_DIRECTED_BIPARTITION` and `TEMPORAL_DIRECTED_BIPARTITION_CUT_ONE` system partition schemes. They enumerated every split in both causal directions, but no evaluation path reads a system partition's temporal direction, so the direction pairs computed identical results and the schemes were unused throughout the library.
