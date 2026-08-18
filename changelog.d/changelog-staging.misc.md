@@ -1,0 +1,1 @@
+Relocated the curated 2.0.0 release notes from `CHANGELOG.md` to `RELEASE-NOTES-2.0.0.md` so `towncrier build` can insert the fragment-generated section at release time; `just changelog-draft` renders the pending fragments.

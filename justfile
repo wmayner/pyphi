@@ -44,6 +44,10 @@ perf-gate:
 perf-pins:
     uv run python scripts/gen_perf_counts.py
 
+# Render the unreleased changelog from changelog.d/ fragments (no files changed)
+changelog-draft:
+    uv run towncrier build --version 2.0.0 --draft
+
 # Build and upload to PyPI
 dist: clean-dist
     uv build
