@@ -470,3 +470,19 @@ def test_all_sias_forces_ordered_map_reduce(s, monkeypatch):
     with IIT_4_CONFIG:
         s.substrate.complexes(s.state)
     assert captured.get("ordered") is True
+
+
+def test_complex_equal_objects_hash_equal(s):
+    """a == b must imply hash(a) == hash(b), including when explicit
+    node_indices (the macro-complex micro footprint) differ from the SIA's."""
+    from pyphi.models.complex import Complex
+
+    with IIT_4_CONFIG:
+        sia = s.sia()
+    a = Complex(sia, s.substrate, is_maximal=True, node_indices=(0, 1))
+    same = Complex(sia, s.substrate, is_maximal=True, node_indices=(0, 1))
+    other_units = Complex(sia, s.substrate, is_maximal=True, node_indices=(1, 2))
+    assert a == same
+    assert hash(a) == hash(same)
+    # Same SIA over different micro constituents is a different complex.
+    assert a != other_units

@@ -173,6 +173,20 @@ def _measure_compatible_with_version(config: Any) -> str | None:
                 f"formalism.iit.version to one whose formalism defines "
                 f"{measure!r}."
             )
+
+    # ``ces_measure`` defines Φ wherever the formalism derives system Φ from
+    # the CES (directly for IIT 3.0's CES distance; as the Σφ convention for
+    # IIT 4.0), so an unsupported value silently computes a different
+    # quantity. Formalisms without a declaration are not constrained.
+    compatible_ces = getattr(formalism, "compatible_ces_measures", None)
+    if compatible_ces is not None and iit.ces_measure not in compatible_ces:
+        return (
+            f"formalism.iit.ces_measure={iit.ces_measure!r} is not compatible "
+            f"with formalism.iit.version={version!r}. Compatible CES measures "
+            f"for this version: {sorted(compatible_ces)}. Fix: set "
+            f"formalism.iit.ces_measure to one of those, or change "
+            f"formalism.iit.version to one that supports {iit.ces_measure!r}."
+        )
     return None
 
 

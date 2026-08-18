@@ -357,7 +357,12 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         h = hashlib.blake2b(digest_size=32)
         h.update(repr(ftpm.alphabet_sizes).encode())
         for i in range(ftpm.n_nodes):
-            h.update((ftpm.factor(i) + 0.0).tobytes())
+            factor = ftpm.factor(i)
+            # A factor's size-1 axes encode which units the node depends on;
+            # tobytes() alone is shape-free and would collide substrates with
+            # identical flat values but different dependence structure.
+            h.update(repr(factor.shape).encode())
+            h.update((factor + 0.0).tobytes())
         h.update(self._cm_fingerprint)
         return h.digest()
 

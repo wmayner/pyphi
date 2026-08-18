@@ -1,0 +1,1 @@
+`Substrate` fingerprints now include each TPM factor's shape, so substrates with identical flat factor values but different dependence structure no longer collide in the content-addressed repertoire cache.

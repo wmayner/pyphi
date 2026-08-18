@@ -232,8 +232,13 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Complex):
             return NotImplemented
+        # node_indices participates so that __hash__ (keyed on it) satisfies
+        # the equal-objects-hash-equal contract; for macro complexes it holds
+        # the micro footprint, distinguishing complexes over different micro
+        # constituents whose macro SIAs coincide.
         return (
-            self.sia == other.sia
+            self.node_indices == other.node_indices
+            and self.sia == other.sia
             and self.is_maximal == other.is_maximal
             and self.excluded == other.excluded
         )

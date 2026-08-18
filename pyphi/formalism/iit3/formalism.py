@@ -35,6 +35,13 @@ class IIT3Formalism:
             "ID",
         }
     )
+    # IIT 3.0 derives system Φ from the CES distance, so ces_measure defines
+    # its answer. EMD is the 2014 paper's measure; SUM_SMALL_PHI is the
+    # small-phi-difference variant used by Gómez et al. (2020) for
+    # multi-valued elements (where EMD is unavailable).
+    compatible_ces_measures: ClassVar[frozenset[str]] = frozenset(
+        {"EMD", "SUM_SMALL_PHI"}
+    )
     partition_scheme: ClassVar[str | None] = "JOINT_BIPARTITION"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"}

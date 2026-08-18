@@ -1,0 +1,1 @@
+The configuration validator now checks `ces_measure` against the active formalism: IIT 3.0 accepts `EMD` and `SUM_SMALL_PHI` (the Gómez et al. 2020 multi-valued variant); IIT 4.0 accepts `SUM_SMALL_PHI`. Previously an incompatible pairing was accepted and silently computed a different Φ.

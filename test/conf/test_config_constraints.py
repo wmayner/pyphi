@@ -323,3 +323,34 @@ class TestMechanismPartitionSchemeConstraint:
     def test_iit4_unconstrained(self):
         with config.override(**{"iit.mechanism_partition_scheme": "JOINT_BIPARTITION"}):
             assert config.formalism.iit.mechanism_partition_scheme == "JOINT_BIPARTITION"
+
+
+class TestCesMeasureCompatibility:
+    """ces_measure defines Φ for CES-derived formalisms and must be validated."""
+
+    def test_iit3_with_kld_ces_measure_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(**presets.iit3, **{"iit.ces_measure": "KLD"}),
+        ):
+            pass
+        message = str(exc.value)
+        assert "ces_measure" in message
+        assert "KLD" in message
+        assert "Fix" in message
+
+    def test_iit4_with_emd_ces_measure_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError, match="ces_measure"),
+            config.override(**{"iit.ces_measure": "EMD"}),
+        ):
+            pass
+
+    def test_iit3_with_sum_small_phi_allowed(self) -> None:
+        """The Gómez et al. (2020) multi-valued configuration must validate."""
+        with config.override(**presets.iit3, **{"iit.ces_measure": "SUM_SMALL_PHI"}):
+            pass
+
+    def test_iit3_with_emd_allowed(self) -> None:
+        with config.override(**presets.iit3):
+            pass

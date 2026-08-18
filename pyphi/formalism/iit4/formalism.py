@@ -272,6 +272,8 @@ class IIT4_2023Formalism:
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
+    # IIT 4.0's Φ is the sum of φ over distinctions and relations.
+    compatible_ces_measures: ClassVar[frozenset[str]] = frozenset({"SUM_SMALL_PHI"})
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
@@ -434,6 +436,8 @@ class IIT4_2026Formalism:
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
+    # IIT 4.0's Φ is the sum of φ over distinctions and relations.
+    compatible_ces_measures: ClassVar[frozenset[str]] = frozenset({"SUM_SMALL_PHI"})
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
