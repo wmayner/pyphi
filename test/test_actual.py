@@ -1606,12 +1606,14 @@ def test_ac_partition_tie_backstop_resolves_duplicate_cuts():
     from pyphi.partition import partition_types
 
     name = "JOINT_PARTITION_ALL_DUPLICATED_FOR_TEST"
-    if name not in partition_types:
 
-        @partition_types.register(name)
-        def duplicated(mechanism, purview, node_labels=None):
-            parts = list(all_joint_partitions(mechanism, purview, node_labels))
-            return [*parts, parts[0]]  # re-yield one cut verbatim
+    def duplicated(mechanism, purview, node_labels=None):
+        parts = list(all_joint_partitions(mechanism, purview, node_labels))
+        return [*parts, parts[0]]  # re-yield one cut verbatim
+
+    # Register temporarily; registry-content tests assert the exact
+    # production scheme set.
+    partition_types.store[name] = duplicated
 
     tpm = np.array(
         [
@@ -1629,6 +1631,9 @@ def test_ac_partition_tie_backstop_resolves_duplicate_cuts():
     transition = actual.Transition(
         Substrate(tpm), (1, 0, 0), (1, 1, 1), (0, 1, 2), (0, 1, 2)
     )
-    with config.override(**{"actual_causation.mechanism_partition_scheme": name}):
-        ria = ac_compute._find_mip(transition, Direction.EFFECT, (1, 2), (0,))
+    try:
+        with config.override(**{"actual_causation.mechanism_partition_scheme": name}):
+            ria = ac_compute._find_mip(transition, Direction.EFFECT, (1, 2), (0,))
+    finally:
+        del partition_types.store[name]
     assert ria is not None

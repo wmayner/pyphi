@@ -87,7 +87,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
         effect=make_mice(),
         mechanism=(0, 1),
     )
-    with config.override(ces_measure="EMD"):
+    with config.override(**presets.iit3):  # EMD ces_measure; valid only under IIT 3.0
         # lone concept -> null concept
         ces_distance((lone_concept,), (), system=s)
         assert mock_emd_distance.called is False
