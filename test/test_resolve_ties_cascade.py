@@ -484,15 +484,17 @@ def test_resolve_distinction_tie_cross_purview_picks_largest_congruent():
     assert winner is purview_ties[2]
 
 
-def test_resolve_distinction_tie_state_tie_wins_over_purview_tie():
-    """When both state-tie and purview-tie candidates are congruent, the
-    state-tie wins (same-purview congruence is preferred per S1)."""
+def test_resolve_distinction_tie_largest_congruent_purview_wins():
+    """Congruence is a requirement, not a tie-break: among all congruent
+    tied readings — same-purview state ties and cross-purview ties alike —
+    the Composition appeal selects the largest purview (S1: it supports
+    the most relations with other distinctions)."""
     system_state = FakeMice(
         label="s'", state=(0, 1), purview=(0, 1), congruent_states=frozenset()
     )
     state_ties = [
         FakeMice(
-            label="state_tie_winner",
+            label="small_purview_reading",
             state=(0, 1),
             purview=(0, 1),
             congruent_states=frozenset({(0, 1)}),
@@ -500,20 +502,20 @@ def test_resolve_distinction_tie_state_tie_wins_over_purview_tie():
     ]
     purview_ties = [
         FakeMice(
-            label="purview_tie_candidate",
+            label="large_purview_reading",
             state=(0, 1, 0),
             purview=(0, 1, 2),
             congruent_states=frozenset({(0, 1)}),
         ),
     ]
-    ctx = ResolutionContext(max_escalation_level="Composition")
+    ctx = ResolutionContext(max_escalation_level="Determinism")
     winner = resolve_distinction_tie(
         state_ties=state_ties,
         purview_ties=purview_ties,
         system_state_spec=system_state,
         context=ctx,
     )
-    assert winner is state_ties[0]
+    assert winner is purview_ties[0]
 
 
 def test_resolve_distinction_tie_returns_none_when_no_congruent():

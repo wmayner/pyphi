@@ -365,41 +365,54 @@ def resolve_distinction_tie[V: _CongruentMice](
     purview_ties: "Sequence[V] | None",
     system_state_spec: Any,
     *,
-    context: ResolutionContext,  # noqa: ARG001
+    context: ResolutionContext,
 ) -> V | None:
-    """Resolve a per-direction distinction-state tie per Albantakis et al.
-    2023 S1 Text.
+    """Resolve a per-direction distinction tie per Albantakis et al. 2023
+    S1 Text, as a postulate cascade.
 
-    Two cases:
+    The candidate set is every tied reading of the distinction: the union
+    of the state ties carried by each purview-tied MICE (state ties are
+    same-purview readings tied at maximum ``ii(m, z)``; purview ties are
+    cross-purview readings tied at maximum ``φ_d(m, Z)``).
 
-    - **Same-purview state ties** (``state_ties``): MICEs tied at maximum
-      ``ii(m, z)`` within a single purview. Returns the MICE whose
-      specified state is congruent with ``system_state_spec`` — the
-      direction-specific component of the system's specified
-      cause-effect state.
-
-    - **Cross-purview ties** (``purview_ties``): MICEs tied at maximum
-      ``φ_d(m, Z)`` across different purviews. Returns the largest
-      congruent purview (the "typically favors larger purviews"
-      heuristic for "supports the most relations with other
-      distinctions").
-
-    State-tie congruence is preferred over purview-tie heuristic: if any
-    state-tie MICE is congruent, it is returned; only when none is
-    congruent does the cross-purview branch fire. Returns ``None`` when
-    no congruent MICE is found in either branch.
+    Congruence with ``system_state_spec`` — the direction-specific
+    component of the system's specified cause-effect state — is a
+    requirement, not a tie-break: a non-congruent reading cannot enter
+    the cause-effect structure, and when no reading is congruent the
+    distinction is excluded (``None``). Ties among congruent readings
+    escalate to Composition — the largest purview, the reading that
+    supports the most relations with other distinctions — and finally to
+    the Determinism convention (lexicographically smallest purview), so
+    the selection is invariant to enumeration order.
     """
-    if state_ties:
-        congruent_state = [m for m in state_ties if m.is_congruent(system_state_spec)]
-        if congruent_state:
-            return congruent_state[0]
-    if purview_ties:
-        congruent_purview = [
-            m for m in purview_ties if m.is_congruent(system_state_spec)
-        ]
-        if congruent_purview:
-            return max(congruent_purview, key=lambda m: len(m.purview))
-    return None
+    candidates: list[V] = []
+    seen: set[int] = set()
+    for group in (state_ties or (), purview_ties or ()):
+        for mice in group:
+            for reading in getattr(mice, "state_ties", None) or (mice,):
+                if id(reading) not in seen:
+                    seen.add(id(reading))
+                    candidates.append(reading)
+    congruent = [m for m in candidates if m.is_congruent(system_state_spec)]
+    if not congruent:
+        return None
+    outcome = cascade(
+        congruent,
+        levels=[
+            CascadeLevel(
+                postulate="Composition",
+                op="argmax",
+                key=lambda m: len(m.purview),
+            ),
+            CascadeLevel(
+                postulate="Determinism",
+                op="argmin",
+                key=lambda m: tuple(m.purview),
+            ),
+        ],
+        context=context,
+    )
+    return outcome.resolved if outcome.resolved is not None else outcome.tied_set[0]
 
 
 class _AcRIALike(Protocol):

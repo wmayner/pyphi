@@ -1313,3 +1313,22 @@ noted.
   extra's pyjwt). Lockfile bumped to pillow 12.3.0 / cryptography 50.0.0.
 
 Still open: F12/F9 tie precedence (theory decision), P15 docs sweep.
+
+## F12/F9 — RESOLVED (2026-08-18): the S1 cascade form
+
+The maintainer's call landed on neither of the two candidate repairs alone:
+`resolve_distinction_tie` is now a true postulate cascade over the complete
+tied-reading set (union of every purview-tied MICE's state ties). Congruence
+is a requirement (filter; exclusion on empty), Composition selects the
+largest congruent purview, Determinism (lexicographic purview) closes
+residual ties — so the combined state-tie-plus-purview-tie case is also
+covered, which the minimal `len(state_ties) > 1` guard would not have been.
+`basic` gives Φ = 1.125 (matching the three independent routes) and Φ is
+relabeling-invariant. Regenerated: 6 golden-zoo fixtures, phi_structure and
+relations goldens for basic/fig4, and five value pins. Two theory-relevant
+consequences surfaced: pqr's resolved CES now carries one relation (the
+measured Σφ_r bound no longer collapses to 0 there: 0.1875 vs 0.125), and
+the "inert_unit" CES-incompleteness counterexample dissolved — the larger
+congruent purview absorbs a frozen unit, whose state then distinguishes the
+substrates; the exhaustive n=2 re-search finds no surviving
+different-constant pair with a nonempty CES.

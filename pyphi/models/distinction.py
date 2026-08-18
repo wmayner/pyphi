@@ -348,17 +348,19 @@ class Distinction(
         """Select the cause and effect MICEs congruent with the SIA's
         system-level specified cause-effect state.
 
-        For each direction, applies the distinction-state cascade per
-        Albantakis et al. 2023 S1 Text: state ties within a purview
-        resolve to the congruent MICE; cross-purview ties resolve to
-        the largest congruent purview (the heuristic for "supports the
-        most relations with other distinctions"). Returns ``None`` when
-        no congruent MICE exists in either direction.
+        For each direction, applies the distinction cascade per
+        Albantakis et al. 2023 S1 Text over every tied reading:
+        congruence with the system state is required (a non-congruent
+        reading cannot enter the structure), ties among congruent
+        readings resolve to the largest purview (the Composition appeal:
+        it supports the most relations with other distinctions), and
+        residual ties resolve by the Determinism convention. Returns
+        ``None`` when no congruent reading exists in either direction.
         """
         from pyphi.resolve_ties import ResolutionContext
         from pyphi.resolve_ties import resolve_distinction_tie
 
-        context = ResolutionContext(max_escalation_level="Composition")
+        context = ResolutionContext(max_escalation_level="Determinism")
         winners: dict[Direction, Any] = {}
         chosen: dict[Direction, Any] = {}
         for direction in Direction.both():

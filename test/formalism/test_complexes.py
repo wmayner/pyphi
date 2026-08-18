@@ -217,10 +217,13 @@ class TestCauseEffectStructureIIT40:
         """Golden test: phi_structure for basic system (IIT 4.0)."""
         result = ces(s, **self._measure_kwargs())
 
-        # Golden values computed with IIT 4.0 defaults
-        assert result.big_phi == pytest.approx(1.0, rel=1e-6)
+        # Golden values computed with IIT 4.0 defaults; the S1 cascade's
+        # largest-congruent-purview selection gives mechanism (2,) the (0, 1)
+        # effect purview, which supports one relation (Φ = 1.125 = Σφ_d 1.0
+        # + Σφ_r 0.125).
+        assert result.big_phi == pytest.approx(1.125, rel=1e-6)
         assert len(result.distinctions) == 2
-        assert result.relations.num_relations() == 0
+        assert result.relations.num_relations() == 1
 
     def test_phi_structure_system_creation(self):
         """Golden test: phi_structure with explicit system (IIT 4.0).
@@ -235,9 +238,9 @@ class TestCauseEffectStructureIIT40:
 
         result = ces(system, **self._measure_kwargs())
 
-        assert result.big_phi == pytest.approx(1.0, rel=1e-6)
+        assert result.big_phi == pytest.approx(1.125, rel=1e-6)
         assert len(result.distinctions) == 2
-        assert result.relations.num_relations() == 0
+        assert result.relations.num_relations() == 1
 
 
 class TestSubstrateMethodsIIT40:

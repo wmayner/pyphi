@@ -226,14 +226,14 @@ def test_analyze_card_distinguishes_phi_s_from_big_phi():
     """Under IIT 4.0 the card's Φ row is Σφ_d + Σφ_r, not the SIA's φₛ.
 
     `basic` in state (1, 0, 0) is the case where they diverge visibly: φₛ = 0
-    under the 2026 formalism while Φ = 1.0.
+    under the 2026 formalism while Φ = 1.125.
     """
     substrate = examples.basic_substrate()
     with config.override(**presets.iit4_2026):
         result = analyze(substrate, (1, 0, 0))
     rows = {r.label: r.value for sec in result._describe(2).sections for r in sec.rows}
     assert rows["φ_s"] == result.phi == 0.0
-    assert rows["Φ"] == result.big_phi == 1.0
+    assert rows["Φ"] == result.big_phi == 1.125
     assert rows["Φ"] == rows["Σφ_d"] + rows["Σφ_r"]
 
 
