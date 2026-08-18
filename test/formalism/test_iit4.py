@@ -8,9 +8,9 @@ implementation produces results matching historical validated outputs.
 Test Substrates:
 - basic: 3-node basic substrate (OR, COPY, XOR gates)
 - basic_noisy_selfloop: Basic substrate with noise and self-loops
-- fig4: Example from IIT 4.0 paper (Figure 4)
-- fig5a: Example from IIT 4.0 paper (Figure 5a)
-- fig5b: Example from IIT 4.0 paper (Figure 5b)
+- fig4: Figure 4 of the 2014 IIT 3.0 paper (Oizumi et al.)
+- fig5a: Figure 5A of the 2014 IIT 3.0 paper
+- fig5b: Figure 5B of the 2014 IIT 3.0 paper
 - grid3: 3-node grid topology
 - residue: Residue substrate example
 - rule110: Rule 110 cellular automaton
@@ -35,7 +35,8 @@ phenomenal existence in physical terms."
 PLoS Computational Biology 19(10): e1011465.
 https://doi.org/10.1371/journal.pcbi.1011465
 
-The fig4, fig5a, and fig5b examples correspond to figures in this paper.
+The fig4, fig5a, and fig5b substrates are figures from the 2014 IIT 3.0
+paper (Oizumi, Albantakis & Tononi), analyzed here under the 4.0 formalism.
 """
 
 from pathlib import Path
@@ -99,7 +100,7 @@ def test(example_name):
     If this fails:
     - Check if computation algorithm changed
     - Verify example substrate definition unchanged
-    - For fig4: Cross-reference with IIT 4.0 paper
+    - For fig4: Cross-reference with the 2014 IIT 3.0 paper
     - Consider if JSON serialization format changed
 
     Note: rule154 is marked as veryslow due to computational expense (11 distinctions).

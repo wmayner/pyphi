@@ -1030,12 +1030,12 @@ def fig5b_substrate():
     # fmt: off
     tpm = np.array([
         [1, 0, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
         [1, 1, 1],
         [1, 0, 1],
-        [1, 1, 1],
-        [1, 1, 0],
-        [1, 1, 1],
-        [1, 1, 1],
         [1, 1, 1],
     ])
     cm = np.array([
@@ -1527,9 +1527,10 @@ def differentiation_macro_tpm(p, epsilon):
     # Two noisy AND gates connected to each other, macroed into two states:
     #   (1, 1) -> 1
     #   all other states -> 0
-    return np.minimum(
-        1, np.array([[(p * p + 2 * p * epsilon) / 3], [(1 - p) * (1 - p)]])
-    )
+    # Macro row 0 is the uniform average over the three micro states in
+    # macro state 0 of P(next micro = (1,1)):
+    # (p·p + p·(p+ε) + (p+ε)·p) / 3 = p² + 2pε/3.
+    return np.minimum(1, np.array([[p * p + 2 * p * epsilon / 3], [(1 - p) * (1 - p)]]))
 
 
 @register_example

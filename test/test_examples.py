@@ -122,3 +122,27 @@ def test_basic_substrate_honors_passed_cm():
     cycle = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
     with pytest.raises(ValueError, match="under-specified"):
         examples.basic_substrate(cm=cycle)
+
+
+def test_fig5b_gates_match_the_2014_paper():
+    """Figure 5B of the 2014 paper: A = NULL, B = AND(A, C), C = OR(A, B)."""
+    substrate = examples.fig5b_substrate()
+    for idx in range(8):
+        state = (idx & 1, (idx >> 1) & 1, (idx >> 2) & 1)
+        a, b, c = state
+        assert substrate.factored_tpm.factor(0)[(*state, 1)] == 1.0  # NULL: always ON
+        assert substrate.factored_tpm.factor(1)[(*state, 1)] == float(a and c)
+        assert substrate.factored_tpm.factor(2)[(*state, 1)] == float(a or b)
+
+
+def test_differentiation_macro_tpm_epsilon_zero_limit():
+    """At epsilon = 0 the three micro states in macro state 0 have identical
+    dynamics, so the coarse-grained probability must equal p^2 exactly."""
+    p = 0.9
+    macro = examples.differentiation_macro_tpm(p, 0.0)
+    assert macro[0][0] == pytest.approx(p * p)
+    assert macro[1][0] == pytest.approx((1 - p) * (1 - p))
+    # General form: p^2 + (2/3) p epsilon.
+    eps = 0.01
+    macro = examples.differentiation_macro_tpm(p, eps)
+    assert macro[0][0] == pytest.approx(p * p + 2 * p * eps / 3)
