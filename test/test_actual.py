@@ -1560,3 +1560,75 @@ def test_account_honors_allow_neg():
         transition, Direction.CAUSE, allow_neg=True
     ) + actual.directed_account(transition, Direction.EFFECT, allow_neg=True)
     assert neg == models.Account(tuple(directed))
+
+
+def test_find_mip_resolves_equal_edge_cut_partition_ties():
+    """A mechanism whose MIP is the complete cut must get a real analysis.
+
+    The complete cut can be written as one mechanism part or as several,
+    each over an empty purview; those forms share an induced edge cut and
+    tie exactly, and the tie must resolve rather than return None (which
+    silently dropped the purview from the causal-link search, reporting a
+    non-minimal purview).
+    """
+    from pyphi.formalism.actual_causation import compute as ac_compute
+
+    tpm = np.array(
+        [
+            [0, 0, 1],
+            [1, 1, 1],
+            [0, 0, 1],
+            [0, 1, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 1, 1],
+        ],
+        dtype=float,
+    )
+    transition = actual.Transition(
+        Substrate(tpm), (1, 0, 0), (1, 1, 1), (0, 1, 2), (0, 1, 2)
+    )
+    ria = ac_compute._find_mip(transition, Direction.EFFECT, (1, 2), (0,))
+    assert ria is not None
+    assert float(ria.alpha) == pytest.approx(0.4150374992788)
+    # The causal link reports the minimal purview, not a larger tied one.
+    link = ac_compute._find_causal_link(transition, Direction.EFFECT, (1, 2))
+    assert tuple(link.purview) == (0,)
+
+
+def test_ac_partition_tie_backstop_resolves_duplicate_cuts():
+    """Even if a partition scheme yields the same edge cut twice, the tie
+    cascade must resolve to one of the identical-cut survivors instead of
+    returning None."""
+    from pyphi.formalism.actual_causation import compute as ac_compute
+    from pyphi.partition import all_joint_partitions
+    from pyphi.partition import partition_types
+
+    name = "JOINT_PARTITION_ALL_DUPLICATED_FOR_TEST"
+    if name not in partition_types:
+
+        @partition_types.register(name)
+        def duplicated(mechanism, purview, node_labels=None):
+            parts = list(all_joint_partitions(mechanism, purview, node_labels))
+            return [*parts, parts[0]]  # re-yield one cut verbatim
+
+    tpm = np.array(
+        [
+            [0, 0, 1],
+            [1, 1, 1],
+            [0, 0, 1],
+            [0, 1, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 1, 1],
+        ],
+        dtype=float,
+    )
+    transition = actual.Transition(
+        Substrate(tpm), (1, 0, 0), (1, 1, 1), (0, 1, 2), (0, 1, 2)
+    )
+    with config.override(**{"actual_causation.mechanism_partition_scheme": name}):
+        ria = ac_compute._find_mip(transition, Direction.EFFECT, (1, 2), (0,))
+    assert ria is not None

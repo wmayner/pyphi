@@ -637,7 +637,13 @@ def all_joint_partitions(
     Yields
     ------
     JointPartition
-        A partition of this mechanism and purview into ``k`` parts.
+        A partition of this mechanism and purview into ``k`` parts. Each
+        induced edge cut is yielded exactly once: structurally distinct
+        part assignments that sever the same mechanism-purview edges (for
+        example, the complete cut written as one mechanism part or as
+        several, each over an empty purview) describe the same physical
+        partition and produce the same partitioned repertoire, so only
+        the first-generated form is yielded.
     """
     # TODO: yield complete partition directly, then use nontrivial set partitions
     for mechanism_partition in combinatorics.set_partitions(mechanism):
@@ -661,6 +667,17 @@ def all_joint_partitions(
                     # cut away from the mechanism.
                     # TODO: find a way to avoid generating these in the first place
                     if parts[0].mechanism == mechanism and parts[0].purview:
+                        continue
+                    # Mechanism parts over an empty purview have every edge
+                    # severed, so splitting or merging them yields the same
+                    # induced cut; keep only the merged representative (at
+                    # most one such part). Equivalent to deduplicating by
+                    # ``lex_key()`` while preserving generation order, but
+                    # with O(1) memory.
+                    if (
+                        sum(1 for part in parts if part.mechanism and not part.purview)
+                        > 1
+                    ):
                         continue
                     yield JointPartition(*parts, node_labels=node_labels)
 

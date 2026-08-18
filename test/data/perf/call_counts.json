@@ -2,11 +2,11 @@
   "actual_causation::account": {
     "_collections_abc:__eq__": 0,
     "conf/:override": 2,
-    "frozen_map.py:__eq__": 45,
+    "frozen_map.py:__eq__": 42,
     "frozen_map.py:__getitem__": 8,
     "relations.py:relations": 0,
-    "repertoire_algebra.py:cause_repertoire": 54,
-    "repertoire_algebra.py:effect_repertoire": 64,
+    "repertoire_algebra.py:cause_repertoire": 51,
+    "repertoire_algebra.py:effect_repertoire": 55,
     "system.py:find_mip": 0
   },
   "basic_iit3_emd::sia": {
@@ -22,21 +22,21 @@
   "basic_iit4_2023::mechanism_mips": {
     "_collections_abc:__eq__": 0,
     "conf/:override": 1,
-    "frozen_map.py:__eq__": 2745,
+    "frozen_map.py:__eq__": 2451,
     "frozen_map.py:__getitem__": 1361,
     "relations.py:relations": 0,
     "repertoire_algebra.py:cause_repertoire": 98,
-    "repertoire_algebra.py:effect_repertoire": 3867,
+    "repertoire_algebra.py:effect_repertoire": 3375,
     "system.py:find_mip": 98
   },
   "basic_iit4_2023::phi_structure": {
     "_collections_abc:__eq__": 0,
     "conf/:override": 1,
-    "frozen_map.py:__eq__": 397,
+    "frozen_map.py:__eq__": 379,
     "frozen_map.py:__getitem__": 763,
     "relations.py:relations": 1,
     "repertoire_algebra.py:cause_repertoire": 45,
-    "repertoire_algebra.py:effect_repertoire": 589,
+    "repertoire_algebra.py:effect_repertoire": 565,
     "system.py:find_mip": 0
   },
   "basic_iit4_2023::repertoires": {
@@ -92,11 +92,11 @@
   "rule110_iit4_2023::phi_structure": {
     "_collections_abc:__eq__": 0,
     "conf/:override": 1,
-    "frozen_map.py:__eq__": 3345,
+    "frozen_map.py:__eq__": 2880,
     "frozen_map.py:__getitem__": 1607,
     "relations.py:relations": 1,
     "repertoire_algebra.py:cause_repertoire": 102,
-    "repertoire_algebra.py:effect_repertoire": 4689,
+    "repertoire_algebra.py:effect_repertoire": 3991,
     "system.py:find_mip": 0
   }
 }

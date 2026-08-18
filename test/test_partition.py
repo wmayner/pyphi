@@ -1,5 +1,7 @@
 import itertools
 
+import pytest
+
 from pyphi import Direction
 from pyphi import config
 from pyphi.combinatorics import set_partitions as partitions
@@ -285,7 +287,6 @@ def test_all_joint_partitions():
     mechanism, purview = (0, 1), (2,)
     assert set(all_joint_partitions(mechanism, purview)) == {
         JointPartition(Part((0, 1), ()), Part((), (2,))),
-        JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
         JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
         JointPartition(Part((0,), ()), Part((1,), (2,)), Part((), ())),
     }
@@ -295,7 +296,6 @@ def test_all_joint_partitions():
         JointPartition(Part((0, 1), ()), Part((), (2, 3))),
         JointPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
         JointPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
-        JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
         JointPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
         JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
         JointPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
@@ -338,3 +338,22 @@ def test_k_partitions_more_blocks_than_elements_is_empty():
     # There are no partitions of an n-set into k > n nonempty blocks.
     assert list(k_partitions(range(3), 4)) == []
     assert list(k_partitions(range(2), 5)) == []
+
+
+@pytest.mark.parametrize(
+    ("m", "p"),
+    [(1, 1), (2, 1), (2, 2), (3, 2), (3, 3), (4, 2), (4, 3)],
+)
+def test_all_joint_partitions_yields_unique_cuts(m, p):
+    """Every induced edge cut appears exactly once: partitions sharing a cut
+    are the same physical partition, and duplicates made identical-cut ties
+    unresolvable downstream."""
+    mechanism = tuple(range(m))
+    purview = tuple(range(m, m + p))
+    partitions = list(all_joint_partitions(mechanism, purview))
+    keys = [x.lex_key() for x in partitions]
+    assert len(keys) == len(set(keys))
+    # The memoized sweep counts must match the generator exactly.
+    from pyphi.cost import partition_sweep_count
+
+    assert len(partitions) == partition_sweep_count(m, p)

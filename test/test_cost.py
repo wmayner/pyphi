@@ -105,13 +105,13 @@ class TestCounts:
         est = estimate_analysis(_dense3())
         assert est.system_partitions == 22
         assert est.purview_evaluations == 98
-        assert est.mechanism_partition_sweeps == 1102
+        assert est.mechanism_partition_sweeps == 890
 
     def test_sparse_connectivity_prunes_purviews(self):
         sparse = estimate_analysis(examples.basic_substrate())
         dense = estimate_analysis(_dense3())
         assert sparse.purview_evaluations == 30
-        assert sparse.mechanism_partition_sweeps == 526
+        assert sparse.mechanism_partition_sweeps == 438
         assert sparse.purview_evaluations < dense.purview_evaluations
         assert sparse.mechanism_partition_sweeps < dense.mechanism_partition_sweeps
 
@@ -144,7 +144,7 @@ class TestScope:
         est = estimate_analysis(_dense3(), compute="ces")
         assert est.compute == "ces"
         assert est.system_partitions == 22
-        assert est.mechanism_partition_sweeps == 1102
+        assert est.mechanism_partition_sweeps == 890
 
     def test_ces_scope_omits_the_axis_under_iit3(self):
         with IIT_3_CONFIG:
@@ -156,7 +156,7 @@ class TestScope:
         est = estimate_analysis(_dense3(), compute="distinctions")
         assert est.compute == "distinctions"
         assert est.system_partitions is None
-        assert est.mechanism_partition_sweeps == 1102
+        assert est.mechanism_partition_sweeps == 890
         # Distinctions stop before relations.
         assert est.relations_closed_form is None
         assert est.possible_relations is None
