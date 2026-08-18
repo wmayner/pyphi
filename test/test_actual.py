@@ -237,14 +237,17 @@ def prevention():
 # were outdated. test_background_noised provides coverage for similar functionality.
 
 
-def test_cause_repertoire_conditions_background_on_after_state():
-    """Cause-direction background units are conditioned on the after-state.
+def test_cause_repertoire_clamps_background_at_before_state():
+    """Cause-direction background inputs are fixed at the observed before-state.
 
-    In a partial actual-causation analysis (the occurrence is a strict
-    subset of the network), units outside the cause set are frozen at the
-    realized present state (time |t|) when computing a cause repertoire. The
-    repertoire therefore matches a system conditioned on the after-state and
-    differs from one conditioned on the before-state whenever the two states
+    Per Albantakis et al. 2019 Section 3.3, the background U is set to its
+    actual state u throughout the transition: in the causal model the
+    background's inputs to the transition (its time t-1 values) are clamped
+    at what was observed, while the mechanism itself is evaluated against
+    the observed after-state. The repertoire therefore matches a system
+    whose external units are conditioned at the before-state and differs
+    from one that conditions them at the after-state (or integrates them
+    under the posterior implied by the after-state) whenever the two states
     disagree on a background unit.
     """
 
@@ -283,24 +286,28 @@ def test_cause_repertoire_conditions_background_on_after_state():
 
     node_indices = tuple(sorted(set(cause_indices) | set(effect_indices)))
     external = tuple(sorted(set(range(n)) - set(cause_indices)))
-    after_ref = System(
+    before_clamped = System(
         substrate=substrate,
         state=after_state,
         node_indices=node_indices,
         external_indices=external,
+        background_conditioning="CONDITION_CURRENT_STATE",
+        background_state=before_state,
     ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
-    before_ref = System(
+    after_clamped = System(
         substrate=substrate,
-        state=before_state,
+        state=after_state,
         node_indices=node_indices,
         external_indices=external,
+        background_conditioning="CONDITION_CURRENT_STATE",
     ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
 
-    # The two conditionings genuinely differ for this partial transition,
-    assert not np.allclose(after_ref, before_ref)
-    # and the cause repertoire uses the after-state.
-    assert np.allclose(repertoire, after_ref)
-    assert not np.allclose(repertoire, before_ref)
+    # The two clampings genuinely differ for this partial transition
+    # (background unit 2 flips 0 -> 1),
+    assert not np.allclose(before_clamped, after_clamped)
+    # and the cause repertoire clamps at the before-state.
+    assert np.allclose(repertoire, before_clamped)
+    assert not np.allclose(repertoire, after_clamped)
 
 
 def test_background_noised():
@@ -879,22 +886,23 @@ class TestActualCausationIIT30:
             EFFECT direction — OR saturates: the next state of ``node_1`` is
             ``1`` regardless of ``node_0``, so constrained and unconstrained
             probabilities are both 1 and the ratio is ``log2(1) = 0``.
-            CAUSE direction — OR does **not** saturate backwards: three of
-            four previous states lead to ``node_1 = 1`` next, with previous
-            ``node_0`` values ``{0, 1, 1}``, so
-            ``P(previous node_0 = 1 | node_1 next = 1) = 2/3``. Unconstrained
-            is 1/2, so the ratio is ``log2((2/3) / (1/2)) = log2(4/3) ≈
-            0.4150374992788``. (The original pre-cleanup assertion of ``0``
-            here was wrong — it conflated forward saturation with backward
-            saturation.)
+            CAUSE direction — the background (``node_1``'s own previous
+            state) is fixed at its observed value ``1`` (Albantakis et al.
+            2019 §3.3: U = u throughout the transition). With
+            ``previous node_1 = 1`` the OR saturates backwards as well:
+            ``node_1 = 1`` next regardless of previous ``node_0``, so
+            ``P(previous node_0 = 1 | node_1 next = 1) = 1/2``, equal to
+            the unconstrained 1/2, and the ratio is ``log2(1) = 0``. (An
+            intermediate implementation integrated the background's past
+            under the posterior implied by the after-state, giving
+            ``log2(4/3)`` from the unclamped backward inference over three
+            predecessor states; the clamped model makes that inference
+            inapplicable.)
         """
         assert background_all_off._ratio(Direction.EFFECT, (0,), (1,)) == 1
         assert background_all_off._ratio(Direction.CAUSE, (1,), (0,)) == 1
         assert background_all_on._ratio(Direction.EFFECT, (0,), (1,)) == 0
-        assert np.isclose(
-            background_all_on._ratio(Direction.CAUSE, (1,), (0,)),
-            np.log2(4 / 3),
-        )
+        assert background_all_on._ratio(Direction.CAUSE, (1,), (0,)) == 0
 
     def test_sia(self, transition):
         """Test actual causation SIA computation (IIT 3.0)."""

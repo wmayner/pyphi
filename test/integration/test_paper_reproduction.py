@@ -76,6 +76,7 @@ from __future__ import annotations
 import itertools
 from dataclasses import replace
 
+import numpy as np
 import pytest
 
 from pyphi import actual
@@ -85,6 +86,7 @@ from pyphi.conf import presets
 from pyphi.direction import Direction
 from pyphi.relations import AnalyticalRelations
 from pyphi.relations import relations as concrete_relations
+from pyphi.substrate import Substrate
 from pyphi.system import System
 
 # --------------------------------------------------------------------------- #
@@ -599,3 +601,58 @@ def test_iit4_2023_fig7C_inactivated(_iit4_2023):
     sum_phi_d = sum(float(d.phi) for d in distinctions)
     sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
     assert float(sum_phi_d + sum_phi_r) == pytest.approx(3.35, abs=0.02)
+
+
+def test_ac_2019_fig8b_background_conditions(_iit3):
+    """AC Fig 8B: majority gate with D = 0 as a fixed background condition.
+
+    Transition {ABC = 111} -> {M = 1} with D outside the cause and effect
+    sets: the paper reports all seven effect links at 1.0 bits and the
+    single cause link {ABC = 111} <- {M = 1} at 3.0 bits ("the background
+    variables are fixed in their actual state U = u", Section 3.3).
+
+    D's dynamics are made stochastic and informative (p(D'=0|D=0) = 0.2,
+    p(D'=0|D=1) = 0.8) precisely so this test can discriminate fixing the
+    background's past at its observed value (the paper's causal model,
+    giving 3.0) from integrating it under the posterior implied by the
+    observed present (which would give log2(8/3.4) = 1.2345). The
+    published figure's own inputs have no dynamics, so it cannot separate
+    the two readings; this fixture can.
+    """
+    n = 5
+    marginals = []
+    for i in range(3):  # A, B, C: self-loop copies
+        f = np.zeros((2,) * n + (2,))
+        for idx in np.ndindex(*(2,) * n):
+            f[(*idx, idx[i])] = 1.0
+        marginals.append(f)
+    f_d = np.zeros((2,) * n + (2,))
+    for idx in np.ndindex(*(2,) * n):
+        p0 = 0.2 if idx[3] == 0 else 0.8
+        f_d[(*idx, 0)] = p0
+        f_d[(*idx, 1)] = 1 - p0
+    marginals.append(f_d)
+    f_m = np.zeros((2,) * n + (2,))
+    for idx in np.ndindex(*(2,) * n):
+        f_m[(*idx, 1 if sum(idx[:4]) >= 3 else 0)] = 1.0
+    marginals.append(f_m)
+    substrate = Substrate(
+        marginals=marginals,
+        state_space=((0, 1),) * n,
+        node_labels=("A", "B", "C", "D", "M"),
+    )
+    transition = actual.Transition(
+        substrate, (1, 1, 1, 0, 1), (1, 1, 1, 0, 1), (0, 1, 2), (4,)
+    )
+    account = {
+        (link.direction, tuple(link.mechanism)): round(float(link.alpha), 4)
+        for link in actual.account(transition)
+    }
+    assert account[(Direction.CAUSE, (4,))] == 3.0
+    effect_links = {
+        mech: alpha
+        for (direction, mech), alpha in account.items()
+        if direction == Direction.EFFECT
+    }
+    assert len(effect_links) == 7
+    assert all(alpha == 1.0 for alpha in effect_links.values())

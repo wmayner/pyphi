@@ -131,15 +131,13 @@ class TransitionSystem:
     through :meth:`__getattr__`. The underlying System is constructed
     with ``external_indices = substrate.indices - cause_indices`` (or
     ``()`` when :attr:`noise_background` is True), so substrate units
-    outside the cause set are treated as background conditions
-    (Albantakis et al. 2019, Section 3.3, "Distinct Background
-    Conditions"), conditioned on the direction's observed state (the
-    after-state for CAUSE, the before-state for EFFECT). On the effect
-    side the background inputs are fixed at that state directly; on the
-    cause side the Bayesian inversion conditions on the observed present
-    state, so background *past* states enter under the resulting
-    posterior weighting rather than being fixed at their observed past
-    values.
+    outside the cause set are fixed in their actual state as background
+    conditions (Albantakis et al. 2019, Section 3.3, "Distinct
+    Background Conditions"): their inputs to the transition are clamped
+    at the observed before-state in both directions, matching the
+    paper's causal model in which the background U is set to u
+    throughout the transition. With :attr:`noise_background` the
+    background inputs are instead marginalized uniformly.
 
     The mechanism-evaluation ``state`` is direction-aware:
     ``after_state`` for the CAUSE direction (Bayesian-inverting from the
@@ -206,6 +204,11 @@ class TransitionSystem:
         return tuple(sorted(all_indices - set(self.cause_indices)))
 
     @cached_property
+    def background_state(self) -> tuple[int, ...]:
+        """External units are conditioned at the observed before-state."""
+        return self.before_state
+
+    @cached_property
     def node_labels(self) -> Any:
         return self.substrate.node_labels
 
@@ -229,7 +232,8 @@ class TransitionSystem:
                 node_indices=self.node_indices,
                 partition=self.partition,
                 external_indices=external,
-                background_conditioning="CAUSAL_MARGINALIZATION",
+                background_conditioning="CONDITION_CURRENT_STATE",
+                background_state=self.before_state,
             )
 
     @cached_property

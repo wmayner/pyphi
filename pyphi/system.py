@@ -60,6 +60,13 @@ class System(Displayable, ToPandasMixin, Serializable):
     The ``background_conditioning`` field pins this System to one
     cause-side background convention. ``None`` (the default) resolves
     ``config.formalism.iit.background_conditioning`` at compute time.
+
+    The ``background_state`` field supplies the state at which external
+    units are conditioned, when that differs from ``state``. ``None``
+    (the default) conditions them at ``state``. Used by
+    ``TransitionSystem`` for actual causation, where the cause direction
+    evaluates mechanisms against the observed after-state while the
+    background is fixed at the observed before-state.
     """
 
     substrate: Substrate
@@ -68,6 +75,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     external_indices: tuple[int, ...] = field(default=None)  # type: ignore[assignment]
     background_conditioning: str | None = field(default=None)
+    background_state: tuple[int, ...] | None = field(default=None)
 
     def __post_init__(self) -> None:
         substrate = self.substrate
@@ -128,6 +136,13 @@ class System(Displayable, ToPandasMixin, Serializable):
                 f"background_conditioning={self.background_conditioning!r} "
                 f"not in {sorted(_VALID_BACKGROUND_CONDITIONING)} (or None)"
             )
+        if self.background_state is not None:
+            coerced_bg = _coerce_state_to_indices(
+                tuple(self.background_state), substrate.state_space
+            )
+            validate.state_length(coerced_bg, substrate.size)
+            validate.node_states(coerced_bg, substrate.factored_tpm.alphabet_sizes)
+            object.__setattr__(self, "background_state", coerced_bg)
         from pyphi.conf import config as _config
 
         if _config.infrastructure.validate_system_states:
@@ -163,6 +178,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             and self.partition == other.partition
             and self.external_indices == other.external_indices
             and self.background_conditioning == other.background_conditioning
+            and self.background_state == other.background_state
         )
 
     def __hash__(self) -> int:
@@ -174,6 +190,7 @@ class System(Displayable, ToPandasMixin, Serializable):
                 self.partition,
                 self.external_indices,
                 self.background_conditioning,
+                self.background_state,
             )
         )
 
@@ -197,6 +214,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         h.update(repr(tuple(sorted(self.partition.indices))).encode())
         h.update(repr(sorted(self.partition.removed_edges())).encode())
         h.update(repr(self.background_conditioning).encode())
+        h.update(repr(self.background_state).encode())
         return h.digest()
 
     def __len__(self) -> int:
@@ -361,6 +379,12 @@ class System(Displayable, ToPandasMixin, Serializable):
         return {}
 
     @property
+    def _background_reference_state(self) -> tuple[int, ...]:
+        """The state at which external units are conditioned: the explicit
+        ``background_state`` when set, else ``state``."""
+        return self.background_state if self.background_state is not None else self.state
+
+    @property
     def cause_marginal(self) -> CauseMarginals:
         """Per-system-unit cause factors under the active background
         convention: IIT 4.0 Eq. 4 marginalization, or the background
@@ -369,7 +393,9 @@ class System(Displayable, ToPandasMixin, Serializable):
         convention = self._resolved_background_conditioning()
         if convention not in self._cause_marginals:
             if convention == "CONDITION_CURRENT_STATE":
-                external_state = utils.state_of(self.external_indices, self.state)
+                external_state = utils.state_of(
+                    self.external_indices, self._background_reference_state
+                )
                 background = dict(
                     zip(self.external_indices, external_state, strict=True)
                 )
@@ -388,7 +414,9 @@ class System(Displayable, ToPandasMixin, Serializable):
     @cached_property
     def effect_marginal(self) -> FactoredTPM:
         """Forward TPM conditioned on the external units at their observed state."""
-        external_state = utils.state_of(self.external_indices, self.state)
+        external_state = utils.state_of(
+            self.external_indices, self._background_reference_state
+        )
         background = dict(zip(self.external_indices, external_state, strict=False))
         return _effect_marginal_factored(self._typed_tpm, background)
 
@@ -406,7 +434,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         background_indices = tuple(
             i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
         )
-        background = {i: self.state[i] for i in background_indices}
+        reference = self._background_reference_state
+        background = {i: reference[i] for i in background_indices}
         factored = _effect_marginal_factored(self._typed_tpm, background)
         system_factors = []
         for i in self.node_indices:
