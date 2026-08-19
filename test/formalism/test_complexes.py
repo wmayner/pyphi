@@ -489,3 +489,51 @@ def test_complex_equal_objects_hash_equal(s):
     assert hash(a) == hash(same)
     # Same SIA over different micro constituents is a different complex.
     assert a != other_units
+
+
+def test_congruence_resolution_maximizes_structure_phi():
+    """Tied distinction readings resolve to the Φ-maximal combination.
+
+    Per Albantakis et al. 2023 S1, ties in φ_d "may be resolved at the
+    level of the cause-effect structure, by selecting the [reading] that
+    maximizes the system's structure integrated information Φ". On this
+    substrate the purview-size proxy for that rule selects a reading
+    combination whose structure has Φ = 2.411466; the joint Φ-maximal
+    combination attains 2.649812 (state (1, 0, 0)) and 4.447465 over 8
+    combinations (state (1, 1, 1)).
+    """
+    import numpy as np
+
+    from pyphi.substrate import Substrate
+
+    tpm = np.array(
+        [
+            [1, 0, 0],
+            [0, 1, 1],
+            [1, 1, 1],
+            [1, 0, 1],
+            [1, 1, 1],
+            [0, 1, 1],
+            [0, 1, 1],
+            [0, 0, 0],
+        ],
+        dtype=float,
+    )
+    with config.override(
+        **presets.by_name["IIT_4_0_2026"],
+        parallel=False,
+        progress_bars=False,
+        validate_system_states=False,
+    ):
+        substrate = Substrate(tpm)
+        for state, expected in [((1, 0, 0), 2.649812), ((1, 1, 1), 4.447465)]:
+            result = ces(
+                System(substrate, state),
+                system_measure=resolve_system_measure(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_measure=resolve_mechanism_measure(
+                    config.formalism.iit.specification_measure
+                ),
+            )
+            assert float(result.big_phi) == pytest.approx(expected, abs=1e-6)

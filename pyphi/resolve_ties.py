@@ -360,30 +360,29 @@ class _CongruentMice(Protocol):
     def is_congruent(self, other: Any) -> bool: ...
 
 
-def resolve_distinction_tie[V: _CongruentMice](
+def congruent_distinction_readings[V: _CongruentMice](
     state_ties: "Sequence[V] | None",
     purview_ties: "Sequence[V] | None",
     system_state_spec: Any,
-    *,
-    context: ResolutionContext,
-) -> V | None:
-    """Resolve a per-direction distinction tie per Albantakis et al. 2023
-    S1 Text, as a postulate cascade.
+) -> list[V]:
+    """Every tied reading of a distinction's cause or effect that is
+    congruent with the system's specified state.
 
-    The candidate set is every tied reading of the distinction: the union
-    of the state ties carried by each purview-tied MICE (state ties are
-    same-purview readings tied at maximum ``ii(m, z)``; purview ties are
-    cross-purview readings tied at maximum ``φ_d(m, Z)``).
+    The candidate set is every tied reading: the union of the state ties
+    carried by each purview-tied MICE (state ties are same-purview
+    readings tied at maximum ``ii(m, z)``; purview ties are cross-purview
+    readings tied at maximum ``φ_d(m, Z)``).
 
     Congruence with ``system_state_spec`` — the direction-specific
     component of the system's specified cause-effect state — is a
-    requirement, not a tie-break: a non-congruent reading cannot enter
-    the cause-effect structure, and when no reading is congruent the
-    distinction is excluded (``None``). Ties among congruent readings
-    escalate to Composition — the largest purview, the reading that
-    supports the most relations with other distinctions — and finally to
-    the Determinism convention (lexicographically smallest purview), so
-    the selection is invariant to enumeration order.
+    requirement, not a tie-break (Albantakis et al. 2023 S1 Text): a
+    non-congruent reading cannot enter the cause-effect structure, and a
+    distinction with no congruent reading is excluded from it. Selection
+    among the congruent readings is the Composition appeal — performed
+    jointly across the structure's distinctions by
+    :meth:`pyphi.models.distinctions.Distinctions.resolve_congruence`,
+    which selects the readings that maximize the structure integrated
+    information Φ, per S1's principle of maximal existence.
     """
     candidates: list[V] = []
     seen: set[int] = set()
@@ -393,26 +392,7 @@ def resolve_distinction_tie[V: _CongruentMice](
                 if id(reading) not in seen:
                     seen.add(id(reading))
                     candidates.append(reading)
-    congruent = [m for m in candidates if m.is_congruent(system_state_spec)]
-    if not congruent:
-        return None
-    outcome = cascade(
-        congruent,
-        levels=[
-            CascadeLevel(
-                postulate="Composition",
-                op="argmax",
-                key=lambda m: len(m.purview),
-            ),
-            CascadeLevel(
-                postulate="Determinism",
-                op="argmin",
-                key=lambda m: tuple(m.purview),
-            ),
-        ],
-        context=context,
-    )
-    return outcome.resolved if outcome.resolved is not None else outcome.tied_set[0]
+    return [m for m in candidates if m.is_congruent(system_state_spec)]
 
 
 class _AcRIALike(Protocol):

@@ -1344,3 +1344,22 @@ May-locked test was rewritten (it discriminated only after-vs-before, not
 fix-vs-integrate); the IIT 3.0 two-OR cause ratio returns to 0, which the
 test's own history records as the value its log2(4/3) assertion replaced.
 Confirmation question for Larissa remains drafted in the question doc.
+
+## F12/F9 follow-up (2026-08-18): purview-size proxy replaced by the exact S1 rule
+
+The S1 supplement states the distinction-tie rule as "selecting the
+[reading] that maximizes the system's structure integrated information Φ",
+with congruence as its consequence and larger purviews only as what that
+"typically favors". The cascade's purview-size level was therefore a proxy
+standing where the sibling resolvers (complex ties, system-state ties)
+already compute actual Φ. Resolution now happens jointly in
+`Distinctions.resolve_congruence`: congruence filters each distinction's
+readings, the Φ-maximal combination is selected over the product of
+multi-reading distinctions (analytical Σφ_r; exact up to 4096 combinations,
+greedy beyond with a warning), Determinism closes residual Φ-ties. Zoo
+values unchanged (proxy and rule agree on every curated fixture — verified
+by exhaustive combination enumeration); on random 3-node substrates the
+proxy understated Φ in 145 swept cases (up to ~13%), two of which are now
+pinned as regression tests. The temporal directed-bipartition schemes were
+retired in the same wave (direction was read by no evaluation path;
+verified statically and on 28 mirrored pairs).

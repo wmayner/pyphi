@@ -18,8 +18,8 @@ from pyphi.resolve_ties import CascadeLevel
 from pyphi.resolve_ties import NotAComplex
 from pyphi.resolve_ties import ResolutionContext
 from pyphi.resolve_ties import cascade
+from pyphi.resolve_ties import congruent_distinction_readings
 from pyphi.resolve_ties import resolve_complex_tie
-from pyphi.resolve_ties import resolve_distinction_tie
 from pyphi.resolve_ties import resolve_state_tie
 
 # ----- Postulate ordering -----
@@ -420,8 +420,8 @@ class FakeMice:
         return other.state in self.congruent_states
 
 
-def test_resolve_distinction_tie_state_tie_picks_congruent():
-    """State ties within a purview: pick the MICE congruent with s'."""
+def test_congruent_readings_filters_state_ties():
+    """State ties within a purview: only the congruent reading survives."""
     system_state = FakeMice(
         label="s'", state=(0, 1), purview=(0, 1), congruent_states=frozenset()
     )
@@ -439,87 +439,44 @@ def test_resolve_distinction_tie_state_tie_picks_congruent():
             congruent_states=frozenset({(0, 1)}),
         ),
     ]
-    ctx = ResolutionContext(max_escalation_level="Composition")
-    winner = resolve_distinction_tie(
+    readings = congruent_distinction_readings(
         state_ties=state_ties,
         purview_ties=None,
         system_state_spec=system_state,
-        context=ctx,
     )
-    assert winner is state_ties[1]
+    assert readings == [state_ties[1]]
 
 
-def test_resolve_distinction_tie_cross_purview_picks_largest_congruent():
-    """Cross-purview ties: pick the largest congruent purview."""
+def test_congruent_readings_unions_purview_ties_and_their_state_ties():
+    """Cross-purview ties contribute every congruent reading — including
+    each tied purview's own state ties — exactly once. Selection among
+    them is the joint Φ-maximization in Distinctions.resolve_congruence,
+    not a per-reading heuristic."""
     system_state = FakeMice(
         label="s'", state=(1, 1), purview=(0, 1, 2), congruent_states=frozenset()
     )
-    purview_ties = [
-        FakeMice(
-            label="small",
-            state=(1,),
-            purview=(0,),
-            congruent_states=frozenset({(1, 1)}),
-        ),
-        FakeMice(
-            label="medium",
-            state=(1, 1),
-            purview=(0, 1),
-            congruent_states=frozenset({(1, 1)}),
-        ),
-        FakeMice(
-            label="large",
-            state=(1, 1, 0),
-            purview=(0, 1, 2),
-            congruent_states=frozenset({(1, 1)}),
-        ),
-    ]
-    ctx = ResolutionContext(max_escalation_level="Composition")
-    winner = resolve_distinction_tie(
-        state_ties=None,
-        purview_ties=purview_ties,
+    small = FakeMice(
+        label="small", state=(1,), purview=(0,), congruent_states=frozenset({(1, 1)})
+    )
+    incongruent = FakeMice(
+        label="incongruent", state=(0, 1), purview=(0, 1), congruent_states=frozenset()
+    )
+    large = FakeMice(
+        label="large",
+        state=(1, 1, 0),
+        purview=(0, 1, 2),
+        congruent_states=frozenset({(1, 1)}),
+    )
+    readings = congruent_distinction_readings(
+        state_ties=[small],
+        purview_ties=[small, incongruent, large],
         system_state_spec=system_state,
-        context=ctx,
     )
-    assert winner is purview_ties[2]
+    assert readings == [small, large]
 
 
-def test_resolve_distinction_tie_largest_congruent_purview_wins():
-    """Congruence is a requirement, not a tie-break: among all congruent
-    tied readings — same-purview state ties and cross-purview ties alike —
-    the Composition appeal selects the largest purview (S1: it supports
-    the most relations with other distinctions)."""
-    system_state = FakeMice(
-        label="s'", state=(0, 1), purview=(0, 1), congruent_states=frozenset()
-    )
-    state_ties = [
-        FakeMice(
-            label="small_purview_reading",
-            state=(0, 1),
-            purview=(0, 1),
-            congruent_states=frozenset({(0, 1)}),
-        ),
-    ]
-    purview_ties = [
-        FakeMice(
-            label="large_purview_reading",
-            state=(0, 1, 0),
-            purview=(0, 1, 2),
-            congruent_states=frozenset({(0, 1)}),
-        ),
-    ]
-    ctx = ResolutionContext(max_escalation_level="Determinism")
-    winner = resolve_distinction_tie(
-        state_ties=state_ties,
-        purview_ties=purview_ties,
-        system_state_spec=system_state,
-        context=ctx,
-    )
-    assert winner is purview_ties[0]
-
-
-def test_resolve_distinction_tie_returns_none_when_no_congruent():
-    """No congruent MICE in either tie set: return None."""
+def test_congruent_readings_empty_when_none_congruent():
+    """No congruent reading in either tie set: the distinction is excluded."""
     system_state = FakeMice(
         label="s'", state=(1, 0), purview=(0, 1), congruent_states=frozenset()
     )
@@ -539,11 +496,11 @@ def test_resolve_distinction_tie_returns_none_when_no_congruent():
             congruent_states=frozenset(),
         ),
     ]
-    ctx = ResolutionContext(max_escalation_level="Composition")
-    winner = resolve_distinction_tie(
-        state_ties=state_ties,
-        purview_ties=purview_ties,
-        system_state_spec=system_state,
-        context=ctx,
+    assert (
+        congruent_distinction_readings(
+            state_ties=state_ties,
+            purview_ties=purview_ties,
+            system_state_spec=system_state,
+        )
+        == []
     )
-    assert winner is None
