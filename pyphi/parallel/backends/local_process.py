@@ -394,6 +394,42 @@ class LocalProcessScheduler:
 
         from pyphi.parallel.sampling import compute_chunksize
 
+        if not hasattr(items, "__len__"):
+            # Unknown-length input: decide sequential vs parallel without
+            # draining the iterator. Items are consumed and mapped one at a
+            # time up to ``sequential_threshold``, so a short workload — or a
+            # short-circuit — finishes having pulled only the items it used.
+            # At the threshold, the remainder is materialized and dispatched
+            # in parallel, with the already-computed prefix prepended before
+            # reduction (matching the sequential-evaluation prefix that
+            # ordered / short-circuit collection guarantees).
+            threshold = max(chunking.sequential_threshold, 1)
+            kwargs = map_kwargs or {}
+            prefix: list[Any] = []
+            zipped = zip(items, *more_items, strict=False)
+            for args in zipped:
+                value = fn(*args, **kwargs)
+                prefix.append(value)
+                if shortcircuit.func(value):
+                    shortcircuit.fire(prefix)
+                    return reducer(prefix)
+                if len(prefix) >= threshold:
+                    break
+            else:
+                # Exhausted below the threshold: purely sequential.
+                return reducer(prefix)
+            rest = list(zipped)
+            if not rest:
+                return reducer(prefix)
+            columns = tuple(list(col) for col in zip(*rest, strict=True))
+            items, more_items = columns[0], columns[1:]
+            base_reducer = reducer
+
+            def _prefixed_reducer(results: Iterable[Any]) -> Any:
+                return base_reducer([*prefix, *results])
+
+            reducer = _prefixed_reducer
+
         items_list = list(items)
         total = len(items_list)
 

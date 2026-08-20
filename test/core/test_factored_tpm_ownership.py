@@ -36,6 +36,23 @@ def test_non_float64_input_is_frozen_and_detached():
     assert tpm.factor(0).max() <= 1.0
 
 
+def test_read_only_view_input_is_copied():
+    """A read-only view (e.g. from broadcast_to) of a writable buffer must be
+    copied: storing it would alias caller memory, so mutating the source
+    after construction would change the stored factors and the hash."""
+    src = np.array([[[0.9, 0.1]], [[0.2, 0.8]]])
+    f0 = np.broadcast_to(src, (2, 2, 2))
+    f1 = np.full((2, 2, 2), 0.5)
+    tpm = FactoredTPM([f0, f1])
+    assert not np.shares_memory(tpm.factor(0), src)
+    before = tpm.factor(0).copy()
+    h = hash(tpm)
+    src[0, 0, :] = [0.0, 1.0]  # caller mutates the view's source
+    assert np.array_equal(tpm.factor(0), before)
+    assert hash(tpm) == h
+    assert not tpm.factor(0).flags.writeable
+
+
 def test_read_only_input_is_stored_without_copy():
     f0, f1 = _uniform_factors()
     f0.flags.writeable = False

@@ -1,0 +1,1 @@
+Fixed `pyphi.parallel.map_reduce` draining generator inputs up front on the process backend: unknown-length workloads are now consumed lazily up to `sequential_threshold`, so a short-circuit predicate that fires early no longer pulls the entire generator before the sequential/parallel decision.

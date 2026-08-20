@@ -5,6 +5,7 @@ import numpy as np
 from scipy.sparse import csc_matrix
 
 from . import convert
+from . import exceptions
 
 
 def sparse(matrix, threshold=0.1):
@@ -35,6 +36,15 @@ def run_tpm(tpm, time_scale):
     np.ndarray
         The state-by-node TPM advanced by ``time_scale`` steps.
 
+    Raises
+    ------
+    pyphi.exceptions.ConditionallyDependentError
+        If the iterated dynamics are not conditionally independent, so
+        no state-by-node TPM can represent them. Iterating typically
+        introduces conditional dependence between nodes that share inputs,
+        even though the single-step TPM is conditionally independent by
+        construction.
+
     Notes
     -----
     The TPM is converted to state-by-state form and raised to the
@@ -45,10 +55,21 @@ def run_tpm(tpm, time_scale):
     """
     sbs_tpm = convert.state_by_node2state_by_state(tpm)
     if sparse(tpm):
-        tpm = sparse_time(sbs_tpm, time_scale)
+        iterated = sparse_time(sbs_tpm, time_scale)
     else:
-        tpm = dense_time(sbs_tpm, time_scale)
-    return convert.state_by_state2state_by_node(tpm)
+        iterated = dense_time(sbs_tpm, time_scale)
+    sbn_tpm = convert.state_by_state2state_by_node(iterated)
+    # Converting back to state-by-node form assumes conditional independence;
+    # verify the round trip so conditional dependence introduced by iteration
+    # is never silently discarded.
+    if not np.allclose(convert.state_by_node2state_by_state(sbn_tpm), iterated):
+        raise exceptions.ConditionallyDependentError(
+            f"the TPM iterated by {time_scale} steps is not conditionally "
+            "independent, so it cannot be expressed in state-by-node form. "
+            "Use the state-by-state form instead: "
+            "dense_time(convert.state_by_node2state_by_state(tpm), time_scale)."
+        )
+    return sbn_tpm
 
 
 def run_cm(cm, time_scale):
