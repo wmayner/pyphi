@@ -1027,6 +1027,29 @@ def _register_transition() -> None:
         noise_background=t.noise_background,
     )
 
+    from pyphi.actual import TransitionSystem
+
+    _ENCODERS[TransitionSystem] = lambda t: schema.TransitionSystemSchema(
+        substrate=to_schema(t.substrate),
+        before_state=tuple(t.before_state),
+        after_state=tuple(t.after_state),
+        cause_indices=tuple(t.cause_indices),
+        effect_indices=tuple(t.effect_indices),
+        direction=schema.DirectionSchema(name=t.direction.name),
+        partition=to_schema(t.partition),
+        noise_background=t.noise_background,
+    )
+    _DECODERS[schema.TransitionSystemSchema] = lambda t: TransitionSystem(
+        substrate=from_schema(t.substrate),
+        before_state=tuple(t.before_state),
+        after_state=tuple(t.after_state),
+        cause_indices=tuple(t.cause_indices),
+        effect_indices=tuple(t.effect_indices),
+        direction=from_schema(t.direction),
+        partition=from_schema(t.partition),
+        noise_background=t.noise_background,
+    )
+
 
 def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
     peers: tuple = ()

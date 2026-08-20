@@ -54,6 +54,28 @@ def test_transition_round_trips(fmt):
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
+def test_transition_system_round_trips(fmt):
+    for obj in (make_transition().cause_system, make_transition().effect_system):
+        restored = round_trip(obj, fmt)
+        assert type(restored) is type(obj)
+        assert restored == obj
+        assert restored.direction == obj.direction
+
+
+def test_transition_system_save_load_preserves_type(tmp_path):
+    # Regression: ``save`` used to delegate to the underlying ``System``, so
+    # ``load`` returned a System -- silent loss of the transition data.
+    from pyphi.actual import TransitionSystem
+
+    obj = make_transition().cause_system
+    path = tmp_path / "ts.json"
+    obj.save(path)
+    restored = TransitionSystem.load(path)
+    assert type(restored) is TransitionSystem
+    assert restored == obj
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
 def test_account_round_trips(fmt):
     obj = actual.account(make_transition())
     restored = round_trip(obj, fmt)

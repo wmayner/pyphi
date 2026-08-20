@@ -402,6 +402,17 @@ class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):
     noise_background: bool = False
 
 
+class TransitionSystemSchema(msgspec.Struct, frozen=True, tag="transition_system"):
+    substrate: SubstrateSchema
+    before_state: tuple[int, ...]
+    after_state: tuple[int, ...]
+    cause_indices: tuple[int, ...]
+    effect_indices: tuple[int, ...]
+    direction: DirectionSchema
+    partition: PartitionSchema
+    noise_background: bool = False
+
+
 # --- Actual causation ---------------------------------------------------------
 
 
@@ -668,6 +679,7 @@ Schema = (
     | SubstrateSchema
     | SystemSchema
     | TransitionSchema
+    | TransitionSystemSchema
     | AcRIASchema
     | CausalLinkSchema
     | AccountSchema

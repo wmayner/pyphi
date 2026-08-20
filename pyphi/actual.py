@@ -114,15 +114,12 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "to_networkx",
         # Labeled export (ToPandasMixin on System):
         "to_pandas",
-        # Serialization (Serializable mixin on System):
-        "save",
-        "load",
     }
 )
 
 
 @dataclass(frozen=True, eq=False)
-class TransitionSystem:
+class TransitionSystem(Serializable):
     """A directional view of a state transition.
 
     Implements :class:`pyphi.protocols.SystemPublicInterface` by holding
