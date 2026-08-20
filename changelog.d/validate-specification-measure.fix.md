@@ -1,0 +1,1 @@
+Configuration validation now covers `formalism.iit.specification_measure`: a measure the active formalism does not accept (e.g. `EMD` under IIT 4.0) is rejected when the configuration is applied, and again at the dispatch boundary for configurations assembled by per-field assignment. Previously such a value was accepted and silently changed Φ and φₛ.

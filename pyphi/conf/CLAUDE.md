@@ -14,7 +14,8 @@ option-by-option reference, loaded only when working with this directory.
 - **`background_conditioning`**: cause-side background handling —
   `"CAUSAL_MARGINALIZATION"` (IIT 4.0 Eq. 4; default) or
   `"CONDITION_CURRENT_STATE"` (PyPhi 1.x convention; set by
-  `presets.iit3`). Only affects proper-subset systems.
+  `presets.iit3`). Only affects proper-subset systems. IIT 3.0 accepts only
+  `"CONDITION_CURRENT_STATE"` (enforced eagerly and at dispatch).
 
 ## Numerics (`config.numerics`)
 
@@ -29,7 +30,9 @@ option-by-option reference, loaded only when working with this directory.
 - **`parallel_backend`**: `"local"` (loky process pool), `"thread"`, or
   `"auto"` (threads on free-threaded runtimes, else processes)
 - **`parallel_*_evaluation`**: Fine-grained per-level dicts with keys
-  `parallel` / `chunksize` / `sequential_threshold` / `progress`
+  `parallel` / `chunksize` / `sequential_threshold` / `progress`. A partial
+  dict merges over that level's defaults (omitted keys keep their tuned
+  values); unknown keys are rejected.
   (`parallel_distinction_evaluation`, `parallel_complex_evaluation`,
   `parallel_partition_evaluation`, `parallel_purview_evaluation`,
   `parallel_mechanism_partition_evaluation`, `parallel_relation_evaluation`,

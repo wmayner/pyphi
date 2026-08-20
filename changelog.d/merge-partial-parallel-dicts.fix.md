@@ -1,0 +1,1 @@
+A partial per-level parallelization dict (e.g. `parallel_relation_evaluation={"parallel": True}`) now merges over that level's defaults instead of replacing them wholesale, so omitted keys keep their tuned values (the relation level's `sequential_threshold` of 8192 previously collapsed to 1). Unknown keys are rejected with an error naming the valid keys.

@@ -13,7 +13,9 @@ from typing import ClassVar
 from typing import Literal
 
 from pyphi.conf import config
+from pyphi.formalism.base import check_background_conditioning_compatible
 from pyphi.formalism.base import check_measure_compatible
+from pyphi.formalism.base import check_mechanism_partition_scheme_compatible
 from pyphi.formalism.base import check_sia_tie_strategy_compatible
 
 
@@ -58,6 +60,15 @@ class IIT3Formalism:
     compatible_sia_tie_strategies: ClassVar[frozenset[str] | None] = frozenset(
         {"PHI", "NEGATIVE_PHI", "PARTITION_LEX", "NONE"}
     )
+    # IIT 3.0 has no specified-state phase, so specification_measure is never
+    # consulted.
+    compatible_specification_measures: ClassVar[frozenset[str] | None] = None
+    # The post-2014-literature convention fixes background units at their
+    # observed current state on the cause side; IIT 4.0's causal
+    # marginalization computes a different phi on proper-subset systems.
+    compatible_background_conditioning: ClassVar[frozenset[str] | None] = frozenset(
+        {"CONDITION_CURRENT_STATE"}
+    )
 
     def evaluate_mechanism(
         self,
@@ -100,6 +111,11 @@ class IIT3Formalism:
         )
 
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        if partitions is None:
+            # Partitions will be enumerated from the configured scheme.
+            check_mechanism_partition_scheme_compatible(
+                self, config.formalism.iit.mechanism_partition_scheme
+            )
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
@@ -196,6 +212,18 @@ class IIT3Formalism:
         """
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
         check_sia_tie_strategy_compatible(self, config.formalism.iit.sia_tie_resolution)
+        check_mechanism_partition_scheme_compatible(
+            self, config.formalism.iit.mechanism_partition_scheme
+        )
+        # A System may pin its own background convention; check the value in
+        # effect for this system, falling back to config.
+        resolve_background = getattr(system, "_resolved_background_conditioning", None)
+        check_background_conditioning_compatible(
+            self,
+            resolve_background()
+            if resolve_background is not None
+            else config.formalism.iit.background_conditioning,
+        )
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

@@ -73,7 +73,11 @@ class TestComplexesIIT30:
         """The same complex search under Eq. 4 causal marginalization: the
         ``(0, 2)`` candidate's phi differs from the conditioned convention
         (the ``(1, 2)`` candidate's value coincides across conventions)."""
-        with config.override(background_conditioning="CAUSAL_MARGINALIZATION"):
+        # Deliberate off-preset variant (IIT 3.0 constrains the background
+        # convention), so it opts out of config validation.
+        with config.override(
+            background_conditioning="CAUSAL_MARGINALIZATION", validate_config=False
+        ):
             sias = s.substrate.irreducible_sias(s.state)
         assert len(sias) == 3
         nodes_and_phis = {c.node_indices: float(c.phi) for c in sias}

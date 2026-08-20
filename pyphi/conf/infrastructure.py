@@ -10,11 +10,28 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from dataclasses import field
+from dataclasses import fields
 from typing import Any
 
 from pyphi.conf._helpers import yaml_repr
 
 _VALID_REPR_VERBOSITY = frozenset({0, 1, 2, 3, 4})
+
+_PARALLEL_LEVEL_FIELDS = (
+    "parallel_complex_evaluation",
+    "parallel_partition_evaluation",
+    "parallel_distinction_evaluation",
+    "parallel_purview_evaluation",
+    "parallel_mechanism_partition_evaluation",
+    "parallel_relation_evaluation",
+    "parallel_macro_system_evaluation",
+)
+
+# The complete key set of every per-level parallel dict (the keys of
+# ``_default_parallel_dict``).
+_PARALLEL_LEVEL_KEYS = frozenset(
+    {"parallel", "sequential_threshold", "chunksize", "progress"}
+)
 
 
 def _default_parallel_dict(
@@ -160,21 +177,33 @@ class InfrastructureConfig:
     def __post_init__(self) -> None:
         # A frozen config must not share mutable containers with callers,
         # presets, or snapshots; the per-level parallel mappings are stored
-        # as immutable (and hashable) FrozenMaps.
+        # as immutable (and hashable) FrozenMaps. A partial mapping merges
+        # over that level's tuned defaults (so setting one key never resets
+        # the others to a call-site fallback); unknown keys are rejected.
         from pyphi.data_structures import FrozenMap
 
-        for name in (
-            "parallel_complex_evaluation",
-            "parallel_partition_evaluation",
-            "parallel_distinction_evaluation",
-            "parallel_purview_evaluation",
-            "parallel_mechanism_partition_evaluation",
-            "parallel_relation_evaluation",
-            "parallel_macro_system_evaluation",
-        ):
+        level_defaults = None
+        for name in _PARALLEL_LEVEL_FIELDS:
             value = getattr(self, name)
-            if not isinstance(value, FrozenMap):
-                object.__setattr__(self, name, FrozenMap(value))
+            if not isinstance(value, Mapping):
+                raise ValueError(f"{name} must be a Mapping; got {type(value).__name__}")
+            if isinstance(value, FrozenMap) and set(value) == _PARALLEL_LEVEL_KEYS:
+                continue  # already normalized (the common case: snapshots)
+            if level_defaults is None:
+                level_defaults = {
+                    f.name: f.default_factory()  # type: ignore[misc]
+                    for f in fields(self)
+                    if f.name in _PARALLEL_LEVEL_FIELDS
+                }
+            default = level_defaults[name]
+            unknown = sorted(set(value) - _PARALLEL_LEVEL_KEYS)
+            if unknown:
+                from pyphi.conf._field_routing import ConfigurationError
+
+                raise ConfigurationError(
+                    f"{name} has unknown key(s) {unknown}; valid keys: {sorted(default)}"
+                )
+            object.__setattr__(self, name, FrozenMap({**default, **dict(value)}))
         _check_bool("parallel", self.parallel)
         _check_int("parallel_workers", self.parallel_workers)
         _check_int(
@@ -216,18 +245,3 @@ class InfrastructureConfig:
                 "parallel_backend must be str; got "
                 f"{type(self.parallel_backend).__name__}"
             )
-        for parallel_field_name in (
-            "parallel_complex_evaluation",
-            "parallel_partition_evaluation",
-            "parallel_distinction_evaluation",
-            "parallel_purview_evaluation",
-            "parallel_mechanism_partition_evaluation",
-            "parallel_relation_evaluation",
-            "parallel_macro_system_evaluation",
-        ):
-            value = getattr(self, parallel_field_name)
-            if not isinstance(value, Mapping):
-                raise ValueError(
-                    f"{parallel_field_name} must be a Mapping; "
-                    f"got {type(value).__name__}"
-                )
