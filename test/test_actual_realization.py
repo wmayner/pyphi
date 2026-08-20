@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from pyphi import actual
+from pyphi import examples
 from pyphi import exceptions
 from pyphi import validate
 from pyphi.direction import Direction
@@ -160,3 +161,16 @@ def test_events_rejects_impossible_second_pair(swap_substrate):
 def test_events_valid_triplet_still_works(swap_substrate):
     result = actual.events(swap_substrate, (1, 0), (0, 1), (1, 0), (0, 1))
     assert isinstance(result, tuple)
+
+
+def test_paper_example_transitions_construct():
+    """The shipped disjunction-conjunction example's own paper transitions
+    are accepted: Realization constrains only p(after | before) > 0, not
+    reachability of the before-state itself (in this substrate the input
+    units reset to 0, so any before-state with an input ON has no
+    predecessor -- and is still a valid occurrence).
+    """
+    substrate = examples.disjunction_conjunction_substrate()
+    for before in [(1, 0, 1, 0), (1, 1, 0, 0), (1, 1, 1, 1)]:
+        transition = actual.Transition(substrate, before, (0, 0, 0, 1), (0, 1, 2), (3,))
+        assert actual.account(transition)

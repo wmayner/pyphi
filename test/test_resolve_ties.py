@@ -332,17 +332,18 @@ def test_resolve_iit3_complex_tie_on_unresolved_warn_emits_warning():
 
 
 def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
-    """The IIT 3.0 within-subsystem MIP selection routes through
-    resolve_ties.sias and consults config.formalism.iit.sia_tie_resolution.
+    """The IIT 3.0 SIA path consults config.formalism.iit.sia_tie_resolution.
 
-    Override the strategy to a registered-but-bogus name; the call must
-    raise KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
-    which selects argmin raw phi (paper-canonical IIT 3.0 within-subsystem
-    MIP) with lex-canonical partition tie-break.
+    Override the strategy to a bogus name (skipping eager validation); the
+    ``sia()`` call must reject it at the dispatch boundary with a
+    ``ConfigurationError`` naming the field. The default preset value is
+    ["PHI", "PARTITION_LEX"], which selects argmin raw phi (paper-canonical
+    IIT 3.0 within-subsystem MIP) with lex-canonical partition tie-break.
     """
     from dataclasses import replace
 
     from pyphi import examples
+    from pyphi.conf import ConfigurationError
     from pyphi.conf import presets
     from pyphi.system import System
 
@@ -350,9 +351,9 @@ def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
     state = (1, 0, 0)
     bad = {**presets.iit3}
     bad["iit"] = replace(bad["iit"], sia_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
-    with config.override(**bad):
+    with config.override(validate_config=False), config.override(**bad):
         sys = System.from_substrate(substrate, state, substrate.node_indices)
-        with pytest.raises(KeyError):
+        with pytest.raises(ConfigurationError, match="sia_tie_resolution"):
             sys.sia()
 
 
