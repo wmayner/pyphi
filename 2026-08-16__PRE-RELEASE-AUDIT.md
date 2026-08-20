@@ -1417,3 +1417,65 @@ macro grain search opened override(parallel=False) inside each parallel worker
 around the map_reduce dispatch, inherited by process workers via the config
 snapshot and read directly by thread workers. Thread-backend regression test
 added. Contextvars remains a 2.1 candidate.
+
+# Verification-tier sweep of the high findings — COMPLETE (2026-08-19)
+
+All 123 high-severity raw findings adjudicated. After removing those already
+resolved by this branch's earlier work, duplicates, and pure-docs items
+(deferred to the step-4 docs sweep), they deduplicated to ~25 distinct claims,
+each verified with an executed repro by a dedicated agent. Verdicts: 2 already
+fixed on this branch (Relation/RelationFace phi-ordering MRO; noise_background
+cause side), 1 refuted in part (Complex serialization claim's dumps half),
+1 needs theory adjudication (below), and the rest CONFIRMED and now FIXED, each
+with a regression test verified to fail against the unfixed code:
+
+- INTRINSIC_INFORMATION composite: cause-side Bayes normalization (Eq. 11) and
+  operand-rank broadcast (wrong ii values, wrong-length specified states).
+- Cache layer: @cache() hit-path KeyError race; ByteBoundedStore eviction
+  RuntimeError under concurrent hits; clear_all() bypassing store accounting
+  (phantom occupancy + permanently dead cache after a latched budget); cgroup
+  ancestor limits ignored (Slurm/systemd layouts).
+- Relations: RelationFace unpicklable (one repr()/num_faces() call made a whole
+  CES unpicklable); NullRelations identity equality (IIT 3.0 CES round-trips
+  never compared equal).
+- Serialization: results' config degraded to a plain dict on load (diff()
+  AttributeError, IIT 3.0 Phi relabeled as phi_s, rerun recipe broken) — now
+  rehydrated as a real ConfigSnapshot, every preset field round-trips exactly;
+  serializer-registry registration race; MICE purview-tie tuples gaining a
+  spurious member on round-trip.
+- Model identity: Distinction eq/hash now include the specified purview states
+  (structures with different Phi no longer compare equal); MacroSystem no
+  longer compares equal to a plain System over its macro substrate. The
+  superseded per-distinction resolve_congruence (dead since the joint-Phi
+  rework, with a stale import) was removed.
+- SIA machinery: single-unit ZeroDivisionError under DIRECTED_BIPARTITION_CUT_ONE;
+  EDGE_CUT_BIDIRECTIONAL skipping the Eq. 14 disconnection filter (phi_s = 0
+  reported for an irreducible system); single-direction sia() crash on state
+  ties; sia.ties inflated with non-tied readings; null-MICE display crashes;
+  nondeterministic MIP under shortcircuit_sia=False.
+- Config validation: specification_measure validated (eager + dispatch);
+  background_conditioning constrained per formalism (IIT 3.0 diagnostic
+  fixtures opt out explicitly); version IIT_4_0_2026 now requires a capping
+  system measure; partial per-level parallel dicts merge over defaults and
+  reject unknown keys; mechanism_partition_scheme gained the last missing
+  reactive dispatch guard. The assignment path deliberately remains
+  eager-validation-free; every audit-identified silently-wrong field now has a
+  dispatch-boundary guard.
+- TPM/parallel/timescale: FactoredTPM read-only-view aliasing; row-sum check
+  tightened to a purely absolute tolerance; lazy generator consumption below
+  the dispatch threshold; thread-backend chunking honored; cross-backend
+  parent-pid latch restored after dispatch; run_tpm raises
+  ConditionallyDependentError instead of returning wrong multi-step dynamics.
+
+## Open adjudication (theory decisions for the release owner)
+
+1. **CompleteEdgeCut normalization (H075).** The code uses factor 1/n while its
+   own num_connections_cut() reports n^2 (all-ones matrix, self-loops
+   included). The finding's proposed 1/n^2 is not paper-grounded either:
+   Marshall et al. 2023 Theorem 1 gives sum |S_i||X_i| = n(n-1) for the
+   complete partition of singletons, under which the finding's phi_s-flip demo
+   does not reproduce. The 1/n convention is inherited verbatim from the
+   pre-2.0 reference implementation the 2023 papers were computed with.
+   Reachable only with system_partition_include_complete=True or the edge-cut
+   schemes. Decision needed: keep 1/n (lab convention) or adopt n(n-1)
+   (Theorem 1), and whether num_connections_cut should exclude self-loops.
