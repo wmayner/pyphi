@@ -227,3 +227,21 @@ class TestSectionRouting:
         )
         with pytest.raises(ConfigurationError, match="unrecognized keys"):
             config.load_yaml(str(path))
+
+
+class TestShippedConfigFiles:
+    def test_iit3_reference_yaml_reproduces_preset(self):
+        """The shipped ``pyphi_config_3.0.yml`` loads and mirrors the
+        ``IIT_3_0`` preset exactly."""
+        from pathlib import Path
+
+        from pyphi.conf import presets
+
+        path = Path(__file__).parents[2] / "pyphi_config_3.0.yml"
+        before = config.snapshot()
+        try:
+            config.load_yaml(str(path))
+            for key, want in presets.by_name["IIT_3_0"].items():
+                assert getattr(config, key) == want, key
+        finally:
+            config.install_snapshot(before)
