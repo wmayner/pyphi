@@ -10,10 +10,14 @@ relying on a guaranteed crash under the GIL.
 from __future__ import annotations
 
 import gc
+import itertools
+import sys
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 from pyphi.cache.content import ContentCache
+from pyphi.conf import config
 
 
 def test_concurrent_evict_and_insert_does_not_crash() -> None:
@@ -62,6 +66,68 @@ def test_concurrent_evict_and_insert_does_not_crash() -> None:
             fut.result()
 
     assert not errors, f"concurrent evict/insert raised: {errors[:3]}"
+
+
+def test_hits_concurrent_with_bounded_admission_do_not_raise() -> None:
+    """Guards defect: ``ByteBoundedStore.admit``'s eviction loop iterated the
+    live dict (``next(iter(self.data.items()))``), so a concurrent lock-free
+    hit (pop + reinsert) raised ``RuntimeError: dictionary changed size during
+    iteration`` — violating the module contract that no operation raises under
+    concurrent access. Pre-fix this crashed within 0.1s; the loop below is
+    bounded at 1.5s with early exit on error."""
+    cache = ContentCache("test.bounded_admission_race")
+
+    # Warm while memory is ample: the store grows freely, budget stays unset.
+    with config.override(memory_ceiling_bytes=10**15):
+        for i in range(40):
+            cache.get_or_compute(b"fp", ("warm", i), lambda i=i: i)
+
+    errors: list[BaseException] = []
+    stop = threading.Event()
+    counter = itertools.count()
+
+    def hitter() -> None:
+        """Lock-free pop + reinsert on existing keys."""
+        try:
+            while not stop.is_set():
+                for i in range(40):
+                    cache.get_or_compute(b"fp", ("warm", i), lambda i=i: i)
+        except BaseException as exc:
+            errors.append(exc)
+            stop.set()
+
+    def misser() -> None:
+        """Fresh keys: the locked admit runs the eviction loop every time."""
+        try:
+            while not stop.is_set():
+                cache.get_or_compute(b"fp", ("miss", next(counter)), lambda: 0)
+        except BaseException as exc:
+            errors.append(exc)
+            stop.set()
+
+    old_interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    try:
+        # Ceiling of 1 byte: the budget latches at the current weight, so
+        # every admission runs the eviction loop while hitters churn the dict.
+        with config.override(memory_ceiling_bytes=1):
+            cache.get_or_compute(b"fp", ("latch",), lambda: 0)
+            assert cache._store._budget is not None  # bounded regime reached
+            threads = [
+                threading.Thread(target=hitter, daemon=True) for _ in range(6)
+            ] + [threading.Thread(target=misser, daemon=True) for _ in range(6)]
+            for t in threads:
+                t.start()
+            deadline = time.time() + 1.5
+            while time.time() < deadline and not errors:
+                time.sleep(0.05)
+            stop.set()
+            for t in threads:
+                t.join(2)
+    finally:
+        sys.setswitchinterval(old_interval)
+
+    assert not errors, f"hit/admit race raised: {errors[:3]}"
 
 
 def test_concurrent_get_returns_correct_values_and_no_leak() -> None:

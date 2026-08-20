@@ -37,13 +37,19 @@ class _DictCacheAdapter:
     adapter doesn't need to mutate them — the wrapper closure that updates
     the counts owns them. The optional ``weigh`` callable returns
     ``(nbytes, evictions)`` for caches that track occupancy in bytes; caches
-    that do not report zero for both.
+    that do not report zero for both. The optional ``reset`` callable clears
+    the owning cache through its own clear path — resetting its tracked byte
+    weight and any latched admission budget along with the entries, since the
+    purpose of clearing is recovering memory. Without it, ``clear()`` falls
+    back to emptying the backing dict, which suits plain unweighted dicts
+    only.
     """
 
     name: str
     backing: dict[Any, Any]
     stats: Callable[[], tuple[int, int]]
     weigh: Callable[[], tuple[int, int]] | None = None
+    reset: Callable[[], None] | None = None
 
     def info(self) -> _CacheInfo:
         hits, misses = self.stats()
@@ -51,4 +57,7 @@ class _DictCacheAdapter:
         return _CacheInfo(hits, misses, len(self.backing), nbytes, evictions)
 
     def clear(self) -> None:
-        self.backing.clear()
+        if self.reset is not None:
+            self.reset()
+        else:
+            self.backing.clear()
