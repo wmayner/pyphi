@@ -806,9 +806,11 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         A ``system_state`` keyword, when given, must be the state
         specification the analysis would itself compute (it is derived
-        deterministically from the system and configuration); it is
-        excluded from the disk-cache key so precomputed and freshly
-        computed analyses share one cache entry.
+        deterministically from the system and configuration). Calls with
+        a caller-supplied ``system_state`` bypass the disk result cache:
+        nothing verifies the supplied state is the canonical one, so
+        sharing the cache entry would let a non-canonical state poison
+        (and be served by) the plain ``sia()`` result.
         """
         from pyphi.cache.disk import maybe_disk_cached
 
@@ -832,8 +834,7 @@ class System(Displayable, ToPandasMixin, Serializable):
                 )
             return _sia(self, **call_kwargs)
 
-        cache_kwargs = {k: v for k, v in kwargs.items() if k != "system_state"}
-        return maybe_disk_cached(self, "sia", cache_kwargs, _compute)
+        return maybe_disk_cached(self, "sia", dict(kwargs), _compute)
 
     def ces(self, **kwargs: Any) -> Any:
         """Return the cause-effect structure of this system (Eq. 57).
