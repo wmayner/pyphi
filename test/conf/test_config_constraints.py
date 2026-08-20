@@ -354,3 +354,53 @@ class TestCesMeasureCompatibility:
     def test_iit3_with_emd_allowed(self) -> None:
         with config.override(**presets.iit3):
             pass
+
+
+class TestSiaTieStrategyCompatibility:
+    """SIA tie strategies must be ones the formalism's SIA type supports.
+
+    IIT 3.0 SIA results have no ``normalized_phi``, so the IIT 4.0 default
+    ``sia_tie_resolution`` crashes deep inside tie resolution unless caught.
+    """
+
+    def test_iit3_with_normalized_phi_rejected_eagerly(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit3, **{"iit.sia_tie_resolution": ["NORMALIZED_PHI"]}
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "sia_tie_resolution" in message
+        assert "NORMALIZED_PHI" in message
+        assert "Fix" in message
+
+    def test_iit3_preset_strategies_allowed(self) -> None:
+        with config.override(**presets.iit3):
+            pass
+
+    def test_iit4_unconstrained(self) -> None:
+        with config.override(**{"iit.sia_tie_resolution": ["NORMALIZED_PHI"]}):
+            pass
+
+    def test_assignment_path_fails_at_dispatch_not_inside_tie_resolution(self) -> None:
+        """A partial IIT 3.0 config assembled by per-field assignment (which
+        skips cross-field validation) leaves the ambient IIT 4.0
+        ``sia_tie_resolution`` in place; ``sia()`` must fail at the dispatch
+        boundary with a ``ConfigurationError`` naming the field, not with an
+        ``AttributeError`` from inside tie resolution."""
+        import dataclasses
+
+        from pyphi import examples
+
+        overrides = dict(presets.iit3)
+        overrides["iit"] = dataclasses.replace(
+            overrides["iit"], sia_tie_resolution=("NORMALIZED_PHI", "PARTITION_LEX")
+        )
+        with (
+            config.override(validate_config=False),
+            config.override(**overrides),
+            pytest.raises(ConfigurationError, match="sia_tie_resolution"),
+        ):
+            examples.basic_system().sia()

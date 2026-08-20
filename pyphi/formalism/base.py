@@ -37,6 +37,7 @@ __all__ = [
     "MeasureNotCompatibleError",
     "PhiFormalism",
     "check_measure_compatible",
+    "check_sia_tie_strategy_compatible",
 ]
 
 
@@ -62,6 +63,9 @@ class PhiFormalism(Protocol):
     - ``compatible_mechanism_partition_schemes``: frozenset of mechanism
       partition scheme names this formalism accepts, or ``None`` if it
       accepts any registered scheme.
+    - ``compatible_sia_tie_strategies``: frozenset of SIA tie-resolution
+      strategy names this formalism's SIA result type supports, or ``None``
+      if it supports every registered strategy.
 
     Signatures are permissive (``Any``) over the measure and partition
     arguments.
@@ -120,6 +124,35 @@ def check_measure_compatible(formalism: PhiFormalism, measure: str) -> None:
             "config.formalism.iit.version to one whose compatible_measures "
             "set contains it."
         )
+
+
+def check_sia_tie_strategy_compatible(formalism: PhiFormalism, strategy: Any) -> None:
+    """Raise ``ConfigurationError`` if a SIA tie-resolution strategy uses a
+    component the formalism's SIA result type does not support.
+
+    Called from a formalism's ``evaluate_system`` so a config assembled by
+    per-field assignment (which skips cross-field validation) still fails at
+    the dispatch boundary with a clear diagnostic, not with an
+    ``AttributeError`` deep inside tie resolution. Formalisms whose SIA type
+    supports every registered strategy declare
+    ``compatible_sia_tie_strategies = None`` and are not checked.
+    """
+    compatible = getattr(formalism, "compatible_sia_tie_strategies", None)
+    if compatible is None:
+        return
+    components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+    for component in components:
+        if component not in compatible:
+            from pyphi.conf import ConfigurationError
+
+            raise ConfigurationError(
+                f"formalism.iit.sia_tie_resolution component {component!r} is "
+                f"not compatible with formalism {formalism.name!r}. Compatible "
+                f"SIA tie strategies for this formalism: {sorted(compatible)}. "
+                f"Fix: set formalism.iit.sia_tie_resolution to use only those "
+                f"(the shipped preset uses ['PHI', 'PARTITION_LEX']), or "
+                f"change formalism.iit.version."
+            )
 
 
 class ErrorInfo(Protocol):

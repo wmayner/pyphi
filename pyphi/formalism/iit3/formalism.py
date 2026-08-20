@@ -14,6 +14,7 @@ from typing import Literal
 
 from pyphi.conf import config
 from pyphi.formalism.base import check_measure_compatible
+from pyphi.formalism.base import check_sia_tie_strategy_compatible
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,12 @@ class IIT3Formalism:
     )
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"JOINT_BIPARTITION", "WEDGE_TRIPARTITION"}
+    )
+    # IIT 3.0 SIA results carry only raw phi and the MIP -- no normalized phi
+    # or purview -- so SIA-level tie strategies reading those attributes have
+    # nothing to read.
+    compatible_sia_tie_strategies: ClassVar[frozenset[str] | None] = frozenset(
+        {"PHI", "NEGATIVE_PHI", "PARTITION_LEX", "NONE"}
     )
 
     def evaluate_mechanism(
@@ -188,6 +195,7 @@ class IIT3Formalism:
         than a silent no-op.
         """
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        check_sia_tie_strategy_compatible(self, config.formalism.iit.sia_tie_resolution)
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

@@ -253,3 +253,37 @@ def _mechanism_partition_scheme_compatible_with_version(config: Any) -> str | No
             f"{scheme!r}."
         )
     return None
+
+
+@register_constraint("sia_tie_resolution_compatible_with_version")
+def _sia_tie_resolution_compatible_with_version(config: Any) -> str | None:
+    """The SIA tie-resolution strategies must be ones the active formalism's
+    SIA result type supports.
+
+    IIT 3.0 SIA results carry only raw phi and the MIP, so strategies reading
+    ``normalized_phi`` or ``purview`` (e.g. the IIT 4.0 default
+    ``NORMALIZED_PHI``) raise ``AttributeError`` at compute time. Formalisms
+    whose SIA type supports every registered strategy declare
+    ``compatible_sia_tie_strategies = None`` and are not constrained.
+    """
+    iit = config.formalism.iit
+    version = iit.version
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        return None
+    compatible = getattr(formalism, "compatible_sia_tie_strategies", None)
+    if compatible is None:
+        return None  # unconstrained (e.g. IIT 4.0)
+    strategy = iit.sia_tie_resolution
+    components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+    for component in components:
+        if component not in compatible:
+            return (
+                f"formalism.iit.sia_tie_resolution component {component!r} is "
+                f"not compatible with formalism.iit.version={version!r}. "
+                f"Compatible SIA tie strategies for this version: "
+                f"{sorted(compatible)}. Fix: set formalism.iit.sia_tie_resolution "
+                f"to use only those (the shipped preset uses "
+                f"['PHI', 'PARTITION_LEX']), or change formalism.iit.version."
+            )
+    return None
