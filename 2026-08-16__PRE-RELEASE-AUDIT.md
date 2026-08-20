@@ -1404,3 +1404,16 @@ Confirmed-defect fixes, each with a regression test that fails on revert:
 
 Still open from step 2: `config.override()` process-globality (user deciding
 between a contextvars fix and a documented limitation).
+
+## config.override() process-globality — RESOLVED (2026-08-19): documented + internal fix
+
+User decision: document the limitation rather than adopt contextvars pre-release
+(threaded multi-configuration use is a small slice of users; contextvars would
+have to reroute the hottest config read path and explicitly propagate context
+into thread-backend workers). The override() docstring and docs/howto/configure.md
+now warn that overrides apply process-wide. The one internal misuse is fixed:
+macro grain search opened override(parallel=False) inside each parallel worker
+(racy on the thread backend); the override is now a single parent-side scope
+around the map_reduce dispatch, inherited by process workers via the config
+snapshot and read directly by thread workers. Thread-backend regression test
+added. Contextvars remains a 2.1 candidate.
