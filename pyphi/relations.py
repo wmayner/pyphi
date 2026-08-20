@@ -46,6 +46,11 @@ if TYPE_CHECKING:
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
+def _restore_relation_face(cls, contents, phi):
+    """Reconstruct a :class:`RelationFace` from pickled state."""
+    return cls(contents, phi=phi)
+
+
 class RelationFace(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
     """A set of (potentially) related causes/effects.
 
@@ -80,6 +85,13 @@ class RelationFace(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
 
     def __hash__(self) -> int:
         return frozenset.__hash__(self)
+
+    # frozenset's default __reduce__ reconstructs via ``cls(list(self))``,
+    # which omits the required ``phi`` keyword; route pickling (and hence
+    # copy/deepcopy) through a reconstructor that passes it. Cached
+    # properties are recomputable and deliberately not carried.
+    def __reduce__(self):
+        return (_restore_relation_face, (type(self), list(self), self.phi))
 
     @cached_property
     def overlap(self):
@@ -817,6 +829,16 @@ class NullRelations(Relations):
 
     def __len__(self):
         return 0
+
+    # NullRelations carries no state (it is always empty), so all instances
+    # are interchangeable: value equality, constant hash.
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, NullRelations):
+            return NotImplemented
+        return True
+
+    def __hash__(self) -> int:
+        return hash("pyphi.relations.NullRelations")
 
 
 class ConcreteRelations(frozenset, Relations):

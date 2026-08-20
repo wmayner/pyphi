@@ -1,5 +1,9 @@
+import copy
+import pickle
+
 import pytest
 
+import pyphi
 from pyphi import combinatorics
 from pyphi import config
 from pyphi import examples
@@ -9,6 +13,7 @@ from pyphi.formalism import iit3
 from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
+from test.conftest import IIT_3_CONFIG
 from test.conftest import IIT_4_CONFIG
 
 
@@ -205,6 +210,73 @@ def test_relation_face_orders_by_phi():
     assert lo == relations.RelationFace(["a"], phi=0.1)
     assert hash(lo) == hash(relations.RelationFace(["a"], phi=0.1))
     assert lo != hi
+
+
+def test_relation_face_pickle_and_copy_round_trip():
+    """RelationFace survives pickle, copy, and deepcopy with phi and contents
+    intact (frozenset's default reconstruction omits the required phi
+    keyword)."""
+    face = relations.RelationFace(["a", "b"], phi=0.9)
+    for restore in (
+        lambda x: pickle.loads(pickle.dumps(x)),
+        copy.copy,
+        copy.deepcopy,
+    ):
+        restored = restore(face)
+        assert type(restored) is relations.RelationFace
+        assert restored == face
+        assert restored.phi == 0.9
+
+
+@config.override(parallel=False)
+def test_ces_pickles_after_materializing_faces():
+    """Materializing relation faces (repr() or num_faces() does this) must not
+    make a Relation or its containing CES unpicklable."""
+    ces = pyphi.analyze(examples.basic_substrate(), (1, 0, 0), compute="ces")
+
+    rel = next(iter(ces.relations))
+    repr(rel)  # materializes the faces, phi, and purview cached properties
+    assert "faces" in rel.__dict__
+    restored_rel = pickle.loads(pickle.dumps(rel))
+    assert restored_rel == rel
+    assert restored_rel.phi == rel.phi
+    assert {f.phi for f in restored_rel.faces} == {f.phi for f in rel.faces}
+    assert copy.deepcopy(rel) == rel
+
+    ces.relations.num_faces()  # materializes faces on every relation
+    assert pickle.loads(pickle.dumps(ces)) == ces
+    assert copy.deepcopy(ces) == ces
+
+
+def test_null_relations_value_equality():
+    """All NullRelations instances compare equal with a consistent hash."""
+    a, b = relations.NullRelations(), relations.NullRelations()
+    assert a == b
+    assert (a != b) is False
+    assert hash(a) == hash(b)
+    # Other types are not equal to NullRelations.
+    assert a != relations.ConcreteRelations()
+
+
+@config.override(parallel=False)
+def test_iit3_ces_equality_and_save_load_round_trip(tmp_path):
+    """Two identical IIT 3.0 structures compare equal, and a save/load
+    round-trip compares equal to the original (both contain NullRelations,
+    which previously compared by identity)."""
+    from pyphi.system import System
+
+    substrate = examples.basic_substrate()
+    with IIT_3_CONFIG:
+        ces1 = iit3.ces(System(substrate, (1, 0, 0), substrate.node_indices))
+        ces2 = iit3.ces(System(substrate, (1, 0, 0), substrate.node_indices))
+        assert ces1 == ces2
+        assert hash(ces1) == hash(ces2)
+
+        path = tmp_path / "ces.json"
+        ces1.save(str(path))
+        loaded = type(ces1).load(str(path))
+        assert ces1 == loaded
+        assert hash(ces1) == hash(loaded)
 
 
 def test_relation_orders_by_phi():
