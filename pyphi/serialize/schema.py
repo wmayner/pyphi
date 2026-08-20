@@ -153,6 +153,7 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     signed_phi: PhiSchema | None = None
     selectivity: float | None = None
     reasons: tuple[str, ...] | None = None
+    signed_normalized_phi: float | None = None
 
 
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):

@@ -191,3 +191,45 @@ def test_mice_loads_without_tie_field_as_not_computed():
     restored = serialize.loads(json.dumps(data).encode(), format="json")
     assert restored._purview_ties is None
     assert np.isnan(restored.num_purview_ties)
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_ria_normalized_phi_survives_cross_formalism_reload(fmt):
+    """normalized_phi is stored, not recomputed from the ambient config.
+
+    The RIA constructor derives normalized phi from the live
+    ``distinction_phi_normalization`` option, so deserializing under a
+    different formalism used to silently change the value (e.g. an IIT 3.0
+    result reloaded under the 2026 default: 0.5 -> 0.1667).
+    """
+    from pyphi.conf import config
+    from pyphi.conf import presets
+
+    def make_discriminating_ria():
+        # A partition cutting 2 connections, so NUM_CONNECTIONS_CUT (the
+        # 2026 scheme) yields factor 1/2 while NONE (the IIT 3.0 scheme)
+        # yields 1 -- the two schemes must disagree for this test to have
+        # power against the recompute-from-ambient-config behavior.
+        return RepertoireIrreducibilityAnalysis(
+            phi=0.3,
+            direction=Direction.CAUSE,
+            mechanism=(0, 1),
+            purview=(1, 2),
+            partition=JointPartition(Part((0,), (1, 2)), Part((1,), ())),
+            repertoire=np.ones((1, 2, 2)) / 4,
+            partitioned_repertoire=np.ones((1, 2, 2)) / 4,
+            mechanism_state=(1, 0),
+            purview_state=(0, 1),
+        )
+
+    with config.override(**presets.iit3):
+        obj = make_discriminating_ria()
+        original = obj.normalized_phi
+        blob = serialize.dumps(obj, format=fmt)
+    with config.override(**presets.iit4_2026):
+        # The schemes disagree on this fixture; without the stored value the
+        # reload under the 2026 scheme would recompute a different number.
+        assert make_discriminating_ria().normalized_phi != original
+        restored = serialize.loads(blob, format=fmt)
+    assert restored.normalized_phi == original
+    assert restored.signed_normalized_phi == obj.signed_normalized_phi

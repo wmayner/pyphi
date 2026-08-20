@@ -372,6 +372,7 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
         signed_phi=_enc_optional(ria.signed_phi),
         selectivity=ria.selectivity,
         reasons=_enc_reasons(ria.reasons),
+        signed_normalized_phi=ria.signed_normalized_phi,
     )
 
 
@@ -395,6 +396,17 @@ def _decode_ria(struct: Any) -> Any:
         selectivity=struct.selectivity,
         reasons=_dec_reasons(struct.reasons),
     )
+    # The constructor recomputes normalized phi from the AMBIENT config's
+    # distinction_phi_normalization, which need not be the scheme the value
+    # was computed under. Restore the stored value instead; files written
+    # before the field existed (None) keep the recomputed fallback.
+    if struct.signed_normalized_phi is not None:
+        from pyphi import utils as _utils
+
+        instance._signed_normalized_phi = float(struct.signed_normalized_phi)
+        instance._normalized_phi = float(
+            _utils.positive_part(struct.signed_normalized_phi)
+        )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ria(p) for p in struct.partition_tie_peers)
         tied = (instance, *peers)
