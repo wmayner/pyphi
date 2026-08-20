@@ -380,3 +380,41 @@ def test_system_partition_schemes_yield_unique_cuts(scheme, n):
     parts = list(system_partition_types[scheme](tuple(range(n))))
     keys = [p.lex_key() for p in parts]
     assert len(keys) == len(set(keys))
+
+
+def test_directed_bipartition_of_one_single_element_yields_nothing():
+    """A single-element sequence has no bipartition with two nonempty parts,
+    so no cut exists; the empty-part (no-op) splits must not be yielded."""
+    from pyphi.partition import directed_bipartition_of_one
+
+    assert list(directed_bipartition_of_one((0,))) == []
+    # Multi-element sequences are unaffected.
+    assert list(directed_bipartition_of_one((0, 1))) == [((0,), (1,)), ((1,), (0,))]
+
+
+def test_directed_bipartition_cut_one_scheme_empty_for_single_node():
+    from pyphi.partition import system_partition_types
+
+    parts = list(system_partition_types["DIRECTED_BIPARTITION_CUT_ONE"]((0,)))
+    assert parts == []
+
+
+def test_edge_cut_schemes_marked_as_possibly_non_disconnecting():
+    """Both edge-cut schemes can yield cuts that leave the system strongly
+    connected, so SIA searches key the Eq. 14 disconnection filter on this
+    attribute."""
+    from pyphi.partition import system_partition_types
+
+    for scheme in ("EDGE_CUT_ALL", "EDGE_CUT_BIDIRECTIONAL"):
+        assert getattr(
+            system_partition_types[scheme], "may_yield_non_disconnecting_cuts", False
+        )
+    for scheme in (
+        "DIRECTED_BIPARTITION",
+        "DIRECTED_BIPARTITION_CUT_ONE",
+        "DIRECTED_BIPARTITION_SEQUENTIAL",
+        "DIRECTED_SET_PARTITION",
+    ):
+        assert not getattr(
+            system_partition_types[scheme], "may_yield_non_disconnecting_cuts", False
+        )

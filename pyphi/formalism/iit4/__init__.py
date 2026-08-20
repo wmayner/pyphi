@@ -33,6 +33,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.formalism import iit3
+from pyphi.formalism.queries import _never_shortcircuit
 from pyphi.labels import NodeLabels
 from pyphi.measures.distribution import DistanceResult
 from pyphi.measures.protocols import CompositeMeasure
@@ -60,8 +61,8 @@ from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
-from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
+from pyphi.partition import system_partition_types
 from pyphi.partition import system_partitions
 from pyphi.provenance import HasProvenance
 from pyphi.provenance import Provenance
@@ -932,6 +933,7 @@ def sia(
     partition_scheme = fallback(
         partition_scheme, config.formalism.iit.system_partition_scheme
     )
+    assert partition_scheme is not None, "system_partition_scheme config must be set"
 
     # TODO: trivial reducibility
 
@@ -974,7 +976,14 @@ def sia(
 
     if partitions is None:
         filter_func = None
-        if partition_scheme == "EDGE_CUT_ALL":
+        # Edge-cut schemes can yield cuts that leave the system strongly
+        # connected; Eq. 14 requires the MIP search to consider only
+        # disconnecting partitions.
+        if getattr(
+            system_partition_types[partition_scheme],
+            "may_yield_non_disconnecting_cuts",
+            False,
+        ):
 
             def is_disconnecting_partition(partition):
                 # Special case for length 1 systems so complete partition is included
@@ -1019,8 +1028,11 @@ def sia(
     if not isinstance(partitions, (list, tuple)):
         partitions = list(partitions)
 
-    cause_specs = _spec_candidates(system_state.cause)
-    effect_specs = _spec_candidates(system_state.effect)
+    # A direction with no specified state (not requested, or null) contributes
+    # a single ``None`` candidate so the cascade's Cartesian product ranges
+    # over the other direction's ties alone.
+    cause_specs = _spec_candidates(system_state.cause) or (None,)
+    effect_specs = _spec_candidates(system_state.effect) or (None,)
 
     # Eq. 23 (2026): each SIA is capped by ii(s) as soon as its MIP is
     # chosen — the MIP itself is selected on *uncapped* normalized φ (Eqs.
@@ -1119,7 +1131,14 @@ def _resolve_pair_sias(
         # among readings that exist. When every tied reading has φ_s = 0
         # the system is not a complex under any of them; nothing remains
         # for Φ to adjudicate, and the choice below is presentational.
-        if numerics.is_positive(float(per_pair_sias[tied_keys[0]].phi)):
+        # A single-direction analysis has no cause-effect structure, so Φ
+        # is undefined and the tie falls through to the canonical
+        # representative.
+        if (
+            numerics.is_positive(float(per_pair_sias[tied_keys[0]].phi))
+            and system_state.cause is not None
+            and system_state.effect is not None
+        ):
             winners, violation = _escalate_state_tie_to_composition(
                 system, per_pair_sias, tied_keys
             )
@@ -1165,7 +1184,16 @@ def _resolve_pair_sias(
         original_cause=system_state.cause,
         original_effect=system_state.effect,
     )
-    mip_sia.set_ties(tuple(per_pair_sias.values()))
+    # Only readings genuinely tied with the winner at φ_s are ties; the
+    # other evaluated specified-state readings lost the cascade outright.
+    # numerics: tolerant — same equality the cascade's argmax uses.
+    mip_sia.set_ties(
+        tuple(
+            pair_sia
+            for pair_sia in per_pair_sias.values()
+            if numerics.eq(float(pair_sia.phi), float(mip_sia.phi))
+        )
+    )
     return mip_sia
 
 
@@ -1242,8 +1270,8 @@ def sia_stride_search(
     )
     partitions = list(partitions)
     pairs = []
-    for c in _spec_candidates(system_state.cause):
-        for e in _spec_candidates(system_state.effect):
+    for c in _spec_candidates(system_state.cause) or (None,):
+        for e in _spec_candidates(system_state.effect) or (None,):
             key = (
                 c.state if c is not None else None,
                 e.state if e is not None else None,

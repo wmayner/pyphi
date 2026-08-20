@@ -39,7 +39,6 @@ from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import UnresolvedDistinctions
 from pyphi.models import _null_ria
 from pyphi.models.explanation import NullResultReason
-from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
 from pyphi.partition import mechanism_partitions
 
@@ -47,6 +46,17 @@ from .base import FORMALISM_REGISTRY
 
 if TYPE_CHECKING:
     from pyphi.system import System
+
+
+def _never_shortcircuit(_result: Any) -> bool:
+    """Predicate that never short-circuits a partition sweep.
+
+    Deliberately distinct from :func:`pyphi.parallel.false`: the parallel
+    backends collect results in completion order when no short-circuit
+    predicate is set, and MIP tie resolution requires the deterministic
+    enumeration order that an installed predicate preserves.
+    """
+    return False
 
 
 # ---- mechanism partition evaluation ----
@@ -163,6 +173,8 @@ def _find_mip_single_state(
                 purview,
                 phi=0,
                 specified_state=specified_state,
+                node_labels=cs.node_labels,
+                mechanism_state=_utils.state_of(mechanism, cs.state),
             ),
         )
     )
@@ -200,7 +212,14 @@ def find_mip(
     """Return the minimum information partition for a mechanism over a purview."""
 
     def null_mip(**kw: Any) -> Any:  # noqa: ARG001
-        return _null_ria(direction, mechanism, purview, specified_state=state)
+        return _null_ria(
+            direction,
+            mechanism,
+            purview,
+            specified_state=state,
+            node_labels=cs.node_labels,
+            mechanism_state=_utils.state_of(mechanism, cs.state),
+        )
 
     if not purview:
         return null_mip(reasons=(NullResultReason.EMPTY_PURVIEW,))
@@ -321,6 +340,8 @@ def find_mice(
             mechanism,
             (),
             reasons=(NullResultReason.NO_PURVIEWS,),
+            node_labels=cs.node_labels,
+            mechanism_state=_utils.state_of(mechanism, cs.state),
         )
     )
 
@@ -468,6 +489,8 @@ def distinction(
                 mechanism,
                 (),
                 reasons=(NullResultReason.OTHER_DIRECTION_REDUCIBLE,),
+                node_labels=cs.node_labels,
+                mechanism_state=_utils.state_of(mechanism, cs.state),
             )
         )
         return Concept(mechanism=mechanism, cause=cause, effect=effect)
@@ -480,6 +503,8 @@ def distinction(
                 mechanism,
                 (),
                 reasons=(NullResultReason.OTHER_DIRECTION_REDUCIBLE,),
+                node_labels=cs.node_labels,
+                mechanism_state=_utils.state_of(mechanism, cs.state),
             )
         )
         return Concept(mechanism=mechanism, cause=cause, effect=effect)

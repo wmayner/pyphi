@@ -171,3 +171,47 @@ def test_phi_skips_effect_mip_when_cause_phi_zero(sink_system, monkeypatch):
     result = queries.phi(sink_system, (2,), (0,))
     assert result == 0
     assert calls == []
+
+
+class TestNullMiceCarrySystemContext:
+    """Null MICEs from short-circuited (reducible) distinctions must carry
+    the system's node labels and mechanism state so display and export work
+    exactly as they do for fully evaluated distinctions."""
+
+    def _assert_displayable(self, distinction):
+        repr(distinction)
+        assert distinction.mechanism_label
+        distinction.to_pandas()
+        pyphi.serialize.dumps(distinction)
+
+    def test_effect_shortcircuited_distinction_displays(self):
+        from pyphi.conf import presets
+
+        with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
+            substrate = examples.basic_substrate()
+            system = System(substrate, (1, 0, 0), substrate.node_indices)
+            distinction = system.distinction((0, 1))
+        assert float(distinction.phi) == 0.0
+        assert distinction.cause.node_labels == distinction.effect.node_labels
+        self._assert_displayable(distinction)
+
+    def test_both_null_distinction_displays(self):
+        from pyphi.conf import presets
+
+        with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
+            substrate = examples.basic_substrate()
+            system = System(substrate, (0, 0, 0), substrate.node_indices)
+            distinction = system.distinction((0, 2))
+        assert float(distinction.phi) == 0.0
+        self._assert_displayable(distinction)
+
+    def test_null_mice_mechanism_state_matches_system_state(self):
+        from pyphi.conf import presets
+        from pyphi.utils import state_of
+
+        with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
+            substrate = examples.basic_substrate()
+            system = System(substrate, (1, 0, 0), substrate.node_indices)
+            distinction = system.distinction((0, 1))
+        expected = state_of((0, 1), system.state)
+        assert distinction.mechanism_state == expected

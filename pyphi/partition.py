@@ -212,7 +212,8 @@ def directed_bipartition_of_one(seq):
     -------
     Iterator[tuple[tuple, tuple]]
         An iterator over each ``(single, remainder)`` bipartition and its
-        reverse.
+        reverse. Bipartitions with an empty part are excluded, so a
+        single-element sequence yields nothing.
 
     Examples
     --------
@@ -224,8 +225,10 @@ def directed_bipartition_of_one(seq):
          ((2, 3), (1,)),
          ((1, 3), (2,)),
          ((1, 2), (3,))]
+    >>> list(directed_bipartition_of_one((1,)))
+    []
     """
-    bipartitions = list(bipartition_of_one(seq))
+    bipartitions = [b for b in bipartition_of_one(seq) if b[0] and b[1]]
     # For two elements the reversed splits coincide with the originals;
     # yield each bipartition once.
     seen = set()
@@ -892,6 +895,11 @@ def all_edge_cuts(
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
 
+# Single-edge cuts need not disconnect the system, so SIA searches must
+# filter these schemes' output to disconnecting cuts (IIT 4.0 Eq. 14).
+all_edge_cuts.may_yield_non_disconnecting_cuts = True  # pyright: ignore[reportFunctionMemberAccess, reportAttributeAccessIssue]
+
+
 def num_edge_cuts(n: int) -> int:
     """Return the number of possible edge cuts on ``n`` nodes."""
     return 2 ** (n**2 - n)
@@ -906,6 +914,9 @@ def bidirectional_edge_cuts(
     yield CompleteEdgeCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
+
+
+bidirectional_edge_cuts.may_yield_non_disconnecting_cuts = True  # pyright: ignore[reportFunctionMemberAccess, reportAttributeAccessIssue]
 
 
 def _directed_set_partitions(
