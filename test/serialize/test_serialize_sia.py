@@ -3,6 +3,7 @@ import json
 import pytest
 
 from pyphi import serialize
+from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.direction import Direction
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.formalism.iit4 import SystemIrreducibilityAnalysis
@@ -106,8 +107,7 @@ def test_iit4_sia_round_trips(fmt):
     restored = round_trip(obj, fmt)
     assert restored == obj
     assert type(restored) is SystemIrreducibilityAnalysis
-    # config degrades to a plain dict, matching the prior serializer.
-    assert isinstance(restored.config, dict)
+    assert isinstance(restored.config, ConfigSnapshot)
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
@@ -232,9 +232,8 @@ def test_iit3_sia_preserves_config_and_provenance(fmt):
             current_state=(1, 0),
         )
     restored = round_trip(obj, fmt)
-    # config degrades to a plain dict, matching the IIT4 decoder.
-    assert isinstance(restored.config, dict)
-    assert restored.config["formalism"]["iit"]["version"] == "IIT_3_0"
+    assert isinstance(restored.config, ConfigSnapshot)
+    assert restored.config.formalism.iit.version == "IIT_3_0"
     # provenance is the saved one, not freshly captured at load time.
     assert restored.provenance == obj.provenance
 

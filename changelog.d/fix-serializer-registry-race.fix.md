@@ -1,0 +1,1 @@
+Fixed a race in the serializer's first-use type registration: a thread that started serializing while another thread was still registering the serializable types could fail with `TypeError: No serializer registered for ...`. Registration is now atomic to concurrent observers.

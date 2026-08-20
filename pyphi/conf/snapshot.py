@@ -7,6 +7,7 @@ global doesn't change the snapshot's view of what produced the result.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from dataclasses import fields
 from typing import Any
@@ -79,6 +80,32 @@ class ConfigSnapshot:
             for f in fields(sub):
                 result[f"{sub_name}.{f.name}"] = getattr(sub, f.name)
         return result
+
+    @classmethod
+    def from_builtins(cls, data: Mapping[str, Any]) -> ConfigSnapshot:
+        """Rehydrate a snapshot from its plain-builtins (dict) form.
+
+        Inverse of ``msgspec.to_builtins`` on a snapshot, as used by the
+        serialization layer. Unknown field names are ignored and missing
+        fields take their defaults, so payloads written by other PyPhi
+        versions still load.
+        """
+
+        def build(layer_cls: type, layer_data: Mapping[str, Any]) -> Any:
+            names = {f.name for f in fields(layer_cls)}
+            return layer_cls(**{k: v for k, v in layer_data.items() if k in names})
+
+        formalism_data = data.get("formalism", {})
+        return cls(
+            formalism=FormalismConfig(
+                iit=build(IITConfig, formalism_data.get("iit", {})),
+                actual_causation=build(
+                    ActualCausationConfig, formalism_data.get("actual_causation", {})
+                ),
+            ),
+            infrastructure=build(InfrastructureConfig, data.get("infrastructure", {})),
+            numerics=build(NumericsConfig, data.get("numerics", {})),
+        )
 
     def as_kwargs(self) -> dict[str, Any]:
         """Return a flat dict suitable for ``pyphi.config.override(**snap.as_kwargs())``.

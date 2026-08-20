@@ -5,8 +5,10 @@ decoder. Each serializable type adds one ``_register_<type>()`` populating both
 registries, invoked on first use via ``_ensure_registered()``.
 """
 
+import ast
 import contextvars
 import math
+import threading
 from collections.abc import Callable
 from typing import Any
 
@@ -444,11 +446,17 @@ def _mice_struct_cls(mice: Any) -> Any:
 
 def _encode_mice(mice: Any, struct_cls: Any, *, include_peers: bool = True) -> Any:
     # Purview ties are tri-state: None = never computed; () = computed with
-    # no ties; otherwise the tied peers excluding this MICE, each encoded
-    # with its own tie field suppressed (the shared tie tuple contains this
-    # MICE, so recursing into peers' ties would never terminate).
+    # no ties; otherwise the tie tuple's members excluding this MICE, each
+    # encoded with its own tie field suppressed (a member's tie tuple
+    # contains it, so recursing into peers' ties would never terminate).
+    # A MICE need not be a member of its own tie tuple (state- and
+    # partition-tie MICE carry the winner's tuple), so membership is stored
+    # alongside the peers: the decoder prepends the instance only when it
+    # was a member.
     peers: tuple | None = None
+    member = True
     if mice._purview_ties is not None:
+        member = any(t is mice for t in mice._purview_ties)
         peers = (
             tuple(
                 _encode_mice(t, _mice_struct_cls(t), include_peers=False)
@@ -462,6 +470,7 @@ def _encode_mice(mice: Any, struct_cls: Any, *, include_peers: bool = True) -> A
         ria=to_schema(mice.ria),
         purview_margin=_enc_optional(mice.purview_margin),
         purview_tie_peers=peers,
+        purview_tie_member=member,
     )
 
 
@@ -471,7 +480,7 @@ def _decode_mice(cls: type, struct: Any) -> Any:
         instance._purview_ties = None
     else:
         peers = tuple(from_schema(p) for p in struct.purview_tie_peers)
-        tied = (instance, *peers)
+        tied = (instance, *peers) if struct.purview_tie_member else peers
         instance._purview_ties = tied
         for peer in peers:
             peer._purview_ties = tied
@@ -650,7 +659,7 @@ def _decode_iit3_sia(struct: Any) -> Any:
         current_state=_opt_tuple(struct.current_state),
         runner_up=_dec_runner_up(struct.runner_up),
         reasons=_dec_reasons(struct.reasons),
-        config=struct.config,
+        config=_dec_config(struct.config),
         provenance=_dec_optional(struct.provenance),
     )
     if struct.tie_peers:
@@ -720,13 +729,44 @@ def _dec_runner_up(struct: Any) -> Any:
     return RunnerUp(partition=from_schema(struct.partition), phi=from_schema(struct.phi))
 
 
+def _config_enc_hook(obj: Any) -> Any:
+    # The only non-builtin values in the config layers are the FrozenMap
+    # parallel-evaluation mappings; store them as plain dicts so they
+    # round-trip. Anything else is a lossy encode — fail loudly.
+    from collections.abc import Mapping as _Mapping
+
+    if isinstance(obj, _Mapping):
+        return dict(obj)
+    raise TypeError(
+        f"config field of type {type(obj).__name__} cannot be serialized losslessly"
+    )
+
+
 def _enc_config(config: Any) -> Any:
     if config is None:
         return None
-    # ConfigSnapshot is a nested frozen-dataclass tree; encode to plain builtins
-    # (config-as-Struct is out of scope, and decode keeps the dict form, which
-    # matches the prior serializer's behaviour).
-    return msgspec.to_builtins(config, enc_hook=str)
+    # ConfigSnapshot is a nested frozen-dataclass tree; encode to plain
+    # builtins (config-as-Struct is out of scope).
+    return msgspec.to_builtins(config, enc_hook=_config_enc_hook)
+
+
+def _dec_config(data: Any) -> Any:
+    if data is None:
+        return None
+    from pyphi.conf.snapshot import ConfigSnapshot
+
+    # Payloads written by earlier 2.0 builds stored the FrozenMap
+    # parallel-evaluation mappings as their repr strings; recover them.
+    infra = data.get("infrastructure")
+    if infra:
+        for key, value in infra.items():
+            if (
+                isinstance(value, str)
+                and value.startswith("FrozenMap(")
+                and value.endswith(")")
+            ):
+                infra[key] = ast.literal_eval(value[len("FrozenMap(") : -1])
+    return ConfigSnapshot.from_builtins(data)
 
 
 def _iit4_sia_struct_cls(sia: Any) -> Any:
@@ -782,7 +822,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "reasons": _dec_reasons(struct.reasons),
         "signed_phi": _dec_optional(struct.signed_phi),
         "signed_normalized_phi": _dec_optional(struct.signed_normalized_phi),
-        "config": struct.config,
+        "config": _dec_config(struct.config),
         "provenance": _dec_optional(struct.provenance),
         "partition_margin": _dec_optional(struct.partition_margin),
         "runner_up": _dec_runner_up(struct.runner_up),
@@ -926,7 +966,7 @@ def _decode_ces(struct: Any, domain_cls: Any) -> Any:
         sia=from_schema(struct.sia),
         distinctions=distinctions,
         relations=relations,
-        config=struct.config,
+        config=_dec_config(struct.config),
         provenance=_dec_optional(struct.provenance),
     )
 
@@ -1209,7 +1249,7 @@ def _decode_ac_sia(struct: Any) -> Any:
         effect_indices=_opt_tuple(struct.effect_indices),
         node_labels=_dec_labels(struct.node_labels),
         reasons=_dec_reasons(struct.reasons),
-        config=struct.config,
+        config=_dec_config(struct.config),
         provenance=_dec_optional(struct.provenance),
     )
     if struct.tie_peers:
@@ -1613,6 +1653,7 @@ def _register_optimization_result() -> None:
 
 
 _REGISTERED = False
+_REGISTRATION_LOCK = threading.Lock()
 
 
 def _ensure_registered() -> None:
@@ -1621,11 +1662,22 @@ def _ensure_registered() -> None:
     Registration imports the domain modules; deferring it to the first
     ``to_schema``/``from_schema`` call keeps ``import pyphi.serialize`` free of
     domain imports (and free of import cycles).
+
+    Registration is atomic to observers: the flag is set only after every
+    registration has run, under a lock (double-checked), so a concurrent
+    caller never sees a partially populated registry.
     """
     global _REGISTERED  # noqa: PLW0603
     if _REGISTERED:
         return
-    _REGISTERED = True
+    with _REGISTRATION_LOCK:
+        if _REGISTERED:
+            return
+        _do_register()
+        _REGISTERED = True
+
+
+def _do_register() -> None:
     _register_direction()
     _register_distance_result()
     _register_node_labels()

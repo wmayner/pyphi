@@ -160,18 +160,25 @@ class MICESchema(msgspec.Struct, frozen=True, tag="mice"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
     purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
+    # Whether the MICE is itself a member of its purview-tie tuple (a
+    # state- or partition-tie MICE carries the winner's tuple without
+    # being a member). Defaults True for payloads written before the field
+    # existed.
+    purview_tie_member: bool = True
 
 
 class MICECauseSchema(msgspec.Struct, frozen=True, tag="mice_cause"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
     purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
+    purview_tie_member: bool = True
 
 
 class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
     purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
+    purview_tie_member: bool = True
 
 
 MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema

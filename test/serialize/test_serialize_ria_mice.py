@@ -153,6 +153,53 @@ def test_mice_preserves_purview_ties(fmt):
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_nonmember_tie_tuple_round_trips(fmt):
+    # set_purview_ties assigns the winner's tie tuple to state- and
+    # partition-tie MICE that are not members of it; the round trip must
+    # preserve the tuple instead of grafting the non-member in.
+    winner = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    other = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    other._purview_ties = (winner,)  # `other` is not a member
+    assert other.num_purview_ties == 0
+    restored = round_trip(other, fmt)
+    assert restored.num_purview_ties == 0
+    assert len(restored._purview_ties) == 1
+    assert all(t is not restored for t in restored._purview_ties)
+
+
+def test_ces_purview_tie_counts_survive_round_trip():
+    # End-to-end: in the basic system under the 2023 preset, the (2,) cause
+    # carries the winner's tie tuple without being a member of it; its
+    # num_purview_ties must not change from 0 to 1 across save/load.
+    import pyphi
+    from pyphi import examples
+    from pyphi.conf import presets
+
+    with pyphi.config.override(**presets.iit4_2023):
+        ces = examples.basic_system().ces()
+    restored = round_trip(ces, "msgpack")
+    checked_nonmember = False
+    for d, d2 in zip(ces.distinctions, restored.distinctions, strict=True):
+        for side in ("cause", "effect"):
+            m = getattr(d, side)
+            m2 = getattr(d2, side)
+            if m._purview_ties is None:
+                assert m2._purview_ties is None
+                continue
+            assert len(m2._purview_ties) == len(m._purview_ties), (
+                d.mechanism,
+                side,
+            )
+            assert m2.num_purview_ties == m.num_purview_ties, (d.mechanism, side)
+            if not any(t is m for t in m._purview_ties):
+                checked_nonmember = True
+    assert checked_nonmember, (
+        "fixture no longer exercises a non-member tie tuple; "
+        "pick a scenario where set_purview_ties assigns the winner's tuple"
+    )
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
 def test_mice_not_computed_ties_round_trip(fmt):
     obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
     assert obj._purview_ties is None

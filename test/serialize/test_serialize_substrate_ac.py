@@ -7,6 +7,7 @@ from pyphi import actual
 from pyphi import examples
 from pyphi import serialize
 from pyphi.actual import Transition
+from pyphi.conf.snapshot import ConfigSnapshot
 from pyphi.direction import Direction
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.models.complex import Complex
@@ -174,7 +175,7 @@ def test_ac_sia_preserves_reasons_ties_config_provenance(fmt):
     assert restored.reasons == [NullResultReason.NO_SYSTEM]
     peers = [p for p in restored.ties if p is not restored]
     assert len(peers) == 1
-    assert isinstance(restored.config, dict)
+    assert isinstance(restored.config, ConfigSnapshot)
     assert restored.provenance == a.provenance
 
 
