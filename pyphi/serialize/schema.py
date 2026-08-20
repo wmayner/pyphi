@@ -237,8 +237,10 @@ class MacroUnitSchema(msgspec.Struct, frozen=True, tag="macro_unit"):
 
 class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candidate"):
     node_indices: tuple[int, ...]
-    phi: float
+    phi: float | None
     units: tuple[MacroUnitSchema, ...] | None = None
+    ii_ceiling: float | None = None
+    gated: bool = False
 
 
 class RunnerUpSchema(msgspec.Struct, frozen=True, tag="runner_up"):

@@ -104,6 +104,25 @@ def test_complex_round_trips(fmt):
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
+def test_excluded_candidate_round_trips_gated_and_certified(fmt):
+    """Gated candidates (phi=None) from the certified prune must serialize,
+    and the certification record (ii_ceiling, gated) must survive the
+    round-trip -- for both gated and measured candidates.
+    """
+    gated = ExcludedCandidate((0, 1), None, ii_ceiling=0.25, gated=True)
+    restored = round_trip(gated, fmt)
+    assert restored == gated
+    assert restored.phi is None
+    assert restored.gated is True
+    assert restored.ii_ceiling == 0.25
+
+    measured = ExcludedCandidate((0, 1), 0.1, ii_ceiling=0.5)
+    restored = round_trip(measured, fmt)
+    assert restored == measured
+    assert restored.ii_ceiling == 0.5
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
 def test_kary_substrate_round_trips(fmt):
     obj = examples.gomez_p53_mdm2_substrate()  # ternary p53 + binary Mdm2 units
     restored = round_trip(obj, fmt)

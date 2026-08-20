@@ -593,11 +593,17 @@ def _register_excluded_candidate() -> None:
 
     _ENCODERS[ExcludedCandidate] = lambda e: schema.ExcludedCandidateSchema(
         node_indices=tuple(e.node_indices),
-        phi=float(e.phi),
+        phi=float(e.phi) if e.phi is not None else None,
         units=_encode_optional_units(e.units),
+        ii_ceiling=float(e.ii_ceiling) if e.ii_ceiling is not None else None,
+        gated=e.gated,
     )
     _DECODERS[schema.ExcludedCandidateSchema] = lambda s: ExcludedCandidate(
-        s.node_indices, s.phi, units=_decode_optional_units(s.units)
+        s.node_indices,
+        s.phi,
+        units=_decode_optional_units(s.units),
+        ii_ceiling=s.ii_ceiling,
+        gated=s.gated,
     )
 
 

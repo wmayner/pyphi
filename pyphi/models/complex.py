@@ -105,7 +105,8 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
             return False
         if self.phi is not None:
             assert other.phi is not None
-            return numerics.eq(self.phi, other.phi)
+            if not numerics.eq(self.phi, other.phi):
+                return False
         if (self.ii_ceiling is None) != (other.ii_ceiling is None):
             return False
         if self.ii_ceiling is None:
