@@ -121,6 +121,15 @@ class MacroSystem(System):
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, MacroSystem):
+            # A plain System over the macro substrate is a different analysis
+            # (the macro construction overrides the cause TPM), so it is never
+            # equal. Returning NotImplemented here would fall back to
+            # System.__eq__, which compares only the shared fields and reports
+            # equality with a different hash and a different phi. Python tries
+            # the subclass's __eq__ first in both comparison directions, so
+            # answering False here keeps the comparison symmetric.
+            if isinstance(other, System):
+                return False
             return NotImplemented
         return (
             self.micro_substrate == other.micro_substrate

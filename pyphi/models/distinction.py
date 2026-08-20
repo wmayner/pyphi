@@ -304,6 +304,20 @@ class Distinction(
             raise ValueError("Inconsistent cause and effect node labels!")
         return self.cause.node_labels
 
+    def _specified_state_keys(self) -> tuple:
+        """Strict-equality key for the specified cause/effect purview states.
+
+        ``None`` where a MICE (or its state specification) is absent, e.g.
+        on null distinctions.
+        """
+
+        def key(mice: Any) -> tuple[int, ...] | None:
+            spec = getattr(mice, "specified_state", None) if mice is not None else None
+            state = getattr(spec, "state", None) if spec is not None else None
+            return None if state is None else tuple(int(unit) for unit in state)
+
+        return (key(self.cause), key(self.effect))
+
     def __eq__(self, other: object) -> bool:  # noqa: PLR0911
         if not isinstance(other, Distinction):
             return NotImplemented
@@ -314,6 +328,13 @@ class Distinction(
         if self.cause_purview != other.cause_purview:
             return False
         if self.effect_purview != other.effect_purview:
+            return False
+        # The specified purview states are part of a distinction's identity:
+        # two readings of the same purview specifying different states carry
+        # different cause-effect power (they support different relations and
+        # different structure Phi), matching the RIA layer, which compares
+        # and hashes its specified state.
+        if self._specified_state_keys() != other._specified_state_keys():
             return False
         if not numerics.eq(self.phi, other.phi):
             return False
@@ -331,6 +352,7 @@ class Distinction(
                 self.mechanism_state,
                 self.cause_purview,
                 self.effect_purview,
+                self._specified_state_keys(),
             )
         )
 
@@ -342,54 +364,6 @@ class Distinction(
         return all(
             self.mice(direction).is_congruent(system_state[direction])  # type: ignore[union-attr]
             for direction in Direction.both()
-        )
-
-    def resolve_congruence(self, system_state):
-        """Select the cause and effect MICEs congruent with the SIA's
-        system-level specified cause-effect state.
-
-        For each direction, applies the distinction cascade per
-        Albantakis et al. 2023 S1 Text over every tied reading:
-        congruence with the system state is required (a non-congruent
-        reading cannot enter the structure), ties among congruent
-        readings resolve to the largest purview (the Composition appeal:
-        it supports the most relations with other distinctions), and
-        residual ties resolve by the Determinism convention. Returns
-        ``None`` when no congruent reading exists in either direction.
-        """
-        from pyphi.resolve_ties import ResolutionContext
-        from pyphi.resolve_ties import resolve_distinction_tie
-
-        context = ResolutionContext(max_escalation_level="Determinism")
-        winners: dict[Direction, Any] = {}
-        chosen: dict[Direction, Any] = {}
-        for direction in Direction.both():
-            mice = self.mice(direction)
-            if mice is None:
-                return None
-            winners[direction] = mice
-            chosen[direction] = resolve_distinction_tie(
-                state_ties=mice.state_ties,
-                purview_ties=mice.purview_ties,
-                system_state_spec=system_state[direction],
-                context=context,
-            )
-        if chosen[Direction.CAUSE] is None or chosen[Direction.EFFECT] is None:
-            return None
-        for direction in Direction.both():
-            winner = winners[direction]
-            selected = chosen[direction]
-            # The purview-selection margin describes the purview choice and is
-            # shared across the tie set at the winning purview's φ; congruence
-            # may select a tied peer that never carried the winner's margin, so
-            # propagate it. The partition and state margins belong to the peer's
-            # own RIA and are already correct.
-            if selected is not winner and selected.purview_margin is None:
-                selected.purview_margin = winner.purview_margin
-        return type(self)(
-            mechanism=self.mechanism,
-            cause=chosen[Direction.CAUSE],
-            effect=chosen[Direction.EFFECT],
         )
 
     def eq_repertoires(self, other):
