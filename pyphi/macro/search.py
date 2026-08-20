@@ -277,19 +277,17 @@ def _evaluate_one(item) -> float:
 
     ``system_state`` may be ``None``; when given, it is the precomputed
     intrinsic-information state specification, forwarded to ``sia`` so
-    it is not recomputed. The inner ``sia`` is forced sequential so
-    search-level parallelism stays one process-pool deep (nested pools
-    merely oversubscribe). This runs only on the parallel-dispatch
-    path; the in-process path of :func:`_evaluate_systems` leaves
-    ``sia`` under the ambient config, preserving per-evaluation
-    partition parallelism.
+    it is not recomputed. The inner ``sia`` runs sequentially: the
+    dispatcher enters ``config.override(parallel=False)`` around the
+    ``map_reduce`` call (see :func:`_evaluate_systems`), so process
+    workers inherit it via the config snapshot and thread workers see
+    the parent's single override — the worker body itself must not open
+    an override, since concurrent enter/exit pairs on the thread
+    backend would interleave on the shared global config.
     """
-    from pyphi.conf import config as _config
-
     system, system_state = item
     kwargs = {} if system_state is None else {"system_state": system_state}
-    with _config.override(parallel=False):
-        return float(system.sia(**kwargs).phi)
+    return float(system.sia(**kwargs).phi)
 
 
 def _evaluate_systems(systems, memo, parallel_kwargs=None, system_states=None) -> None:
@@ -327,11 +325,20 @@ def _evaluate_systems(systems, memo, parallel_kwargs=None, system_states=None) -
         pkwargs["ordered"] = True
         pkwargs["total"] = len(pending)
         pkwargs.setdefault("desc", "Evaluating macro systems")
-        phis = map_reduce(
-            _evaluate_one,
-            [(system, states.get(system)) for system in pending],
-            **pkwargs,
-        )
+        # Force the inner ``sia`` calls sequential so search-level
+        # parallelism stays one pool deep (nested pools merely
+        # oversubscribe). The override is entered once here, after the
+        # dispatch decision: process workers inherit it through the
+        # config snapshot captured at dispatch, and thread workers read
+        # the parent's live config directly. Opening the override inside
+        # each worker body instead would interleave enter/exit pairs on
+        # the shared global under the thread backend.
+        with _config.override(parallel=False):
+            phis = map_reduce(
+                _evaluate_one,
+                [(system, states.get(system)) for system in pending],
+                **pkwargs,
+            )
     else:
         phis = []
         for system in pending:
@@ -404,12 +411,10 @@ def _ii_ceiling(system):
 
 
 def _ceiling_one(system):
-    """Worker entry: the ceiling of one system, inner computation
-    sequential (mirrors :func:`_evaluate_one`)."""
-    from pyphi.conf import config as _config
-
-    with _config.override(parallel=False):
-        return _ii_ceiling(system)
+    """Worker entry: the ceiling of one system. The inner computation is
+    sequential via the dispatcher's override (mirrors
+    :func:`_evaluate_one`)."""
+    return _ii_ceiling(system)
 
 
 def _compute_ceilings(systems, ceilings, parallel_kwargs=None) -> None:
@@ -438,7 +443,9 @@ def _compute_ceilings(systems, ceilings, parallel_kwargs=None) -> None:
         pkwargs["ordered"] = True
         pkwargs["total"] = len(pending)
         pkwargs.setdefault("desc", "Computing ii ceilings")
-        results = map_reduce(_ceiling_one, pending, **pkwargs)
+        # Single parent-side override; see the note in _evaluate_systems.
+        with _config.override(parallel=False):
+            results = map_reduce(_ceiling_one, pending, **pkwargs)
     else:
         results = [_ii_ceiling(system) for system in pending]
     for system, result in zip(pending, results, strict=True):

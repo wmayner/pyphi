@@ -206,6 +206,18 @@ class _GlobalConfig:
         (``formalism.iit.version``). Unknown names raise
         :class:`ConfigurationError`.
 
+        Warning
+        -------
+        Overrides are **process-global, not thread-local**: there is one
+        configuration object per process, and entering an override changes
+        what *every* thread in the process reads until it exits. Code in
+        another thread that computes concurrently with an active override
+        silently runs under the overridden values. Do not run concurrent
+        computations under different configurations in threads of one
+        process; use separate processes instead. (PyPhi's own process-based
+        parallel backends are unaffected — each worker process receives an
+        explicit config snapshot.)
+
         Notes
         -----
         The context object is a plain class, not a generator: an override

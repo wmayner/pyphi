@@ -100,6 +100,16 @@ This is the safest way to run a computation under non-default settings: the
 previous configuration is restored even if the block raises. It nests, and
 it accepts any number of options at once.
 
+```{warning}
+Overrides apply to the whole process, not just the current thread. There is
+one configuration object per Python process, so while an override is active,
+every thread reads the overridden values — a computation running concurrently
+in another thread will silently use them. To run computations under different
+configurations at the same time, use separate processes. PyPhi's own
+process-based parallel backends are unaffected: each worker process receives
+its own copy of the configuration.
+```
+
 ## Presets
 
 A preset is a bundle of options that reproduces the settings of a specific
