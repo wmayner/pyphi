@@ -284,6 +284,27 @@ def test_numpy_aware_eq_sets():
     assert not eq({1, 2, 3}, (1, 2, 3))
 
 
+def test_numpy_aware_eq_mappings():
+    """Mappings compare by key set and values, not by zipping keys positionally.
+
+    Iterating a dict yields keys, so the positional-zip branch would compare
+    keys only and never look at values: two dicts with identical keys but
+    different values would compare equal, and two equal dicts with different
+    insertion order would compare unequal.
+    """
+    eq = models.cmp.numpy_aware_eq
+    # Same keys, different values: must be unequal.
+    assert not eq({"x": 1, "y": 2}, {"x": 1, "y": 3})
+    # Equal contents, different insertion order: must be equal.
+    assert eq({"x": 1, "y": 2}, {"y": 2, "x": 1})
+    # Values compared recursively (arrays and tolerant floats).
+    assert eq({"a": np.ones(3), "b": 1.0}, {"a": np.ones(3), "b": 1.0 + 1e-15})
+    assert not eq({"a": np.ones(3)}, {"a": np.zeros(3)})
+    # Different key sets, and mapping vs non-mapping, are unequal.
+    assert not eq({"x": 1}, {"y": 1})
+    assert not eq({"x": 1}, [("x", 1)])
+
+
 def test_numpy_aware_eq_array_within_tolerance():
     """Arrays differing by ~1e-15 (op-order noise) compare equal."""
     a_ = np.ones(3)

@@ -5,6 +5,7 @@ import functools
 import math
 from collections.abc import Callable
 from collections.abc import Iterable
+from collections.abc import Mapping
 from typing import Any
 from typing import TypeVar
 
@@ -131,7 +132,8 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
     leaves compared up to ``EQUALITY_TOLERANCE``.
 
     Arrays compare via :func:`numpy.allclose`; float scalars via
-    :func:`math.isclose`; sets and frozensets by set equality; other ordered
+    :func:`math.isclose`; sets and frozensets by set equality; mappings by
+    key-set equality with values compared recursively; other ordered
     iterables element-wise; remaining types via ``==``. Shape-mismatched or
     non-numeric arrays compare unequal rather than raising.
     """
@@ -146,6 +148,15 @@ def numpy_aware_eq(a: Any, b: Any) -> bool:  # noqa: PLR0911
     # equality (which delegates element comparison to the elements' own ``__eq__``).
     if isinstance(a, (set, frozenset)) or isinstance(b, (set, frozenset)):
         return a == b
+    # Mappings iterate over keys, so the positional ``zip`` below would compare
+    # keys only and ignore values entirely; compare keys by set equality and
+    # values recursively.
+    if isinstance(a, Mapping) or isinstance(b, Mapping):
+        if not (isinstance(a, Mapping) and isinstance(b, Mapping)):
+            return False
+        if set(a.keys()) != set(b.keys()):
+            return False
+        return all(numpy_aware_eq(value, b[key]) for key, value in a.items())
     if (
         (isinstance(a, Iterable) and isinstance(b, Iterable))
         and not isinstance(a, str)
