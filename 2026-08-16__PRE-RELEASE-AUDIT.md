@@ -1363,3 +1363,44 @@ proxy understated Φ in 145 swept cases (up to ~13%), two of which are now
 pinned as regression tests. The temporal directed-bipartition schemes were
 retired in the same wave (direction was read by no evaluation path;
 verified statically and on 28 mirrored pairs).
+
+# Third fix wave (2026-08-19, worktree on the audit branch)
+
+Step-1 decision (user, an author of the paper): the Fig 6D / 7B published-figure
+pins are superseded by the S1-faithful values. The published values embed the old
+enumeration-order tie resolution (relabeling-dependent, F9/F12) and are
+sub-maximal under the S1 supplement's own rule; phi_s and the distinction counts
+match the figures exactly. New pins: Fig 6D Phi = 12395 (published 11452);
+Fig 7B n_r = 13498, Phi = 19.32 (published 13111, 18.55). A note to Larissa about
+the deviation remains to be drafted/sent.
+
+Confirmed-defect fixes, each with a regression test that fails on revert:
+
+- **numpy_aware_eq mapping bug** (`pyphi/models/cmp.py`): dicts compared by
+  zipping keys positionally — same keys / different values compared equal.
+  Mappings now compare by key set with values compared recursively.
+- **TransitionSystem.save() data loss** (`pyphi/actual.py`, `pyphi/serialize/`):
+  save was delegated to the underlying System, so load returned a System.
+  TransitionSystem now has its own schema and round-trips faithfully.
+- **pyphi_config_3.0.yml** unloadable (retired `parallel_concept_evaluation`
+  field) and drifted from the preset. Rewritten as an exact mirror of
+  `presets.by_name["IIT_3_0"]`; a test loads the file and asserts layer equality.
+- **F11** (`analyze()` AttributeError 'normalized_phi' on a validator-approved
+  partial IIT 3.0 config): formalisms now declare
+  `compatible_sia_tie_strategies`; incompatible SIA tie strategies are rejected
+  with a ConfigurationError both eagerly (override/load_yaml constraint) and at
+  the IIT3 dispatch boundary (catches per-field-assignment configs). Two test
+  files were themselves using the forbidden partial-pin pattern and were caught
+  by the new constraint; both now pin the complete preset.
+- **Realization enforcement vs the disjunction_conjunction example — already
+  resolved on this branch**: the current check enforces exactly the paper's
+  Realization axiom, p(after | before) > 0, and no longer requires the
+  before-state itself to be reachable (that stricter subsystem-reachability
+  check was removed with the AC background rework; see the comment in
+  `TransitionSystem.__post_init__`). Verified with both controls: the paper's
+  own transitions construct and account (including an unreachable before-state),
+  and an impossible transition still raises TransitionUnreachableError. A
+  regression test pins this.
+
+Still open from step 2: `config.override()` process-globality (user deciding
+between a contextvars fix and a documented limitation).
