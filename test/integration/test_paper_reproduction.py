@@ -34,13 +34,15 @@ Currently covered
   Abcdef: 6A's bottleneck complex Ab (phi_s=0.05, Phi=0.48) and monads;
   6B's three modules (phi_s 0.53/0.45/0.45); 6C's copy-ring (phi_s=1.74,
   Phi=7.65, relation sum via analytical relations); 6D's specialized lattice
-  (phi_s=1.05, 27 distinctions, Phi=11452); and 6E's exclusion (Abef complex
+  (phi_s=1.05, 27 distinctions; Phi deviates from the published 11452 -- see the
+  test docstring); and 6E's exclusion (Abef complex
   phi_s=0.27 excludes the less-irreducible full system, phi_s=0.15).
 * **IIT 4.0 (2023), Fig 7 -- "state-dependence".** The 5-unit substrate
   (``pyphi.examples.iit4_2023_fig7_substrate``) across all three panels: (A) E
   active, state ABcdE (phi_s=1.1, 23 distinctions, 13740 relations, Phi=22.26);
-  (B) E inactive, state ABcde (phi_s=1.31, 23 distinctions, 13111 relations,
-  Phi=18.55); and (C) E *inactivated* -- frozen out of the dynamics
+  (B) E inactive, state ABcde (phi_s=1.31, 23 distinctions; relation count and
+  Phi deviate from the published figure -- see ``_FIG7_PANELS``); and (C) E
+  *inactivated* -- frozen out of the dynamics
   (``iit4_2023_fig7_inactivated_substrate``), the complex shrinking to {A,B,C,D}
   (phi_s=0.11, 14 distinctions, 363 relations, Phi=3.35). Inactivation is a
   lesion, distinct from holding a unit as a background condition.
@@ -519,9 +521,16 @@ def test_iit4_2023_fig6d_specialized(_iit4_2023):
     """Fig 6D (specialized lattice).
 
     The full 6-unit system is the complex: phi_s = 1.05, with 27 distinctions and
-    over 1.5 million relations. Its Phi = 11452 ibits -- the relation sum is
-    computed analytically (Albantakis et al. 2023, S3), as for Fig 6C, rather than
-    by enumerating the >1.5M concrete relations.
+    over 1.5 million relations. The relation sum is computed analytically
+    (Albantakis et al. 2023, S3), as for Fig 6C, rather than by enumerating the
+    >1.5M concrete relations.
+
+    The published figure reports Phi = 11452 ibits; PyPhi computes 12395. The
+    published value embeds an enumeration-order resolution of tied distinction
+    cause-effect states, which is relabeling-dependent and sub-maximal under the
+    S1 supplement's own rule (select the reading that maximizes Phi). PyPhi
+    resolves the ties by joint Phi-maximization, which finds a strictly larger
+    structure; phi_s and the distinction count match the figure exactly.
     """
     system = System(
         examples.iit4_2023_fig6d_substrate(),
@@ -535,16 +544,22 @@ def test_iit4_2023_fig6d_specialized(_iit4_2023):
     assert len(distinctions) == 27
     sum_phi_d = sum(float(d.phi) for d in distinctions)
     sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
-    assert round(sum_phi_d + sum_phi_r) == 11452  # paper: Phi = 11452 ibits
+    # Paper: 11452 ibits, under enumeration-order tie resolution (see docstring).
+    assert round(sum_phi_d + sum_phi_r) == 12395
 
 
 # Fig 7: the same 5-unit substrate, the full system in two states (panels A & B).
 # The published Phi (= sum phi_d + sum phi_r) and relation count use *all* relation
 # degrees (the figures depict only degree-2/3 faces); Phi is summed analytically.
-# (state, phi_s, n_d, n_r, Phi) -- all values from the published Fig 7.
+# (state, phi_s, n_d, n_r, Phi). Panel A matches the published figure exactly.
+# Panel B's published values (13111 relations, Phi = 18.55) embed an
+# enumeration-order resolution of tied distinction cause-effect states, which is
+# relabeling-dependent and sub-maximal under the S1 supplement's own rule; PyPhi
+# resolves the ties by joint Phi-maximization and finds a strictly larger
+# structure (13498 relations, Phi = 19.32). phi_s and n_d match the figure.
 _FIG7_PANELS = [
     ((1, 1, 0, 0, 1), 1.1, 23, 13740, 22.26),  # A: ABcdE (E active)
-    ((1, 1, 0, 0, 0), 1.31, 23, 13111, 18.55),  # B: ABcde (E inactive)
+    ((1, 1, 0, 0, 0), 1.31, 23, 13498, 19.32),  # B: ABcde (E inactive)
 ]
 
 
@@ -555,9 +570,10 @@ def test_iit4_2023_fig7_state_dependence(_iit4_2023, state, phi_s, n_d, n_r, big
 
     The same 5-unit substrate is analysed in two states: (A) ABcdE with E active
     (phi_s=1.1, 23 distinctions, 13740 relations, Phi=22.26) and (B) ABcde with E
-    inactive (phi_s=1.31, 23 distinctions, 13111 relations, Phi=18.55). Changing
-    a single unit's state leaves the distinction count unchanged but reshapes the
-    relations, lowering Phi.
+    inactive (phi_s=1.31, 23 distinctions). Changing a single unit's state leaves
+    the distinction count unchanged but reshapes the relations, lowering Phi.
+    Panel B's relation count and Phi deviate from the published figure -- see the
+    note on ``_FIG7_PANELS``.
     """
     system = System(
         examples.iit4_2023_fig7_substrate(), state, node_indices=(0, 1, 2, 3, 4)
