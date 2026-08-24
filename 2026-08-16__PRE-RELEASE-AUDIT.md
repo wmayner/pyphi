@@ -1469,13 +1469,16 @@ with a regression test verified to fail against the unfixed code:
 
 ## Open adjudication (theory decisions for the release owner)
 
-1. **CompleteEdgeCut normalization (H075).** The code uses factor 1/n while its
-   own num_connections_cut() reports n^2 (all-ones matrix, self-loops
-   included). The finding's proposed 1/n^2 is not paper-grounded either:
-   Marshall et al. 2023 Theorem 1 gives sum |S_i||X_i| = n(n-1) for the
-   complete partition of singletons, under which the finding's phi_s-flip demo
-   does not reproduce. The 1/n convention is inherited verbatim from the
-   pre-2.0 reference implementation the 2023 papers were computed with.
-   Reachable only with system_partition_include_complete=True or the edge-cut
-   schemes. Decision needed: keep 1/n (lab convention) or adopt n(n-1)
-   (Theorem 1), and whether num_connections_cut should exclude self-loops.
+1. **CompleteEdgeCut normalization (H075) — RESOLVED (2026-08-24).** The 1/n
+   override traced to commit 6f0a800b (2022-08-10, "Simplify & fix general
+   system cuts") with no recorded justification. Investigation showed the
+   default DIRECTED_SET_PARTITION family already enumerates the strict
+   all-singletons directional partition (self-loops intact) with the correct
+   Theorem 1 normalization n(n-1) via the general rule, so CompleteEdgeCut's
+   unique content is self-loop severance: it represents total unconstraining
+   of cause-effect power, is the monad's sole irreducibility test, and is an
+   optional MIP candidate otherwise. User decision: the intended meaning of
+   "complete" is this total cut; the option stays; normalization now follows
+   the uniform severed-connections rule (1/n^2, matching
+   num_connections_cut). Monads are unaffected (factor 1 either way), so no
+   default-path result changes.
