@@ -552,10 +552,21 @@ class EdgeCut(Displayable, _PartitionBase):
 
 
 class CompleteEdgeCut(EdgeCut):
-    """Edge cut that severs every connection (all-ones matrix).
+    """The complete cut: every connection severed, self-loops included.
 
-    Used as the boundary case in partition enumeration and as the
-    "complete" cut against which an SIA's partition is compared.
+    Represents total unconstraining of the system's cause-effect power —
+    every unit's inputs, including its own past state, are marginalized.
+    This is stronger than the all-singletons member of the directional
+    partition family (which the set-partition enumeration yields with
+    self-loops intact): a single unit is severed from itself only here.
+    It is therefore the sole irreducibility test for a single-unit
+    system, and an optional MIP candidate for larger systems (via
+    ``system_partition_include_complete`` and the edge-cut schemes).
+
+    Normalized by the inherited uniform rule — one over the number of
+    severed connections, all ``n**2`` of them (Marshall et al. 2023,
+    Theorem 1: the normalization is the maximum φ the cut could achieve,
+    one bit per severed connection).
     """
 
     def __init__(
@@ -564,9 +575,6 @@ class CompleteEdgeCut(EdgeCut):
         self.node_indices = node_indices
         self.node_labels = node_labels
         self._cut_matrix = np.ones([len(node_indices), len(node_indices)], dtype=int)
-
-    def normalization_factor(self) -> float:
-        return 1 / len(self.node_indices)
 
     def _concise(self) -> str:
         return "Complete"

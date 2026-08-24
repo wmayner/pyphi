@@ -418,3 +418,17 @@ def test_edge_cut_schemes_marked_as_possibly_non_disconnecting():
         assert not getattr(
             system_partition_types[scheme], "may_yield_non_disconnecting_cuts", False
         )
+
+
+def test_complete_edge_cut_normalization_matches_connections_cut():
+    """The complete cut severs all n**2 connections (self-loops included)
+    and is normalized by the inherited uniform rule -- one over the number
+    of severed connections. For a single unit the factor is 1, so the
+    monad's irreducibility test is unaffected by the rule.
+    """
+    from pyphi.models import CompleteEdgeCut
+
+    for n in (1, 2, 3, 4):
+        cut = CompleteEdgeCut(tuple(range(n)))
+        assert cut.num_connections_cut() == n**2
+        assert cut.normalization_factor() == 1 / n**2
