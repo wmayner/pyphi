@@ -426,9 +426,9 @@ def test_complete_edge_cut_normalization_matches_connections_cut():
     of severed connections. For a single unit the factor is 1, so the
     monad's irreducibility test is unaffected by the rule.
     """
-    from pyphi.models import CompleteEdgeCut
+    from pyphi.models import TotalCut
 
     for n in (1, 2, 3, 4):
-        cut = CompleteEdgeCut(tuple(range(n)))
+        cut = TotalCut(tuple(range(n)))
         assert cut.num_connections_cut() == n**2
         assert cut.normalization_factor() == 1 / n**2

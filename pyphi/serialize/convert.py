@@ -305,13 +305,13 @@ def _register_edge_cut() -> None:
 
 
 def _register_complete_edge_cut() -> None:
-    from pyphi.models.partitions import CompleteEdgeCut
+    from pyphi.models.partitions import TotalCut
 
-    _ENCODERS[CompleteEdgeCut] = lambda c: schema.CompleteEdgeCutSchema(
+    _ENCODERS[TotalCut] = lambda c: schema.TotalCutSchema(
         node_indices=tuple(c.node_indices),
         node_labels=_enc_labels(c.node_labels),
     )
-    _DECODERS[schema.CompleteEdgeCutSchema] = lambda s: CompleteEdgeCut(
+    _DECODERS[schema.TotalCutSchema] = lambda s: TotalCut(
         tuple(s.node_indices), _dec_labels(s.node_labels)
     )
 

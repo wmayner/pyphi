@@ -22,7 +22,7 @@ formalism:
     # System-partition scheme.
     system_partition_scheme: DIRECTED_BIPARTITION
     # Whether the complete partition is included among system partitions.
-    system_partition_include_complete: false
+    system_partition_include_total: false
     # Normalization applied to distinction phi when comparing partitions.
     distinction_phi_normalization: NONE
     # How units outside the candidate system are treated.

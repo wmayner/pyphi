@@ -3,7 +3,6 @@ import pytest
 
 from pyphi import serialize
 from pyphi.direction import Direction
-from pyphi.models.partitions import CompleteEdgeCut
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import DirectedJointPartition
 from pyphi.models.partitions import DirectedSetPartition
@@ -13,6 +12,7 @@ from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import JointTripartition
 from pyphi.models.partitions import NullCut
 from pyphi.models.partitions import Part
+from pyphi.models.partitions import TotalCut
 
 FORMATS = ["json", "msgpack"]
 
@@ -34,7 +34,7 @@ PARTITIONS = [
     JointTripartition(Part((0,), (1,)), Part((1,), (2,)), Part((2,), (0,))),
     DirectedJointPartition(Direction.EFFECT, _joint()),
     EdgeCut((0, 1), np.array([[0, 1], [1, 0]])),
-    CompleteEdgeCut((0, 1, 2)),
+    TotalCut((0, 1, 2)),
     DirectedSetPartition((0, 1), np.array([[0, 1], [1, 0]]), [[0], [1]]),
 ]
 

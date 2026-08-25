@@ -34,7 +34,7 @@ def canonical_partition(partition: Any) -> list:
     - ``DirectedBipartition`` (from_nodes + to_nodes; direction not captured —
       see note below)
     - ``DirectedJointPartition`` / ``JointPartition`` / ``JointBipartition`` (sequence of Parts)
-    - ``NullCut`` / ``CompleteEdgeCut`` (markers)
+    - ``NullCut`` / ``TotalCut`` (markers)
 
     Returns nested lists of int sequences. Each "part" is internally sorted;
     parts are sorted among themselves.
@@ -53,8 +53,8 @@ def canonical_partition(partition: Any) -> list:
 
     cls_name = type(partition).__name__
 
-    # NullCut / CompleteEdgeCut: marker classes
-    if cls_name in {"NullCut", "CompleteEdgeCut", "_NullCut"}:
+    # NullCut / TotalCut: marker classes
+    if cls_name in {"NullCut", "TotalCut", "_NullCut"}:
         return [["@null"]]
 
     # DirectedBipartition: (from_nodes, to_nodes)

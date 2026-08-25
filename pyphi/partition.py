@@ -19,7 +19,7 @@ from .conf import config, fallback
 from .direction import Direction
 from .models.partitions import (
     JointBipartition,
-    CompleteEdgeCut,
+    TotalCut,
     EdgeCut,
     DirectedSetPartition,
     JointPartition,
@@ -890,7 +890,7 @@ def all_edge_cuts(
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
     """Yield every edge cut on the given nodes (with the complete cut)."""
-    yield CompleteEdgeCut(node_indices, node_labels=node_labels)
+    yield TotalCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
@@ -911,7 +911,7 @@ def bidirectional_edge_cuts(
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
     """Yield every bidirectional (symmetric) edge cut on the given nodes."""
-    yield CompleteEdgeCut(node_indices, node_labels=node_labels)
+    yield TotalCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
 
@@ -928,8 +928,8 @@ def _directed_set_partitions(
     Each set partition is yielded once per assignment of a direction
     (``CAUSE``, ``EFFECT``, or ``BIDIRECTIONAL``) to each part.
     """
-    if len(node_indices) == 1 or config.formalism.iit.system_partition_include_complete:
-        yield CompleteEdgeCut(node_indices, node_labels=node_labels)
+    if len(node_indices) == 1 or config.formalism.iit.system_partition_include_total:
+        yield TotalCut(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
     # Convert set to list for set_partitions which expects Sequence
     for partition in combinatorics.set_partitions(list(_node_indices), nontrivial=True):

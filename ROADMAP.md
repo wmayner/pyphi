@@ -2608,7 +2608,7 @@ test inventory — that a deliberate re-ordering pass is in order.
    ``version`` string switching dispatch. After P11.95d this is a
    visible code smell: ``presets.iit3`` overrides ~6 fields and 5
    other fields (``system_phi_measure``, ``specification_measure``,
-   ``system_partition_include_complete``, ``relation_computation``,
+   ``system_partition_include_total``, ``relation_computation``,
    ``state_tie_resolution``, ``shortcircuit_sia``,
    ``distinction_phi_normalization``) are documented no-ops on the
    3.0 path — they exist on the dataclass but are guarded out at
@@ -3117,7 +3117,7 @@ test inventory — that a deliberate re-ordering pass is in order.
     reachability. Result: after this spec's fix, every implicit
     4.0-flavored default the 3.0 preset doesn't override
     (``system_phi_measure``, ``specification_measure``,
-    ``system_partition_include_complete``,
+    ``system_partition_include_total``,
     ``distinction_phi_normalization``, ``relation_computation``,
     ``shortcircuit_sia``, ``state_tie_resolution``) is a no-op on
     the 3.0 path — each is guarded out at the call boundary or

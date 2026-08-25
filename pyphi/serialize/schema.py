@@ -104,7 +104,7 @@ class EdgeCutSchema(msgspec.Struct, frozen=True, tag="edge_cut"):
     node_labels: NodeLabelsSchema | None
 
 
-class CompleteEdgeCutSchema(msgspec.Struct, frozen=True, tag="complete_edge_cut"):
+class TotalCutSchema(msgspec.Struct, frozen=True, tag="total_cut"):
     node_indices: tuple[int, ...]
     node_labels: NodeLabelsSchema | None
 
@@ -124,7 +124,7 @@ PartitionSchema = (
     | DirectedBipartitionSchema
     | DirectedJointPartitionSchema
     | EdgeCutSchema
-    | CompleteEdgeCutSchema
+    | TotalCutSchema
     | DirectedSetPartitionSchema
     | JointPartitionSchema
     | JointBipartitionSchema
@@ -660,7 +660,7 @@ Schema = (
     | DirectedBipartitionSchema
     | DirectedJointPartitionSchema
     | EdgeCutSchema
-    | CompleteEdgeCutSchema
+    | TotalCutSchema
     | DirectedSetPartitionSchema
     | JointPartitionSchema
     | JointBipartitionSchema

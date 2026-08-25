@@ -413,7 +413,7 @@ and `migrate_code` prompt on the MCP server).
   | `AtomicPartition` | `AtomicJointPartition` |
   | `KCut` / `ActualCut` | `DirectedJointPartition` |
   | `GeneralKCut` | `EdgeCut` |
-  | `CompleteSystemPartition` / `CompleteGeneralKCut` | `CompleteEdgeCut` |
+  | `CompleteSystemPartition` / `CompleteGeneralKCut` | `TotalCut` |
   | `GeneralSetPartition` | `DirectedSetPartition` |
 
   Attributes follow (`System.cut` → `.partition`, `.is_cut` →

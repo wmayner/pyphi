@@ -102,7 +102,7 @@ class IITConfig:
     ces_measure: str = "SUM_SMALL_PHI"
     mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
     system_partition_scheme: str = "DIRECTED_SET_PARTITION"
-    system_partition_include_complete: bool = False
+    system_partition_include_total: bool = False
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
     background_conditioning: str = "CAUSAL_MARGINALIZATION"
     relation_computation: str = "ANALYTICAL"
@@ -134,7 +134,7 @@ class IITConfig:
                 object.__setattr__(self, name, tuple(value))
         for name in (
             "assume_partitions_cannot_create_new_concepts",
-            "system_partition_include_complete",
+            "system_partition_include_total",
             "shortcircuit_sia",
             "shortcircuit_distinctions",
             "single_micro_nodes_with_selfloops_have_phi",

@@ -75,7 +75,6 @@ from .explanation import NullResultReason
 from .mice import MaximallyIrreducibleCause
 from .mice import MaximallyIrreducibleCauseOrEffect
 from .mice import MaximallyIrreducibleEffect
-from .partitions import CompleteEdgeCut
 from .partitions import DirectedBipartition
 from .partitions import DirectedJointPartition
 from .partitions import DirectedSetPartition
@@ -85,6 +84,7 @@ from .partitions import JointPartition
 from .partitions import JointTripartition
 from .partitions import NullCut
 from .partitions import Part
+from .partitions import TotalCut
 from .protocols import AcSIAInterface
 from .protocols import CauseEffectStructureInterface
 from .protocols import SIAInterface
@@ -108,7 +108,6 @@ __all__ = [
     "CauseEffectStructure",
     "CauseEffectStructureInterface",
     "Change",
-    "CompleteEdgeCut",
     "Complex",
     "Concept",
     "DirectedAccount",
@@ -139,6 +138,7 @@ __all__ = [
     "SIAInterface",
     "StateSpecification",
     "SystemStateSpecification",
+    "TotalCut",
     "UnitState",
     "UnresolvedDistinctions",
     "_null_ac_ria",

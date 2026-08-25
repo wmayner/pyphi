@@ -92,7 +92,7 @@ def test_config_digest_covers_every_formalism_and_numerics_field():
 @pytest.mark.parametrize(
     ("field", "alternate"),
     [
-        ("system_partition_include_complete", True),
+        ("system_partition_include_total", True),
         ("relation_computation", "CONCRETE"),
         ("assume_partitions_cannot_create_new_concepts", True),
         ("shortcircuit_sia", False),

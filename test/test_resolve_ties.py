@@ -100,10 +100,10 @@ def test_lex_key_distinct_partitions_compare_distinct():
 
 
 def test_lex_key_complete_edge_cut_is_all_ones():
-    """CompleteEdgeCut severs every connection — key is an all-ones matrix."""
-    from pyphi.models.partitions import CompleteEdgeCut
+    """TotalCut severs every connection — key is an all-ones matrix."""
+    from pyphi.models.partitions import TotalCut
 
-    cec = CompleteEdgeCut(node_indices=(0, 1, 2))
+    cec = TotalCut(node_indices=(0, 1, 2))
     expected = np.ones((3, 3), dtype=np.uint8).tobytes()
     assert cec.lex_key() == expected
 

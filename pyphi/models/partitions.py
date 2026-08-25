@@ -20,7 +20,7 @@ Two distinct mathematical concepts share this module's
 **Edge cuts** (graph theory terminology):
 
 - :class:`EdgeCut` — an explicit n by n binary severance matrix.
-- :class:`CompleteEdgeCut` — all edges severed (boundary).
+- :class:`TotalCut` — all edges severed (boundary).
 - :class:`NullCut` — no edges severed (identity).
 
 A vertex partition *induces* an edge cut: every concrete
@@ -551,8 +551,8 @@ class EdgeCut(Displayable, _PartitionBase):
         return _partition_description(self, self._concise())
 
 
-class CompleteEdgeCut(EdgeCut):
-    """The complete cut: every connection severed, self-loops included.
+class TotalCut(EdgeCut):
+    """The total cut: every connection severed, self-loops included.
 
     Represents total unconstraining of the system's cause-effect power —
     every unit's inputs, including its own past state, are marginalized.
@@ -561,7 +561,7 @@ class CompleteEdgeCut(EdgeCut):
     self-loops intact): a single unit is severed from itself only here.
     It is therefore the sole irreducibility test for a single-unit
     system, and an optional MIP candidate for larger systems (via
-    ``system_partition_include_complete`` and the edge-cut schemes).
+    ``system_partition_include_total`` and the edge-cut schemes).
 
     Normalized by the inherited uniform rule — one over the number of
     severed connections, all ``n**2`` of them (Marshall et al. 2023,
@@ -577,7 +577,7 @@ class CompleteEdgeCut(EdgeCut):
         self._cut_matrix = np.ones([len(node_indices), len(node_indices)], dtype=int)
 
     def _concise(self) -> str:
-        return "Complete"
+        return "Total"
 
 
 class DirectedSetPartition(EdgeCut):
