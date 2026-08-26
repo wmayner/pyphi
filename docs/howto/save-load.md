@@ -34,9 +34,9 @@ system = examples.iit4_2023_fig1a_system()
 analysis = pyphi.analyze(system.substrate, system.state)
 
 ces = analysis.ces  # cause-effect structure (distinctions + relations)
-sia = analysis.sia  # system-irreducibility analysis (Φ_s)
+sia = analysis.sia  # system-irreducibility analysis (φ_s)
 
-print(f"Φ_s = {float(sia.phi):.4f}   |   {len(ces.distinctions)} distinctions")
+print(f"φ_s = {float(sia.phi):.4f}   |   {len(ces.distinctions)} distinctions")
 ```
 
 ## Save and load

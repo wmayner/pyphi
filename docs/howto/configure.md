@@ -171,7 +171,7 @@ Setting `version` in a config file does not by itself select a formalism:
 the measures, partition schemes, and tie-resolution options stay at their
 defaults, which belong to the default formalism, and the result is a mixture
 that matches no published paper. To select a formalism, apply a preset at
-runtime (`pyphi.config.override(**pyphi.presets.iit4_2023)`), or spell out
+runtime (`pyphi.config.override(**pyphi.iit4_2023)`), or spell out
 every field the preset sets — the repository ships
 [`pyphi_config_3.0.yml`](https://github.com/wmayner/pyphi/blob/develop/pyphi_config_3.0.yml)
 as a complete example, kept in sync with the `IIT_3_0` preset by a test.

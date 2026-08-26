@@ -81,8 +81,11 @@ compute relation totals analytically without enumerating them.
 Substrate  →  System (a candidate subset in a state)  →  formalism  →  Φ-structure
 ```
 
-`pyphi.analyze(substrate, state)` runs the whole thing: it finds the complex,
-computes φₛ, and unfolds the Φ-structure. The MCP `analyze` tool wraps this.
+`pyphi.analyze(substrate, state)` analyzes the given units — the whole
+substrate by default, or a `subset` — computing φₛ and unfolding the
+Φ-structure. It does **not** search for the complex; use
+`substrate.complexes()` or `substrate.maximal_complex()` for that. The MCP
+`analyze` tool wraps `pyphi.analyze`.
 
 ## Formalism versions
 

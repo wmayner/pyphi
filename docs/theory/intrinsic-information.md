@@ -116,11 +116,14 @@ published with, as in the first cell above or with
 `pyphi.config.override(**pyphi.conf.presets.iit4_2023)`; see
 {doc}`formalism-versions`.
 
-Any indeterminism provides a repertoire of alternatives. The paper's own
-worked example — the {doc}`Fig 1A logistic network <../tutorials/worked-example>`
-used throughout this section — is probabilistic, which is why its published
-values are identical under 2023 and 2026. Even slight noise suffices: the
-three-unit noisy grid computes a small but positive value under the default.
+Any indeterminism provides a repertoire of alternatives, so probabilistic
+systems keep $\varphi_s > 0$ under the requirement. The value can still
+change: for the paper's {doc}`Fig 1A logistic network
+<../tutorials/worked-example>`, the aB system's intrinsic information is
+smaller than $\min(\varphi_c, \varphi_e)$, so the requirement lowers
+$\varphi_s$ from the published $0.17$ to about $0.04$ without zeroing it.
+Even slight noise suffices for existence: the three-unit noisy grid computes
+a small but positive value under the default.
 
 ```{code-cell} python
 pyphi.analyze(pyphi.examples.grid3_substrate(), (0, 0, 0)).phi

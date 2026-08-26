@@ -25,6 +25,7 @@ the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` |
 | `pyphi.utils.eq` / `is_positive` / `is_nonpositive` | `pyphi.numerics.eq` / `is_positive` / `is_nonpositive` |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` |
+| `pyphi.__version__` | `importlib.metadata.version("pyphi")` |
 
 Two traps in that table:
 
@@ -70,8 +71,11 @@ ces = analysis.ces   # the Φ-structure
 ```
 
 `pyphi.analyze` returns an `Analysis` with `.phi`, `.ces`, `.sia` (the system
-irreducibility analysis), and `.system` (the complex). To analyze a specific
-subset instead of searching for the complex, construct a `System` directly:
+irreducibility analysis), and `.system` (the analyzed system). It analyzes
+the given units — the whole substrate by default, or the `subset` argument —
+and does not search for the complex; use `substrate.complexes()` or
+`substrate.maximal_complex()` for that. To analyze a specific subset,
+pass `subset=` or construct a `System` directly:
 `pyphi.System(substrate, state, node_indices=(0, 1, 2))`. Code that imported the
 low-level IIT 4.0 functions from `new_big_phi` now imports `sia` and `ces` from
 `pyphi.formalism.iit4`.

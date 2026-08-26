@@ -37,10 +37,12 @@ are no relations and no structure integrated information, so that formalism's Φ
 
 Ties for maximal φ arise from **symmetries in the transition probability
 matrix**, and they are frequent in small, deterministic toy models — exactly
-the networks a newcomer reaches for first. IIT resolves them by descending the
-postulates (maximize φₛ, then Φ, then congruence with the system state, then
-the number of relations, which favors larger purviews). When a tie cannot be
-resolved, the cause–effect structure is genuinely non-unique. If a small
+the networks a newcomer reaches for first. IIT resolves them by appealing to
+the subsequent postulates: tied system states are compared on φₛ and then on
+the structure integrated information Φ; a distinction's tied readings are
+filtered to those congruent with the system's cause–effect state, and any
+remaining choice is the combination of readings that maximizes Φ. When a tie
+cannot be resolved, the cause–effect structure is genuinely non-unique. If a small
 example gives a surprising or unstable result, suspect a tie. In realistic
 systems with graded connection strengths and some indeterminism, ties are less
 likely.
@@ -113,8 +115,8 @@ a *pair* of states.
 
 ## 10. Cost grows very fast
 
-The computation is exponential in the number of units (roughly O(n·5³ⁿ)), and
-the number of *possible relations* grows doubly-exponentially (2^(2^(N−1))−1).
+The computation is exponential in the number of units (roughly O(n⁵·3ⁿ)), and
+the number of *possible relations* grows doubly-exponentially (2^(2^N−1)−1).
 The practical ceiling for an exact analysis of the full cause-effect structure
 is about 10–12 units, depending on the substrate topology and the machine specs,
 and a full cause–effect structure is far more expensive than system integrated

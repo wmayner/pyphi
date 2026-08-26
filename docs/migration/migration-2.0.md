@@ -28,6 +28,7 @@ topic is tagged with who it affects:
 | `subsystem.effect_tpm` | `system.effect_marginal` | [both] |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` | [both] |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` | [both] |
+| `pyphi.__version__` | `importlib.metadata.version("pyphi")` | [both] |
 
 `cause_marginal` and `effect_marginal` (with the `proper_cause_marginal` /
 `proper_effect_marginal` variants) are the causal marginals of IIT 4.0. The old
@@ -64,8 +65,11 @@ ces = analysis.ces   # the Φ-structure (a CauseEffectStructure)
 ```
 
 `pyphi.analyze` returns an `Analysis` with `.phi`, `.ces`, `.sia` (the system
-irreducibility analysis), and `.system` (the complex). To analyze a specific
-subset rather than searching for the complex, construct a `System` directly:
+irreducibility analysis), and `.system` (the analyzed system). It analyzes
+the given units — the whole substrate by default, or the `subset` argument —
+and does not search for the complex. To find complexes, use
+`substrate.complexes()` or `substrate.maximal_complex()`; to analyze a
+specific subset, pass `subset=` or construct a `System` directly:
 `pyphi.System(substrate, state, node_indices=(0, 1, 2))`.
 
 ## Choosing a formalism
@@ -147,9 +151,10 @@ pyphi.save(ces, "ces.json")      # or ces.save("ces.json")
 ces = pyphi.load("ces.json")     # or CauseEffectStructure.load("ces.json")
 ```
 
-`save` / `load` (and the `.save()` / `.load()` methods) apply to the serializable
-result types — cause–effect structures and the analyses that compose them — not
-to the top-level `Analysis` wrapper. The format is inferred from the extension:
+`save` / `load` (and the `.save()` / `.load()` methods) apply to every
+serializable result type, including the top-level `Analysis` wrapper — see
+{doc}`Save and load results </howto/save-load>`. The format is inferred from
+the extension:
 `.json`, `.mpk` (msgpack), and a transparent `.gz` layer for any of them. This
 is a **format break with no standalone converter**: results saved in the old
 `jsonify` format cannot be loaded and must be recomputed.

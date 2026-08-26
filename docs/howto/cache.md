@@ -37,17 +37,18 @@ pyphi.config.cache_repertoires, pyphi.config.cache_potential_purviews
 ```
 
 The combined footprint of every in-memory cache is bounded by
-`memory_ceiling_percentage` (a percentage of physical RAM). Once the
-process crosses that fraction, no new entries are stored, but entries already
-cached are still served.
+`memory_ceiling_percentage`. Once the process crosses that fraction, the
+caches hold their occupancy steady: least-recently-used entries are evicted
+to admit new ones, so recent results stay served without further growth.
 
 ```{code-cell} python
 pyphi.config.memory_ceiling_percentage
 ```
 
-That percentage is measured against the machine's total RAM, which is the
-wrong quantity when the process may only use part of the machine — a batch job
-with a memory request, a container, or a cgroup. In that case set
+The percentage is measured against the memory the process may actually use:
+its cgroup allowance when one is set (a container or a scheduler-managed
+job), and the machine's total RAM otherwise. For an allowance that no cgroup
+reports, set
 `memory_ceiling_bytes` to what the process is actually allowed, and the
 caches stop storing at that figure instead. Campaign shards do this for
 themselves, using the memory each shard requested.

@@ -12,7 +12,7 @@ next step given that current state.
 For `n` binary nodes there are 2ⁿ rows. States are ordered **little-endian**:
 the first node is the least-significant bit. So for 3 nodes the rows are, in
 order, the states `(0,0,0), (1,0,0), (0,1,0), (1,1,0), (0,0,1), (1,0,1),
-(0,1,0)…` — the *first* coordinate flips fastest. Getting this order wrong is
+(0,1,1), (1,1,1)` — the *first* coordinate flips fastest. Getting this order wrong is
 the most common mistake; write the rows out explicitly and check a couple.
 
 ## Requirements PyPhi enforces

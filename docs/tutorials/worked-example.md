@@ -18,17 +18,27 @@ kernelspec:
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/tutorials/worked-example.ipynb)
 
 This page follows the worked example of the IIT 4.0 paper (Albantakis et al.
-2023) from start to finish, reproducing its published numbers under PyPhi's
-default formalism: **Figure 1** — is a set of units a complex, and how
+2023) from start to finish, reproducing its published numbers under the
+paper's own formalism (the `iit4_2023` preset — the published system-level
+values predate the intrinsic-information requirement of the current default;
+mechanism-level quantities are the same under both): **Figure 1** — is a set of units a complex, and how
 irreducible is it ($\varphi_s$)? **Figure 2** — what distinctions compose its
 cause-effect structure? **Figure 4** — how do those distinctions bind into
 relations? All three use the same small network:
 {func}`pyphi.examples.iit4_2023_fig1a_substrate`.
 
 ```{code-cell} python
+import warnings
+
 import pyphi
+from pyphi.conf import presets
 
 pyphi.config.progress_bars = False
+# This page reproduces the 2023 paper's published values, so it pins the
+# paper's formalism; PyPhi's default is the 2026 refinement.
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")  # advisory config-change notices
+    pyphi.config.iit = presets.iit4_2023["iit"]
 ```
 
 ## The substrate: three logistic units

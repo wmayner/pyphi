@@ -82,10 +82,12 @@ Here `node_indices` selects the subset $S = \{A, B\}$; the remaining unit $C$
 is causally marginalized, so the analysis sees $A$ and $B$ from their own
 intrinsic perspective, with $C$'s influence averaged out.
 
-From the system's intrinsic point of view, IIT builds two derived transition
-matrices — a **cause TPM** and an **effect TPM** — by marginalizing the
-background and applying Bayes' rule. They describe how the system's *own* units
-constrain each other's past and future. PyPhi exposes them on the system:
+From the system's intrinsic point of view, IIT derives a **cause marginal**
+and an **effect marginal** by marginalizing the background — and, on the
+cause side, applying Bayes' rule. They describe how the system's *own* units
+constrain each other's past and future. The two are not symmetric objects:
+the effect side is a factored transition matrix, while the cause side is a
+mapping of per-unit cause factors, as their types show:
 
 ```{code-cell} python
 type(system.cause_marginal).__name__, type(system.effect_marginal).__name__

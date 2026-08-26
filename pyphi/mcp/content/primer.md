@@ -91,3 +91,4 @@ into a project's notes or scripts propagates into every later answer.
 - `build_system_walkthrough` — turn a description of some units into a valid
   transition probability matrix.
 - `migrate_code` — rewrite pre-2.0 PyPhi code for 2.0.
+- `campaign_walkthrough` — plan and run a sharded computation campaign.
