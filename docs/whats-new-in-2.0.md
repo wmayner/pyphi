@@ -19,7 +19,8 @@ Three changes affect existing code and results:
   [the intrinsic-information requirement](theory/intrinsic-information.md)
   to system integrated information; under it, **deterministic systems
   compute φ_s = 0**. The 2023 formulation and IIT 3.0 remain fully supported
-  and reproduce published values exactly.
+  and reproduce published values (see the "Published results reproduce"
+  section below for the two documented exceptions).
 - **Other breaking changes:** Python 3.13+ is required, configuration is
   restructured into layered namespaces, and logging is off by default —
   PyPhi no longer writes a `pyphi.log` file into the working directory; opt
@@ -445,7 +446,14 @@ canonical OR-AND account and the three-candidate voting example of the
 actual-causation paper (Albantakis et al. 2019); the multi-valued p53-Mdm2
 network (Gómez et al. 2020); and the matching manuscript's environment
 distributions (Mayner et al. 2024). Where a paper publishes a number, PyPhi
-2.0 computes it.
+2.0 computes it — with two documented exceptions. The structure integrated
+information of the IIT 4.0 paper's Fig. 6D, and the relation count and Φ of
+its Fig. 7B, embed an ordering-dependent resolution of tied distinction
+states; resolving those ties by the rule of the paper's own S1 supplement
+(the state that maximizes Φ) yields strictly larger structures, and PyPhi
+2.0 computes those values instead (Φ = 12395 for Fig. 6D; 13498 relations
+and Φ = 19.32 for Fig. 7B). φ_s and the distinction counts match the
+figures exactly in both cases.
 
 ## Correctness and development
 
