@@ -1482,3 +1482,28 @@ with a regression test verified to fail against the unfixed code:
    the uniform severed-connections rule (1/n^2, matching
    num_connections_cut). Monads are unaffected (factor 1 either way), so no
    default-path result changes.
+
+# Step 4: docs sweep — COMPLETE (2026-08-26)
+
+Executed docs build (sphinx -W, all cells run at build) passed both before and
+after fixes; the demo notebook re-executes end to end (95 cells, 0 errors).
+Five section readers compared every hand-written page's prose against its own
+build-executed outputs and current code; all confirmed findings fixed in
+commit 7d71599a. Highlights: the 0.172-vs-0.04 narration family on four
+theory pages; the worked-example tutorial now pins the 2023 preset and its
+paper-reproduction claims are true again; analyze()-finds-the-complex removed
+from three surfaces; the migration IIT 3.0 recipes fixed twice over
+(version-only override, then a nonexistent pyphi.presets name introduced by
+the first fix and caught by the reader); README example rewritten (phi_s/Phi
+labels, Fig 1A system, extras list); MCP content formula and recipe fixes.
+Notable refuted finding: mcp-server.md's Phi = 1.857 for basic at (1,1,0) is
+correct under the current default (only phi_s zeroes; verified by
+computation).
+
+Open, deliberately not done here:
+- whats-new-in-2.0.md still lists eight landed capabilities as unwritten
+  candidate sections (release-announcement prose — user to decide scope).
+- README's release-status blockquote is accurate today but must be rewritten
+  at release; added to the step-5 checklist.
+- Docs never build in CI; a docs-build job (or a release-checklist step) is
+  the step-5 decision.
