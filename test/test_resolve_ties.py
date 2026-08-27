@@ -387,31 +387,59 @@ def test_iit3_find_mip_consults_mip_tie_resolution():
     resolve_ties.partitions and consults
     config.formalism.iit.mip_tie_resolution.
 
-    Override to a registered-but-bogus strategy; the call must raise
-    KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
-    which selects argmin raw phi (paper-canonical IIT 3.0 mechanism
-    MIP).
+    Unregistered names are now rejected eagerly at configuration time, so
+    the probe registers a temporary strategy that raises a distinctive
+    error when invoked; the config validates, and the error proves the
+    selection consulted the configured strategy. The default preset value
+    is ["PHI", "PARTITION_LEX"] which selects argmin raw phi
+    (paper-canonical IIT 3.0 mechanism MIP).
 
     The probed mechanism/purview must yield more than one candidate
     partition. resolve() short-circuits before consulting the strategy
     when only a single candidate survives (there is no tie to break),
-    so a single-candidate probe would never look up the strategy name.
+    so a single-candidate probe would never invoke the strategy.
     """
     from dataclasses import replace
 
     from pyphi import examples
     from pyphi.conf import presets
     from pyphi.direction import Direction
+    from pyphi.resolve_ties import phi_object_tie_resolution_strategies
     from pyphi.system import System
 
-    substrate = examples.basic_substrate()
-    state = (1, 0, 0)
+    class ProbeConsulted(Exception):
+        pass
+
+    @phi_object_tie_resolution_strategies.register("___MIP_PROBE")
+    def _probe(m):
+        raise ProbeConsulted
+
+    try:
+        probed = {**presets.iit3}
+        probed["iit"] = replace(probed["iit"], mip_tie_resolution=["___MIP_PROBE"])
+        with config.override(**probed):
+            sys = System.from_substrate(
+                substrate := examples.basic_substrate(),
+                (1, 0, 0),
+                substrate.node_indices,
+            )
+            with pytest.raises(ProbeConsulted):
+                sys.find_mip(Direction.CAUSE, (0,), (1, 2))
+    finally:
+        phi_object_tie_resolution_strategies.store.pop("___MIP_PROBE", None)
+
+
+def test_unregistered_mip_tie_resolution_rejected_eagerly():
+    """An unregistered strategy name fails at configuration time."""
+    from dataclasses import replace
+
+    from pyphi.conf import ConfigurationError
+    from pyphi.conf import presets
+
     bad = {**presets.iit3}
     bad["iit"] = replace(bad["iit"], mip_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
-    with config.override(**bad):
-        sys = System.from_substrate(substrate, state, substrate.node_indices)
-        with pytest.raises(KeyError):
-            sys.find_mip(Direction.CAUSE, (0,), (1, 2))
+    with pytest.raises(ConfigurationError), config.override(**bad):
+        pass
 
 
 def test_iit3_default_mip_tie_resolution_is_raw_phi():
