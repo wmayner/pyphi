@@ -1,0 +1,1 @@
+Fixed `JointTPM` views returned by `condition()`: `alphabet_sizes` now reports the true per-unit output alphabets instead of the collapsed input-axis sizes, so `to_pandas()` and the display grid list every next state (probabilities sum to 1 per input state) rather than truncating non-binary units.

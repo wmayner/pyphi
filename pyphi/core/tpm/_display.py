@@ -62,18 +62,24 @@ def distribution_grid(
     unit_labels: Sequence[str],
     alphabet_sizes: Sequence[int],
     dist_for_state: Callable[[tuple[int, ...]], Sequence[Sequence[float]]],
+    state_axis_sizes: Sequence[int] | None = None,
 ) -> Table:
     """A full per-unit next-state distribution grid: rows = current state, columns
     = ``(unit, next-state)`` pairs labeled ``"{unit_label}={state}"``, cell =
     ``P(unit = next-state | state)``.
 
     Used for non-binary TPMs, where a single "on" probability per unit does not
-    apply. Capped at ``config.infrastructure.repr_max_table_rows`` rows.
+    apply. ``state_axis_sizes`` gives the sizes of the current-state axes when
+    they differ from the output alphabets (e.g. a conditioned view whose fixed
+    input axes are singletons); when ``None``, the output alphabets are used.
+    Capped at ``config.infrastructure.repr_max_table_rows`` rows.
     """
     cap = config.infrastructure.repr_max_table_rows
     n_units = len(alphabet_sizes)
+    if state_axis_sizes is None:
+        state_axis_sizes = alphabet_sizes
     total = 1
-    for size in alphabet_sizes:
+    for size in state_axis_sizes:
         total *= size
     headers = (
         "state",
@@ -84,7 +90,7 @@ def distribution_grid(
         ),
     )
     rows: list[tuple[Any, ...]] = []
-    for i, state in enumerate(all_states(tuple(alphabet_sizes))):
+    for i, state in enumerate(all_states(tuple(state_axis_sizes))):
         if i >= cap:
             break
         flat = [float(p) for dist in dist_for_state(state) for p in dist]

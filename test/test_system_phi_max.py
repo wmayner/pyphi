@@ -183,3 +183,38 @@ def test_explicit_purviews_bound_the_enumeration(s, monkeypatch):
     result = ra.potential_purviews(system, Direction.CAUSE, mechanism, purviews=given)
     assert set(result) == expected
     assert calls == [1]
+
+
+def test_explicit_purviews_accepts_one_shot_iterable(s):
+    """A generator of purviews gives the same result as the equivalent list.
+
+    The bound scan over ``purviews`` must not exhaust a one-shot iterable
+    before the intersection, which would silently discard every candidate.
+    """
+    from pyphi.core import repertoire_algebra as ra
+
+    mechanism = (0,)
+    given = ra.potential_purviews(s, Direction.CAUSE, mechanism)
+    assert given  # control: candidates exist
+    from_list = ra.potential_purviews(
+        s, Direction.CAUSE, mechanism, purviews=list(given)
+    )
+    from_iter = ra.potential_purviews(
+        s, Direction.CAUSE, mechanism, purviews=iter(list(given))
+    )
+    assert set(from_iter) == set(from_list) == set(given)
+
+
+def test_mic_accepts_one_shot_purviews_iterable(s):
+    """``System.mic`` with a generator of purviews matches the list result."""
+    from test.conftest import IIT_4_CONFIG
+
+    mechanism = (0,)
+    with IIT_4_CONFIG:
+        given = list(s.potential_purviews(Direction.CAUSE, mechanism))
+        assert given  # control: candidates exist
+        from_list = s.mic(mechanism, purviews=given)
+        from_iter = s.mic(mechanism, purviews=iter(given))
+    assert from_iter.purview == from_list.purview
+    assert from_iter.phi == from_list.phi
+    assert from_iter.purview != ()

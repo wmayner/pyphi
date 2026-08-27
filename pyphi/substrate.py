@@ -250,6 +250,19 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         # multidimensional forms to multidimensional state-by-node. A square
         # 2-D array is state-by-state; everything else reshapes directly (the
         # reshape is idempotent for already-multidimensional input).
+        #
+        # A non-square 2-D array can only be a binary state-by-node TPM, which
+        # needs one row per input state: 2**n rows for n columns. Anything
+        # else (e.g. 8 rows for 2 columns) would be silently reshaped into a
+        # TPM over the wrong number of nodes.
+        if arr.ndim == 2 and arr.shape[0] != arr.shape[1]:
+            n = int(arr.shape[1])
+            if arr.shape[0] != 2**n:
+                raise ValueError(
+                    f"cannot interpret a TPM with shape {arr.shape} as a 2-D "
+                    f"state-by-node TPM: expected 2**{n} = {2**n} rows for "
+                    f"{n} (binary) nodes"
+                )
         if arr.ndim == 2 and arr.shape[0] == arr.shape[1]:
             # State-by-state → state-by-node silently drops any conditional
             # dependence between nodes; reject dependent TPMs unless opted out.
@@ -258,8 +271,9 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
 
             sbn = convert.state_by_state2state_by_node(arr)
             check_independence = _config.infrastructure.validate_conditional_independence
+            tol = max(10 ** (-_config.numerics.precision), 1e-15)
             if check_independence and not np.allclose(
-                arr - convert.state_by_node2state_by_state(sbn), 0.0
+                arr - convert.state_by_node2state_by_state(sbn), 0.0, atol=tol, rtol=0
             ):
                 raise exceptions.ConditionallyDependentError(
                     "TPM is not conditionally independent.\n"

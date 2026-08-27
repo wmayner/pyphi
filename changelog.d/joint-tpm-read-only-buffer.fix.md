@@ -1,0 +1,1 @@
+`JointTPM.to_array()` and `numpy.asarray(joint_tpm)` now return a read-only array, so the documented read-only value type can no longer be mutated through its own buffer (which silently changed its hash and equality).

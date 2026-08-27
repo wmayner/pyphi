@@ -1464,9 +1464,15 @@ def absolute_pointwise_mutual_information(
 
 @np_suppress()
 def pointwise_mutual_information_vector(p: ArrayLike, q: ArrayLike) -> np.ndarray:
+    r"""Elementwise pointwise mutual information :math:`\log_2(p_i / q_i)`.
+
+    Entries where the ratio is undefined (:math:`p_i = 0` or
+    :math:`q_i = 0`) are set to ``0``, matching
+    :func:`pointwise_mutual_information`.
+    """
     p = np.asarray(p)
     q = np.asarray(q)
-    return np.nan_to_num(np.log2(p / q), nan=0.0)
+    return np.nan_to_num(np.log2(p / q), nan=0.0, posinf=0.0, neginf=0.0)
 
 
 @actual_causation_measures.register("PMI", asymmetric=True)

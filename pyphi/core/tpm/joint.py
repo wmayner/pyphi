@@ -44,13 +44,23 @@ from ._node_ops import condition as _condition
 class JointTPM(Displayable, ToPandasMixin):
     """Read-only joint (dense) form of a substrate TPM. See module docstring."""
 
-    __slots__ = ("_array", "_node_labels")
+    __slots__ = ("_alphabet_sizes", "_array", "_node_labels")
 
     def __init__(
-        self, data: ArrayLike, node_labels: Sequence[str] | None = None
+        self,
+        data: ArrayLike,
+        node_labels: Sequence[str] | None = None,
+        alphabet_sizes: Sequence[int] | None = None,
     ) -> None:
         self._array = np.array(data, dtype=np.float64)  # copy = eager snapshot
+        self._array.setflags(write=False)  # read-only value type
         self._node_labels = tuple(node_labels) if node_labels is not None else None
+        if alphabet_sizes is None:
+            # Unconditioned layout: the leading input axes give the per-unit
+            # alphabets. (On conditioned arrays the fixed axes are singletons,
+            # so pass the true sizes explicitly.)
+            alphabet_sizes = self._array.shape[: self.n_nodes]
+        self._alphabet_sizes = tuple(int(s) for s in alphabet_sizes)
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -63,6 +73,16 @@ class JointTPM(Displayable, ToPandasMixin):
 
     @property
     def alphabet_sizes(self) -> tuple[int, ...]:
+        """The per-unit output alphabet sizes.
+
+        Unchanged by :meth:`condition`, which collapses input axes to
+        singletons but leaves each unit's output distribution intact.
+        """
+        return self._alphabet_sizes
+
+    @property
+    def _input_axis_sizes(self) -> tuple[int, ...]:
+        """Sizes of the input-state axes (conditioned axes are singletons)."""
         return tuple(int(s) for s in self._array.shape[: self.n_nodes])
 
     def to_array(self) -> NDArray[np.float64]:
@@ -79,9 +99,14 @@ class JointTPM(Displayable, ToPandasMixin):
         """Return the joint view with the given input units fixed to a state.
 
         The conditioned axes collapse to singletons; the number of dimensions
-        is unchanged.
+        is unchanged, and :attr:`alphabet_sizes` still reports the true
+        per-unit output alphabets.
         """
-        return JointTPM(_condition(self._array, dict(fixed)), self._node_labels)
+        return JointTPM(
+            _condition(self._array, dict(fixed)),
+            self._node_labels,
+            alphabet_sizes=self._alphabet_sizes,
+        )
 
     def array_equal(self, other: object) -> bool:
         return np.array_equal(self._array, np.asarray(other))
@@ -109,12 +134,13 @@ class JointTPM(Displayable, ToPandasMixin):
         """
         n = self.n_nodes
         a = self.alphabet_sizes
+        input_sizes = self._input_axis_sizes
         arr = self._array
         unit_labels = self._unit_labels()
         if all(size == 2 for size in a):
             grid = _display.state_by_node_grid(
                 unit_labels=unit_labels,
-                state_axis_sizes=a,
+                state_axis_sizes=input_sizes,
                 prob_on_for_state=lambda state: [arr[state][i][1] for i in range(n)],
             )
             label = "P(next unit on | current state)"
@@ -122,6 +148,7 @@ class JointTPM(Displayable, ToPandasMixin):
             grid = _display.distribution_grid(
                 unit_labels=unit_labels,
                 alphabet_sizes=a,
+                state_axis_sizes=input_sizes,
                 dist_for_state=lambda state: [arr[state][i][: a[i]] for i in range(n)],
             )
             label = "P(next unit = state | current state)"
@@ -129,7 +156,7 @@ class JointTPM(Displayable, ToPandasMixin):
 
     def _describe(self, verbosity: int) -> Description:
         n = self.n_nodes
-        a = self.alphabet_sizes
+        a = self._input_axis_sizes
         total = int(np.prod(a)) if a else 1
         compact = f"JointTPM({n} units, {total} states)"
         if verbosity == LOW:  # skip building the grid for the one-liner form
@@ -151,7 +178,7 @@ class JointTPM(Displayable, ToPandasMixin):
         a = self.alphabet_sizes
         labels = self._unit_labels()
         arr = self._array
-        states = list(all_states(a))
+        states = list(all_states(self._input_axis_sizes))
         if all(size == 2 for size in a):
             data = [[float(arr[s][i][1]) for i in range(n)] for s in states]
             index = (
@@ -185,7 +212,7 @@ class JointTPM(Displayable, ToPandasMixin):
         n = self.n_nodes
         in_dims = tuple(f"u{j}" for j in range(n))
         coords: dict[str, list[int]] = {
-            in_dims[j]: list(range(self.alphabet_sizes[j])) for j in range(n)
+            in_dims[j]: list(range(self._input_axis_sizes[j])) for j in range(n)
         }
         coords["unit"] = list(range(n))
         coords["out"] = list(range(int(self._array.shape[-1])))
