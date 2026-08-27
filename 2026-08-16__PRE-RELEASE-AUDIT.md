@@ -1507,3 +1507,81 @@ Open, deliberately not done here:
   at release; added to the step-5 checklist.
 - Docs never build in CI; a docs-build job (or a release-checklist step) is
   the step-5 decision.
+
+# Step 5a: medium/low theme triage (2026-08-26)
+
+258 medium/low findings, triaged by theme against the branch's fixes.
+
+## Resolved by this branch's critical/high fixes (~95 findings)
+
+Duplicates at lower severity of defects already fixed and regression-tested:
+the relations ordering/MRO family (22), the total-cut normalization family
+(7, plus the rename), the temporal-scheme and partition-duplicate families
+(11 — schemes retired, generators deduped), the partial-parallel-dict family
+(6), cmp.py mapping equality (6), cache thread-safety/clear_all/cgroup (7),
+serializer registry/MICE-tie/TransitionSystem/save families (7), sia.ties
+inflation + completion-order nondeterminism (5), the measures composite (3),
+specification_measure and version-cap validation (2), macro search override +
+MacroSystem equality (3), AC realization/noise_background (3), the
+differentiation_macro_tpm example (1), and assorted others verified during
+the waves.
+
+## Tier A — proposed pre-release fixes (correctness-flavored, small)
+
+1. RIA.ties dedupes genuinely distinct tied MIPs (eq ignores the partition),
+   so diff() reports a MIP change for co-optimal partitions (5 findings).
+2. Part declares dataclass ordering over node_labels its __eq__ ignores:
+   equal Parts raise TypeError under `<` (6). EdgeCut __eq__ dtype-blind vs
+   dtype-sensitive __hash__ (2).
+3. Serialization drops node_labels for mechanism/system partitions and state
+   specifications (loaded results render bare indices; 5), and several
+   Serializable types have no registered serializer at all (ComplexesResult,
+   MacroSystem, AnalyticalRelations; save() raises; 3), plus reducible
+   CausalLinks cannot serialize (1).
+4. Cache byte accounting: entry_weight charges zero for cache-owned ndarray
+   views; admit flushes the whole working set before refusing an oversized
+   entry (4). DiskCache temp-file name races across threads (1).
+5. dynamics.simulate: no seed argument (irreproducible by our own standards)
+   and k-ary substrates never start in states >= 2 (2).
+6. pointwise_mutual_information_vector substitutes 1.8e308 for documented
+   zero on infinite log-ratios (4).
+7. Cost memo key omits system_partition_include_total (2).
+8. compositional_state: empty construction broken, conflicts_with KeyError on
+   one-direction purviews, resolve_conflicts ranks on stale counts (12
+   findings, 3 bugs).
+9. Small contract fixes: utils.all_states(()) empty-state, provenance
+   seed=None crash, resolve_ties ["NONE"] list form, run_cm caller mutation +
+   inverted sparse predicate, conditional-independence gate tolerance,
+   automorphism hardcoded rounding, __all__ hygiene, conftest dead fixture,
+   stale error-message pointer (9 bugs).
+
+## Tier A-verify — correctness-class claims needing a repro before believing
+
+- JointTPM.alphabet_sizes on a conditioned view "silently drops probability
+  mass"; JointTPM hands out a writable internal buffer.
+- repertoire_distance drops the state kwarg for two-argument measures.
+- proper_cause/effect_marginal derive background from node_indices rather
+  than external_indices (latent under custom external sets).
+- dynamics misreads explicit-alphabet TPM forms.
+- convert accepts a malformed 2-D state-by-node TPM as a smaller substrate.
+- Null SIAs fabricate ii(s)=0 / i_diff=0 as if computed.
+- resolve_ties cascade ignores on_unresolved under an escalation budget.
+- potential_purviews consumes a one-shot iterable twice (returns no purviews).
+- AC account() drops allow_neg; AC _find_mip min-|alpha| vs min-alpha (theory
+  question for the AC formalism).
+
+## Tier B — deferred to 2.1 (tracked, not release-blocking)
+
+Explain/display polish (runner-up ranking basis, phi_s glyphs on two cards,
+CAUSE-arrow rendering), parallel-internals consistency (shortcircuit_callback
+payloads, per-call snapshot-hash cost, sampling discards, second-iterable
+sampling collapse), test-gate widenings (precision lint coverage, hash-quality
+instrumentation gap, golden layer-disappearance guard, vacuous parity
+fixtures), perf items (non-binary EMD ground-metric caching), API warts
+(pyphi.sweep name shadowing, protocols runtime distinguishability, registry
+shape validation), eager tie-strategy name validation, parallel_kwargs
+allowlist staleness and gate ordering, empty-YAML-layer AttributeError,
+as_kwargs round-trip, docstring figure citations in examples, labels
+range-check semantics, ConfigSnapshot.as_kwargs, and the release-time items
+(CHANGELOG fragment consumption, CITATION.cff version/date, README status
+blockquote) now on the release checklist.
