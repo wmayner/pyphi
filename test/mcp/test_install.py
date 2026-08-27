@@ -44,16 +44,17 @@ class TestRegistration:
 
     def test_written_into_an_empty_directory(self, tmp_path):
         _install(tmp_path)
-        config = json.loads((tmp_path / ".mcp.json").read_text())
+        config = json.loads((tmp_path / ".mcp.json").read_text(encoding="utf-8"))
         assert config["mcpServers"]["pyphi"] == mod.registration()
 
     def test_merged_without_disturbing_other_servers(self, tmp_path):
         path = tmp_path / ".mcp.json"
         path.write_text(
-            json.dumps({"mcpServers": {"other": {"command": "foo"}}, "keep": 1})
+            json.dumps({"mcpServers": {"other": {"command": "foo"}}, "keep": 1}),
+            encoding="utf-8",
         )
         _install(tmp_path)
-        config = json.loads(path.read_text())
+        config = json.loads(path.read_text(encoding="utf-8"))
         assert config["mcpServers"]["other"] == {"command": "foo"}
         assert config["keep"] == 1
         assert "pyphi" in config["mcpServers"]
@@ -70,7 +71,7 @@ class TestRegistration:
     def test_force_replaces_a_conflicting_entry(self, tmp_path):
         _install(tmp_path)
         _install(tmp_path, spec="something-else", force=True)
-        config = json.loads((tmp_path / ".mcp.json").read_text())
+        config = json.loads((tmp_path / ".mcp.json").read_text(encoding="utf-8"))
         assert config["mcpServers"]["pyphi"]["args"][1] == "something-else"
 
     def test_user_scope_and_desktop_resolve_outside_the_project(self, tmp_path):
@@ -91,16 +92,16 @@ class TestRegistration:
 class TestInstructionBlock:
     def test_written_where_the_file_is_absent(self, tmp_path):
         _install(tmp_path)
-        text = (tmp_path / mod.INSTRUCTIONS_FILE).read_text()
+        text = (tmp_path / mod.INSTRUCTIONS_FILE).read_text(encoding="utf-8")
         assert mod.BLOCK_BEGIN in text and mod.BLOCK_END in text
         assert "φₛ and Φ are different quantities" in text
 
     @pytest.mark.parametrize("existing", ["", "\n\n", "# Mine\n\nBuild with make.\n"])
     def test_appended_without_losing_what_was_there(self, tmp_path, existing):
         path = tmp_path / mod.INSTRUCTIONS_FILE
-        path.write_text(existing)
+        path.write_text(existing, encoding="utf-8")
         _install(tmp_path)
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         assert mod.BLOCK_BEGIN in text
         if existing.strip():
             assert "Build with make." in text
@@ -108,9 +109,10 @@ class TestInstructionBlock:
     def test_reinstalling_replaces_the_block_and_preserves_the_rest(self, tmp_path):
         path = tmp_path / mod.INSTRUCTIONS_FILE
         _install(tmp_path)
-        path.write_text(f"before\n\n{path.read_text()}\nafter\n")
+        original = path.read_text(encoding="utf-8")
+        path.write_text(f"before\n\n{original}\nafter\n", encoding="utf-8")
         _install(tmp_path)
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         assert text.count(mod.BLOCK_BEGIN) == 1
         assert text.startswith("before")
         assert text.rstrip().endswith("after")
@@ -124,30 +126,32 @@ class TestClaudeImport:
 
     def test_import_written_where_claude_md_is_absent(self, tmp_path):
         _install(tmp_path)
-        assert (tmp_path / mod.CLAUDE_FILE).read_text().strip() == mod.CLAUDE_IMPORT
+        assert (tmp_path / mod.CLAUDE_FILE).read_text(
+            encoding="utf-8"
+        ).strip() == mod.CLAUDE_IMPORT
 
     def test_import_prepended_to_an_existing_file(self, tmp_path):
         path = tmp_path / mod.CLAUDE_FILE
-        path.write_text("## Mine\n\nUse plan mode.\n")
+        path.write_text("## Mine\n\nUse plan mode.\n", encoding="utf-8")
         _install(tmp_path)
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         assert text.startswith(mod.CLAUDE_IMPORT)
         assert "Use plan mode." in text
 
     def test_import_not_duplicated(self, tmp_path):
         _install(tmp_path)
         _install(tmp_path)
-        text = (tmp_path / mod.CLAUDE_FILE).read_text()
+        text = (tmp_path / mod.CLAUDE_FILE).read_text(encoding="utf-8")
         assert text.count(mod.CLAUDE_IMPORT) == 1
 
     def test_a_symlink_is_left_alone(self, tmp_path):
-        (tmp_path / mod.INSTRUCTIONS_FILE).write_text("# Mine\n")
+        (tmp_path / mod.INSTRUCTIONS_FILE).write_text("# Mine\n", encoding="utf-8")
         (tmp_path / mod.CLAUDE_FILE).symlink_to(mod.INSTRUCTIONS_FILE)
         _install(tmp_path)
         claude = tmp_path / mod.CLAUDE_FILE
         assert claude.is_symlink()
         # The block reaches Claude Code through the link, so no import is added.
-        assert mod.CLAUDE_IMPORT not in claude.read_text()
+        assert mod.CLAUDE_IMPORT not in claude.read_text(encoding="utf-8")
 
 
 class TestUninstall:
@@ -161,19 +165,21 @@ class TestUninstall:
     def test_leaves_surrounding_content_byte_identical(self, tmp_path):
         agents = tmp_path / mod.INSTRUCTIONS_FILE
         claude = tmp_path / mod.CLAUDE_FILE
-        agents.write_text("# Mine\n\nBuild with make.\n")
-        claude.write_text("## Mine\n\nUse plan mode.\n")
+        agents.write_text("# Mine\n\nBuild with make.\n", encoding="utf-8")
+        claude.write_text("## Mine\n\nUse plan mode.\n", encoding="utf-8")
         _install(tmp_path)
         mod.uninstall(tmp_path)
-        assert agents.read_text() == "# Mine\n\nBuild with make.\n"
-        assert claude.read_text() == "## Mine\n\nUse plan mode.\n"
+        assert agents.read_text(encoding="utf-8") == "# Mine\n\nBuild with make.\n"
+        assert claude.read_text(encoding="utf-8") == "## Mine\n\nUse plan mode.\n"
 
     def test_leaves_other_servers_registered(self, tmp_path):
         path = tmp_path / ".mcp.json"
-        path.write_text(json.dumps({"mcpServers": {"other": {"command": "foo"}}}))
+        path.write_text(
+            json.dumps({"mcpServers": {"other": {"command": "foo"}}}), encoding="utf-8"
+        )
         _install(tmp_path)
         mod.uninstall(tmp_path)
-        assert json.loads(path.read_text())["mcpServers"] == {
+        assert json.loads(path.read_text(encoding="utf-8"))["mcpServers"] == {
             "other": {"command": "foo"}
         }
 

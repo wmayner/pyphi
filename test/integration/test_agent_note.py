@@ -13,6 +13,10 @@ def _import_pyphi(**env_overrides):
         if key not in {"CLAUDECODE", "PYPHI_AGENT", "PYPHI_AGENT_NOTE_OFF"}
     }
     env["PYPHI_WELCOME_OFF"] = "1"
+    # On Windows the child's stderr defaults to the console codepage with
+    # errors="backslashreplace", turning φ_s into the literal φ_s;
+    # force UTF-8 so the note's characters survive the round trip.
+    env["PYTHONIOENCODING"] = "utf-8"
     env.update(env_overrides)
     result = subprocess.run(
         [sys.executable, "-c", "import pyphi"],
@@ -20,6 +24,7 @@ def _import_pyphi(**env_overrides):
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     return result.stdout, result.stderr
 

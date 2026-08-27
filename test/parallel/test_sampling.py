@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 from pyphi import parallel
 from pyphi.parallel.sampling import compute_chunksize
@@ -109,8 +110,14 @@ def test_sampling_reuses_results_when_dispatch_is_sequential():
 
 
 def _record_to_file(x, path):
-    with open(path, "a") as f:
-        f.write(f"{x}\n")
+    # One uniquely named file per call: concurrent appends to a single file
+    # from multiple processes can lose writes on Windows, so the call count
+    # is the number of files, each named for its item and writer.
+    import os
+    import uuid
+
+    record = Path(path) / f"{x}__{os.getpid()}__{uuid.uuid4().hex}"
+    record.write_text(f"{x}\n", encoding="utf-8")
     time.sleep(0.01)
     return x
 
@@ -121,17 +128,18 @@ def test_sampling_reuses_results_on_parallel_dispatch(tmp_path):
     from pyphi.parallel.backends.local_process import LocalProcessScheduler
     from pyphi.parallel.scheduler import ChunkingPolicy
 
-    path = tmp_path / "calls.txt"
+    calls_dir = tmp_path / "calls"
+    calls_dir.mkdir()
     out = LocalProcessScheduler().map_reduce(
         _record_to_file,
         list(range(12)),
         reducer=sorted,
         chunking=ChunkingPolicy(target_seconds=0.02),
-        map_kwargs={"path": str(path)},
+        map_kwargs={"path": str(calls_dir)},
     )
     assert out == list(range(12))
-    lines = path.read_text().splitlines()
-    assert sorted(int(line) for line in lines) == list(range(12))
+    computed = sorted(int(f.name.split("__")[0]) for f in calls_dir.iterdir())
+    assert computed == list(range(12))
 
 
 def test_multi_iterable_default_chunksize_samples_and_avoids_per_item_dispatch():
