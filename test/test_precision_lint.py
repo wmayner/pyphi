@@ -42,15 +42,7 @@ PYPHI = Path(__file__).parent.parent / "pyphi"
 # written. Keyed by (path relative to the repo root, exact stripped source
 # line) so entries survive unrelated line drift; if the line itself is
 # edited, the waiver lapses and the site is re-examined.
-ALLOWLIST: dict[tuple[str, str], str] = {
-    (
-        "pyphi/models/distinction.py",
-        "or float(self.cause.phi) < float(self.effect.phi)",
-    ): (
-        "tolerant ≤ composed from numerics.eq (previous line of the same "
-        "BoolOp) plus a strict <; the eq guard makes the raw < tie-safe"
-    ),
-}
+ALLOWLIST: dict[tuple[str, str], str] = {}
 
 
 def _mentions_phi_attr(node: ast.AST) -> bool:

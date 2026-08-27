@@ -92,3 +92,43 @@ def test_eq_mask_matches_eq_elementwise():
     for target in (1.0, 0.0, 1e6, -1.0, np.inf, np.nan):
         expected = [numerics.eq(v, target) for v in values]
         assert list(numerics.eq_mask(values, target)) == expected
+
+
+def test_lt_requires_difference_beyond_tolerance():
+    assert numerics.lt(0.5, 0.6)
+    assert not numerics.lt(0.6, 0.5)
+    # Within the tolerance of equal: neither strictly less nor greater.
+    assert not numerics.lt(0.5, 0.5 + 1e-14)
+    assert not numerics.lt(0.5 + 1e-14, 0.5)
+    assert not numerics.lt(0.5, 0.5)
+
+
+def test_le_accepts_tolerant_equality():
+    assert numerics.le(0.5, 0.6)
+    assert not numerics.le(0.6, 0.5)
+    assert numerics.le(0.5, 0.5)
+    # Within the tolerance of equal, in both directions.
+    assert numerics.le(0.5, 0.5 + 1e-14)
+    assert numerics.le(0.5 + 1e-14, 0.5)
+
+
+def test_lt_le_trichotomy_with_eq():
+    """For any pair, exactly one of lt(x, y), eq(x, y), lt(y, x) holds, and
+    le is their union with eq."""
+    pairs = [(0.5, 0.6), (0.6, 0.5), (0.5, 0.5), (0.5, 0.5 + 1e-14), (0.0, 1e-12)]
+    for x, y in pairs:
+        assert [numerics.lt(x, y), numerics.eq(x, y), numerics.lt(y, x)].count(True) == 1
+        assert numerics.le(x, y) == (numerics.lt(x, y) or numerics.eq(x, y))
+
+
+def test_lt_le_read_config_at_call_time():
+    with pyphi.config.override(precision=6):
+        assert not numerics.lt(0.5, 0.5 + 1e-9)
+        assert numerics.le(0.5 + 1e-9, 0.5)
+    assert numerics.lt(0.5, 0.5 + 1e-9)
+    assert not numerics.le(0.5 + 1e-9, 0.5)
+
+
+def test_lt_le_cast_numpy_scalars_to_bool():
+    assert numerics.lt(np.float64(0.5), np.float64(0.6)) is True
+    assert numerics.le(np.float64(0.6), np.float64(0.5)) is False

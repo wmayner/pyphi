@@ -38,6 +38,22 @@ def eq(x: float, y: float) -> bool:
     return math.isclose(x, y, rel_tol=epsilon, abs_tol=epsilon)
 
 
+def lt(x: float, y: float) -> bool:
+    """Return whether ``x`` is less than ``y`` beyond
+    ``config.numerics.precision``: strictly less and not within the
+    tolerance of equal. For the reversed comparisons use ``lt(y, x)`` /
+    ``le(y, x)``."""
+    # Need ``bool`` to cast from numpy to native Boolean
+    return not eq(x, y) and bool(x < y)
+
+
+def le(x: float, y: float) -> bool:
+    """Return whether ``x`` is less than ``y`` or equal to it up to
+    ``config.numerics.precision``."""
+    # Need ``bool`` to cast from numpy to native Boolean
+    return eq(x, y) or bool(x < y)
+
+
 def is_zero(x: float) -> bool:
     """Return whether ``x`` is zero up to ``config.numerics.precision``."""
     return eq(x, 0.0)
