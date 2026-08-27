@@ -161,8 +161,22 @@ def __getattr__(name: str) -> ModuleType:
 # importable as attributes and are listed by ``dir(pyphi)``.
 _OPTIONAL_DEP_SUBMODULES = frozenset({"visualize", "mcp"})
 
+# Submodule names shadowed at module scope by a top-level function of the
+# same name (``pyphi.analyze``, ``pyphi.optimize``, ``pyphi.sweep`` are the
+# ``analyze``/``optimize``/``sweep`` functions, not the submodules), so
+# ``__all__`` documents the function, not the submodule, for these names.
+_SHADOWED_BY_FUNCTION = frozenset({"analyze", "optimize", "sweep"})
+
+# Submodule names that collide with a standard-library module name
+# (``pyphi.types``, ``pyphi.warnings``): excluded from ``__all__`` so
+# ``from pyphi import *`` cannot rebind a caller's ``types``/``warnings``
+# import to PyPhi's own submodule. They remain importable as attributes
+# (``pyphi.types``, ``pyphi.warnings``) and are listed by ``dir(pyphi)``.
+_STDLIB_NAME_COLLISIONS = frozenset(_SUBMODULE_NAMES) & sys.stdlib_module_names
+
 __all__ = [
     "Analysis",
+    "AnalysisEstimate",
     "Direction",
     "FactoredTPM",
     "JointTPM",
@@ -177,6 +191,7 @@ __all__ = [
     "analyze",
     "config",
     "enable_logging",
+    "estimate_analysis",
     "estimate_substrate",
     "iit3",
     "iit4_2023",
@@ -187,6 +202,7 @@ __all__ = [
     "perturb",
     "phi_posterior",
     "save",
+    "sweep",
     "weight_axes",
     "weight_axis",
 ] + [
@@ -194,7 +210,8 @@ __all__ = [
     for name in sorted(_SUBMODULE_NAMES)
     if not name.startswith("_")
     and name not in _OPTIONAL_DEP_SUBMODULES
-    and name not in ("analyze", "optimize")
+    and name not in _SHADOWED_BY_FUNCTION
+    and name not in _STDLIB_NAME_COLLISIONS
 ]
 
 

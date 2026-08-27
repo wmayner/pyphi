@@ -75,14 +75,16 @@ def all_states(
 
     >>> list(all_states((3, 2)))
     [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)]
+
+    An empty node set has exactly one state, the empty tuple:
+
+    >>> list(all_states(()))
+    [()]
     """
     if isinstance(spec, int):
         alphabet_sizes: tuple[int, ...] = (2,) * spec
     else:
         alphabet_sizes = tuple(spec)
-
-    if not alphabet_sizes:
-        return
 
     ranges = [range(k) for k in alphabet_sizes]
     if big_endian:

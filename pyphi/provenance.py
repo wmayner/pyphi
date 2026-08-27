@@ -232,7 +232,7 @@ def _capture_metadata(
     note: str | None,
 ) -> Provenance:
     """Capture a :class:`Provenance`, resolving the seed from ``params``."""
-    if seed is None and params is not None and "seed" in params:
+    if seed is None and params is not None and params.get("seed") is not None:
         seed = int(params["seed"])
     prov = Provenance.capture(seed=seed)
     if note is not None:

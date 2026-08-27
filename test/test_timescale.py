@@ -12,9 +12,9 @@ from pyphi.timescale import sparse_time
 
 
 def test_sparse_density_threshold():
-    # sparse() returns whether (#nonzero / size) > threshold.
-    assert sparse(np.array([[1, 0], [0, 1]]), threshold=0.1)  # density 0.5 > 0.1
-    assert not sparse(np.array([[1, 0], [0, 0]]), threshold=0.4)  # density 0.25 !> 0.4
+    # sparse() returns whether (#nonzero / size) <= threshold.
+    assert not sparse(np.array([[1, 0], [0, 1]]), threshold=0.1)  # density 0.5
+    assert sparse(np.array([[1, 0], [0, 0]]), threshold=0.4)  # density 0.25
 
 
 def test_dense_time_matrix_power():
@@ -78,3 +78,39 @@ def test_run_tpm_independent_nodes_return_exact_iterated_dynamics():
     got = run_tpm(sbn(p0, p1), 2)
     expected = sbn(p0 @ p0, p1 @ p1)
     assert np.allclose(got, expected)
+
+
+def test_run_cm_does_not_mutate_the_caller():
+    cm = np.array([[0, 1], [1, 0]])
+    original = cm.copy()
+    run_cm(cm, 1)
+    assert np.array_equal(cm, original)
+
+
+def test_run_cm_accepts_read_only_matrix():
+    cm = np.array([[0, 1], [1, 1]])
+    cm.setflags(write=False)
+    result = run_cm(cm, 1)
+    assert result.max() <= 1
+
+
+def test_sparse_predicate_true_for_sparse_matrices():
+    """sparse() means sparse: few nonzero entries."""
+    nearly_empty = np.zeros((10, 10))
+    nearly_empty[0, 0] = 1.0
+    dense = np.ones((10, 10))
+    assert sparse(nearly_empty)
+    assert not sparse(dense)
+
+
+def test_run_tpm_branches_agree():
+    """The sparse and dense matrix-power branches give the same result."""
+    sbs = np.array(
+        [
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0, 0.0],
+        ]
+    )
+    assert np.allclose(sparse_time(sbs, 2), dense_time(sbs, 2))

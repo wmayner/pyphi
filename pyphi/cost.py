@@ -190,21 +190,27 @@ class _Counter:
             raise _LimitReached
 
 
-# Partition counts keyed by (system partition scheme name, m). Enumerating
-# the partitions of m elements is the same regardless of substrate, so the
-# count is memoized across calls at module scope. The default scheme's
-# counts are seeded from direct enumeration of ``system_partitions``; the
-# seed-verification tests re-enumerate them.
-_PARTITION_COUNT_MEMO: dict[tuple[str, int], int] = {
-    ("DIRECTED_SET_PARTITION", 1): 1,
-    ("DIRECTED_SET_PARTITION", 2): 3,
-    ("DIRECTED_SET_PARTITION", 3): 22,
-    ("DIRECTED_SET_PARTITION", 4): 150,
-    ("DIRECTED_SET_PARTITION", 5): 1_061,
-    ("DIRECTED_SET_PARTITION", 6): 7_896,
-    ("DIRECTED_SET_PARTITION", 7): 61_888,
-    ("DIRECTED_SET_PARTITION", 8): 510_313,
-    ("DIRECTED_SET_PARTITION", 9): 4_419_572,
+# Partition counts keyed by (system partition scheme name, m,
+# system_partition_include_total). Enumerating the partitions of m
+# elements is the same regardless of substrate, so the count is memoized
+# across calls at module scope. ``system_partition_include_total`` must
+# be part of the key: it changes the count returned by ``system_partitions``
+# for m > 1 (the complete edge cut is included only when it's set), so
+# omitting it from the key would answer a query made under one setting with
+# a count memoized under the other. The default scheme's counts are seeded
+# for the default ``system_partition_include_total=False``, from direct
+# enumeration of ``system_partitions``; the seed-verification tests
+# re-enumerate them.
+_PARTITION_COUNT_MEMO: dict[tuple[str, int, bool], int] = {
+    ("DIRECTED_SET_PARTITION", 1, False): 1,
+    ("DIRECTED_SET_PARTITION", 2, False): 3,
+    ("DIRECTED_SET_PARTITION", 3, False): 22,
+    ("DIRECTED_SET_PARTITION", 4, False): 150,
+    ("DIRECTED_SET_PARTITION", 5, False): 1_061,
+    ("DIRECTED_SET_PARTITION", 6, False): 7_896,
+    ("DIRECTED_SET_PARTITION", 7, False): 61_888,
+    ("DIRECTED_SET_PARTITION", 8, False): 510_313,
+    ("DIRECTED_SET_PARTITION", 9, False): 4_419_572,
 }
 
 # Mechanism-partition counts keyed by (mechanism partition scheme name,
@@ -270,11 +276,12 @@ def _partition_counts(ms) -> dict[int, int]:
     from pyphi.partition import system_partitions
 
     scheme = config.formalism.iit.system_partition_scheme
+    include_total = config.formalism.iit.system_partition_include_total
     counts = {}
     for m in ms:
         if m > _PARTITION_COUNT_CAP:
             continue
-        key = (scheme, m)
+        key = (scheme, m, include_total)
         count = _PARTITION_COUNT_MEMO.get(key)
         if count is None:
             count = sum(1 for _ in system_partitions(tuple(range(m))))
@@ -294,7 +301,8 @@ def _system_partition_count(m: int, counter: _Counter) -> int:
     from pyphi.partition import system_partitions
 
     scheme = config.formalism.iit.system_partition_scheme
-    key = (scheme, m)
+    include_total = config.formalism.iit.system_partition_include_total
+    key = (scheme, m, include_total)
     count = _PARTITION_COUNT_MEMO.get(key)
     if count is None:
         count = 0

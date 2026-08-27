@@ -247,6 +247,11 @@ class _GlobalConfig:
         from pyphi.conf._io import load_yaml as _load
 
         data = _load(path)
+        # An empty section (e.g. a bare ``numerics:`` key with nothing
+        # nested under it) loads from YAML as ``None``, not ``{}``; treat it
+        # as an empty section rather than failing with a bare AttributeError
+        # on the ``.items()`` call below.
+        data = {section: (fields_dict or {}) for section, fields_dict in data.items()}
         formalism_data = dict(data.pop("formalism", {}))
         saved = self.snapshot()
         try:
@@ -264,7 +269,7 @@ class _GlobalConfig:
                         )
                     setattr(self, field_name, value)
             for sub_name in ("iit", "actual_causation"):
-                sub_data = formalism_data.pop(sub_name, {})
+                sub_data = formalism_data.pop(sub_name, {}) or {}
                 for field_name, value in sub_data.items():
                     self[f"{sub_name}.{field_name}"] = value
             if formalism_data:
@@ -499,10 +504,16 @@ class _GlobalConfig:
                 f"Cannot replace layer {field_name!r} with "
                 f"{type(value).__name__}; expected {expected.__name__}."
             )
-        raise ConfigurationError(
-            f"Unknown config option: {name!r}. "
-            "See changelog.d/p10-config-split.refactor.md for the rename map."
+        from pyphi.conf._field_routing import RENAMED_FIELDS
+
+        renamed = RENAMED_FIELDS.get(field_name)
+        hint = (
+            f" It is now {renamed!r}."
+            if renamed
+            else " See the 2.0 migration guide (docs/migration/migration-2.0.md) "
+            "for the rename map."
         )
+        raise ConfigurationError(f"Unknown config option: {name!r}.{hint}")
 
     def _fire_field_callback(self, field_name: str, old: Any, new: Any) -> None:
         if field_name == "distinction_phi_normalization":

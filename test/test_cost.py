@@ -30,7 +30,7 @@ class TestSeeds:
     def test_system_partition_seeds_match_enumeration(self):
         for m in range(1, 7):
             direct = sum(1 for _ in system_partitions(tuple(range(m))))
-            assert _PARTITION_COUNT_MEMO[("DIRECTED_SET_PARTITION", m)] == direct
+            assert _PARTITION_COUNT_MEMO[("DIRECTED_SET_PARTITION", m, False)] == direct
 
     @pytest.mark.slow
     def test_system_partition_seeds_match_enumeration_large(self):
@@ -38,7 +38,7 @@ class TestSeeds:
         # one direct enumeration of the same generator.
         for m in (7, 8):
             direct = sum(1 for _ in system_partitions(tuple(range(m))))
-            assert _PARTITION_COUNT_MEMO[("DIRECTED_SET_PARTITION", m)] == direct
+            assert _PARTITION_COUNT_MEMO[("DIRECTED_SET_PARTITION", m, False)] == direct
 
     def test_mechanism_partition_seeds_match_enumeration(self):
         for a in range(1, 6):
@@ -441,3 +441,21 @@ class TestSpecifiedStateAxis:
             substrate, compute="sia"
         ).specified_state_evaluations
         assert estimated <= len(calls) <= estimated + 4
+
+
+def test_system_partition_include_total_changes_the_count():
+    """The partition-count memo is keyed on system_partition_include_total:
+    toggling the option changes the reported count, and the memo is not
+    cross-poisoned between settings."""
+    from pyphi import examples
+    from pyphi.conf import config
+
+    substrate = examples.basic_substrate()
+    with config.override(**{"iit.system_partition_include_total": False}):
+        off_1 = pyphi.cost.estimate_analysis(substrate).system_partitions
+    with config.override(**{"iit.system_partition_include_total": True}):
+        on = pyphi.cost.estimate_analysis(substrate).system_partitions
+    with config.override(**{"iit.system_partition_include_total": False}):
+        off_2 = pyphi.cost.estimate_analysis(substrate).system_partitions
+    assert on == off_1 + 1  # the total cut is one extra partition
+    assert off_2 == off_1  # no cross-poisoning

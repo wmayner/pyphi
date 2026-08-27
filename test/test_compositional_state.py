@@ -28,3 +28,24 @@ def test_mechanism_has_conflicts_is_per_mechanism(conflicted):
 def test_number_of_conflicts_consistent(conflicted):
     assert conflicted.number_of_conflicts((0,)) > 0
     assert conflicted.number_of_conflicts((2,)) == 0
+
+
+def test_empty_compositional_state_is_usable():
+    """No-argument construction must give a fully working empty state."""
+    from pyphi.compositional_state import CompositionalState
+
+    empty = CompositionalState()
+    assert empty.mechanisms() == set()
+    assert not empty.has_conflicts()
+    repr(empty)
+
+
+def test_conflicts_with_one_direction_purview():
+    """A purview claimed in only one direction is no conflict for the
+    other direction, not a KeyError."""
+    from pyphi.compositional_state import CompositionalState
+    from pyphi.direction import Direction
+
+    state = CompositionalState()
+    state.data[(1,)] = {Direction.CAUSE: {(0,)}}
+    assert not state.conflicts_with((0,), (1,), (1,))

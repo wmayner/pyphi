@@ -150,3 +150,24 @@ def test_isomorphism_is_reflexive():
     with pyphi.config.override(progress_bars=False):
         ces = examples.xor_system().ces()
     assert auto.are_structures_isomorphic(ces, ces)
+
+
+def test_isomorphism_rounding_follows_config_precision():
+    """Structure-signature equality buckets at config.numerics.precision,
+    not a hardcoded 12 decimals: a 1e-13 perturbation is invisible at
+    precision 12 and visible at precision 14."""
+    import numpy as np
+
+    from pyphi.automorphism import are_substrates_isomorphic
+    from pyphi.conf import config
+    from pyphi.substrate import Substrate
+
+    tpm = np.array([[0.2, 0.5], [0.6, 0.3], [0.4, 0.8], [0.7, 0.1]])
+    perturbed = tpm.copy()
+    perturbed[0, 0] += 1e-13
+    a = Substrate(tpm)
+    b = Substrate(perturbed)
+    with config.override(precision=12):
+        assert are_substrates_isomorphic(a, b)
+    with config.override(precision=14):
+        assert not are_substrates_isomorphic(a, b)

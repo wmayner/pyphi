@@ -24,9 +24,18 @@ import numpy as np
 if TYPE_CHECKING:
     from pyphi.substrate import Substrate
 
-# Decimal places used when byte-keying TPM arrays for cross-substrate
-# comparison, to make canonical-form equality robust to float round-off.
-_ROUND = 12
+
+def _round_digits() -> int:
+    """Decimal places used when byte-keying TPM arrays for cross-substrate
+    comparison, to make canonical-form equality robust to float round-off.
+
+    Tracks :data:`pyphi.conf.numerics.NumericsConfig.precision` rather than a
+    fixed constant, so canonicalization is exact at whatever resolution the
+    rest of the numerical stack is configured for.
+    """
+    from pyphi.conf import config
+
+    return config.numerics.precision
 
 
 def _relabel_joint(arr: np.ndarray, perm: tuple[int, ...]) -> np.ndarray:
@@ -78,40 +87,44 @@ def substrate_automorphisms(
     )
 
 
-def _serialization(substrate: Substrate, perm: tuple[int, ...]) -> tuple:
+def _serialization(substrate: Substrate, perm: tuple[int, ...], precision: int) -> tuple:
     """A relabeling-applied, byte-comparable key for ``substrate`` under
     ``perm``.
 
-    Rounding makes cross-substrate equality robust to float round-off; the
-    ``+ 0.0`` normalizes ``-0.0`` to ``0.0`` so equal values compare equal
-    byte-for-byte.
+    Rounding to ``precision`` decimal places makes cross-substrate equality
+    robust to float round-off; the ``+ 0.0`` normalizes ``-0.0`` to ``0.0``
+    so equal values compare equal byte-for-byte.
     """
     cm = np.asarray(substrate.cm)
     alphabet = substrate.tpm.alphabet_sizes
     n = len(alphabet)
     arr = _relabel_joint(substrate.tpm.to_joint(), perm)
     cm_p = np.ascontiguousarray(cm[np.ix_(perm, perm)])
-    arr_p = np.ascontiguousarray(np.round(arr, _ROUND)) + 0.0
+    arr_p = np.ascontiguousarray(np.round(arr, precision)) + 0.0
     alpha_p = tuple(alphabet[perm[i]] for i in range(n))
     return (alpha_p, cm_p.tobytes(), arr_p.tobytes())
 
 
 # Bounded: entries pin Substrates (and their TPM arrays) for the cache's
 # lifetime, so an unbounded cache grows without limit across long sweeps.
+# Keyed on ``precision`` too: the canonical form depends on it, so a value
+# cached under one configured precision must not be served back after the
+# precision changes.
 @lru_cache(maxsize=64)
 def _canonical(
-    substrate: Substrate,
+    substrate: Substrate, precision: int
 ) -> tuple[tuple, tuple[tuple[int, ...], ...]]:
     """Return ``(canonical_key, achievers)``.
 
-    ``canonical_key`` is the lexicographically smallest serialization over
-    candidate permutations; ``achievers`` is every permutation attaining it
-    (the set mapping ``substrate`` to its canonical form).
+    ``canonical_key`` is the lexicographically smallest serialization (at
+    the given rounding ``precision``) over candidate permutations;
+    ``achievers`` is every permutation attaining it (the set mapping
+    ``substrate`` to its canonical form).
     """
     best_key = None
     achievers: list[tuple[int, ...]] = []
     for perm in _candidate_perms(substrate):
-        key = _serialization(substrate, perm)
+        key = _serialization(substrate, perm, precision)
         if best_key is None or key < best_key:
             best_key, achievers = key, [perm]
         elif key == best_key:
@@ -132,7 +145,7 @@ def substrate_canonical_form(
     """
     from pyphi.substrate import Substrate
 
-    _, achievers = _canonical(substrate)
+    _, achievers = _canonical(substrate, _round_digits())
     perm = min(achievers)
     arr = _relabel_joint(substrate.tpm.to_joint(), perm)
     cm = np.asarray(substrate.cm)[np.ix_(perm, perm)]
@@ -147,7 +160,8 @@ def are_substrates_isomorphic(s1: Substrate, s2: Substrate) -> bool:
     alphabet sizes onto ``s2``'s."""
     if sorted(s1.tpm.alphabet_sizes) != sorted(s2.tpm.alphabet_sizes):
         return False
-    return _canonical(s1)[0] == _canonical(s2)[0]
+    precision = _round_digits()
+    return _canonical(s1, precision)[0] == _canonical(s2, precision)[0]
 
 
 def canonical_state(substrate: Substrate, state: tuple[int, ...]) -> tuple[int, ...]:
@@ -160,7 +174,7 @@ def canonical_state(substrate: Substrate, state: tuple[int, ...]) -> tuple[int, 
     smallest image over every permutation that carries ``substrate`` to its
     canonical form.
     """
-    _, achievers = _canonical(substrate)
+    _, achievers = _canonical(substrate, _round_digits())
     return min(tuple(state[perm[i]] for i in range(len(perm))) for perm in achievers)
 
 
@@ -173,13 +187,13 @@ def _map_aligned(indices, aligned, mapping):
     return tuple(i for i, _ in pairs), tuple(s for _, s in pairs)
 
 
-def _distinction_record(distinction, mapping):
+def _distinction_record(distinction, mapping, precision):
     from pyphi.direction import Direction
 
     mechanism, mechanism_state = _map_aligned(
         distinction.mechanism, distinction.mechanism_state, mapping
     )
-    record = [mechanism, mechanism_state, round(float(distinction.phi), _ROUND)]
+    record = [mechanism, mechanism_state, round(float(distinction.phi), precision)]
     for direction in Direction.both():
         mice = distinction.mice(direction)
         spec = mice.specified_state
@@ -187,7 +201,7 @@ def _distinction_record(distinction, mapping):
             record.append((tuple(sorted(mapping[i] for i in mice.purview)),))
         else:
             purview, state = _map_aligned(spec.purview, spec.state, mapping)
-            record.append((purview, state, round(float(mice.phi), _ROUND)))
+            record.append((purview, state, round(float(mice.phi), precision)))
     return tuple(record)
 
 
@@ -206,15 +220,16 @@ def structure_signature(ces, mapping=None):
 
     Covers each distinction's mechanism, mechanism state, cause/effect
     purviews with their specified states, and φ values (rounded to
-    ``_ROUND`` places), plus each relation's relata mechanisms and φ.
-    Repertoires and partitions are not included. When the relation set is
-    not enumerable (analytical), its rounded aggregates stand in for the
-    per-relation records.
+    :func:`_round_digits` places), plus each relation's relata mechanisms
+    and φ. Repertoires and partitions are not included. When the relation
+    set is not enumerable (analytical), its rounded aggregates stand in for
+    the per-relation records.
     """
+    precision = _round_digits()
     if mapping is None:
         mapping = {i: i for i in _structure_node_indices(ces)}
     distinction_records = tuple(
-        sorted(_distinction_record(d, mapping) for d in ces.distinctions)
+        sorted(_distinction_record(d, mapping, precision) for d in ces.distinctions)
     )
     try:
         relation_records = tuple(
@@ -229,14 +244,14 @@ def structure_signature(ces, mapping=None):
                             for mechanism in relation.mechanisms
                         )
                     ),
-                    round(float(relation.phi), _ROUND),
+                    round(float(relation.phi), precision),
                 )
                 for relation in ces.relations
             )
         )
     except TypeError:  # analytical relations are not enumerable
         relation_records = (
-            round(float(ces.relations.sum_phi()), _ROUND),
+            round(float(ces.relations.sum_phi()), precision),
             ces.relations.num_relations(),
         )
     return (distinction_records, relation_records)
@@ -259,10 +274,11 @@ def are_structures_isomorphic(ces1, ces2) -> bool:
         return False
     # Builds the rounded-φ isomorphism signature; the two sorted multisets are
     # compared for equality, not used to select a winner.
+    precision = _round_digits()
     # numerics: exact — signature multiset, not a selection.
-    phis1 = sorted(round(float(d.phi), _ROUND) for d in ces1.distinctions)
+    phis1 = sorted(round(float(d.phi), precision) for d in ces1.distinctions)
     # numerics: exact — signature multiset, not a selection.
-    phis2 = sorted(round(float(d.phi), _ROUND) for d in ces2.distinctions)
+    phis2 = sorted(round(float(d.phi), precision) for d in ces2.distinctions)
     if phis1 != phis2:
         return False
     target = structure_signature(ces2)

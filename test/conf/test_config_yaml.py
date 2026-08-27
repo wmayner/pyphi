@@ -245,3 +245,20 @@ class TestShippedConfigFiles:
                 assert getattr(config, key) == want, key
         finally:
             config.install_snapshot(before)
+
+
+class TestEmptyLayerSections:
+    def test_empty_layer_section_loads(self, tmp_path):
+        """A layer key with nothing under it (YAML None) is an empty dict,
+        not an AttributeError."""
+        path = tmp_path / "config.yml"
+        path.write_text("---\nnumerics:\nformalism:\n  iit:\ninfrastructure:\n")
+        before = config.snapshot()
+        try:
+            config.load_yaml(str(path))  # must not raise
+        finally:
+            config.install_snapshot(before)
+
+    def test_unknown_option_error_names_migration_guide(self):
+        with pytest.raises(ConfigurationError, match="migration"):
+            config.not_a_real_option = 1
