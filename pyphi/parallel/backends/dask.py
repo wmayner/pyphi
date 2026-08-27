@@ -28,7 +28,6 @@ importing this module is free and requires no optional dependencies.
 
 from __future__ import annotations
 
-import functools
 import math
 from collections.abc import Callable
 from collections.abc import Iterable
@@ -133,40 +132,27 @@ class DaskScheduler:
         from pyphi.parallel.backends.local_process import _make_worker_fn
         from pyphi.parallel.backends.local_process import _process_chunk
         from pyphi.parallel.chunking import iter_chunks
-        from pyphi.parallel.sampling import compute_chunksize
+        from pyphi.parallel.sampling import plan_workload
 
         items_list = list(items)
         if not items_list:
             return reducer([])
 
-        # The sampler times fn on bare items, so it must see the same call
-        # shape as the real map: bind map_kwargs, and skip sampling entirely
-        # for multi-iterable maps (a single item is not a valid call).
-        if more_items:
-            sampling_fn = None
-        elif map_kwargs:
-            sampling_fn = functools.partial(fn, **map_kwargs)
-        else:
-            sampling_fn = fn
-
-        chunksize, sampled_iter = compute_chunksize(
+        plan = plan_workload(
+            fn,
             items_list,
-            target_seconds=chunking.target_seconds,
-            fn=sampling_fn,
-            sequential_threshold=chunking.sequential_threshold,
-            explicit_chunksize=chunking.chunksize,
+            more_items,
+            map_kwargs=map_kwargs,
+            chunking=chunking,
+            ordered=ordered,
+            shortcircuit_active=shortcircuit.active,
+            reducer=reducer,
         )
-        items_list = list(sampled_iter)
-        materialized = [items_list, *[list(it) for it in more_items]]
-        total = len(items_list)
-
-        # A sampled chunksize estimates the number of items per
-        # ``target_seconds`` of work, so a workload that fits within one
-        # such chunk is not worth dispatching; fold it into the threshold.
-        # An explicitly configured chunksize governs granularity only.
-        sequential_threshold = chunking.sequential_threshold
-        if chunking.chunksize is None:
-            sequential_threshold = max(sequential_threshold, chunksize + 1)
+        chunksize = plan.chunksize
+        sequential_threshold = plan.sequential_threshold
+        reducer = plan.reducer
+        materialized = [plan.items, *plan.more_items]
+        total = len(plan.items)
 
         num_workers = max(len(client.scheduler_info()["workers"]), 1)
 
@@ -233,7 +219,7 @@ class DaskScheduler:
                             short_circuited = True
                             for remaining in futures:
                                 remaining.cancel()
-                            shortcircuit.fire(futures)
+                            shortcircuit.fire(results)
                             break
                     if short_circuited:
                         break

@@ -177,7 +177,7 @@ class LocalThreadScheduler:
                                 for remaining in futures:
                                     if not remaining.done():
                                         remaining.cancel()
-                                shortcircuit.fire(futures)
+                                shortcircuit.fire(results)
                                 break
                         if short_circuited:
                             break

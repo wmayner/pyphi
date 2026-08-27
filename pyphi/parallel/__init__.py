@@ -99,14 +99,16 @@ def shortcircuit(
 
     Each item is yielded first, then ``shortcircuit_func`` is tested on it.
     When the predicate is true, ``shortcircuit_callback`` (if given) is called
-    with ``shortcircuit_callback_args`` (defaulting to ``items``) and iteration
-    stops.
+    with ``shortcircuit_callback_args`` — defaulting to the list of items
+    yielded so far, ending with the triggering item — and iteration stops.
     """
+    collected = []
     for result in items:
         yield result
+        collected.append(result)
         if shortcircuit_func(result):
             if shortcircuit_callback is not None:
-                shortcircuit_callback(fallback(shortcircuit_callback_args, items))
+                shortcircuit_callback(fallback(shortcircuit_callback_args, collected))
             return
 
 
@@ -135,7 +137,6 @@ def get(
     shortcircuit_callback_args: Any = None,
 ):
     """Iterate over results, optionally returning early if a value is found."""
-    shortcircuit_callback_args = fallback(shortcircuit_callback_args, items)
     return shortcircuit(
         items,
         shortcircuit_func=shortcircuit_func,
@@ -184,6 +185,12 @@ def map_reduce(
     per-item results into a list. ``size_func`` returns a relative per-item
     cost estimate used to pack cost-balanced chunks (parent-side, so it must
     be cheap); ``None`` packs equal-count chunks.
+
+    When ``shortcircuit_func`` fires, ``shortcircuit_callback`` (if given)
+    is invoked with ``shortcircuit_callback_args``, or — when those are not
+    given — with the list of results collected so far, ending with the
+    triggering result. The payload is the same on every backend and
+    dispatch path.
 
     Raises
     ------

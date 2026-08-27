@@ -194,6 +194,93 @@ def test_shortcircuit_callback_args_honored_on_parallel_paths():
         assert received == ["sentinel"], backend
 
 
+def test_shortcircuit_callback_default_payload_uniform_across_paths():
+    """With no ``shortcircuit_callback_args``, every dispatch path passes the
+    callback the same payload: the list of results collected so far, ending
+    with the triggering result."""
+    items = [3, 1, 2, 0, 4, 5, 6, 7]
+    expected = [3, 1, 2, 0]
+    paths = {
+        "sequential": {"parallel": False},
+        "process-parallel": {
+            "parallel": True,
+            "backend": "local",
+            "sequential_threshold": 1,
+            "chunksize": 1,
+        },
+        "process-backend-sequential": {
+            "parallel": True,
+            "backend": "local",
+            "sequential_threshold": 100,
+        },
+        "thread-parallel": {
+            "parallel": True,
+            "backend": "thread",
+            "sequential_threshold": 1,
+            "chunksize": 1,
+        },
+    }
+    for name, kwargs in paths.items():
+        received = []
+        result = map_reduce(
+            _identity,
+            list(items),
+            reduce_func=list,
+            shortcircuit_func=_is_zero,
+            shortcircuit_callback=received.append,
+            progress=False,
+            **kwargs,
+        )
+        assert result == expected, name
+        assert received == [expected], name
+
+
+def test_shortcircuit_callback_default_payload_generator_prefix_path():
+    """The process scheduler's unknown-length prefix path uses the same
+    callback payload as every other path."""
+    received = []
+    result = map_reduce(
+        _identity,
+        iter([3, 1, 2, 0, 4, 5]),
+        reduce_func=list,
+        shortcircuit_func=_is_zero,
+        shortcircuit_callback=received.append,
+        parallel=True,
+        backend="local",
+        sequential_threshold=100,
+        progress=False,
+    )
+    assert result == [3, 1, 2, 0]
+    assert received == [[3, 1, 2, 0]]
+
+
+def test_process_backend_no_predicate_collects_in_completion_order(monkeypatch):
+    """With no short-circuit predicate and ``ordered=False``, the process
+    backend collects in completion order, like the thread and dask backends.
+    The no-predicate sentinel of a default ``ShortcircuitPolicy`` must not be
+    mistaken for an active predicate."""
+    from pyphi.parallel.backends import local_process
+    from pyphi.parallel.backends.local_process import LocalProcessScheduler
+    from pyphi.parallel.scheduler import ChunkingPolicy
+
+    used = []
+    real_as_completed = local_process.as_completed
+
+    def recording_as_completed(futures):
+        used.append(True)
+        return real_as_completed(futures)
+
+    monkeypatch.setattr(local_process, "as_completed", recording_as_completed)
+    result = LocalProcessScheduler().map_reduce(
+        _identity,
+        list(range(8)),
+        reducer=sorted,
+        chunking=ChunkingPolicy(chunksize=1, sequential_threshold=1),
+    )
+    assert result == list(range(8))
+    assert used, "default no-predicate policy must collect in completion order"
+
+
 def test_size_func_with_shortcircuit_rejected():
     with pytest.raises(ValueError, match="short-circuit"):
         map_reduce(

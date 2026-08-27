@@ -395,6 +395,46 @@ def test_thread_dispatch_restores_parent_pid_latch():
         local_process._LAST_APPLIED_SNAPSHOT_HASH = prev_hash
 
 
+def test_snapshot_hash_deferred_on_sequential_dispatch(monkeypatch):
+    """A workload that dispatches sequentially must not pay the config
+    snapshot repr-hash (~1 ms); the worker wrapper is built only when
+    chunks are actually submitted to the pool."""
+    from pyphi.parallel import map_reduce
+    from pyphi.parallel.backends import local_process
+
+    calls = []
+    real = local_process._make_worker_fn
+
+    def recording(fn, snapshot):
+        calls.append(1)
+        return real(fn, snapshot)
+
+    monkeypatch.setattr(local_process, "_make_worker_fn", recording)
+
+    out = map_reduce(
+        _square,
+        [1, 2, 3],
+        parallel=True,
+        backend="process",
+        sequential_threshold=100,
+        progress=False,
+    )
+    assert sorted(out) == [1, 4, 9]
+    assert calls == [], "sequential dispatch must not build the worker wrapper"
+
+    out = map_reduce(
+        _square,
+        list(range(8)),
+        parallel=True,
+        backend="process",
+        sequential_threshold=1,
+        chunksize=1,
+        progress=False,
+    )
+    assert sorted(out) == [x * x for x in range(8)]
+    assert calls == [1], "parallel dispatch wraps exactly once"
+
+
 # ============================================================================
 # Lazy generator handling (process scheduler)
 # ============================================================================

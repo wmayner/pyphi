@@ -83,12 +83,19 @@ def test_shortcircuit_collects_deterministic_prefix(dask_client):
         [1, 2, 3, 4, 5],
         reducer=list,
         chunking=ChunkingPolicy(chunksize=1, sequential_threshold=1),
-        shortcircuit=ShortcircuitPolicy(
-            func=lambda r: r == 2, callback=lambda *_: fired.append(True)
-        ),
+        shortcircuit=ShortcircuitPolicy(func=lambda r: r == 2, callback=fired.append),
     )
     assert result == [1, 2]
-    assert fired == [True]
+    # The default callback payload is the collected result prefix, the same
+    # payload as every other backend and dispatch path.
+    assert fired == [[1, 2]]
+
+
+def test_default_chunksize_sampling_returns_complete_results(dask_client):
+    """With no explicit chunksize the dask backend cost-samples; the sampled
+    items' results are part of the output, not computed twice."""
+    result = DaskScheduler().map_reduce(_plus_one, list(range(8)), reducer=sorted)
+    assert result == [x + 1 for x in range(8)]
 
 
 def test_empty_items(dask_client):

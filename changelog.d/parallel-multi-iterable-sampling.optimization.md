@@ -1,0 +1,1 @@
+Passing more than one iterable to `map_reduce()` no longer disables cost sampling. Multi-iterable workloads are now sampled on zipped argument tuples, so they get a cost-based chunksize instead of the previous silent fallback to one item per chunk (which dispatched one future per item) and stay sequential when the sampled cost is too small to amortize dispatch.

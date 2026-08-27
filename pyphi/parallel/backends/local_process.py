@@ -12,7 +12,6 @@ to workers via closure.
 
 from __future__ import annotations
 
-import functools
 import logging
 import math
 import threading
@@ -91,6 +90,7 @@ class LocalMapReduce:
         progress: bool = True,
         desc: str = "",
         total: int | None = None,
+        snapshot: Any | None = None,
     ):
         self.map_func = map_func
         self.iterables = iterables
@@ -107,6 +107,7 @@ class LocalMapReduce:
         self.progress = progress
         self.desc = desc
         self.total = total
+        self.snapshot = snapshot
 
         # State
         self.progress_bar: LocalProgressBar | None = None
@@ -241,6 +242,15 @@ class LocalMapReduce:
             self.done = True
             return self.result
 
+        # Wrap the map function only now that chunks are actually being
+        # dispatched: building the wrapper hashes the config snapshot's repr
+        # (~1 ms), which the sequential path never needs.
+        map_func = (
+            _make_worker_fn(self.map_func, self.snapshot)
+            if self.snapshot is not None
+            else self.map_func
+        )
+
         results = []
         short_circuited = False
 
@@ -252,7 +262,7 @@ class LocalMapReduce:
             executor.submit(
                 _process_chunk,
                 chunk_tuple,
-                self.map_func,
+                map_func,
                 self.map_kwargs,
                 self.shortcircuit_func,
             )
@@ -271,8 +281,14 @@ class LocalMapReduce:
         # A worker exception cancels the pending chunks before propagating:
         # the executor is a process-global reusable pool, so orphaned chunks
         # would keep burning CPU and delay the next map-reduce.
+        from pyphi.parallel.scheduler import _never_short_circuit
+
+        shortcircuit_active = (
+            self.shortcircuit_func is not false
+            and self.shortcircuit_func is not _never_short_circuit
+        )
         try:
-            if self.ordered or self.shortcircuit_func is not false:
+            if self.ordered or shortcircuit_active:
                 for future in futures:
                     chunk_results = future.result()
                     results.extend(chunk_results)
@@ -284,7 +300,7 @@ class LocalMapReduce:
                         if self.shortcircuit_func(r):
                             short_circuited = True
                             self._cancel_remaining(futures)
-                            self._fire_shortcircuit_callback(futures)
+                            self._fire_shortcircuit_callback(results)
                             break
                     if short_circuited:
                         break
@@ -300,7 +316,7 @@ class LocalMapReduce:
                         if self.shortcircuit_func(r):
                             short_circuited = True
                             self._cancel_remaining(futures)
-                            self._fire_shortcircuit_callback(futures)
+                            self._fire_shortcircuit_callback(results)
                             break
                     if short_circuited:
                         break
@@ -392,7 +408,7 @@ class LocalProcessScheduler:
         shortcircuit = shortcircuit or ShortcircuitPolicy()
         snapshot = config_snapshot if config_snapshot is not None else config.snapshot()
 
-        from pyphi.parallel.sampling import compute_chunksize
+        from pyphi.parallel.sampling import plan_workload
 
         if not hasattr(items, "__len__"):
             # Unknown-length input: decide sequential vs parallel without
@@ -430,49 +446,27 @@ class LocalProcessScheduler:
 
             reducer = _prefixed_reducer
 
-        items_list = list(items)
-        total = len(items_list)
-
-        # The sampler times fn on bare items, so it must see the same call
-        # shape as the real map: bind map_kwargs, and skip sampling entirely
-        # for multi-iterable maps (a single item is not a valid call).
-        if more_items:
-            sampling_fn = None
-        elif map_kwargs:
-            sampling_fn = functools.partial(fn, **map_kwargs)
-        else:
-            sampling_fn = fn
-
-        chunksize, sampled_iter = compute_chunksize(
-            items_list,
-            target_seconds=chunking.target_seconds,
-            fn=sampling_fn,
-            sequential_threshold=chunking.sequential_threshold,
-            explicit_chunksize=chunking.chunksize,
+        plan = plan_workload(
+            fn,
+            list(items),
+            more_items,
+            map_kwargs=map_kwargs or {},
+            chunking=chunking,
+            ordered=ordered,
+            shortcircuit_active=shortcircuit.active,
+            reducer=reducer,
         )
-        items_list = list(sampled_iter)
-        iterables: tuple[Iterable[Any], ...] = (items_list, *more_items)
-
-        # A sampled chunksize estimates the number of items per
-        # ``target_seconds`` of work, so a workload that fits within one
-        # such chunk is not worth dispatching; fold it into the threshold.
-        # An explicitly configured chunksize governs granularity only.
-        sequential_threshold = chunking.sequential_threshold
-        if chunking.chunksize is None:
-            sequential_threshold = max(sequential_threshold, chunksize + 1)
-
-        wrapped_fn = _make_worker_fn(fn, snapshot)
 
         def _reduce_wrapper(results: Iterable[Any], **_: Any) -> Any:
-            return reducer(results)
+            return plan.reducer(results)
 
         local_mr = LocalMapReduce(
-            map_func=wrapped_fn,
-            iterables=iterables,
+            map_func=fn,
+            iterables=(plan.items, *plan.more_items),
             reduce_func=_reduce_wrapper,
             reduce_kwargs={},
-            chunksize=chunksize,
-            sequential_threshold=sequential_threshold,
+            chunksize=plan.chunksize,
+            sequential_threshold=plan.sequential_threshold,
             size_func=chunking.size_func,
             shortcircuit_func=shortcircuit.func,
             shortcircuit_callback=shortcircuit.callback,
@@ -481,6 +475,7 @@ class LocalProcessScheduler:
             map_kwargs=map_kwargs,
             progress=progress.enabled,
             desc=progress.desc,
-            total=total,
+            total=len(plan.items),
+            snapshot=snapshot,
         )
         return local_mr.run()
