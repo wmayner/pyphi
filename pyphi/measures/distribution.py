@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import inspect
+import math
 from collections.abc import Callable
 from collections.abc import Iterable
 from contextlib import ContextDecorator
@@ -643,15 +644,31 @@ def _kary_hamming_matrix(alphabet_sizes: tuple[int, ...]) -> np.ndarray:
     return cdist(states, states, "hamming") * len(alphabet_sizes)
 
 
+# In-memory k-ary ground metrics, mirroring the precomputed binary matrices:
+# matrices for small state spaces are kept in memory (a filesystem-cache load
+# per EMD call is ~500x slower than the binary path's dict lookup); larger
+# ones stay in the joblib filesystem cache only.
+_kary_hamming_matrices: dict[tuple[int, ...], np.ndarray] = {}
+_MAX_IN_MEMORY_GROUND_METRIC_STATES = 2**_NUM_PRECOMPUTED_HAMMING_MATRICES
+
+
 def _ground_metric(alphabet_sizes: tuple[int, ...]) -> np.ndarray:
     """Return the Hamming ground-distance matrix for the given alphabet sizes.
 
     Binary substrates (every alphabet size 2) use the precomputed and cached
     ``_hamming_matrix`` path; non-binary substrates use
-    ``_kary_hamming_matrix``.
+    ``_kary_hamming_matrix``, memoized in memory for state spaces up to
+    ``_MAX_IN_MEMORY_GROUND_METRIC_STATES`` states.
     """
     if all(k == 2 for k in alphabet_sizes):
         return _hamming_matrix(len(alphabet_sizes))
+    if math.prod(alphabet_sizes) < _MAX_IN_MEMORY_GROUND_METRIC_STATES:
+        matrix = _kary_hamming_matrices.get(alphabet_sizes)
+        if matrix is None:
+            matrix = _kary_hamming_matrices[alphabet_sizes] = _kary_hamming_matrix(
+                alphabet_sizes
+            )
+        return matrix
     return _kary_hamming_matrix(alphabet_sizes)
 
 
