@@ -1585,3 +1585,37 @@ as_kwargs round-trip, docstring figure citations in examples, labels
 range-check semantics, ConfigSnapshot.as_kwargs, and the release-time items
 (CHANGELOG fragment consumption, CITATION.cff version/date, README status
 blockquote) now on the release checklist.
+
+# Tier A wave — COMPLETE (2026-08-27)
+
+All Tier A items fixed and all Tier A-verify claims adjudicated, in six
+commits (c7892567..1a15df4d), each fix carrying a regression test verified
+to fail against the unfixed code. Full fast suite: 4553 passed / 0 failed;
+slow lane green.
+
+Tier A-verify outcomes (verified against a pristine HEAD snapshot):
+- CONFIRMED and fixed: conditioned JointTPM views misreporting alphabets
+  (mass silently dropped in display surfaces); writable JointTPM buffer
+  (hash instability); proper marginals deriving background from the wrong
+  set (including a crash through the public noise_background AC path);
+  null SIAs fabricating ii(s)=0 on the forced-state path (narrower than
+  claimed); dynamics misreading explicit-alphabet TPMs (nonsense states,
+  no error); a malformed 8x2 TPM silently accepted as a scrambled
+  substrate; the tie cascade mislabeling a lone candidate under an
+  escalation budget; potential_purviews exhausting one-shot iterables
+  (silent phi=0).
+- REFUTED as reachable: repertoire_distance dropping the state kwarg for
+  two-argument measures — the mechanics exist but every route is blocked
+  by config validation.
+- ALREADY-FIXED: account() dropping allow_neg (fixed with regression test
+  in an earlier wave).
+
+Notable follow-ons caught during the wave: three phi_s = 0 golden fixtures
+had pinned the fabricated intrinsic-differentiation zeros and were
+regenerated (metadata-only; no phi moved); the golden canonicalizer gained
+the tied-state dedupe its docstring promised (goldens byte-identical); the
+label frame was confirmed to attach wrong-arity labels to unlabeled
+objects and fixed with a tagged marker; MacroSystem and ComplexesResult
+gained serializers. One agent's batch was reconstructed from its left-over
+patches after its report claimed work its final state did not contain —
+each reconstructed fix was re-tested here.
