@@ -199,3 +199,15 @@ def test_distinction_importance_matches_folds(xor_ces):
         assert by_mechanism[tuple(distinction.mechanism)] == pytest.approx(
             fold.big_phi_contribution
         )
+
+
+def test_fold_describe_labels_system_phi_as_small_phi(xor_ces):
+    """The fold summary must label the SIA's φ_s with the small-phi glyph;
+    ``Φ`` names the structure quantity, not system integrated information."""
+    seed = xor_ces.distinctions[0]
+    fold = xor_ces.fold([seed])
+    labels = [
+        row.label for section in fold._describe(1).sections for row in section.rows
+    ]
+    assert "φ_s" in labels
+    assert "Φ_s" not in labels

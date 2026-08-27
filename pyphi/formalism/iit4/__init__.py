@@ -52,6 +52,7 @@ from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import binding_direction_finding
 from pyphi.models.explanation import runner_up_from_candidates
+from pyphi.models.explanation import sia_runner_up_key
 from pyphi.models.pandas import ToPandasMixin
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
@@ -511,13 +512,15 @@ class SystemIrreducibilityAnalysis(
                     value=concise_partition(self.runner_up.partition),
                 )
             )
-            findings.append(
-                Finding(
-                    kind="gap",
-                    label="φ-gap to runner-up",
-                    value=float(self.runner_up.phi) - float(self.phi),
-                )
-            )
+            if self.runner_up.normalized_phi is not None:
+                # The runner-up was ranked by normalized φ, so the gap is
+                # reported in the same quantity.
+                gap_label = "normalized φ-gap to runner-up"
+                gap = float(self.runner_up.normalized_phi) - float(self.normalized_phi)
+            else:
+                gap_label = "φ-gap to runner-up"
+                gap = float(self.runner_up.phi) - float(self.phi)
+            findings.append(Finding(kind="gap", label=gap_label, value=gap))
         if self.partition_margin is not None:
             findings.append(
                 Finding(
@@ -555,9 +558,9 @@ class SystemIrreducibilityAnalysis(
         return tuple(findings)
 
     def explain(self) -> Explanation:
-        """A typed account of why this Φ_s value came out as it did."""
+        """A typed account of why this φ_s value came out as it did."""
         return Explanation(
-            subject=f"Φ_s = {format_value(self.phi)}",
+            subject=f"φ_s = {format_value(self.phi)}",
             level="system",
             findings=self._findings(),
         )
@@ -590,7 +593,7 @@ class SystemIrreducibilityAnalysis(
             )
         common = _diff_common(self, other)
         return ResultDiff(
-            subject=f"ΔΦ_s = {format_value(common['delta_phi'])}",
+            subject=f"Δφ_s = {format_value(common['delta_phi'])}",
             level="system",
             delta_phi=common["delta_phi"],
             mip_changed=common["mip_changed"],
@@ -879,7 +882,17 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     # state-level terms cap the runner-up partition's φ; the reported φ-gap
     # then compares capped to capped.
     if sia.runner_up is not None and float(sia.runner_up.phi) > ii:
-        sia.runner_up = replace(sia.runner_up, phi=float(ii))
+        runner_up_norm = normalization_factor(sia.runner_up.partition)
+        capped_runner_up_normalized = (
+            float(ii) * runner_up_norm
+            if sia.runner_up.normalized_phi is not None and runner_up_norm is not None
+            else sia.runner_up.normalized_phi
+        )
+        sia.runner_up = replace(
+            sia.runner_up,
+            phi=float(ii),
+            normalized_phi=capped_runner_up_normalized,
+        )
 
 
 def _apply_ii_cap(
@@ -1529,7 +1542,18 @@ def _find_mip_for_fixed_state(
         candidates = [default_sia]
     ties = tuple(resolve_ties.sias(candidates))
     mip_sia = ties[0]
-    mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
+    # Rank the runner-up by the same quantity that selected the MIP
+    # (normalized φ under the default strategy), so the reported runner-up
+    # is the actual nearest competitor.
+    runner_up_key, key_is_normalized = sia_runner_up_key(
+        config.formalism.iit.sia_tie_resolution
+    )
+    mip_sia.runner_up = runner_up_from_candidates(
+        candidates,
+        runner_up_key(mip_sia),
+        key=runner_up_key,
+        normalized=key_is_normalized,
+    )
     others = [candidate for candidate in candidates if candidate is not mip_sia]
     # The margin is only meaningful when every partition was evaluated: a
     # short-circuited sweep yields a truncated prefix whose gap says nothing

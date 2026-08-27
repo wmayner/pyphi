@@ -221,14 +221,14 @@ def _register_state_specification() -> None:
 def _register_system_state_specification() -> None:
     from pyphi.models.state_specification import SystemStateSpecification
 
-    _ENCODERS[SystemStateSpecification] = (
-        lambda s: schema.SystemStateSpecificationSchema(
+    _ENCODERS[SystemStateSpecification] = lambda s: (
+        schema.SystemStateSpecificationSchema(
             cause=to_schema(s.cause),
             effect=to_schema(s.effect),
         )
     )
-    _DECODERS[schema.SystemStateSpecificationSchema] = (
-        lambda s: SystemStateSpecification(
+    _DECODERS[schema.SystemStateSpecificationSchema] = lambda s: (
+        SystemStateSpecification(
             cause=from_schema(s.cause),
             effect=from_schema(s.effect),
         )
@@ -761,6 +761,11 @@ def _enc_runner_up(runner_up: Any) -> Any:
     return schema.RunnerUpSchema(
         partition=to_schema(runner_up.partition),
         phi=to_schema(runner_up.phi),
+        normalized_phi=(
+            None
+            if runner_up.normalized_phi is None
+            else to_schema(runner_up.normalized_phi)
+        ),
     )
 
 
@@ -769,7 +774,13 @@ def _dec_runner_up(struct: Any) -> Any:
         return None
     from pyphi.models.explanation import RunnerUp
 
-    return RunnerUp(partition=from_schema(struct.partition), phi=from_schema(struct.phi))
+    return RunnerUp(
+        partition=from_schema(struct.partition),
+        phi=from_schema(struct.phi),
+        normalized_phi=(
+            None if struct.normalized_phi is None else from_schema(struct.normalized_phi)
+        ),
+    )
 
 
 def _config_enc_hook(obj: Any) -> Any:

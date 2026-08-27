@@ -76,42 +76,84 @@ _LEVEL_OF: dict[NullResultReason, str] = {
 class RunnerUp:
     """The second-best partition at MIP selection.
 
-    The lowest-φ candidate whose value is strictly greater than the
-    MIP's. ``partition`` is the cut; ``phi`` is its (clamped) integrated
-    information.
+    The candidate ranked next after the MIP by the same quantity that
+    selected the MIP. ``partition`` is the cut; ``phi`` is its (clamped)
+    integrated information. ``normalized_phi`` is set only when the
+    ranking quantity was normalized φ.
     """
 
     partition: Any
     phi: Any
+    normalized_phi: Any = None
 
 
-def runner_up_from_candidates(candidates: Any, mip_phi: Any) -> RunnerUp | None:
-    """The lowest-phi candidate whose phi is *strictly* greater than ``mip_phi``.
+_NORMALIZED_STRATEGIES = frozenset({"NORMALIZED_PHI", "NEGATIVE_NORMALIZED_PHI"})
+_PHI_VALUED_STRATEGIES = _NORMALIZED_STRATEGIES | {"PHI", "NEGATIVE_PHI"}
 
-    Candidates that tie the MIP (within :func:`pyphi.numerics.eq`) are tied peers,
-    not runners-up, so they are excluded. Returns ``None`` when the MIP is the
-    unique phi value. Candidates whose phi tie for lowest are ordered by
-    ``partition.lex_key()`` so the choice does not depend on iteration order.
-    Each candidate must expose ``.phi`` and ``.partition``.
+
+def sia_runner_up_key(strategy: Any) -> tuple[Any, bool]:
+    """The ranking key matching an SIA tie-resolution strategy.
+
+    Returns ``(key, normalized)``: ``key`` is the strategy function of the
+    first φ-valued component of ``strategy`` (so the runner-up is ranked by
+    the same quantity that selected the MIP), and ``normalized`` is whether
+    that quantity is normalized φ. Falls back to raw φ when no component is
+    φ-valued (e.g. a bare ``"NONE"`` or ``"PARTITION_LEX"``).
     """
-    mip = float(mip_phi)
+    from pyphi.resolve_ties import phi_object_tie_resolution_strategies
+
+    components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+    for component in components:
+        if component in _PHI_VALUED_STRATEGIES:
+            return (
+                phi_object_tie_resolution_strategies[component],
+                component in _NORMALIZED_STRATEGIES,
+            )
+    return (lambda m: m.phi), False
+
+
+def runner_up_from_candidates(
+    candidates: Any,
+    mip_value: Any,
+    key: Any = None,
+    normalized: bool = False,
+) -> RunnerUp | None:
+    """The candidate ranked next after the MIP under ``key``.
+
+    ``key`` maps a candidate to the quantity minimized at MIP selection
+    (raw φ by default; pass the result of :func:`sia_runner_up_key` to
+    match a configured tie-resolution strategy). ``mip_value`` is the
+    MIP's own key value. Candidates that tie the MIP (within
+    :func:`pyphi.numerics.eq`) are tied peers, not runners-up, so they are
+    excluded. Returns ``None`` when the MIP's value is unique. Candidates
+    tied for next-best are ordered by ``partition.lex_key()`` so the choice
+    does not depend on iteration order. Each candidate must expose
+    ``.partition`` and whatever ``key`` reads (``.phi`` by default).
+    """
+    if key is None:
+        key = lambda c: c.phi  # noqa: E731
+    mip = float(mip_value)
     best = None
     for candidate in candidates:
-        phi = float(candidate.phi)
-        if phi <= mip or numerics.eq(phi, mip):
+        value = float(key(candidate))
+        if value <= mip or numerics.eq(value, mip):
             continue  # the MIP itself or a tied peer, not a runner-up
         if best is None:
             best = candidate
             continue
-        best_phi = float(best.phi)
-        if numerics.eq(phi, best_phi):
+        best_value = float(key(best))
+        if numerics.eq(value, best_value):
             if candidate.partition.lex_key() < best.partition.lex_key():
                 best = candidate
-        elif phi < best_phi:
+        elif value < best_value:
             best = candidate
     if best is None:
         return None
-    return RunnerUp(partition=best.partition, phi=best.phi)
+    return RunnerUp(
+        partition=best.partition,
+        phi=best.phi,
+        normalized_phi=getattr(best, "normalized_phi", None) if normalized else None,
+    )
 
 
 @dataclass(frozen=True)

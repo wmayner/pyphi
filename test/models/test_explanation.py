@@ -143,7 +143,11 @@ def test_iit4_sia_explain_short_circuit_and_positive(s, s_empty):
     assert {"winning_partition", "binding_direction"} <= kinds
     assert sia.runner_up is not None
     gap = next(f for f in expl.findings if f.kind == "gap")
-    assert float(gap.value) == pytest.approx(float(sia.runner_up.phi) - float(sia.phi))
+    # The runner-up is ranked by normalized φ (the default selection
+    # quantity), so the gap is reported in normalized φ as well.
+    assert float(gap.value) == pytest.approx(
+        float(sia.runner_up.normalized_phi) - float(sia.normalized_phi)
+    )
 
 
 def test_iit3_sia_explain(s, s_empty):
@@ -282,3 +286,77 @@ class TestRunnerUpTieBreak:
         out_a = runner_up_from_candidates([mip, r1, r2], mip.phi)
         out_b = runner_up_from_candidates([mip, r2, r1], mip.phi)
         assert out_a.partition == out_b.partition == P(b"\x01")
+
+
+class TestRunnerUpRankingKey:
+    """The runner-up must be ranked by the same quantity that selects the
+    MIP (``sia_tie_resolution``'s primary φ-valued component), not always
+    by raw φ."""
+
+    def _candidates(self):
+        from dataclasses import dataclass
+
+        @dataclass(frozen=True)
+        class P:
+            key: bytes
+
+            def lex_key(self):
+                return self.key
+
+        @dataclass(frozen=True)
+        class C:
+            phi: float
+            normalized_phi: float
+            partition: P
+
+        mip = C(phi=0.3, normalized_phi=0.1, partition=P(b"\x00"))
+        # Nearest competitor by raw φ, but farthest by normalized φ.
+        raw_nearest = C(phi=0.4, normalized_phi=0.9, partition=P(b"\x01"))
+        # Nearest competitor by normalized φ, but farthest by raw φ.
+        norm_nearest = C(phi=0.8, normalized_phi=0.2, partition=P(b"\x02"))
+        return mip, raw_nearest, norm_nearest
+
+    def test_default_key_ranks_by_raw_phi(self):
+        mip, raw_nearest, norm_nearest = self._candidates()
+        out = runner_up_from_candidates([mip, raw_nearest, norm_nearest], mip.phi)
+        assert out.partition == raw_nearest.partition
+        assert out.normalized_phi is None
+
+    def test_normalized_key_ranks_by_normalized_phi(self):
+        from pyphi.models.explanation import sia_runner_up_key
+
+        key, normalized = sia_runner_up_key(("NORMALIZED_PHI", "NEGATIVE_PHI"))
+        assert normalized
+        mip, raw_nearest, norm_nearest = self._candidates()
+        out = runner_up_from_candidates(
+            [mip, raw_nearest, norm_nearest],
+            key(mip),
+            key=key,
+            normalized=normalized,
+        )
+        assert out.partition == norm_nearest.partition
+        assert out.phi == norm_nearest.phi
+        assert out.normalized_phi == norm_nearest.normalized_phi
+
+    def test_non_phi_strategy_falls_back_to_raw_phi(self):
+        from pyphi.models.explanation import sia_runner_up_key
+
+        key, normalized = sia_runner_up_key(("PARTITION_LEX",))
+        assert not normalized
+        mip, raw_nearest, norm_nearest = self._candidates()
+        out = runner_up_from_candidates(
+            [mip, raw_nearest, norm_nearest],
+            key(mip),
+            key=key,
+            normalized=normalized,
+        )
+        assert out.partition == raw_nearest.partition
+        assert out.normalized_phi is None
+
+    def test_string_strategy_accepted(self):
+        from pyphi.models.explanation import sia_runner_up_key
+
+        key, normalized = sia_runner_up_key("PHI")
+        assert not normalized
+        _mip, raw_nearest, _ = self._candidates()
+        assert float(key(raw_nearest)) == raw_nearest.phi

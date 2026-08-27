@@ -550,7 +550,7 @@ class PhiFold(StructureView):
         sia_phi = getattr(self.sia, "phi", None)
 
         summary_rows = [
-            Row("Φ_s", sia_phi),
+            Row(system_phi_label(self.config), sia_phi),
             Row("Seed distinctions", num_d),
             Row("Σφ_d", sum_phi_d),
             Row("Incident relations", num_r),
