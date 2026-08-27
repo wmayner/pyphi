@@ -1,0 +1,1 @@
+`RepertoireIrreducibilityAnalysis.ties` now preserves co-optimal tied MIPs whose partitions differ. Deduplication keyed on RIA equality alone, which deliberately ignores the partition, so partition-distinct tied MIPs collapsed to one and `diff()` reported a MIP change instead of a tie.

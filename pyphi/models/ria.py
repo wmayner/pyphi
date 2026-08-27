@@ -478,9 +478,12 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def ties(self):
-        # TODO(ties) check unique usage here
+        # RIA equality deliberately ignores the partition, so deduplication
+        # must key on (RIA, partition) or co-optimal MIPs with distinct
+        # partitions would collapse to one tie.
         return unique_everseen(
-            chain.from_iterable([self._state_ties, self._partition_ties])
+            chain.from_iterable([self._state_ties, self._partition_ties]),
+            key=lambda ria: (ria, ria.partition),
         )
 
     @property

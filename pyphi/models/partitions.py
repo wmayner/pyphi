@@ -48,6 +48,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
+from dataclasses import field
 from itertools import chain
 from typing import Self
 
@@ -542,7 +543,10 @@ class EdgeCut(Displayable, _PartitionBase):
         )
 
     def __hash__(self) -> int:
-        return hash((self.node_indices, utils.np_hash(self._cut_matrix)))
+        # Normalize the matrix dtype before hashing: __eq__ uses
+        # np.array_equal, which compares values regardless of dtype, so the
+        # hash must not distinguish dtypes either.
+        return hash((self.node_indices, utils.np_hash(self._cut_matrix.astype(bool))))
 
     def _concise(self) -> str:
         return f"EdgeCut ({self.num_connections_cut()} cut)"
@@ -664,7 +668,8 @@ class Part:
 
     mechanism: tuple[int, ...]
     purview: tuple[int, ...]
-    node_labels: NodeLabels | None = None
+    # Excluded from ordering to match __eq__/__hash__, which ignore labels.
+    node_labels: NodeLabels | None = field(default=None, compare=False)
 
     def __hash__(self) -> int:
         return hash((self.mechanism, self.purview))

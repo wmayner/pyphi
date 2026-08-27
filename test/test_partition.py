@@ -432,3 +432,37 @@ def test_complete_edge_cut_normalization_matches_connections_cut():
         cut = TotalCut(tuple(range(n)))
         assert cut.num_connections_cut() == n**2
         assert cut.normalization_factor() == 1 / n**2
+
+
+def test_part_ordering_ignores_node_labels():
+    """Ordering must match __eq__/__hash__, which ignore node_labels.
+
+    Regression: dataclass(order=True) compared node_labels too, so equal
+    Parts differing only in labels raised TypeError under ``<`` (None vs
+    NodeLabels) and label-distinct tied Parts ordered strictly.
+    """
+    from pyphi.labels import NodeLabels
+
+    labels = NodeLabels("AB", (0, 1))
+    labeled = Part((0,), (1,), node_labels=labels)
+    unlabeled = Part((0,), (1,))
+    assert labeled == unlabeled
+    assert not labeled < unlabeled
+    assert not unlabeled < labeled
+    assert labeled <= unlabeled and unlabeled >= labeled
+    assert Part((0,), (0,)) < Part((0,), (1,), node_labels=labels)
+    assert sorted([labeled, unlabeled, Part((0,), (0,))])[0] == Part((0,), (0,))
+
+
+def test_edge_cut_equal_cuts_hash_equal_across_dtypes():
+    """__eq__ (np.array_equal) is dtype-blind, so the hash must be too."""
+    import numpy as np
+
+    from pyphi.models import EdgeCut
+
+    matrix = np.array([[0, 1], [1, 0]])
+    a = EdgeCut((0, 1), matrix)
+    b = EdgeCut((0, 1), matrix.astype(float))
+    c = EdgeCut((0, 1), matrix.astype(bool))
+    assert a == b == c
+    assert hash(a) == hash(b) == hash(c)

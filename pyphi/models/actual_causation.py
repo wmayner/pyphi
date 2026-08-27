@@ -433,7 +433,7 @@ class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable):
+class Account(Displayable, Sequence, ToPandasMixin, Serializable):
     """The set of :class:`CausalLink` instances with α > 0. This includes both
     actual causes and actual effects.
     """

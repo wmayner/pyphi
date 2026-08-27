@@ -1549,6 +1549,19 @@ def test_account_equality_is_order_insensitive():
     assert hash(account) == hash(reordered)
 
 
+def test_account_is_not_ordered():
+    """Accounts are sets of causal links; ordering them is undefined.
+
+    Regression: Account declared ``cmp.Orderable`` without implementing
+    ``order_by``, so ``<`` raised NotImplementedError instead of the
+    standard TypeError for unorderable types.
+    """
+    a = models.Account(())
+    b = models.Account(())
+    with pytest.raises(TypeError):
+        a < b  # noqa: B015
+
+
 def test_account_honors_allow_neg():
     """account(allow_neg=True) must thread the flag to both directions.
 

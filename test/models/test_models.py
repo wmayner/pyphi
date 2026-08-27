@@ -1403,3 +1403,71 @@ def test_relation_eq_cross_type_returns_notimplemented():
     # then tries plain.__eq__(r), which is frozenset.__eq__ (element-equal).
     # We accept either outcome here: documenting the intended type check.
     _ = r == plain  # just exercise the path
+
+
+def test_ria_ties_preserve_partition_distinct_tied_mips():
+    """Co-optimal MIPs tied on everything but the partition are distinct ties.
+
+    Regression: ``ties`` deduplicated with RIA ``__eq__``, which deliberately
+    ignores the partition, so partition-distinct tied MIPs collapsed to one.
+    """
+    from pyphi.models.partitions import Part
+
+    p1 = JointPartition(Part((0,), (1,)), Part((1,), (0,)))
+    p2 = JointPartition(Part((0,), (0,)), Part((1,), (1,)))
+    a = ria(
+        phi=0.5,
+        direction=Direction.CAUSE,
+        mechanism=(0, 1),
+        purview=(0, 1),
+        partition=p1,
+    )
+    b = ria(
+        phi=0.5,
+        direction=Direction.CAUSE,
+        mechanism=(0, 1),
+        purview=(0, 1),
+        partition=p2,
+    )
+    assert a == b  # RIA equality ignores the partition
+    a.set_partition_ties([a, b])
+    assert len(list(a.ties)) == 2
+    # A genuine duplicate (same RIA, same partition) still dedupes.
+    a.set_partition_ties([a, a, b])
+    assert len(list(a.ties)) == 2
+
+
+def test_ria_diff_reports_co_optimal_mip_as_tie_not_change():
+    """diff() against a run that picked a co-optimal tied MIP must not
+    report ``mip_changed``."""
+    from pyphi.models.partitions import Part
+
+    p1 = JointPartition(Part((0,), (1,)), Part((1,), (0,)))
+    p2 = JointPartition(Part((0,), (0,)), Part((1,), (1,)))
+    p3 = JointPartition(Part((0, 1), (0, 1)))
+    common = {
+        "phi": 0.5,
+        "direction": Direction.CAUSE,
+        "mechanism": (0, 1),
+        "purview": (0, 1),
+    }
+    a = ria(partition=p1, **common)
+    b = ria(partition=p2, **common)
+    c = ria(partition=p3, **common)
+    a.set_partition_ties([a, b])
+    assert a.diff(b).mip_changed is False
+    assert a.diff(c).mip_changed is True
+
+
+def test_iit3_sia_hash_stable_across_distinctions_backfill():
+    """The compute path assigns ``distinctions`` to tie peers after
+    construction; the hash must not change mid-lifetime."""
+    sia = models.IIT3SystemIrreducibilityAnalysis(
+        phi=0.5,
+        partition=DirectedBipartition(Direction.CAUSE, (0,), (1,)),
+        node_indices=(0, 1),
+        current_state=(1, 0),
+    )
+    before = hash(sia)
+    sia.distinctions = ()
+    assert hash(sia) == before

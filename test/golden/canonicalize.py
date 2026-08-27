@@ -23,8 +23,12 @@ def canonical_state_set(states: Iterable[tuple[int, ...]]) -> list[list[int]]:
     arbitrarily; the canonical form is the lex-sorted set of all valid ties.
 
     Returns a list of lists (JSON-serializable), not tuples.
+
+    Deduplicates: ``RepertoireIrreducibilityAnalysis.ties`` yields one entry
+    per tied (state, partition) pair, so the same specified state can appear
+    once per tied partition; the canonical form is the set of states.
     """
-    return sorted([list(s) for s in states])
+    return sorted(list(s) for s in {tuple(s) for s in states})
 
 
 def canonical_partition(partition: Any) -> list:
