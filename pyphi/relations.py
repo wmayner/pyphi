@@ -1445,6 +1445,14 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     just a distinct view.
     """
 
+    def save(self, target, **kwargs):
+        """Fold summaries have no serialized form; save the parent structure."""
+        raise NotImplementedError(
+            "AnalyticalFoldRelations is an incident-only summary over its "
+            "parent structure and has no serialized form; save the parent "
+            "CauseEffectStructure (or its AnalyticalRelations) instead"
+        )
+
     def __init__(self, parent_distinctions, seeds):
         super().__init__(parent_distinctions)
         self._full = AnalyticalRelations(parent_distinctions)

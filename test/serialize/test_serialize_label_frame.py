@@ -85,3 +85,18 @@ def test_loads_node_labels_override_wins():
     data = serialize.dumps(make_labeled_ria())
     restored = serialize.loads(data, node_labels=OTHER)
     assert tuple(restored.node_labels) == ("X", "Y")
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_unlabeled_object_keeps_none_within_labeled_document(fmt):
+    # An object whose node_labels was genuinely None must not inherit the
+    # document frame claimed by a labeled sibling.
+    a = make_labeled_ria(node_labels=LABELS)
+    b = make_labeled_ria(node_labels=None)
+    tied = (a, b)
+    a._partition_ties = tied
+    b._partition_ties = tied
+    restored = serialize.loads(serialize.dumps(a, format=fmt), format=fmt)
+    assert tuple(restored.node_labels) == tuple(LABELS)
+    peer = next(t for t in restored._partition_ties if t is not restored)
+    assert peer.node_labels is None

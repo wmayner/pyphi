@@ -72,6 +72,35 @@ def test_state_specification_preserves_tie_peers(fmt):
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
+def test_state_specification_preserves_singleton_ties(fmt):
+    # A computed tie family with no peers is (self,); it must not collapse
+    # to the never-computed empty tuple on round-trip.
+    obj = make_state_spec()
+    obj.set_ties((obj,))
+    restored = round_trip(obj, fmt)
+    assert len(restored.ties) == 1
+    assert restored.ties[0] is restored
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_state_specification_never_computed_ties_stay_empty(fmt):
+    obj = make_state_spec()
+    assert obj.ties == ()
+    restored = round_trip(obj, fmt)
+    assert restored.ties == ()
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_state_specification_preserves_node_labels(fmt):
+    obj = make_state_spec()
+    obj.node_labels = NodeLabels(("A", "B"), (0, 1))
+    restored = round_trip(obj, fmt)
+    assert restored.node_labels is not None
+    assert tuple(restored.node_labels) == ("A", "B")
+    assert restored.purview_label == obj.purview_label
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
 def test_system_state_specification_round_trips(fmt):
     obj = SystemStateSpecification(
         cause=make_state_spec(Direction.CAUSE),

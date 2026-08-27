@@ -202,3 +202,35 @@ def test_ac_sia_loads_without_new_fields():
     # Nothing stored: the constructor still snapshots load-time context.
     assert restored.config is not None
     assert restored.provenance is not None
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_reducible_causal_link_round_trips(fmt):
+    # Two independent copy units: the joint mechanism is reducible, so its
+    # causal link carries a null RIA with purview/partition/probability None.
+    sub = Substrate(np.array([[0, 0], [1, 0], [0, 1], [1, 1]], dtype=float))
+    t = Transition(
+        sub,
+        before_state=(1, 1),
+        after_state=(1, 1),
+        cause_indices=(0, 1),
+        effect_indices=(0, 1),
+    )
+    link = t.find_causal_link(Direction.CAUSE, (0, 1))
+    assert link.alpha == 0.0
+    assert link.ria.probability is None
+    restored = round_trip(link, fmt)
+    assert restored == link
+    assert restored.ria.purview == link.ria.purview
+    assert restored.ria.partition == link.ria.partition
+    assert restored.ria.probability is None
+    assert restored.ria.partitioned_probability is None
+    assert restored.ria.reasons == link.ria.reasons
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_substrate_round_trip_preserves_factored_tpm_labels(fmt):
+    obj = examples.basic_substrate()
+    assert obj.factored_tpm.node_labels is not None
+    restored = round_trip(obj, fmt)
+    assert restored.factored_tpm.node_labels == obj.factored_tpm.node_labels
