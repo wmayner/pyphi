@@ -262,3 +262,11 @@ class TestEmptyLayerSections:
     def test_unknown_option_error_names_migration_guide(self):
         with pytest.raises(ConfigurationError, match="migration"):
             config.not_a_real_option = 1
+
+
+class TestRenamedFieldHint:
+    def test_unknown_field_matching_a_renamed_field_names_its_replacement(self):
+        """The error for a renamed option names the replacement, consulting
+        RENAMED_FIELDS rather than only pointing at the migration guide."""
+        with pytest.raises(ConfigurationError, match="memory_ceiling_bytes"):
+            config.maximum_cache_memory_bytes = 0

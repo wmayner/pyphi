@@ -48,3 +48,11 @@ def test_estimate_analysis_in_all():
 
     assert "estimate_analysis" in pyphi.__all__
     assert "AnalysisEstimate" in pyphi.__all__
+
+
+def test_sweep_name_is_the_function_not_the_submodule():
+    # pyphi.sweep is bound to the sweep() function at module scope; __all__
+    # documents that, not the submodule of the same name.
+    assert "sweep" in pyphi.__all__
+    assert callable(pyphi.sweep)
+    assert pyphi.sweep.__module__ == "pyphi.sweep"

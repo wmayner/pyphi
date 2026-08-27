@@ -49,3 +49,27 @@ def test_conflicts_with_one_direction_purview():
     state = CompositionalState()
     state.data[(1,)] = {Direction.CAUSE: {(0,)}}
     assert not state.conflicts_with((0,), (1,), (1,))
+
+
+def test_resolve_conflicts_recomputes_counts_against_the_mutated_copy():
+    # Ranking candidates by conflict counts computed on the unmutated
+    # ``self`` (rather than the in-progress ``resolved`` copy) discards more
+    # mechanisms than necessary: after the first removal changes what is
+    # actually most conflicted, a stale count keeps ranking a mechanism
+    # whose conflicts have already been resolved above one that still has
+    # a live conflict, so an extra mechanism gets discarded needlessly.
+    from pyphi.compositional_state import CompositionalState
+    from pyphi.direction import Direction
+
+    cs = CompositionalState()
+    cs.data = {
+        (0,): {Direction.CAUSE: {(2,), (5,)}},
+        (1,): {Direction.CAUSE: {(1,), (4,), (5,)}},
+        (2,): {Direction.CAUSE: {(1,), (5,)}},
+        (3,): {Direction.CAUSE: {(2,), (4,)}},
+    }
+    resolved = cs.resolve_conflicts()
+    assert not resolved.has_conflicts()
+    # A stale (self-keyed) ranking discards down to a single mechanism,
+    # {(2,)}; the live (resolved-keyed) ranking keeps (1,) too.
+    assert resolved.mechanisms() == {(1,), (2,)}
