@@ -15,6 +15,7 @@ import hashlib
 import importlib.metadata
 import logging
 import os
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +44,14 @@ def _decode_or_none(data: bytes, node_labels: Any = None) -> Any | None:
 
 
 class DiskCache:
-    """A content-addressed file store satisfying the CachePolicy surface."""
+    """A content-addressed file store satisfying the CachePolicy surface.
+
+    Marked ``persistent``, so registry-wide :func:`pyphi.cache.clear_all` —
+    whose purpose is recovering memory — leaves the durable files alone.
+    Clear explicitly with :meth:`clear` or ``pyphi.cache.clear(name)``.
+    """
+
+    persistent = True
 
     def __init__(self, name: str, subdir: str) -> None:
         self.name = name
@@ -67,7 +75,9 @@ class DiskCache:
 
     def put(self, key: str, data: bytes) -> None:
         self._dir.mkdir(parents=True, exist_ok=True)
-        tmp = self._dir / f".{key}.{os.getpid()}.tmp"
+        # The temp name is unique per call, not just per process: two threads
+        # writing the same key must not collide on the temp path.
+        tmp = self._dir / f".{key}.{os.getpid()}.{uuid.uuid4().hex}.tmp"
         tmp.write_bytes(data)
         tmp.replace(self._dir / key)
 

@@ -159,14 +159,19 @@ _MISSING = object()
 def entry_weight(value: Any) -> int:
     """Estimated bytes one cached value occupies, including its key and slot.
 
-    An ndarray view's buffer belongs to the array it derives from, so only the
-    view object itself is charged. A sequence — the combinatorial index tables
+    An ndarray view keeps its whole underlying buffer alive, and the cache may
+    be that buffer's only owner, so a view is charged the buffer of the array
+    it derives from. A base that is itself also cached is then charged twice;
+    overcounting a shared buffer only evicts sooner, where undercounting lets
+    the bound exceed real memory. A sequence — the combinatorial index tables
     are lists of tuples — is charged per element, since its cost is the
     elements rather than any single buffer.
     """
     if isinstance(value, np.ndarray):
-        payload = value.nbytes if value.base is None else 0
-        return _ENTRY_OVERHEAD_BYTES + _ARRAY_DIM_BYTES * value.ndim + payload
+        owner = value
+        while isinstance(owner.base, np.ndarray):
+            owner = owner.base
+        return _ENTRY_OVERHEAD_BYTES + _ARRAY_DIM_BYTES * value.ndim + owner.nbytes
     if isinstance(value, list | tuple):
         return _ENTRY_OVERHEAD_BYTES + sum(map(_element_weight, value))
     return _ENTRY_OVERHEAD_BYTES
@@ -257,6 +262,11 @@ class ByteBoundedStore:
                 # passed or because memory was released elsewhere.
                 self._budget = None
         if self._budget is not None:
+            if weight > self._budget:
+                # Does not fit even in an empty store: refuse up front rather
+                # than draining the working set first for an entry that could
+                # never be held.
+                return
             while self.data and self._weight + weight > self._budget:
                 # A lock-free hit on another thread may pop and reinsert an
                 # entry at any point, so the iterator can find the dict
@@ -274,8 +284,8 @@ class ByteBoundedStore:
                 self._weight -= entry_weight(evicted)
                 self.evictions += 1
             if self._weight + weight > self._budget:
-                # Does not fit even in an empty store. Storing it would evict
-                # the whole working set for one entry.
+                # Still no room: lock-free hits on other threads reinserted
+                # entries while the loop ran.
                 return
         self.discard(key)
         self.data[key] = value

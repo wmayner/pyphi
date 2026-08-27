@@ -5,7 +5,6 @@ import pytest
 
 from pyphi import config
 from pyphi.cache import cache_utils
-from pyphi.cache.cache_utils import _ENTRY_OVERHEAD_BYTES
 from pyphi.cache.cache_utils import entry_weight
 from pyphi.cache.content import ContentCache
 
@@ -149,13 +148,37 @@ def test_weight_counts_payload_not_just_entries(under_ceiling):
     assert cache.nbytes - small > 100_000 * 8
 
 
-def test_view_is_charged_without_its_base_buffer():
-    """A view's buffer belongs to the array it derives from."""
+def test_view_charges_the_buffer_it_keeps_alive():
+    """Guards defect: a view was charged zero payload on the theory that its
+    base is charged elsewhere — but when the cache holds only the view, the
+    view keeps the whole buffer alive and the byte bound undercounted it."""
     base = np.zeros(100_000)
     view = base[:50_000]
     assert view.base is not None
-    assert entry_weight(view) < _ENTRY_OVERHEAD_BYTES + 1000
+    assert entry_weight(view) >= base.nbytes
     assert entry_weight(base) > 100_000 * 8
+
+
+def test_view_of_view_charges_the_owning_buffer():
+    base = np.zeros(100_000)
+    view = base[:50_000][10:20]
+    assert entry_weight(view) >= base.nbytes
+
+
+def test_oversized_entry_does_not_flush_the_working_set(monkeypatch):
+    """Guards defect: an entry larger than the whole budget drained every
+    existing entry through the eviction loop before being refused."""
+    from pyphi.cache.cache_utils import ByteBoundedStore
+
+    monkeypatch.setattr(cache_utils, "memory_full", lambda: False)
+    store = ByteBoundedStore()
+    for i in range(10):
+        store.admit(i, np.zeros(64))
+    monkeypatch.setattr(cache_utils, "memory_full", lambda: True)
+    store.admit("big", np.zeros(1_000_000))
+    assert "big" not in store.data
+    assert len(store.data) == 10
+    assert store.evictions == 0
 
 
 def test_clear_resets_weight_and_bound(over_ceiling):

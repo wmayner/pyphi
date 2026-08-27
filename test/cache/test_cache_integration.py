@@ -59,5 +59,9 @@ def test_clear_all_empties_every_registered_cache():
 
     cache.clear_all()
 
+    from pyphi.cache import registry as reg
+
     for name, ci in cache.info().items():
+        if getattr(reg._registry[name], "persistent", False):
+            continue  # durable disk stores are spared by clear_all
         assert ci.currsize == 0, f"cache {name!r} still has {ci.currsize} entries"

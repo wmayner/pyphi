@@ -1,0 +1,1 @@
+The in-memory cache byte bound now charges an `ndarray` view the buffer it keeps alive, instead of zero bytes. The bound previously undercounted memory whenever the cache held a view whose base array was not itself a cache entry.

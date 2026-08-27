@@ -20,8 +20,9 @@ Their counters carry the same best-effort caveat under free-threading.
 Public surface
 --------------
 - ``info()``: dict of name -> _CacheInfo across every registered cache.
-- ``clear_all()``: clear every registered cache.
-- ``clear(name)``: clear one cache by name.
+- ``clear_all()``: clear every registered in-memory cache. Persistent
+  on-disk stores are skipped; clear those by name.
+- ``clear(name)``: clear one cache by name (including persistent ones).
 - ``register(policy)``: register a CachePolicy adapter.
 - ``unregister(name)``: remove a registration.
 

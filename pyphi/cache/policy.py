@@ -20,7 +20,11 @@ from .cache_utils import _CacheInfo
 
 @runtime_checkable
 class CachePolicy(Protocol):
-    """Uniform observability + control surface for caches."""
+    """Uniform observability + control surface for caches.
+
+    A policy may additionally set a true ``persistent`` attribute to mark
+    itself as a durable store; registry-wide ``clear_all()`` skips those.
+    """
 
     name: str
 
