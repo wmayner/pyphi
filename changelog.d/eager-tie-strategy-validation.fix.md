@@ -1,0 +1,1 @@
+Tie-resolution strategy names (`state_tie_resolution`, `mip_tie_resolution`, `purview_tie_resolution`, `sia_tie_resolution`) are now validated against the registered strategies at configuration time, so a typo fails immediately instead of mid-computation.

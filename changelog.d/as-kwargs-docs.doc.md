@@ -1,0 +1,1 @@
+`ConfigSnapshot.as_kwargs()` documentation now states that the flat form cannot reproduce a snapshot whose formalism differs from the ambient default (colliding fields like `version` are excluded); use `as_overrides()` to reproduce a snapshot.

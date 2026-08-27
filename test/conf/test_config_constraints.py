@@ -610,3 +610,40 @@ class TestSiaTieStrategyCompatibility:
             pytest.raises(ConfigurationError, match="sia_tie_resolution"),
         ):
             examples.basic_system().sia()
+
+
+class TestTieStrategyNamesValidatedEagerly:
+    """A typo'd tie-resolution strategy name must fail at configuration time,
+    not in the middle of a computation."""
+
+    def test_sia_tie_resolution_typo_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit4_2023,
+                **{"iit.sia_tie_resolution": ["NORMALISED_PHI"]},
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "sia_tie_resolution" in message
+        assert "NORMALISED_PHI" in message
+        assert "NORMALIZED_PHI" in message  # the registered names are listed
+
+    def test_purview_tie_resolution_typo_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit4_2023,
+                **{"iit.purview_tie_resolution": "PHII"},
+            ),
+        ):
+            pass
+        assert "purview_tie_resolution" in str(exc.value)
+
+    def test_registered_names_accepted(self) -> None:
+        with config.override(
+            **presets.iit4_2023,
+            **{"iit.sia_tie_resolution": ["PHI", "PARTITION_LEX"]},
+        ):
+            pass  # no ConfigurationError

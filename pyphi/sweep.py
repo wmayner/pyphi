@@ -43,7 +43,7 @@ class _Skipped:
     cell: tuple[Any, Any, Any]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class SweepResult(Serializable):
     """A sweep's tidy table plus the raw results behind it.
 
@@ -57,6 +57,17 @@ class SweepResult(Serializable):
     df: pd.DataFrame
     results: list[Any]
     skipped: list[tuple[Any, str, tuple, tuple]]
+
+    def __eq__(self, other: object) -> bool:
+        # The generated dataclass __eq__ would compare ``df`` with ``==``,
+        # which yields an elementwise DataFrame whose truth value raises.
+        if not isinstance(other, SweepResult):
+            return NotImplemented
+        return (
+            self.df.equals(other.df)
+            and self.results == other.results
+            and self.skipped == other.skipped
+        )
 
     def to_pandas(self) -> pd.DataFrame:
         return self.df

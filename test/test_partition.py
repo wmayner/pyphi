@@ -466,3 +466,48 @@ def test_edge_cut_equal_cuts_hash_equal_across_dtypes():
     c = EdgeCut((0, 1), matrix.astype(bool))
     assert a == b == c
     assert hash(a) == hash(b) == hash(c)
+
+
+class TestSchemeRegistrationValidation:
+    """Wrong-shape partition schemes must fail at registration, not at the
+    bottom of a phi computation."""
+
+    def test_system_registry_rejects_mechanism_shaped_scheme(self):
+        from pyphi.partition import system_partition_types
+
+        with pytest.raises(TypeError, match="does not accept"):
+
+            @system_partition_types.register("___TEST_BAD_SYSTEM")
+            def mechanism_shaped(mechanism, purview):  # pragma: no cover
+                return []
+
+        assert "___TEST_BAD_SYSTEM" not in system_partition_types.store
+
+    def test_mechanism_registry_rejects_zero_arg_scheme(self):
+        from pyphi.partition import partition_types
+
+        with pytest.raises(TypeError, match="does not accept"):
+
+            @partition_types.register("___TEST_BAD_MECH")
+            def zero_arg():  # pragma: no cover
+                return []
+
+        assert "___TEST_BAD_MECH" not in partition_types.store
+
+    def test_registries_reject_non_callables(self):
+        from pyphi.partition import partition_types
+        from pyphi.partition import system_partition_types
+
+        with pytest.raises(TypeError):
+            partition_types.register("___TEST_NC")(object())
+        with pytest.raises(TypeError):
+            system_partition_types.register("___TEST_NC")(object())
+
+    def test_valid_schemes_still_register(self):
+        from pyphi.partition import system_partition_types
+
+        @system_partition_types.register("___TEST_OK")
+        def fine(nodes, node_labels=None):  # pragma: no cover
+            return []
+
+        assert system_partition_types.store.pop("___TEST_OK") is fine

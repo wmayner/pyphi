@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import functools
+import inspect
 import itertools
 from collections.abc import Generator, Iterable, Iterator, Sequence
 from itertools import chain, product
@@ -431,6 +432,28 @@ def k_partitions(collection, k):
 # ~~~~~~~~~~~~~~~~~~~~~~
 
 
+def _check_scheme_signature(
+    func: Any, dummy_args: tuple, what: str, expected: str
+) -> None:
+    """Reject a scheme whose signature cannot accept the registry's call shape.
+
+    Uses :func:`inspect.signature` binding as a static check — the scheme is
+    not called. Callables whose signature cannot be introspected are accepted,
+    since nothing can be proven about them.
+    """
+    try:
+        sig = inspect.signature(func)
+    except (TypeError, ValueError):
+        return
+    try:
+        sig.bind(*dummy_args)
+    except TypeError as err:
+        raise TypeError(
+            f"Cannot register {func!r} as {what}: its signature {sig} does "
+            f"not accept a {expected} call: {err}"
+        ) from err
+
+
 class PartitionRegistry(Registry):
     """Storage for mechanism-level partition schemes registered with PyPhi.
 
@@ -442,10 +465,10 @@ class PartitionRegistry(Registry):
     Users can define custom partitions and use them by setting
     ``pyphi.config["iit.mechanism_partition_scheme"] = 'NONE'``.
 
-    Registered objects are validated against
-    :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
-    registrations fail at import rather than at the bottom of a phi
-    computation.
+    Registered objects are validated at registration: they must be callable
+    and their signature must accept a ``(mechanism, purview)`` call, so
+    wrong-shape registrations fail at import rather than at the bottom of a
+    phi computation.
 
     Examples
     --------
@@ -467,6 +490,12 @@ class PartitionRegistry(Registry):
                     f"object does not satisfy the MechanismPartitionScheme "
                     f"Protocol (must be callable)."
                 )
+            _check_scheme_signature(
+                func,
+                ((0,), (0,)),
+                f"partition scheme {name!r}",
+                "(mechanism, purview)",
+            )
             self.store[name] = func
             return func
 
@@ -750,9 +779,10 @@ class SystemPartitionRegistry(Registry):
     Users can define custom partitions and use them by setting
     ``pyphi.config.system_partition_scheme = 'NONE'``.
 
-    Registered objects are validated against
-    :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape
-    registrations fail at import rather than at the bottom of a SIA
+    Registered objects are validated at registration: they must be callable
+    and their signature must accept a ``(nodes,)`` call, so wrong-shape
+    registrations (e.g. a mechanism-level scheme, which requires a second
+    positional argument) fail at import rather than at the bottom of a SIA
     computation.
 
     Examples
@@ -775,6 +805,12 @@ class SystemPartitionRegistry(Registry):
                     f"{name!r}: object does not satisfy the "
                     f"SystemPartitionScheme Protocol (must be callable)."
                 )
+            _check_scheme_signature(
+                func,
+                ((0, 1),),
+                f"system partition scheme {name!r}",
+                "(nodes,)",
+            )
             self.store[name] = func
             return func
 

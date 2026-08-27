@@ -1,0 +1,1 @@
+`InducedSubstructure` and `PhiFold` views no longer compare equal to the `CauseEffectStructure` they view (or to views of another kind): equality is exact-type, since views cannot be saved and a fold's relations are incident rather than closed.

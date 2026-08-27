@@ -110,7 +110,12 @@ class CauseEffectStructure(
         return bool(self.sia)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, CauseEffectStructure):
+        # Exact-type equality: a view (InducedSubstructure, PhiFold) is not
+        # interchangeable with the structure it views — views cannot be
+        # saved, and a fold's relations are incident rather than closed —
+        # so views never compare equal to full structures (or to views of
+        # another kind), even when their contents coincide.
+        if type(other) is not type(self):
             return NotImplemented
         if self.sia != other.sia:
             return False

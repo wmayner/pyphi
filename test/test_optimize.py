@@ -251,3 +251,33 @@ def test_objective_value_missing_attribute_raises_clear_error():
     assert _objective_value(MinimalSIA(), "phi") == 0.5
     with pytest.raises(ValueError, match="signed_normalized_phi"):
         _objective_value(MinimalSIA(), "signed_normalized_phi")
+
+
+def test_optimization_result_equality_does_not_raise():
+    """The generated dataclass ``__eq__`` compared ndarray/DataFrame fields
+    with ``==``, whose elementwise results have no truth value."""
+    import numpy as np
+    import pandas as pd
+
+    from pyphi.optimize import OptimizationResult
+
+    def make(objective):
+        return OptimizationResult(
+            best_params=np.array([0.1, 0.2]),
+            best_objective=objective,
+            best_substrate=None,
+            best_sia=None,
+            trajectory=pd.DataFrame({"eval": [0], "objective": [objective]}),
+            bounds=[(0.0, 1.0)],
+            seed=1,
+            direction="maximize",
+            objective_name="phi",
+            settings={},
+            config_snapshot={},
+            n_evaluations=1,
+            n_unreachable=0,
+        )
+
+    assert make(0.5) == make(0.5)
+    assert make(0.5) != make(0.6)
+    assert make(0.5) != object()

@@ -108,15 +108,21 @@ class ConfigSnapshot:
         )
 
     def as_kwargs(self) -> dict[str, Any]:
-        """Return a flat dict suitable for ``pyphi.config.override(**snap.as_kwargs())``.
+        """Return the snapshot's non-colliding fields as a flat kwargs dict.
 
         Field names that collide between the formalism's IIT and AC
         sub-namespaces (e.g. ``version``, ``mechanism_partition_scheme``)
         are excluded by :meth:`FormalismConfig.as_kwargs` — flat overrides
         on those names are ambiguous and
         :class:`pyphi.conf._global._GlobalConfig.__setattr__` rejects them.
-        To round-trip a colliding-name change, use sub-namespace wholesale
-        replacement (``config.iit = ...``).
+
+        Because the colliding fields are excluded, the flat form does NOT
+        reproduce a snapshot whose formalism differs from the ambient
+        default: ``pyphi.config.override(**snap.as_kwargs())`` leaves
+        ``version`` at the ambient value, and config validation rejects the
+        resulting mix (e.g. an IIT 3.0 snapshot's measures under the default
+        version). To reproduce a snapshot, use
+        ``pyphi.config.override(**snap.as_overrides())``.
         """
         result: dict[str, Any] = {}
         for layer in (self.infrastructure, self.numerics):

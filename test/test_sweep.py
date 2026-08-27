@@ -257,3 +257,18 @@ def test_sweep_default_formalism_honors_ambient_customizations():
         assert float(result.df["phi"].iloc[0]) == direct
         # The table still reports the active version name.
         assert result.df["formalism"].iloc[0] == "IIT_3_0"
+
+
+def test_sweep_result_equality_does_not_raise():
+    """The generated dataclass ``__eq__`` compared DataFrames with ``==``,
+    whose elementwise result has no truth value; equality must be usable."""
+    import pandas as pd
+
+    from pyphi.sweep import SweepResult
+
+    a = SweepResult(df=pd.DataFrame({"x": [1, 2]}), results=[1], skipped=[])
+    b = SweepResult(df=pd.DataFrame({"x": [1, 2]}), results=[1], skipped=[])
+    c = SweepResult(df=pd.DataFrame({"x": [1, 3]}), results=[1], skipped=[])
+    assert a == b
+    assert a != c
+    assert a != object()

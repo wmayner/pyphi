@@ -188,3 +188,19 @@ def test_structure_view_save_raises_clear_error(tmp_path):
     # serializer-dispatch TypeError.
     with pytest.raises(NotImplementedError, match="view into its parent"):
         InducedSubstructure.save(object.__new__(InducedSubstructure), tmp_path / "x")
+
+
+def test_views_do_not_compare_equal_to_parent_structure(xor_ces):
+    """A view over all distinctions has the same content as its parent but is
+    not interchangeable with it (views cannot be saved; folds are not
+    relation-closed), so equality is exact-type."""
+    induced = xor_ces.induce(list(xor_ces.distinctions))
+    assert set(induced.distinctions) == set(xor_ces.distinctions)
+    assert induced != xor_ces
+    assert xor_ces != induced
+    assert len({xor_ces, induced}) == 2
+    # Views of different kinds are not equal to each other either.
+    fold = xor_ces.fold(list(xor_ces.distinctions))
+    assert fold != induced
+    # Value semantics within one kind still hold.
+    assert induced == xor_ces.induce(list(xor_ces.distinctions))

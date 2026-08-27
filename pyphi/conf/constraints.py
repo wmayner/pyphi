@@ -317,6 +317,41 @@ def _sia_tie_resolution_compatible_with_version(config: Any) -> str | None:
     return None
 
 
+@register_constraint("tie_resolution_strategies_registered")
+def _tie_resolution_strategies_registered(config: Any) -> str | None:
+    """Every tie-resolution strategy component must name a registered
+    strategy, so a typo fails at configuration time rather than in the
+    middle of a computation.
+
+    Imported lazily: ``pyphi.resolve_ties`` depends on ``pyphi.conf``, so a
+    module-level import would be circular; during the bootstrap window the
+    check is skipped (every post-import ``override`` / ``load_yaml`` still
+    validates).
+    """
+    try:
+        from pyphi.resolve_ties import phi_object_tie_resolution_strategies
+    except ImportError:
+        return None
+    valid = set(phi_object_tie_resolution_strategies.store)
+    iit = config.formalism.iit
+    for field_name in (
+        "state_tie_resolution",
+        "mip_tie_resolution",
+        "purview_tie_resolution",
+        "sia_tie_resolution",
+    ):
+        strategy = getattr(iit, field_name)
+        components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+        for component in components:
+            if component not in valid:
+                return (
+                    f"formalism.iit.{field_name} component {component!r} is not "
+                    f"a registered tie-resolution strategy. Registered "
+                    f"strategies: {sorted(valid)}."
+                )
+    return None
+
+
 @register_constraint("background_conditioning_compatible_with_version")
 def _background_conditioning_compatible_with_version(config: Any) -> str | None:
     """The cause-side background-conditioning convention must be one the
