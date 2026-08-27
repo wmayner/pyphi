@@ -881,6 +881,7 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     # ii(s) is partition-independent given the specified states, so the same
     # state-level terms cap the runner-up partition's φ; the reported φ-gap
     # then compares capped to capped.
+    # numerics: exact — Eq. 23 cap; φ_s is a minimum, not a tie decision.
     if sia.runner_up is not None and float(sia.runner_up.phi) > ii:
         runner_up_norm = normalization_factor(sia.runner_up.partition)
         capped_runner_up_normalized = (
