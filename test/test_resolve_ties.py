@@ -22,6 +22,24 @@ def test_resolve_none_returns_objects():
     assert resolved == objects
 
 
+def test_resolve_none_in_list_form_returns_objects():
+    """The sequence form ["NONE"] behaves like the bare string "NONE"."""
+    objects = [DummyPhiObject(1.0, (0,)), DummyPhiObject(2.0, (0, 1))]
+    resolved = list(resolve_ties.resolve(objects, ["NONE"], operation=max))
+    assert resolved == objects
+
+
+def test_resolve_none_component_in_mixed_list_filters_nothing():
+    """A "NONE" component in a strategy list is a no-op filter."""
+    low = DummyPhiObject(1.0, (0,))
+    high_a = DummyPhiObject(2.0, (0, 1))
+    high_b = DummyPhiObject(2.0, (1, 2))
+    resolved = list(
+        resolve_ties.resolve([low, high_a, high_b], ["PHI", "NONE"], operation=max)
+    )
+    assert resolved == [high_a, high_b]
+
+
 def test_resolve_max_phi_ties():
     low = DummyPhiObject(1.0, (0,))
     high_a = DummyPhiObject(2.0, (0, 1))

@@ -230,11 +230,9 @@ class SystemIrreducibilityAnalysis(
             self.signed_phi = float(self.signed_phi)
         if not isinstance(self.signed_normalized_phi, DistanceResult):
             self.signed_normalized_phi = float(self.signed_normalized_phi)
-        if self.intrinsic_differentiation is None:
-            self.intrinsic_differentiation = {
-                Direction.CAUSE: 0.0,
-                Direction.EFFECT: 0.0,
-            }
+        # ``intrinsic_differentiation`` stays None when not computed (e.g. on
+        # null SIAs), so ``intrinsic_information`` reports None rather than a
+        # fabricated zero.
 
     def order_by(self):
         return self.phi
@@ -299,7 +297,8 @@ class SystemIrreducibilityAnalysis(
         intrinsic differentiation, each rectified by ``|·|⁺``.
         Partition-independent given the specified states. Under the
         IIT 4.0 (2026) formalism, φₛ = min{φ_c, φ_e, ii(s)}, so
-        φₛ ≤ ii(s). ``None`` when no system state is available.
+        φₛ ≤ ii(s). ``None`` when no system state is available or the
+        intrinsic differentiation was not computed (e.g. on null SIAs).
         """
         if self.system_state is None or not self.intrinsic_differentiation:
             return None

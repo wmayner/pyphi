@@ -686,3 +686,75 @@ def test_sia_single_direction_with_shortcircuit():
         assert float(both.phi) == pytest.approx(
             float(formalism.evaluate_system(system).phi)
         )
+
+
+class TestNullSIAIntrinsicInformation:
+    """Null SIAs must not fabricate a zero intrinsic differentiation.
+
+    A null SIA carrying a real ``system_state`` (via ``sia(...,
+    system_state=...)`` or the NO_VALID_PARTITIONS path) previously
+    reported ``intrinsic_information == 0.0`` as if computed, even when
+    the true ii(s) is nonzero. It must report ``None`` (not computed).
+    """
+
+    @staticmethod
+    def _reducible_system():
+        """A 2-unit substrate that is not strongly connected (A→A, A→B, B→B)
+        with noisy dynamics, so ii(s) is well-defined and nonzero."""
+        import numpy as np
+
+        from pyphi import Substrate
+        from pyphi import System
+
+        tpm = np.array(
+            [
+                [0.2, 0.1],
+                [0.85, 0.6],
+                [0.2, 0.4],
+                [0.85, 0.9],
+            ]
+        )
+        cm = np.array([[1, 1], [0, 1]])
+        substrate = Substrate(tpm=tpm, cm=cm)
+        return System(substrate, state=(1, 1))
+
+    def test_null_sia_with_real_system_state_reports_none(self):
+        from pyphi.formalism.base import FORMALISM_REGISTRY
+        from pyphi.formalism.iit4 import sia as iit4_sia
+        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.formalism.iit4.formalism import _resolve_system_measures
+
+        with config.override(**presets.iit4_2026):
+            system = self._reducible_system()
+            formalism = FORMALISM_REGISTRY[config.formalism.iit.version]
+            system_measure, specification_measure = _resolve_system_measures(
+                formalism, None, None
+            )
+            system_state = system_intrinsic_information(
+                system, specification_measure=specification_measure
+            )
+            result = iit4_sia(
+                system,
+                system_measure=system_measure,
+                specification_measure=specification_measure,
+                system_state=system_state,
+            )
+        assert isinstance(result, NullSystemIrreducibilityAnalysis)
+        assert result.system_state is not None
+        # The true ii(s) of this system is nonzero; a fabricated
+        # {CAUSE: 0.0, EFFECT: 0.0} would misreport it as 0.0.
+        assert result.intrinsic_differentiation is None
+        assert result.intrinsic_information is None
+
+    def test_null_sia_display_and_serialization_handle_none(self):
+        from pyphi import serialize
+
+        null_sia = NullSystemIrreducibilityAnalysis(node_indices=(0, 1))
+        assert null_sia.intrinsic_differentiation is None
+        assert null_sia.intrinsic_information is None
+        repr(null_sia)
+        null_sia.explain()
+        restored = serialize.loads(serialize.dumps(null_sia))
+        assert restored == null_sia
+        assert restored.intrinsic_differentiation is None
+        assert restored.intrinsic_information is None

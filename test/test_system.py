@@ -370,6 +370,98 @@ def test_proper_effect_marginal_binary_matches_legacy_on_probability(s) -> None:
         assert np.allclose(proper_on, forward_on, atol=1e-10)
 
 
+def _asymmetric_substrate() -> Substrate:
+    """A fully connected, asymmetric 3-unit binary substrate."""
+    rng = np.random.default_rng(11)
+    return Substrate(tpm=rng.random((8, 3)))
+
+
+def test_proper_marginals_condition_on_external_indices_overlap() -> None:
+    """When external_indices overlaps node_indices (the TransitionSystem
+    pattern), the proper marginals condition on the external units — not the
+    complement of the system — and drop only non-system external input dims."""
+    from pyphi.core.tpm.marginalization import _effect_marginal_factored
+
+    substrate = _asymmetric_substrate()
+    state = (1, 0, 1)
+    with config.override(validate_system_states=False):
+        sys_ = System(
+            substrate,
+            state,
+            node_indices=(0, 1),
+            external_indices=(1, 2),
+            background_conditioning="CONDITION_CURRENT_STATE",
+            background_state=state,
+        )
+    proper = sys_.proper_effect_marginal
+    # Expected: condition on the external units {1: 0, 2: 1}, then drop only
+    # the non-system external axis {2}.
+    expected = _effect_marginal_factored(substrate.factored_tpm, {1: 0, 2: 1})
+    for slot, node in enumerate(sys_.node_indices):
+        e = np.squeeze(expected.factor(node), axis=(2,))
+        assert proper.factor(slot).shape == e.shape
+        assert np.allclose(proper.factor(slot), e)
+    # Consistent with effect_marginal restricted to the system factors.
+    effect = sys_.effect_marginal
+    for slot, node in enumerate(sys_.node_indices):
+        assert np.allclose(
+            proper.factor(slot), np.squeeze(effect.factor(node), axis=(2,))
+        )
+    # Cause side: same conditioning and squeeze semantics.
+    proper_cause = sys_.proper_cause_marginal
+    cause = sys_.cause_marginal
+    for slot, node in enumerate(sys_.node_indices):
+        e = np.squeeze(cause.factor(node), axis=(2,))
+        assert proper_cause.factor(slot).shape == e.shape
+        assert np.allclose(proper_cause.factor(slot), e)
+
+
+def test_proper_marginals_empty_external_no_crash() -> None:
+    """external_indices=() (the AC noise-background pattern) must not crash,
+    and must not clamp the non-system unit at its observed state."""
+    substrate = _asymmetric_substrate()
+    state = (1, 0, 1)
+    with config.override(validate_system_states=False):
+        sys_ = System(
+            substrate,
+            state,
+            node_indices=(0, 1),
+            external_indices=(),
+            background_conditioning="CONDITION_CURRENT_STATE",
+        )
+    proper_cause = sys_.proper_cause_marginal  # raised ValueError before the fix
+    proper_effect = sys_.proper_effect_marginal
+    for factored in (proper_cause, proper_effect):
+        for slot in range(factored.n_nodes):
+            assert factored.factor(slot).shape == (2, 2, 2)
+    # With no external conditioning, the non-system unit is marginalized
+    # uniformly — not clamped at its observed state.
+    forward = substrate.factored_tpm
+    for slot, node in enumerate(sys_.node_indices):
+        expected = forward.factor(node).mean(axis=2)
+        assert np.allclose(proper_effect.factor(slot), expected)
+        clamped = forward.factor(node)[:, :, state[2], :]
+        assert not np.allclose(proper_effect.factor(slot), clamped)
+
+
+def test_transition_noise_background_proper_cause_marginal() -> None:
+    """Public reachability of the empty-external crash:
+    Transition(noise_background=True).cause_system.proper_cause_marginal."""
+    from pyphi.actual import Transition
+
+    substrate = _asymmetric_substrate()
+    transition = Transition(
+        substrate,
+        before_state=(1, 0, 1),
+        after_state=(1, 1, 1),
+        cause_indices=(0,),
+        effect_indices=(1,),
+        noise_background=True,
+    )
+    proper = transition.cause_system.proper_cause_marginal  # raised before the fix
+    assert proper.n_nodes == 2
+
+
 # external_indices field tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

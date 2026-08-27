@@ -187,6 +187,53 @@ def test_cascade_fails_when_all_levels_tie_and_on_unresolved_is_fail():
     assert exc_info.value.cascade_level == "Composition"
 
 
+def test_cascade_lone_candidate_resolves_despite_blocked_budget():
+    """A single candidate resolves even when the next level is over budget."""
+    lone = FakePhiObject("a", phi=1.0)
+    ctx = ResolutionContext(max_escalation_level="Existence")
+    outcome = cascade(
+        [lone],
+        levels=[CascadeLevel(postulate="Integration", op="argmax", key=lambda c: c.phi)],
+        context=ctx,
+        on_unresolved="fail",
+    )
+    assert outcome.outcome == "RESOLVED"
+    assert outcome.resolved is lone
+
+
+def test_cascade_budget_blocked_tie_honors_on_unresolved_fail():
+    """on_unresolved='fail' raises NotAComplex when budget blocks a tied level."""
+    candidates = [FakePhiObject("a", phi=2.0), FakePhiObject("b", phi=2.0)]
+    ctx = ResolutionContext(max_escalation_level="Existence")
+    with pytest.raises(NotAComplex) as exc_info:
+        cascade(
+            candidates,
+            levels=[
+                CascadeLevel(postulate="Integration", op="argmax", key=lambda c: c.phi)
+            ],
+            context=ctx,
+            on_unresolved="fail",
+        )
+    assert tuple(exc_info.value.tied_set) == tuple(candidates)
+
+
+def test_cascade_budget_blocked_tie_honors_on_unresolved_warn():
+    """on_unresolved='warn' emits a warning when budget blocks a tied level."""
+    candidates = [FakePhiObject("a", phi=2.0), FakePhiObject("b", phi=2.0)]
+    ctx = ResolutionContext(max_escalation_level="Existence")
+    with pytest.warns(UserWarning, match="tied candidates"):
+        outcome = cascade(
+            candidates,
+            levels=[
+                CascadeLevel(postulate="Integration", op="argmax", key=lambda c: c.phi)
+            ],
+            context=ctx,
+            on_unresolved="warn",
+        )
+    assert outcome.outcome == "UNRESOLVED_WITHIN_BUDGET"
+    assert outcome.tied_set == tuple(candidates)
+
+
 def test_cascade_argmin_op_picks_smallest_key_value():
     """argmin works symmetrically to argmax."""
     candidates = [FakePhiObject("a", phi=3.0), FakePhiObject("b", phi=1.0)]

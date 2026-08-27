@@ -425,48 +425,62 @@ class System(Displayable, ToPandasMixin, Serializable):
         """Effect TPM restricted to system units.
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
-        carries the forward factor conditioned on the background units (all
-        substrate units outside ``node_indices``) at their observed state,
-        with those background input dims dropped, so the returned shape is
-        ``(*system_alphabet, k_i)`` per system output unit. The effect-side
-        dual of :attr:`proper_cause_marginal`.
+        carries the forward factor of :attr:`effect_marginal` — the external
+        units (``external_indices``) conditioned at the background reference
+        state — with all non-system input dims dropped, so the returned
+        shape is ``(*system_alphabet, k_i)`` per system output unit.
+        Substrate units neither in the system nor external are marginalized
+        uniformly (the noise-background convention). The effect-side dual of
+        :attr:`proper_cause_marginal`.
         """
-        background_indices = tuple(
-            i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
+        factored = self.effect_marginal
+        return FactoredTPM(
+            factors=[
+                self._restrict_to_system_inputs(factored.factor(i))
+                for i in self.node_indices
+            ],
+            node_labels=self._unit_labels(),
         )
-        reference = self._background_reference_state
-        background = {i: reference[i] for i in background_indices}
-        factored = _effect_marginal_factored(self._typed_tpm, background)
-        system_factors = []
-        for i in self.node_indices:
-            f = factored.factor(i)
-            if background_indices:
-                f = np.squeeze(f, axis=background_indices)
-            system_factors.append(f)
-        return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
+
+    def _restrict_to_system_inputs(self, factor: np.ndarray) -> np.ndarray:
+        """Drop a factor's non-system input dims.
+
+        Non-system axes that are size 1 — conditioned at the background
+        state, or marginalized under IIT 4.0 Eq. 4 weighting — are
+        squeezed. Non-system axes left free (units neither in the system
+        nor external, as under the noise-background convention) are
+        marginalized uniformly.
+        """
+        system = set(self.node_indices)
+        drop = tuple(j for j in range(self._typed_tpm.n_nodes) if j not in system)
+        if not drop:
+            return factor
+        free = tuple(j for j in drop if factor.shape[j] != 1)
+        if free:
+            factor = factor.mean(axis=free, keepdims=True)
+        return np.squeeze(factor, axis=drop)
 
     @property
     def proper_cause_marginal(self) -> FactoredTPM:
         """Cause TPM restricted to system units.
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
-        carries the cause factor produced by Bayesian inversion of the
-        substrate's forward TPM under the observed state. Background units
-        are marginalized via ``pr_bg / norm`` weighting per IIT 4.0 Eq. 4
-        and dropped from each factor's input dims, so the returned shape
-        is ``(*system_alphabet, k_i)`` per system output unit.
+        carries the cause factor of :attr:`cause_marginal` — background
+        handled per the active convention (IIT 4.0 Eq. 4 marginalization,
+        or the external units conditioned at the background reference
+        state) — with all non-system input dims dropped, so the returned
+        shape is ``(*system_alphabet, k_i)`` per system output unit.
+        Substrate units neither in the system nor external are marginalized
+        uniformly (the noise-background convention).
         """
         marginals = self.cause_marginal
-        background_indices = tuple(
-            i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
+        return FactoredTPM(
+            factors=[
+                self._restrict_to_system_inputs(marginals.factor(i))
+                for i in self.node_indices
+            ],
+            node_labels=self._unit_labels(),
         )
-        system_factors = []
-        for i in self.node_indices:
-            f = marginals.factor(i)
-            if background_indices:
-                f = np.squeeze(f, axis=background_indices)
-            system_factors.append(f)
-        return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
 
     @cached_property
     def cm(self) -> Any:
