@@ -247,9 +247,12 @@ class IIT3SystemIrreducibilityAnalysis(
         return not numerics.eq(self.phi, 0)
 
     def __hash__(self) -> int:
+        # ``distinctions`` is excluded: the compute path backfills it on tie
+        # peers after construction, and a hash must not change over an
+        # object's lifetime. ``__eq__`` still compares it; hashing only the
+        # stable fields it also compares keeps eq-implies-equal-hash.
         return hash(
             (
-                self.distinctions,
                 self.partitioned_distinctions,
                 self.partition,
                 self.node_indices,

@@ -347,6 +347,237 @@ def test_apply_snapshot_skips_when_running_in_parent_pid():
     assert len(counter.calls) == 0
 
 
+def test_thread_dispatch_restores_parent_pid_latch():
+    """A thread-backend dispatch must not permanently latch ``_PARENT_PID``.
+
+    A permanent latch would disable snapshot installs for the rest of the
+    process's life: a loky worker that runs a nested thread-backend
+    ``map_reduce`` would silently ignore every later parent snapshot.
+    """
+    import os
+
+    from pyphi.conf import config
+    from pyphi.parallel import map_reduce
+    from pyphi.parallel.backends import local_process
+
+    prev_pid = local_process._PARENT_PID
+    prev_hash = local_process._LAST_APPLIED_SNAPSHOT_HASH
+    # Simulate a fresh loky worker: no latch, no applied snapshot.
+    local_process._PARENT_PID = None
+    local_process._LAST_APPLIED_SNAPSHOT_HASH = None
+    try:
+        seen = []
+
+        def latched_pid(x):
+            seen.append(local_process._PARENT_PID)
+            return x
+
+        map_reduce(
+            latched_pid,
+            [0, 1, 2],
+            parallel=True,
+            backend="thread",
+            sequential_threshold=1,
+            progress=False,
+        )
+        # The latch is set during the dispatch and released afterwards.
+        assert seen and all(pid == os.getpid() for pid in seen)
+        assert local_process._PARENT_PID is None
+
+        # A parent snapshot arriving after the thread dispatch still installs.
+        with config.override(precision=5):
+            snap = config.snapshot()
+        with config.override(precision=13):
+            local_process._apply_snapshot_if_changed(snap, hash(repr(snap)))
+            assert config.numerics.precision == 5
+    finally:
+        local_process._PARENT_PID = prev_pid
+        local_process._LAST_APPLIED_SNAPSHOT_HASH = prev_hash
+
+
+def test_snapshot_hash_deferred_on_sequential_dispatch(monkeypatch):
+    """A workload that dispatches sequentially must not pay the config
+    snapshot repr-hash (~1 ms); the worker wrapper is built only when
+    chunks are actually submitted to the pool."""
+    from pyphi.parallel import map_reduce
+    from pyphi.parallel.backends import local_process
+
+    calls = []
+    real = local_process._make_worker_fn
+
+    def recording(fn, snapshot):
+        calls.append(1)
+        return real(fn, snapshot)
+
+    monkeypatch.setattr(local_process, "_make_worker_fn", recording)
+
+    out = map_reduce(
+        _square,
+        [1, 2, 3],
+        parallel=True,
+        backend="process",
+        sequential_threshold=100,
+        progress=False,
+    )
+    assert sorted(out) == [1, 4, 9]
+    assert calls == [], "sequential dispatch must not build the worker wrapper"
+
+    out = map_reduce(
+        _square,
+        list(range(8)),
+        parallel=True,
+        backend="process",
+        sequential_threshold=1,
+        chunksize=1,
+        progress=False,
+    )
+    assert sorted(out) == [x * x for x in range(8)]
+    assert calls == [1], "parallel dispatch wraps exactly once"
+
+
+# ============================================================================
+# Lazy generator handling (process scheduler)
+# ============================================================================
+
+
+def _increment(x):
+    """Top-level function for cloudpickle serialization."""
+    return x + 1
+
+
+def test_process_scheduler_generator_shortcircuit_pulls_lazily():
+    """A short-circuited generator workload must not be drained up front."""
+    from pyphi.parallel import map_reduce
+
+    produced = []
+
+    def gen(n):
+        for i in range(n):
+            produced.append(i)
+            yield i
+
+    out = map_reduce(
+        lambda x: x,
+        gen(10_000),
+        parallel=True,
+        backend="process",
+        progress=False,
+        chunksize=64,
+        sequential_threshold=2**13,
+        shortcircuit_func=lambda _r: True,
+    )
+    assert out == [0]
+    assert len(produced) == 1
+
+
+def test_process_scheduler_generator_exhausting_below_threshold_is_sequential():
+    from pyphi.parallel import map_reduce
+
+    out = map_reduce(
+        _increment,
+        (i for i in range(10)),
+        parallel=True,
+        backend="process",
+        progress=False,
+        chunksize=64,
+        sequential_threshold=2**13,
+    )
+    assert out == [i + 1 for i in range(10)]
+
+
+def test_process_scheduler_generator_crossing_threshold_matches_sequential():
+    """At the dispatch gate, the sequential prefix plus the parallel
+    remainder must equal sequential evaluation."""
+    from pyphi.parallel import map_reduce
+
+    out = map_reduce(
+        _increment,
+        (i for i in range(50)),
+        parallel=True,
+        backend="process",
+        progress=False,
+        chunksize=5,
+        sequential_threshold=8,
+        ordered=True,
+    )
+    assert out == [i + 1 for i in range(50)]
+
+
+# ============================================================================
+# Thread-scheduler chunking
+# ============================================================================
+
+
+def test_thread_scheduler_honors_chunksize(monkeypatch):
+    """One future per chunk, not per item."""
+    import math
+    from concurrent.futures import ThreadPoolExecutor
+
+    from pyphi.parallel import get_num_processes
+    from pyphi.parallel import map_reduce
+
+    submits = []
+    original_submit = ThreadPoolExecutor.submit
+
+    def counting_submit(self, *args, **kwargs):
+        submits.append(1)
+        return original_submit(self, *args, **kwargs)
+
+    monkeypatch.setattr(ThreadPoolExecutor, "submit", counting_submit)
+
+    n = 10_000
+    out = map_reduce(
+        lambda x: x,
+        list(range(n)),
+        parallel=True,
+        backend="thread",
+        progress=False,
+        chunksize=4096,
+        sequential_threshold=2,
+    )
+    assert sorted(out) == list(range(n))
+    assert len(submits) == max(math.ceil(n / 4096), get_num_processes())
+
+
+def test_thread_scheduler_uses_size_func():
+    from pyphi.parallel import map_reduce
+
+    calls = []
+
+    def size(item):
+        calls.append(item)
+        return 1.0
+
+    out = map_reduce(
+        lambda x: x,
+        list(range(20)),
+        parallel=True,
+        backend="thread",
+        progress=False,
+        chunksize=5,
+        sequential_threshold=2,
+        size_func=size,
+    )
+    assert sorted(out) == list(range(20))
+    assert len(calls) == 20
+
+
+def test_thread_scheduler_chunked_ordered_results():
+    from pyphi.parallel import map_reduce
+
+    out = map_reduce(
+        lambda x: x * 2,
+        list(range(100)),
+        parallel=True,
+        backend="thread",
+        progress=False,
+        chunksize=7,
+        sequential_threshold=2,
+        ordered=True,
+    )
+    assert out == [x * 2 for x in range(100)]
+
+
 # ============================================================================
 # map_reduce backend selection
 # ============================================================================

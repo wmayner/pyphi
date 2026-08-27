@@ -5,8 +5,10 @@ decoder. Each serializable type adds one ``_register_<type>()`` populating both
 registries, invoked on first use via ``_ensure_registered()``.
 """
 
+import ast
 import contextvars
 import math
+import threading
 from collections.abc import Callable
 from typing import Any
 
@@ -67,12 +69,14 @@ def _enc_labels(labels: Any) -> Any:
 
     The first labeled object claims the frame and writes ``None`` into its
     own struct; labels equal to the frame also write ``None``; labels that
-    differ are written per-object.
+    differ are written per-object. Inside a document, ``None`` labels are
+    written as the explicit no-labels marker so decode does not attach the
+    frame to an object that genuinely carried no labels.
     """
-    if labels is None:
-        return None
-    encoded = to_schema(labels)
     holder = _ENC_FRAME.get()
+    if labels is None:
+        return None if holder is None else schema.NoNodeLabelsSchema()
+    encoded = to_schema(labels)
     if holder is None:
         return encoded
     if holder[0] is None:
@@ -84,7 +88,13 @@ def _enc_labels(labels: Any) -> Any:
 
 
 def _dec_labels(stored: Any) -> Any:
-    """Resolve labels: the object's own stored labels, else the frame."""
+    """Resolve labels: the object's own stored labels, else the frame.
+
+    The explicit no-labels marker resolves to ``None`` regardless of the
+    frame.
+    """
+    if type(stored) is schema.NoNodeLabelsSchema:
+        return None
     if stored is not None:
         return from_schema(stored)
     return _DEC_FRAME.get()
@@ -147,7 +157,17 @@ def _register_node_labels() -> None:
 
 
 def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
-    peers = tuple(t for t in spec.ties if t is not spec) if include_peers else ()
+    # Tie tri-state: None = ties never computed (or suppressed for a peer);
+    # () = computed with no peers (the tie family is just this spec);
+    # otherwise the peer tuple. The domain tie family always contains the
+    # spec itself, so the decoder prepends the instance.
+    peers: tuple | None = None
+    if include_peers and spec.ties:
+        peers = tuple(
+            _encode_state_spec(t, include_peers=False)
+            for t in spec.ties
+            if t is not spec
+        )
     return schema.StateSpecificationSchema(
         direction=schema.DirectionSchema(name=spec.direction.name),
         purview=tuple(spec.purview),
@@ -157,11 +177,12 @@ def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
         unconstrained_repertoire=arrays.array_to_bytes(
             np.asarray(spec.unconstrained_repertoire)
         ),
-        tie_peers=tuple(_encode_state_spec(p, include_peers=False) for p in peers),
+        tie_peers=peers,
         runner_up_state=_opt_tuple(spec.runner_up_state),
         runner_up_intrinsic_information=_enc_optional(
             spec.runner_up_intrinsic_information
         ),
+        node_labels=_enc_labels(spec.node_labels),
     )
 
 
@@ -180,7 +201,8 @@ def _decode_state_spec(struct: Any) -> Any:
             struct.runner_up_intrinsic_information
         ),
     )
-    if struct.tie_peers:
+    instance.node_labels = _dec_labels(struct.node_labels)
+    if struct.tie_peers is not None:
         peers = tuple(_decode_state_spec(p) for p in struct.tie_peers)
         tied = (instance, *peers)
         instance.set_ties(tied)
@@ -199,14 +221,14 @@ def _register_state_specification() -> None:
 def _register_system_state_specification() -> None:
     from pyphi.models.state_specification import SystemStateSpecification
 
-    _ENCODERS[SystemStateSpecification] = (
-        lambda s: schema.SystemStateSpecificationSchema(
+    _ENCODERS[SystemStateSpecification] = lambda s: (
+        schema.SystemStateSpecificationSchema(
             cause=to_schema(s.cause),
             effect=to_schema(s.effect),
         )
     )
-    _DECODERS[schema.SystemStateSpecificationSchema] = (
-        lambda s: SystemStateSpecification(
+    _DECODERS[schema.SystemStateSpecificationSchema] = lambda s: (
+        SystemStateSpecification(
             cause=from_schema(s.cause),
             effect=from_schema(s.effect),
         )
@@ -217,16 +239,24 @@ def _register_part() -> None:
     from pyphi.models.partitions import Part
 
     _ENCODERS[Part] = lambda p: schema.PartSchema(
-        mechanism=tuple(p.mechanism), purview=tuple(p.purview)
+        mechanism=tuple(p.mechanism),
+        purview=tuple(p.purview),
+        node_labels=_enc_labels(p.node_labels),
     )
-    _DECODERS[schema.PartSchema] = lambda s: Part(tuple(s.mechanism), tuple(s.purview))
+    _DECODERS[schema.PartSchema] = lambda s: Part(
+        tuple(s.mechanism), tuple(s.purview), node_labels=_dec_labels(s.node_labels)
+    )
 
 
 def _register_null_cut() -> None:
     from pyphi.models.partitions import NullCut
 
-    _ENCODERS[NullCut] = lambda c: schema.NullCutSchema(indices=tuple(c.indices))
-    _DECODERS[schema.NullCutSchema] = lambda s: NullCut(tuple(s.indices))
+    _ENCODERS[NullCut] = lambda c: schema.NullCutSchema(
+        indices=tuple(c.indices), node_labels=_enc_labels(c.node_labels)
+    )
+    _DECODERS[schema.NullCutSchema] = lambda s: NullCut(
+        tuple(s.indices), _dec_labels(s.node_labels)
+    )
 
 
 def _register_directed_bipartition() -> None:
@@ -236,9 +266,13 @@ def _register_directed_bipartition() -> None:
         direction=schema.DirectionSchema(name=p.direction.name),
         from_nodes=tuple(p.from_nodes),
         to_nodes=tuple(p.to_nodes),
+        node_labels=_enc_labels(p.node_labels),
     )
     _DECODERS[schema.DirectedBipartitionSchema] = lambda s: DirectedBipartition(
-        from_schema(s.direction), tuple(s.from_nodes), tuple(s.to_nodes)
+        from_schema(s.direction),
+        tuple(s.from_nodes),
+        tuple(s.to_nodes),
+        _dec_labels(s.node_labels),
     )
 
 
@@ -246,10 +280,12 @@ def _register_joint_partition() -> None:
     from pyphi.models.partitions import JointPartition
 
     _ENCODERS[JointPartition] = lambda p: schema.JointPartitionSchema(
-        parts=tuple(to_schema(part) for part in p.parts)
+        parts=tuple(to_schema(part) for part in p.parts),
+        node_labels=_enc_labels(p.node_labels),
     )
     _DECODERS[schema.JointPartitionSchema] = lambda s: JointPartition(
-        *(from_schema(p) for p in s.parts)
+        *(from_schema(p) for p in s.parts),
+        node_labels=_dec_labels(s.node_labels),
     )
 
 
@@ -257,10 +293,14 @@ def _register_joint_bipartition() -> None:
     from pyphi.models.partitions import JointBipartition
 
     _ENCODERS[JointBipartition] = lambda p: schema.JointBipartitionSchema(
-        part0=to_schema(p[0]), part1=to_schema(p[1])
+        part0=to_schema(p[0]),
+        part1=to_schema(p[1]),
+        node_labels=_enc_labels(p.node_labels),
     )
     _DECODERS[schema.JointBipartitionSchema] = lambda s: JointBipartition(
-        from_schema(s.part0), from_schema(s.part1)
+        from_schema(s.part0),
+        from_schema(s.part1),
+        node_labels=_dec_labels(s.node_labels),
     )
 
 
@@ -268,10 +308,12 @@ def _register_joint_tripartition() -> None:
     from pyphi.models.partitions import JointTripartition
 
     _ENCODERS[JointTripartition] = lambda p: schema.JointTripartitionSchema(
-        parts=tuple(to_schema(part) for part in p.parts)
+        parts=tuple(to_schema(part) for part in p.parts),
+        node_labels=_enc_labels(p.node_labels),
     )
     _DECODERS[schema.JointTripartitionSchema] = lambda s: JointTripartition(
-        *(from_schema(p) for p in s.parts)
+        *(from_schema(p) for p in s.parts),
+        node_labels=_dec_labels(s.node_labels),
     )
 
 
@@ -281,9 +323,12 @@ def _register_directed_joint_partition() -> None:
     _ENCODERS[DirectedJointPartition] = lambda p: schema.DirectedJointPartitionSchema(
         direction=schema.DirectionSchema(name=p.direction.name),
         partition=to_schema(p.partition),
+        node_labels=_enc_labels(p.node_labels),
     )
     _DECODERS[schema.DirectedJointPartitionSchema] = lambda s: DirectedJointPartition(
-        from_schema(s.direction), from_schema(s.partition)
+        from_schema(s.direction),
+        from_schema(s.partition),
+        _dec_labels(s.node_labels),
     )
 
 
@@ -303,13 +348,13 @@ def _register_edge_cut() -> None:
 
 
 def _register_complete_edge_cut() -> None:
-    from pyphi.models.partitions import CompleteEdgeCut
+    from pyphi.models.partitions import TotalCut
 
-    _ENCODERS[CompleteEdgeCut] = lambda c: schema.CompleteEdgeCutSchema(
+    _ENCODERS[TotalCut] = lambda c: schema.TotalCutSchema(
         node_indices=tuple(c.node_indices),
         node_labels=_enc_labels(c.node_labels),
     )
-    _DECODERS[schema.CompleteEdgeCutSchema] = lambda s: CompleteEdgeCut(
+    _DECODERS[schema.TotalCutSchema] = lambda s: TotalCut(
         tuple(s.node_indices), _dec_labels(s.node_labels)
     )
 
@@ -372,6 +417,7 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
         signed_phi=_enc_optional(ria.signed_phi),
         selectivity=ria.selectivity,
         reasons=_enc_reasons(ria.reasons),
+        signed_normalized_phi=ria.signed_normalized_phi,
     )
 
 
@@ -395,6 +441,17 @@ def _decode_ria(struct: Any) -> Any:
         selectivity=struct.selectivity,
         reasons=_dec_reasons(struct.reasons),
     )
+    # The constructor recomputes normalized phi from the AMBIENT config's
+    # distinction_phi_normalization, which need not be the scheme the value
+    # was computed under. Restore the stored value instead; files written
+    # before the field existed (None) keep the recomputed fallback.
+    if struct.signed_normalized_phi is not None:
+        from pyphi import utils as _utils
+
+        instance._signed_normalized_phi = float(struct.signed_normalized_phi)
+        instance._normalized_phi = float(
+            _utils.positive_part(struct.signed_normalized_phi)
+        )
     if struct.partition_tie_peers:
         peers = tuple(_decode_ria(p) for p in struct.partition_tie_peers)
         tied = (instance, *peers)
@@ -432,11 +489,17 @@ def _mice_struct_cls(mice: Any) -> Any:
 
 def _encode_mice(mice: Any, struct_cls: Any, *, include_peers: bool = True) -> Any:
     # Purview ties are tri-state: None = never computed; () = computed with
-    # no ties; otherwise the tied peers excluding this MICE, each encoded
-    # with its own tie field suppressed (the shared tie tuple contains this
-    # MICE, so recursing into peers' ties would never terminate).
+    # no ties; otherwise the tie tuple's members excluding this MICE, each
+    # encoded with its own tie field suppressed (a member's tie tuple
+    # contains it, so recursing into peers' ties would never terminate).
+    # A MICE need not be a member of its own tie tuple (state- and
+    # partition-tie MICE carry the winner's tuple), so membership is stored
+    # alongside the peers: the decoder prepends the instance only when it
+    # was a member.
     peers: tuple | None = None
+    member = True
     if mice._purview_ties is not None:
+        member = any(t is mice for t in mice._purview_ties)
         peers = (
             tuple(
                 _encode_mice(t, _mice_struct_cls(t), include_peers=False)
@@ -450,6 +513,7 @@ def _encode_mice(mice: Any, struct_cls: Any, *, include_peers: bool = True) -> A
         ria=to_schema(mice.ria),
         purview_margin=_enc_optional(mice.purview_margin),
         purview_tie_peers=peers,
+        purview_tie_member=member,
     )
 
 
@@ -459,7 +523,7 @@ def _decode_mice(cls: type, struct: Any) -> Any:
         instance._purview_ties = None
     else:
         peers = tuple(from_schema(p) for p in struct.purview_tie_peers)
-        tied = (instance, *peers)
+        tied = (instance, *peers) if struct.purview_tie_member else peers
         instance._purview_ties = tied
         for peer in peers:
             peer._purview_ties = tied
@@ -593,11 +657,17 @@ def _register_excluded_candidate() -> None:
 
     _ENCODERS[ExcludedCandidate] = lambda e: schema.ExcludedCandidateSchema(
         node_indices=tuple(e.node_indices),
-        phi=float(e.phi),
+        phi=float(e.phi) if e.phi is not None else None,
         units=_encode_optional_units(e.units),
+        ii_ceiling=float(e.ii_ceiling) if e.ii_ceiling is not None else None,
+        gated=e.gated,
     )
     _DECODERS[schema.ExcludedCandidateSchema] = lambda s: ExcludedCandidate(
-        s.node_indices, s.phi, units=_decode_optional_units(s.units)
+        s.node_indices,
+        s.phi,
+        units=_decode_optional_units(s.units),
+        ii_ceiling=s.ii_ceiling,
+        gated=s.gated,
     )
 
 
@@ -632,7 +702,7 @@ def _decode_iit3_sia(struct: Any) -> Any:
         current_state=_opt_tuple(struct.current_state),
         runner_up=_dec_runner_up(struct.runner_up),
         reasons=_dec_reasons(struct.reasons),
-        config=struct.config,
+        config=_dec_config(struct.config),
         provenance=_dec_optional(struct.provenance),
     )
     if struct.tie_peers:
@@ -691,6 +761,11 @@ def _enc_runner_up(runner_up: Any) -> Any:
     return schema.RunnerUpSchema(
         partition=to_schema(runner_up.partition),
         phi=to_schema(runner_up.phi),
+        normalized_phi=(
+            None
+            if runner_up.normalized_phi is None
+            else to_schema(runner_up.normalized_phi)
+        ),
     )
 
 
@@ -699,16 +774,53 @@ def _dec_runner_up(struct: Any) -> Any:
         return None
     from pyphi.models.explanation import RunnerUp
 
-    return RunnerUp(partition=from_schema(struct.partition), phi=from_schema(struct.phi))
+    return RunnerUp(
+        partition=from_schema(struct.partition),
+        phi=from_schema(struct.phi),
+        normalized_phi=(
+            None if struct.normalized_phi is None else from_schema(struct.normalized_phi)
+        ),
+    )
+
+
+def _config_enc_hook(obj: Any) -> Any:
+    # The only non-builtin values in the config layers are the FrozenMap
+    # parallel-evaluation mappings; store them as plain dicts so they
+    # round-trip. Anything else is a lossy encode — fail loudly.
+    from collections.abc import Mapping as _Mapping
+
+    if isinstance(obj, _Mapping):
+        return dict(obj)
+    raise TypeError(
+        f"config field of type {type(obj).__name__} cannot be serialized losslessly"
+    )
 
 
 def _enc_config(config: Any) -> Any:
     if config is None:
         return None
-    # ConfigSnapshot is a nested frozen-dataclass tree; encode to plain builtins
-    # (config-as-Struct is out of scope, and decode keeps the dict form, which
-    # matches the prior serializer's behaviour).
-    return msgspec.to_builtins(config, enc_hook=str)
+    # ConfigSnapshot is a nested frozen-dataclass tree; encode to plain
+    # builtins (config-as-Struct is out of scope).
+    return msgspec.to_builtins(config, enc_hook=_config_enc_hook)
+
+
+def _dec_config(data: Any) -> Any:
+    if data is None:
+        return None
+    from pyphi.conf.snapshot import ConfigSnapshot
+
+    # Payloads written by earlier 2.0 builds stored the FrozenMap
+    # parallel-evaluation mappings as their repr strings; recover them.
+    infra = data.get("infrastructure")
+    if infra:
+        for key, value in infra.items():
+            if (
+                isinstance(value, str)
+                and value.startswith("FrozenMap(")
+                and value.endswith(")")
+            ):
+                infra[key] = ast.literal_eval(value[len("FrozenMap(") : -1])
+    return ConfigSnapshot.from_builtins(data)
 
 
 def _iit4_sia_struct_cls(sia: Any) -> Any:
@@ -764,7 +876,7 @@ def _decode_iit4_sia(struct: Any) -> Any:
         "reasons": _dec_reasons(struct.reasons),
         "signed_phi": _dec_optional(struct.signed_phi),
         "signed_normalized_phi": _dec_optional(struct.signed_normalized_phi),
-        "config": struct.config,
+        "config": _dec_config(struct.config),
         "provenance": _dec_optional(struct.provenance),
         "partition_margin": _dec_optional(struct.partition_margin),
         "runner_up": _dec_runner_up(struct.runner_up),
@@ -908,7 +1020,7 @@ def _decode_ces(struct: Any, domain_cls: Any) -> Any:
         sia=from_schema(struct.sia),
         distinctions=distinctions,
         relations=relations,
-        config=struct.config,
+        config=_dec_config(struct.config),
         provenance=_dec_optional(struct.provenance),
     )
 
@@ -963,16 +1075,21 @@ def _register_substrate() -> None:
 
     def _decode_substrate(s: schema.SubstrateSchema) -> Substrate:
         trimmed = s.factors_trimmed or (False,) * len(s.factors)
+        labels = _dec_labels(s.node_labels)
         factored = FactoredTPM(
             factors=tuple(
                 _decode_factor(f, t) for f, t in zip(s.factors, trimmed, strict=True)
             ),
             state_space=s.state_space,
+            # Substrate construction stamps its labels onto the TPM so its
+            # repr shows node names; mirror that here (from_factored leaves
+            # the TPM's own labels untouched).
+            node_labels=None if labels is None else tuple(labels),
         )
         return Substrate.from_factored(
             factored,
             cm=arrays.bytes_to_array(s.cm),
-            node_labels=_dec_labels(s.node_labels),
+            node_labels=labels,
         )
 
     _DECODERS[schema.SubstrateSchema] = _decode_substrate
@@ -988,6 +1105,9 @@ def _register_system() -> None:
         partition=to_schema(s.partition),
         external_indices=tuple(s.external_indices),
         background_conditioning=s.background_conditioning,
+        background_state=(
+            tuple(s.background_state) if s.background_state is not None else None
+        ),
     )
     _DECODERS[schema.SystemSchema] = lambda s: System(
         substrate=from_schema(s.substrate),
@@ -996,6 +1116,9 @@ def _register_system() -> None:
         partition=from_schema(s.partition),
         external_indices=tuple(s.external_indices),
         background_conditioning=s.background_conditioning,
+        background_state=(
+            tuple(s.background_state) if s.background_state is not None else None
+        ),
     )
 
 
@@ -1021,6 +1144,29 @@ def _register_transition() -> None:
         noise_background=t.noise_background,
     )
 
+    from pyphi.actual import TransitionSystem
+
+    _ENCODERS[TransitionSystem] = lambda t: schema.TransitionSystemSchema(
+        substrate=to_schema(t.substrate),
+        before_state=tuple(t.before_state),
+        after_state=tuple(t.after_state),
+        cause_indices=tuple(t.cause_indices),
+        effect_indices=tuple(t.effect_indices),
+        direction=schema.DirectionSchema(name=t.direction.name),
+        partition=to_schema(t.partition),
+        noise_background=t.noise_background,
+    )
+    _DECODERS[schema.TransitionSystemSchema] = lambda t: TransitionSystem(
+        substrate=from_schema(t.substrate),
+        before_state=tuple(t.before_state),
+        after_state=tuple(t.after_state),
+        cause_indices=tuple(t.cause_indices),
+        effect_indices=tuple(t.effect_indices),
+        direction=from_schema(t.direction),
+        partition=from_schema(t.partition),
+        noise_background=t.noise_background,
+    )
+
 
 def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
     peers: tuple = ()
@@ -1031,10 +1177,16 @@ def _encode_ac_ria(ria: Any, *, include_peers: bool) -> Any:
         state=tuple(ria.state),
         direction=schema.DirectionSchema(name=ria.direction.name),
         mechanism=tuple(ria.mechanism),
-        purview=tuple(ria.purview),
-        partition=to_schema(ria.partition),
-        probability=float(ria.probability),
-        partitioned_probability=float(ria.partitioned_probability),
+        # A reducible link's null RIA has no purview, partition, or
+        # probabilities.
+        purview=_opt_tuple(ria.purview),
+        partition=_enc_optional(ria.partition),
+        probability=None if ria.probability is None else float(ria.probability),
+        partitioned_probability=(
+            None
+            if ria.partitioned_probability is None
+            else float(ria.partitioned_probability)
+        ),
         partition_tie_peers=tuple(_encode_ac_ria(p, include_peers=False) for p in peers),
         node_labels=_enc_labels(ria.node_labels),
         reasons=_enc_reasons(ria.reasons),
@@ -1049,8 +1201,8 @@ def _decode_ac_ria(struct: Any) -> Any:
         state=tuple(struct.state),
         direction=from_schema(struct.direction),
         mechanism=tuple(struct.mechanism),
-        purview=tuple(struct.purview),
-        partition=from_schema(struct.partition),
+        purview=_opt_tuple(struct.purview),
+        partition=_dec_optional(struct.partition),
         probability=struct.probability,
         partitioned_probability=struct.partitioned_probability,
         node_labels=_dec_labels(struct.node_labels),
@@ -1162,7 +1314,7 @@ def _decode_ac_sia(struct: Any) -> Any:
         effect_indices=_opt_tuple(struct.effect_indices),
         node_labels=_dec_labels(struct.node_labels),
         reasons=_dec_reasons(struct.reasons),
-        config=struct.config,
+        config=_dec_config(struct.config),
         provenance=_dec_optional(struct.provenance),
     )
     if struct.tie_peers:
@@ -1207,6 +1359,90 @@ def _register_complex() -> None:
         excluded=tuple(from_schema(e) for e in s.excluded),
         units=_decode_optional_units(s.units),
         node_indices=s.node_indices,
+    )
+
+
+def _register_macro_system() -> None:
+    from pyphi.core.tpm.factored import FactoredTPM
+    from pyphi.macro.system import MacroSystem
+
+    def _encode_macro_system(m: MacroSystem) -> schema.MacroSystemSchema:
+        cause = m.macro_cause_marginal
+        assert cause is not None
+        encoded = [_encode_factor(cause.factor(i)) for i in range(cause.n_nodes)]
+        return schema.MacroSystemSchema(
+            substrate=to_schema(m.substrate),
+            state=tuple(m.state),
+            node_indices=tuple(m.node_indices),
+            partition=to_schema(m.partition),
+            external_indices=tuple(m.external_indices),
+            units=tuple(to_schema(u) for u in m.units),
+            micro_substrate=to_schema(m.micro_substrate),
+            micro_history=tuple(tuple(s) for s in m.micro_history),
+            cause_factors=tuple(data for data, _ in encoded),
+            cause_factors_trimmed=tuple(trimmed for _, trimmed in encoded),
+            cause_state_space=tuple(tuple(labels) for labels in cause.state_space),
+            background_conditioning=m.background_conditioning,
+            background_state=(
+                tuple(m.background_state) if m.background_state is not None else None
+            ),
+        )
+
+    _ENCODERS[MacroSystem] = _encode_macro_system
+
+    def _decode_macro_system(s: schema.MacroSystemSchema) -> MacroSystem:
+        cause = FactoredTPM(
+            factors=tuple(
+                _decode_factor(f, t)
+                for f, t in zip(s.cause_factors, s.cause_factors_trimmed, strict=True)
+            ),
+            state_space=s.cause_state_space,
+        )
+        return MacroSystem(
+            substrate=from_schema(s.substrate),
+            state=tuple(s.state),
+            node_indices=tuple(s.node_indices),
+            partition=from_schema(s.partition),
+            external_indices=tuple(s.external_indices),
+            background_conditioning=s.background_conditioning,
+            background_state=(
+                tuple(s.background_state) if s.background_state is not None else None
+            ),
+            units=tuple(from_schema(u) for u in s.units),
+            micro_substrate=from_schema(s.micro_substrate),
+            micro_history=tuple(tuple(h) for h in s.micro_history),
+            macro_cause_marginal=cause,
+        )
+
+    _DECODERS[schema.MacroSystemSchema] = _decode_macro_system
+
+
+def _register_complexes_result() -> None:
+    from pyphi.macro.search import ComplexesResult
+    from pyphi.macro.search import EvaluationRecord
+
+    _ENCODERS[EvaluationRecord] = lambda r: schema.EvaluationRecordSchema(
+        system=to_schema(r.system),
+        phi=None if r.phi is None else float(r.phi),
+        ii_ceiling=None if r.ii_ceiling is None else float(r.ii_ceiling),
+        gated=bool(r.gated),
+    )
+    _DECODERS[schema.EvaluationRecordSchema] = lambda s: EvaluationRecord(
+        system=from_schema(s.system),
+        phi=s.phi,
+        ii_ceiling=s.ii_ceiling,
+        gated=s.gated,
+    )
+
+    _ENCODERS[ComplexesResult] = lambda r: schema.ComplexesResultSchema(
+        complexes=tuple(to_schema(c) for c in r.complexes),
+        records=tuple(to_schema(rec) for rec in r.records),
+        ties=tuple(tuple(to_schema(m) for m in clique) for clique in r.ties),
+    )
+    _DECODERS[schema.ComplexesResultSchema] = lambda s: ComplexesResult(
+        complexes=tuple(from_schema(c) for c in s.complexes),
+        records=tuple(from_schema(rec) for rec in s.records),
+        ties=tuple(tuple(from_schema(m) for m in clique) for clique in s.ties),
     )
 
 
@@ -1566,6 +1802,7 @@ def _register_optimization_result() -> None:
 
 
 _REGISTERED = False
+_REGISTRATION_LOCK = threading.Lock()
 
 
 def _ensure_registered() -> None:
@@ -1574,11 +1811,22 @@ def _ensure_registered() -> None:
     Registration imports the domain modules; deferring it to the first
     ``to_schema``/``from_schema`` call keeps ``import pyphi.serialize`` free of
     domain imports (and free of import cycles).
+
+    Registration is atomic to observers: the flag is set only after every
+    registration has run, under a lock (double-checked), so a concurrent
+    caller never sees a partially populated registry.
     """
     global _REGISTERED  # noqa: PLW0603
     if _REGISTERED:
         return
-    _REGISTERED = True
+    with _REGISTRATION_LOCK:
+        if _REGISTERED:
+            return
+        _do_register()
+        _REGISTERED = True
+
+
+def _do_register() -> None:
     _register_direction()
     _register_distance_result()
     _register_node_labels()
@@ -1614,6 +1862,8 @@ def _ensure_registered() -> None:
     _register_account()
     _register_ac_sia()
     _register_complex()
+    _register_macro_system()
+    _register_complexes_result()
     _register_analysis()
     _register_coverage_report()
     _register_substrate_posterior()

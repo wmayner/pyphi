@@ -103,3 +103,47 @@ def test_failed_task_listed_for_resubmission(tmp_path):
     st = status(directory)
     assert st.failed == (0,)
     assert (directory / "remaining.txt").read_text() == "0, 4GB\n"
+
+
+def test_campaign_default_formalism_honors_ambient_customizations(tmp_path):
+    """prepare(formalisms=None) must run cells under the preparing session's
+    configuration (which travels in each task's config_overrides), not reset
+    it with the version preset — mirroring sweep(formalisms=None).
+
+    The fixture has power: under IIT_3_0 the customized ces_measure changes
+    Phi from 2.3125 (preset) to 1.0833."""
+    from dataclasses import replace
+
+    from pyphi.conf import config
+    from pyphi.conf import presets
+    from pyphi.system import System
+
+    directory = tmp_path / "camp"
+    substrate = examples.basic_substrate()
+    state = (1, 0, 0)
+    preset = presets.by_name["IIT_3_0"]
+    custom_iit = replace(preset["iit"], ces_measure="SUM_SMALL_PHI")
+    with config.override(
+        **{k: v for k, v in preset.items() if k != "iit"},
+        iit=custom_iit,
+        parallel=False,
+        progress_bars=False,
+    ):
+        direct = float(System(substrate, state).sia().phi)
+        with config.override(iit=preset["iit"]):
+            preset_value = float(System(substrate, state).sia().phi)
+        assert direct != preset_value  # the customization has an effect
+        prepare(
+            substrate,
+            states=[state],
+            subsets="full",
+            formalisms=None,
+            compute="sia",
+            directory=directory,
+            units_per_job=100.0,
+        )
+        _run_all_tasks(directory)
+        result = collect(directory)
+    assert float(result.df["phi"].iloc[0]) == direct
+    # The table reports the version the campaign was prepared under.
+    assert result.df["formalism"].iloc[0] == "IIT_3_0"

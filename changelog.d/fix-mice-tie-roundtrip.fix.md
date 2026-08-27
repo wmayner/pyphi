@@ -1,0 +1,1 @@
+Fixed a save/load defect where a MICE that carries a purview-tie tuple it is not itself a member of (as happens for state- and partition-tied MICE, which share the winner's tie tuple) gained a spurious duplicate member on load, changing its `num_purview_ties` from 0 to 1. The round trip now preserves the tie tuple faithfully.

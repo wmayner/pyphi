@@ -11,7 +11,6 @@ from pyphi.conf import config
 SMALL_PHI = "φ"
 HORIZONTAL_BAR = "─"
 LINE = "━"
-ARROW_LEFT = "◀" + LINE * 2
 ARROW_RIGHT = LINE * 2 + "▶"
 EMPTY_SET = "∅"
 
@@ -89,25 +88,24 @@ def fmt_partition_arrow(
 ) -> str:
     """Format a :class:`~pyphi.models.partitions.DirectedBipartition` as an
     arrow expression.
+
+    The arrow always points from ``from_nodes`` to ``to_nodes`` — the
+    connections the cut severs (matching :meth:`removed_edges` and the
+    severed-connections grid). The causal ``direction`` the cut is evaluated
+    against is annotated textually.
     """
-    from pyphi.direction import Direction
-
-    CUT_SYMBOLS_BY_DIRECTION = {
-        Direction.CAUSE: ARROW_LEFT + "/ /" + LINE * 2,
-        Direction.EFFECT: LINE * 2 + "/ /" + ARROW_RIGHT,
-    }
-
     try:
         if name:
             name_str = cut.__class__.__name__ + " "
         else:
             name_str = ""
+        direction_str = (
+            "" if direction is None else f"({direction.name.lower()}) "  # type: ignore[attr-defined]
+        )
         from_nodes = fmt_mechanism(cut.from_nodes, cut.node_labels)  # type: ignore[attr-defined]
         to_nodes = fmt_mechanism(cut.to_nodes, cut.node_labels)  # type: ignore[attr-defined]
-        symbol = (
-            ARROW_RIGHT if direction is None else CUT_SYMBOLS_BY_DIRECTION[direction]  # type: ignore[index]
-        )
-        return f"{name_str}{from_nodes} {symbol} {to_nodes}"
+        symbol = ARROW_RIGHT if direction is None else LINE * 2 + "/ /" + ARROW_RIGHT
+        return f"{name_str}{direction_str}{from_nodes} {symbol} {to_nodes}"
     except AttributeError:
         return str(cut)
 

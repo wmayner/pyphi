@@ -1,0 +1,1 @@
+Null causes and effects produced by distinction short-circuiting now carry the system's node labels and mechanism state, so `repr()`, `.mechanism_label`, and `.to_pandas()` work on reducible distinctions just as they do on fully evaluated ones.

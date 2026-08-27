@@ -48,9 +48,14 @@ class TestRepertoireLevel:
         assert rep == pytest.approx(oracle["cause_repertoire"]["observed"])
 
     def test_marginalized_cause_repertoire_matches_eq4(self, oracle, system):
+        # Deliberate off-preset variant (IIT 3.0 constrains the background
+        # convention), so it opts out of config validation.
         with (
             config.override(**presets.iit3),
-            config.override(background_conditioning="CAUSAL_MARGINALIZATION"),
+            config.override(
+                background_conditioning="CAUSAL_MARGINALIZATION",
+                validate_config=False,
+            ),
         ):
             rep = system.cause_repertoire((0,), (1,)).squeeze()
         assert rep == pytest.approx(
@@ -72,9 +77,13 @@ class TestEndToEnd:
         assert phi == pytest.approx(oracle["sia"]["phi"], abs=1e-6)
 
     def test_marginalized_phi_differs_and_is_pinned(self, system):
+        # Deliberate off-preset variant; opts out of config validation.
         with (
             config.override(**presets.iit3, progress_bars=False),
-            config.override(background_conditioning="CAUSAL_MARGINALIZATION"),
+            config.override(
+                background_conditioning="CAUSAL_MARGINALIZATION",
+                validate_config=False,
+            ),
         ):
             phi = float(iit3.sia(system).phi)
         assert phi == pytest.approx(0.41607, abs=1e-6)

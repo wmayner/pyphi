@@ -114,3 +114,14 @@ def test_kary_emd_runs_as_iit3_mechanism_measure():
             examples.gomez_p53_mdm2_substrate(), (0, 0, 1), node_indices=(0, 1, 2)
         )
         assert float(system.sia().phi) == pytest.approx(0.5, abs=1e-3)
+
+
+def test_small_kary_ground_metric_is_memoized_in_memory():
+    """Repeated EMD calls on a small non-binary state space must reuse the
+    in-memory ground metric instead of reloading it from the joblib
+    filesystem cache on every call (~500x slower than the binary path)."""
+    from pyphi.measures.distribution import _ground_metric
+
+    first = _ground_metric((3, 2))
+    second = _ground_metric((3, 2))
+    assert first is second

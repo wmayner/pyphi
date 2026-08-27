@@ -1,0 +1,1 @@
+`Substrate` now rejects a non-square 2-D `tpm=` array whose row count is not `2**n` for its `n` columns (for example 8 rows with 2 columns), naming the expected row count. Such arrays were previously reshaped into a scrambled substrate over the wrong number of nodes.

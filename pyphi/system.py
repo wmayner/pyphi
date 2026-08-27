@@ -60,6 +60,13 @@ class System(Displayable, ToPandasMixin, Serializable):
     The ``background_conditioning`` field pins this System to one
     cause-side background convention. ``None`` (the default) resolves
     ``config.formalism.iit.background_conditioning`` at compute time.
+
+    The ``background_state`` field supplies the state at which external
+    units are conditioned, when that differs from ``state``. ``None``
+    (the default) conditions them at ``state``. Used by
+    ``TransitionSystem`` for actual causation, where the cause direction
+    evaluates mechanisms against the observed after-state while the
+    background is fixed at the observed before-state.
     """
 
     substrate: Substrate
@@ -68,6 +75,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     external_indices: tuple[int, ...] = field(default=None)  # type: ignore[assignment]
     background_conditioning: str | None = field(default=None)
+    background_state: tuple[int, ...] | None = field(default=None)
 
     def __post_init__(self) -> None:
         substrate = self.substrate
@@ -128,6 +136,13 @@ class System(Displayable, ToPandasMixin, Serializable):
                 f"background_conditioning={self.background_conditioning!r} "
                 f"not in {sorted(_VALID_BACKGROUND_CONDITIONING)} (or None)"
             )
+        if self.background_state is not None:
+            coerced_bg = _coerce_state_to_indices(
+                tuple(self.background_state), substrate.state_space
+            )
+            validate.state_length(coerced_bg, substrate.size)
+            validate.node_states(coerced_bg, substrate.factored_tpm.alphabet_sizes)
+            object.__setattr__(self, "background_state", coerced_bg)
         from pyphi.conf import config as _config
 
         if _config.infrastructure.validate_system_states:
@@ -163,6 +178,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             and self.partition == other.partition
             and self.external_indices == other.external_indices
             and self.background_conditioning == other.background_conditioning
+            and self.background_state == other.background_state
         )
 
     def __hash__(self) -> int:
@@ -174,6 +190,7 @@ class System(Displayable, ToPandasMixin, Serializable):
                 self.partition,
                 self.external_indices,
                 self.background_conditioning,
+                self.background_state,
             )
         )
 
@@ -197,6 +214,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         h.update(repr(tuple(sorted(self.partition.indices))).encode())
         h.update(repr(sorted(self.partition.removed_edges())).encode())
         h.update(repr(self.background_conditioning).encode())
+        h.update(repr(self.background_state).encode())
         return h.digest()
 
     def __len__(self) -> int:
@@ -361,6 +379,12 @@ class System(Displayable, ToPandasMixin, Serializable):
         return {}
 
     @property
+    def _background_reference_state(self) -> tuple[int, ...]:
+        """The state at which external units are conditioned: the explicit
+        ``background_state`` when set, else ``state``."""
+        return self.background_state if self.background_state is not None else self.state
+
+    @property
     def cause_marginal(self) -> CauseMarginals:
         """Per-system-unit cause factors under the active background
         convention: IIT 4.0 Eq. 4 marginalization, or the background
@@ -369,7 +393,9 @@ class System(Displayable, ToPandasMixin, Serializable):
         convention = self._resolved_background_conditioning()
         if convention not in self._cause_marginals:
             if convention == "CONDITION_CURRENT_STATE":
-                external_state = utils.state_of(self.external_indices, self.state)
+                external_state = utils.state_of(
+                    self.external_indices, self._background_reference_state
+                )
                 background = dict(
                     zip(self.external_indices, external_state, strict=True)
                 )
@@ -388,7 +414,9 @@ class System(Displayable, ToPandasMixin, Serializable):
     @cached_property
     def effect_marginal(self) -> FactoredTPM:
         """Forward TPM conditioned on the external units at their observed state."""
-        external_state = utils.state_of(self.external_indices, self.state)
+        external_state = utils.state_of(
+            self.external_indices, self._background_reference_state
+        )
         background = dict(zip(self.external_indices, external_state, strict=False))
         return _effect_marginal_factored(self._typed_tpm, background)
 
@@ -397,47 +425,62 @@ class System(Displayable, ToPandasMixin, Serializable):
         """Effect TPM restricted to system units.
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
-        carries the forward factor conditioned on the background units (all
-        substrate units outside ``node_indices``) at their observed state,
-        with those background input dims dropped, so the returned shape is
-        ``(*system_alphabet, k_i)`` per system output unit. The effect-side
-        dual of :attr:`proper_cause_marginal`.
+        carries the forward factor of :attr:`effect_marginal` — the external
+        units (``external_indices``) conditioned at the background reference
+        state — with all non-system input dims dropped, so the returned
+        shape is ``(*system_alphabet, k_i)`` per system output unit.
+        Substrate units neither in the system nor external are marginalized
+        uniformly (the noise-background convention). The effect-side dual of
+        :attr:`proper_cause_marginal`.
         """
-        background_indices = tuple(
-            i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
+        factored = self.effect_marginal
+        return FactoredTPM(
+            factors=[
+                self._restrict_to_system_inputs(factored.factor(i))
+                for i in self.node_indices
+            ],
+            node_labels=self._unit_labels(),
         )
-        background = {i: self.state[i] for i in background_indices}
-        factored = _effect_marginal_factored(self._typed_tpm, background)
-        system_factors = []
-        for i in self.node_indices:
-            f = factored.factor(i)
-            if background_indices:
-                f = np.squeeze(f, axis=background_indices)
-            system_factors.append(f)
-        return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
+
+    def _restrict_to_system_inputs(self, factor: np.ndarray) -> np.ndarray:
+        """Drop a factor's non-system input dims.
+
+        Non-system axes that are size 1 — conditioned at the background
+        state, or marginalized under IIT 4.0 Eq. 4 weighting — are
+        squeezed. Non-system axes left free (units neither in the system
+        nor external, as under the noise-background convention) are
+        marginalized uniformly.
+        """
+        system = set(self.node_indices)
+        drop = tuple(j for j in range(self._typed_tpm.n_nodes) if j not in system)
+        if not drop:
+            return factor
+        free = tuple(j for j in drop if factor.shape[j] != 1)
+        if free:
+            factor = factor.mean(axis=free, keepdims=True)
+        return np.squeeze(factor, axis=drop)
 
     @property
     def proper_cause_marginal(self) -> FactoredTPM:
         """Cause TPM restricted to system units.
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
-        carries the cause factor produced by Bayesian inversion of the
-        substrate's forward TPM under the observed state. Background units
-        are marginalized via ``pr_bg / norm`` weighting per IIT 4.0 Eq. 4
-        and dropped from each factor's input dims, so the returned shape
-        is ``(*system_alphabet, k_i)`` per system output unit.
+        carries the cause factor of :attr:`cause_marginal` — background
+        handled per the active convention (IIT 4.0 Eq. 4 marginalization,
+        or the external units conditioned at the background reference
+        state) — with all non-system input dims dropped, so the returned
+        shape is ``(*system_alphabet, k_i)`` per system output unit.
+        Substrate units neither in the system nor external are marginalized
+        uniformly (the noise-background convention).
         """
         marginals = self.cause_marginal
-        background_indices = tuple(
-            i for i in range(self._typed_tpm.n_nodes) if i not in set(self.node_indices)
+        return FactoredTPM(
+            factors=[
+                self._restrict_to_system_inputs(marginals.factor(i))
+                for i in self.node_indices
+            ],
+            node_labels=self._unit_labels(),
         )
-        system_factors = []
-        for i in self.node_indices:
-            f = marginals.factor(i)
-            if background_indices:
-                f = np.squeeze(f, axis=background_indices)
-            system_factors.append(f)
-        return FactoredTPM(factors=system_factors, node_labels=self._unit_labels())
 
     @cached_property
     def cm(self) -> Any:
@@ -777,9 +820,11 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         A ``system_state`` keyword, when given, must be the state
         specification the analysis would itself compute (it is derived
-        deterministically from the system and configuration); it is
-        excluded from the disk-cache key so precomputed and freshly
-        computed analyses share one cache entry.
+        deterministically from the system and configuration). Calls with
+        a caller-supplied ``system_state`` bypass the disk result cache:
+        nothing verifies the supplied state is the canonical one, so
+        sharing the cache entry would let a non-canonical state poison
+        (and be served by) the plain ``sia()`` result.
         """
         from pyphi.cache.disk import maybe_disk_cached
 
@@ -803,8 +848,7 @@ class System(Displayable, ToPandasMixin, Serializable):
                 )
             return _sia(self, **call_kwargs)
 
-        cache_kwargs = {k: v for k, v in kwargs.items() if k != "system_state"}
-        return maybe_disk_cached(self, "sia", cache_kwargs, _compute)
+        return maybe_disk_cached(self, "sia", dict(kwargs), _compute)
 
     def ces(self, **kwargs: Any) -> Any:
         """Return the cause-effect structure of this system (Eq. 57).

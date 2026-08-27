@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import inspect
+import math
 from collections.abc import Callable
 from collections.abc import Iterable
 from contextlib import ContextDecorator
@@ -643,15 +644,31 @@ def _kary_hamming_matrix(alphabet_sizes: tuple[int, ...]) -> np.ndarray:
     return cdist(states, states, "hamming") * len(alphabet_sizes)
 
 
+# In-memory k-ary ground metrics, mirroring the precomputed binary matrices:
+# matrices for small state spaces are kept in memory (a filesystem-cache load
+# per EMD call is ~500x slower than the binary path's dict lookup); larger
+# ones stay in the joblib filesystem cache only.
+_kary_hamming_matrices: dict[tuple[int, ...], np.ndarray] = {}
+_MAX_IN_MEMORY_GROUND_METRIC_STATES = 2**_NUM_PRECOMPUTED_HAMMING_MATRICES
+
+
 def _ground_metric(alphabet_sizes: tuple[int, ...]) -> np.ndarray:
     """Return the Hamming ground-distance matrix for the given alphabet sizes.
 
     Binary substrates (every alphabet size 2) use the precomputed and cached
     ``_hamming_matrix`` path; non-binary substrates use
-    ``_kary_hamming_matrix``.
+    ``_kary_hamming_matrix``, memoized in memory for state spaces up to
+    ``_MAX_IN_MEMORY_GROUND_METRIC_STATES`` states.
     """
     if all(k == 2 for k in alphabet_sizes):
         return _hamming_matrix(len(alphabet_sizes))
+    if math.prod(alphabet_sizes) < _MAX_IN_MEMORY_GROUND_METRIC_STATES:
+        matrix = _kary_hamming_matrices.get(alphabet_sizes)
+        if matrix is None:
+            matrix = _kary_hamming_matrices[alphabet_sizes] = _kary_hamming_matrix(
+                alphabet_sizes
+            )
+        return matrix
     return _kary_hamming_matrix(alphabet_sizes)
 
 
@@ -1360,8 +1377,9 @@ def intrinsic_information(
 
     The pointwise minimum of two quantities: the intrinsic specification
     (:func:`generalized_intrinsic_difference`) and the intrinsic
-    differentiation (:func:`intrinsic_differentiation`) of the forward
-    repertoire, both evaluated at ``state``:
+    differentiation (:func:`intrinsic_differentiation`) of the cause/effect
+    repertoire (the Bayes posterior on the cause side; Mayner et al. 2026,
+    Eqs. 6 and 11), both evaluated at ``state``:
 
     .. math::
         \text{ii}(s) = \min\bigl(\text{specification}(s),
@@ -1381,7 +1399,9 @@ def intrinsic_information(
     partitioned_forward_repertoire : np.ndarray
         The repertoire under the partition.
     selectivity_repertoire : np.ndarray
-        The per-state weighting passed to the intrinsic specification.
+        The cause/effect repertoire: the per-state weighting passed to the
+        intrinsic specification, and the distribution the intrinsic
+        differentiation is taken over.
     state : State or None
         The purview state to evaluate, or ``None`` for the full array.
 
@@ -1398,17 +1418,26 @@ def intrinsic_information(
         selectivity_repertoire,
         state=state,
     )
+    # The differentiation operand is the cause/effect repertoire
+    # (``selectivity_repertoire``): on the cause side that is the Bayes
+    # posterior of Mayner et al. 2026, Eq. 11 — the distribution Eqs. 4 and 6
+    # define i_diff over — while on the effect side it coincides with the
+    # forward repertoire. The forward repertoire itself is unnormalized on
+    # the cause side and would overstate the surprisal by -log2 of its
+    # normalizer.
     if state is None:
-        # Per-state i_diff vector (Mayner et al. 2026, Eqs. 4 and 6: i_diff
-        # is defined per cause/effect state), aligned with the per-state
-        # specification array. Entries with p = 0 carry surprisal 0.0; they
-        # cannot win a downstream argmax because the specification term
-        # vanishes at zero forward probability as well.
+        # Per-state i_diff vector, kept at the repertoire's canonical rank so
+        # the elementwise minimum with the specification array aligns axis by
+        # axis (a squeezed operand would broadcast against the singleton axes
+        # of non-purview nodes, yielding wrong values and wrong-rank states).
+        # Entries with p = 0 carry surprisal 0.0; they cannot win a
+        # downstream argmax because the specification term vanishes at zero
+        # forward probability as well.
         differentiation = pointwise_intrinsic_differentiation(
-            np.asarray(forward_repertoire).squeeze()
+            np.asarray(selectivity_repertoire, dtype=float)
         )
     else:
-        differentiation = intrinsic_differentiation(forward_repertoire, state=state)
+        differentiation = intrinsic_differentiation(selectivity_repertoire, state=state)
     # Assumes single value at this point; state selection delegated to sub-functions.
     if not np.isscalar(specification) or not np.isscalar(differentiation):
         return np.minimum(specification, differentiation)
@@ -1452,9 +1481,15 @@ def absolute_pointwise_mutual_information(
 
 @np_suppress()
 def pointwise_mutual_information_vector(p: ArrayLike, q: ArrayLike) -> np.ndarray:
+    r"""Elementwise pointwise mutual information :math:`\log_2(p_i / q_i)`.
+
+    Entries where the ratio is undefined (:math:`p_i = 0` or
+    :math:`q_i = 0`) are set to ``0``, matching
+    :func:`pointwise_mutual_information`.
+    """
     p = np.asarray(p)
     q = np.asarray(q)
-    return np.nan_to_num(np.log2(p / q), nan=0.0)
+    return np.nan_to_num(np.log2(p / q), nan=0.0, posinf=0.0, neginf=0.0)
 
 
 @actual_causation_measures.register("PMI", asymmetric=True)

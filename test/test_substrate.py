@@ -43,6 +43,26 @@ def test_substrate_init_validation(substrate):
         Substrate(tpm)
 
 
+def test_substrate_rejects_2d_tpm_with_wrong_row_count():
+    # 8 rows with 2 columns is not a state-by-node TPM (2 binary nodes need
+    # 2**2 = 4 rows); the reshape heuristic previously re-associated it into
+    # a scrambled 2-unit substrate.
+    rng = np.random.default_rng(0)
+    bad = rng.random((8, 2))
+    bad = bad / bad.sum(axis=1, keepdims=True)
+    with pytest.raises(ValueError, match=r"2\*\*2 = 4 rows"):
+        Substrate(bad)
+
+
+def test_substrate_2d_tpm_shape_controls():
+    # Valid 4x2 binary state-by-node is accepted with the correct size.
+    good = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
+    assert Substrate(good).size == 2
+    # A 2-D array for a non-binary alphabet still raises.
+    with pytest.raises(ValueError):
+        Substrate(np.zeros((9, 2)), alphabet=3)
+
+
 def test_substrate_creates_fully_connected_cm_by_default():
     tpm = np.zeros((2 * 2 * 2, 3))
     substrate = Substrate(tpm, cm=None)
@@ -262,3 +282,24 @@ def test_potential_purviews_max_order_never_aliases_cache():
     capped = sub.potential_purviews(Direction.EFFECT, (0, 1), max_order=1)
     assert any(len(p) > 1 for p in full)
     assert capped == [p for p in full if len(p) <= 1]
+
+
+def test_conditional_independence_gate_uses_configured_precision():
+    """The state-by-state conditional-independence check runs at
+    config.numerics.precision (absolute), not numpy's loose defaults: a
+    1e-6 dependence is rejected at the default precision."""
+    import numpy as np
+    import pytest
+
+    from pyphi.exceptions import ConditionallyDependentError
+    from pyphi.substrate import Substrate
+
+    # Independent 2-unit sbs TPM (product of per-unit distributions)...
+    p0 = np.array([0.3, 0.7])
+    p1 = np.array([0.6, 0.4])
+    rows = np.outer([1, 1, 1, 1], np.kron(p1, p0))  # little-endian joint
+    # ...with a small non-factorizable perturbation.
+    eps = 1e-6
+    rows[0] = rows[0] + np.array([eps, -eps, -eps, eps])
+    with pytest.raises(ConditionallyDependentError):
+        Substrate(rows)

@@ -1,0 +1,1 @@
+The `parallel_kwargs` allowlist now exactly mirrors `map_reduce`'s keyword surface: `inflight_limit` (advertised but rejected by `map_reduce`) is removed, and `size_func`/`backend` (accepted by `map_reduce` but silently dropped by the filter) are allowed through.

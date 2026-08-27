@@ -1,0 +1,1 @@
+`pyphi.cache.clear_all()` no longer deletes the persistent on-disk result cache; it clears only in-memory caches, which is its purpose (recovering memory). Clear the disk store explicitly with `pyphi.cache.clear("disk.results")` or by deleting the `__pyphi_cache__/` directory.

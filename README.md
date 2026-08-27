@@ -22,11 +22,12 @@ research needs (see [Beyond Φ](#beyond-φ)).
 Given a **substrate** — a network of interacting units defined by its
 transition probabilities — and a **state**, PyPhi computes:
 
-- **Φ**, the integrated information of a system, by finding the partition that
-  makes the least difference;
+- **φ_s**, the system integrated information — whether a set of units exists
+  as one integrated whole — by finding the partition that makes the least
+  difference;
 - the **cause–effect structure** (**Φ-structure**): the **distinctions**
   (irreducible mechanisms) a system specifies and the **relations** that bind
-  them.
+  them, whose total is **Φ**, the structure integrated information.
 
 It implements the current formalism, **IIT 4.0** ([Albantakis et al., 2023](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011465)), and
 retains the earlier **IIT 3.0** formalism, selectable by configuration.
@@ -36,18 +37,19 @@ retains the earlier **IIT 3.0** formalism, selectable by configuration.
 ```python
 import pyphi
 
-# A simple 3-node substrate (the example system from the IIT 4.0 paper).
-substrate = pyphi.examples.basic_substrate()
-state = (1, 0, 0)
+# The example system from the IIT 4.0 paper (Fig. 1A).
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
+state = (0, 1, 1)
 
-# Analyze the substrate in that state under IIT 4.0.
-analysis = pyphi.analyze(substrate, state)
+# Analyze the candidate system {A, B} in that state under IIT 4.0.
+analysis = pyphi.analyze(substrate, state, subset=(0, 1))
 
-print(analysis.phi)  # the system's integrated information, Φ
+print(analysis.phi)      # system integrated information, φ_s ≈ 0.04
+print(analysis.big_phi)  # structure integrated information, Φ ≈ 1.56
 ```
 
 The result carries the full Φ-structure — its distinctions, relations, and the
-partition that minimizes Φ. See the
+minimum-information partition. See the
 [documentation](http://pyphi.readthedocs.io/) and the
 [IIT 4.0 demo notebook](https://github.com/wmayner/pyphi/blob/main/docs/examples/IIT_4.0_demo.ipynb)
 for a complete walkthrough.
@@ -122,8 +124,9 @@ uv pip install "git+https://github.com/wmayner/pyphi@main"
 ```
 
 Optional features are available as extras: `visualize` (plotting), `caching`
-(Redis-backed caches), `emd` (earth-mover's-distance measures), and `xarray`
-(labeled array export). Install one or more with, e.g.:
+(Redis-backed caches), `emd` (earth-mover's-distance measures), `xarray`
+(labeled array export), `cluster` (Dask-based cluster execution), and `mcp`
+(the MCP server for AI assistants). Install one or more with, e.g.:
 
 ```bash
 uv pip install "pyphi[visualize,emd]"

@@ -38,6 +38,10 @@ class CompositionalState(UserDict):
         # TODO store distinctions and use phi values in greedy conflict algo?
         # TODO deal with ties
         self.data = {}
+        # Always set, so a no-argument (empty) CompositionalState is fully
+        # usable: every keyed method routes through _to_indices/_to_labels,
+        # both of which read this attribute.
+        self.node_labels = None
         if distinctions is not None:
             # Pull node_labels from the first concept; CES no longer carries
             # a back-reference to its candidate system.
@@ -77,8 +81,8 @@ class CompositionalState(UserDict):
 
     def mechanisms(self):
         """Return all mechanisms in this CompositionalState."""
-        return set.union(
-            *(set.union(*mechanism.values()) for mechanism in self.values())
+        return set().union(
+            *(set().union(*mechanism.values()) for mechanism in self.values())
         )
 
     def _update(self, distinction):
@@ -186,9 +190,12 @@ class CompositionalState(UserDict):
         resolved = deepcopy(self)
         conflicted_mechanisms = resolved.conflicted_mechanisms()
         while conflicted_mechanisms:
-            # Preferentially remove mechanisms in order of their number of conflicts
+            # Preferentially remove mechanisms in order of their number of
+            # conflicts, recomputed against `resolved` (not `self`) so the
+            # ranking reflects conflicts already discharged by prior
+            # removals in this loop, rather than the original counts.
             conflicted_mechanisms = sorted(
-                conflicted_mechanisms, key=self.number_of_conflicts, reverse=True
+                conflicted_mechanisms, key=resolved.number_of_conflicts, reverse=True
             )
             most_conflicted = conflicted_mechanisms[0]
             removed = False
@@ -215,6 +222,7 @@ class CompositionalState(UserDict):
         result = any(
             (
                 purview[direction] in self
+                and direction in self[purview[direction]]
                 and mechanism not in self[purview[direction]][direction]
             )
             for direction in DIRECTIONS

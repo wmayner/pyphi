@@ -1,0 +1,1 @@
+Fixed a `ZeroDivisionError` when analyzing a single-unit system under the `DIRECTED_BIPARTITION_CUT_ONE` system partition scheme. A single unit has no bipartition with two nonempty parts, so the scheme now yields no partitions and the analysis reports φ_s = 0, matching the other schemes.

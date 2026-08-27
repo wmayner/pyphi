@@ -1,9 +1,11 @@
-from itertools import chain
+from types import SimpleNamespace
 
 import pytest
 
 from pyphi import Direction
 from pyphi import System
+from pyphi import config
+from pyphi.conf import presets
 from pyphi.formalism import find_mice
 from pyphi.formalism import find_mip
 from pyphi.formalism import mic
@@ -16,15 +18,11 @@ from pyphi.numerics import eq
 
 from . import example_substrates
 
-# Expected results {{{
-# ====================
+# Static expected data {{{
+# ========================
 
-s = example_substrates.s()
 directions = (Direction.CAUSE, Direction.EFFECT)
 cuts = (None, DirectedBipartition(Direction.EFFECT, (1, 2), (0,)))
-system = {
-    cut: System(s.substrate, s.state, s.node_indices, partition=cut) for cut in cuts
-}
 
 expected_purview_indices = {
     cuts[0]: {
@@ -56,55 +54,78 @@ expected_purview_indices = {
         },
     },
 }
-expected_purviews = {
-    cut: {
-        direction: dict(expected_purview_indices[cut][direction].items())
-        for direction in directions
-    }
-    for cut in cuts
-}
-expected_mips = {
-    cut: {
-        direction: {
-            mechanism: find_mip(system[cut], direction, mechanism, purview)
-            for mechanism, purview in expected_purviews[cut][direction].items()
+
+
+def _pin():
+    """Complete formalism pin for every φ computation in this module.
+
+    The expected purviews above were derived under the IIT 4.0 (2026)
+    formalism, so both the expected-value computation (in the module
+    fixture) and each test's own computation run under the same complete
+    preset.
+    """
+    return config.override(**presets.iit4_2026)
+
+
+@pytest.fixture(scope="module")
+def computed():
+    """Systems and expected MIPs/MICE, computed once when the module runs.
+
+    Computed here rather than at module level so that importing this module
+    (e.g. during collection of an unrelated test selection) does not compute
+    φ and warm the caches that the perf-counter pins depend on.
+    """
+    with _pin():
+        s = example_substrates.s()
+        system = {
+            cut: System(s.substrate, s.state, s.node_indices, partition=cut)
+            for cut in cuts
         }
-        for direction in directions
-    }
-    for cut in cuts
-}
-expected_mice = {
-    cut: {
-        direction: [
-            MaximallyIrreducibleCauseOrEffect(mip)
-            for mechanism, mip in expected_mips[cut][direction].items()
-        ]
-        for direction in directions
-    }
-    for cut in cuts
-}
+        mips = {
+            cut: {
+                direction: {
+                    mechanism: find_mip(system[cut], direction, mechanism, purview)
+                    for mechanism, purview in expected_purview_indices[cut][
+                        direction
+                    ].items()
+                }
+                for direction in directions
+            }
+            for cut in cuts
+        }
+        mice = {
+            cut: {
+                direction: {
+                    mechanism: MaximallyIrreducibleCauseOrEffect(mip)
+                    for mechanism, mip in mips[cut][direction].items()
+                }
+                for direction in directions
+            }
+            for cut in cuts
+        }
+    return SimpleNamespace(system=system, mips=mips, mice=mice)
+
 
 # }}}
 # `find_mice` tests {{{
 # =====================
 
 mice_scenarios = [
-    [
-        [(cut, direction, mice) for mice in expected_mice[cut][direction]]
-        for direction in directions
-    ]
+    (cut, direction, mechanism)
     for cut in cuts
+    for direction in directions
+    for mechanism in expected_purview_indices[cut][direction]
 ]
-# Flatten doubly-nested list of scenarios.
-mice_scenarios = list(chain(*list(chain(*mice_scenarios))))
 
 
-mice_parameter_string = "cut,direction,expected"
+mice_parameter_string = "cut,direction,mechanism"
 
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_find_mice(cut, direction, expected):
-    result = find_mice(system[cut], direction, expected.mechanism)
+def test_find_mice(computed, cut, direction, mechanism):
+    expected = computed.mice[cut][direction][mechanism]
+    with _pin():
+        result = find_mice(computed.system[cut], direction, mechanism)
     print("Expected:\n", expected)
     print("Result:\n", result)
     assert result == expected
@@ -115,7 +136,10 @@ def test_find_mice_empty(s):
         MaximallyIrreducibleCauseOrEffect(_null_ria(direction, (), ()))
         for direction in directions
     ]
-    assert all(find_mice(s, mice.direction, mice.mechanism) == mice for mice in expected)
+    with _pin():
+        assert all(
+            find_mice(s, mice.direction, mice.mechanism) == mice for mice in expected
+        )
 
 
 # }}}
@@ -124,32 +148,31 @@ def test_find_mice_empty(s):
 
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_mic_or_mie(cut, direction, expected):
-    if direction == Direction.CAUSE:
-        result = mic(system[cut], expected.mechanism)
-    elif direction == Direction.EFFECT:
-        result = mie(system[cut], expected.mechanism)
+def test_mic_or_mie(computed, cut, direction, mechanism):
+    expected = computed.mice[cut][direction][mechanism]
+    with _pin():
+        if direction == Direction.CAUSE:
+            result = mic(computed.system[cut], mechanism)
+        else:
+            result = mie(computed.system[cut], mechanism)
     assert result == expected
 
 
 phi_max_scenarios = [
-    [
-        (cut, cause.mechanism, min(cause.phi, effect.phi))
-        for cause, effect in zip(
-            expected_mice[cut][Direction.CAUSE],
-            expected_mice[cut][Direction.EFFECT],
-            strict=False,
-        )
-    ]
+    (cut, mechanism)
     for cut in cuts
+    for mechanism in expected_purview_indices[cut][Direction.CAUSE]
 ]
-# Flatten singly-nested list of scenarios.
-phi_max_scenarios = list(chain(*phi_max_scenarios))
 
 
-@pytest.mark.parametrize("cut,mechanism,expected_phi_max", phi_max_scenarios)
-def test_phi_max(cut, expected_phi_max, mechanism):
-    assert eq(phi_max(system[cut], mechanism), expected_phi_max)
+@pytest.mark.parametrize("cut,mechanism", phi_max_scenarios)
+def test_phi_max(computed, cut, mechanism):
+    expected_phi_max = min(
+        computed.mice[cut][Direction.CAUSE][mechanism].phi,
+        computed.mice[cut][Direction.EFFECT][mechanism].phi,
+    )
+    with _pin():
+        assert eq(phi_max(computed.system[cut], mechanism), expected_phi_max)
 
 
 # }}}
@@ -183,3 +206,38 @@ def test_explicit_purviews_bound_the_enumeration(s, monkeypatch):
     result = ra.potential_purviews(system, Direction.CAUSE, mechanism, purviews=given)
     assert set(result) == expected
     assert calls == [1]
+
+
+def test_explicit_purviews_accepts_one_shot_iterable(s):
+    """A generator of purviews gives the same result as the equivalent list.
+
+    The bound scan over ``purviews`` must not exhaust a one-shot iterable
+    before the intersection, which would silently discard every candidate.
+    """
+    from pyphi.core import repertoire_algebra as ra
+
+    mechanism = (0,)
+    given = ra.potential_purviews(s, Direction.CAUSE, mechanism)
+    assert given  # control: candidates exist
+    from_list = ra.potential_purviews(
+        s, Direction.CAUSE, mechanism, purviews=list(given)
+    )
+    from_iter = ra.potential_purviews(
+        s, Direction.CAUSE, mechanism, purviews=iter(list(given))
+    )
+    assert set(from_iter) == set(from_list) == set(given)
+
+
+def test_mic_accepts_one_shot_purviews_iterable(s):
+    """``System.mic`` with a generator of purviews matches the list result."""
+    from test.conftest import IIT_4_CONFIG
+
+    mechanism = (0,)
+    with IIT_4_CONFIG:
+        given = list(s.potential_purviews(Direction.CAUSE, mechanism))
+        assert given  # control: candidates exist
+        from_list = s.mic(mechanism, purviews=given)
+        from_iter = s.mic(mechanism, purviews=iter(given))
+    assert from_iter.purview == from_list.purview
+    assert from_iter.phi == from_list.phi
+    assert from_iter.purview != ()

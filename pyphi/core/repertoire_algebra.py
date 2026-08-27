@@ -896,6 +896,9 @@ def potential_purviews(
     from pyphi.substrate import irreducible_purviews
 
     if purviews is not None:
+        # Materialize first: the bound scan below would otherwise exhaust a
+        # one-shot iterable, leaving the intersection empty.
+        purviews = tuple(purviews)
         given_bound = max((len(p) for p in purviews), default=0)
         max_order = given_bound if max_order is None else min(max_order, given_bound)
     _potential_purviews = set(

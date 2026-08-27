@@ -34,9 +34,16 @@ def info() -> dict[str, _CacheInfo]:
 
 
 def clear_all() -> None:
-    """Clear every registered cache."""
+    """Clear every registered in-memory cache.
+
+    A policy whose ``persistent`` attribute is true (the durable on-disk
+    result store) is skipped: this function's purpose is recovering memory,
+    not discarding saved results. Clear a persistent cache explicitly with
+    :func:`clear`.
+    """
     for policy in _registry.values():
-        policy.clear()
+        if not getattr(policy, "persistent", False):
+            policy.clear()
 
 
 def clear(name: str) -> None:

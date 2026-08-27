@@ -1,0 +1,1 @@
+The process scheduler now hashes the configuration snapshot only when chunks are actually submitted to worker processes. `map_reduce()` calls that resolve to sequential execution no longer pay the ~1 ms snapshot-hashing cost per call.

@@ -647,13 +647,18 @@ class TestMeasuredBounds:
         assert measured.certified
         assert measured.citation == "Eqs 9, 14"
 
-    def test_pqr_collapses_to_exact(self):
+    def test_pqr_bound_dominates_concrete(self):
+        """pqr's resolved CES carries one relation under the S1 cascade's
+        largest-congruent-purview selection (it had none under the earlier
+        selection, where the measured bound collapsed to 0 exactly); the
+        bound must still dominate the concrete value."""
         system = examples.pqr_system()
         with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
             distinctions, sum_phi_r = self._concrete(system)
             measured = bounds.sum_phi_relations_measured_bound(distinctions)
-        assert sum_phi_r == pytest.approx(0.0, abs=TOL)
-        assert float(measured) == pytest.approx(sum_phi_r, abs=TOL)
+        assert sum_phi_r == pytest.approx(0.125, abs=TOL)
+        assert float(measured) == pytest.approx(0.1875, abs=TOL)
+        assert float(measured) >= sum_phi_r - TOL
 
     def test_dominance_chain(self):
         system = EXAMPLES["system"]["grid3"]()

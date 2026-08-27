@@ -50,7 +50,7 @@ from pyphi.conf.formalism import IITConfig
 #
 # Knobs that have no effect on the IIT 3.0 code path:
 # ``system_phi_measure``, ``specification_measure``,
-# ``system_partition_include_complete``, ``relation_computation``,
+# ``system_partition_include_total``, ``relation_computation``,
 # ``state_tie_resolution`` — guarded out at the call boundary or
 # only consumed by 4.0-exclusive code.
 # ``distinction_phi_normalization`` set to ``"NONE"`` here for

@@ -375,3 +375,19 @@ def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
         assert set(c) == set(iit3.ces(s).distinctions)
         assert set(c_micro) == set(iit3.ces(micro_s).distinctions)
         assert set(c_macro) == set(iit3.ces(macro_s).distinctions)
+
+
+def test_runner_up_ranked_by_selection_quantity(s):
+    """Under the default ``sia_tie_resolution`` (primary NORMALIZED_PHI) the
+    runner-up is ranked by normalized φ, carries its normalized value, and
+    the gap finding reports the same quantity — so the reported runner-up is
+    the actual nearest competitor at MIP selection."""
+    with IIT_4_CONFIG:
+        sia = s.sia()
+    assert sia.runner_up is not None
+    assert sia.runner_up.normalized_phi is not None
+    gap = next(f for f in sia._findings() if f.kind == "gap")
+    assert gap.label == "normalized φ-gap to runner-up"
+    assert float(gap.value) >= 0.0
+    assert sia.explain().subject.startswith("φ_s =")
+    assert sia.diff(sia).subject.startswith("Δφ_s =")

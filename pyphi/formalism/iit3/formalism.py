@@ -13,7 +13,10 @@ from typing import ClassVar
 from typing import Literal
 
 from pyphi.conf import config
+from pyphi.formalism.base import check_background_conditioning_compatible
 from pyphi.formalism.base import check_measure_compatible
+from pyphi.formalism.base import check_mechanism_partition_scheme_compatible
+from pyphi.formalism.base import check_sia_tie_strategy_compatible
 
 
 @dataclass(frozen=True)
@@ -35,12 +38,36 @@ class IIT3Formalism:
             "ID",
         }
     )
+    # IIT 3.0 derives system Φ from the CES distance, so ces_measure defines
+    # its answer. EMD is the 2014 paper's measure; SUM_SMALL_PHI is the
+    # small-phi-difference variant used by Gómez et al. (2020) for
+    # multi-valued elements (where EMD is unavailable).
+    compatible_ces_measures: ClassVar[frozenset[str]] = frozenset(
+        {"EMD", "SUM_SMALL_PHI"}
+    )
+    # IIT 3.0 MIP searches are plain minima with no specified-state pins.
+    has_state_pins: ClassVar[bool] = False
     partition_scheme: ClassVar[str | None] = "JOINT_BIPARTITION"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"DIRECTED_BIPARTITION", "DIRECTED_BIPARTITION_CUT_ONE"}
     )
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = frozenset(
         {"JOINT_BIPARTITION", "WEDGE_TRIPARTITION"}
+    )
+    # IIT 3.0 SIA results carry only raw phi and the MIP -- no normalized phi
+    # or purview -- so SIA-level tie strategies reading those attributes have
+    # nothing to read.
+    compatible_sia_tie_strategies: ClassVar[frozenset[str] | None] = frozenset(
+        {"PHI", "NEGATIVE_PHI", "PARTITION_LEX", "NONE"}
+    )
+    # IIT 3.0 has no specified-state phase, so specification_measure is never
+    # consulted.
+    compatible_specification_measures: ClassVar[frozenset[str] | None] = None
+    # The post-2014-literature convention fixes background units at their
+    # observed current state on the cause side; IIT 4.0's causal
+    # marginalization computes a different phi on proper-subset systems.
+    compatible_background_conditioning: ClassVar[frozenset[str] | None] = frozenset(
+        {"CONDITION_CURRENT_STATE"}
     )
 
     def evaluate_mechanism(
@@ -84,6 +111,11 @@ class IIT3Formalism:
         )
 
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        if partitions is None:
+            # Partitions will be enumerated from the configured scheme.
+            check_mechanism_partition_scheme_compatible(
+                self, config.formalism.iit.mechanism_partition_scheme
+            )
         if state is not None:
             raise ValueError("passing `state` is not supported with IIT 3.0")
         return _find_mip_single_state(  # pyright: ignore[reportPrivateUsage]
@@ -179,6 +211,19 @@ class IIT3Formalism:
         than a silent no-op.
         """
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
+        check_sia_tie_strategy_compatible(self, config.formalism.iit.sia_tie_resolution)
+        check_mechanism_partition_scheme_compatible(
+            self, config.formalism.iit.mechanism_partition_scheme
+        )
+        # A System may pin its own background convention; check the value in
+        # effect for this system, falling back to config.
+        resolve_background = getattr(system, "_resolved_background_conditioning", None)
+        check_background_conditioning_compatible(
+            self,
+            resolve_background()
+            if resolve_background is not None
+            else config.formalism.iit.background_conditioning,
+        )
         from pyphi.formalism.iit3 import sia as _sia
 
         return _sia(system, **kwargs)

@@ -22,6 +22,24 @@ def test_resolve_none_returns_objects():
     assert resolved == objects
 
 
+def test_resolve_none_in_list_form_returns_objects():
+    """The sequence form ["NONE"] behaves like the bare string "NONE"."""
+    objects = [DummyPhiObject(1.0, (0,)), DummyPhiObject(2.0, (0, 1))]
+    resolved = list(resolve_ties.resolve(objects, ["NONE"], operation=max))
+    assert resolved == objects
+
+
+def test_resolve_none_component_in_mixed_list_filters_nothing():
+    """A "NONE" component in a strategy list is a no-op filter."""
+    low = DummyPhiObject(1.0, (0,))
+    high_a = DummyPhiObject(2.0, (0, 1))
+    high_b = DummyPhiObject(2.0, (1, 2))
+    resolved = list(
+        resolve_ties.resolve([low, high_a, high_b], ["PHI", "NONE"], operation=max)
+    )
+    assert resolved == [high_a, high_b]
+
+
 def test_resolve_max_phi_ties():
     low = DummyPhiObject(1.0, (0,))
     high_a = DummyPhiObject(2.0, (0, 1))
@@ -100,10 +118,10 @@ def test_lex_key_distinct_partitions_compare_distinct():
 
 
 def test_lex_key_complete_edge_cut_is_all_ones():
-    """CompleteEdgeCut severs every connection — key is an all-ones matrix."""
-    from pyphi.models.partitions import CompleteEdgeCut
+    """TotalCut severs every connection — key is an all-ones matrix."""
+    from pyphi.models.partitions import TotalCut
 
-    cec = CompleteEdgeCut(node_indices=(0, 1, 2))
+    cec = TotalCut(node_indices=(0, 1, 2))
     expected = np.ones((3, 3), dtype=np.uint8).tobytes()
     assert cec.lex_key() == expected
 
@@ -332,17 +350,18 @@ def test_resolve_iit3_complex_tie_on_unresolved_warn_emits_warning():
 
 
 def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
-    """The IIT 3.0 within-subsystem MIP selection routes through
-    resolve_ties.sias and consults config.formalism.iit.sia_tie_resolution.
+    """The IIT 3.0 SIA path consults config.formalism.iit.sia_tie_resolution.
 
-    Override the strategy to a registered-but-bogus name; the call must
-    raise KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
-    which selects argmin raw phi (paper-canonical IIT 3.0 within-subsystem
-    MIP) with lex-canonical partition tie-break.
+    Override the strategy to a bogus name (skipping eager validation); the
+    ``sia()`` call must reject it at the dispatch boundary with a
+    ``ConfigurationError`` naming the field. The default preset value is
+    ["PHI", "PARTITION_LEX"], which selects argmin raw phi (paper-canonical
+    IIT 3.0 within-subsystem MIP) with lex-canonical partition tie-break.
     """
     from dataclasses import replace
 
     from pyphi import examples
+    from pyphi.conf import ConfigurationError
     from pyphi.conf import presets
     from pyphi.system import System
 
@@ -350,9 +369,9 @@ def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
     state = (1, 0, 0)
     bad = {**presets.iit3}
     bad["iit"] = replace(bad["iit"], sia_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
-    with config.override(**bad):
+    with config.override(validate_config=False), config.override(**bad):
         sys = System.from_substrate(substrate, state, substrate.node_indices)
-        with pytest.raises(KeyError):
+        with pytest.raises(ConfigurationError, match="sia_tie_resolution"):
             sys.sia()
 
 
@@ -368,31 +387,59 @@ def test_iit3_find_mip_consults_mip_tie_resolution():
     resolve_ties.partitions and consults
     config.formalism.iit.mip_tie_resolution.
 
-    Override to a registered-but-bogus strategy; the call must raise
-    KeyError. The default preset value is ["PHI", "PARTITION_LEX"]
-    which selects argmin raw phi (paper-canonical IIT 3.0 mechanism
-    MIP).
+    Unregistered names are now rejected eagerly at configuration time, so
+    the probe registers a temporary strategy that raises a distinctive
+    error when invoked; the config validates, and the error proves the
+    selection consulted the configured strategy. The default preset value
+    is ["PHI", "PARTITION_LEX"] which selects argmin raw phi
+    (paper-canonical IIT 3.0 mechanism MIP).
 
     The probed mechanism/purview must yield more than one candidate
     partition. resolve() short-circuits before consulting the strategy
     when only a single candidate survives (there is no tie to break),
-    so a single-candidate probe would never look up the strategy name.
+    so a single-candidate probe would never invoke the strategy.
     """
     from dataclasses import replace
 
     from pyphi import examples
     from pyphi.conf import presets
     from pyphi.direction import Direction
+    from pyphi.resolve_ties import phi_object_tie_resolution_strategies
     from pyphi.system import System
 
-    substrate = examples.basic_substrate()
-    state = (1, 0, 0)
+    class ProbeConsulted(Exception):
+        pass
+
+    @phi_object_tie_resolution_strategies.register("___MIP_PROBE")
+    def _probe(m):
+        raise ProbeConsulted
+
+    try:
+        probed = {**presets.iit3}
+        probed["iit"] = replace(probed["iit"], mip_tie_resolution=["___MIP_PROBE"])
+        with config.override(**probed):
+            sys = System.from_substrate(
+                substrate := examples.basic_substrate(),
+                (1, 0, 0),
+                substrate.node_indices,
+            )
+            with pytest.raises(ProbeConsulted):
+                sys.find_mip(Direction.CAUSE, (0,), (1, 2))
+    finally:
+        phi_object_tie_resolution_strategies.store.pop("___MIP_PROBE", None)
+
+
+def test_unregistered_mip_tie_resolution_rejected_eagerly():
+    """An unregistered strategy name fails at configuration time."""
+    from dataclasses import replace
+
+    from pyphi.conf import ConfigurationError
+    from pyphi.conf import presets
+
     bad = {**presets.iit3}
     bad["iit"] = replace(bad["iit"], mip_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
-    with config.override(**bad):
-        sys = System.from_substrate(substrate, state, substrate.node_indices)
-        with pytest.raises(KeyError):
-            sys.find_mip(Direction.CAUSE, (0,), (1, 2))
+    with pytest.raises(ConfigurationError), config.override(**bad):
+        pass
 
 
 def test_iit3_default_mip_tie_resolution_is_raw_phi():

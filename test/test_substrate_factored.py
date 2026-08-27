@@ -63,5 +63,9 @@ def test_wrong_shaped_joint_tpm_names_accepted_forms():
 
     from pyphi import Substrate
 
-    with pytest.raises(ValueError, match="accepted"):
+    # A 2-D array with a wrong row count gets the specific shape error.
+    with pytest.raises(ValueError, match="expected 2\\*\\*2 = 4 rows"):
         Substrate(np.random.default_rng(0).random((3, 2)))
+    # A shape with no state-by-node or joint reading names the accepted forms.
+    with pytest.raises(ValueError, match="accepted"):
+        Substrate(np.random.default_rng(0).random((3, 2, 4)))

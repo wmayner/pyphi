@@ -29,3 +29,30 @@ def test_dir_lists_lazy_submodules():
 def test_star_import_names_resolve():
     for name in pyphi.__all__:
         assert getattr(pyphi, name) is not None
+
+
+def test_star_import_does_not_shadow_stdlib_names():
+    """`from pyphi import *` must not rebind stdlib module names such as
+    `warnings` and `types` to pyphi submodules."""
+    import sys
+
+    import pyphi
+
+    exported = set(pyphi.__all__)
+    stdlib_collisions = exported & set(sys.stdlib_module_names)
+    assert not stdlib_collisions, stdlib_collisions
+
+
+def test_estimate_analysis_in_all():
+    import pyphi
+
+    assert "estimate_analysis" in pyphi.__all__
+    assert "AnalysisEstimate" in pyphi.__all__
+
+
+def test_sweep_name_is_the_function_not_the_submodule():
+    # pyphi.sweep is bound to the sweep() function at module scope; __all__
+    # documents that, not the submodule of the same name.
+    assert "sweep" in pyphi.__all__
+    assert callable(pyphi.sweep)
+    assert pyphi.sweep.__module__ == "pyphi.sweep"

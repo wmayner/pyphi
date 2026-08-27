@@ -100,6 +100,16 @@ This is the safest way to run a computation under non-default settings: the
 previous configuration is restored even if the block raises. It nests, and
 it accepts any number of options at once.
 
+```{warning}
+Overrides apply to the whole process, not just the current thread. There is
+one configuration object per Python process, so while an override is active,
+every thread reads the overridden values — a computation running concurrently
+in another thread will silently use them. To run computations under different
+configurations at the same time, use separate processes. PyPhi's own
+process-based parallel backends are unaffected: each worker process receives
+its own copy of the configuration.
+```
+
 ## Presets
 
 A preset is a bundle of options that reproduces the settings of a specific
@@ -143,9 +153,7 @@ format, with one top-level key per layer:
 
 ```yaml
 formalism:
-  iit:
-    version: IIT_4_0_2023
-    ces_measure: SUM_SMALL_PHI
+  iit: {}
 infrastructure:
   parallel: false
   progress_bars: true
@@ -157,6 +165,17 @@ The file is only consulted from the working directory at import time. If you
 change directories before importing PyPhi, or run from a directory without
 the file, the built-in defaults apply. To change options after import, use
 the assignment and `override` forms shown above.
+
+```{warning}
+Setting `version` in a config file does not by itself select a formalism:
+the measures, partition schemes, and tie-resolution options stay at their
+defaults, which belong to the default formalism, and the result is a mixture
+that matches no published paper. To select a formalism, apply a preset at
+runtime (`pyphi.config.override(**pyphi.iit4_2023)`), or spell out
+every field the preset sets — the repository ships
+[`pyphi_config_3.0.yml`](https://github.com/wmayner/pyphi/blob/develop/pyphi_config_3.0.yml)
+as a complete example, kept in sync with the `IIT_3_0` preset by a test.
+```
 
 ## A few options worth knowing
 

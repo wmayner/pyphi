@@ -1,0 +1,1 @@
+The `EDGE_CUT_BIDIRECTIONAL` system partition scheme now applies the same disconnection filter as `EDGE_CUT_ALL`: cuts that leave the system strongly connected are excluded from the MIP search, as required by Eq. 14 of Albantakis et al. (2023). Previously a non-disconnecting cut could win the MIP and report φ_s = 0 for an irreducible system.

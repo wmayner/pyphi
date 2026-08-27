@@ -20,6 +20,7 @@ from .base import FormalismRegistry
 from .base import MeasureNotCompatibleError
 from .base import PhiFormalism
 from .base import check_measure_compatible
+from .base import check_sia_tie_strategy_compatible
 from .iit3.formalism import IIT3Formalism
 from .iit4.formalism import IIT4_2023Formalism
 from .iit4.formalism import IIT4_2026Formalism
@@ -60,6 +61,7 @@ __all__ = [
     "all_distinctions",
     "cause_mip",
     "check_measure_compatible",
+    "check_sia_tie_strategy_compatible",
     "distinction",
     "effect_mip",
     "evaluate_partition",

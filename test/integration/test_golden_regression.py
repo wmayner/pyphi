@@ -46,6 +46,12 @@ from test.golden.fixture import store_fixture
 RTOL = EQUALITY_TOLERANCE
 ATOL = EQUALITY_TOLERANCE
 
+# Every layer compute_all_layers can produce. A fixture is expected to produce
+# exactly these minus its skip_layers (plus the substrate hash); asserting the
+# set explicitly means a layer that silently disappears from the computed
+# output fails loudly instead of just being skipped by the comparison loop.
+LAYER_KEYS = frozenset({"repertoires", "mechanism_mips", "sia", "phi_structure"})
+
 
 def _marks_for(fixture: GoldenFixture) -> list[pytest.MarkDecorator]:
     marks: list[pytest.MarkDecorator] = []
@@ -101,6 +107,17 @@ def _assert_matches(
     # store_fixture, not compute_all_layers. Compare only the keys that compute
     # produces.
     compute_keys = set(actual.keys())
+    # Guard against a layer silently vanishing from the computed output: the
+    # comparison loop below only checks keys that are present, so without this
+    # a result that lost a whole section would check fewer things and pass.
+    expected_layers = ({"substrate_hash"} | LAYER_KEYS) - fixture.skip_layers
+    assert compute_keys == expected_layers, (
+        f"{fixture.name}: computed layer set {sorted(compute_keys)} does not "
+        f"match the expected layer set {sorted(expected_layers)} "
+        f"(skip_layers={sorted(fixture.skip_layers)}). A missing layer means "
+        "compute_all_layers stopped producing it; an extra layer must be "
+        "added to LAYER_KEYS so it is required from then on."
+    )
     for key in compute_keys:
         if key == "substrate_hash":
             assert actual[key] == expected[key], (

@@ -168,14 +168,13 @@ def _ces_fingerprint(tpm, state):
 # identical up to relabeling, proving the CES is not a complete substrate
 # invariant.  Both members are reducible (Phi_s = 0).
 _COUNTEREXAMPLES = {
-    # An inert (constant) unit is invisible to the CES: node 0 is constant 0 in A
-    # (frozen at state 0) and constant 1 in B (frozen at state 1).  No 2-node
-    # permutation turns an all-0 column into an all-1 column, so the substrates
-    # are non-isomorphic, yet the CES is identical down to repertoires.
-    "inert_unit": (
-        ([[0, 0], [0, 0], [0, 0], [0, 1]], (0, 0)),
-        ([[1, 0], [1, 0], [1, 0], [1, 1]], (1, 0)),
-    ),
+    # NOTE: an "inert_unit" counterexample (node 0 frozen at 0 in A, at 1 in
+    # B, CESes identical) existed under the earlier purview tie resolution.
+    # The S1 cascade's largest-congruent-purview rule absorbs the frozen
+    # unit into a tied purview, whose specified state then distinguishes the
+    # two substrates — re-running the exhaustive n=2 search finds no
+    # different-constant pair with a nonempty CES, so that incompleteness
+    # channel is closed at n=2 and the pair below is the remaining witness.
     # A fully causally-active, full-support counterexample: every unit is both
     # written and read, and the CES touches every node (node 0 appears in the
     # effect purview), yet only node 1 specifies a distinction, leaving node 0's

@@ -34,13 +34,15 @@ Currently covered
   Abcdef: 6A's bottleneck complex Ab (phi_s=0.05, Phi=0.48) and monads;
   6B's three modules (phi_s 0.53/0.45/0.45); 6C's copy-ring (phi_s=1.74,
   Phi=7.65, relation sum via analytical relations); 6D's specialized lattice
-  (phi_s=1.05, 27 distinctions, Phi=11452); and 6E's exclusion (Abef complex
+  (phi_s=1.05, 27 distinctions; Phi deviates from the published 11452 -- see the
+  test docstring); and 6E's exclusion (Abef complex
   phi_s=0.27 excludes the less-irreducible full system, phi_s=0.15).
 * **IIT 4.0 (2023), Fig 7 -- "state-dependence".** The 5-unit substrate
   (``pyphi.examples.iit4_2023_fig7_substrate``) across all three panels: (A) E
   active, state ABcdE (phi_s=1.1, 23 distinctions, 13740 relations, Phi=22.26);
-  (B) E inactive, state ABcde (phi_s=1.31, 23 distinctions, 13111 relations,
-  Phi=18.55); and (C) E *inactivated* -- frozen out of the dynamics
+  (B) E inactive, state ABcde (phi_s=1.31, 23 distinctions; relation count and
+  Phi deviate from the published figure -- see ``_FIG7_PANELS``); and (C) E
+  *inactivated* -- frozen out of the dynamics
   (``iit4_2023_fig7_inactivated_substrate``), the complex shrinking to {A,B,C,D}
   (phi_s=0.11, 14 distinctions, 363 relations, Phi=3.35). Inactivation is a
   lesion, distinct from holding a unit as a background condition.
@@ -76,6 +78,7 @@ from __future__ import annotations
 import itertools
 from dataclasses import replace
 
+import numpy as np
 import pytest
 
 from pyphi import actual
@@ -85,6 +88,7 @@ from pyphi.conf import presets
 from pyphi.direction import Direction
 from pyphi.relations import AnalyticalRelations
 from pyphi.relations import relations as concrete_relations
+from pyphi.substrate import Substrate
 from pyphi.system import System
 
 # --------------------------------------------------------------------------- #
@@ -517,9 +521,16 @@ def test_iit4_2023_fig6d_specialized(_iit4_2023):
     """Fig 6D (specialized lattice).
 
     The full 6-unit system is the complex: phi_s = 1.05, with 27 distinctions and
-    over 1.5 million relations. Its Phi = 11452 ibits -- the relation sum is
-    computed analytically (Albantakis et al. 2023, S3), as for Fig 6C, rather than
-    by enumerating the >1.5M concrete relations.
+    over 1.5 million relations. The relation sum is computed analytically
+    (Albantakis et al. 2023, S3), as for Fig 6C, rather than by enumerating the
+    >1.5M concrete relations.
+
+    The published figure reports Phi = 11452 ibits; PyPhi computes 12395. The
+    published value embeds an enumeration-order resolution of tied distinction
+    cause-effect states, which is relabeling-dependent and sub-maximal under the
+    S1 supplement's own rule (select the reading that maximizes Phi). PyPhi
+    resolves the ties by joint Phi-maximization, which finds a strictly larger
+    structure; phi_s and the distinction count match the figure exactly.
     """
     system = System(
         examples.iit4_2023_fig6d_substrate(),
@@ -533,16 +544,22 @@ def test_iit4_2023_fig6d_specialized(_iit4_2023):
     assert len(distinctions) == 27
     sum_phi_d = sum(float(d.phi) for d in distinctions)
     sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
-    assert round(sum_phi_d + sum_phi_r) == 11452  # paper: Phi = 11452 ibits
+    # Paper: 11452 ibits, under enumeration-order tie resolution (see docstring).
+    assert round(sum_phi_d + sum_phi_r) == 12395
 
 
 # Fig 7: the same 5-unit substrate, the full system in two states (panels A & B).
 # The published Phi (= sum phi_d + sum phi_r) and relation count use *all* relation
 # degrees (the figures depict only degree-2/3 faces); Phi is summed analytically.
-# (state, phi_s, n_d, n_r, Phi) -- all values from the published Fig 7.
+# (state, phi_s, n_d, n_r, Phi). Panel A matches the published figure exactly.
+# Panel B's published values (13111 relations, Phi = 18.55) embed an
+# enumeration-order resolution of tied distinction cause-effect states, which is
+# relabeling-dependent and sub-maximal under the S1 supplement's own rule; PyPhi
+# resolves the ties by joint Phi-maximization and finds a strictly larger
+# structure (13498 relations, Phi = 19.32). phi_s and n_d match the figure.
 _FIG7_PANELS = [
     ((1, 1, 0, 0, 1), 1.1, 23, 13740, 22.26),  # A: ABcdE (E active)
-    ((1, 1, 0, 0, 0), 1.31, 23, 13111, 18.55),  # B: ABcde (E inactive)
+    ((1, 1, 0, 0, 0), 1.31, 23, 13498, 19.32),  # B: ABcde (E inactive)
 ]
 
 
@@ -553,9 +570,10 @@ def test_iit4_2023_fig7_state_dependence(_iit4_2023, state, phi_s, n_d, n_r, big
 
     The same 5-unit substrate is analysed in two states: (A) ABcdE with E active
     (phi_s=1.1, 23 distinctions, 13740 relations, Phi=22.26) and (B) ABcde with E
-    inactive (phi_s=1.31, 23 distinctions, 13111 relations, Phi=18.55). Changing
-    a single unit's state leaves the distinction count unchanged but reshapes the
-    relations, lowering Phi.
+    inactive (phi_s=1.31, 23 distinctions). Changing a single unit's state leaves
+    the distinction count unchanged but reshapes the relations, lowering Phi.
+    Panel B's relation count and Phi deviate from the published figure -- see the
+    note on ``_FIG7_PANELS``.
     """
     system = System(
         examples.iit4_2023_fig7_substrate(), state, node_indices=(0, 1, 2, 3, 4)
@@ -599,3 +617,58 @@ def test_iit4_2023_fig7C_inactivated(_iit4_2023):
     sum_phi_d = sum(float(d.phi) for d in distinctions)
     sum_phi_r = float(AnalyticalRelations(distinctions).sum_phi())
     assert float(sum_phi_d + sum_phi_r) == pytest.approx(3.35, abs=0.02)
+
+
+def test_ac_2019_fig8b_background_conditions(_iit3):
+    """AC Fig 8B: majority gate with D = 0 as a fixed background condition.
+
+    Transition {ABC = 111} -> {M = 1} with D outside the cause and effect
+    sets: the paper reports all seven effect links at 1.0 bits and the
+    single cause link {ABC = 111} <- {M = 1} at 3.0 bits ("the background
+    variables are fixed in their actual state U = u", Section 3.3).
+
+    D's dynamics are made stochastic and informative (p(D'=0|D=0) = 0.2,
+    p(D'=0|D=1) = 0.8) precisely so this test can discriminate fixing the
+    background's past at its observed value (the paper's causal model,
+    giving 3.0) from integrating it under the posterior implied by the
+    observed present (which would give log2(8/3.4) = 1.2345). The
+    published figure's own inputs have no dynamics, so it cannot separate
+    the two readings; this fixture can.
+    """
+    n = 5
+    marginals = []
+    for i in range(3):  # A, B, C: self-loop copies
+        f = np.zeros((2,) * n + (2,))
+        for idx in np.ndindex(*(2,) * n):
+            f[(*idx, idx[i])] = 1.0
+        marginals.append(f)
+    f_d = np.zeros((2,) * n + (2,))
+    for idx in np.ndindex(*(2,) * n):
+        p0 = 0.2 if idx[3] == 0 else 0.8
+        f_d[(*idx, 0)] = p0
+        f_d[(*idx, 1)] = 1 - p0
+    marginals.append(f_d)
+    f_m = np.zeros((2,) * n + (2,))
+    for idx in np.ndindex(*(2,) * n):
+        f_m[(*idx, 1 if sum(idx[:4]) >= 3 else 0)] = 1.0
+    marginals.append(f_m)
+    substrate = Substrate(
+        marginals=marginals,
+        state_space=((0, 1),) * n,
+        node_labels=("A", "B", "C", "D", "M"),
+    )
+    transition = actual.Transition(
+        substrate, (1, 1, 1, 0, 1), (1, 1, 1, 0, 1), (0, 1, 2), (4,)
+    )
+    account = {
+        (link.direction, tuple(link.mechanism)): round(float(link.alpha), 4)
+        for link in actual.account(transition)
+    }
+    assert account[(Direction.CAUSE, (4,))] == 3.0
+    effect_links = {
+        mech: alpha
+        for (direction, mech), alpha in account.items()
+        if direction == Direction.EFFECT
+    }
+    assert len(effect_links) == 7
+    assert all(alpha == 1.0 for alpha in effect_links.values())

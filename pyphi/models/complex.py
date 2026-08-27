@@ -105,7 +105,8 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
             return False
         if self.phi is not None:
             assert other.phi is not None
-            return numerics.eq(self.phi, other.phi)
+            if not numerics.eq(self.phi, other.phi):
+                return False
         if (self.ii_ceiling is None) != (other.ii_ceiling is None):
             return False
         if self.ii_ceiling is None:
@@ -232,8 +233,13 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Complex):
             return NotImplemented
+        # node_indices participates so that __hash__ (keyed on it) satisfies
+        # the equal-objects-hash-equal contract; for macro complexes it holds
+        # the micro footprint, distinguishing complexes over different micro
+        # constituents whose macro SIAs coincide.
         return (
-            self.sia == other.sia
+            self.node_indices == other.node_indices
+            and self.sia == other.sia
             and self.is_maximal == other.is_maximal
             and self.excluded == other.excluded
         )

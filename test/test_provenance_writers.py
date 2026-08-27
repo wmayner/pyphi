@@ -137,3 +137,11 @@ class TestReadMetadata:
         path.touch()
         with pytest.raises(ValueError, match="unrecognized suffix"):
             provenance.read_metadata(path)
+
+
+def test_writers_accept_seed_none(tmp_path):
+    """params={"seed": None} must not crash the provenance writers."""
+    from pyphi.provenance import save_json
+
+    path = save_json({"x": 1}, tmp_path, "out", params={"seed": None})
+    assert path.exists()

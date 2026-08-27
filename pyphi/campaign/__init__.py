@@ -41,6 +41,7 @@ from pyphi.sweep import SweepResult
 from pyphi.sweep import _build_df
 from pyphi.sweep import _enumerate_cells
 from pyphi.sweep import _extract_row
+from pyphi.sweep import _formalism_preset
 from pyphi.sweep import _normalize_formalisms
 from pyphi.sweep import _normalize_substrates
 from pyphi.warnings import PyPhiWarning
@@ -76,7 +77,7 @@ class CampaignTask:
     compute: str | None
     compute_ref: str | None
     config_overrides: dict[str, Any]
-    cells: tuple[tuple[Any, str, tuple[int, ...], tuple[int, ...]], ...]
+    cells: tuple[tuple[Any, str | None, tuple[int, ...], tuple[int, ...]], ...]
     skip_uncomputable: bool
 
 
@@ -123,7 +124,7 @@ class CESShardTask:
     subset: tuple[int, ...] | None
     scope: Any
     config_overrides: dict[str, Any]
-    formalism: str
+    formalism: str | None
     spec: Any
     ordering: str | None
 
@@ -138,7 +139,7 @@ class SIAShardTask:
     state: tuple[int, ...]
     subset: tuple[int, ...] | None
     config_overrides: dict[str, Any]
-    formalism: str
+    formalism: str | None
     stride: tuple[int, int]
 
 
@@ -254,7 +255,9 @@ def _cell_weights(
             if compute_name is None:
                 memo[key] = (1.0, False)
             else:
-                with config.override(**presets.by_name[formalism], progress_bars=False):
+                with config.override(
+                    **_formalism_preset(formalism), progress_bars=False
+                ):
                     est = estimate_analysis(
                         substrate_map[label], subset=subset, compute=compute_name
                     )
@@ -487,6 +490,10 @@ def prepare(
             "subsets": _axis_as_json(subsets),
             "formalisms": list(formalisms_),
         },
+        # Labels the ambient-config sentinel (formalism None) in collected
+        # tables; the executed configuration itself travels in each task's
+        # config_overrides.
+        "active_version": config.formalism.iit.version,
         "substrate_labels": [label for label, _ in labeled],
         "cells": [
             [label, formalism, list(subset), list(state)]
@@ -654,7 +661,7 @@ def prepare_ces(
         raise ValueError("pass either sia or resolution_state, not both")
     formalisms_ = _normalize_formalisms(formalisms)
     for name in formalisms_:
-        if name not in presets.by_name:
+        if name is not None and name not in presets.by_name:
             raise ValueError(f"unknown formalism {name!r}")
     scope = scope if scope is not None else CESScope()
     memory_floor = _parse_memory(request_memory)
@@ -670,7 +677,7 @@ def prepare_ces(
     skipped_cells: list = []
     for cell in cells:
         label, formalism_, subset, state = cell
-        with config.override(**presets.by_name[formalism_], progress_bars=False):
+        with config.override(**_formalism_preset(formalism_), progress_bars=False):
             try:
                 System.from_substrate(substrate_map[label], tuple(state), subset)
             except _UNREACHABLE:
@@ -838,6 +845,7 @@ def prepare_ces(
         "kind": "ces",
         "pyphi_version": importlib.metadata.version("pyphi"),
         "created": datetime.now(UTC).isoformat(),
+        "active_version": config.formalism.iit.version,
         "seed": seed,
         "sia_mode": sia_mode,
         "ordering": ordering,
@@ -987,7 +995,17 @@ def _normalize_resolution_states(resolution_state: Any, cells: list) -> dict | N
     return resolved
 
 
-def _manifest_cells(manifest: dict) -> list[tuple[Any, str, tuple, tuple]]:
+def _label_formalism(cells: Any, manifest: dict) -> list:
+    """Replace the ambient-config sentinel (None) with the version name the
+    campaign was prepared under, for reporting only."""
+    version = manifest.get("active_version")
+    return [
+        (label, version if formalism is None else formalism, subset, state)
+        for label, formalism, subset, state in cells
+    ]
+
+
+def _manifest_cells(manifest: dict) -> list[tuple[Any, str | None, tuple, tuple]]:
     return [
         (label, formalism, tuple(subset), tuple(state))
         for label, formalism, subset, state in manifest["cells"]
@@ -1124,8 +1142,10 @@ def _collect_sweep(directory: Path, manifest: dict, partial: bool) -> SweepResul
                 with_provenance(seed=manifest["seed"])
 
     rows = [_extract_row(result, compute) for result in raw]
-    df = _build_df(keys, rows, cells)
-    return SweepResult(df=df, results=raw, skipped=skipped)
+    df = _build_df(
+        _label_formalism(keys, manifest), rows, _label_formalism(cells, manifest)
+    )
+    return SweepResult(df=df, results=raw, skipped=_label_formalism(skipped, manifest))
 
 
 @dataclass(frozen=True)
@@ -1319,6 +1339,7 @@ def _merge_cell(
     purview_rias: dict[tuple, dict[tuple, Any]] = {}
     stride_entries: dict[tuple, list[tuple[Any, dict]]] = {}
     sia_entries: list[tuple[Any, dict]] = []
+    n_sia_outputs = 0
     missing_groups: set[str] = set()
 
     expected_schemes = {
@@ -1351,8 +1372,10 @@ def _merge_cell(
                         f"records {expected!r}; re-run the task"
                     )
         if row["kind"] == "sia_shard":
-            entry = output.entries[0]
-            sia_entries.append((entry.result, entry.aux))
+            # One entry per (cause, effect) specified-state pair when the
+            # cell's states tie; a single entry otherwise.
+            n_sia_outputs += 1
+            sia_entries.extend((entry.result, entry.aux) for entry in output.entries)
             continue
         spec = task.spec
         if spec.payload_kind == "mechanisms":
@@ -1363,10 +1386,14 @@ def _merge_cell(
             for purview, entry in zip(spec.purviews, output.entries, strict=True):
                 bucket[tuple(purview)] = entry.result
         elif spec.payload_kind == "partition_stride":
-            stride_entries.setdefault(
+            # One entry per specified-state pin (a single entry under
+            # pin-less formalisms).
+            bucket = stride_entries.setdefault(
                 (tuple(spec.mechanism), spec.direction, tuple(spec.purview)),
                 [],
-            ).append((output.entries[0].result, output.entries[0].aux))
+            )
+            for entry in output.entries:
+                bucket.append((entry.result, entry.aux))
 
     # Bottom-up: strides -> per-purview RIAs.
     for (mechanism, direction, purview), entries in stride_entries.items():
@@ -1414,8 +1441,8 @@ def _merge_cell(
     resolution_state = resolution_state_override
     if sia is None and sia_mode == "shards":
         n_sia_tasks = sum(1 for row in rows if row["kind"] == "sia_shard")
-        if sia_entries and len(sia_entries) == n_sia_tasks:
-            sia = _merge.merge_sia_strides(sia_entries)
+        if sia_entries and n_sia_outputs == n_sia_tasks:
+            sia = _merge.merge_sia_strides(sia_entries, system=system)
         else:
             missing_groups.add("sia")
 
@@ -1488,7 +1515,7 @@ def _collect_ces(
         substrate = substrates[str(label)]
         group = groups[(label, formalism_, tuple(subset))]
         with config.override(
-            **presets.by_name[formalism_], parallel=False, progress_bars=False
+            **_formalism_preset(formalism_), parallel=False, progress_bars=False
         ):
             system = System(substrate, tuple(state), node_indices=tuple(subset))
             scope = resolve_scope(user_scope, system.node_labels)
@@ -1538,9 +1565,13 @@ def _collect_ces(
         )
     )
     rows = [_extract_row(s, "ces") for s in structures]
-    df = _build_df(cells, rows, cells)
-    skipped = [
-        (label, formalism_, tuple(subset), tuple(state))
-        for label, formalism_, subset, state in manifest.get("skipped_cells", [])
-    ]
+    labeled_cells = _label_formalism(cells, manifest)
+    df = _build_df(labeled_cells, rows, labeled_cells)
+    skipped = _label_formalism(
+        [
+            (label, formalism_, tuple(subset), tuple(state))
+            for label, formalism_, subset, state in manifest.get("skipped_cells", [])
+        ],
+        manifest,
+    )
     return SweepResult(df=df, results=structures, skipped=skipped)

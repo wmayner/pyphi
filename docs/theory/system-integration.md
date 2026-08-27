@@ -48,20 +48,25 @@ the *least* difference — the **minimum information partition** (MIP) — so th
 result reflects the system's weakest link (Albantakis et al., 2023).
 
 Integrated information is computed separately on the cause side and the effect
-side, $\varphi_c$ and $\varphi_e$, and the system integrated information is the
-smaller of the two — a system is only as integrated as its weaker direction:
+side, $\varphi_c$ and $\varphi_e$, and a system is only as integrated as its
+weaker direction. In the 2023 formulation the system integrated information is
+their minimum,
 
-$$ \varphi_s = \min(\varphi_c, \varphi_e). $$
+$$ \varphi_s = \min(\varphi_c, \varphi_e), $$
+
+and under the default (2026) formulation the minimum additionally includes the
+system's *intrinsic information* $\mathit{ii}(s)$:
 
 ```{code-cell} python
 (analysis.sia.cause.phi, analysis.sia.effect.phi, analysis.phi)
 ```
 
-For the worked example the minimum comes from the effect side: $\varphi_e
-\approx 0.172$ is smaller than $\varphi_c \approx 0.245$, so $\varphi_s =
-\varphi_e \approx 0.172$ — the paper's Fig 1D split ($\varphi_c = 0.24$,
-$\varphi_e = 0.17$). The partition responsible — the MIP — is stored on the
-analysis:
+For the worked example, $\varphi_c \approx 0.245$ and $\varphi_e \approx
+0.172$ reproduce the paper's Fig 1D split ($\varphi_c = 0.24$, $\varphi_e =
+0.17$), and under the 2023 formulation $\varphi_s = \varphi_e \approx 0.172$,
+the paper's Fig 1E value. Here the default formalism's intrinsic-information
+term is smaller still, so $\varphi_s \approx 0.04$ — the value printed above.
+The partition responsible — the MIP — is stored on the analysis:
 
 ```{code-cell} python
 analysis.sia.partition
@@ -72,9 +77,8 @@ analysis** that produced it, including the MIP, the cause and effect sides, and 
 size-normalized value (`analysis.sia.normalized_phi`) used when comparing systems
 of different sizes.
 
-Under the default formalism, the minimum additionally includes the system's
-*intrinsic information* — a system must both furnish itself alternatives and
-specify one state. This requirement and its consequences (deterministic
+The intrinsic-information requirement — a system must both furnish itself
+alternatives and specify one state — and its consequences (deterministic
 systems have $\varphi_s = 0$) have {doc}`their own page <intrinsic-information>`.
 
 ## Selection margins

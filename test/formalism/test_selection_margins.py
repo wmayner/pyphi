@@ -172,9 +172,11 @@ def test_null_sia_has_no_margins():
 def test_2026_cap_does_not_change_margins():
     # The 2026 formalism selects the MIP exactly as 2023 does and applies
     # the ii(s) cap afterwards, so both selection margins are identical.
-    with pyphi.config.override(**{"iit.version": "IIT_4_0_2026"}):
+    from pyphi.conf import presets
+
+    with pyphi.config.override(**presets.iit4_2026):
         sia_2026 = examples.basic_system().sia()
-    with pyphi.config.override(**{"iit.version": "IIT_4_0_2023"}):
+    with pyphi.config.override(**presets.iit4_2023):
         sia_2023 = examples.basic_system().sia()
     assert float(sia_2026.partition_margin) == pytest.approx(
         float(sia_2023.partition_margin)

@@ -45,8 +45,9 @@ ces.to_pandas()
 ```
 
 This is the complete answer to the two questions from the [overview](overview.md):
-the complex exists with system integrated information $\varphi_s \approx 0.172$,
-and the experience it specifies has the $\Phi$-structure above, of quantity
+the system exists with system integrated information $\varphi_s \approx 0.04$
+under the default formalism (the paper's 2023 value is $0.17$), and the
+experience it specifies has the $\Phi$-structure above, of quantity
 $\Phi \approx 1.563$.
 
 ## From paper to code

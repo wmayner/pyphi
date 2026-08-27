@@ -1030,12 +1030,12 @@ def fig5b_substrate():
     # fmt: off
     tpm = np.array([
         [1, 0, 0],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
         [1, 1, 1],
         [1, 0, 1],
-        [1, 1, 1],
-        [1, 1, 0],
-        [1, 1, 1],
-        [1, 1, 1],
         [1, 1, 1],
     ])
     cm = np.array([
@@ -1233,7 +1233,7 @@ def actual_causation_substrate():
 
 @register_example
 def disjunction_conjunction_substrate():
-    """The disjunction-conjunction example from Actual Causation Figure 7.
+    """The disjunction-conjunction example from Actual Causation Figure 9.
 
     A substrate of four elements, one output ``D`` with three inputs ``A B C``.
     The output turns ON if ``A`` AND ``B`` are ON or if ``C`` is ON.
@@ -1309,7 +1309,7 @@ def gomez_p53_mdm2_substrate():
 @register_example
 def prevention_transition():
     """The :class:`~pyphi.actual.Transition` for the prevention example from
-    Actual Causation Figure 5D.
+    Actual Causation Figure 7D.
     """
     # fmt: off
     tpm = np.array([
@@ -1527,9 +1527,10 @@ def differentiation_macro_tpm(p, epsilon):
     # Two noisy AND gates connected to each other, macroed into two states:
     #   (1, 1) -> 1
     #   all other states -> 0
-    return np.minimum(
-        1, np.array([[(p * p + 2 * p * epsilon) / 3], [(1 - p) * (1 - p)]])
-    )
+    # Macro row 0 is the uniform average over the three micro states in
+    # macro state 0 of P(next micro = (1,1)):
+    # (p·p + p·(p+ε) + (p+ε)·p) / 3 = p² + 2pε/3.
+    return np.minimum(1, np.array([[p * p + 2 * p * epsilon / 3], [(1 - p) * (1 - p)]]))
 
 
 @register_example
@@ -1735,7 +1736,7 @@ def iit4_2023_fig6e_substrate():
     """The 6-unit "structured" architecture of Fig 6E.
 
     A variant of the Fig 6D specialized network with the inputs to units C, D and
-    F perturbed away from the regular pattern, breaking some of its symmetry. The
+    E perturbed away from the regular pattern, breaking some of its symmetry. The
     figure shows the cause-effect structures of the subsystems {C, D} and
     {A, B, E, F} in the canonical state (1, 0, 0, 0, 0, 0).
     """
@@ -1771,7 +1772,7 @@ def iit4_2023_fig7_substrate():
 
     A near-symmetric ring of five units with predominantly strong forward
     coupling, a few inhibitory (negative-weight) connections, and one perturbed
-    input (D <- A, weight 0.4). Fig 7 illustrates state-dependence: the same
+    input (A <- D, weight 0.4). Fig 7 illustrates state-dependence: the same
     substrate yields different cause-effect structures in different states. The
     figure analyses the full system {A, B, C, D, E} with unit E active, in state
     (1, 1, 0, 0, 1) (panel A), and inactive, in state (1, 1, 0, 0, 0) (panel B).
@@ -1780,7 +1781,7 @@ def iit4_2023_fig7_substrate():
     s = 0.8  # strong forward connection
     w = (1 - s) / 4  # weak connection (0.05)
     q = -w  # inhibitory connection (-0.05)
-    m = 0.4  # perturbed D <- A connection
+    m = 0.4  # perturbed A <- D connection
     # fmt: off
     weights = np.array([
         [w, s, w, w, q],

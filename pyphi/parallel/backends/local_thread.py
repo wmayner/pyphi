@@ -12,6 +12,7 @@ useful for IO-bound work.
 
 from __future__ import annotations
 
+import math
 import os
 from collections.abc import Callable
 from collections.abc import Iterable
@@ -54,12 +55,43 @@ class LocalThreadScheduler:
         map_kwargs = map_kwargs or {}
 
         # Mark the parent PID so the snapshot-apply hook short-circuits when
-        # called in-thread (threads share parent's globals).
+        # called in-thread (threads share parent's globals). Restore the
+        # previous value afterwards: a permanently latched PID would disable
+        # snapshot installs for the rest of this process's life — silently
+        # stale config when this process is itself a loky worker that later
+        # receives a new parent snapshot.
         from pyphi.parallel.backends import local_process
 
+        previous_parent_pid = local_process._PARENT_PID
         local_process._PARENT_PID = os.getpid()
+        try:
+            return self._map_reduce(
+                fn,
+                items,
+                *more_items,
+                reducer=reducer,
+                chunking=chunking,
+                progress=progress,
+                shortcircuit=shortcircuit,
+                ordered=ordered,
+                map_kwargs=map_kwargs,
+            )
+        finally:
+            local_process._PARENT_PID = previous_parent_pid
 
-        from pyphi.parallel.backends.local_process import get_num_processes
+    def _map_reduce(
+        self,
+        fn: Callable[..., Any],
+        items: Iterable[Any],
+        *more_items: Iterable[Any],
+        reducer: Callable[[Iterable[Any]], Any],
+        chunking: Any,
+        progress: Any,
+        shortcircuit: Any,
+        ordered: bool,
+        map_kwargs: dict[str, Any],
+    ) -> Any:
+        from pyphi.parallel import get_num_processes
 
         num_workers = get_num_processes()
 
@@ -92,11 +124,32 @@ class LocalThreadScheduler:
                         break
                 return reducer(results)
 
+            # Group items into chunks so each future carries many items:
+            # per-item futures pay dispatch overhead per item and ignore the
+            # caller's chunking policy. Without an explicit chunksize, items
+            # are split evenly across the workers.
+            from pyphi.parallel.backends.local_process import _process_chunk
+            from pyphi.parallel.chunking import iter_chunks
+
+            n = min(len(it) for it in materialized)
+            chunksize = chunking.chunksize or math.ceil(n / num_workers)
+            chunks = list(
+                iter_chunks(
+                    materialized,
+                    chunksize=chunksize,
+                    num_workers=num_workers,
+                    size_func=chunking.size_func,
+                )
+            )
+
             results = []
+            short_circuited = False
             with ThreadPoolExecutor(max_workers=num_workers) as executor:
                 futures = [
-                    executor.submit(fn, *args, **map_kwargs)
-                    for args in zip(*materialized, strict=False)
+                    executor.submit(
+                        _process_chunk, chunk, fn, map_kwargs, shortcircuit.func
+                    )
+                    for chunk in chunks
                 ]
                 # Collect in submission order when the caller asked for
                 # original order or a short-circuit predicate is active. When
@@ -114,15 +167,19 @@ class LocalThreadScheduler:
                 # until every orphaned future had run to completion.
                 try:
                     for fut in iterator:
-                        value = fut.result()
-                        results.append(value)
+                        chunk_results = fut.result()
+                        results.extend(chunk_results)
                         if progress_bar is not None:
-                            progress_bar.update(1)
-                        if shortcircuit.func(value):
-                            for remaining in futures:
-                                if not remaining.done():
-                                    remaining.cancel()
-                            shortcircuit.fire(futures)
+                            progress_bar.update(len(chunk_results))
+                        for value in chunk_results:
+                            if shortcircuit.func(value):
+                                short_circuited = True
+                                for remaining in futures:
+                                    if not remaining.done():
+                                        remaining.cancel()
+                                shortcircuit.fire(results)
+                                break
+                        if short_circuited:
                             break
                 except BaseException:
                     for remaining in futures:

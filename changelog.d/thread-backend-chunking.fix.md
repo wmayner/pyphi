@@ -1,0 +1,1 @@
+Fixed the thread scheduler ignoring the chunking policy: it submitted one future per item (10,000 submissions for `chunksize=4096`) and never consulted `size_func`. It now submits chunked futures honoring `chunksize` and `size_func`, like the process backend, with unchanged result-order semantics.

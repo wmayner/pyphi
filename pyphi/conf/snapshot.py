@@ -7,6 +7,7 @@ global doesn't change the snapshot's view of what produced the result.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from dataclasses import fields
 from typing import Any
@@ -80,16 +81,48 @@ class ConfigSnapshot:
                 result[f"{sub_name}.{f.name}"] = getattr(sub, f.name)
         return result
 
+    @classmethod
+    def from_builtins(cls, data: Mapping[str, Any]) -> ConfigSnapshot:
+        """Rehydrate a snapshot from its plain-builtins (dict) form.
+
+        Inverse of ``msgspec.to_builtins`` on a snapshot, as used by the
+        serialization layer. Unknown field names are ignored and missing
+        fields take their defaults, so payloads written by other PyPhi
+        versions still load.
+        """
+
+        def build(layer_cls: type, layer_data: Mapping[str, Any]) -> Any:
+            names = {f.name for f in fields(layer_cls)}
+            return layer_cls(**{k: v for k, v in layer_data.items() if k in names})
+
+        formalism_data = data.get("formalism", {})
+        return cls(
+            formalism=FormalismConfig(
+                iit=build(IITConfig, formalism_data.get("iit", {})),
+                actual_causation=build(
+                    ActualCausationConfig, formalism_data.get("actual_causation", {})
+                ),
+            ),
+            infrastructure=build(InfrastructureConfig, data.get("infrastructure", {})),
+            numerics=build(NumericsConfig, data.get("numerics", {})),
+        )
+
     def as_kwargs(self) -> dict[str, Any]:
-        """Return a flat dict suitable for ``pyphi.config.override(**snap.as_kwargs())``.
+        """Return the snapshot's non-colliding fields as a flat kwargs dict.
 
         Field names that collide between the formalism's IIT and AC
         sub-namespaces (e.g. ``version``, ``mechanism_partition_scheme``)
         are excluded by :meth:`FormalismConfig.as_kwargs` — flat overrides
         on those names are ambiguous and
         :class:`pyphi.conf._global._GlobalConfig.__setattr__` rejects them.
-        To round-trip a colliding-name change, use sub-namespace wholesale
-        replacement (``config.iit = ...``).
+
+        Because the colliding fields are excluded, the flat form does NOT
+        reproduce a snapshot whose formalism differs from the ambient
+        default: ``pyphi.config.override(**snap.as_kwargs())`` leaves
+        ``version`` at the ambient value, and config validation rejects the
+        resulting mix (e.g. an IIT 3.0 snapshot's measures under the default
+        version). To reproduce a snapshot, use
+        ``pyphi.config.override(**snap.as_overrides())``.
         """
         result: dict[str, Any] = {}
         for layer in (self.infrastructure, self.numerics):

@@ -23,6 +23,7 @@ from typing import cast
 
 from pyphi.conf import config
 from pyphi.formalism.base import check_measure_compatible
+from pyphi.formalism.base import check_specification_measure_compatible
 from pyphi.measures.protocols import CompositeMeasure
 from pyphi.measures.protocols import DistributionMeasure
 from pyphi.measures.protocols import StateAwareMeasure
@@ -99,6 +100,22 @@ def _evaluate_partition_iit4(
     )
 
 
+def _check_explicit_specification_measure(
+    formalism: Any, specification_measure: Any
+) -> None:
+    """Check an explicitly passed specification measure by its registered name.
+
+    Callers like ``System.sia`` resolve the configured specification measure
+    themselves and pass the resolved object, so the config-fallback check
+    above never sees it; checking the object's ``name`` closes that path.
+    Unregistered custom callables carry no ``name`` and are the caller's
+    responsibility.
+    """
+    name = getattr(specification_measure, "name", None)
+    if name is not None:
+        check_specification_measure_compatible(formalism, name)
+
+
 def _resolve_system_measures(
     formalism: Any,
     system_measure: CompositeMeasure | None,
@@ -130,9 +147,14 @@ def _resolve_system_measures(
     else:
         check_measure_compatible(formalism, system_measure.name)
     if specification_measure is None:
+        check_specification_measure_compatible(
+            formalism, config.formalism.iit.specification_measure
+        )
         specification_measure = resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         )
+    else:
+        _check_explicit_specification_measure(formalism, specification_measure)
     return system_measure, specification_measure
 
 
@@ -190,9 +212,14 @@ def _resolve_mip_measures(
 
     mechanism_measure = _resolve_mechanism_measure(formalism, mechanism_measure)
     if specification_measure is None:
+        check_specification_measure_compatible(
+            formalism, config.formalism.iit.specification_measure
+        )
         specification_measure = resolve_mechanism_measure(
             config.formalism.iit.specification_measure
         )
+    else:
+        _check_explicit_specification_measure(formalism, specification_measure)
     return mechanism_measure, specification_measure
 
 
@@ -272,9 +299,26 @@ class IIT4_2023Formalism:
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"GENERALIZED_INTRINSIC_DIFFERENCE", "INTRINSIC_INFORMATION"}
     )
+    # IIT 4.0's Φ is the sum of φ over distinctions and relations.
+    compatible_ces_measures: ClassVar[frozenset[str]] = frozenset({"SUM_SMALL_PHI"})
+    # The mechanism and system MIP searches maximize over specified-state
+    # candidates (pins / pairs); campaign shards enumerate them per stride.
+    has_state_pins: ClassVar[bool] = True
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
+    compatible_sia_tie_strategies: ClassVar[frozenset[str] | None] = None
+    # INTRINSIC_SPECIFICATION is GID registered under its specification-role
+    # name; all three drive a well-defined specified-state search.
+    compatible_specification_measures: ClassVar[frozenset[str] | None] = frozenset(
+        {
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_SPECIFICATION",
+            "INTRINSIC_INFORMATION",
+        }
+    )
+    compatible_background_conditioning: ClassVar[frozenset[str] | None] = None
+    requires_ii_cap: ClassVar[bool] = False
 
     def evaluate_mechanism(
         self,
@@ -434,9 +478,28 @@ class IIT4_2026Formalism:
     compatible_measures: ClassVar[frozenset[str]] = frozenset(
         {"INTRINSIC_INFORMATION", "GENERALIZED_INTRINSIC_DIFFERENCE"}
     )
+    # IIT 4.0's Φ is the sum of φ over distinctions and relations.
+    compatible_ces_measures: ClassVar[frozenset[str]] = frozenset({"SUM_SMALL_PHI"})
+    # The mechanism and system MIP searches maximize over specified-state
+    # candidates (pins / pairs); campaign shards enumerate them per stride.
+    has_state_pins: ClassVar[bool] = True
     partition_scheme: ClassVar[str | None] = "JOINT_PARTITION_ALL"
     compatible_system_partition_schemes: ClassVar[frozenset[str] | None] = None
     compatible_mechanism_partition_schemes: ClassVar[frozenset[str] | None] = None
+    compatible_sia_tie_strategies: ClassVar[frozenset[str] | None] = None
+    # INTRINSIC_SPECIFICATION is GID registered under its specification-role
+    # name; all three drive a well-defined specified-state search.
+    compatible_specification_measures: ClassVar[frozenset[str] | None] = frozenset(
+        {
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_SPECIFICATION",
+            "INTRINSIC_INFORMATION",
+        }
+    )
+    compatible_background_conditioning: ClassVar[frozenset[str] | None] = None
+    # This formalism is defined by the intrinsic-information requirement
+    # (Eq. 23): its system measure must apply it.
+    requires_ii_cap: ClassVar[bool] = True
 
     def evaluate_mechanism(
         self,

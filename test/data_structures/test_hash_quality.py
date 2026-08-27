@@ -25,6 +25,8 @@ import pytest
 
 from pyphi import actual
 from pyphi import examples
+from pyphi.cache import registry as cache_registry
+from pyphi.cache.cache_utils import _HashedSeq
 from pyphi.cache.content import ContentCache
 from pyphi.conf import config
 from pyphi.conf import presets
@@ -44,6 +46,11 @@ KEY_TYPES: dict[type, Callable[[], Sequence[object]]] = {
         for state in itertools.product((0, 1), repeat=8)
     ],
     Direction: lambda: list(Direction),
+    # The key wrapper built by the module-level ``@cache()`` decorator
+    # (``_make_key``); its hash is the hash of the argument tuple, so it is
+    # only as good as its components — which the backing-dict sweep below
+    # checks by descending into it.
+    _HashedSeq: lambda: [_HashedSeq((n, (0, 1), None)) for n in range(512)],
 }
 
 
@@ -140,3 +147,52 @@ def test_the_instrumentation_actually_sees_the_key_types():
     observed = _observed_key_types(_iit4_structure)
     assert FrozenMap in observed
     assert Direction in observed
+
+
+def _registered_cache_backings() -> dict[str, dict]:
+    """Every registered cache with an inspectable backing dict.
+
+    Covers the module-level ``@cache()`` caches (whose ``_HashedSeq`` keys the
+    ``ContentCache`` instrumentation above never sees) as well as any other
+    dict-backed cache registered with the cache registry.
+    """
+    return {
+        name: policy.backing
+        for name, policy in cache_registry._registry.items()
+        if getattr(policy, "backing", None) is not None
+    }
+
+
+def test_every_key_in_every_registered_cache_is_declared():
+    """No key may sit in any dict-backed cache without a hash-quality check.
+
+    The instrumented-workload test above only sees ``ContentCache`` keys; the
+    module-level ``@cache()`` caches (``pyphi.partition``,
+    ``pyphi.distribution``) key on ``_make_key`` output instead. This sweep
+    runs the workloads, then inspects the actual keys resident in every
+    registered backing dict, descending into containers (including
+    ``_HashedSeq``, a list subclass).
+    """
+    for run in WORKLOADS.values():
+        run()
+    backings = _registered_cache_backings()
+    observed: set[type] = set()
+    populated = []
+    for name, backing in backings.items():
+        keys = list(backing)
+        if keys:
+            populated.append(name)
+        for key in keys:
+            _key_component_types(key, observed)
+    # Non-vacuity: the workloads must actually populate module-level caches.
+    assert any(
+        name.startswith(("pyphi.partition.", "pyphi.distribution."))
+        for name in populated
+    ), f"no module-level @cache() cache was populated; saw {sorted(backings)}"
+    undeclared = {
+        t for t in observed if not issubclass(t, TRUSTED) and t not in KEY_TYPES
+    }
+    assert not undeclared, (
+        "cache-key types with no declared hash-quality check: "
+        f"{sorted(t.__module__ + '.' + t.__name__ for t in undeclared)}"
+    )

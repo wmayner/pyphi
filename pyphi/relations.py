@@ -13,7 +13,6 @@ from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Iterator
 from functools import cached_property
-from functools import total_ordering
 from itertools import product
 from typing import TYPE_CHECKING
 from typing import Any
@@ -47,8 +46,17 @@ if TYPE_CHECKING:
     from .formalism.iit4 import Distinction  # type: ignore[attr-defined]
 
 
-class RelationFace(Displayable, ToPandasMixin, frozenset):
-    """A set of (potentially) related causes/effects."""
+def _restore_relation_face(cls, contents, phi):
+    """Reconstruct a :class:`RelationFace` from pickled state."""
+    return cls(contents, phi=phi)
+
+
+class RelationFace(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
+    """A set of (potentially) related causes/effects.
+
+    Ordering compares φ (via :class:`~pyphi.models.cmp.OrderableByPhi`);
+    equality and hashing are set semantics inherited from ``frozenset``.
+    """
 
     phi: float  # Set in __new__
 
@@ -66,12 +74,24 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
             self.phi = float(phi)  # type: ignore[misc]  # frozenset is immutable but we set this in __new__
         return self
 
-    @total_ordering  # type: ignore[arg-type]  # total_ordering expects a class not instance
-    def __lt__(self, other):
-        # Exact total order for deterministic sorted(); selection among
-        # relations goes through resolve_ties.
-        # numerics: exact — total order for sorting, not a selection.
-        return self.phi < other.phi  # type: ignore[attr-defined]  # phi is set in __new__
+    # Orderable.__eq__ raises NotImplementedError; keep frozenset's set
+    # semantics for equality and hashing. Comparisons (φ order) come from
+    # OrderableByPhi, which precedes frozenset in the MRO.
+    def __eq__(self, other: object) -> bool:
+        return frozenset.__eq__(self, other)
+
+    def __ne__(self, other: object) -> bool:
+        return frozenset.__ne__(self, other)
+
+    def __hash__(self) -> int:
+        return frozenset.__hash__(self)
+
+    # frozenset's default __reduce__ reconstructs via ``cls(list(self))``,
+    # which omits the required ``phi`` keyword; route pickling (and hence
+    # copy/deepcopy) through a reconstructor that passes it. Cached
+    # properties are recomputable and deliberately not carried.
+    def __reduce__(self):
+        return (_restore_relation_face, (type(self), list(self), self.phi))
 
     @cached_property
     def overlap(self):
@@ -150,8 +170,12 @@ class RelationFace(Displayable, ToPandasMixin, frozenset):
         return Displayable._repr_html_(self)
 
 
-class Relation(Displayable, ToPandasMixin, frozenset, cmp.OrderableByPhi):
-    """A set of relation faces forming the relation among a set of distinctions."""
+class Relation(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
+    """A set of relation faces forming the relation among a set of distinctions.
+
+    Ordering compares φ (via :class:`~pyphi.models.cmp.OrderableByPhi`);
+    equality and hashing are set semantics inherited from ``frozenset``.
+    """
 
     @property
     def is_self_relation(self):
@@ -806,6 +830,16 @@ class NullRelations(Relations):
     def __len__(self):
         return 0
 
+    # NullRelations carries no state (it is always empty), so all instances
+    # are interchangeable: value equality, constant hash.
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, NullRelations):
+            return NotImplemented
+        return True
+
+    def __hash__(self) -> int:
+        return hash("pyphi.relations.NullRelations")
+
 
 class ConcreteRelations(frozenset, Relations):
     def _sum_phi(self):
@@ -1410,6 +1444,14 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     different (incident-only) relation set, so it is a distinct value, not
     just a distinct view.
     """
+
+    def save(self, target, **kwargs):
+        """Fold summaries have no serialized form; save the parent structure."""
+        raise NotImplementedError(
+            "AnalyticalFoldRelations is an incident-only summary over its "
+            "parent structure and has no serialized form; save the parent "
+            "CauseEffectStructure (or its AnalyticalRelations) instead"
+        )
 
     def __init__(self, parent_distinctions, seeds):
         super().__init__(parent_distinctions)

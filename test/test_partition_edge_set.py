@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 
 from pyphi.direction import Direction
-from pyphi.models.partitions import CompleteEdgeCut
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import DirectedJointPartition
 from pyphi.models.partitions import DirectedSetPartition
@@ -16,6 +15,7 @@ from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import JointTripartition
 from pyphi.models.partitions import NullCut
 from pyphi.models.partitions import Part
+from pyphi.models.partitions import TotalCut
 
 # Substrate size large enough to embed every instance's indices.
 N = 8
@@ -27,7 +27,7 @@ PARTITIONS = [
     DirectedBipartition(Direction.EFFECT, (0,), (1, 2)),
     DirectedBipartition(Direction.CAUSE, (0, 3), (1, 2)),
     EdgeCut((0, 2, 3), np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])),
-    CompleteEdgeCut((1, 2, 4)),
+    TotalCut((1, 2, 4)),
     DirectedSetPartition(
         (0, 1, 2), np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]]), [[0], [1, 2]]
     ),

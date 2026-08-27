@@ -26,8 +26,8 @@ from pyphi.campaign import CellOutput
 from pyphi.campaign import _parse_memory
 from pyphi.campaign import _resolve_compute_ref
 from pyphi.conf import config
-from pyphi.conf import presets
 from pyphi.cost import shard_cache_budget_bytes
+from pyphi.sweep import _formalism_preset
 from pyphi.sweep import _run_cell
 from pyphi.sweep import _Skipped
 
@@ -74,7 +74,9 @@ def _run_sweep_task(task: Any, substrates: dict) -> tuple[list[CellOutput], bool
     for label, formalism, subset, state in task.cells:
         overrides = {
             **task.config_overrides,
-            **presets.by_name[formalism],
+            # None = the preparing session's configuration, already carried
+            # by config_overrides; an explicit name applies its preset.
+            **_formalism_preset(formalism),
             "parallel": False,
             "progress_bars": False,
         }
@@ -103,7 +105,9 @@ def _run_sweep_task(task: Any, substrates: dict) -> tuple[list[CellOutput], bool
 def _shard_config(task: Any) -> dict[str, Any]:
     overrides = {
         **task.config_overrides,
-        **presets.by_name[task.formalism],
+        # None = the preparing session's configuration, already carried by
+        # config_overrides; an explicit name applies its preset.
+        **_formalism_preset(task.formalism),
         "parallel": False,
         "progress_bars": False,
     }
@@ -180,6 +184,69 @@ def _global_tie_indices(ties: Any, slice_parts: list, indices: list[int]) -> lis
     return [local[str(t.partition)] for t in ties]
 
 
+def _mechanism_state_pins(
+    system: Any, direction: Any, mechanism: Any, purview: Any
+) -> tuple:
+    """Specified-state pins of the mechanism MIP search under the active
+    formalism; empty for formalisms whose MIP is a plain minimum."""
+    from pyphi.formalism.base import FORMALISM_REGISTRY
+
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
+    if not getattr(formalism, "has_state_pins", False):
+        return ()
+    from pyphi.formalism.iit4 import mechanism_state_pins
+
+    return tuple(mechanism_state_pins(system, direction, mechanism, purview))
+
+
+def partition_stride_entries(
+    system: Any,
+    direction: Any,
+    mechanism: Any,
+    purview: Any,
+    parts: list,
+    indices: list[int],
+    scheme: str,
+) -> list[CellOutput]:
+    """Build one partition-stride cell's payloads, one entry per pin.
+
+    φ per specified-state pin is a minimum over partitions; pin selection
+    is a maximum over pins. The stride must therefore report every pin's
+    local minimum — not only the pins that win locally — so the merge can
+    take the cross-stride minimum per pin before selecting. The pin
+    enumeration is partition-independent, so every stride reports the
+    same pin set. Pin-less formalisms (e.g. IIT 3.0) report the single
+    plain minimum over the stride's partitions.
+    """
+    from pyphi.campaign import merge as _merge
+    from pyphi.formalism.queries import find_mip
+
+    pins = _mechanism_state_pins(system, direction, mechanism, purview)
+    per_pin_rias = [
+        find_mip(system, direction, mechanism, purview, partitions=parts, state=pin)
+        for pin in pins
+    ] or [find_mip(system, direction, mechanism, purview, partitions=parts)]
+    entries = []
+    for pin_ria in per_pin_rias:
+        pin_ties = getattr(pin_ria, "_partition_ties", None) or (pin_ria,)
+        entries.append(
+            CellOutput(
+                status="ok",
+                result=pin_ria,
+                traceback=None,
+                aux={
+                    "pin_key": _merge._pin_key(pin_ria),
+                    "pin_winner_index": _global_tie_indices((pin_ria,), parts, indices)[
+                        0
+                    ],
+                    "tie_indices": _global_tie_indices(pin_ties, parts, indices),
+                    "scheme": scheme,
+                },
+            )
+        )
+    return entries
+
+
 def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]:
     from pyphi.campaign import shards as _shards
     from pyphi.direction import Direction
@@ -242,32 +309,15 @@ def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
                     parts, indices = _shards.bottleneck_order(
                         parts, indices, system.cm, direction
                     )
-                ria = find_mip(
-                    system,
-                    direction,
-                    spec.mechanism,
-                    spec.purview,
-                    partitions=parts,
-                )
-                tie_indices = {}
-                pin_winner_indices = {}
-                for pin in getattr(ria, "_state_ties", None) or (ria,):
-                    key = repr(pin.specified_state.state)
-                    pin_ties = getattr(pin, "_partition_ties", None) or (pin,)
-                    tie_indices[key] = _global_tie_indices(pin_ties, parts, indices)
-                    pin_winner_indices[key] = _global_tie_indices(
-                        (pin,), parts, indices
-                    )[0]
-                entries.append(
-                    CellOutput(
-                        status="ok",
-                        result=ria,
-                        traceback=None,
-                        aux={
-                            "tie_indices": tie_indices,
-                            "pin_winner_indices": pin_winner_indices,
-                            "scheme": scheme,
-                        },
+                entries.extend(
+                    partition_stride_entries(
+                        system,
+                        direction,
+                        spec.mechanism,
+                        spec.purview,
+                        parts,
+                        indices,
+                        scheme,
                     )
                 )
             else:
@@ -282,6 +332,68 @@ def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
     return entries, failed
 
 
+def sia_stride_entries(
+    system: Any, parts: list, indices: list[int], scheme: str
+) -> list[CellOutput]:
+    """Build one SIA stride's cell payloads.
+
+    φ_s per (cause, effect) specified-state pair is a minimum over
+    partitions; pair selection is a cascade over pairs. When pairs tie,
+    the stride must report every pair's local minimum — not the winner of
+    a stride-local cascade — so the merge can take the cross-stride
+    minimum per pair before running the cascade globally. Per-pair
+    minima are **uncapped** (MIP selection compares uncapped normalized
+    φ); the merge applies the intrinsic-information cap once the global
+    MIP per pair is chosen. Pin-less formalisms report the single sweep
+    result.
+    """
+    from pyphi.formalism.base import FORMALISM_REGISTRY
+
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
+    if not getattr(formalism, "has_state_pins", False):
+        sia = system.sia(partitions=parts)
+        if getattr(sia, "reasons", None):
+            # A null short-circuit (e.g. no strong connectivity) never
+            # consults the partition restriction, so every stride of the
+            # cell produces this same result.
+            aux = {"short_circuit": True, "scheme": scheme}
+        else:
+            ties = getattr(sia, "ties", None) or (sia,)
+            aux = {
+                "tie_indices": _global_tie_indices(ties, parts, indices),
+                "scheme": scheme,
+            }
+        return [CellOutput(status="ok", result=sia, traceback=None, aux=aux)]
+    from pyphi.formalism.iit4 import sia_stride_search
+
+    kind, payload = sia_stride_search(system, parts)
+    if kind == "short_circuit":
+        return [
+            CellOutput(
+                status="ok",
+                result=payload,
+                traceback=None,
+                aux={"short_circuit": True, "scheme": scheme},
+            )
+        ]
+    entries: list[CellOutput] = []
+    for key, pair_sia in payload:
+        ties = getattr(pair_sia, "ties", None) or (pair_sia,)
+        entries.append(
+            CellOutput(
+                status="ok",
+                result=pair_sia,
+                traceback=None,
+                aux={
+                    "pair_key": list(key),
+                    "tie_indices": _global_tie_indices(ties, parts, indices),
+                    "scheme": scheme,
+                },
+            )
+        )
+    return entries
+
+
 def _run_sia_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]:
     from pyphi.campaign import shards as _shards
     from pyphi.system import System
@@ -294,22 +406,7 @@ def _run_sia_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
         i, k = task.stride
         parts, indices = _shards.enumerate_system_partition_stride(system, scheme, i, k)
         try:
-            sia = system.sia(partitions=parts)
-            if getattr(sia, "reasons", None):
-                # A null short-circuit (e.g. no strong connectivity) never
-                # consults the partition restriction, so every stride of the
-                # cell produces this same result.
-                aux = {"short_circuit": True, "scheme": scheme}
-            else:
-                ties = getattr(sia, "ties", None) or (sia,)
-                aux = {
-                    "tie_indices": _global_tie_indices(ties, parts, indices),
-                    "scheme": scheme,
-                }
-            return (
-                [CellOutput(status="ok", result=sia, traceback=None, aux=aux)],
-                False,
-            )
+            return sia_stride_entries(system, parts, indices, scheme), False
         except Exception:
             return (
                 [

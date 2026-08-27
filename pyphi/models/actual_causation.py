@@ -433,7 +433,7 @@ class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable):
+class Account(Displayable, Sequence, ToPandasMixin, Serializable):
     """The set of :class:`CausalLink` instances with α > 0. This includes both
     actual causes and actual effects.
     """
@@ -459,10 +459,12 @@ class Account(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializable)
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Account):
             return NotImplemented
-        return self.causal_links == other.causal_links
+        # An account is a set of causal links; the storage order is a
+        # presentation detail and must not affect equality.
+        return frozenset(self.causal_links) == frozenset(other.causal_links)
 
     def __hash__(self):
-        return hash(self.causal_links)
+        return hash(frozenset(self.causal_links))
 
     def __add__(self, other: object) -> Account:
         if not isinstance(other, Account):

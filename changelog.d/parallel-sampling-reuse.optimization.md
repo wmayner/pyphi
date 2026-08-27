@@ -1,0 +1,1 @@
+The cost sampler that chooses a chunksize for `map_reduce()` no longer discards the results it computes: when collection order is unconstrained (no `ordered=True` and no short-circuit predicate), the sampled items' results are folded into the output instead of being computed a second time.

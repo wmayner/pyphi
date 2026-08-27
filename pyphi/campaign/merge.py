@@ -59,27 +59,26 @@ def _merged_partition_margin(winner: Any, shard_winners: list[Any]) -> Any:
 
 
 def merge_stride_rias(entries: list[tuple[Any, dict]]) -> Any:
-    """Merge the stride winners of one (mechanism, direction, purview).
+    """Merge the strides of one (mechanism, direction, purview).
 
-    ``entries`` pairs each stride's winning RIA with its aux record, whose
-    ``pin_winner_indices`` map each specified-state pin (by ``repr`` of
-    its state) to the global enumeration index of that pin's winning
-    partition.
+    Each entry pairs one stride's **per-pin local minimum** — one RIA per
+    specified-state pin, minimized over the stride's own partition slice
+    (one single entry per stride for pin-less formalisms) — with its aux
+    record, whose ``pin_key`` identifies the pin and whose
+    ``pin_winner_index`` is the global enumeration index of the pin's
+    locally winning partition.
 
-    Per pin, the candidates are the per-shard pin winners restored to
-    global enumeration order. This selects the identical winner a full
-    sweep would: the full sweep's winner is the earliest cascade-tied
-    candidate in enumeration order, strides preserve that order within
-    each shard, so the full winner is necessarily its own shard's pin
-    winner. The merged tie set contains the cascade-tied shard winners;
-    the winning shard's own within-slice tie peers remain attached to the
-    winner it contributed.
+    φ per pin is a minimum over partitions and pin selection is a maximum
+    over pins, so the merge takes the cross-stride minimum per pin first
+    — every stride reports every pin, so this is the true global minimum
+    — and only then runs the state cascade over the per-pin global
+    winners, exactly as the unsharded search does. Per pin, candidates
+    are restored to global enumeration order so ties resolve to the
+    identical representative a full sweep selects.
     """
     per_pin: dict[str, list[tuple[int, Any]]] = {}
-    for ria, aux in entries:
-        for pin in getattr(ria, "_state_ties", None) or (ria,):
-            key = _pin_key(pin)
-            per_pin.setdefault(key, []).append((aux["pin_winner_indices"][key], pin))
+    for pin, aux in entries:
+        per_pin.setdefault(aux["pin_key"], []).append((aux["pin_winner_index"], pin))
     pin_winners = []
     for indexed in per_pin.values():
         indexed.sort(key=lambda pair: pair[0])
@@ -128,17 +127,8 @@ def build_distinction(mechanism: Any, mic: Any, mie: Any) -> Any:
     return Concept(mechanism=tuple(mechanism), cause=mic, effect=mie)
 
 
-def merge_sia_strides(entries: list[tuple[Any, dict]]) -> Any:
-    """Merge SIA stride winners (union of tie sets, global order restored).
-
-    A stride whose analysis short-circuited to a null result (e.g. the
-    system lacks strong connectivity) never consulted its partition slice;
-    every stride of the cell then carries the identical result, and any
-    one of them is the merge.
-    """
-    for sia, aux in entries:
-        if aux.get("short_circuit"):
-            return sia
+def _merge_sia_partition_candidates(entries: list[tuple[Any, dict]]) -> Any:
+    """Cross-stride minimum over one partition sweep (one state pair)."""
     indexed: list[tuple[int, Any]] = []
     for sia, aux in entries:
         ties = getattr(sia, "ties", None) or (sia,)
@@ -150,3 +140,57 @@ def merge_sia_strides(entries: list[tuple[Any, dict]]) -> Any:
     for tie in ties:
         tie.set_ties(list(ties))
     return winner
+
+
+def merge_sia_strides(entries: list[tuple[Any, dict]], system: Any = None) -> Any:
+    """Merge SIA strides.
+
+    A stride whose analysis short-circuited to a null result (e.g. the
+    system lacks strong connectivity) never consulted its partition slice;
+    every stride of the cell then carries the identical result, and any
+    one of them is the merge.
+
+    Entries carrying a ``pair_key`` aux field are per-(cause, effect)
+    specified-state-pair local minima: φ_s per pair is a minimum over
+    partitions and pair selection is a cascade over pairs, so the merge
+    takes the cross-stride minimum per pair first — every stride reports
+    every pair — and then runs the same pair-selection cascade the
+    unsharded search runs (:func:`pyphi.formalism.iit4._resolve_pair_sias`,
+    which needs ``system`` for Composition escalation and the canonical
+    tie-break). Entries without ``pair_key`` are single-sweep results
+    (pin-less formalisms, or a cell with an untied specified state) and
+    merge as a plain cross-stride minimum with global order restored.
+    """
+    for sia, aux in entries:
+        if aux.get("short_circuit"):
+            return sia
+    per_pair: dict[tuple, list[tuple[Any, dict]]] = {}
+    unpaired: list[tuple[Any, dict]] = []
+    for sia, aux in entries:
+        if "pair_key" in aux:
+            per_pair.setdefault(tuple(map(_as_key, aux["pair_key"])), []).append(
+                (sia, aux)
+            )
+        else:
+            unpaired.append((sia, aux))
+    if not per_pair:
+        return _merge_sia_partition_candidates(unpaired)
+    if unpaired:
+        raise ValueError(
+            "cannot merge a mix of per-pair and single-sweep SIA stride entries"
+        )
+    if system is None:
+        raise ValueError("merging per-pair SIA strides requires the system")
+    from pyphi.formalism.iit4 import merge_pair_minima
+
+    merged_pairs = {
+        key: _merge_sia_partition_candidates(pair_entries)
+        for key, pair_entries in per_pair.items()
+    }
+    return merge_pair_minima(system, merged_pairs)
+
+
+def _as_key(value: Any) -> Any:
+    """Normalize a serialized pair-key component (lists round-trip as
+    tuples; ``None`` stays ``None``)."""
+    return tuple(value) if isinstance(value, list) else value

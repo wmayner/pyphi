@@ -103,10 +103,12 @@ analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))
 analysis.phi  # the system integrated information, φ_s
 ```
 
-This value, $\varphi_s \approx 0.172$, answers the first question: aB is a
-complex (the paper's Fig 1E reports it as $0.17$), and $\varphi_s$ measures
-how irreducible it is. The second question — the structure — is answered by
-the $\Phi$-structure it specifies:
+This value, $\varphi_s \approx 0.04$, answers the first question: aB exists
+as one system, and $\varphi_s$ measures how irreducible it is. (The paper's
+Fig 1E reports $0.17$ for this system — the value under the 2023
+formulation, before the intrinsic-information requirement; PyPhi reproduces
+it under the `iit4_2023` preset.) The second question — the structure — is
+answered by the $\Phi$-structure it specifies:
 
 ```{code-cell} python
 (len(analysis.ces.distinctions), analysis.ces.relations.num_relations(), round(float(analysis.ces.big_phi), 3))

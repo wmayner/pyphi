@@ -304,6 +304,189 @@ class TestSystemSchemeEnumerationConsistency:
             assert eager_rejected == sia_raised, scheme
 
 
+class TestSpecificationMeasureCompatibility:
+    """specification_measure drives the specified-state search under IIT 4.0;
+    an unsupported value (e.g. EMD) silently changes Φ and φ_s."""
+
+    def test_iit4_2026_with_emd_specification_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(**presets.iit4_2026, **{"iit.specification_measure": "EMD"}),
+        ):
+            pass
+        message = str(exc.value)
+        assert "specification_measure" in message
+        assert "version" in message
+        assert "EMD" in message
+        assert "Fix" in message
+
+    def test_iit4_2023_with_kld_specification_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError, match="specification_measure"),
+            config.override(**presets.iit4_2023, **{"iit.specification_measure": "KLD"}),
+        ):
+            pass
+
+    @pytest.mark.parametrize("version", _FOUR_OH)
+    @pytest.mark.parametrize(
+        "measure",
+        [
+            "GENERALIZED_INTRINSIC_DIFFERENCE",
+            "INTRINSIC_SPECIFICATION",
+            # The composite INTRINSIC_INFORMATION is a valid specification
+            # measure — it must NOT be rejected.
+            "INTRINSIC_INFORMATION",
+        ],
+    )
+    def test_compatible_specification_measures_allowed(
+        self, version: str, measure: str
+    ) -> None:
+        preset = getattr(presets, _VERSION_PRESETS[version])
+        with config.override(**preset, **{"iit.specification_measure": measure}):
+            assert config.formalism.iit.specification_measure == measure
+
+    def test_iit3_never_consults_specification_measure(self) -> None:
+        """IIT 3.0 has no specified-state phase, so any value passes."""
+        with config.override(**presets.iit3, **{"iit.specification_measure": "EMD"}):
+            assert config.formalism.iit.specification_measure == "EMD"
+
+    def test_assignment_path_fails_at_dispatch(self) -> None:
+        """A config assembled by per-field assignment (which skips cross-field
+        validation by design) must fail at the IIT 4.0 dispatch boundary, not
+        silently compute a different Φ (1.125 -> 1.75 on basic)."""
+        from pyphi import examples
+        from pyphi.formalism.base import MeasureNotCompatibleError
+
+        with config.override(**presets.iit4_2026):
+            config["iit.specification_measure"] = "EMD"  # skips validation
+            with pytest.raises(MeasureNotCompatibleError, match="specification measure"):
+                examples.basic_system().sia()
+
+    def test_validate_config_false_bypasses_dispatch_check(self) -> None:
+        """The reactive check shares the eager opt-out: with validation off,
+        the deliberately unsupported combination computes."""
+        import dataclasses
+
+        from pyphi import examples
+
+        overrides = dict(presets.iit4_2026)
+        overrides["iit"] = dataclasses.replace(
+            overrides["iit"], specification_measure="EMD"
+        )
+        with (
+            config.override(validate_config=False),
+            config.override(**overrides),
+        ):
+            examples.basic_system().sia()  # no raise
+
+
+class TestBackgroundConditioningConstraint:
+    """IIT 3.0 is pinned to the observed-current-state background convention;
+    IIT 4.0's causal marginalization silently halves phi on proper-subset
+    systems (e.g. 1.0 -> 0.5 on basic (0, 2))."""
+
+    def test_iit3_with_causal_marginalization_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit3,
+                **{"iit.background_conditioning": "CAUSAL_MARGINALIZATION"},
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "background_conditioning" in message
+        assert "version" in message
+        assert "Fix" in message
+
+    def test_iit3_preset_convention_allowed(self) -> None:
+        with config.override(**presets.iit3):
+            assert (
+                config.formalism.iit.background_conditioning == "CONDITION_CURRENT_STATE"
+            )
+
+    @pytest.mark.parametrize("version", _FOUR_OH)
+    @pytest.mark.parametrize(
+        "convention", ["CAUSAL_MARGINALIZATION", "CONDITION_CURRENT_STATE"]
+    )
+    def test_iit4_unconstrained(self, version: str, convention: str) -> None:
+        preset = getattr(presets, _VERSION_PRESETS[version])
+        with config.override(**preset, **{"iit.background_conditioning": convention}):
+            assert config.formalism.iit.background_conditioning == convention
+
+    def test_assignment_path_fails_at_dispatch(self) -> None:
+        from pyphi import examples
+
+        with config.override(**presets.iit3):
+            config["iit.background_conditioning"] = "CAUSAL_MARGINALIZATION"
+            with pytest.raises(ConfigurationError, match="background_conditioning"):
+                examples.basic_system().sia()
+
+    def test_system_pin_takes_precedence_at_dispatch(self) -> None:
+        """A System pinned to the IIT 3.0 convention computes even when the
+        ambient config field carries the 4.0 default (assignment path): the
+        dispatch check reads the convention in effect for the system."""
+        from pyphi import System
+        from pyphi import examples
+
+        with config.override(**presets.iit3):
+            config["iit.background_conditioning"] = "CAUSAL_MARGINALIZATION"
+            system = System(
+                examples.basic_substrate(),
+                (1, 0, 0),
+                background_conditioning="CONDITION_CURRENT_STATE",
+            )
+            assert float(system.sia().phi) == pytest.approx(2.3125, abs=1e-4)
+
+    def test_validate_config_false_bypasses_dispatch_check(self) -> None:
+        """The reactive check shares the eager opt-out, so the deliberately
+        marginalized IIT 3.0 variant (pinned by the golden zoo) computes."""
+        import dataclasses
+
+        from pyphi import examples
+
+        overrides = dict(presets.iit3)
+        overrides["iit"] = dataclasses.replace(
+            overrides["iit"], background_conditioning="CAUSAL_MARGINALIZATION"
+        )
+        with (
+            config.override(validate_config=False),
+            config.override(**overrides),
+        ):
+            examples.basic_system().sia()  # no raise
+
+
+class TestVersionRequiresIiCap:
+    """IIT_4_0_2026 is defined by the intrinsic-information requirement
+    (Eq. 23); pairing it with a system measure that lacks the requirement
+    silently computes the 2023 quantity while reporting version 2026."""
+
+    def test_2026_with_gid_system_measure_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit4_2026,
+                **{"iit.system_phi_measure": "GENERALIZED_INTRINSIC_DIFFERENCE"},
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "system_phi_measure" in message
+        assert "version" in message
+        assert "Fix" in message
+
+    def test_2026_preset_allowed(self) -> None:
+        with config.override(**presets.iit4_2026):
+            assert config.formalism.iit.system_phi_measure == "INTRINSIC_INFORMATION"
+
+    def test_2023_with_gid_allowed(self) -> None:
+        with config.override(**presets.iit4_2023):
+            assert (
+                config.formalism.iit.system_phi_measure
+                == "GENERALIZED_INTRINSIC_DIFFERENCE"
+            )
+
+
 class TestMechanismPartitionSchemeConstraint:
     def test_iit3_rejects_joint_partition_all(self):
         overrides = {
@@ -323,3 +506,144 @@ class TestMechanismPartitionSchemeConstraint:
     def test_iit4_unconstrained(self):
         with config.override(**{"iit.mechanism_partition_scheme": "JOINT_BIPARTITION"}):
             assert config.formalism.iit.mechanism_partition_scheme == "JOINT_BIPARTITION"
+
+    def test_assignment_path_sia_fails_at_dispatch(self) -> None:
+        """A partial IIT 3.0 config assembled by per-field assignment (which
+        skips cross-field validation by design) with the IIT 4.0 mechanism
+        partition family must fail at the dispatch boundary, not silently
+        compute a different phi (2.3125 -> 2.5208 on basic)."""
+        from pyphi import examples
+
+        with config.override(**presets.iit3):
+            config["iit.mechanism_partition_scheme"] = "JOINT_PARTITION_ALL"
+            with pytest.raises(ConfigurationError, match="mechanism_partition_scheme"):
+                examples.basic_system().sia()
+
+    def test_assignment_path_ces_fails_at_mechanism_dispatch(self) -> None:
+        """The CES path reaches mechanisms without evaluate_system, so the
+        mechanism-MIP funnel must carry its own check."""
+        from pyphi import examples
+        from pyphi.formalism import iit3 as iit3_module
+
+        with config.override(**presets.iit3):
+            config["iit.mechanism_partition_scheme"] = "JOINT_PARTITION_ALL"
+            with pytest.raises(ConfigurationError, match="mechanism_partition_scheme"):
+                iit3_module.ces(examples.basic_system())
+
+
+class TestCesMeasureCompatibility:
+    """ces_measure defines Φ for CES-derived formalisms and must be validated."""
+
+    def test_iit3_with_kld_ces_measure_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(**presets.iit3, **{"iit.ces_measure": "KLD"}),
+        ):
+            pass
+        message = str(exc.value)
+        assert "ces_measure" in message
+        assert "KLD" in message
+        assert "Fix" in message
+
+    def test_iit4_with_emd_ces_measure_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError, match="ces_measure"),
+            config.override(**{"iit.ces_measure": "EMD"}),
+        ):
+            pass
+
+    def test_iit3_with_sum_small_phi_allowed(self) -> None:
+        """The Gómez et al. (2020) multi-valued configuration must validate."""
+        with config.override(**presets.iit3, **{"iit.ces_measure": "SUM_SMALL_PHI"}):
+            pass
+
+    def test_iit3_with_emd_allowed(self) -> None:
+        with config.override(**presets.iit3):
+            pass
+
+
+class TestSiaTieStrategyCompatibility:
+    """SIA tie strategies must be ones the formalism's SIA type supports.
+
+    IIT 3.0 SIA results have no ``normalized_phi``, so the IIT 4.0 default
+    ``sia_tie_resolution`` crashes deep inside tie resolution unless caught.
+    """
+
+    def test_iit3_with_normalized_phi_rejected_eagerly(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit3, **{"iit.sia_tie_resolution": ["NORMALIZED_PHI"]}
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "sia_tie_resolution" in message
+        assert "NORMALIZED_PHI" in message
+        assert "Fix" in message
+
+    def test_iit3_preset_strategies_allowed(self) -> None:
+        with config.override(**presets.iit3):
+            pass
+
+    def test_iit4_unconstrained(self) -> None:
+        with config.override(**{"iit.sia_tie_resolution": ["NORMALIZED_PHI"]}):
+            pass
+
+    def test_assignment_path_fails_at_dispatch_not_inside_tie_resolution(self) -> None:
+        """A partial IIT 3.0 config assembled by per-field assignment (which
+        skips cross-field validation) leaves the ambient IIT 4.0
+        ``sia_tie_resolution`` in place; ``sia()`` must fail at the dispatch
+        boundary with a ``ConfigurationError`` naming the field, not with an
+        ``AttributeError`` from inside tie resolution."""
+        import dataclasses
+
+        from pyphi import examples
+
+        overrides = dict(presets.iit3)
+        overrides["iit"] = dataclasses.replace(
+            overrides["iit"], sia_tie_resolution=("NORMALIZED_PHI", "PARTITION_LEX")
+        )
+        with (
+            config.override(validate_config=False),
+            config.override(**overrides),
+            pytest.raises(ConfigurationError, match="sia_tie_resolution"),
+        ):
+            examples.basic_system().sia()
+
+
+class TestTieStrategyNamesValidatedEagerly:
+    """A typo'd tie-resolution strategy name must fail at configuration time,
+    not in the middle of a computation."""
+
+    def test_sia_tie_resolution_typo_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit4_2023,
+                **{"iit.sia_tie_resolution": ["NORMALISED_PHI"]},
+            ),
+        ):
+            pass
+        message = str(exc.value)
+        assert "sia_tie_resolution" in message
+        assert "NORMALISED_PHI" in message
+        assert "NORMALIZED_PHI" in message  # the registered names are listed
+
+    def test_purview_tie_resolution_typo_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(
+                **presets.iit4_2023,
+                **{"iit.purview_tie_resolution": "PHII"},
+            ),
+        ):
+            pass
+        assert "purview_tie_resolution" in str(exc.value)
+
+    def test_registered_names_accepted(self) -> None:
+        with config.override(
+            **presets.iit4_2023,
+            **{"iit.sia_tie_resolution": ["PHI", "PARTITION_LEX"]},
+        ):
+            pass  # no ConfigurationError

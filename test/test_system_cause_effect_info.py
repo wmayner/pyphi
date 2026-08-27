@@ -1,18 +1,14 @@
 import pytest
 
-from pyphi import config
 from pyphi.measures.distribution import hamming_emd
 
+from .conftest import IIT_3_CONFIG
 from .conftest import skip_if_no_emd_backend
 
 
 @pytest.mark.emd
 @skip_if_no_emd_backend
-@config.override(
-    {"iit.version": "IIT_3_0", "iit.mechanism_partition_scheme": "JOINT_BIPARTITION"},
-    mechanism_phi_measure="EMD",
-    system_partition_scheme="DIRECTED_BIPARTITION",
-)
+@IIT_3_CONFIG
 def test_cause_info(s):
     mechanism = (0, 1)
     purview = (0, 2)
@@ -25,11 +21,7 @@ def test_cause_info(s):
 
 @pytest.mark.emd
 @skip_if_no_emd_backend
-@config.override(
-    {"iit.version": "IIT_3_0", "iit.mechanism_partition_scheme": "JOINT_BIPARTITION"},
-    mechanism_phi_measure="EMD",
-    system_partition_scheme="DIRECTED_BIPARTITION",
-)
+@IIT_3_CONFIG
 def test_effect_info(s):
     mechanism = (0, 1)
     purview = (0, 2)
@@ -42,11 +34,7 @@ def test_effect_info(s):
 
 @pytest.mark.emd
 @skip_if_no_emd_backend
-@config.override(
-    {"iit.version": "IIT_3_0", "iit.mechanism_partition_scheme": "JOINT_BIPARTITION"},
-    mechanism_phi_measure="EMD",
-    system_partition_scheme="DIRECTED_BIPARTITION",
-)
+@IIT_3_CONFIG
 def test_cause_effect_info(s):
     mechanism = (0, 1)
     purview = (0, 2)

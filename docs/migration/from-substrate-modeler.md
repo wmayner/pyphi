@@ -271,10 +271,13 @@ triggered = ps.triggered_states(tau=2, tau_clamp=1)
 
 `substrate_modeler` predates IIT 4.0 and targeted 3.0-era PyPhi. Current PyPhi
 defaults to IIT 4.0, so Φ values and the available quantities differ. To
-reproduce 3.0-era results, switch the formalism:
+reproduce 3.0-era results, apply the complete IIT 3.0 preset — setting the
+version alone would leave the measures and partition schemes on their 4.0
+defaults, which computes a mixture matching no paper (and is rejected by
+config validation):
 
 ```python
-with pyphi.config.override(version="IIT_3_0"):
+with pyphi.config.override(**pyphi.iit3):
     sia = system.sia()
 ```
 
@@ -282,7 +285,7 @@ with pyphi.config.override(version="IIT_3_0"):
 
 ## 7. Worked end-to-end example
 
-The classic OR / AND / XOR network (the IIT 4.0 paper's basic example).
+The classic OR / COPY / XOR network used throughout PyPhi's examples.
 
 **Before** — `substrate_modeler` style (illustrative; do not run):
 
@@ -345,7 +348,8 @@ the resulting `dynamic_tpm` matches the original library exactly.
 4. `system = pyphi.System.from_substrate(substrate, state, nodes)`.
 5. Replace every old `compute.*` / `Subsystem` / `Network` call using §6.
 6. If reproducing pre-4.0 numbers, wrap analysis in
-   `pyphi.config.override(version="IIT_3_0")`.
+   `pyphi.config.override(**pyphi.iit3)` (the complete preset, not
+   just the version field).
 7. To check fidelity, compare against the original's `dynamic_tpm`:
    `np.asarray(substrate.tpm.to_joint())[..., 1]`.
 

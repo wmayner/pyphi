@@ -26,3 +26,33 @@ def test_config_validation(name, valid, invalid):
     for value in invalid:
         with pytest.raises(ValueError):
             setattr(config, name, value)
+
+
+class TestParallelKwargsAllowlist:
+    """The allowlist must exactly mirror map_reduce's keyword surface: an
+    advertised name map_reduce rejects (or an accepted name the allowlist
+    silently drops) is a contract violation."""
+
+    def test_allowlist_matches_map_reduce_signature(self):
+        import inspect
+
+        from pyphi.conf._helpers import PARALLEL_KWARGS
+        from pyphi.parallel import map_reduce
+
+        keyword_params = {
+            name
+            for name, p in inspect.signature(map_reduce).parameters.items()
+            if p.kind is inspect.Parameter.KEYWORD_ONLY
+        }
+        assert set(PARALLEL_KWARGS) == keyword_params
+
+    def test_user_override_beats_global_gate(self):
+        from pyphi.conf import config
+        from pyphi.conf._helpers import parallel_kwargs
+
+        with config.override(parallel=False, progress_bars=False):
+            kwargs = parallel_kwargs(
+                {"parallel": True, "progress": True}, parallel=True, progress=True
+            )
+        assert kwargs["parallel"] is True
+        assert kwargs["progress"] is True

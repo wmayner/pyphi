@@ -33,6 +33,7 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.formalism import iit3
+from pyphi.formalism.queries import _never_shortcircuit
 from pyphi.labels import NodeLabels
 from pyphi.measures.distribution import DistanceResult
 from pyphi.measures.protocols import CompositeMeasure
@@ -51,6 +52,7 @@ from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import binding_direction_finding
 from pyphi.models.explanation import runner_up_from_candidates
+from pyphi.models.explanation import sia_runner_up_key
 from pyphi.models.pandas import ToPandasMixin
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import EdgeCut
@@ -60,8 +62,8 @@ from pyphi.models.partitions import concise_partition
 from pyphi.models.ria import RepertoireIrreducibilityAnalysis
 from pyphi.models.state_specification import StateSpecification
 from pyphi.models.state_specification import SystemStateSpecification
-from pyphi.parallel import false as _never_shortcircuit
 from pyphi.parallel import map_reduce
+from pyphi.partition import system_partition_types
 from pyphi.partition import system_partitions
 from pyphi.provenance import HasProvenance
 from pyphi.provenance import Provenance
@@ -229,11 +231,9 @@ class SystemIrreducibilityAnalysis(
             self.signed_phi = float(self.signed_phi)
         if not isinstance(self.signed_normalized_phi, DistanceResult):
             self.signed_normalized_phi = float(self.signed_normalized_phi)
-        if self.intrinsic_differentiation is None:
-            self.intrinsic_differentiation = {
-                Direction.CAUSE: 0.0,
-                Direction.EFFECT: 0.0,
-            }
+        # ``intrinsic_differentiation`` stays None when not computed (e.g. on
+        # null SIAs), so ``intrinsic_information`` reports None rather than a
+        # fabricated zero.
 
     def order_by(self):
         return self.phi
@@ -298,7 +298,8 @@ class SystemIrreducibilityAnalysis(
         intrinsic differentiation, each rectified by ``|·|⁺``.
         Partition-independent given the specified states. Under the
         IIT 4.0 (2026) formalism, φₛ = min{φ_c, φ_e, ii(s)}, so
-        φₛ ≤ ii(s). ``None`` when no system state is available.
+        φₛ ≤ ii(s). ``None`` when no system state is available or the
+        intrinsic differentiation was not computed (e.g. on null SIAs).
         """
         if self.system_state is None or not self.intrinsic_differentiation:
             return None
@@ -511,13 +512,15 @@ class SystemIrreducibilityAnalysis(
                     value=concise_partition(self.runner_up.partition),
                 )
             )
-            findings.append(
-                Finding(
-                    kind="gap",
-                    label="φ-gap to runner-up",
-                    value=float(self.runner_up.phi) - float(self.phi),
-                )
-            )
+            if self.runner_up.normalized_phi is not None:
+                # The runner-up was ranked by normalized φ, so the gap is
+                # reported in the same quantity.
+                gap_label = "normalized φ-gap to runner-up"
+                gap = float(self.runner_up.normalized_phi) - float(self.normalized_phi)
+            else:
+                gap_label = "φ-gap to runner-up"
+                gap = float(self.runner_up.phi) - float(self.phi)
+            findings.append(Finding(kind="gap", label=gap_label, value=gap))
         if self.partition_margin is not None:
             findings.append(
                 Finding(
@@ -555,9 +558,9 @@ class SystemIrreducibilityAnalysis(
         return tuple(findings)
 
     def explain(self) -> Explanation:
-        """A typed account of why this Φ_s value came out as it did."""
+        """A typed account of why this φ_s value came out as it did."""
         return Explanation(
-            subject=f"Φ_s = {format_value(self.phi)}",
+            subject=f"φ_s = {format_value(self.phi)}",
             level="system",
             findings=self._findings(),
         )
@@ -590,7 +593,7 @@ class SystemIrreducibilityAnalysis(
             )
         common = _diff_common(self, other)
         return ResultDiff(
-            subject=f"ΔΦ_s = {format_value(common['delta_phi'])}",
+            subject=f"Δφ_s = {format_value(common['delta_phi'])}",
             level="system",
             delta_phi=common["delta_phi"],
             mip_changed=common["mip_changed"],
@@ -878,8 +881,19 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     # ii(s) is partition-independent given the specified states, so the same
     # state-level terms cap the runner-up partition's φ; the reported φ-gap
     # then compares capped to capped.
+    # numerics: exact — Eq. 23 cap; φ_s is a minimum, not a tie decision.
     if sia.runner_up is not None and float(sia.runner_up.phi) > ii:
-        sia.runner_up = replace(sia.runner_up, phi=float(ii))
+        runner_up_norm = normalization_factor(sia.runner_up.partition)
+        capped_runner_up_normalized = (
+            float(ii) * runner_up_norm
+            if sia.runner_up.normalized_phi is not None and runner_up_norm is not None
+            else sia.runner_up.normalized_phi
+        )
+        sia.runner_up = replace(
+            sia.runner_up,
+            phi=float(ii),
+            normalized_phi=capped_runner_up_normalized,
+        )
 
 
 def _apply_ii_cap(
@@ -932,6 +946,7 @@ def sia(
     partition_scheme = fallback(
         partition_scheme, config.formalism.iit.system_partition_scheme
     )
+    assert partition_scheme is not None, "system_partition_scheme config must be set"
 
     # TODO: trivial reducibility
 
@@ -974,7 +989,14 @@ def sia(
 
     if partitions is None:
         filter_func = None
-        if partition_scheme == "EDGE_CUT_ALL":
+        # Edge-cut schemes can yield cuts that leave the system strongly
+        # connected; Eq. 14 requires the MIP search to consider only
+        # disconnecting partitions.
+        if getattr(
+            system_partition_types[partition_scheme],
+            "may_yield_non_disconnecting_cuts",
+            False,
+        ):
 
             def is_disconnecting_partition(partition):
                 # Special case for length 1 systems so complete partition is included
@@ -1019,8 +1041,11 @@ def sia(
     if not isinstance(partitions, (list, tuple)):
         partitions = list(partitions)
 
-    cause_specs = _spec_candidates(system_state.cause)
-    effect_specs = _spec_candidates(system_state.effect)
+    # A direction with no specified state (not requested, or null) contributes
+    # a single ``None`` candidate so the cascade's Cartesian product ranges
+    # over the other direction's ties alone.
+    cause_specs = _spec_candidates(system_state.cause) or (None,)
+    effect_specs = _spec_candidates(system_state.effect) or (None,)
 
     # Eq. 23 (2026): each SIA is capped by ii(s) as soon as its MIP is
     # chosen — the MIP itself is selected on *uncapped* normalized φ (Eqs.
@@ -1064,67 +1089,7 @@ def sia(
                     pair_sia = _apply_ii_cap(pair_sia)
                 per_pair_sias[key] = pair_sia
 
-        # Apply the per-state max-min cascade at the Integration level.
-        # The Composition step of the cascade requires a ``big_phi`` value
-        # on each per-pair SIA (CES Φ), which the SIA does not carry; the
-        # Integration budget keeps that key out of the resolver's read
-        # path.
-        ctx = resolve_ties.ResolutionContext(max_escalation_level="Integration")
-        outcome = resolve_ties.resolve_state_tie(per_pair_sias, context=ctx)
-        chosen_key = outcome.resolved
-        tied_keys: list = list(outcome.tied_set or ())
-        information_violation = False
-        if chosen_key is None:
-            assert tied_keys, "cascade outcome has neither winner nor ties"
-            # S1: readings tied at φ_s escalate to Composition (Φ) — but only
-            # among readings that exist. When every tied reading has φ_s = 0
-            # the system is not a complex under any of them; nothing remains
-            # for Φ to adjudicate, and the choice below is presentational.
-            if numerics.is_positive(float(per_pair_sias[tied_keys[0]].phi)):
-                winners, violation = _escalate_state_tie_to_composition(
-                    system, per_pair_sias, tied_keys
-                )
-                if violation:
-                    # Φ-tied readings with genuinely distinct structures: the
-                    # system does not comply with the information postulate
-                    # and does not qualify as a complex (S1).
-                    information_violation = True
-                elif len(winners) == 1:
-                    chosen_key = winners[0]
-                else:
-                    # Extrinsic Φ tie (intrinsically identical structures):
-                    # any representative is legitimate; fall through to the
-                    # canonical tie-break over the Φ-maximal subset.
-                    tied_keys = winners
-        if information_violation:
-            mip_sia = _null_sia(reasons=[NullResultReason.NONUNIQUE_SYSTEM_STATE])
-        else:
-            if chosen_key is None:
-                # The canonical tie-break makes per-direction φ reporting
-                # invariant under substrate relabeling. The specified states
-                # are indexed over ``system.node_indices``, so
-                # canonicalization only aligns with the substrate's node
-                # space when the system spans it; for proper subsystems
-                # (e.g. candidates in ``complexes()``) we keep the
-                # deterministic enumeration-order representative.
-                spans_substrate = (
-                    len(system.node_indices) == system.substrate.tpm.n_nodes
-                )
-                if spans_substrate:
-                    chosen_key = min(
-                        tied_keys,
-                        key=lambda key: _canonical_tie_break_key(system.substrate, key),
-                    )
-                else:
-                    chosen_key = tied_keys[0]
-            mip_sia = per_pair_sias[chosen_key]
-
-            _restore_tie_metadata(
-                mip_sia,
-                original_cause=system_state.cause,
-                original_effect=system_state.effect,
-            )
-            mip_sia.set_ties(tuple(per_pair_sias.values()))
+        mip_sia = _resolve_pair_sias(system, per_pair_sias, system_state)
 
     if config.infrastructure.clear_system_caches_after_computing_sia:
         system.clear_caches()
@@ -1147,6 +1112,249 @@ def sia(
 
 
 _sia = sia
+
+
+def _resolve_pair_sias(
+    system: System,
+    per_pair_sias: dict,
+    system_state: SystemStateSpecification,
+) -> SystemIrreducibilityAnalysis:
+    """Select the winning (cause, effect) specified-state pair per S1.
+
+    ``per_pair_sias`` maps ``(cause_state, effect_state)`` keys to each
+    pair's MIP-searched SIA. Applies the per-state max-min cascade at the
+    Integration level, escalates φ_s ties to Composition, applies the
+    canonical tie-break, and attaches the tie metadata. Shared by the
+    in-process SIA search and the sharded-campaign merge, so both resolve
+    state pairs identically.
+    """
+    # Apply the per-state max-min cascade at the Integration level.
+    # The Composition step of the cascade requires a ``big_phi`` value
+    # on each per-pair SIA (CES Φ), which the SIA does not carry; the
+    # Integration budget keeps that key out of the resolver's read
+    # path.
+    ctx = resolve_ties.ResolutionContext(max_escalation_level="Integration")
+    outcome = resolve_ties.resolve_state_tie(per_pair_sias, context=ctx)
+    chosen_key = outcome.resolved
+    tied_keys: list = list(outcome.tied_set or ())
+    information_violation = False
+    if chosen_key is None:
+        assert tied_keys, "cascade outcome has neither winner nor ties"
+        # S1: readings tied at φ_s escalate to Composition (Φ) — but only
+        # among readings that exist. When every tied reading has φ_s = 0
+        # the system is not a complex under any of them; nothing remains
+        # for Φ to adjudicate, and the choice below is presentational.
+        # A single-direction analysis has no cause-effect structure, so Φ
+        # is undefined and the tie falls through to the canonical
+        # representative.
+        if (
+            numerics.is_positive(float(per_pair_sias[tied_keys[0]].phi))
+            and system_state.cause is not None
+            and system_state.effect is not None
+        ):
+            winners, violation = _escalate_state_tie_to_composition(
+                system, per_pair_sias, tied_keys
+            )
+            if violation:
+                # Φ-tied readings with genuinely distinct structures: the
+                # system does not comply with the information postulate
+                # and does not qualify as a complex (S1).
+                information_violation = True
+            elif len(winners) == 1:
+                chosen_key = winners[0]
+            else:
+                # Extrinsic Φ tie (intrinsically identical structures):
+                # any representative is legitimate; fall through to the
+                # canonical tie-break over the Φ-maximal subset.
+                tied_keys = winners
+    if information_violation:
+        return NullSystemIrreducibilityAnalysis(
+            system_state=system_state,
+            node_indices=system.node_indices,
+            node_labels=system.node_labels,
+            reasons=[NullResultReason.NONUNIQUE_SYSTEM_STATE],
+        )
+    if chosen_key is None:
+        # The canonical tie-break makes per-direction φ reporting
+        # invariant under substrate relabeling. The specified states
+        # are indexed over ``system.node_indices``, so
+        # canonicalization only aligns with the substrate's node
+        # space when the system spans it; for proper subsystems
+        # (e.g. candidates in ``complexes()``) we keep the
+        # deterministic enumeration-order representative.
+        spans_substrate = len(system.node_indices) == system.substrate.tpm.n_nodes
+        if spans_substrate:
+            chosen_key = min(
+                tied_keys,
+                key=lambda key: _canonical_tie_break_key(system.substrate, key),
+            )
+        else:
+            chosen_key = tied_keys[0]
+    mip_sia = per_pair_sias[chosen_key]
+
+    _restore_tie_metadata(
+        mip_sia,
+        original_cause=system_state.cause,
+        original_effect=system_state.effect,
+    )
+    # Only readings genuinely tied with the winner at φ_s are ties; the
+    # other evaluated specified-state readings lost the cascade outright.
+    # numerics: tolerant — same equality the cascade's argmax uses.
+    mip_sia.set_ties(
+        tuple(
+            pair_sia
+            for pair_sia in per_pair_sias.values()
+            if numerics.eq(float(pair_sia.phi), float(mip_sia.phi))
+        )
+    )
+    return mip_sia
+
+
+def sia_stride_search(
+    system: System,
+    partitions: Iterable,
+    directions: Iterable[Direction] | None = None,
+) -> tuple[str, Any]:
+    """One campaign stride's SIA search: every (cause, effect) specified-state
+    pair's **uncapped** MIP over ``partitions``.
+
+    Returns ``("short_circuit", sia)`` when the search never consults the
+    partitions (monad conventions, missing cause or effect under the
+    short-circuit option), else ``("pairs", [(key, pair_sia), ...])`` with
+    one uncapped local minimum per pair, keyed by ``(cause_state,
+    effect_state)``. The pair enumeration is partition-independent, so
+    every stride reports the same pair set. MIP selection compares
+    *uncapped* normalized φ (Eqs. 21-22), so strides must not apply the
+    intrinsic-information cap; :func:`merge_pair_minima` applies it once
+    the cross-stride MIP per pair is chosen, exactly as the in-process
+    search caps once its own MIP is chosen.
+    """
+    from pyphi.formalism.base import FORMALISM_REGISTRY
+    from pyphi.formalism.iit4.formalism import _resolve_system_measures
+
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]
+    system_measure, specification_measure = _resolve_system_measures(
+        formalism, None, None
+    )
+
+    system_state = None
+
+    def _null(**kwargs: Any) -> NullSystemIrreducibilityAnalysis:
+        return NullSystemIrreducibilityAnalysis(
+            system_state=system_state,
+            node_indices=system.node_indices,
+            node_labels=system.node_labels,
+            **kwargs,
+        )
+
+    # Degenerate-case guards, mirroring :func:`sia`.
+    if not system:
+        return ("short_circuit", _null(reasons=[NullResultReason.NO_SYSTEM]))
+    if not connectivity.is_strong(system.cm, system.node_indices):
+        return (
+            "short_circuit",
+            _null(reasons=[NullResultReason.NO_STRONG_CONNECTIVITY]),
+        )
+    if len(system.partition_indices) == 1:
+        if not system.cm[system.node_indices][system.node_indices]:
+            return (
+                "short_circuit",
+                _null(reasons=[NullResultReason.MONAD_WITH_NO_SELFLOOP]),
+            )
+        if not config.formalism.iit.single_micro_nodes_with_selfloops_have_phi:
+            return (
+                "short_circuit",
+                _null(
+                    reasons=[NullResultReason.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI]
+                ),
+            )
+    system_state = system_intrinsic_information(
+        system,
+        specification_measure=specification_measure,
+        directions=directions,
+    )
+    if config.formalism.iit.shortcircuit_sia:
+        shortcircuit_reasons = _has_no_cause_or_effect(system_state)
+        if shortcircuit_reasons:
+            return ("short_circuit", _null(reasons=shortcircuit_reasons))
+    default_sia = _null(reasons=[NullResultReason.NO_VALID_PARTITIONS])
+    parallel_kwargs = conf.parallel_kwargs(
+        dict(config.infrastructure.parallel_partition_evaluation)
+    )
+    partitions = list(partitions)
+    pairs = []
+    for c in _spec_candidates(system_state.cause) or (None,):
+        for e in _spec_candidates(system_state.effect) or (None,):
+            key = (
+                c.state if c is not None else None,
+                e.state if e is not None else None,
+            )
+            pair_sia = _find_mip_for_fixed_state(
+                system=system,
+                system_state=_build_untied_system_state(c, e),
+                partitions=partitions,
+                system_measure=system_measure,
+                directions=directions,
+                parallel_kwargs=parallel_kwargs,
+                default_sia=default_sia,
+            )
+            pairs.append((key, pair_sia))
+    return ("pairs", pairs)
+
+
+def merge_pair_minima(
+    system: System, merged_pairs: dict
+) -> SystemIrreducibilityAnalysis:
+    """Finish a sharded SIA from the per-pair cross-stride minima.
+
+    The merge-side counterpart of the in-process search tail: applies the
+    intrinsic-information cap (when the active system measure carries one)
+    to each pair's globally minimal SIA, then runs the pair-selection
+    cascade via :func:`_resolve_pair_sias`. A single-pair cell returns its
+    capped minimum directly, matching the in-process single-pair fast
+    path.
+    """
+    from pyphi.formalism.base import FORMALISM_REGISTRY
+    from pyphi.formalism.iit4.formalism import _resolve_system_measures
+
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]
+    system_measure, specification_measure = _resolve_system_measures(
+        formalism, None, None
+    )
+    if getattr(system_measure, "applies_ii_cap", False):
+        merged_pairs = {
+            key: _apply_ii_cap(pair_sia) for key, pair_sia in merged_pairs.items()
+        }
+    if len(merged_pairs) == 1:
+        return next(iter(merged_pairs.values()))
+    system_state = system_intrinsic_information(
+        system, specification_measure=specification_measure
+    )
+    return _resolve_pair_sias(system, merged_pairs, system_state)
+
+
+def mechanism_state_pins(
+    system: System,
+    direction: Direction,
+    mechanism: tuple[int, ...],
+    purview: tuple[int, ...],
+) -> tuple:
+    """The specified-state pins a mechanism MIP search maximizes over.
+
+    Partition-independent, so campaign shards enumerate the identical pin
+    set the unsharded :func:`pyphi.formalism.queries.find_mip` uses.
+    """
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    specification_measure = resolve_mechanism_measure(
+        config.formalism.iit.specification_measure
+    )
+    return system.intrinsic_information(
+        direction,
+        mechanism,
+        purview,
+        specification_measure=specification_measure,
+    ).ties
 
 
 def _escalate_state_tie_to_composition(
@@ -1335,7 +1543,18 @@ def _find_mip_for_fixed_state(
         candidates = [default_sia]
     ties = tuple(resolve_ties.sias(candidates))
     mip_sia = ties[0]
-    mip_sia.runner_up = runner_up_from_candidates(candidates, mip_sia.phi)
+    # Rank the runner-up by the same quantity that selected the MIP
+    # (normalized φ under the default strategy), so the reported runner-up
+    # is the actual nearest competitor.
+    runner_up_key, key_is_normalized = sia_runner_up_key(
+        config.formalism.iit.sia_tie_resolution
+    )
+    mip_sia.runner_up = runner_up_from_candidates(
+        candidates,
+        runner_up_key(mip_sia),
+        key=runner_up_key,
+        normalized=key_is_normalized,
+    )
     others = [candidate for candidate in candidates if candidate is not mip_sia]
     # The margin is only meaningful when every partition was evaluated: a
     # short-circuited sweep yields a truncated prefix whose gap says nothing

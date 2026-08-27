@@ -1,0 +1,1 @@
+Fixed `potential_purviews()` (and `System.mic()`/`mie()` with an explicit `purviews=` argument) silently returning no purviews when given a one-shot iterable such as a generator: the candidates are now materialized before being scanned.

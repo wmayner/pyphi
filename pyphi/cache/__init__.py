@@ -11,16 +11,18 @@ process-isolated parallelism, approximate when threads share one cache — since
 they are diagnostics that nothing computes on, and are deliberately left out of
 the lock to keep the hot path free of contention.
 
-The ``cache`` decorator below is oriented to process-isolated parallelism
-(each worker process owns its caches) and is not shared across threads by the
-current schedulers; its counters carry the same best-effort caveat under
-free-threading.
+The caches built by the ``cache`` decorator below are module-level, so the
+thread scheduler shares them across worker threads. They follow the same
+design as ``ContentCache``: the hit path is lock-free, using only atomic dict
+operations, and admission (which runs the store's eviction loop) is locked.
+Their counters carry the same best-effort caveat under free-threading.
 
 Public surface
 --------------
 - ``info()``: dict of name -> _CacheInfo across every registered cache.
-- ``clear_all()``: clear every registered cache.
-- ``clear(name)``: clear one cache by name.
+- ``clear_all()``: clear every registered in-memory cache. Persistent
+  on-disk stores are skipped; clear those by name.
+- ``clear(name)``: clear one cache by name (including persistent ones).
 - ``register(policy)``: register a CachePolicy adapter.
 - ``unregister(name)``: remove a registration.
 
@@ -28,6 +30,7 @@ See :mod:`pyphi.cache.policy` for the CachePolicy Protocol and
 :mod:`pyphi.cache.registry` for the registry implementation.
 """
 
+import threading
 from functools import update_wrapper
 
 import joblib
@@ -75,24 +78,30 @@ def cache(typed: bool = False):
     sentinel = object()
     # Build a key from the function arguments.
     make_key = _make_key
+    # Guards admission and clearing, which mutate the store's weight
+    # bookkeeping; the hit path is lock-free (atomic dict operations only),
+    # since the thread scheduler shares these caches across worker threads.
+    lock = threading.Lock()
 
     def decorating_function(user_function, hits=0, misses=0):
-        # Bound method to look up a key or return None.
-        cache_get = entries.get
+        # Bound method to pop a key or return the sentinel.
+        cache_pop = entries.pop
 
         def wrapper(*args, **kwds):
             nonlocal hits, misses
             key = make_key(args, kwds, typed)
-            result = cache_get(key, sentinel)
+            # Atomic pop, then reinsert, to move the entry to the recent end
+            # of the store's iteration order, which is the eviction order.
+            # Unlike get-then-delete, the pop cannot raise when another
+            # thread hits the same key concurrently.
+            result = cache_pop(key, sentinel)
             if result is not sentinel:
                 hits += 1
-                # Reinsert to move the entry to the recent end of the store's
-                # iteration order, which is the eviction order.
-                del entries[key]
                 entries[key] = result
                 return result
             result = user_function(*args, **kwds)
-            store.admit(key, result)
+            with lock:
+                store.admit(key, result)
             misses += 1
             return result
 
@@ -103,7 +112,8 @@ def cache(typed: bool = False):
         def cache_clear():
             """Clear the cache and cache statistics."""
             nonlocal hits, misses
-            store.clear()
+            with lock:
+                store.clear()
             hits = misses = 0
 
         wrapper.cache_info = cache_info  # type: ignore[attr-defined]
@@ -119,6 +129,7 @@ def cache(typed: bool = False):
                 backing=entries,
                 stats=lambda: (hits, misses),
                 weigh=lambda: (store.nbytes, store.evictions),
+                reset=cache_clear,
             )
         )
 

@@ -63,6 +63,7 @@ class ContentCache:
                 backing=self._cache,
                 stats=lambda: (self.hits, self.misses),
                 weigh=lambda: (self._store.nbytes, self._store.evictions),
+                reset=self.clear,
             )
         )
 

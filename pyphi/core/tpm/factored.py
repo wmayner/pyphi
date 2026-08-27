@@ -43,17 +43,23 @@ StateSpace = Sequence[Any] | Sequence[Sequence[Any]] | None
 
 
 def _own_factor(f: ArrayLike) -> NDArray[np.float64]:
-    """Return a read-only float64 array of ``f`` sharing no writable memory
-    with the caller's input.
+    """Return a read-only float64 array of ``f`` sharing no memory with the
+    caller's input.
 
     A writable input array is copied before freezing, so the caller's own
-    array is never modified; a read-only input is stored as-is; a fresh
-    dtype conversion is frozen in place without a further copy.
+    array is never modified. A read-only view (e.g. from
+    :func:`numpy.broadcast_to`) is also copied, since its underlying buffer
+    may still be writable through the base array. Only a read-only input
+    that owns its data is stored as-is; a fresh dtype conversion is frozen
+    in place without a further copy.
     """
     a = np.asarray(f, dtype=np.float64)
     if a.flags.writeable:
         if isinstance(f, np.ndarray) and np.may_share_memory(a, f):
             a = a.copy()
+        a.flags.writeable = False
+    elif a.base is not None:
+        a = a.copy()
         a.flags.writeable = False
     return a
 
@@ -649,7 +655,7 @@ def _validate(factored: FactoredTPM) -> None:
                 f"min {f.min()}, max {f.max()}, tolerance {tol}"
             )
         sums = f.sum(axis=-1)
-        if not np.allclose(sums, 1.0, atol=tol):
+        if not np.allclose(sums, 1.0, rtol=0, atol=tol):
             if sums.ndim == 0:
                 raise exceptions.InvalidTPM(
                     f"factor {i} sums to 1 violated: got {sums.item()}, tolerance {tol}"

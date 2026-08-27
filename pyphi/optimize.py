@@ -183,7 +183,7 @@ def _eval_one(
     }
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class OptimizationResult(Serializable):
     """The outcome of an :func:`optimize` run.
 
@@ -235,6 +235,28 @@ class OptimizationResult(Serializable):
     config_snapshot: dict[str, Any]
     n_evaluations: int
     n_unreachable: int
+
+    def __eq__(self, other: object) -> bool:
+        # The generated dataclass __eq__ would compare ``best_params`` and
+        # ``trajectory`` with ``==``, which yields elementwise results whose
+        # truth values raise.
+        if not isinstance(other, OptimizationResult):
+            return NotImplemented
+        return (
+            np.array_equal(self.best_params, other.best_params)
+            and self.trajectory.equals(other.trajectory)
+            and self.best_objective == other.best_objective
+            and self.best_substrate == other.best_substrate
+            and self.best_sia == other.best_sia
+            and self.bounds == other.bounds
+            and self.seed == other.seed
+            and self.direction == other.direction
+            and self.objective_name == other.objective_name
+            and self.settings == other.settings
+            and self.config_snapshot == other.config_snapshot
+            and self.n_evaluations == other.n_evaluations
+            and self.n_unreachable == other.n_unreachable
+        )
 
     def to_pandas(self) -> pd.DataFrame:
         return self.trajectory

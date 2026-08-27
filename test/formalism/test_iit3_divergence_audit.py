@@ -233,7 +233,7 @@ def test_iit3_path_never_invokes_4_0_cascade_resolvers(
     for name in (
         "states",
         "resolve_state_tie",
-        "resolve_distinction_tie",
+        "congruent_distinction_readings",
         "resolve_complex_tie",
     ):
         monkeypatch.setattr(f"pyphi.resolve_ties.{name}", boom)

@@ -76,6 +76,11 @@ must hold for a result to be cached:
   and always caches).
 - No result-affecting keyword arguments are passed to `sia()` or `ces()`.
 
+These files are durable results rather than reclaimable memory, so
+`pyphi.cache.clear_all()` leaves them alone. Remove them with
+`pyphi.cache.clear("disk.results")` or by deleting the `__pyphi_cache__/`
+directory.
+
 ## Surviving a crash
 
 **PyPhi has no built-in checkpointing.** A long computation that hangs or is

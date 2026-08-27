@@ -313,6 +313,13 @@ def _find_mip(
     context = resolve_ties.ResolutionContext(max_escalation_level="Determinism")
     outcome = resolve_ties.resolve_ac_partition_tie(candidates, context=context)
     winner = outcome.resolved
+    if winner is None and len({r.partition.lex_key() for r in outcome.tied_set}) == 1:
+        # Survivors of the cascade's Determinism level share the lex-minimal
+        # edge cut, so they are representations of the same physical
+        # partition; any one of them is the MIP. Without this, an exhausted
+        # cascade would return None and the purview would be silently
+        # dropped from the causal-link search.
+        winner = outcome.tied_set[0]
     # Record only the |α|-cluster around the winning minimum; the cascade's
     # tied_set carries every candidate entering the resolving level.
     abs_alphas = [abs(r.alpha) for r in candidates]
@@ -473,6 +480,7 @@ def _directed_account(
 def _account(
     transition,
     direction=Direction.BIDIRECTIONAL,
+    allow_neg=False,
     *,
     alpha_measure: DistributionMeasure | None = None,
     partitioned_repertoire_scheme=None,
@@ -492,6 +500,9 @@ def _account(
     direction : Direction
         By default (``Direction.BIDIRECTIONAL``) the account contains actual
         causes and actual effects.
+    allow_neg : bool
+        If true, α is allowed to be negative. Otherwise, negative values of α
+        are treated as if they were zero.
     alpha_measure : DistributionMeasure, optional
         Resolved alpha measure callable. When ``None``,
         ``config.formalism.actual_causation.alpha_measure`` is resolved at the
@@ -505,6 +516,7 @@ def _account(
         return _directed_account(
             transition,
             direction,
+            allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )
@@ -513,12 +525,14 @@ def _account(
         _directed_account(
             transition,
             Direction.CAUSE,
+            allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )
         + _directed_account(
             transition,
             Direction.EFFECT,
+            allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
         )

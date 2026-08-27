@@ -235,14 +235,25 @@ def cascade[U](
     # When budget blocks or all levels exhaust, this is the level reported.
     last_processed_level: Postulate | None = None
 
-    for level in levels:
-        if not context.can_escalate_to(level.postulate):
-            return CascadeOutcome(
-                resolved=None,
-                tied_set=survivors,
-                cascade_level=last_processed_level or level.postulate,
-                outcome="UNRESOLVED_WITHIN_BUDGET",
+    def _unresolved(level: Postulate) -> CascadeOutcome[U]:
+        # Terminated with a genuine tie — budget-blocked or exhausted alike.
+        if on_unresolved == "fail":
+            raise NotAComplex(survivors, level)
+        if on_unresolved == "warn":
+            import warnings
+
+            warnings.warn(
+                f"Cascade unresolved at {level} with {len(survivors)} tied candidates",
+                stacklevel=3,
             )
+        return CascadeOutcome(
+            resolved=None,
+            tied_set=survivors,
+            cascade_level=level,
+            outcome="UNRESOLVED_WITHIN_BUDGET",
+        )
+
+    for level in levels:
         if len(survivors) == 1:
             return CascadeOutcome(
                 resolved=survivors[0],
@@ -250,6 +261,8 @@ def cascade[U](
                 cascade_level=last_processed_level or level.postulate,
                 outcome="RESOLVED",
             )
+        if not context.can_escalate_to(level.postulate):
+            return _unresolved(last_processed_level or level.postulate)
         pre_apply = survivors
         survivors = _apply_level(pre_apply, level)
         last_processed_level = level.postulate
@@ -271,21 +284,7 @@ def cascade[U](
         )
 
     # Cascade exhausted all levels with a tie.
-    if on_unresolved == "fail":
-        raise NotAComplex(survivors, final_level)
-    if on_unresolved == "warn":
-        import warnings
-
-        warnings.warn(
-            f"Cascade exhausted at {final_level} with {len(survivors)} tied candidates",
-            stacklevel=2,
-        )
-    return CascadeOutcome(
-        resolved=None,
-        tied_set=survivors,
-        cascade_level=final_level,
-        outcome="UNRESOLVED_WITHIN_BUDGET",
-    )
+    return _unresolved(final_level)
 
 
 class _StateMIP(Protocol):
@@ -360,46 +359,39 @@ class _CongruentMice(Protocol):
     def is_congruent(self, other: Any) -> bool: ...
 
 
-def resolve_distinction_tie[V: _CongruentMice](
+def congruent_distinction_readings[V: _CongruentMice](
     state_ties: "Sequence[V] | None",
     purview_ties: "Sequence[V] | None",
     system_state_spec: Any,
-    *,
-    context: ResolutionContext,  # noqa: ARG001
-) -> V | None:
-    """Resolve a per-direction distinction-state tie per Albantakis et al.
-    2023 S1 Text.
+) -> list[V]:
+    """Every tied reading of a distinction's cause or effect that is
+    congruent with the system's specified state.
 
-    Two cases:
+    The candidate set is every tied reading: the union of the state ties
+    carried by each purview-tied MICE (state ties are same-purview
+    readings tied at maximum ``ii(m, z)``; purview ties are cross-purview
+    readings tied at maximum ``φ_d(m, Z)``).
 
-    - **Same-purview state ties** (``state_ties``): MICEs tied at maximum
-      ``ii(m, z)`` within a single purview. Returns the MICE whose
-      specified state is congruent with ``system_state_spec`` — the
-      direction-specific component of the system's specified
-      cause-effect state.
-
-    - **Cross-purview ties** (``purview_ties``): MICEs tied at maximum
-      ``φ_d(m, Z)`` across different purviews. Returns the largest
-      congruent purview (the "typically favors larger purviews"
-      heuristic for "supports the most relations with other
-      distinctions").
-
-    State-tie congruence is preferred over purview-tie heuristic: if any
-    state-tie MICE is congruent, it is returned; only when none is
-    congruent does the cross-purview branch fire. Returns ``None`` when
-    no congruent MICE is found in either branch.
+    Congruence with ``system_state_spec`` — the direction-specific
+    component of the system's specified cause-effect state — is a
+    requirement, not a tie-break (Albantakis et al. 2023 S1 Text): a
+    non-congruent reading cannot enter the cause-effect structure, and a
+    distinction with no congruent reading is excluded from it. Selection
+    among the congruent readings is the Composition appeal — performed
+    jointly across the structure's distinctions by
+    :meth:`pyphi.models.distinctions.Distinctions.resolve_congruence`,
+    which selects the readings that maximize the structure integrated
+    information Φ, per S1's principle of maximal existence.
     """
-    if state_ties:
-        congruent_state = [m for m in state_ties if m.is_congruent(system_state_spec)]
-        if congruent_state:
-            return congruent_state[0]
-    if purview_ties:
-        congruent_purview = [
-            m for m in purview_ties if m.is_congruent(system_state_spec)
-        ]
-        if congruent_purview:
-            return max(congruent_purview, key=lambda m: len(m.purview))
-    return None
+    candidates: list[V] = []
+    seen: set[int] = set()
+    for group in (state_ties or (), purview_ties or ()):
+        for mice in group:
+            for reading in getattr(mice, "state_ties", None) or (mice,):
+                if id(reading) not in seen:
+                    seen.add(id(reading))
+                    candidates.append(reading)
+    return [m for m in candidates if m.is_congruent(system_state_spec)]
 
 
 class _AcRIALike(Protocol):
@@ -805,6 +797,9 @@ def resolve[T](
     for name in strategy:
         if len(survivors) == 1:
             break
+        if name == "NONE":
+            # "NONE" filters nothing, as in the bare-string form.
+            continue
         key_function = phi_object_tie_resolution_strategies[name]
         keys = [key_function(obj) for obj in survivors]
         extremum = operation(keys)

@@ -1,0 +1,1 @@
+Fixed `NullRelations` equality: instances compared by identity, so two identical IIT 3.0 cause-effect structures compared unequal, and a saved and reloaded structure never compared equal to the original. All `NullRelations` instances now compare equal and hash consistently.

@@ -170,6 +170,48 @@ class TestInfrastructureConfig:
             "progress",
         }
 
+    def test_partial_parallel_dict_merges_over_defaults(self):
+        """A partial per-level dict must keep the tuned defaults for the keys
+        it omits, not collapse them to the call-site fallbacks (e.g. the
+        relation level's sequential_threshold of 8192 vs map_reduce's 1)."""
+        cfg = InfrastructureConfig(parallel_relation_evaluation={"parallel": True})
+        assert dict(cfg.parallel_relation_evaluation) == {
+            "parallel": True,
+            "sequential_threshold": 8192,
+            "chunksize": 4096,
+            "progress": True,
+        }
+
+    def test_partial_parallel_dict_merges_via_override(self):
+        with config.override(parallel_relation_evaluation={"parallel": True}):
+            stored = config.infrastructure.parallel_relation_evaluation
+            assert stored["parallel"] is True
+            assert stored["sequential_threshold"] == 8192
+            assert stored["chunksize"] == 4096
+
+    def test_unknown_parallel_dict_key_rejected(self):
+        with pytest.raises(ConfigurationError) as exc:
+            InfrastructureConfig(
+                parallel_relation_evaluation={
+                    "parallel": True,
+                    "sequential_thresold": 8192,  # typo'd on purpose
+                }
+            )
+        message = str(exc.value)
+        assert "sequential_thresold" in message
+        assert "sequential_threshold" in message  # names the valid keys
+        assert "parallel_relation_evaluation" in message
+
+    def test_full_parallel_dict_passes_unchanged(self):
+        full = {
+            "parallel": True,
+            "sequential_threshold": 1,
+            "chunksize": 2,
+            "progress": False,
+        }
+        cfg = InfrastructureConfig(parallel_mechanism_partition_evaluation=full)
+        assert dict(cfg.parallel_mechanism_partition_evaluation) == full
+
     def test_is_frozen(self):
         cfg = InfrastructureConfig()
         with pytest.raises(FrozenInstanceError):

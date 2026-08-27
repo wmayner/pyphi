@@ -1,0 +1,1 @@
+`formalism.iit.version="IIT_4_0_2026"` now requires a `system_phi_measure` that applies the intrinsic-information requirement (Eq. 23), i.e. `INTRINSIC_INFORMATION`. Previously pairing version 2026 with `GENERALIZED_INTRINSIC_DIFFERENCE` passed validation and computed the 2023 quantity while results reported version 2026.

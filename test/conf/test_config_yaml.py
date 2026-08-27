@@ -227,3 +227,46 @@ class TestSectionRouting:
         )
         with pytest.raises(ConfigurationError, match="unrecognized keys"):
             config.load_yaml(str(path))
+
+
+class TestShippedConfigFiles:
+    def test_iit3_reference_yaml_reproduces_preset(self):
+        """The shipped ``pyphi_config_3.0.yml`` loads and mirrors the
+        ``IIT_3_0`` preset exactly."""
+        from pathlib import Path
+
+        from pyphi.conf import presets
+
+        path = Path(__file__).parents[2] / "pyphi_config_3.0.yml"
+        before = config.snapshot()
+        try:
+            config.load_yaml(str(path))
+            for key, want in presets.by_name["IIT_3_0"].items():
+                assert getattr(config, key) == want, key
+        finally:
+            config.install_snapshot(before)
+
+
+class TestEmptyLayerSections:
+    def test_empty_layer_section_loads(self, tmp_path):
+        """A layer key with nothing under it (YAML None) is an empty dict,
+        not an AttributeError."""
+        path = tmp_path / "config.yml"
+        path.write_text("---\nnumerics:\nformalism:\n  iit:\ninfrastructure:\n")
+        before = config.snapshot()
+        try:
+            config.load_yaml(str(path))  # must not raise
+        finally:
+            config.install_snapshot(before)
+
+    def test_unknown_option_error_names_migration_guide(self):
+        with pytest.raises(ConfigurationError, match="migration"):
+            config.not_a_real_option = 1
+
+
+class TestRenamedFieldHint:
+    def test_unknown_field_matching_a_renamed_field_names_its_replacement(self):
+        """The error for a renamed option names the replacement, consulting
+        RENAMED_FIELDS rather than only pointing at the migration guide."""
+        with pytest.raises(ConfigurationError, match="memory_ceiling_bytes"):
+            config.maximum_cache_memory_bytes = 0

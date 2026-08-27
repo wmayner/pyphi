@@ -22,8 +22,6 @@ EXPECTED_REGISTRY_CONTENTS = {
         "DIRECTED_SET_PARTITION",
         "EDGE_CUT_ALL",
         "EDGE_CUT_BIDIRECTIONAL",
-        "TEMPORAL_DIRECTED_BIPARTITION",
-        "TEMPORAL_DIRECTED_BIPARTITION_CUT_ONE",
     },
     "relations.relation_computations": {"ANALYTICAL", "CONCRETE"},
     "resolve_ties.phi_object_tie_resolution_strategies": {

@@ -1,0 +1,1 @@
+The one-line display of a `DirectedBipartition` now always points the cut arrow from `from_nodes` to `to_nodes` — the connections the cut severs — and annotates the causal direction textually. Previously a CAUSE-labeled cut drew the arrow reversed relative to the severed-connections grid.

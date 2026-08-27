@@ -3,7 +3,7 @@ import pytest
 
 from pyphi import serialize
 from pyphi.direction import Direction
-from pyphi.models.partitions import CompleteEdgeCut
+from pyphi.labels import NodeLabels
 from pyphi.models.partitions import DirectedBipartition
 from pyphi.models.partitions import DirectedJointPartition
 from pyphi.models.partitions import DirectedSetPartition
@@ -13,6 +13,7 @@ from pyphi.models.partitions import JointPartition
 from pyphi.models.partitions import JointTripartition
 from pyphi.models.partitions import NullCut
 from pyphi.models.partitions import Part
+from pyphi.models.partitions import TotalCut
 
 FORMATS = ["json", "msgpack"]
 
@@ -34,7 +35,7 @@ PARTITIONS = [
     JointTripartition(Part((0,), (1,)), Part((1,), (2,)), Part((2,), (0,))),
     DirectedJointPartition(Direction.EFFECT, _joint()),
     EdgeCut((0, 1), np.array([[0, 1], [1, 0]])),
-    CompleteEdgeCut((0, 1, 2)),
+    TotalCut((0, 1, 2)),
     DirectedSetPartition((0, 1), np.array([[0, 1], [1, 0]]), [[0], [1]]),
 ]
 
@@ -45,3 +46,53 @@ def test_partition_round_trips(obj, fmt):
     restored = round_trip(obj, fmt)
     assert restored == obj
     assert type(restored) is type(obj)
+
+
+LABELS = NodeLabels(("A", "B", "C"), (0, 1, 2))
+
+
+def _labeled_joint():
+    return JointPartition(
+        Part((0,), (1,), node_labels=LABELS),
+        Part((1,), (0,), node_labels=LABELS),
+        node_labels=LABELS,
+    )
+
+
+LABELED_PARTITIONS = [
+    Part((0, 1), (2,), node_labels=LABELS),
+    NullCut((0, 1, 2), LABELS),
+    DirectedBipartition(Direction.CAUSE, (0,), (1,), LABELS),
+    _labeled_joint(),
+    JointBipartition(
+        Part((0,), (1,), node_labels=LABELS),
+        Part((1,), (0,), node_labels=LABELS),
+        node_labels=LABELS,
+    ),
+    JointTripartition(
+        Part((0,), (1,), node_labels=LABELS),
+        Part((1,), (2,), node_labels=LABELS),
+        Part((2,), (0,), node_labels=LABELS),
+        node_labels=LABELS,
+    ),
+    DirectedJointPartition(Direction.EFFECT, _labeled_joint(), LABELS),
+    EdgeCut((0, 1), np.array([[0, 1], [1, 0]]), LABELS),
+    TotalCut((0, 1, 2), LABELS),
+    DirectedSetPartition((0, 1), np.array([[0, 1], [1, 0]]), [[0], [1]], LABELS),
+]
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+@pytest.mark.parametrize("obj", LABELED_PARTITIONS, ids=lambda o: type(o).__name__)
+def test_partition_labels_round_trip(obj, fmt):
+    restored = round_trip(obj, fmt)
+    assert restored == obj
+    assert restored.node_labels is not None
+    assert tuple(restored.node_labels) == tuple(LABELS)
+    if isinstance(restored, JointPartition):
+        for part in restored.parts:
+            assert part.node_labels is not None
+            assert tuple(part.node_labels) == tuple(LABELS)
+    if isinstance(restored, DirectedJointPartition):
+        assert restored.partition.node_labels is not None
+        assert tuple(restored.partition.node_labels) == tuple(LABELS)

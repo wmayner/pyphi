@@ -1,64 +1,53 @@
 # PyPhi configuration: IIT 3.0 reference
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Reflects the published IIT 3.0 formalism (Oizumi, Albantakis, Tononi 2014).
-# Mirrors the ``pyphi.iit3`` preset. Load with
+# Mirrors the ``IIT_3_0`` preset (``pyphi.presets.by_name["IIT_3_0"]``) exactly;
+# a test asserts the two stay in sync. Load with
 # ``pyphi.config.load_yaml('pyphi_config_3.0.yml')``.
 ---
 formalism:
   iit:
     # Theory version.
     version: IIT_3_0
-    # In some cases a partition can cause a previously reducible concept to
-    # become irreducible. Assuming this can never happen speeds things up at
-    # the cost of strict accuracy.
-    assume_partitions_cannot_create_new_concepts: false
     # The repertoire-distance measure used at the mechanism level.
     mechanism_phi_measure: EMD
+    # The measure used for system-level integrated information.
+    system_phi_measure: GENERALIZED_INTRINSIC_DIFFERENCE
+    # The measure used to specify cause-effect states.
+    specification_measure: GENERALIZED_INTRINSIC_DIFFERENCE
     # The CES-distance measure used at the system level.
     ces_measure: EMD
     # Mechanism-partition scheme.
     mechanism_partition_scheme: JOINT_BIPARTITION
     # System-partition scheme.
     system_partition_scheme: DIRECTED_BIPARTITION
-    # How ties among MICE are broken.
-    purview_tie_resolution: ["PHI", "PURVIEW_SIZE"]
+    # Whether the complete partition is included among system partitions.
+    system_partition_include_total: false
+    # Normalization applied to distinction phi when comparing partitions.
+    distinction_phi_normalization: NONE
+    # How units outside the candidate system are treated.
+    background_conditioning: CONDITION_CURRENT_STATE
+    # How relations are computed.
+    relation_computation: ANALYTICAL
+    # In some cases a partition can cause a previously reducible concept to
+    # become irreducible. Assuming this can never happen speeds things up at
+    # the cost of strict accuracy.
+    assume_partitions_cannot_create_new_concepts: false
+    # Short-circuit optimizations.
+    shortcircuit_sia: true
+    shortcircuit_distinctions: true
     # Whether single micro-nodes with self-loops have nonzero phi.
     single_micro_nodes_with_selfloops_have_phi: false
+    # Tie-resolution strategies.
+    state_tie_resolution: PHI
+    mip_tie_resolution: [PHI, PARTITION_LEX]
+    purview_tie_resolution: [PHI, PURVIEW_SIZE]
+    sia_tie_resolution: [PHI, PARTITION_LEX]
   actual_causation:
     # The information measure used for actual-causation alpha values.
     alpha_measure: PMI
 
-infrastructure:
-  # Whether subsystem states are validated on construction.
-  validate_system_states: true
-  # Whether the substrate is validated for conditional independence.
-  validate_conditional_independence: true
-  # Per-level parallel evaluation defaults. Set ``parallel: true`` to enable
-  # at that level (sequential_threshold / chunksize keep their defaults).
-  parallel_concept_evaluation:
-    parallel: false
-  parallel_complex_evaluation:
-    parallel: false
-  # Number of worker processes: -1 means all available CPUs, -2 means all
-  # but one, etc.
-  parallel_workers: -1
-  # Backend for parallel computation: "local" (ProcessPoolExecutor) or "auto".
-  parallel_backend: local
-  # Memory ceiling (percent) for in-memory caches.
-  memory_ceiling_percentage: 100
-  # Repertoire and purview caches.
-  cache_repertoires: true
-  cache_potential_purviews: true
-  # Reuse mapping-independent macro TPM construction intermediates per substrate.
-  cache_macro_construction: true
-  # Clear subsystem caches after each SIA computation.
-  clear_system_caches_after_computing_sia: false
-  # Suppress the welcome message.
-  welcome_off: false
-  # Progress bars and ``repr``/``__str__`` verbosity.
-  progress_bars: true
-  repr_verbosity: 2
-  print_fractions: true
+infrastructure: {}
 
 numerics:
   # Decimal places of agreement required when comparing phi values.

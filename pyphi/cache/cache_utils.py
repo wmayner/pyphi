@@ -37,11 +37,14 @@ def _cgroup_memory_limit(
 ) -> int | None:
     """Resident-memory limit of this process's cgroup, or ``None`` if unconfined.
 
-    Reads ``memory.max`` for the process's own group under cgroup v2, falling
-    back to the v1 ``memory.limit_in_bytes``, and finally to the hierarchy root
-    as seen from inside a container's cgroup namespace. A literal ``max``, or a
-    value at or above total physical memory, means no limit — cgroup v1
-    represents "unlimited" as a number near the word size rather than as a
+    Reads the memory limit at the process's own group and at every ancestor
+    group up to the hierarchy root — ``memory.max`` under cgroup v2,
+    ``memory.limit_in_bytes`` under v1 — and returns the smallest one found.
+    An ancestor's limit binds every group below it, and scheduler-managed
+    layouts (Slurm, systemd slices) commonly place the limit on a parent
+    rather than on the process's own leaf group. A literal ``max``, or a value
+    at or above total physical memory, means no limit at that level — cgroup
+    v1 represents "unlimited" as a number near the word size rather than as a
     sentinel.
 
     Parameters
@@ -57,24 +60,35 @@ def _cgroup_memory_limit(
         The limit in bytes, or ``None`` when the process may use the whole
         machine or the limit cannot be read.
     """
-    candidates = []
+    candidates: list[Path] = []
+
+    def walk_to_root(base: Path, relative: str, filename: str) -> None:
+        """Collect ``filename`` at the group and at every ancestor group."""
+        node = base / relative if relative else base
+        while True:
+            candidates.append(node / filename)
+            if node in (base, node.parent):
+                break
+            node = node.parent
+
     try:
         for line in self_cgroup.read_text().splitlines():
             hierarchy, _, remainder = line.partition(":")
             controllers, _, relative = remainder.partition(":")
             relative = relative.strip().lstrip("/")
             if hierarchy == "0" and not controllers:
-                candidates.append(cgroup_root / relative / "memory.max")
+                walk_to_root(cgroup_root, relative, "memory.max")
             elif "memory" in controllers.split(","):
-                candidates.append(
-                    cgroup_root / "memory" / relative / "memory.limit_in_bytes"
-                )
+                walk_to_root(cgroup_root / "memory", relative, "memory.limit_in_bytes")
     except OSError:
         pass
+    # The hierarchy root as seen from inside a container's cgroup namespace,
+    # reachable even when the process's own groups cannot be read.
     candidates.append(cgroup_root / "memory.max")
     candidates.append(cgroup_root / "memory" / "memory.limit_in_bytes")
 
     total = psutil.virtual_memory().total
+    limits = []
     for path in candidates:
         try:
             raw = path.read_text().strip()
@@ -85,8 +99,8 @@ def _cgroup_memory_limit(
         except ValueError:
             continue  # "max" under v2
         if 0 < value < total:
-            return value
-    return None
+            limits.append(value)
+    return min(limits) if limits else None
 
 
 @lru_cache(maxsize=1)
@@ -145,14 +159,19 @@ _MISSING = object()
 def entry_weight(value: Any) -> int:
     """Estimated bytes one cached value occupies, including its key and slot.
 
-    An ndarray view's buffer belongs to the array it derives from, so only the
-    view object itself is charged. A sequence — the combinatorial index tables
+    An ndarray view keeps its whole underlying buffer alive, and the cache may
+    be that buffer's only owner, so a view is charged the buffer of the array
+    it derives from. A base that is itself also cached is then charged twice;
+    overcounting a shared buffer only evicts sooner, where undercounting lets
+    the bound exceed real memory. A sequence — the combinatorial index tables
     are lists of tuples — is charged per element, since its cost is the
     elements rather than any single buffer.
     """
     if isinstance(value, np.ndarray):
-        payload = value.nbytes if value.base is None else 0
-        return _ENTRY_OVERHEAD_BYTES + _ARRAY_DIM_BYTES * value.ndim + payload
+        owner = value
+        while isinstance(owner.base, np.ndarray):
+            owner = owner.base
+        return _ENTRY_OVERHEAD_BYTES + _ARRAY_DIM_BYTES * value.ndim + owner.nbytes
     if isinstance(value, list | tuple):
         return _ENTRY_OVERHEAD_BYTES + sum(map(_element_weight, value))
     return _ENTRY_OVERHEAD_BYTES
@@ -205,7 +224,9 @@ class ByteBoundedStore:
     reuse rather than to the operating system.
 
     Not internally synchronized. A caller sharing a store across threads holds
-    its own lock across :meth:`admit` and :meth:`discard`.
+    its own lock across :meth:`admit` and :meth:`discard`; lock-free hits that
+    pop and reinsert entries in ``data`` directly are tolerated, and the
+    eviction loop never raises because of them.
     """
 
     def __init__(self) -> None:
@@ -241,14 +262,30 @@ class ByteBoundedStore:
                 # passed or because memory was released elsewhere.
                 self._budget = None
         if self._budget is not None:
+            if weight > self._budget:
+                # Does not fit even in an empty store: refuse up front rather
+                # than draining the working set first for an entry that could
+                # never be held.
+                return
             while self.data and self._weight + weight > self._budget:
-                oldest, evicted = next(iter(self.data.items()))
-                del self.data[oldest]
+                # A lock-free hit on another thread may pop and reinsert an
+                # entry at any point, so the iterator can find the dict
+                # changed under it and a chosen key can vanish before the
+                # pop; retry in both cases rather than raise. Each retry
+                # re-reads the loop condition, and every successful pop
+                # reduces the weight, so the loop terminates.
+                try:
+                    oldest = next(iter(self.data))
+                except (RuntimeError, StopIteration):
+                    continue
+                evicted = self.data.pop(oldest, _MISSING)
+                if evicted is _MISSING:
+                    continue
                 self._weight -= entry_weight(evicted)
                 self.evictions += 1
             if self._weight + weight > self._budget:
-                # Does not fit even in an empty store. Storing it would evict
-                # the whole working set for one entry.
+                # Still no room: lock-free hits on other threads reinserted
+                # entries while the loop ran.
                 return
         self.discard(key)
         self.data[key] = value

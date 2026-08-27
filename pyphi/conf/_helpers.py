@@ -65,10 +65,11 @@ PARALLEL_KWARGS = [
     "shortcircuit_func",
     "shortcircuit_callback",
     "shortcircuit_callback_args",
-    "inflight_limit",
     "progress",
     "desc",
     "map_kwargs",
+    "size_func",
+    "backend",
 ]
 
 
@@ -77,9 +78,10 @@ def parallel_kwargs(
 ) -> dict[str, Any]:
     """Build kwargs for a parallel function call.
 
-    Overlays user overrides on the option-level defaults, then applies
-    the global parallel + progress switches as gates: if either is off
-    globally, the per-site setting is forced off.
+    Applies the global parallel + progress switches as gates to the
+    option-level defaults (if either is off globally, the per-site default
+    is forced off), then overlays explicit user overrides — so a per-call
+    setting always wins over the global gate.
     """
     from pyphi.conf import config
 

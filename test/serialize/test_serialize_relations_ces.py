@@ -70,6 +70,7 @@ def test_null_relations_round_trips(fmt):
     obj = NullRelations()
     restored = round_trip(obj, fmt)
     assert type(restored) is NullRelations
+    assert restored == obj
     assert len(list(restored)) == 0
 
 
@@ -111,11 +112,13 @@ def test_null_ces_round_trips(fmt):
 
 @pytest.mark.parametrize("fmt", FORMATS)
 def test_ces_preserves_config_and_provenance(fmt):
+    from pyphi.conf.snapshot import ConfigSnapshot
+
     with pyphi.config.override(precision=7):
         obj = make_ces()
     restored = round_trip(obj, fmt)
-    assert isinstance(restored.config, dict)
-    assert restored.config["numerics"]["precision"] == 7
+    assert isinstance(restored.config, ConfigSnapshot)
+    assert restored.config.numerics.precision == 7
     assert restored.provenance == obj.provenance
 
 

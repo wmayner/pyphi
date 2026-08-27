@@ -1,0 +1,1 @@
+IIT 3.0 computations now reject an incompatible `mechanism_partition_scheme` (e.g. the IIT 4.0 `JOINT_PARTITION_ALL` family) at the dispatch boundary when the configuration was assembled by per-field assignment, instead of silently computing phi over a different partition family.

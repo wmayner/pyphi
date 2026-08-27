@@ -43,7 +43,7 @@ class _Skipped:
     cell: tuple[Any, Any, Any]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class SweepResult(Serializable):
     """A sweep's tidy table plus the raw results behind it.
 
@@ -57,6 +57,17 @@ class SweepResult(Serializable):
     df: pd.DataFrame
     results: list[Any]
     skipped: list[tuple[Any, str, tuple, tuple]]
+
+    def __eq__(self, other: object) -> bool:
+        # The generated dataclass __eq__ would compare ``df`` with ``==``,
+        # which yields an elementwise DataFrame whose truth value raises.
+        if not isinstance(other, SweepResult):
+            return NotImplemented
+        return (
+            self.df.equals(other.df)
+            and self.results == other.results
+            and self.skipped == other.skipped
+        )
 
     def to_pandas(self) -> pd.DataFrame:
         return self.df
@@ -82,9 +93,16 @@ def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
     return [tuple(s) for s in subsets]
 
 
-def _normalize_formalisms(formalisms: Any) -> list[str]:
+def _normalize_formalisms(formalisms: Any) -> list[str | None]:
+    """Normalize the formalisms axis; ``None`` means the ambient config.
+
+    ``None`` is kept as a sentinel rather than resolved to the ambient
+    version name: an explicit version name applies its complete preset,
+    while the ambient config may carry user customizations that a preset
+    would silently reset.
+    """
     if formalisms is None:
-        return [config.formalism.iit.version]
+        return [None]
     if isinstance(formalisms, str):
         return [formalisms]
     return list(formalisms)
@@ -116,8 +134,8 @@ def _enumerate_cells(
     labeled: list[tuple[Any, Any]],
     states: Any,
     subsets: Any,
-    formalisms_: list[str],
-) -> list[tuple[Any, str, tuple, tuple]]:
+    formalisms_: list[str | None],
+) -> list[tuple[Any, str | None, tuple, tuple]]:
     """Enumerate ``(label, formalism, subset, state)`` cells in canonical order.
 
     Explicit ``states``/``subsets`` apply to every substrate; ``"all"`` is
@@ -223,9 +241,19 @@ def _extract_row(result: Any, compute: Any) -> dict[str, Any]:
 # ---- execution ----
 
 
+def _formalism_preset(formalism: str | None) -> dict[str, Any]:
+    """The config override for a formalism axis value.
+
+    An explicit version name applies its complete preset; ``None`` (the
+    ambient config) applies nothing, so user customizations are honored
+    exactly as :func:`pyphi.analyze` honors them.
+    """
+    return {} if formalism is None else dict(presets.by_name[formalism])
+
+
 def _run_cells_sequential(
     substrates: dict,
-    formalism: str,
+    formalism: str | None,
     cells: list[Any],
     compute: Any,
     skip: bool,
@@ -235,7 +263,9 @@ def _run_cells_sequential(
         config.infrastructure.progress_bars if progress is None else progress
     )
     results: list[Any] = []
-    with config.override(**presets.by_name[formalism], progress_bars=resolved_progress):
+    with config.override(
+        **_formalism_preset(formalism), progress_bars=resolved_progress
+    ):
         results = [
             _run_cell(c, substrates=substrates, compute=compute, skip=skip)
             for c in cells
@@ -245,7 +275,7 @@ def _run_cells_sequential(
 
 def _run_cells_parallel(
     substrates: dict,
-    formalism: str,
+    formalism: str | None,
     cells: list[Any],
     compute: Any,
     skip: bool,
@@ -263,7 +293,7 @@ def _run_cells_parallel(
     # Install the formalism and disable inner parallelism in the worker config
     # snapshot the process backend captures; the outer map_reduce parallelizes
     # via its explicit parallel=True (one level of parallelism, no oversubscription).
-    with config.override(**presets.by_name[formalism], parallel=False):
+    with config.override(**_formalism_preset(formalism), parallel=False):
         results = map_reduce(
             cell_fn,
             cells,
@@ -271,7 +301,7 @@ def _run_cells_parallel(
             ordered=True,
             reduce_func=list,
             progress=show,
-            desc=f"sweep[{formalism}]",
+            desc=f"sweep[{formalism if formalism is not None else 'active config'}]",
             # Cells are whole SIA/CES computations: cost-sampling would run
             # several inline in the parent and discard their results.
             chunksize=1,
@@ -343,8 +373,11 @@ def sweep(
         iterable of node-index tuples. Explicit subsets apply to every
         substrate; ``"full"`` and ``"all"`` are resolved per substrate.
     formalisms
-        ``None`` (the active formalism) or an iterable of version names
-        (``"IIT_3_0"``, ``"IIT_4_0_2023"``, ``"IIT_4_0_2026"``).
+        ``None`` (the active configuration, honored exactly as
+        :func:`pyphi.analyze` honors it — no preset is applied, so runtime
+        customizations survive) or an iterable of version names
+        (``"IIT_3_0"``, ``"IIT_4_0_2023"``, ``"IIT_4_0_2026"``), each of
+        which applies its complete preset.
     compute
         ``"sia"`` (default), ``"ces"``, or a callable taking a ``System``.
     parallel : bool or None, optional
@@ -393,11 +426,14 @@ def sweep(
             results = _run_cells_sequential(
                 substrate_map, formalism, cells, compute, skip_uncomputable, progress
             )
+        # The ambient sentinel executes with no preset applied but is
+        # reported under the active version name in the results table.
+        reported = config.formalism.iit.version if formalism is None else formalism
         for (label, subset, state), result in zip(cells, results, strict=True):
             if isinstance(result, _Skipped):
-                skipped.append((label, formalism, subset, state))
+                skipped.append((label, reported, subset, state))
             else:
-                keys.append((label, formalism, subset, state))
+                keys.append((label, reported, subset, state))
                 raw.append(result)
 
     if seed is not None:
@@ -407,5 +443,14 @@ def sweep(
                 with_provenance(seed=seed)
 
     rows = [_extract_row(result, compute) for result in raw]
-    df = _build_df(keys, rows, enumerated)
+    labeled_enumeration = [
+        (
+            label,
+            config.formalism.iit.version if f is None else f,
+            subset,
+            state,
+        )
+        for label, f, subset, state in enumerated
+    ]
+    df = _build_df(keys, rows, labeled_enumeration)
     return SweepResult(df=df, results=raw, skipped=skipped)

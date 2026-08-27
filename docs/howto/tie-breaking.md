@@ -201,6 +201,24 @@ sia = pyphi.System(noisy_xor, (0, 0, 0)).sia()
 }
 ```
 
+## Distinction ties: congruence and the structure
+
+A mechanism's tied readings — tied specified states within a purview, or
+tied purviews — are carried along rather than discarded, and the choice
+among them is made when the $\Phi$-structure is assembled. Readings whose
+specified state is not congruent with the system's own cause–effect state
+cannot enter the structure and are excluded first. If more than one
+congruent reading remains for some distinctions, PyPhi selects the
+combination of readings that maximizes the structure integrated information
+$\Phi$, following the S1 supplement's rule for distinction ties. The
+selection is joint across distinctions, because how much relation structure
+a reading supports depends on which readings the *other* distinctions adopt;
+the relation sum is computed in closed form, and any residual exact $\Phi$
+tie is closed deterministically. (Past a few thousand tied combinations,
+PyPhi falls back to a greedy per-distinction pass and warns.) This step is
+part of the formalism rather than a preference, so it has no configuration
+option.
+
 ## Changing the rules
 
 Set a tie-resolution option globally like any other configuration value. The

@@ -1,0 +1,1 @@
+Registering a partition scheme now validates the callable's signature against the registry's call shape (`(mechanism, purview)` for mechanism schemes, `(nodes,)` for system schemes), so wrong-shape registrations fail at registration instead of at the bottom of a phi computation.

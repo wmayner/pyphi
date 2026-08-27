@@ -114,15 +114,12 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "to_networkx",
         # Labeled export (ToPandasMixin on System):
         "to_pandas",
-        # Serialization (Serializable mixin on System):
-        "save",
-        "load",
     }
 )
 
 
 @dataclass(frozen=True, eq=False)
-class TransitionSystem:
+class TransitionSystem(Serializable):
     """A directional view of a state transition.
 
     Implements :class:`pyphi.protocols.SystemPublicInterface` by holding
@@ -130,10 +127,14 @@ class TransitionSystem:
     :attr:`_underlying_system`) and delegating the protocol surface
     through :meth:`__getattr__`. The underlying System is constructed
     with ``external_indices = substrate.indices - cause_indices`` (or
-    ``()`` when :attr:`noise_background` is True), so that substrate
-    units outside the cause set are held fixed in their actual state as
-    background conditions (Albantakis et al. 2019, Section 3.3, "Distinct
-    Background Conditions").
+    ``()`` when :attr:`noise_background` is True), so substrate units
+    outside the cause set are fixed in their actual state as background
+    conditions (Albantakis et al. 2019, Section 3.3, "Distinct
+    Background Conditions"): their inputs to the transition are clamped
+    at the observed before-state in both directions, matching the
+    paper's causal model in which the background U is set to u
+    throughout the transition. With :attr:`noise_background` the
+    background inputs are instead marginalized uniformly.
 
     The mechanism-evaluation ``state`` is direction-aware:
     ``after_state`` for the CAUSE direction (Bayesian-inverting from the
@@ -200,6 +201,11 @@ class TransitionSystem:
         return tuple(sorted(all_indices - set(self.cause_indices)))
 
     @cached_property
+    def background_state(self) -> tuple[int, ...]:
+        """External units are conditioned at the observed before-state."""
+        return self.before_state
+
+    @cached_property
     def node_labels(self) -> Any:
         return self.substrate.node_labels
 
@@ -223,7 +229,8 @@ class TransitionSystem:
                 node_indices=self.node_indices,
                 partition=self.partition,
                 external_indices=external,
-                background_conditioning="CAUSAL_MARGINALIZATION",
+                background_conditioning="CONDITION_CURRENT_STATE",
+                background_state=self.before_state,
             )
 
     @cached_property
@@ -275,6 +282,7 @@ class TransitionSystem:
             and self.effect_indices == other.effect_indices
             and self.direction == other.direction
             and self.partition == other.partition
+            and self.noise_background == other.noise_background
         )
 
     def __hash__(self) -> int:
@@ -287,6 +295,7 @@ class TransitionSystem:
                 self.effect_indices,
                 self.direction,
                 self.partition,
+                self.noise_background,
             )
         )
 

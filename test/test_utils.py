@@ -12,7 +12,7 @@ from .hypothesis_utils import iterable_or_list
 
 
 def test_all_states():
-    assert list(utils.all_states(0)) == []
+    assert list(utils.all_states(0)) == [()]
     assert list(utils.all_states(1)) == [(0,), (1,)]
     states = [
         (0, 0, 0),
@@ -37,8 +37,8 @@ def test_all_states():
         (1, 1),
         (2, 1),
     ]
-    # Empty sequence
-    assert list(utils.all_states(())) == []
+    # Empty sequence: exactly one state, the empty tuple
+    assert list(utils.all_states(())) == [()]
     # Sequence spec with big_endian=True
     assert list(utils.all_states((3, 2), big_endian=True)) == [
         (0, 0),

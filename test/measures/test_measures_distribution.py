@@ -602,3 +602,13 @@ class TestIntrinsicDifferentiationPrecision:
         p = np.array([1.0, 0.9999999999999998])
         result = distribution.intrinsic_differentiation(p, (slice(None),))
         assert float(result) == 0.0
+
+
+def test_pointwise_mutual_information_vector_undefined_ratios_are_zero():
+    # Entries where p or q is zero are documented to be 0 (matching the
+    # scalar pointwise_mutual_information), not the float-max values that
+    # np.nan_to_num substitutes for +/-inf by default.
+    p = np.array([0.5, 0.0, 0.5, 0.0])
+    q = np.array([0.25, 0.25, 0.0, 0.0])
+    result = distribution.pointwise_mutual_information_vector(p, q)
+    assert np.array_equal(result, np.array([1.0, 0.0, 0.0, 0.0]))

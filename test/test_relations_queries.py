@@ -24,7 +24,13 @@ NETWORKS = ["xor", "basic", "rule110", "fig4", "grid3"]
 @pytest.fixture(scope="module", params=NETWORKS)
 def structures(request):
     name = request.param
-    with config.override(parallel=False):
+    # Pinned to the complete IIT 4.0 (2023) preset: under the ambient 2026
+    # default, rule110's CES is empty (0 distinctions, 0 relations), which
+    # made every parity test on that fixture vacuous. Under 2023, every
+    # fixture produces relations, and the assertions below keep it that way.
+    from test.conftest import IIT_4_CONFIG
+
+    with IIT_4_CONFIG, config.override(parallel=False):
         system = getattr(examples, f"{name}_system")()
         distinctions = new_big_phi.ces(
             system,
@@ -36,7 +42,17 @@ def structures(request):
             ),
         ).distinctions
         concrete = relations.ConcreteRelations(relations.all_relations(distinctions))
-    analytical = relations.AnalyticalRelations(distinctions)
+        analytical = relations.AnalyticalRelations(distinctions)
+    # Non-vacuity: each fixture must actually exercise the parity comparisons.
+    # A fixture with no relations (or no maximal relations) makes the whole
+    # parametrization on it a silent no-op; fail loudly instead.
+    assert concrete.num_relations() > 0, f"{name}: no relations — parity is vacuous"
+    assert any(not r.is_self_relation for r in concrete), (
+        f"{name}: only self-relations — maximal-relation parity is vacuous"
+    )
+    assert set(concrete.maximal_relations()), (
+        f"{name}: no maximal relations — facet parity is vacuous"
+    )
     return name, distinctions, concrete, analytical
 
 

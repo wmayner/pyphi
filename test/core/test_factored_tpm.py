@@ -59,6 +59,24 @@ def test_factored_tpm_validation_rejects_nonsumming_factor() -> None:
         FactoredTPM(factors=[bad, good])
 
 
+def test_factored_tpm_row_sum_tolerance_is_absolute() -> None:
+    """Row sums are checked against the configured absolute tolerance only.
+
+    ``numpy.allclose`` adds a default relative tolerance of 1e-5 unless
+    ``rtol=0``, which would silently admit row sums off by up to ~1.1e-5
+    while the error message claims the configured (1e-13) tolerance.
+    """
+    from pyphi.conf import config
+
+    good = np.full((2, 2, 2), 0.5)
+    bad = good * (1.0 + 1e-6)
+    with config.override(precision=13):
+        with pytest.raises(InvalidTPM, match="sums to 1"):
+            FactoredTPM(factors=[bad, good.copy()])
+        # Exactly normalized factors are accepted.
+        FactoredTPM(factors=[good.copy(), good.copy()])
+
+
 def test_factored_tpm_validation_rejects_alphabet_lt_2() -> None:
     f0 = np.array([[[1.0]]], dtype=np.float64)
     with pytest.raises(InvalidTPM, match="alphabet"):

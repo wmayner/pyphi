@@ -153,6 +153,53 @@ def test_mice_preserves_purview_ties(fmt):
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
+def test_mice_nonmember_tie_tuple_round_trips(fmt):
+    # set_purview_ties assigns the winner's tie tuple to state- and
+    # partition-tie MICE that are not members of it; the round trip must
+    # preserve the tuple instead of grafting the non-member in.
+    winner = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    other = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
+    other._purview_ties = (winner,)  # `other` is not a member
+    assert other.num_purview_ties == 0
+    restored = round_trip(other, fmt)
+    assert restored.num_purview_ties == 0
+    assert len(restored._purview_ties) == 1
+    assert all(t is not restored for t in restored._purview_ties)
+
+
+def test_ces_purview_tie_counts_survive_round_trip():
+    # End-to-end: in the basic system under the 2023 preset, the (2,) cause
+    # carries the winner's tie tuple without being a member of it; its
+    # num_purview_ties must not change from 0 to 1 across save/load.
+    import pyphi
+    from pyphi import examples
+    from pyphi.conf import presets
+
+    with pyphi.config.override(**presets.iit4_2023):
+        ces = examples.basic_system().ces()
+    restored = round_trip(ces, "msgpack")
+    checked_nonmember = False
+    for d, d2 in zip(ces.distinctions, restored.distinctions, strict=True):
+        for side in ("cause", "effect"):
+            m = getattr(d, side)
+            m2 = getattr(d2, side)
+            if m._purview_ties is None:
+                assert m2._purview_ties is None
+                continue
+            assert len(m2._purview_ties) == len(m._purview_ties), (
+                d.mechanism,
+                side,
+            )
+            assert m2.num_purview_ties == m.num_purview_ties, (d.mechanism, side)
+            if not any(t is m for t in m._purview_ties):
+                checked_nonmember = True
+    assert checked_nonmember, (
+        "fixture no longer exercises a non-member tie tuple; "
+        "pick a scenario where set_purview_ties assigns the winner's tuple"
+    )
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
 def test_mice_not_computed_ties_round_trip(fmt):
     obj = MaximallyIrreducibleCause(make_ria(Direction.CAUSE))
     assert obj._purview_ties is None
@@ -191,3 +238,45 @@ def test_mice_loads_without_tie_field_as_not_computed():
     restored = serialize.loads(json.dumps(data).encode(), format="json")
     assert restored._purview_ties is None
     assert np.isnan(restored.num_purview_ties)
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_ria_normalized_phi_survives_cross_formalism_reload(fmt):
+    """normalized_phi is stored, not recomputed from the ambient config.
+
+    The RIA constructor derives normalized phi from the live
+    ``distinction_phi_normalization`` option, so deserializing under a
+    different formalism used to silently change the value (e.g. an IIT 3.0
+    result reloaded under the 2026 default: 0.5 -> 0.1667).
+    """
+    from pyphi.conf import config
+    from pyphi.conf import presets
+
+    def make_discriminating_ria():
+        # A partition cutting 2 connections, so NUM_CONNECTIONS_CUT (the
+        # 2026 scheme) yields factor 1/2 while NONE (the IIT 3.0 scheme)
+        # yields 1 -- the two schemes must disagree for this test to have
+        # power against the recompute-from-ambient-config behavior.
+        return RepertoireIrreducibilityAnalysis(
+            phi=0.3,
+            direction=Direction.CAUSE,
+            mechanism=(0, 1),
+            purview=(1, 2),
+            partition=JointPartition(Part((0,), (1, 2)), Part((1,), ())),
+            repertoire=np.ones((1, 2, 2)) / 4,
+            partitioned_repertoire=np.ones((1, 2, 2)) / 4,
+            mechanism_state=(1, 0),
+            purview_state=(0, 1),
+        )
+
+    with config.override(**presets.iit3):
+        obj = make_discriminating_ria()
+        original = obj.normalized_phi
+        blob = serialize.dumps(obj, format=fmt)
+    with config.override(**presets.iit4_2026):
+        # The schemes disagree on this fixture; without the stored value the
+        # reload under the 2026 scheme would recompute a different number.
+        assert make_discriminating_ria().normalized_phi != original
+        restored = serialize.loads(blob, format=fmt)
+    assert restored.normalized_phi == original
+    assert restored.signed_normalized_phi == obj.signed_normalized_phi

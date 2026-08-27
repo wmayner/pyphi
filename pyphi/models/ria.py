@@ -273,6 +273,9 @@ class RepertoireIrreducibilityAnalysis(
     def purview_label(self):
         """tuple[str]: The labels of the purview nodes."""
         assert self.node_labels is not None
+        if self.purview_state is None:
+            # Null analyses specify no purview state; leave the labels uncased.
+            return fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
         return self.node_labels.label_string(
             self.purview,
             self.purview_state,  # type: ignore[arg-type]
@@ -475,9 +478,12 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def ties(self):
-        # TODO(ties) check unique usage here
+        # RIA equality deliberately ignores the partition, so deduplication
+        # must key on (RIA, partition) or co-optimal MIPs with distinct
+        # partitions would collapse to one tie.
         return unique_everseen(
-            chain.from_iterable([self._state_ties, self._partition_ties])
+            chain.from_iterable([self._state_ties, self._partition_ties]),
+            key=lambda ria: (ria, ria.partition),
         )
 
     @property

@@ -173,3 +173,20 @@ def test_serialization_failure_does_not_destroy_result(monkeypatch, tmp_path):
 
     result = disk.maybe_disk_cached(_System(), "sia", {}, lambda: "computed")
     assert result == "computed"
+
+
+def test_supplied_system_state_bypasses_the_cache(tmp_path, monkeypatch):
+    """A caller-supplied ``system_state`` must not read or write the plain
+    ``sia()`` disk entry: nothing verifies it is the canonical state, so
+    sharing the entry would let a non-canonical state poison (and be served
+    by) the plain result.
+    """
+    _fresh_cache(tmp_path, monkeypatch)
+    with config.override(**presets.iit4_2023):
+        state = examples.basic_system().sia().system_state  # cache still off
+    with config.override(**presets.iit4_2023, disk_cache_results=True):
+        # Cold cache: a forced-state call must not populate the plain entry.
+        examples.basic_system().sia(system_state=state)
+    assert not any(tmp_path.rglob("*")), (
+        "system_state calls must not write the disk cache"
+    )

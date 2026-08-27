@@ -15,15 +15,21 @@ from .exceptions import NonConvergenceError
 def mean_dynamics(
     tpm: ArrayLike,
     repetitions: int = 100,
+    seed: int | None = None,
     **kwargs,
 ):
-    """Return a sample of the dynamics averaged over all initial states."""
+    """Return a sample of the dynamics averaged over all initial states.
+
+    A single generator seeded with ``seed`` is shared across all
+    repetitions, so a given seed reproduces the whole sample. An explicit
+    ``rng`` keyword argument takes precedence over ``seed``.
+    """
     tpm = np.asarray(tpm, dtype=float)
+    kwargs.setdefault("rng", np.random.default_rng(seed))
     clamp = kwargs.get("clamp", {})
-    initial_states = [
-        insert_clamp(clamp, state)
-        for state in utils.all_states(number_of_units(tpm) - len(clamp))
-    ]
+    alphabets = _alphabet_sizes(tpm)
+    free = tuple(a for i, a in enumerate(alphabets) if i not in clamp)
+    initial_states = [insert_clamp(clamp, state) for state in utils.all_states(free)]
     data = np.array(
         [
             [
@@ -42,25 +48,62 @@ def simulate(
     timesteps: int | None = 100,
     clamp: Iterable[Mapping] | Mapping | None = None,
     rng: np.random.Generator | None = None,
+    seed: int | None = None,
 ):
-    """Return a simulated timeseries of system states."""
+    """Return a simulated timeseries of system states.
+
+    Parameters
+    ----------
+    tpm : pandas.DataFrame or numpy.ndarray
+        A state-by-state DataFrame (rows indexed by state tuples), a
+        state-by-node multidimensional binary TPM, or an explicit-alphabet
+        TPM of shape ``(*alphabet_sizes, n_units, max_alphabet)`` (as
+        produced by :meth:`~pyphi.substrate.Substrate.joint_tpm`).
+    initial_state : tuple[int, ...], optional
+        The starting state. If None, each unit is drawn uniformly from its
+        own alphabet.
+    timesteps : int, optional
+        Number of steps to simulate.
+    clamp : Mapping or Iterable[Mapping], optional
+        Units held fixed to a given value, either one mapping applied every
+        step or one mapping per step.
+    rng : numpy.random.Generator, optional
+        Generator to draw from. Takes precedence over ``seed``.
+    seed : int, optional
+        Seed for the generator created when ``rng`` is None. If both are
+        None, the trajectory is not reproducible.
+    """
     if rng is None:
-        rng = np.random.default_rng(seed=None)
+        rng = np.random.default_rng(seed)
 
     if isinstance(tpm, pd.DataFrame):
         N = len(tpm.index[0])  # pyright: ignore[reportIndexIssue, reportAttributeAccessIssue]
         step = _state_by_state_stepper(tpm, rng)
+        if initial_state is None:
+            # Sample from the TPM's own state labels so every unit is drawn
+            # over its full alphabet, not just {0, 1}.
+            labels = tpm.index  # pyright: ignore[reportAttributeAccessIssue]
+            initial_state = tuple(labels[int(rng.integers(len(labels)))])
     else:
-        # Assumes state-by-node multidimensional TPM.
-        step = _state_by_node_stepper(np.asarray(tpm, dtype=float), rng)
-        N = number_of_units(np.asarray(tpm))
+        arr = np.asarray(tpm, dtype=float)
+        layout = _explicit_alphabet_layout(arr)
+        if layout is None:
+            # Binary state-by-node multidimensional TPM.
+            step = _state_by_node_stepper(arr, rng)
+            N = number_of_units(arr)
+            if initial_state is None:
+                initial_state = tuple(rng.integers(low=0, high=2, size=N))
+        else:
+            N, alphabets = layout
+            step = _explicit_alphabet_stepper(arr, alphabets, rng)
+            if initial_state is None:
+                # Draw each unit from its own alphabet.
+                initial_state = tuple(int(rng.integers(a)) for a in alphabets)
 
     if clamp is None:
         clamp = {}
 
-    if initial_state is None:
-        initial_state = tuple(rng.integers(low=0, high=2, size=N))
-    elif len(initial_state) != N:
+    if len(initial_state) != N:
         raise ValueError("initial_state must have length equal to the number of units")
 
     if isinstance(clamp, Mapping):
@@ -101,6 +144,52 @@ def _state_by_state_stepper(tpm, rng):
     return step
 
 
+def _explicit_alphabet_layout(tpm):
+    """Detect the explicit-alphabet TPM layout.
+
+    Returns ``(n_units, alphabet_sizes)`` if ``tpm`` has the explicit-alphabet
+    shape ``(*alphabet_sizes, n_units, max_alphabet)`` (as produced by
+    :meth:`~pyphi.substrate.Substrate.joint_tpm`), and ``None`` otherwise.
+    """
+    shape = tpm.shape
+    if tpm.ndim >= 3:
+        n = int(shape[-2])
+        if (
+            tpm.ndim == n + 2
+            and all(s >= 2 for s in shape[:n])
+            and shape[-1] == max(shape[:n])
+        ):
+            return n, tuple(int(s) for s in shape[:n])
+    return None
+
+
+def _alphabet_sizes(tpm):
+    """Per-unit alphabet sizes for either accepted ndarray TPM form."""
+    layout = _explicit_alphabet_layout(tpm)
+    if layout is not None:
+        return layout[1]
+    return (2,) * number_of_units(tpm)
+
+
+def _explicit_alphabet_stepper(tpm, alphabet_sizes, rng):
+    """Build a one-step sampler for an explicit-alphabet TPM.
+
+    Samples each unit independently from its own next-state distribution
+    (slots ``[:alphabet_sizes[i]]`` of the trailing axis, ignoring padding).
+    """
+
+    def step(state):
+        dists = tpm[tuple(state)]  # shape (n_units, max_alphabet)
+        nxt = []
+        for i, a in enumerate(alphabet_sizes):
+            cumulative = np.cumsum(dists[i, :a])
+            j = int(np.searchsorted(cumulative, rng.random() * cumulative[-1], "right"))
+            nxt.append(min(j, a - 1))
+        return tuple(nxt)
+
+    return step
+
+
 def _state_by_node_stepper(tpm, rng):
     """Build a one-step sampler for a multidimensional state-by-node TPM.
 
@@ -117,12 +206,19 @@ def _state_by_node_stepper(tpm, rng):
 
 
 def most_probable_next_state(tpm, state):
-    """Return the deterministic most-probable next state (binary).
+    """Return the deterministic most-probable next state.
 
     Deterministic counterpart of the sampled step: each unit takes its
-    most-probable next value (ON iff P(ON) > 0.5).
+    most-probable next value (for binary state-by-node TPMs, ON iff
+    P(ON) > 0.5; for explicit-alphabet TPMs, the argmax over the unit's own
+    alphabet).
     """
     tpm = np.asarray(tpm, dtype=float)
+    layout = _explicit_alphabet_layout(tpm)
+    if layout is not None:
+        _, alphabets = layout
+        dists = tpm[tuple(state)]  # shape (n_units, max_alphabet)
+        return tuple(int(np.argmax(dists[i, :a])) for i, a in enumerate(alphabets))
     elementwise_probabilities = tpm[state]
     return tuple((elementwise_probabilities > 0.5).astype(int))
 
@@ -137,7 +233,9 @@ def settle(tpm, initial_state, *, clamp=None, max_steps=None):
     Parameters
     ----------
     tpm : np.ndarray
-        A state-by-node multidimensional TPM (binary).
+        A state-by-node multidimensional TPM (binary), or an
+        explicit-alphabet TPM of shape
+        ``(*alphabet_sizes, n_units, max_alphabet)``.
     initial_state : tuple[int, ...]
         The starting state.
     clamp : Mapping[int, int] or None, optional
@@ -159,6 +257,8 @@ def settle(tpm, initial_state, *, clamp=None, max_steps=None):
     """
     if clamp is None:
         clamp = {}
+    if len(initial_state) != number_of_units(tpm):
+        raise ValueError("initial_state must have length equal to the number of units")
     state = apply_clamp(clamp, tuple(initial_state))
     trajectory = [state]
     seen = {state}
@@ -183,7 +283,12 @@ def settle(tpm, initial_state, *, clamp=None, max_steps=None):
 
 # TODO: move to tpm module
 def number_of_units(tpm: ArrayLike):
-    return tpm.shape[-1]  # pyright: ignore[reportAttributeAccessIssue]
+    """Number of units of a state-by-node or explicit-alphabet ndarray TPM."""
+    tpm = np.asarray(tpm)
+    layout = _explicit_alphabet_layout(tpm)
+    if layout is not None:
+        return layout[0]
+    return tpm.shape[-1]
 
 
 def apply_clamp(clamp, state):

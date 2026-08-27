@@ -38,17 +38,25 @@ def test_shard_outputs_align_with_items(tmp_path):
         task = load(directory / "tasks" / f"task-{row['task_id']:04d}.json.gz")
         out = load(directory / "outputs" / f"task-{row['task_id']:04d}.json.gz")
         if row["kind"] == "sia_shard":
-            assert len(out.entries) == 1
-            assert out.entries[0].aux is not None
-            assert "tie_indices" in out.entries[0].aux
+            # One entry per (cause, effect) specified-state pair; a single
+            # entry for an untied cell or a short-circuited analysis.
+            assert len(out.entries) >= 1
+            for entry in out.entries:
+                assert entry.aux is not None
+                assert "tie_indices" in entry.aux or entry.aux.get("short_circuit")
+            if len(out.entries) > 1:
+                assert all("pair_key" in entry.aux for entry in out.entries)
         elif task.spec.payload_kind == "mechanisms":
             assert len(out.entries) == len(task.spec.mechanisms)
         elif task.spec.payload_kind == "purview_range":
             assert len(out.entries) == len(task.spec.purviews)
         elif task.spec.payload_kind == "partition_stride":
-            assert len(out.entries) == 1
-            aux = out.entries[0].aux
-            assert aux is not None and "tie_indices" in aux
+            # One entry per specified-state pin.
+            assert len(out.entries) >= 1
+            for entry in out.entries:
+                aux = entry.aux
+                assert aux is not None and "tie_indices" in aux
+                assert "pin_key" in aux and "pin_winner_index" in aux
             saw_stride_aux = True
     assert saw_stride_aux
 

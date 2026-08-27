@@ -1,5 +1,7 @@
 import itertools
 
+import pytest
+
 from pyphi import Direction
 from pyphi import config
 from pyphi.combinatorics import set_partitions as partitions
@@ -285,7 +287,6 @@ def test_all_joint_partitions():
     mechanism, purview = (0, 1), (2,)
     assert set(all_joint_partitions(mechanism, purview)) == {
         JointPartition(Part((0, 1), ()), Part((), (2,))),
-        JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
         JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
         JointPartition(Part((0,), ()), Part((1,), (2,)), Part((), ())),
     }
@@ -295,7 +296,6 @@ def test_all_joint_partitions():
         JointPartition(Part((0, 1), ()), Part((), (2, 3))),
         JointPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
         JointPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
-        JointPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
         JointPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
         JointPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
         JointPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
@@ -338,3 +338,176 @@ def test_k_partitions_more_blocks_than_elements_is_empty():
     # There are no partitions of an n-set into k > n nonempty blocks.
     assert list(k_partitions(range(3), 4)) == []
     assert list(k_partitions(range(2), 5)) == []
+
+
+@pytest.mark.parametrize(
+    ("m", "p"),
+    [(1, 1), (2, 1), (2, 2), (3, 2), (3, 3), (4, 2), (4, 3)],
+)
+def test_all_joint_partitions_yields_unique_cuts(m, p):
+    """Every induced edge cut appears exactly once: partitions sharing a cut
+    are the same physical partition, and duplicates made identical-cut ties
+    unresolvable downstream."""
+    mechanism = tuple(range(m))
+    purview = tuple(range(m, m + p))
+    partitions = list(all_joint_partitions(mechanism, purview))
+    keys = [x.lex_key() for x in partitions]
+    assert len(keys) == len(set(keys))
+    # The memoized sweep counts must match the generator exactly.
+    from pyphi.cost import partition_sweep_count
+
+    assert len(partitions) == partition_sweep_count(m, p)
+
+
+_SYSTEM_SCHEMES = [
+    "DIRECTED_BIPARTITION",
+    "DIRECTED_BIPARTITION_CUT_ONE",
+    "DIRECTED_BIPARTITION_SEQUENTIAL",
+    "EDGE_CUT_ALL",
+    "EDGE_CUT_BIDIRECTIONAL",
+    "DIRECTED_SET_PARTITION",
+]
+
+
+@pytest.mark.parametrize("scheme", _SYSTEM_SCHEMES)
+@pytest.mark.parametrize("n", [2, 3, 4])
+def test_system_partition_schemes_yield_unique_cuts(scheme, n):
+    """No system scheme may yield the same induced edge cut twice: the
+    evaluation depends only on the cut, so a repeated cut is the same
+    physical partition evaluated again."""
+    from pyphi.partition import system_partition_types
+
+    parts = list(system_partition_types[scheme](tuple(range(n))))
+    keys = [p.lex_key() for p in parts]
+    assert len(keys) == len(set(keys))
+
+
+def test_directed_bipartition_of_one_single_element_yields_nothing():
+    """A single-element sequence has no bipartition with two nonempty parts,
+    so no cut exists; the empty-part (no-op) splits must not be yielded."""
+    from pyphi.partition import directed_bipartition_of_one
+
+    assert list(directed_bipartition_of_one((0,))) == []
+    # Multi-element sequences are unaffected.
+    assert list(directed_bipartition_of_one((0, 1))) == [((0,), (1,)), ((1,), (0,))]
+
+
+def test_directed_bipartition_cut_one_scheme_empty_for_single_node():
+    from pyphi.partition import system_partition_types
+
+    parts = list(system_partition_types["DIRECTED_BIPARTITION_CUT_ONE"]((0,)))
+    assert parts == []
+
+
+def test_edge_cut_schemes_marked_as_possibly_non_disconnecting():
+    """Both edge-cut schemes can yield cuts that leave the system strongly
+    connected, so SIA searches key the Eq. 14 disconnection filter on this
+    attribute."""
+    from pyphi.partition import system_partition_types
+
+    for scheme in ("EDGE_CUT_ALL", "EDGE_CUT_BIDIRECTIONAL"):
+        assert getattr(
+            system_partition_types[scheme], "may_yield_non_disconnecting_cuts", False
+        )
+    for scheme in (
+        "DIRECTED_BIPARTITION",
+        "DIRECTED_BIPARTITION_CUT_ONE",
+        "DIRECTED_BIPARTITION_SEQUENTIAL",
+        "DIRECTED_SET_PARTITION",
+    ):
+        assert not getattr(
+            system_partition_types[scheme], "may_yield_non_disconnecting_cuts", False
+        )
+
+
+def test_complete_edge_cut_normalization_matches_connections_cut():
+    """The complete cut severs all n**2 connections (self-loops included)
+    and is normalized by the inherited uniform rule -- one over the number
+    of severed connections. For a single unit the factor is 1, so the
+    monad's irreducibility test is unaffected by the rule.
+    """
+    from pyphi.models import TotalCut
+
+    for n in (1, 2, 3, 4):
+        cut = TotalCut(tuple(range(n)))
+        assert cut.num_connections_cut() == n**2
+        assert cut.normalization_factor() == 1 / n**2
+
+
+def test_part_ordering_ignores_node_labels():
+    """Ordering must match __eq__/__hash__, which ignore node_labels.
+
+    Regression: dataclass(order=True) compared node_labels too, so equal
+    Parts differing only in labels raised TypeError under ``<`` (None vs
+    NodeLabels) and label-distinct tied Parts ordered strictly.
+    """
+    from pyphi.labels import NodeLabels
+
+    labels = NodeLabels("AB", (0, 1))
+    labeled = Part((0,), (1,), node_labels=labels)
+    unlabeled = Part((0,), (1,))
+    assert labeled == unlabeled
+    assert not labeled < unlabeled
+    assert not unlabeled < labeled
+    assert labeled <= unlabeled and unlabeled >= labeled
+    assert Part((0,), (0,)) < Part((0,), (1,), node_labels=labels)
+    assert sorted([labeled, unlabeled, Part((0,), (0,))])[0] == Part((0,), (0,))
+
+
+def test_edge_cut_equal_cuts_hash_equal_across_dtypes():
+    """__eq__ (np.array_equal) is dtype-blind, so the hash must be too."""
+    import numpy as np
+
+    from pyphi.models import EdgeCut
+
+    matrix = np.array([[0, 1], [1, 0]])
+    a = EdgeCut((0, 1), matrix)
+    b = EdgeCut((0, 1), matrix.astype(float))
+    c = EdgeCut((0, 1), matrix.astype(bool))
+    assert a == b == c
+    assert hash(a) == hash(b) == hash(c)
+
+
+class TestSchemeRegistrationValidation:
+    """Wrong-shape partition schemes must fail at registration, not at the
+    bottom of a phi computation."""
+
+    def test_system_registry_rejects_mechanism_shaped_scheme(self):
+        from pyphi.partition import system_partition_types
+
+        with pytest.raises(TypeError, match="does not accept"):
+
+            @system_partition_types.register("___TEST_BAD_SYSTEM")
+            def mechanism_shaped(mechanism, purview):  # pragma: no cover
+                return []
+
+        assert "___TEST_BAD_SYSTEM" not in system_partition_types.store
+
+    def test_mechanism_registry_rejects_zero_arg_scheme(self):
+        from pyphi.partition import partition_types
+
+        with pytest.raises(TypeError, match="does not accept"):
+
+            @partition_types.register("___TEST_BAD_MECH")
+            def zero_arg():  # pragma: no cover
+                return []
+
+        assert "___TEST_BAD_MECH" not in partition_types.store
+
+    def test_registries_reject_non_callables(self):
+        from pyphi.partition import partition_types
+        from pyphi.partition import system_partition_types
+
+        with pytest.raises(TypeError):
+            partition_types.register("___TEST_NC")(object())
+        with pytest.raises(TypeError):
+            system_partition_types.register("___TEST_NC")(object())
+
+    def test_valid_schemes_still_register(self):
+        from pyphi.partition import system_partition_types
+
+        @system_partition_types.register("___TEST_OK")
+        def fine(nodes, node_labels=None):  # pragma: no cover
+            return []
+
+        assert system_partition_types.store.pop("___TEST_OK") is fine

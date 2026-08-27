@@ -1,0 +1,1 @@
+`complexes()` now evaluates candidates in deterministic enumeration order under parallel complex evaluation; previously worker-completion order could report a different major complex run-to-run when candidates tie.

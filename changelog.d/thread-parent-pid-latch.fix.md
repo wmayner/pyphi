@@ -1,0 +1,1 @@
+Fixed a thread-backend `map_reduce` permanently disabling config-snapshot installs in its process: the parent-PID latch that suppresses in-thread snapshot application was never reset, so a nested thread dispatch inside a process-pool worker made that worker silently ignore every later configuration snapshot. The latch is now restored when the thread dispatch completes.

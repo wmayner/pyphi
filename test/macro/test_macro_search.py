@@ -767,6 +767,24 @@ class TestEvaluateSystems:
                 _evaluate_systems(systems, memo, enabled)
         assert [memo[s] for s in systems] == reference
 
+    def test_thread_backend_matches_sequential_and_restores_config(self):
+        """On the thread backend, workers share the parent's live config, so
+        the sequential-inner-sia override must be a single parent-side scope
+        (concurrent per-worker override enter/exit pairs interleave on the
+        shared global and can leave it corrupted after the dispatch).
+        """
+        from pyphi.macro.search import _evaluate_systems
+
+        systems = self._min_systems()
+        enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+        with config.override(**presets.iit4_2023):
+            reference = [s.sia().phi for s in systems]
+            memo = {}
+            with config.override(parallel=True, parallel_backend="thread"):
+                _evaluate_systems(systems, memo, enabled)
+                assert config.infrastructure.parallel is True
+        assert [memo[s] for s in systems] == reference
+
 
 def _results_equal(a, b):
     """Field-identical ComplexesResult, including record order and

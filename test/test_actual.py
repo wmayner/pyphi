@@ -237,14 +237,17 @@ def prevention():
 # were outdated. test_background_noised provides coverage for similar functionality.
 
 
-def test_cause_repertoire_conditions_background_on_after_state():
-    """Cause-direction background units are conditioned on the after-state.
+def test_cause_repertoire_clamps_background_at_before_state():
+    """Cause-direction background inputs are fixed at the observed before-state.
 
-    In a partial actual-causation analysis (the occurrence is a strict
-    subset of the network), units outside the cause set are frozen at the
-    realized present state (time |t|) when computing a cause repertoire. The
-    repertoire therefore matches a system conditioned on the after-state and
-    differs from one conditioned on the before-state whenever the two states
+    Per Albantakis et al. 2019 Section 3.3, the background U is set to its
+    actual state u throughout the transition: in the causal model the
+    background's inputs to the transition (its time t-1 values) are clamped
+    at what was observed, while the mechanism itself is evaluated against
+    the observed after-state. The repertoire therefore matches a system
+    whose external units are conditioned at the before-state and differs
+    from one that conditions them at the after-state (or integrates them
+    under the posterior implied by the after-state) whenever the two states
     disagree on a background unit.
     """
 
@@ -283,24 +286,28 @@ def test_cause_repertoire_conditions_background_on_after_state():
 
     node_indices = tuple(sorted(set(cause_indices) | set(effect_indices)))
     external = tuple(sorted(set(range(n)) - set(cause_indices)))
-    after_ref = System(
+    before_clamped = System(
         substrate=substrate,
         state=after_state,
         node_indices=node_indices,
         external_indices=external,
+        background_conditioning="CONDITION_CURRENT_STATE",
+        background_state=before_state,
     ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
-    before_ref = System(
+    after_clamped = System(
         substrate=substrate,
-        state=before_state,
+        state=after_state,
         node_indices=node_indices,
         external_indices=external,
+        background_conditioning="CONDITION_CURRENT_STATE",
     ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
 
-    # The two conditionings genuinely differ for this partial transition,
-    assert not np.allclose(after_ref, before_ref)
-    # and the cause repertoire uses the after-state.
-    assert np.allclose(repertoire, after_ref)
-    assert not np.allclose(repertoire, before_ref)
+    # The two clampings genuinely differ for this partial transition
+    # (background unit 2 flips 0 -> 1),
+    assert not np.allclose(before_clamped, after_clamped)
+    # and the cause repertoire clamps at the before-state.
+    assert np.allclose(repertoire, before_clamped)
+    assert not np.allclose(repertoire, after_clamped)
 
 
 def test_background_noised():
@@ -879,22 +886,23 @@ class TestActualCausationIIT30:
             EFFECT direction — OR saturates: the next state of ``node_1`` is
             ``1`` regardless of ``node_0``, so constrained and unconstrained
             probabilities are both 1 and the ratio is ``log2(1) = 0``.
-            CAUSE direction — OR does **not** saturate backwards: three of
-            four previous states lead to ``node_1 = 1`` next, with previous
-            ``node_0`` values ``{0, 1, 1}``, so
-            ``P(previous node_0 = 1 | node_1 next = 1) = 2/3``. Unconstrained
-            is 1/2, so the ratio is ``log2((2/3) / (1/2)) = log2(4/3) ≈
-            0.4150374992788``. (The original pre-cleanup assertion of ``0``
-            here was wrong — it conflated forward saturation with backward
-            saturation.)
+            CAUSE direction — the background (``node_1``'s own previous
+            state) is fixed at its observed value ``1`` (Albantakis et al.
+            2019 §3.3: U = u throughout the transition). With
+            ``previous node_1 = 1`` the OR saturates backwards as well:
+            ``node_1 = 1`` next regardless of previous ``node_0``, so
+            ``P(previous node_0 = 1 | node_1 next = 1) = 1/2``, equal to
+            the unconstrained 1/2, and the ratio is ``log2(1) = 0``. (An
+            intermediate implementation integrated the background's past
+            under the posterior implied by the after-state, giving
+            ``log2(4/3)`` from the unclamped backward inference over three
+            predecessor states; the clamped model makes that inference
+            inapplicable.)
         """
         assert background_all_off._ratio(Direction.EFFECT, (0,), (1,)) == 1
         assert background_all_off._ratio(Direction.CAUSE, (1,), (0,)) == 1
         assert background_all_on._ratio(Direction.EFFECT, (0,), (1,)) == 0
-        assert np.isclose(
-            background_all_on._ratio(Direction.CAUSE, (1,), (0,)),
-            np.log2(4 / 3),
-        )
+        assert background_all_on._ratio(Direction.CAUSE, (1,), (0,)) == 0
 
     def test_sia(self, transition):
         """Test actual causation SIA computation (IIT 3.0)."""
@@ -1512,3 +1520,141 @@ def test_find_actual_cause_returns_null_link_when_no_positive_alpha():
     assert link.alpha == 0.0
     # Comparison works on null links.
     assert isinstance(link == other, bool)
+
+
+def test_transition_system_equality_includes_noise_background():
+    from pyphi.actual import TransitionSystem
+
+    kwargs = {
+        "substrate": _ts_substrate(),
+        "before_state": (0, 1, 1),
+        "after_state": (1, 0, 0),
+        "cause_indices": (1, 2),
+        "effect_indices": (0,),
+        "direction": Direction.CAUSE,
+    }
+    frozen = TransitionSystem(**kwargs)
+    noised = TransitionSystem(**kwargs, noise_background=True)
+    assert frozen != noised
+    assert hash(frozen) != hash(noised)
+
+
+def test_account_equality_is_order_insensitive():
+    substrate = examples.actual_causation_substrate()
+    transition = actual.Transition(substrate, (1, 0), (1, 0), (0, 1), (0, 1))
+    account = actual.account(transition)
+    assert len(account) > 1
+    reordered = models.Account(tuple(reversed(account.causal_links)))
+    assert account == reordered
+    assert hash(account) == hash(reordered)
+
+
+def test_account_is_not_ordered():
+    """Accounts are sets of causal links; ordering them is undefined.
+
+    Regression: Account declared ``cmp.Orderable`` without implementing
+    ``order_by``, so ``<`` raised NotImplementedError instead of the
+    standard TypeError for unorderable types.
+    """
+    a = models.Account(())
+    b = models.Account(())
+    with pytest.raises(TypeError):
+        a < b  # noqa: B015
+
+
+def test_account_honors_allow_neg():
+    """account(allow_neg=True) must thread the flag to both directions.
+
+    On this stochastic fixture the flag changes Σα, so a silently dropped
+    flag reproduces the default account.
+    """
+    tpm = np.array([[0.63, 0.90], [0.78, 0.23], [0.30, 0.87], [0.01, 0.82]])
+    transition = actual.Transition(Substrate(tpm), (0, 0), (0, 0), (0, 1), (0, 1))
+    base = actual.account(transition)
+    neg = actual.account(transition, allow_neg=True)
+
+    def sum_alpha(account):
+        return sum(float(link.alpha) for link in account)
+
+    assert sum_alpha(base) != sum_alpha(neg)
+    directed = actual.directed_account(
+        transition, Direction.CAUSE, allow_neg=True
+    ) + actual.directed_account(transition, Direction.EFFECT, allow_neg=True)
+    assert neg == models.Account(tuple(directed))
+
+
+def test_find_mip_resolves_equal_edge_cut_partition_ties():
+    """A mechanism whose MIP is the complete cut must get a real analysis.
+
+    The complete cut can be written as one mechanism part or as several,
+    each over an empty purview; those forms share an induced edge cut and
+    tie exactly, and the tie must resolve rather than return None (which
+    silently dropped the purview from the causal-link search, reporting a
+    non-minimal purview).
+    """
+    from pyphi.formalism.actual_causation import compute as ac_compute
+
+    tpm = np.array(
+        [
+            [0, 0, 1],
+            [1, 1, 1],
+            [0, 0, 1],
+            [0, 1, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 1, 1],
+        ],
+        dtype=float,
+    )
+    transition = actual.Transition(
+        Substrate(tpm), (1, 0, 0), (1, 1, 1), (0, 1, 2), (0, 1, 2)
+    )
+    ria = ac_compute._find_mip(transition, Direction.EFFECT, (1, 2), (0,))
+    assert ria is not None
+    assert float(ria.alpha) == pytest.approx(0.4150374992788)
+    # The causal link reports the minimal purview, not a larger tied one.
+    link = ac_compute._find_causal_link(transition, Direction.EFFECT, (1, 2))
+    assert tuple(link.purview) == (0,)
+
+
+def test_ac_partition_tie_backstop_resolves_duplicate_cuts():
+    """Even if a partition scheme yields the same edge cut twice, the tie
+    cascade must resolve to one of the identical-cut survivors instead of
+    returning None."""
+    from pyphi.formalism.actual_causation import compute as ac_compute
+    from pyphi.partition import all_joint_partitions
+    from pyphi.partition import partition_types
+
+    name = "JOINT_PARTITION_ALL_DUPLICATED_FOR_TEST"
+
+    def duplicated(mechanism, purview, node_labels=None):
+        parts = list(all_joint_partitions(mechanism, purview, node_labels))
+        return [*parts, parts[0]]  # re-yield one cut verbatim
+
+    # Register temporarily; registry-content tests assert the exact
+    # production scheme set.
+    partition_types.store[name] = duplicated
+
+    tpm = np.array(
+        [
+            [0, 0, 1],
+            [1, 1, 1],
+            [0, 0, 1],
+            [0, 1, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 1, 1],
+        ],
+        dtype=float,
+    )
+    transition = actual.Transition(
+        Substrate(tpm), (1, 0, 0), (1, 1, 1), (0, 1, 2), (0, 1, 2)
+    )
+    try:
+        with config.override(**{"actual_causation.mechanism_partition_scheme": name}):
+            ria = ac_compute._find_mip(transition, Direction.EFFECT, (1, 2), (0,))
+    finally:
+        del partition_types.store[name]
+    assert ria is not None

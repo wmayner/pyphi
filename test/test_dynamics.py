@@ -206,3 +206,112 @@ def test_simulate_timesteps_none_with_mapping_clamp_raises():
             initial_state=(0, 0),
             rng=np.random.default_rng(0),
         )
+
+
+def test_simulate_seed_reproducible():
+    tpm = convert.to_multidimensional(
+        np.array([[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]])
+    )
+    a = simulate(tpm, timesteps=20, seed=42)
+    b = simulate(tpm, timesteps=20, seed=42)
+    c = simulate(tpm, timesteps=20, seed=43)
+    assert a == b
+    assert a != c
+
+
+def test_mean_dynamics_seed_reproducible():
+    tpm = convert.to_multidimensional(
+        np.array([[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]])
+    )
+    a = mean_dynamics(tpm, repetitions=3, timesteps=5, seed=7)
+    b = mean_dynamics(tpm, repetitions=3, timesteps=5, seed=7)
+    assert np.array_equal(a, b)
+
+
+def _ternary_cycle_joint():
+    """Explicit-alphabet joint TPM of a deterministic 2-unit ternary substrate
+    where each unit steps ``s -> (s + 1) mod 3``. Shape (3, 3, 2, 3)."""
+    joint = np.zeros((3, 3, 2, 3))
+    for a in range(3):
+        for b in range(3):
+            joint[a, b, 0, (a + 1) % 3] = 1.0
+            joint[a, b, 1, (b + 1) % 3] = 1.0
+    return joint
+
+
+def test_number_of_units_explicit_alphabet_layout():
+    # (3, 3, 2, 3) is (*alphabets, n_units, max_alphabet): 2 units, not 3.
+    assert number_of_units(_ternary_cycle_joint()) == 2
+
+
+def test_simulate_explicit_alphabet_deterministic():
+    # Deterministic +1 cycle: (0,0) -> (1,1) -> (2,2) -> (0,0) -> ...
+    path = simulate(_ternary_cycle_joint(), initial_state=(0, 0), timesteps=5, seed=0)
+    assert path == [(0, 0), (1, 1), (2, 2), (0, 0), (1, 1)]
+
+
+def test_simulate_explicit_alphabet_random_initial_state_covers_alphabet():
+    # Each unit's random initial state is drawn from its own alphabet, so
+    # ternary units can start in state 2.
+    joint = _ternary_cycle_joint()
+    initials = {simulate(joint, timesteps=1, seed=seed)[0] for seed in range(60)}
+    assert all(len(state) == 2 for state in initials)
+    assert any(2 in state for state in initials)
+
+
+def test_simulate_explicit_alphabet_heterogeneous_padding():
+    # Alphabets (2, 3): the binary unit's distribution occupies slots [:2] of
+    # the padded trailing axis and must never be sampled from the padding.
+    joint = np.zeros((2, 3, 2, 3))
+    for a in range(2):
+        for b in range(3):
+            joint[a, b, 0, 1 - a] = 1.0  # binary unit flips
+            joint[a, b, 1, (b + 1) % 3] = 1.0  # ternary unit cycles
+    path = simulate(joint, initial_state=(0, 2), timesteps=4, seed=1)
+    assert path == [(0, 2), (1, 0), (0, 1), (1, 2)]
+    assert all(state[0] < 2 for state in path)
+
+
+def test_settle_explicit_alphabet():
+    from pyphi.dynamics import settle
+
+    # Every state maps deterministically to (2, 2): a fixed point.
+    joint = np.zeros((3, 3, 2, 3))
+    joint[..., 0, 2] = 1.0
+    joint[..., 1, 2] = 1.0
+    assert settle(joint, (0, 0)) == [(0, 0), (2, 2)]
+    assert settle(joint, (2, 2)) == [(2, 2)]
+
+
+def test_settle_rejects_wrong_length_initial_state():
+    import pytest
+
+    from pyphi.dynamics import settle
+
+    with pytest.raises(ValueError, match="initial_state"):
+        settle(_ternary_cycle_joint(), (0, 0, 0))
+
+
+def test_mean_dynamics_explicit_alphabet():
+    # Initial states enumerate each unit's own alphabet (9 states, not 2**3),
+    # and the mean trajectory has one column per unit.
+    mean = mean_dynamics(_ternary_cycle_joint(), repetitions=2, timesteps=3, seed=0)
+    assert mean.shape == (3, 2)
+    # Deterministic +1 cycle: the mean over all 9 initial states is the mean
+    # unit state, 1.0, at every step.
+    assert np.allclose(mean, 1.0)
+
+
+def test_simulate_state_by_state_initial_state_covers_full_alphabet():
+    """The random initial state must be drawn from the TPM's own state
+    labels, so non-binary units can start in states >= 2."""
+    import pandas as pd
+
+    states = [(0,), (1,), (2,)]
+    tpm = pd.DataFrame(
+        np.full((3, 3), 1 / 3),
+        index=pd.Index(states),
+        columns=pd.Index(states),
+    )
+    initials = {simulate(tpm, timesteps=1, seed=seed)[0] for seed in range(60)}
+    assert (2,) in initials

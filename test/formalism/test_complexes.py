@@ -73,7 +73,11 @@ class TestComplexesIIT30:
         """The same complex search under Eq. 4 causal marginalization: the
         ``(0, 2)`` candidate's phi differs from the conditioned convention
         (the ``(1, 2)`` candidate's value coincides across conventions)."""
-        with config.override(background_conditioning="CAUSAL_MARGINALIZATION"):
+        # Deliberate off-preset variant (IIT 3.0 constrains the background
+        # convention), so it opts out of config validation.
+        with config.override(
+            background_conditioning="CAUSAL_MARGINALIZATION", validate_config=False
+        ):
             sias = s.substrate.irreducible_sias(s.state)
         assert len(sias) == 3
         nodes_and_phis = {c.node_indices: float(c.phi) for c in sias}
@@ -217,10 +221,13 @@ class TestCauseEffectStructureIIT40:
         """Golden test: phi_structure for basic system (IIT 4.0)."""
         result = ces(s, **self._measure_kwargs())
 
-        # Golden values computed with IIT 4.0 defaults
-        assert result.big_phi == pytest.approx(1.0, rel=1e-6)
+        # Golden values computed with IIT 4.0 defaults; the S1 cascade's
+        # largest-congruent-purview selection gives mechanism (2,) the (0, 1)
+        # effect purview, which supports one relation (Φ = 1.125 = Σφ_d 1.0
+        # + Σφ_r 0.125).
+        assert result.big_phi == pytest.approx(1.125, rel=1e-6)
         assert len(result.distinctions) == 2
-        assert result.relations.num_relations() == 0
+        assert result.relations.num_relations() == 1
 
     def test_phi_structure_system_creation(self):
         """Golden test: phi_structure with explicit system (IIT 4.0).
@@ -235,9 +242,9 @@ class TestCauseEffectStructureIIT40:
 
         result = ces(system, **self._measure_kwargs())
 
-        assert result.big_phi == pytest.approx(1.0, rel=1e-6)
+        assert result.big_phi == pytest.approx(1.125, rel=1e-6)
         assert len(result.distinctions) == 2
-        assert result.relations.num_relations() == 0
+        assert result.relations.num_relations() == 1
 
 
 class TestSubstrateMethodsIIT40:
@@ -451,3 +458,86 @@ class TestMaximalComplexWrapperIIT40:
         assert float(mc.phi) == 0.0
         assert mc.is_maximal is True
         assert mc.excluded == ()
+
+
+def test_all_sias_forces_ordered_map_reduce(s, monkeypatch):
+    """Candidate order must be preserved: downstream tie resolution is
+    input-order-dependent, so worker-completion order would make the
+    reported major complex nondeterministic under ties."""
+    from pyphi import parallel as pyphi_parallel
+
+    captured = {}
+    real_map_reduce = pyphi_parallel.map_reduce
+
+    def capturing_map_reduce(*args, **kwargs):
+        captured.update(kwargs)
+        return real_map_reduce(*args, **kwargs)
+
+    monkeypatch.setattr(pyphi_parallel, "map_reduce", capturing_map_reduce)
+    with IIT_4_CONFIG:
+        s.substrate.complexes(s.state)
+    assert captured.get("ordered") is True
+
+
+def test_complex_equal_objects_hash_equal(s):
+    """a == b must imply hash(a) == hash(b), including when explicit
+    node_indices (the macro-complex micro footprint) differ from the SIA's."""
+    from pyphi.models.complex import Complex
+
+    with IIT_4_CONFIG:
+        sia = s.sia()
+    a = Complex(sia, s.substrate, is_maximal=True, node_indices=(0, 1))
+    same = Complex(sia, s.substrate, is_maximal=True, node_indices=(0, 1))
+    other_units = Complex(sia, s.substrate, is_maximal=True, node_indices=(1, 2))
+    assert a == same
+    assert hash(a) == hash(same)
+    # Same SIA over different micro constituents is a different complex.
+    assert a != other_units
+
+
+def test_congruence_resolution_maximizes_structure_phi():
+    """Tied distinction readings resolve to the Φ-maximal combination.
+
+    Per Albantakis et al. 2023 S1, ties in φ_d "may be resolved at the
+    level of the cause-effect structure, by selecting the [reading] that
+    maximizes the system's structure integrated information Φ". On this
+    substrate the purview-size proxy for that rule selects a reading
+    combination whose structure has Φ = 2.411466; the joint Φ-maximal
+    combination attains 2.649812 (state (1, 0, 0)) and 4.447465 over 8
+    combinations (state (1, 1, 1)).
+    """
+    import numpy as np
+
+    from pyphi.substrate import Substrate
+
+    tpm = np.array(
+        [
+            [1, 0, 0],
+            [0, 1, 1],
+            [1, 1, 1],
+            [1, 0, 1],
+            [1, 1, 1],
+            [0, 1, 1],
+            [0, 1, 1],
+            [0, 0, 0],
+        ],
+        dtype=float,
+    )
+    with config.override(
+        **presets.by_name["IIT_4_0_2026"],
+        parallel=False,
+        progress_bars=False,
+        validate_system_states=False,
+    ):
+        substrate = Substrate(tpm)
+        for state, expected in [((1, 0, 0), 2.649812), ((1, 1, 1), 4.447465)]:
+            result = ces(
+                System(substrate, state),
+                system_measure=resolve_system_measure(
+                    config.formalism.iit.system_phi_measure
+                ),
+                specification_measure=resolve_mechanism_measure(
+                    config.formalism.iit.specification_measure
+                ),
+            )
+            assert float(result.big_phi) == pytest.approx(expected, abs=1e-6)

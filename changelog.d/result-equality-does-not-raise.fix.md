@@ -1,0 +1,1 @@
+`SweepResult` and `OptimizationResult` equality no longer raises: the generated dataclass `__eq__` compared DataFrame/ndarray fields elementwise, whose truth value is ambiguous. Both now define value equality (`DataFrame.equals`, `np.array_equal`).

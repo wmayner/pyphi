@@ -1,0 +1,1 @@
+Cache memory-limit detection now finds cgroup memory limits set on ancestor groups, not just the process's own group, and uses the smallest limit along the chain. Previously a limit placed on a parent group — the usual layout under Slurm and systemd — was missed, so the cache ceiling was sized against the whole machine's memory instead of the job's allowance.

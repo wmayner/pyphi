@@ -1,0 +1,1 @@
+Fixed a crash (`ValueError: cascade requires at least one candidate`) in `sia(directions=[...])` when the requested direction's specified state was tied. Single-direction analyses now resolve specified-state ties within that direction alone.

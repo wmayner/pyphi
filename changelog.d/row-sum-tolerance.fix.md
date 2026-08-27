@@ -1,0 +1,1 @@
+Fixed TPM row-stochasticity validation admitting relative slack: `numpy.allclose`'s default relative tolerance let row sums off by up to ~1.1e-5 pass while the error message claimed the configured absolute tolerance (1e-13 by default). Row sums are now checked against the absolute tolerance only.

@@ -62,10 +62,11 @@ with pyphi.config.override(**iit3):
 ```
 
 Applying a preset switches the version, the measures, the partition schemes, and
-`precision` together. Selecting a formalism by name — either `analyze(...,
-formalism="iit3")` through the tools, or a preset in a script — is safer than
-setting `formalism.iit.version` alone, which leaves the measures on the previous
-formalism.
+`precision` together. Select a formalism by name — either `analyze(...,
+formalism="iit3")` through the tools, or a preset in a script. Setting
+`formalism.iit.version` alone is rejected with a `ConfigurationError` naming
+the incompatible fields: the measures and schemes would be left on the
+previous formalism, a mixture matching no paper.
 
 ## Configuration file
 

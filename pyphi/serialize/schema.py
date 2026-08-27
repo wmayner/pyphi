@@ -33,6 +33,20 @@ class NodeLabelsSchema(msgspec.Struct, frozen=True, tag="node_labels"):
     node_indices: tuple[int, ...]
 
 
+class NoNodeLabelsSchema(msgspec.Struct, frozen=True, tag="no_node_labels"):
+    """Marker for an object whose ``node_labels`` was ``None`` at encode time.
+
+    Within a document, a stored ``None`` means "inherit the document's label
+    frame"; this marker records that the object genuinely carried no labels,
+    so decode does not attach the frame to it.
+    """
+
+
+# A stored per-object ``node_labels``: the labels themselves, the explicit
+# no-labels marker, or ``None`` meaning "inherit the document frame".
+NodeLabelsField = NodeLabelsSchema | NoNodeLabelsSchema | None
+
+
 class StateSpecificationSchema(msgspec.Struct, frozen=True, tag="state_specification"):
     direction: DirectionSchema
     purview: tuple[int, ...]
@@ -40,9 +54,12 @@ class StateSpecificationSchema(msgspec.Struct, frozen=True, tag="state_specifica
     intrinsic_information: PhiSchema
     repertoire: bytes
     unconstrained_repertoire: bytes
-    tie_peers: tuple["StateSpecificationSchema", ...] = ()
+    # Tri-state: None = ties never computed; () = computed, no peers (the
+    # tie family is just this specification); otherwise the peer tuple.
+    tie_peers: tuple["StateSpecificationSchema", ...] | None = ()
     runner_up_state: tuple[int, ...] | None = None
     runner_up_intrinsic_information: PhiSchema | None = None
+    node_labels: NodeLabelsField = None
 
 
 class SystemStateSpecificationSchema(
@@ -61,29 +78,35 @@ StateSpecSchema = StateSpecificationSchema | SystemStateSpecificationSchema
 class PartSchema(msgspec.Struct, frozen=True, tag="part"):
     mechanism: tuple[int, ...]
     purview: tuple[int, ...]
+    node_labels: NodeLabelsField = None
 
 
 class NullCutSchema(msgspec.Struct, frozen=True, tag="null_cut"):
     indices: tuple[int, ...]
+    node_labels: NodeLabelsField = None
 
 
 class DirectedBipartitionSchema(msgspec.Struct, frozen=True, tag="directed_bipartition"):
     direction: DirectionSchema
     from_nodes: tuple[int, ...]
     to_nodes: tuple[int, ...]
+    node_labels: NodeLabelsField = None
 
 
 class JointPartitionSchema(msgspec.Struct, frozen=True, tag="joint_partition"):
     parts: tuple[PartSchema, ...]
+    node_labels: NodeLabelsField = None
 
 
 class JointBipartitionSchema(msgspec.Struct, frozen=True, tag="joint_bipartition"):
     part0: PartSchema
     part1: PartSchema
+    node_labels: NodeLabelsField = None
 
 
 class JointTripartitionSchema(msgspec.Struct, frozen=True, tag="joint_tripartition"):
     parts: tuple[PartSchema, ...]
+    node_labels: NodeLabelsField = None
 
 
 JointPartitionSchemas = (
@@ -96,17 +119,18 @@ class DirectedJointPartitionSchema(
 ):
     direction: DirectionSchema
     partition: JointPartitionSchemas
+    node_labels: NodeLabelsField = None
 
 
 class EdgeCutSchema(msgspec.Struct, frozen=True, tag="edge_cut"):
     node_indices: tuple[int, ...]
     cut_matrix: bytes
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
 
 
-class CompleteEdgeCutSchema(msgspec.Struct, frozen=True, tag="complete_edge_cut"):
+class TotalCutSchema(msgspec.Struct, frozen=True, tag="total_cut"):
     node_indices: tuple[int, ...]
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
 
 
 class DirectedSetPartitionSchema(
@@ -115,7 +139,7 @@ class DirectedSetPartitionSchema(
     node_indices: tuple[int, ...]
     cut_matrix: bytes
     set_partition: tuple[tuple[int, ...], ...]
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
 
 
 # Any concrete partition / edge cut (the building-block Part is separate).
@@ -124,7 +148,7 @@ PartitionSchema = (
     | DirectedBipartitionSchema
     | DirectedJointPartitionSchema
     | EdgeCutSchema
-    | CompleteEdgeCutSchema
+    | TotalCutSchema
     | DirectedSetPartitionSchema
     | JointPartitionSchema
     | JointBipartitionSchema
@@ -146,31 +170,39 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     repertoire: bytes | None
     partitioned_repertoire: bytes | None
     specified_state: StateSpecificationSchema | None
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
     partition_tie_peers: tuple["RIASchema", ...] = ()
     state_tie_peers: tuple["RIASchema", ...] = ()
     partition_margin: PhiSchema | None = None
     signed_phi: PhiSchema | None = None
     selectivity: float | None = None
     reasons: tuple[str, ...] | None = None
+    signed_normalized_phi: float | None = None
 
 
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
     purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
+    # Whether the MICE is itself a member of its purview-tie tuple (a
+    # state- or partition-tie MICE carries the winner's tuple without
+    # being a member). Defaults True for payloads written before the field
+    # existed.
+    purview_tie_member: bool = True
 
 
 class MICECauseSchema(msgspec.Struct, frozen=True, tag="mice_cause"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
     purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
+    purview_tie_member: bool = True
 
 
 class MICEEffectSchema(msgspec.Struct, frozen=True, tag="mice_effect"):
     ria: RIASchema
     purview_margin: PhiSchema | None = None
     purview_tie_peers: tuple["MICEAnySchema", ...] | None = None
+    purview_tie_member: bool = True
 
 
 MICEAnySchema = MICESchema | MICECauseSchema | MICEEffectSchema
@@ -237,13 +269,16 @@ class MacroUnitSchema(msgspec.Struct, frozen=True, tag="macro_unit"):
 
 class ExcludedCandidateSchema(msgspec.Struct, frozen=True, tag="excluded_candidate"):
     node_indices: tuple[int, ...]
-    phi: float
+    phi: float | None
     units: tuple[MacroUnitSchema, ...] | None = None
+    ii_ceiling: float | None = None
+    gated: bool = False
 
 
 class RunnerUpSchema(msgspec.Struct, frozen=True, tag="runner_up"):
     partition: PartitionSchema
     phi: PhiSchema
+    normalized_phi: PhiSchema | None = None
 
 
 class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
@@ -252,7 +287,7 @@ class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
     partitioned_distinctions: DistinctionsAnySchema | None
     partition: PartitionSchema | None
     node_indices: tuple[int, ...] | None
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
     current_state: tuple[int, ...] | None
     tie_peers: tuple["IIT3SIASchema", ...] = ()
     runner_up: RunnerUpSchema | None = None
@@ -274,7 +309,7 @@ class IIT4SIASchema(msgspec.Struct, frozen=True, tag="iit4_sia"):
     system_state: SystemStateSpecificationSchema | None
     current_state: tuple[int, ...] | None
     node_indices: tuple[int, ...] | None
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
     intrinsic_differentiation: DirectionPhiPairs | None
     reasons: tuple[str, ...] | None
     signed_phi: PhiSchema | None
@@ -378,7 +413,7 @@ class SubstrateSchema(msgspec.Struct, frozen=True, tag="substrate"):
     factors: tuple[bytes, ...]
     state_space: tuple[tuple[int | str, ...], ...]
     cm: bytes
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
     factors_trimmed: tuple[bool, ...] | None = None
 
 
@@ -389,6 +424,7 @@ class SystemSchema(msgspec.Struct, frozen=True, tag="system"):
     partition: PartitionSchema
     external_indices: tuple[int, ...]
     background_conditioning: str | None = None
+    background_state: tuple[int, ...] | None = None
 
 
 class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):
@@ -401,20 +437,33 @@ class TransitionSchema(msgspec.Struct, frozen=True, tag="transition"):
     noise_background: bool = False
 
 
+class TransitionSystemSchema(msgspec.Struct, frozen=True, tag="transition_system"):
+    substrate: SubstrateSchema
+    before_state: tuple[int, ...]
+    after_state: tuple[int, ...]
+    cause_indices: tuple[int, ...]
+    effect_indices: tuple[int, ...]
+    direction: DirectionSchema
+    partition: PartitionSchema
+    noise_background: bool = False
+
+
 # --- Actual causation ---------------------------------------------------------
 
 
 class AcRIASchema(msgspec.Struct, frozen=True, tag="ac_ria"):
+    # ``purview``, ``partition``, and the probabilities are None for the
+    # null RIA of a reducible causal link.
     alpha: float
     state: tuple[int, ...]
     direction: DirectionSchema
     mechanism: tuple[int, ...]
-    purview: tuple[int, ...]
-    partition: PartitionSchema
-    probability: float
-    partitioned_probability: float
+    purview: tuple[int, ...] | None
+    partition: PartitionSchema | None
+    probability: float | None
+    partitioned_probability: float | None
     partition_tie_peers: tuple["AcRIASchema", ...] = ()
-    node_labels: NodeLabelsSchema | None = None
+    node_labels: NodeLabelsField = None
     reasons: tuple[str, ...] | None = None
 
 
@@ -447,7 +496,7 @@ class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
     node_indices: tuple[int, ...] | None
     cause_indices: tuple[int, ...] | None
     effect_indices: tuple[int, ...] | None
-    node_labels: NodeLabelsSchema | None
+    node_labels: NodeLabelsField
     reasons: tuple[str, ...] | None = None
     config: dict[str, Any] | None = None
     provenance: ProvenanceSchema | None = None
@@ -458,7 +507,7 @@ class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
 
 
 class AnalysisSchema(msgspec.Struct, frozen=True, tag="analysis"):
-    system: "SystemSchema"
+    system: "SystemSchema | MacroSystemSchema"
     sia: SIASchema
     # IIT 4.0 wraps the distinctions in a Φ-structure; IIT 3.0's cause-effect
     # structure is the bare distinction sequence.
@@ -472,6 +521,46 @@ class ComplexSchema(msgspec.Struct, frozen=True, tag="complex"):
     excluded: tuple[ExcludedCandidateSchema, ...]
     units: tuple[MacroUnitSchema, ...] | None = None
     node_indices: tuple[int, ...] | None = None
+
+
+# --- Macro systems and the grain search ---------------------------------------
+
+
+class MacroSystemSchema(msgspec.Struct, frozen=True, tag="macro_system"):
+    """A :class:`~pyphi.macro.system.MacroSystem`.
+
+    Carries the System fields over the synthetic macro substrate plus the
+    macro construction: the units, the micro universe and history, and the
+    construction's cause TPM (stored as factors like a substrate, since it
+    is not derivable from the macro substrate).
+    """
+
+    substrate: SubstrateSchema
+    state: tuple[int, ...]
+    node_indices: tuple[int, ...]
+    partition: PartitionSchema
+    external_indices: tuple[int, ...]
+    units: tuple[MacroUnitSchema, ...]
+    micro_substrate: SubstrateSchema
+    micro_history: tuple[tuple[int, ...], ...]
+    cause_factors: tuple[bytes, ...]
+    cause_factors_trimmed: tuple[bool, ...]
+    cause_state_space: tuple[tuple[int | str, ...], ...]
+    background_conditioning: str | None = None
+    background_state: tuple[int, ...] | None = None
+
+
+class EvaluationRecordSchema(msgspec.Struct, frozen=True, tag="evaluation_record"):
+    system: MacroSystemSchema
+    phi: float | None
+    ii_ceiling: float | None = None
+    gated: bool = False
+
+
+class ComplexesResultSchema(msgspec.Struct, frozen=True, tag="complexes_result"):
+    complexes: tuple[ComplexSchema, ...]
+    records: tuple[EvaluationRecordSchema, ...]
+    ties: tuple[tuple[MacroSystemSchema, ...], ...]
 
 
 # --- Estimation-layer posteriors ----------------------------------------------
@@ -535,7 +624,7 @@ class CampaignTaskSchema(msgspec.Struct, frozen=True, tag="campaign_task"):
     compute: "str | None"
     compute_ref: "str | None"
     config_overrides: dict[str, Any]
-    cells: tuple[tuple["str | int", str, tuple[int, ...], tuple[int, ...]], ...]
+    cells: tuple[tuple["str | int", str | None, tuple[int, ...], tuple[int, ...]], ...]
     skip_uncomputable: bool
 
 
@@ -588,7 +677,7 @@ class CESShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_ces_task"):
     subset: tuple[int, ...] | None
     scope: CESScopeSchema
     config_overrides: dict[str, Any]
-    formalism: str
+    formalism: str | None
     spec: ShardSpecSchema
     ordering: "str | None"
 
@@ -600,7 +689,7 @@ class SIAShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_sia_task"):
     state: tuple[int, ...]
     subset: tuple[int, ...] | None
     config_overrides: dict[str, Any]
-    formalism: str
+    formalism: str | None
     stride: tuple[int, int]
 
 
@@ -638,7 +727,7 @@ Schema = (
     | DirectedBipartitionSchema
     | DirectedJointPartitionSchema
     | EdgeCutSchema
-    | CompleteEdgeCutSchema
+    | TotalCutSchema
     | DirectedSetPartitionSchema
     | JointPartitionSchema
     | JointBipartitionSchema
@@ -667,12 +756,16 @@ Schema = (
     | SubstrateSchema
     | SystemSchema
     | TransitionSchema
+    | TransitionSystemSchema
     | AcRIASchema
     | CausalLinkSchema
     | AccountSchema
     | DirectedAccountSchema
     | AcSIASchema
     | ComplexSchema
+    | MacroSystemSchema
+    | EvaluationRecordSchema
+    | ComplexesResultSchema
     | AnalysisSchema
     | CoverageReportSchema
     | SubstratePosteriorSchema

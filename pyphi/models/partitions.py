@@ -20,7 +20,7 @@ Two distinct mathematical concepts share this module's
 **Edge cuts** (graph theory terminology):
 
 - :class:`EdgeCut` — an explicit n by n binary severance matrix.
-- :class:`CompleteEdgeCut` — all edges severed (boundary).
+- :class:`TotalCut` — all edges severed (boundary).
 - :class:`NullCut` — no edges severed (identity).
 
 A vertex partition *induces* an edge cut: every concrete
@@ -48,6 +48,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
+from dataclasses import field
 from itertools import chain
 from typing import Self
 
@@ -542,7 +543,10 @@ class EdgeCut(Displayable, _PartitionBase):
         )
 
     def __hash__(self) -> int:
-        return hash((self.node_indices, utils.np_hash(self._cut_matrix)))
+        # Normalize the matrix dtype before hashing: __eq__ uses
+        # np.array_equal, which compares values regardless of dtype, so the
+        # hash must not distinguish dtypes either.
+        return hash((self.node_indices, utils.np_hash(self._cut_matrix.astype(bool))))
 
     def _concise(self) -> str:
         return f"EdgeCut ({self.num_connections_cut()} cut)"
@@ -551,11 +555,22 @@ class EdgeCut(Displayable, _PartitionBase):
         return _partition_description(self, self._concise())
 
 
-class CompleteEdgeCut(EdgeCut):
-    """Edge cut that severs every connection (all-ones matrix).
+class TotalCut(EdgeCut):
+    """The total cut: every connection severed, self-loops included.
 
-    Used as the boundary case in partition enumeration and as the
-    "complete" cut against which an SIA's partition is compared.
+    Represents total unconstraining of the system's cause-effect power —
+    every unit's inputs, including its own past state, are marginalized.
+    This is stronger than the all-singletons member of the directional
+    partition family (which the set-partition enumeration yields with
+    self-loops intact): a single unit is severed from itself only here.
+    It is therefore the sole irreducibility test for a single-unit
+    system, and an optional MIP candidate for larger systems (via
+    ``system_partition_include_total`` and the edge-cut schemes).
+
+    Normalized by the inherited uniform rule — one over the number of
+    severed connections, all ``n**2`` of them (Marshall et al. 2023,
+    Theorem 1: the normalization is the maximum φ the cut could achieve,
+    one bit per severed connection).
     """
 
     def __init__(
@@ -565,11 +580,8 @@ class CompleteEdgeCut(EdgeCut):
         self.node_labels = node_labels
         self._cut_matrix = np.ones([len(node_indices), len(node_indices)], dtype=int)
 
-    def normalization_factor(self) -> float:
-        return 1 / len(self.node_indices)
-
     def _concise(self) -> str:
-        return "Complete"
+        return "Total"
 
 
 class DirectedSetPartition(EdgeCut):
@@ -656,7 +668,8 @@ class Part:
 
     mechanism: tuple[int, ...]
     purview: tuple[int, ...]
-    node_labels: NodeLabels | None = None
+    # Excluded from ordering to match __eq__/__hash__, which ignore labels.
+    node_labels: NodeLabels | None = field(default=None, compare=False)
 
     def __hash__(self) -> int:
         return hash((self.mechanism, self.purview))

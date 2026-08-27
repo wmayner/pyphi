@@ -248,8 +248,8 @@ code for 2.0).
   ships with the server as `pyphi://theory/*` resources and through
   `get_iit_reference`. The orientation primer and the gotchas load as the
   server's startup instructions, so the mistakes that produce wrong results —
-  reading Φ = 0 as "no structure" when it means *reducible*, confusing φₛ with
-  Φ — are in front of the assistant before its first tool call rather than
+  reading φₛ = 0 as "no structure" when it means *reducible*, confusing φₛ
+  with Φ — are in front of the assistant before its first tool call rather than
   waiting behind one. If you are new to IIT, asking it to read
   `get_iit_reference("theory")` as well is worthwhile.
 - **Big analyses are guarded.** Φ is combinatorially expensive (the practical

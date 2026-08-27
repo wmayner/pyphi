@@ -5,10 +5,14 @@ import numpy as np
 from scipy.sparse import csc_matrix
 
 from . import convert
+from . import exceptions
 
 
 def sparse(matrix, threshold=0.1):
-    return np.sum(matrix > 0) / matrix.size > threshold
+    """Return whether ``matrix`` is sparse enough to benefit from a
+    scipy sparse matrix power: at most ``threshold`` of its entries are
+    nonzero."""
+    return np.sum(matrix > 0) / matrix.size <= threshold
 
 
 def sparse_time(tpm, time_scale):
@@ -35,20 +39,41 @@ def run_tpm(tpm, time_scale):
     np.ndarray
         The state-by-node TPM advanced by ``time_scale`` steps.
 
+    Raises
+    ------
+    pyphi.exceptions.ConditionallyDependentError
+        If the iterated dynamics are not conditionally independent, so
+        no state-by-node TPM can represent them. Iterating typically
+        introduces conditional dependence between nodes that share inputs,
+        even though the single-step TPM is conditionally independent by
+        construction.
+
     Notes
     -----
     The TPM is converted to state-by-state form and raised to the
     ``time_scale`` power there, then converted back. A scipy sparse matrix
-    power (:func:`sparse_time`) is used when the :func:`sparse` heuristic
-    returns true — i.e. when more than 10% of the state-by-node TPM's entries
-    are nonzero — and a dense power (:func:`dense_time`) otherwise.
+    power (:func:`sparse_time`) is used when the :func:`sparse` heuristic,
+    evaluated on the state-by-state matrix actually being raised to a power,
+    returns true — i.e. when at most 10% of its entries are nonzero — and a
+    dense power (:func:`dense_time`) otherwise.
     """
     sbs_tpm = convert.state_by_node2state_by_state(tpm)
-    if sparse(tpm):
-        tpm = sparse_time(sbs_tpm, time_scale)
+    if sparse(sbs_tpm):
+        iterated = sparse_time(sbs_tpm, time_scale)
     else:
-        tpm = dense_time(sbs_tpm, time_scale)
-    return convert.state_by_state2state_by_node(tpm)
+        iterated = dense_time(sbs_tpm, time_scale)
+    sbn_tpm = convert.state_by_state2state_by_node(iterated)
+    # Converting back to state-by-node form assumes conditional independence;
+    # verify the round trip so conditional dependence introduced by iteration
+    # is never silently discarded.
+    if not np.allclose(convert.state_by_node2state_by_state(sbn_tpm), iterated):
+        raise exceptions.ConditionallyDependentError(
+            f"the TPM iterated by {time_scale} steps is not conditionally "
+            "independent, so it cannot be expressed in state-by-node form. "
+            "Use the state-by-state form instead: "
+            "dense_time(convert.state_by_node2state_by_state(tpm), time_scale)."
+        )
+    return sbn_tpm
 
 
 def run_cm(cm, time_scale):
@@ -70,7 +95,15 @@ def run_cm(cm, time_scale):
     -------
     np.ndarray
         The connectivity matrix at the new timescale.
+
+    Notes
+    -----
+    ``np.linalg.matrix_power`` returns its input unchanged (not a copy) when
+    ``time_scale == 1``, so a copy is made up front: without it, clipping
+    values back to 1 would mutate the caller's matrix in place and raise on
+    a read-only one.
     """
+    cm = np.array(cm, copy=True)
     cm = np.linalg.matrix_power(cm, time_scale)
     # Round non-unitary values back to 1
     cm[cm > 1] = 1

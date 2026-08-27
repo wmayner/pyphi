@@ -341,6 +341,10 @@ def _make_fixtures() -> list[GoldenFixture]:
                     IIT_3_CONFIG["iit"],
                     background_conditioning="CAUSAL_MARGINALIZATION",
                 ),
+                # Deliberate off-preset variant: IIT 3.0 constrains
+                # background_conditioning, so this fixture opts out of
+                # config validation to pin the marginalized semantics.
+                "validate_config": False,
             },
             substrate_factory=noisy_or_background_substrate,
             state=(1, 0, 0),

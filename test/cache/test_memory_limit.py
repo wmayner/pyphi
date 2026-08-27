@@ -46,6 +46,48 @@ def test_v2_unlimited_group_reports_no_limit(cgroup):
     )
 
 
+def test_v2_limit_on_an_ancestor_binds_the_leaf(cgroup):
+    """Guards defect: only the leaf group and the hierarchy root were
+    consulted, missing a limit on an intermediate ancestor — the systemd/Slurm
+    layout, where MemoryMax sits on the parent slice and the job's own scope
+    is unlimited."""
+    assert (
+        cgroup(
+            "0::/system.slice/job-42.scope\n",
+            {
+                "system.slice/memory.max": str(4 * GIB),
+                "system.slice/job-42.scope/memory.max": "max\n",
+            },
+        )
+        == 4 * GIB
+    )
+
+
+def test_smallest_limit_along_the_ancestor_chain_wins(cgroup):
+    """Guards defect: the first readable value won rather than the minimum,
+    so a loose leaf limit hid a tighter ancestor limit."""
+    assert (
+        cgroup(
+            "0::/system.slice/job-42.scope\n",
+            {
+                "system.slice/memory.max": str(4 * GIB),
+                "system.slice/job-42.scope/memory.max": str(8 * GIB),
+            },
+        )
+        == 4 * GIB
+    )
+
+
+def test_v1_limit_on_an_ancestor_binds_the_leaf(cgroup):
+    assert (
+        cgroup(
+            "12:memory:/slurm/uid_1000/job_77\n",
+            {"memory/slurm/memory.limit_in_bytes": str(2 * GIB)},
+        )
+        == 2 * GIB
+    )
+
+
 def test_v1_limit_read_from_the_memory_controller(cgroup):
     assert (
         cgroup(

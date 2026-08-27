@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import functools
+import inspect
 import itertools
 from collections.abc import Generator, Iterable, Iterator, Sequence
 from itertools import chain, product
@@ -19,7 +20,7 @@ from .conf import config, fallback
 from .direction import Direction
 from .models.partitions import (
     JointBipartition,
-    CompleteEdgeCut,
+    TotalCut,
     EdgeCut,
     DirectedSetPartition,
     JointPartition,
@@ -212,7 +213,8 @@ def directed_bipartition_of_one(seq):
     -------
     Iterator[tuple[tuple, tuple]]
         An iterator over each ``(single, remainder)`` bipartition and its
-        reverse.
+        reverse. Bipartitions with an empty part are excluded, so a
+        single-element sequence yields nothing.
 
     Examples
     --------
@@ -224,9 +226,18 @@ def directed_bipartition_of_one(seq):
          ((2, 3), (1,)),
          ((1, 3), (2,)),
          ((1, 2), (3,))]
+    >>> list(directed_bipartition_of_one((1,)))
+    []
     """
-    bipartitions = list(bipartition_of_one(seq))
-    return chain(bipartitions, reverse_elements(bipartitions))
+    bipartitions = [b for b in bipartition_of_one(seq) if b[0] and b[1]]
+    # For two elements the reversed splits coincide with the originals;
+    # yield each bipartition once.
+    seen = set()
+    return (
+        b
+        for b in chain(bipartitions, reverse_elements(bipartitions))
+        if not (b in seen or seen.add(b))
+    )
 
 
 @cache()
@@ -421,6 +432,28 @@ def k_partitions(collection, k):
 # ~~~~~~~~~~~~~~~~~~~~~~
 
 
+def _check_scheme_signature(
+    func: Any, dummy_args: tuple, what: str, expected: str
+) -> None:
+    """Reject a scheme whose signature cannot accept the registry's call shape.
+
+    Uses :func:`inspect.signature` binding as a static check — the scheme is
+    not called. Callables whose signature cannot be introspected are accepted,
+    since nothing can be proven about them.
+    """
+    try:
+        sig = inspect.signature(func)
+    except (TypeError, ValueError):
+        return
+    try:
+        sig.bind(*dummy_args)
+    except TypeError as err:
+        raise TypeError(
+            f"Cannot register {func!r} as {what}: its signature {sig} does "
+            f"not accept a {expected} call: {err}"
+        ) from err
+
+
 class PartitionRegistry(Registry):
     """Storage for mechanism-level partition schemes registered with PyPhi.
 
@@ -432,10 +465,10 @@ class PartitionRegistry(Registry):
     Users can define custom partitions and use them by setting
     ``pyphi.config["iit.mechanism_partition_scheme"] = 'NONE'``.
 
-    Registered objects are validated against
-    :class:`pyphi.protocols.MechanismPartitionScheme` so wrong-shape
-    registrations fail at import rather than at the bottom of a phi
-    computation.
+    Registered objects are validated at registration: they must be callable
+    and their signature must accept a ``(mechanism, purview)`` call, so
+    wrong-shape registrations fail at import rather than at the bottom of a
+    phi computation.
 
     Examples
     --------
@@ -457,6 +490,12 @@ class PartitionRegistry(Registry):
                     f"object does not satisfy the MechanismPartitionScheme "
                     f"Protocol (must be callable)."
                 )
+            _check_scheme_signature(
+                func,
+                ((0,), (0,)),
+                f"partition scheme {name!r}",
+                "(mechanism, purview)",
+            )
             self.store[name] = func
             return func
 
@@ -637,7 +676,13 @@ def all_joint_partitions(
     Yields
     ------
     JointPartition
-        A partition of this mechanism and purview into ``k`` parts.
+        A partition of this mechanism and purview into ``k`` parts. Each
+        induced edge cut is yielded exactly once: structurally distinct
+        part assignments that sever the same mechanism-purview edges (for
+        example, the complete cut written as one mechanism part or as
+        several, each over an empty purview) describe the same physical
+        partition and produce the same partitioned repertoire, so only
+        the first-generated form is yielded.
     """
     # TODO: yield complete partition directly, then use nontrivial set partitions
     for mechanism_partition in combinatorics.set_partitions(mechanism):
@@ -661,6 +706,17 @@ def all_joint_partitions(
                     # cut away from the mechanism.
                     # TODO: find a way to avoid generating these in the first place
                     if parts[0].mechanism == mechanism and parts[0].purview:
+                        continue
+                    # Mechanism parts over an empty purview have every edge
+                    # severed, so splitting or merging them yields the same
+                    # induced cut; keep only the merged representative (at
+                    # most one such part). Equivalent to deduplicating by
+                    # ``lex_key()`` while preserving generation order, but
+                    # with O(1) memory.
+                    if (
+                        sum(1 for part in parts if part.mechanism and not part.purview)
+                        > 1
+                    ):
                         continue
                     yield JointPartition(*parts, node_labels=node_labels)
 
@@ -723,9 +779,10 @@ class SystemPartitionRegistry(Registry):
     Users can define custom partitions and use them by setting
     ``pyphi.config.system_partition_scheme = 'NONE'``.
 
-    Registered objects are validated against
-    :class:`pyphi.protocols.SystemPartitionScheme` so wrong-shape
-    registrations fail at import rather than at the bottom of a SIA
+    Registered objects are validated at registration: they must be callable
+    and their signature must accept a ``(nodes,)`` call, so wrong-shape
+    registrations (e.g. a mechanism-level scheme, which requires a second
+    positional argument) fail at import rather than at the bottom of a SIA
     computation.
 
     Examples
@@ -748,6 +805,12 @@ class SystemPartitionRegistry(Registry):
                     f"{name!r}: object does not satisfy the "
                     f"SystemPartitionScheme Protocol (must be callable)."
                 )
+            _check_scheme_signature(
+                func,
+                ((0, 1),),
+                f"system partition scheme {name!r}",
+                "(nodes,)",
+            )
             self.store[name] = func
             return func
 
@@ -821,40 +884,6 @@ def directed_bipartitions_sequential(
     return partitions
 
 
-def _bipartitions_to_temporal_directed_bipartitions(func):
-    """Decorator to yield temporally directed DirectedBipartition objects from a
-    set of bipartitions.
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args, node_labels=None, **kwargs):
-        for bipartition in func(*args, **kwargs):
-            for direction in Direction.both():
-                yield DirectedBipartition(
-                    direction,
-                    bipartition[0],
-                    bipartition[1],
-                    node_labels=node_labels,
-                )
-
-    return wrapper
-
-
-@system_partition_types.register("TEMPORAL_DIRECTED_BIPARTITION")
-@_bipartitions_to_temporal_directed_bipartitions
-def temporal_directed_bipartitions(nodes):
-    """Yield directed bipartitions in both temporal directions."""
-    # Don't consider trivial partitions where one part is empty
-    return directed_bipartition(nodes, nontrivial=True)
-
-
-@system_partition_types.register("TEMPORAL_DIRECTED_BIPARTITION_CUT_ONE")
-@_bipartitions_to_temporal_directed_bipartitions
-def temporal_directed_bipartitions_cut_one(nodes):
-    """Yield temporal directed bipartitions where one part has a single node."""
-    return directed_bipartition_of_one(nodes)
-
-
 def _cut_matrices(n, symmetric=False):
     """Generate binary cut matrices for ``n`` nodes.
 
@@ -897,9 +926,14 @@ def all_edge_cuts(
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
     """Yield every edge cut on the given nodes (with the complete cut)."""
-    yield CompleteEdgeCut(node_indices, node_labels=node_labels)
+    yield TotalCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices)):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
+
+
+# Single-edge cuts need not disconnect the system, so SIA searches must
+# filter these schemes' output to disconnecting cuts (IIT 4.0 Eq. 14).
+all_edge_cuts.may_yield_non_disconnecting_cuts = True  # pyright: ignore[reportFunctionMemberAccess, reportAttributeAccessIssue]
 
 
 def num_edge_cuts(n: int) -> int:
@@ -913,9 +947,12 @@ def bidirectional_edge_cuts(
     node_labels: Any = None,
 ) -> Iterable[EdgeCut]:
     """Yield every bidirectional (symmetric) edge cut on the given nodes."""
-    yield CompleteEdgeCut(node_indices, node_labels=node_labels)
+    yield TotalCut(node_indices, node_labels=node_labels)
     for cut_matrix in _cut_matrices(len(node_indices), symmetric=True):
         yield EdgeCut(node_indices, cut_matrix, node_labels=node_labels)
+
+
+bidirectional_edge_cuts.may_yield_non_disconnecting_cuts = True  # pyright: ignore[reportFunctionMemberAccess, reportAttributeAccessIssue]
 
 
 def _directed_set_partitions(
@@ -927,8 +964,8 @@ def _directed_set_partitions(
     Each set partition is yielded once per assignment of a direction
     (``CAUSE``, ``EFFECT``, or ``BIDIRECTIONAL``) to each part.
     """
-    if len(node_indices) == 1 or config.formalism.iit.system_partition_include_complete:
-        yield CompleteEdgeCut(node_indices, node_labels=node_labels)
+    if len(node_indices) == 1 or config.formalism.iit.system_partition_include_total:
+        yield TotalCut(node_indices, node_labels=node_labels)
     _node_indices = set(range(len(node_indices)))
     # Convert set to list for set_partitions which expects Sequence
     for partition in combinatorics.set_partitions(list(_node_indices), nontrivial=True):

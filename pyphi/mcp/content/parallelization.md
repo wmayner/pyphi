@@ -75,13 +75,13 @@ gated by the global `progress_bars` option).
 ## Recipes
 
 Scoped, for one run (the safe default — settings are restored on exit).
-Note that writing a per-level option replaces the whole dict, so
-read-modify-write:
+A partial per-level dict merges over that level's tuned defaults (omitted
+keys keep their values; unknown keys are rejected):
 
 ```python
-opts = {**dict(pyphi.config.infrastructure.parallel_partition_evaluation),
-        "parallel": True}
-with pyphi.config.override(parallel=True, parallel_partition_evaluation=opts):
+with pyphi.config.override(
+    parallel=True, parallel_partition_evaluation={"parallel": True}
+):
     analysis = pyphi.analyze(substrate, state)
 ```
 

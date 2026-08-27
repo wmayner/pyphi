@@ -36,7 +36,11 @@ __all__ = [
     "FormalismRegistry",
     "MeasureNotCompatibleError",
     "PhiFormalism",
+    "check_background_conditioning_compatible",
     "check_measure_compatible",
+    "check_mechanism_partition_scheme_compatible",
+    "check_sia_tie_strategy_compatible",
+    "check_specification_measure_compatible",
 ]
 
 
@@ -62,6 +66,19 @@ class PhiFormalism(Protocol):
     - ``compatible_mechanism_partition_schemes``: frozenset of mechanism
       partition scheme names this formalism accepts, or ``None`` if it
       accepts any registered scheme.
+    - ``compatible_sia_tie_strategies``: frozenset of SIA tie-resolution
+      strategy names this formalism's SIA result type supports, or ``None``
+      if it supports every registered strategy.
+    - ``compatible_specification_measures``: frozenset of measure names this
+      formalism accepts for ``config.formalism.iit.specification_measure``,
+      or ``None`` for formalisms without a specified-state phase (IIT 3.0
+      never consults the field).
+    - ``compatible_background_conditioning``: frozenset of cause-side
+      background-conditioning conventions this formalism defines, or
+      ``None`` if it accepts any registered convention.
+    - ``requires_ii_cap``: whether the formalism is defined by the
+      intrinsic-information requirement (Eq. 23 of Mayner et al. 2026) and
+      therefore requires a system measure whose ``applies_ii_cap`` is True.
 
     Signatures are permissive (``Any``) over the measure and partition
     arguments.
@@ -119,6 +136,139 @@ def check_measure_compatible(formalism: PhiFormalism, measure: str) -> None:
             "If you want a different measure, set "
             "config.formalism.iit.version to one whose compatible_measures "
             "set contains it."
+        )
+
+
+def check_sia_tie_strategy_compatible(formalism: PhiFormalism, strategy: Any) -> None:
+    """Raise ``ConfigurationError`` if a SIA tie-resolution strategy uses a
+    component the formalism's SIA result type does not support.
+
+    Called from a formalism's ``evaluate_system`` so a config assembled by
+    per-field assignment (which skips cross-field validation) still fails at
+    the dispatch boundary with a clear diagnostic, not with an
+    ``AttributeError`` deep inside tie resolution. Formalisms whose SIA type
+    supports every registered strategy declare
+    ``compatible_sia_tie_strategies = None`` and are not checked.
+    """
+    compatible = getattr(formalism, "compatible_sia_tie_strategies", None)
+    if compatible is None:
+        return
+    components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+    for component in components:
+        if component not in compatible:
+            from pyphi.conf import ConfigurationError
+
+            raise ConfigurationError(
+                f"formalism.iit.sia_tie_resolution component {component!r} is "
+                f"not compatible with formalism {formalism.name!r}. Compatible "
+                f"SIA tie strategies for this formalism: {sorted(compatible)}. "
+                f"Fix: set formalism.iit.sia_tie_resolution to use only those "
+                f"(the shipped preset uses ['PHI', 'PARTITION_LEX']), or "
+                f"change formalism.iit.version."
+            )
+
+
+def _validate_config_enabled() -> bool:
+    """Whether reactive dispatch-boundary config checks are enabled.
+
+    Mirrors the eager constraint gate (``infrastructure.validate_config``) so
+    the two validation surfaces share one opt-out.
+    """
+    from pyphi.conf import config
+
+    return bool(config.infrastructure.validate_config)
+
+
+def check_specification_measure_compatible(
+    formalism: PhiFormalism, measure: str
+) -> None:
+    """Raise :class:`MeasureNotCompatibleError` if ``measure`` isn't accepted
+    by ``formalism`` as a specification measure.
+
+    Called from the formalism's measure-resolution sites so a config
+    assembled by per-field assignment (which skips cross-field validation)
+    still fails at the dispatch boundary rather than silently computing a
+    different Φ. Formalisms without a specified-state phase declare
+    ``compatible_specification_measures = None`` and are not checked.
+    Respects the ``validate_config=False`` opt-out, so a deliberately
+    unsupported combination can still be studied.
+    """
+    compatible = getattr(formalism, "compatible_specification_measures", None)
+    if compatible is None:
+        return
+    if not _validate_config_enabled():
+        return
+    if measure not in compatible:
+        raise MeasureNotCompatibleError(
+            f"Specification measure {measure!r} is not compatible with "
+            f"formalism {formalism.name!r}. Compatible specification "
+            f"measures for this formalism: {sorted(compatible)}. Fix: set "
+            f"config.formalism.iit.specification_measure to one of those, "
+            f"or change config.formalism.iit.version."
+        )
+
+
+def check_background_conditioning_compatible(
+    formalism: PhiFormalism, value: str
+) -> None:
+    """Raise ``ConfigurationError`` if the cause-side background-conditioning
+    convention is one ``formalism`` does not define.
+
+    Called from a formalism's ``evaluate_system`` so a config assembled by
+    per-field assignment (which skips cross-field validation) still fails at
+    the dispatch boundary rather than silently computing a different phi on
+    proper-subset systems. Formalisms that accept any registered convention
+    declare ``compatible_background_conditioning = None`` and are not
+    checked. Respects the ``validate_config=False`` opt-out, so a
+    deliberately unsupported combination can still be studied.
+    """
+    compatible = getattr(formalism, "compatible_background_conditioning", None)
+    if compatible is None:
+        return
+    if not _validate_config_enabled():
+        return
+    if value not in compatible:
+        from pyphi.conf import ConfigurationError
+
+        raise ConfigurationError(
+            f"background_conditioning {value!r} is not compatible with "
+            f"formalism {formalism.name!r}. Compatible conventions for this "
+            f"formalism: {sorted(compatible)}. Fix: set "
+            f"formalism.iit.background_conditioning to one of those (the "
+            f"shipped IIT 3.0 preset uses 'CONDITION_CURRENT_STATE'), or "
+            f"change formalism.iit.version."
+        )
+
+
+def check_mechanism_partition_scheme_compatible(
+    formalism: PhiFormalism, scheme: str
+) -> None:
+    """Raise ``ConfigurationError`` if a mechanism partition scheme is one
+    ``formalism`` does not accept.
+
+    Called from a formalism's evaluation methods so a config assembled by
+    per-field assignment (which skips cross-field validation) still fails at
+    the dispatch boundary rather than silently computing phi over a different
+    partition family. Formalisms that accept any registered scheme declare
+    ``compatible_mechanism_partition_schemes = None`` and are not checked.
+    Respects the ``validate_config=False`` opt-out, so a deliberately
+    unsupported combination can still be studied.
+    """
+    compatible = getattr(formalism, "compatible_mechanism_partition_schemes", None)
+    if compatible is None:
+        return
+    if not _validate_config_enabled():
+        return
+    if scheme not in compatible:
+        from pyphi.conf import ConfigurationError
+
+        raise ConfigurationError(
+            f"formalism.iit.mechanism_partition_scheme={scheme!r} is not "
+            f"compatible with formalism {formalism.name!r}. Compatible "
+            f"mechanism partition schemes for this formalism: "
+            f"{sorted(compatible)}. Fix: set "
+            f"formalism.iit.mechanism_partition_scheme to one of those, or "
+            f"change formalism.iit.version."
         )
 
 

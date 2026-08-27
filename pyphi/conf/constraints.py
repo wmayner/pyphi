@@ -26,10 +26,22 @@ Register a constraint by appending a :class:`ConfigConstraint` to
 Notes
 -----
 ``system_phi_measure="INTRINSIC_INFORMATION"`` is *not* constrained to
-``IIT_4_0_2026``. The Eq. 23 cap is keyed on the measure (``applies_ii_cap``),
-not the version, so ``IIT_4_0_2023`` paired with that measure applies the cap
-and yields the same result as ``IIT_4_0_2026`` — a valid, if redundant,
-configuration.
+``IIT_4_0_2026``. The Eq. 23 intrinsic-information requirement is keyed on the
+measure (``applies_ii_cap``), not the version, so ``IIT_4_0_2023`` paired with
+that measure applies the requirement and yields the same result as
+``IIT_4_0_2026`` — a valid, if redundant, configuration. The reverse direction
+*is* constrained: ``IIT_4_0_2026`` is defined by the requirement, so it needs
+a ``system_phi_measure`` that applies it (the formalism declares
+``requires_ii_cap``). Version 2026 with a measure that lacks the requirement
+would compute the 2023 quantity while reporting version 2026 — a formalism
+mixture matching no paper.
+
+The ``background_conditioning_compatible_with_version`` constraint pins IIT
+3.0 to ``CONDITION_CURRENT_STATE`` (the shipped preset's convention). The
+deliberately marginalized IIT 3.0 variant — pinned by the golden zoo's
+``noisy_or_subset_iit3_emd_marginalized`` fixture and the background-oracle
+tests — opts out via ``validate_config=False``, which also disables the
+matching dispatch-boundary checks.
 
 No EMD-precision constraint is registered. Under the POT backend
 (``ot.emd2``, an exact network-simplex linear program) the EMD noise floor is
@@ -173,6 +185,36 @@ def _measure_compatible_with_version(config: Any) -> str | None:
                 f"formalism.iit.version to one whose formalism defines "
                 f"{measure!r}."
             )
+
+    # ``specification_measure`` drives the specified-state search wherever
+    # the formalism has one (the IIT 4.0 family; IIT 3.0 never consults it),
+    # so an unsupported value silently changes Φ and φ_s. Formalisms without
+    # a declaration are not constrained.
+    compatible_spec = getattr(formalism, "compatible_specification_measures", None)
+    if compatible_spec is not None and iit.specification_measure not in compatible_spec:
+        return (
+            f"formalism.iit.specification_measure="
+            f"{iit.specification_measure!r} is not compatible with "
+            f"formalism.iit.version={version!r}. Compatible specification "
+            f"measures for this version: {sorted(compatible_spec)}. Fix: set "
+            f"formalism.iit.specification_measure to one of those, or change "
+            f"formalism.iit.version to one whose formalism accepts "
+            f"{iit.specification_measure!r}."
+        )
+
+    # ``ces_measure`` defines Φ wherever the formalism derives system Φ from
+    # the CES (directly for IIT 3.0's CES distance; as the Σφ convention for
+    # IIT 4.0), so an unsupported value silently computes a different
+    # quantity. Formalisms without a declaration are not constrained.
+    compatible_ces = getattr(formalism, "compatible_ces_measures", None)
+    if compatible_ces is not None and iit.ces_measure not in compatible_ces:
+        return (
+            f"formalism.iit.ces_measure={iit.ces_measure!r} is not compatible "
+            f"with formalism.iit.version={version!r}. Compatible CES measures "
+            f"for this version: {sorted(compatible_ces)}. Fix: set "
+            f"formalism.iit.ces_measure to one of those, or change "
+            f"formalism.iit.version to one that supports {iit.ces_measure!r}."
+        )
     return None
 
 
@@ -237,5 +279,142 @@ def _mechanism_partition_scheme_compatible_with_version(config: Any) -> str | No
             f"formalism.iit.mechanism_partition_scheme to one of those, or "
             f"change formalism.iit.version to one whose formalism accepts "
             f"{scheme!r}."
+        )
+    return None
+
+
+@register_constraint("sia_tie_resolution_compatible_with_version")
+def _sia_tie_resolution_compatible_with_version(config: Any) -> str | None:
+    """The SIA tie-resolution strategies must be ones the active formalism's
+    SIA result type supports.
+
+    IIT 3.0 SIA results carry only raw phi and the MIP, so strategies reading
+    ``normalized_phi`` or ``purview`` (e.g. the IIT 4.0 default
+    ``NORMALIZED_PHI``) raise ``AttributeError`` at compute time. Formalisms
+    whose SIA type supports every registered strategy declare
+    ``compatible_sia_tie_strategies = None`` and are not constrained.
+    """
+    iit = config.formalism.iit
+    version = iit.version
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        return None
+    compatible = getattr(formalism, "compatible_sia_tie_strategies", None)
+    if compatible is None:
+        return None  # unconstrained (e.g. IIT 4.0)
+    strategy = iit.sia_tie_resolution
+    components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+    for component in components:
+        if component not in compatible:
+            return (
+                f"formalism.iit.sia_tie_resolution component {component!r} is "
+                f"not compatible with formalism.iit.version={version!r}. "
+                f"Compatible SIA tie strategies for this version: "
+                f"{sorted(compatible)}. Fix: set formalism.iit.sia_tie_resolution "
+                f"to use only those (the shipped preset uses "
+                f"['PHI', 'PARTITION_LEX']), or change formalism.iit.version."
+            )
+    return None
+
+
+@register_constraint("tie_resolution_strategies_registered")
+def _tie_resolution_strategies_registered(config: Any) -> str | None:
+    """Every tie-resolution strategy component must name a registered
+    strategy, so a typo fails at configuration time rather than in the
+    middle of a computation.
+
+    Imported lazily: ``pyphi.resolve_ties`` depends on ``pyphi.conf``, so a
+    module-level import would be circular; during the bootstrap window the
+    check is skipped (every post-import ``override`` / ``load_yaml`` still
+    validates).
+    """
+    try:
+        from pyphi.resolve_ties import phi_object_tie_resolution_strategies
+    except ImportError:
+        return None
+    valid = set(phi_object_tie_resolution_strategies.store)
+    iit = config.formalism.iit
+    for field_name in (
+        "state_tie_resolution",
+        "mip_tie_resolution",
+        "purview_tie_resolution",
+        "sia_tie_resolution",
+    ):
+        strategy = getattr(iit, field_name)
+        components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+        for component in components:
+            if component not in valid:
+                return (
+                    f"formalism.iit.{field_name} component {component!r} is not "
+                    f"a registered tie-resolution strategy. Registered "
+                    f"strategies: {sorted(valid)}."
+                )
+    return None
+
+
+@register_constraint("background_conditioning_compatible_with_version")
+def _background_conditioning_compatible_with_version(config: Any) -> str | None:
+    """The cause-side background-conditioning convention must be one the
+    active formalism defines.
+
+    IIT 3.0 fixes background units at their observed current state (the
+    PyPhi 1.x / post-2014-literature convention, pinned by the shipped
+    preset); pairing it with IIT 4.0's causal marginalization silently
+    computes a different phi on proper-subset systems. Formalisms that accept
+    any registered convention declare
+    ``compatible_background_conditioning = None`` and are not constrained.
+    """
+    iit = config.formalism.iit
+    version = iit.version
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        return None
+    compatible = getattr(formalism, "compatible_background_conditioning", None)
+    if compatible is None:
+        return None  # unconstrained (e.g. IIT 4.0)
+    value = iit.background_conditioning
+    if value not in compatible:
+        return (
+            f"formalism.iit.background_conditioning={value!r} is not "
+            f"compatible with formalism.iit.version={version!r}. Compatible "
+            f"conventions for this version: {sorted(compatible)}. Fix: set "
+            f"formalism.iit.background_conditioning to one of those (the "
+            f"shipped IIT 3.0 preset uses 'CONDITION_CURRENT_STATE'), or "
+            f"change formalism.iit.version."
+        )
+    return None
+
+
+@register_constraint("version_requires_ii_cap")
+def _version_requires_ii_cap(config: Any) -> str | None:
+    """A formalism defined by the intrinsic-information requirement (Eq. 23)
+    needs a system measure that applies it.
+
+    The requirement is keyed on the measure (``applies_ii_cap``), so
+    ``IIT_4_0_2026`` paired with a measure that lacks it computes the 2023
+    quantity while reporting version 2026 — a formalism mixture matching no
+    paper. (The other direction — ``IIT_4_0_2023`` with a requirement-applying
+    measure — is valid; see the module Notes.) Registered after the measure
+    constraint, so ``system_phi_measure`` is known resolvable here.
+    """
+    iit = config.formalism.iit
+    version = iit.version
+    formalism = _active_formalism(version)
+    if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
+        return None
+    if not getattr(formalism, "requires_ii_cap", False):
+        return None
+    from pyphi.measures.distribution import resolve_system_measure
+
+    measure = resolve_system_measure(iit.system_phi_measure)
+    if not getattr(measure, "applies_ii_cap", False):
+        return (
+            f"formalism.iit.system_phi_measure={iit.system_phi_measure!r} "
+            f"does not apply the intrinsic-information requirement (Eq. 23) "
+            f"that defines formalism.iit.version={version!r}; this "
+            f"combination computes the IIT_4_0_2023 quantity while reporting "
+            f"version {version!r}. Fix: set formalism.iit.system_phi_measure "
+            f"to 'INTRINSIC_INFORMATION', or set formalism.iit.version to "
+            f"'IIT_4_0_2023'."
         )
     return None

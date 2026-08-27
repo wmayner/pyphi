@@ -281,18 +281,179 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
     def resolve_congruence(
         self, system_state: SystemStateSpecification
     ) -> ResolvedDistinctions:
-        """Filter each distinction's tied states down to the ones
-        congruent with ``system_state``, dropping distinctions that have
-        no congruent reading. Returns a :class:`ResolvedDistinctions`
-        regardless of the input subtype — calling on an already-resolved
-        bag is well-defined and just refilters.
+        """Resolve each distinction's tied readings against ``system_state``,
+        per the Albantakis et al. 2023 S1 Text.
+
+        Congruence with the system's specified cause-effect state is a
+        requirement: non-congruent readings are dropped, and a distinction
+        with no congruent reading in either direction is excluded from the
+        structure. Ties among congruent readings are resolved jointly
+        across distinctions by the Composition appeal — selecting the
+        combination of readings that maximizes the structure integrated
+        information Φ (Σφ_d is invariant across readings, so the
+        comparison is over the analytical Σφ_r) — with residual Φ-ties
+        closed by the Determinism convention (lexicographic purviews and
+        states). Beyond :data:`_JOINT_READING_BOUND` combinations, a
+        greedy per-distinction pass approximates the joint maximum and a
+        :class:`~pyphi.warnings.PyPhiWarning` is emitted.
+
+        Returns a :class:`ResolvedDistinctions` regardless of the input
+        subtype — calling on an already-resolved bag is well-defined and
+        just refilters.
         """
         return ResolvedDistinctions(
-            filter(
-                lambda d: d is not None,
-                (distinction.resolve_congruence(system_state) for distinction in self),
-            )
+            _resolve_congruence_jointly(list(self), system_state)
         )
+
+
+# Exhaustive joint resolution is exact up to this many reading
+# combinations; beyond it, a greedy per-distinction pass approximates the
+# joint maximum. Ties are symmetry artifacts of small toy models (S1: they
+# are "unlikely to occur in realistic systems"), so the bound is far above
+# anything seen in practice.
+_JOINT_READING_BOUND = 4096
+
+
+def _reading_key(reading: Any) -> tuple:
+    """Deterministic lexicographic key for a reading (Determinism convention)."""
+    spec = getattr(reading, "specified_state", None)
+    state = getattr(spec, "state", None) if spec is not None else None
+    return (tuple(reading.purview), repr(state))
+
+
+def _congruent_reading_options(
+    distinction: Any, system_state: SystemStateSpecification
+) -> tuple[list, list] | None:
+    """The distinction's congruent readings per direction, in canonical order.
+
+    Returns ``None`` when either direction has no congruent reading (the
+    distinction is excluded from the structure). Propagates the
+    purview-selection margin from the original MICE winner to tied peers
+    that never carried it.
+    """
+    from pyphi.resolve_ties import congruent_distinction_readings
+
+    options = {}
+    for direction in Direction.both():
+        mice = distinction.mice(direction)
+        if mice is None:
+            return None
+        readings = congruent_distinction_readings(
+            mice.state_ties, mice.purview_ties, system_state[direction]
+        )
+        if not readings:
+            return None
+        for reading in readings:
+            # The purview-selection margin describes the purview choice and
+            # is shared across the tie set at the winning purview's φ;
+            # congruence may select a tied peer that never carried the
+            # winner's margin, so propagate it. The partition and state
+            # margins belong to the peer's own RIA and are already correct.
+            if reading is not mice and reading.purview_margin is None:
+                reading.purview_margin = mice.purview_margin
+        options[direction] = sorted(readings, key=_reading_key)
+    return options[Direction.CAUSE], options[Direction.EFFECT]
+
+
+def _resolve_congruence_jointly(
+    distinctions: Sequence, system_state: SystemStateSpecification
+) -> list:
+    """Select each distinction's reading per the S1 Composition appeal.
+
+    Ties in φ_d (and thus in the cause-effect state of a distinction) "may
+    be resolved at the level of the cause-effect structure, by selecting
+    the [reading] that maximizes the system's structure integrated
+    information Φ" (Albantakis et al. 2023 S1 Text). A reading's relation
+    support depends on the other distinctions' readings, so the
+    maximization is joint: over the product of the multi-reading
+    distinctions' congruent (cause, effect) pairs, scored by the
+    analytical Σφ_r of the resulting structure (Σφ_d is invariant across
+    readings). Residual Φ-ties resolve by the Determinism convention.
+    """
+    import itertools
+    import math
+    import warnings
+
+    entries = []
+    for distinction in distinctions:
+        options = _congruent_reading_options(distinction, system_state)
+        if options is None:
+            continue  # no congruent reading: excluded from the structure
+        causes, effects = options
+        entries.append((distinction, [(c, e) for c in causes for e in effects]))
+    if not entries:
+        return []
+
+    def build(choice_list: list) -> list:
+        return [
+            type(distinction)(
+                mechanism=distinction.mechanism, cause=cause, effect=effect
+            )
+            for (distinction, _), (cause, effect) in zip(
+                entries, choice_list, strict=True
+            )
+        ]
+
+    choices = [pairs[0] for _, pairs in entries]
+    variable = [i for i, (_, pairs) in enumerate(entries) if len(pairs) > 1]
+    if not variable:
+        return build(choices)
+
+    from pyphi import numerics
+    from pyphi.relations import AnalyticalRelations
+
+    def score(choice_list: list) -> float:
+        resolved = ResolvedDistinctions(build(choice_list))
+        return float(AnalyticalRelations(resolved).sum_phi())
+
+    n_combos = math.prod(len(entries[i][1]) for i in variable)
+    if n_combos > _JOINT_READING_BOUND:
+        from pyphi.warnings import PyPhiWarning
+
+        warnings.warn(
+            f"{n_combos} tied reading combinations exceed the exact joint "
+            f"resolution bound ({_JOINT_READING_BOUND}); resolving greedily "
+            f"per distinction, which may not attain the Φ-maximal structure",
+            PyPhiWarning,
+            stacklevel=4,
+        )
+        for i in variable:
+            best_pair, best_score = None, None
+            for pair in entries[i][1]:
+                candidate = list(choices)
+                candidate[i] = pair
+                value = score(candidate)
+                # numerics: tolerant — selection among readings.
+                if best_score is None or (
+                    value > best_score and not numerics.eq(value, best_score)
+                ):
+                    best_pair, best_score = pair, value
+            choices[i] = best_pair
+        return build(choices)
+
+    def combo_key(combo: tuple) -> tuple:
+        return tuple(
+            (_reading_key(cause), _reading_key(effect)) for cause, effect in combo
+        )
+
+    best_score = None
+    tied: list[tuple] = []
+    for combo in itertools.product(*(entries[i][1] for i in variable)):
+        candidate = list(choices)
+        for i, pair in zip(variable, combo, strict=True):
+            candidate[i] = pair
+        value = score(candidate)
+        # numerics: tolerant — Φ-tier membership is a selection.
+        if best_score is None or (
+            value > best_score and not numerics.eq(value, best_score)
+        ):
+            best_score, tied = value, [combo]
+        elif numerics.eq(value, best_score):
+            tied.append(combo)
+    winner = min(tied, key=combo_key)
+    for i, pair in zip(variable, winner, strict=True):
+        choices[i] = pair
+    return build(choices)
 
 
 class UnresolvedDistinctions(Distinctions):

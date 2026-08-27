@@ -158,3 +158,19 @@ def test_math_difference_separates(a, b):
         assert sa._fingerprint == sb._fingerprint
     else:
         assert sa._fingerprint != sb._fingerprint
+
+
+def test_fingerprint_separates_dependence_structure():
+    """Factors with identical flat bytes but different shapes (different
+    dependence structure) must not share a fingerprint: the digest is a
+    content address, so a collision returns another substrate's cached
+    repertoires."""
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    flat = np.array([0.9, 0.1, 0.2, 0.8])
+    with config.override(**_NO_CM_VALIDATION):
+        # Each node depends on node 0 vs. each node depends on node 1.
+        a = Substrate.from_factored(FactoredTPM([flat.reshape(2, 1, 2)] * 2))
+        b = Substrate.from_factored(FactoredTPM([flat.reshape(1, 2, 2)] * 2))
+    assert a != b
+    assert a._fingerprint != b._fingerprint

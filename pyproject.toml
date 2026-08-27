@@ -107,19 +107,26 @@ source = "vcs"
 fallback_version = "0.0.0"
 
 [tool.hatch.build.targets.sdist]
+# `include` is an allowlist: anything not matched here is excluded from the
+# sdist, so the package source itself must be listed. Patterns are anchored
+# to the project root with a leading slash; unanchored patterns match
+# anywhere in the tree (an unanchored "LICENSE.md" pulls in every
+# LICENSE.md under a local virtualenv).
 include = [
-    "README.md",
-    "CACHING.rst",
-    "LICENSE.md",
-    "CHANGELOG.md",
-    "pyphi_config.yml",
-    "redis.conf",
-    "pyphi/data/**",
+    "/README.md",
+    "/CACHING.rst",
+    "/LICENSE.md",
+    "/CHANGELOG.md",
+    "/pyphi_config.yml",
+    "/redis.conf",
+    "/pyphi/**",
 ]
 
 [tool.hatch.build.targets.wheel]
+# No `include` here: an allowlist would filter the package contents (an
+# `include` of only pyphi/data/** ships a wheel with zero .py files).
+# `packages` alone picks up the whole package, data files included.
 packages = ["pyphi"]
-include = ["pyphi/data/**"]
 
 [tool.ruff]
 line-length = 89

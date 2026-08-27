@@ -1,0 +1,1 @@
+`pyphi.dynamics.simulate()` draws its random initial state from the TPM's own state labels for state-by-state TPMs, so non-binary units can start in any state of their alphabet; previously the draw was hardcoded binary.

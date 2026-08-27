@@ -134,6 +134,63 @@ def test_module_level_caches_present_for_partition_and_distribution():
     )
 
 
+def test_registry_clear_resets_decorator_store_accounting():
+    """Guards defect: ``_DictCacheAdapter.clear()`` emptied the backing dict
+    directly, bypassing ``ByteBoundedStore`` accounting — ``info()`` reported
+    stale nonzero nbytes with currsize 0, and a latched budget kept refusing
+    admissions after the clear even once memory pressure was gone."""
+    from pyphi import config
+    from pyphi.cache import cache
+
+    @cache()
+    def f(i):
+        return list(range(100))
+
+    name = f"{f.__module__}.{f.__qualname__}"
+
+    with config.override(memory_ceiling_bytes=10**15):  # ample: fill freely
+        for i in range(20):
+            f(i)
+    with config.override(memory_ceiling_bytes=1):  # ceiling reached: latch
+        f(100)
+
+    reg.clear(name)
+    info = reg.info()[name]
+    assert info.currsize == 0
+    assert info.nbytes == 0  # stale weight was the defect
+
+    with config.override(memory_ceiling_bytes=10**15):  # pressure gone
+        for i in range(20):
+            f(i)
+        assert reg.info()[name].currsize == 20  # latched budget was the defect
+        hits_before = reg.info()[name].hits
+        f(0)
+        assert reg.info()[name].hits == hits_before + 1
+
+
+def test_registry_clear_resets_content_cache_store_accounting():
+    """Same defect as above, for the ContentCache registration site."""
+    from pyphi import config
+    from pyphi.cache.content import ContentCache
+
+    c = ContentCache("test.clear_resets_store")
+    with config.override(memory_ceiling_bytes=10**15):
+        for i in range(20):
+            c.get_or_compute(b"fp", (i,), lambda: list(range(100)))
+    with config.override(memory_ceiling_bytes=1):
+        c.get_or_compute(b"fp", ("latch",), lambda: list(range(100)))
+
+    reg.clear("test.clear_resets_store")
+    info = reg.info()["test.clear_resets_store"]
+    assert info.currsize == 0
+    assert info.nbytes == 0
+
+    with config.override(memory_ceiling_bytes=10**15):
+        for i in range(30):
+            c.get_or_compute(b"fp", ("post", i), lambda: list(range(100)))
+        assert c.size == 30
+
+
 def test_substrate_purview_cache_is_a_singleton_registration():
     """The potential-purview cache is one module-level ``ContentCache``
     (registered once, at import, as ``substrate.potential_purviews``), not a
