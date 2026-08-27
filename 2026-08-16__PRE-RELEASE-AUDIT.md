@@ -1619,3 +1619,84 @@ objects and fixed with a tagged marker; MacroSystem and ComplexesResult
 gained serializers. One agent's batch was reconstructed from its left-over
 patches after its report claimed work its final state did not contain —
 each reconstructed fix was re-tested here.
+
+# Tier B wave — COMPLETE (2026-08-27)
+
+All Tier B items adjudicated and resolved in nine commits
+(fbb161f7..9c22f497), each fix carrying a regression test proven to fail
+against the unfixed code (or, for gate widenings, proven to catch a seeded
+violation).
+
+Display/reporting (the two user-flagged priorities first):
+- The SIA runner-up is now ranked by the same quantity that selects the
+  MIP — the primary phi-valued component of sia_tie_resolution, normalized
+  phi by default — instead of always raw phi, so the reported runner-up is
+  the actual nearest competitor. RunnerUp carries normalized_phi (schema
+  extended, optional field), the gap finding reports the ranking quantity,
+  and the Eq. 23 ii cap now also caps the runner-up's normalized value.
+- SIA.explain()/.diff() and the PhiFold summary label system integrated
+  information phi_s, not the big-Phi glyph (IIT 3.0's SIA correctly keeps
+  Phi; PhiFold routes through display.system_phi_label).
+- The DirectedBipartition concise arrow now always points from from_nodes
+  to to_nodes — the severed connections, matching removed_edges() and the
+  cut grid — with the causal direction annotated textually. Previously the
+  CAUSE glyph drew the arrow reversed.
+
+Parallel internals (5 confirmed + 2 in conf/_helpers):
+- shortcircuit_callback payload uniform across all four dispatch paths
+  (list of results collected so far, ending with the trigger).
+- Config-snapshot hash (~1.3 ms) deferred to parallel dispatch.
+- Cost sampler no longer computes sampled items twice (plan_workload
+  merges sampled results when collection order is unconstrained).
+- Multi-iterable map_reduce participates in cost sampling instead of
+  collapsing to per-item futures at chunksize 1.
+- Process backend recognizes the default ShortcircuitPolicy sentinel,
+  aligning collection order with the other backends (completion order
+  unless ordered=True or a real predicate — deliberate direction; public
+  behavior unchanged).
+- parallel_kwargs allowlist pinned to map_reduce's keyword-only surface
+  (inflight_limit removed; size_func/backend admitted); gate-vs-override
+  ordering was REFUTED as a defect (explicit kwargs already win) and the
+  misleading docstring corrected.
+
+Test-gate widenings (each proven against a seeded violation):
+- Precision lint matches phi attributes anywhere inside comparison
+  operands and flags the isclose family (was top-level-operand only).
+- Hash-quality guard sweeps every dict-backed registry cache for
+  undeclared key types, _HashedSeq declared (was ContentCache-only,
+  missing four module-level caches).
+- Golden gate asserts the computed layer set equals the expected set
+  (a vanished layer previously just meant fewer checks).
+- Relations parity suite pinned to the complete 2023 preset with
+  per-fixture non-vacuity assertions (rule110 was vacuous under the 2026
+  default, whose CES for it is empty).
+- test_system_phi_max computes phi in a module-scoped pinned fixture, not
+  at import — the bundled-run perf-counter order sensitivity is fixed.
+
+Perf: small k-ary EMD ground metrics memoized in memory (was a joblib
+filesystem-cache load per call, ~500x the binary path's lookup).
+
+API contracts: SweepResult/OptimizationResult equality no longer raises
+(elementwise DataFrame/ndarray comparison); CES equality is exact-type so
+views never equal the structures they view; tie-strategy names validated
+eagerly at config-set time; partition-scheme registration validates call
+signatures (making the registries' fail-at-import docstring true);
+as_kwargs() docs corrected (flat form cannot reproduce a different-formalism
+snapshot; use as_overrides()); Orderable's exact-ordering vs
+tolerant-equality split documented as deliberate.
+
+Trivia: four example docstrings corrected against the papers
+(disjunction_conjunction is AC Fig 9; prevention is Fig 7D; fig6e perturbs
+inputs to C, D, E per the weight-matrix columns — the audit itself had this
+wrong as C, D, F; fig7's perturbed connection is A <- D).
+
+Refuted / already fixed: numpy_aware_eq broadcast guard and
+NodeLabels.coerce_to_indices range check were already fixed by Tier A side
+effects; pyphi.sweep shadowing the submodule is a deliberate, commented,
+test-pinned pattern uniform across analyze/optimize/sweep — kept.
+
+Minor items noted, not blocking: pyphi.numerics has no le/lt primitive
+(one hand-rolled tolerant <= in distinction.explain() is allowlisted in
+the lint with rationale); rule110_system() has an empty CES under the 2026
+default — beware choosing it as a fixture for suites that iterate
+distinctions or relations.
