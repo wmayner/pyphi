@@ -99,3 +99,26 @@ jobs:
 
       - name: Run tests with the GIL disabled
         run: PYTHON_GIL=0 .venv-ft/bin/python -m pytest --tb=short
+
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Build the docs (executes every code cell; warnings are errors)
+        run: >
+          uv run --all-extras --group docs
+          sphinx-build -j auto -W --keep-going -b html docs docs/_build/html
+        env:
+          PYPHI_WELCOME_OFF: "1"
+          PYPHI_AGENT_NOTE_OFF: "1"
