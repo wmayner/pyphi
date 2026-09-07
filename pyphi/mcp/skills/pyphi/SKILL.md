@@ -37,9 +37,9 @@ import pyphi
 substrate = pyphi.Substrate(tpm, cm=cm, node_labels=labels)
 analysis = pyphi.analyze(substrate, state)
 
-analysis.phi           # φₛ, system integrated information
-analysis.ces           # the Φ-structure
-analysis.ces.big_phi   # Φ, structure integrated information
+analysis.phi  # φₛ, system integrated information
+analysis.ces  # the Φ-structure
+analysis.ces.big_phi  # Φ, structure integrated information
 ```
 
 `pyphi.Network` is now `pyphi.Substrate`, `pyphi.Subsystem` is now

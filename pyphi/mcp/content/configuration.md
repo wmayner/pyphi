@@ -24,8 +24,8 @@ Read through the full path or the flat shortcut, which routes to whichever layer
 owns the option:
 
 ```python
-pyphi.config.numerics.precision   # full path
-pyphi.config.precision            # flat shortcut, same value
+pyphi.config.numerics.precision  # full path
+pyphi.config.precision  # flat shortcut, same value
 ```
 
 Writes use the flat form and are routed automatically. A plain assignment is
@@ -57,6 +57,7 @@ are provided as dictionaries you unpack into `override`:
 
 ```python
 from pyphi import iit3
+
 with pyphi.config.override(**iit3):
     ...
 ```

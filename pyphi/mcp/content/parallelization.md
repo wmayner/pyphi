@@ -89,8 +89,10 @@ Your own loop over many systems, parallelized at the outer level only:
 
 ```python
 # Workers inherit the config snapshot, so inner levels stay sequential.
-opts = {**dict(pyphi.config.infrastructure.parallel_complex_evaluation),
-        "parallel": True}
+opts = {
+    **dict(pyphi.config.infrastructure.parallel_complex_evaluation),
+    "parallel": True,
+}
 with pyphi.config.override(parallel=True, parallel_complex_evaluation=opts):
     result = substrate.complexes(state)
 ```

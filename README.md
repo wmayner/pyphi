@@ -44,7 +44,7 @@ state = (0, 1, 1)
 # Analyze the candidate system {A, B} in that state under IIT 4.0.
 analysis = pyphi.analyze(substrate, state, subset=(0, 1))
 
-print(analysis.phi)      # system integrated information, φ_s ≈ 0.04
+print(analysis.phi)  # system integrated information, φ_s ≈ 0.04
 print(analysis.big_phi)  # structure integrated information, Φ ≈ 1.56
 ```
 
