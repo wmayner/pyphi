@@ -118,7 +118,7 @@ out.mkdir(exist_ok=True)
 
 for label, (substrate, state) in systems.items():
     path = out / f"{label}.json"
-    if path.exists():          # done in an earlier run — skip
+    if path.exists():  # done in an earlier run — skip
         continue
     sia = pyphi.System(substrate, state).sia()
     path.write_text(json.dumps({"label": label, "state": list(state), "phi": sia.phi}))

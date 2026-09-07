@@ -1437,23 +1437,32 @@ Define:
 
 ```python
 class PhiFormalism(Protocol):
-    exact: bool                    # True for exact methods, False for approximations
+    exact: bool  # True for exact methods, False for approximations
     default_metric: DistanceMetric
     compatible_metrics: frozenset[type[DistanceMetric]]
-    partition_scheme: PartitionScheme | None  # None for methods that bypass partitions (e.g. φ*)
+    partition_scheme: (
+        PartitionScheme | None
+    )  # None for methods that bypass partitions (e.g. φ*)
+
     def evaluate_mechanism(self, cs, mechanism, purview) -> RIA: ...
     def evaluate_system(self, cs) -> SIA: ...
     def build_phi_structure(self, cs) -> PhiStructure: ...
 
+
 class ExactFormalism(PhiFormalism, Protocol):
     """Formalism that computes exact values via exhaustive enumeration."""
+
     exact: Literal[True]
     partition_scheme: PartitionScheme
 
+
 class ApproximateFormalism(PhiFormalism, Protocol):
     """Formalism that computes approximate values with error characterization."""
+
     exact: Literal[False]
+
     def error_characterization(self, cs) -> ErrorInfo: ...
+
     # ErrorInfo distinguishes: upper_bound, approximation_error, different_quantity
 ```
 

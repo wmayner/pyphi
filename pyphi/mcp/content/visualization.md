@@ -15,7 +15,9 @@ system specifies and the relations among them. The normal way to get one:
 import pyphi
 from pyphi import visualize as viz
 
-analysis = pyphi.analyze(substrate, state)   # or: pyphi.analyze(substrate, state, compute="ces")
+analysis = pyphi.analyze(
+    substrate, state
+)  # or: pyphi.analyze(substrate, state, compute="ces")
 viz.plot_ces(analysis.ces, view="lattice")
 ```
 
@@ -55,8 +57,8 @@ relations. It does not. The rule:
 
 ```python
 ces = system.ces()
-viz.plot_ces(ces, view="lattice")                    # renders the strongest 1000
-viz.plot_ces(ces, view="lattice", max_relations=8)    # renders only the strongest 8
+viz.plot_ces(ces, view="lattice")  # renders the strongest 1000
+viz.plot_ces(ces, view="lattice", max_relations=8)  # renders only the strongest 8
 ```
 
 `max_relations` caps only how many relation *edges* are drawn. Marker sizes and
