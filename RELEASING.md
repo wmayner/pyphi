@@ -14,8 +14,9 @@ defect at least once; skipping one is how regressions ship.
    summary. This runs the paper-reproduction acceptance suite (the published
    figures) and the large-fixture tests the fast lane never sees.
 3. **Executed docs build**: `just docs` (sphinx with `-W`; every code cell
-   executes at build). Docs do not build in CI, so this is the only gate
-   against prose-versus-output drift and cells broken by API changes.
+   executes at build). CI also runs this build on every push, but run it
+   locally at the cut so a failure is diagnosed before tagging rather than
+   after.
 4. **Demo notebook**: re-execute `docs/examples/IIT_4.0_demo.ipynb` end to
    end (it is excluded from the docs build; only re-execution catches
    breaks). Run it through `nbclient` inside the project venv — a bare
