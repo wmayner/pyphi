@@ -1,1 +1,0 @@
-`sia.ties` now contains only the specified-state readings whose φ_s is tied with the winner (up to the configured numerical precision). Previously every evaluated reading was attached as a tie, including readings whose φ_s lost the state-resolution cascade outright.

@@ -1,1 +1,0 @@
-IIT 3.0 configurations now require `background_conditioning="CONDITION_CURRENT_STATE"`, the convention of the shipped preset and the post-2014 literature. Pairing IIT 3.0 with `CAUSAL_MARGINALIZATION` previously passed validation and silently changed phi on proper-subset systems. A `System` that pins its own convention is checked against the pinned value.

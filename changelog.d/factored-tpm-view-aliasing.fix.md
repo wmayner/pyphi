@@ -1,1 +1,0 @@
-Fixed `FactoredTPM` storing read-only views (e.g. from `numpy.broadcast_to`) without copying: mutating the view's source array after construction could silently change the stored factors, computed results, and the hash. Read-only views are now copied; read-only arrays that own their data are still stored without a copy.

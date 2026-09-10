@@ -1,1 +1,0 @@
-Non-binary EMD no longer reloads its Hamming ground-distance matrix from the joblib filesystem cache on every call: matrices for small state spaces are memoized in memory, mirroring the precomputed binary path.

@@ -1,1 +1,0 @@
-Fixed nondeterministic mechanism MIP reporting under `shortcircuit_sia=False` with parallel partition evaluation: results were collected in completion order, so tie resolution could select different (φ-equivalent) partitions across identical runs. Partition sweeps now always collect in enumeration order.

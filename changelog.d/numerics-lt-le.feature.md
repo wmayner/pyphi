@@ -1,1 +1,0 @@
-Added `pyphi.numerics.lt()` and `le()`, tolerant order predicates consistent with `eq()`: `lt` requires a difference beyond `config.numerics.precision`, and `le` is `lt` or tolerant equality. The binding-direction selection in `Distinction.explain()` now routes through `le` instead of a hand-rolled composition.

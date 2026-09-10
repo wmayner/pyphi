@@ -1,1 +1,0 @@
-`Relation` and `RelationFace` now order by φ: `max()`, `min()`, `sorted()`, and comparisons follow φ instead of accidentally using `frozenset` subset comparison. Equality and hashing keep set semantics.
