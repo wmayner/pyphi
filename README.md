@@ -84,10 +84,10 @@ for IIT research:
 - **Saving and loading** — persist any result to disk (JSON, transparently
   gzipped) and reload it later.
 
-> **Release status.** The version on the `main` branch is the in-development
-> **2.0** line, which implements IIT 4.0. The current release on PyPI is the
-> **1.x** line (IIT 3.0). To use the IIT 4.0 code today, install from GitHub
-> (see [Installation](#installation)).
+> **Release status.** The current release on PyPI is the **2.0** line, which
+> implements IIT 4.0. Upgrading from 1.x involves breaking changes; see
+> [What's new in 2.0](https://github.com/wmayner/pyphi/blob/main/docs/whats-new-in-2.0.md).
+> The **1.x** line (IIT 3.0) remains available: install `"pyphi<2"`.
 
 ## Documentation
 
@@ -111,13 +111,13 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Install the current PyPI release (1.x, IIT 3.0):
+Install the current release:
 
 ```bash
 uv pip install pyphi
 ```
 
-Install the in-development 2.0 line (IIT 4.0) from GitHub:
+To install the latest development version from GitHub instead:
 
 ```bash
 uv pip install "git+https://github.com/wmayner/pyphi@main"
@@ -135,8 +135,8 @@ uv pip install "pyphi[visualize,emd]"
 ### Using pip
 
 ```bash
-python -m pip install pyphi                     # current release (1.x)
-python -m pip install "git+https://github.com/wmayner/pyphi@main"   # 2.0 (IIT 4.0)
+python -m pip install pyphi                                       # current release
+python -m pip install "git+https://github.com/wmayner/pyphi@main" # development version
 ```
 
 ## Contributing
