@@ -841,3 +841,50 @@ def test_mayner_2026_fig4_micro_pair_is_maximally_irreducible_within(_iit4_2026,
     for unit in (0, 1):
         alone = float(System(substrate, (0, 0), node_indices=(unit,)).sia().phi)
         assert pair > alone
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), System Integrated Information, Entropy 25:334, Fig 1
+# --------------------------------------------------------------------------- #
+# Fig 1B-D (state ABcD = (1, 1, 0, 1)): ii_c = ii_e = 4 (deterministic,
+# non-degenerate); 1.95 / 1.95 with unit D noisy at 0.6; 1.5 / 3.0 with D's
+# function identical to A's. The whole universe is the system, so the
+# background-conditioning convention is immaterial here.
+_MARSHALL_FIG1_STATE = (1, 1, 0, 1)
+_MARSHALL_FIG1 = {
+    "deterministic": (4.0, 4.0),
+    "noisy": (1.95, 1.95),
+    "degenerate": (1.5, 3.0),
+}
+
+
+@pytest.fixture
+def _iit4_2023_current_state_background():
+    """IIT 4.0 (2023) with background units conditioned on their current
+    state, the convention of Marshall et al. (2023) Section 2.1."""
+    with config.override(
+        **{k: v for k, v in presets.iit4_2023.items() if k != "iit"},
+        iit=replace(
+            presets.iit4_2023["iit"], background_conditioning="CONDITION_CURRENT_STATE"
+        ),
+        validate_system_states=False,
+        progress_bars=False,
+    ):
+        yield
+
+
+@pytest.mark.parametrize(("variant", "expected"), list(_MARSHALL_FIG1.items()))
+def test_marshall_2023_fig1_information(
+    _iit4_2023_current_state_background, variant, expected
+):
+    """Fig 1B/C/D: cause and effect intrinsic information of the four-unit
+    system (the paper's ii_c / ii_e; intrinsic specification in 2026 terms)."""
+    ii_c, ii_e = expected
+    sia = System(
+        examples.marshall_2023_fig1_substrate(variant),
+        _MARSHALL_FIG1_STATE,
+        node_indices=(0, 1, 2, 3),
+    ).sia()
+    spec = sia.intrinsic_specification
+    assert spec[Direction.CAUSE] == pytest.approx(ii_c, abs=0.01)
+    assert spec[Direction.EFFECT] == pytest.approx(ii_e, abs=0.01)

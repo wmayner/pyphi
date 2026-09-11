@@ -1842,3 +1842,55 @@ def mayner_2026_monad_substrate(p=0.744):
     """
     # Rows are the current state (0, 1); the column is P(unit is ON next).
     return Substrate(np.array([[1 - p], [p]]), node_labels=("M",))
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), System Integrated Information, Entropy 25(2): 334
+# --------------------------------------------------------------------------- #
+
+
+@register_example
+def marshall_2023_fig1_substrate(variant="deterministic"):
+    """The four-unit systems of Marshall et al. (2023), Fig 1.
+
+    Four all-to-all units with distinct deterministic functions
+    (``A' = B``, ``B' = C``, ``C' = D``, ``D' = A xor B``), a bijection on
+    the state space, so the system in any state specifies a unique cause
+    and effect with ``ii_c = ii_e = 4`` (Fig 1B). ``variant="noisy"``
+    makes ``D`` go to its specified state with probability 0.6 (Fig 1C;
+    ``ii_c = ii_e = 1.95``); ``variant="degenerate"`` gives ``D`` the same
+    function as ``A`` (Fig 1D; ``ii_c = 1.5``, ``ii_e = 3.0``). The paper
+    states the functions only as a figure table; this fixture reproduces
+    the panel values, not the table.
+    """
+    if variant not in ("deterministic", "noisy", "degenerate"):
+        raise ValueError(f"unknown variant {variant!r}")
+    n = 4
+
+    def d_target(a, b, c, d):
+        if variant == "degenerate":
+            return b  # A's function
+        return a ^ b
+
+    functions = (
+        lambda a, b, c, d: b,
+        lambda a, b, c, d: c,
+        lambda a, b, c, d: d,
+        d_target,
+    )
+    marginals = []
+    for i, f in enumerate(functions):
+        factor = np.zeros((2,) * n + (2,))
+        for state in np.ndindex(*(2,) * n):
+            target = f(*state)
+            if i == 3 and variant == "noisy":
+                factor[(*state, target)] = 0.6
+                factor[(*state, 1 - target)] = 0.4
+            else:
+                factor[(*state, target)] = 1.0
+        marginals.append(factor)
+    return Substrate(
+        marginals=marginals,
+        state_space=((0, 1),) * n,
+        node_labels=("A", "B", "C", "D"),
+    )
