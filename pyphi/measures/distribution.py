@@ -398,7 +398,7 @@ class CompositeMeasureRegistry(Registry):
         self,
         name: str,
         asymmetric: bool = False,
-        applies_ii_cap: bool = False,
+        applies_intrinsic_information_requirement: bool = False,
         partition_measure: Callable[..., Any] | None = None,
         supports_alphabet: Callable[[tuple[int, ...]], bool] = _any_alphabet,
     ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -410,9 +410,10 @@ class CompositeMeasureRegistry(Registry):
             The name of the measure.
         asymmetric
             ``True`` if the measure is asymmetric.
-        applies_ii_cap
-            ``True`` if the measure carries the Eq. 23
-            ``ii(s)`` cap (``INTRINSIC_INFORMATION`` only).
+        applies_intrinsic_information_requirement
+            ``True`` if the measure applies the intrinsic-information
+            requirement (Mayner et al. 2026, Eq. 23;
+            ``INTRINSIC_INFORMATION`` only).
         partition_measure
             The composite measure used to score
             partitions when this measure is the system measure;
@@ -433,7 +434,9 @@ class CompositeMeasureRegistry(Registry):
                 )
             func.name = name  # type: ignore[attr-defined]
             func.asymmetric = asymmetric  # type: ignore[attr-defined]
-            func.applies_ii_cap = applies_ii_cap  # type: ignore[attr-defined]
+            func.applies_intrinsic_information_requirement = (  # type: ignore[attr-defined]
+                applies_intrinsic_information_requirement
+            )
             func.partition_measure = partition_measure  # type: ignore[attr-defined]
             func.supports_alphabet = supports_alphabet  # type: ignore[attr-defined]
             self.store[name] = func
@@ -1364,7 +1367,7 @@ def intrinsic_differentiation(p, state):
 @composite_measures.register(
     "INTRINSIC_INFORMATION",
     asymmetric=True,
-    applies_ii_cap=True,
+    applies_intrinsic_information_requirement=True,
     partition_measure=generalized_intrinsic_difference,
 )
 def intrinsic_information(
@@ -1389,8 +1392,9 @@ def intrinsic_information(
     minimum array is returned. When ``state`` selects a scalar, a
     :class:`DistanceResult` is returned that also carries the two operands as
     ``specification`` and ``differentiation`` metadata. As the system φ
-    measure this measure sets ``applies_ii_cap`` and scores partitions with
-    generalized intrinsic difference.
+    measure this measure applies the intrinsic-information requirement
+    (Mayner et al. 2026, Eq. 23) and scores partitions with generalized
+    intrinsic difference.
 
     Parameters
     ----------

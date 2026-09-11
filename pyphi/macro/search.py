@@ -367,7 +367,7 @@ def _resolve_prune(prune: str | None) -> str:
     if prune == "off":
         return "off"
     measure = resolve_system_measure(_config.formalism.iit.system_phi_measure)
-    capped = bool(getattr(measure, "applies_ii_cap", False))
+    capped = bool(getattr(measure, "applies_intrinsic_information_requirement", False))
     if prune == "certified" and not capped:
         raise ConfigurationError(
             "prune='certified' requires a system measure that applies the "

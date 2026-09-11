@@ -756,8 +756,9 @@ def evaluate_partition(
     ``system_measure`` is a Protocol-typed composite measure used at the
     system level; passed explicitly by the caller (no config fallback).
     Partition integration uses ``system_measure.partition_measure`` if
-    set (otherwise ``system_measure`` itself), and the ``ii(s)`` cap
-    (Eq. 23) is applied when ``system_measure.applies_ii_cap`` is True.
+    set (otherwise ``system_measure`` itself), and the intrinsic-information
+    requirement (Mayner et al. 2026, Eq. 23) is applied when
+    ``system_measure.applies_intrinsic_information_requirement`` is True.
 
     ``intrinsic_differentiation`` depends only on ``(direction, system)``,
     not the partition; a caller evaluating many partitions of the same
@@ -1053,7 +1054,9 @@ def sia(
     # set, the reported φ_s) sees the capped value, since φ_s is the capped
     # quantity by definition. Each tied specified-state pair carries its
     # own cap terms (i_diff depends on the specified state).
-    apply_cap = getattr(system_measure, "applies_ii_cap", False)
+    apply_cap = getattr(
+        system_measure, "applies_intrinsic_information_requirement", False
+    )
 
     if len(cause_specs) <= 1 and len(effect_specs) <= 1:
         mip_sia = _find_mip_for_fixed_state(
@@ -1321,7 +1324,7 @@ def merge_pair_minima(
     system_measure, specification_measure = _resolve_system_measures(
         formalism, None, None
     )
-    if getattr(system_measure, "applies_ii_cap", False):
+    if getattr(system_measure, "applies_intrinsic_information_requirement", False):
         merged_pairs = {
             key: _apply_ii_cap(pair_sia) for key, pair_sia in merged_pairs.items()
         }

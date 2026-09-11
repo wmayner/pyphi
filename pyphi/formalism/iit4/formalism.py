@@ -318,7 +318,7 @@ class IIT4_2023Formalism:
         }
     )
     compatible_background_conditioning: ClassVar[frozenset[str] | None] = None
-    requires_ii_cap: ClassVar[bool] = False
+    applies_intrinsic_information_requirement: ClassVar[bool] = False
 
     def evaluate_mechanism(
         self,
@@ -499,7 +499,7 @@ class IIT4_2026Formalism:
     compatible_background_conditioning: ClassVar[frozenset[str] | None] = None
     # This formalism is defined by the intrinsic-information requirement
     # (Eq. 23): its system measure must apply it.
-    requires_ii_cap: ClassVar[bool] = True
+    applies_intrinsic_information_requirement: ClassVar[bool] = True
 
     def evaluate_mechanism(
         self,

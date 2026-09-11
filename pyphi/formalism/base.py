@@ -76,9 +76,10 @@ class PhiFormalism(Protocol):
     - ``compatible_background_conditioning``: frozenset of cause-side
       background-conditioning conventions this formalism defines, or
       ``None`` if it accepts any registered convention.
-    - ``requires_ii_cap``: whether the formalism is defined by the
-      intrinsic-information requirement (Eq. 23 of Mayner et al. 2026) and
-      therefore requires a system measure whose ``applies_ii_cap`` is True.
+    - ``applies_intrinsic_information_requirement``: whether the formalism
+      is defined by the intrinsic-information requirement (Eq. 23 of Mayner
+      et al. 2026) and therefore requires a system measure whose attribute
+      of the same name is True.
 
     Signatures are permissive (``Any``) over the measure and partition
     arguments.

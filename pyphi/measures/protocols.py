@@ -67,18 +67,20 @@ class StateAwareMeasure(Protocol):
 class CompositeMeasure(Protocol):
     """Multi-input measure returning DistanceResult metadata.
 
-    ``applies_ii_cap`` is True only for ``INTRINSIC_INFORMATION``; it
-    gates the Eq. 23 cap ``φ_s = min(φ_c, φ_e, ii(s))``.
+    ``applies_intrinsic_information_requirement`` is True only for
+    ``INTRINSIC_INFORMATION``; it says the measure applies the
+    intrinsic-information requirement (Mayner et al. 2026, Eq. 23),
+    ``φ_s = min(φ_c, φ_e, ii(s))``.
 
     ``partition_measure`` names the measure used to score partitions
     when this composite is the system measure. ``None`` means
     "use self"; ``INTRINSIC_INFORMATION`` sets it to GID so that
-    partition integration is computed with GID and the cap is layered
-    on top.
+    partition integration is computed with GID and the requirement is
+    applied on top.
     """
 
     name: str
-    applies_ii_cap: bool
+    applies_intrinsic_information_requirement: bool
     partition_measure: CompositeMeasure | None
 
     def __call__(
