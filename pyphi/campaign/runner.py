@@ -342,10 +342,10 @@ def sia_stride_entries(
     the stride must report every pair's local minimum — not the winner of
     a stride-local cascade — so the merge can take the cross-stride
     minimum per pair before running the cascade globally. Per-pair
-    minima are **uncapped** (MIP selection compares uncapped normalized
-    φ); the merge applies the intrinsic-information cap once the global
-    MIP per pair is chosen. Pin-less formalisms report the single sweep
-    result.
+    minima are taken without the intrinsic-information requirement (MIP
+    selection compares normalized φ without it); the merge applies the
+    requirement once the global MIP per pair is chosen. Pin-less formalisms
+    report the single sweep result.
     """
     from pyphi.formalism.base import FORMALISM_REGISTRY
 

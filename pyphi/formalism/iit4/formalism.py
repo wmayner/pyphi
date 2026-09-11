@@ -464,7 +464,7 @@ class IIT4_2023Formalism:
 
 @dataclass(frozen=True)
 class IIT4_2026Formalism:
-    """IIT 4.0 (Mayner, Marshall, Tononi 2026) — intrinsic-information cap.
+    """IIT 4.0 (Mayner, Marshall, Tononi 2026) — intrinsic-information requirement.
 
     Mechanism phi uses GID per Eqs. 19-20 (same as IIT 4.0 2023). System
     phi uses ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff,

@@ -62,9 +62,10 @@ option-by-option reference, loaded only when working with this directory.
 - **`mechanism_phi_measure`**: Mechanism-level repertoire-distance measure
   (default: `"GENERALIZED_INTRINSIC_DIFFERENCE"`)
 - **`system_phi_measure`**: System-level phi measure
-  (default: `"INTRINSIC_INFORMATION"`, which applies the Eq. 23 cap of IIT 4.0
-  2026; `"GENERALIZED_INTRINSIC_DIFFERENCE"` selects the uncapped IIT 4.0 2023
-  system φ)
+  (default: `"INTRINSIC_INFORMATION"`, which applies the Eq. 23
+  intrinsic-information requirement of IIT 4.0 2026;
+  `"GENERALIZED_INTRINSIC_DIFFERENCE"` selects the IIT 4.0 2023 system φ,
+  without the requirement)
 - **`ces_measure`**: Cause-effect-structure distance measure
   (default: `"SUM_SMALL_PHI"`)
 - **`config.formalism.actual_causation.alpha_measure`**: AC alpha measure
