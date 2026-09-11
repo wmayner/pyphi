@@ -360,3 +360,74 @@ class TestRunnerUpRankingKey:
         assert not normalized
         _mip, raw_nearest, _ = self._candidates()
         assert float(key(raw_nearest)) == raw_nearest.phi
+
+
+class TestRequirementBindingFinding:
+    """Under IIT 4.0 (2026), φₛ = min{φ_c, φ_e, ii(s)}; when ii(s) is the
+    minimum, explain() names the direction and term that set it."""
+
+    @staticmethod
+    def _sia(preset_name):
+        from pyphi import examples
+        from pyphi.conf import config
+        from pyphi.conf import presets
+        from pyphi.formalism import FORMALISM_REGISTRY
+        from pyphi.system import System
+
+        # The aB system of the Fig 1A logistic network: the requirement lowers
+        # its φ_s from the published 0.17 to about 0.04
+        # (docs/theory/intrinsic-information.md).
+        system = System(
+            examples.iit4_2023_fig1a_substrate(), (0, 1, 1), node_indices=(0, 1)
+        )
+        with config.override(
+            **presets.by_name[preset_name],
+            validate_system_states=False,
+            progress_bars=False,
+        ):
+            return FORMALISM_REGISTRY[preset_name].evaluate_system(system)
+
+    def test_fires_when_ii_is_the_minimum_under_2026(self):
+        from pyphi import numerics
+        from pyphi.direction import Direction
+
+        sia = self._sia("IIT_4_0_2026")
+        assert numerics.eq(float(sia.phi), sia.intrinsic_information)
+        finding = next(
+            f for f in sia.explain().findings if f.kind == "requirement_binding"
+        )
+        assert finding.value in {"differentiation", "specification"}
+        detail = dict(finding.detail)
+        assert detail["direction"] in {"CAUSE", "EFFECT"}
+        assert detail["ii"] == pytest.approx(sia.intrinsic_information)
+        # The named term is the one whose value equals ii(s).
+        direction = Direction[detail["direction"]]
+        term = (
+            sia.intrinsic_differentiation[direction]
+            if finding.value == "differentiation"
+            else sia.intrinsic_specification[direction]
+        )
+        assert max(0.0, float(term)) == pytest.approx(sia.intrinsic_information)
+
+    def test_never_fires_under_2023(self):
+        sia = self._sia("IIT_4_0_2023")
+        assert not any(f.kind == "requirement_binding" for f in sia.explain().findings)
+
+    def test_absent_when_integration_binds(self):
+        """A system whose φ_s is strictly below ii(s) carries no finding: the
+        whole Fig 1A system, where φ_c = 0.134 < ii(s) = 0.719."""
+        from pyphi import examples
+        from pyphi import numerics
+        from pyphi.conf import config
+        from pyphi.conf import presets
+        from pyphi.formalism import FORMALISM_REGISTRY
+
+        with config.override(
+            **presets.iit4_2026, validate_system_states=False, progress_bars=False
+        ):
+            sia = FORMALISM_REGISTRY["IIT_4_0_2026"].evaluate_system(
+                examples.iit4_2023_fig1a_system()
+            )
+        if numerics.eq(float(sia.phi), sia.intrinsic_information):
+            pytest.skip("the fixture binds on ii; pick another")
+        assert not any(f.kind == "requirement_binding" for f in sia.explain().findings)

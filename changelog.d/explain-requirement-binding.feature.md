@@ -1,0 +1,1 @@
+`explain()` on an IIT 4.0 system analysis now reports when the intrinsic-information requirement (Mayner et al. 2026, Eq. 23) set φₛ, naming the direction and the term — intrinsic differentiation or intrinsic specification — whose value is the minimum. The finding never fires under formalisms without the requirement.

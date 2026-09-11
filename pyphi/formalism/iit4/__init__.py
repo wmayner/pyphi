@@ -52,6 +52,7 @@ from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import binding_direction_finding
+from pyphi.models.explanation import requirement_binding_finding
 from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.models.explanation import sia_runner_up_key
 from pyphi.models.pandas import ToPandasMixin
@@ -587,7 +588,31 @@ class SystemIrreducibilityAnalysis(
             )
         if self.cause is not None and self.effect is not None:
             findings.append(binding_direction_finding(self.cause.phi, self.effect.phi))
+        if self._applies_requirement():
+            finding = requirement_binding_finding(
+                self.phi,
+                self.intrinsic_information,
+                self.intrinsic_specification,
+                self.intrinsic_differentiation or {},
+            )
+            if finding is not None:
+                findings.append(finding)
         return tuple(findings)
+
+    def _applies_requirement(self) -> bool:
+        """Whether the result's own configuration applies the
+        intrinsic-information requirement (Mayner et al. 2026, Eq. 23)."""
+        if self.config is None:
+            return False
+        from pyphi.measures.distribution import resolve_system_measure
+
+        try:
+            measure = resolve_system_measure(
+                self.config.formalism.iit.system_phi_measure
+            )
+        except (AttributeError, KeyError, ValueError):
+            return False
+        return bool(getattr(measure, "applies_intrinsic_information_requirement", False))
 
     def explain(self) -> Explanation:
         """A typed account of why this φ_s value came out as it did."""

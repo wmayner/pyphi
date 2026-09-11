@@ -10,6 +10,7 @@ retained at MIP selection.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from enum import auto
@@ -194,6 +195,49 @@ def binding_direction_finding(cause_phi: Any, effect_phi: Any) -> Finding:
         detail=(("φ_cause", cause_phi), ("φ_effect", effect_phi)),
         tone=tone,
     )
+
+
+def requirement_binding_finding(
+    phi: Any,
+    intrinsic_information: Any,
+    specification: Mapping[Any, Any],
+    differentiation: Mapping[Any, Any],
+) -> Finding | None:
+    """The Finding naming which term of the intrinsic-information requirement
+    set φₛ, or ``None`` when the requirement does not bind.
+
+    Under Mayner et al. (2026, Eq. 23), φₛ = min{φ_c, φ_e, ii(s)} with
+    ii(s) = min over directions of min(i_spec, i_diff) (Eq. 13). When φₛ
+    equals ii(s) up to ``config.numerics.precision``, the finding reports
+    the direction and the term (``"specification"`` or
+    ``"differentiation"``) whose rectified value equals ii(s).
+    """
+    if intrinsic_information is None or not numerics.eq(
+        float(phi), float(intrinsic_information)
+    ):
+        return None
+    for direction in specification:
+        for term_name, values in (
+            ("differentiation", differentiation),
+            ("specification", specification),
+        ):
+            value = values.get(direction)
+            if value is None:
+                continue
+            if numerics.eq(max(0.0, float(value)), float(intrinsic_information)):
+                tone = "cause" if direction.name == "CAUSE" else "effect"
+                return Finding(
+                    kind="requirement_binding",
+                    label="Intrinsic-information requirement binds",
+                    value=term_name,
+                    detail=(
+                        ("direction", direction.name),
+                        ("ii", float(intrinsic_information)),
+                        ("φ_s", float(phi)),
+                    ),
+                    tone=tone,
+                )
+    return None
 
 
 def _reason_value(value: Any) -> Any:
