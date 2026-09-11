@@ -131,6 +131,14 @@ def _iit4_2023():
         yield
 
 
+@pytest.fixture
+def _iit4_2026():
+    with config.override(
+        **presets.iit4_2026, validate_system_states=False, progress_bars=False
+    ):
+        yield
+
+
 @pytest.mark.parametrize(("candidate", "expected"), list(_FIG1_PUBLISHED_PHI_S.items()))
 def test_iit4_2023_fig1_system_phi(_iit4_2023, candidate, expected):
     """Reproduce the Fig 1E published phi_s for each candidate system."""
@@ -672,3 +680,39 @@ def test_ac_2019_fig8b_background_conditions(_iit3):
     }
     assert len(effect_links) == 7
     assert all(alpha == 1.0 for alpha in effect_links.values())
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026) -- Mayner, Marshall & Tononi, Entropy 28(4): 410, Fig 2
+# --------------------------------------------------------------------------- #
+# Fig 2C: the monad's phi_s = min{p log2(2p), -log2 p} (Eq. 27) peaks at
+# p = 0.744 with phi_s = 0.427.
+
+
+def _monad_sia(p):
+    return System(examples.mayner_2026_monad_substrate(p), (1,), node_indices=(0,)).sia()
+
+
+def test_mayner_2026_fig2_monad_peak(_iit4_2026):
+    """Fig 2C / Eq. 27: phi_s(0.744) = 0.427, and the peak is interior."""
+    peak = _monad_sia(0.744)
+    assert float(peak.phi) == pytest.approx(0.427, abs=0.001)
+    assert float(_monad_sia(0.70).phi) < float(peak.phi)
+    assert float(_monad_sia(0.80).phi) < float(peak.phi)
+
+
+@pytest.mark.parametrize("p", [0.6, 0.744, 0.9])
+def test_mayner_2026_fig2_monad_terms(_iit4_2026, p):
+    """Eqs. 24-25 at the ON state: specification p log2(2p) and
+    differentiation -log2 p, identical on the cause and effect sides."""
+    sia = _monad_sia(p)
+    for direction in Direction.both():
+        assert sia.intrinsic_specification[direction] == pytest.approx(
+            p * np.log2(2 * p), abs=1e-9
+        )
+        assert float(sia.intrinsic_differentiation[direction]) == pytest.approx(
+            -np.log2(p), abs=1e-9
+        )
+    assert float(sia.phi) == pytest.approx(
+        min(p * np.log2(2 * p), -np.log2(p)), abs=1e-9
+    )

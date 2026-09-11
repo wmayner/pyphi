@@ -1824,3 +1824,19 @@ def iit4_2023_fig7_inactivated_system():
         state=(1, 1, 0, 0, 0),
         node_indices=(0, 1, 2, 3),
     )
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026) -- Mayner, Marshall & Tononi, Entropy 28(4): 410
+# --------------------------------------------------------------------------- #
+
+
+@register_example
+def mayner_2026_monad_substrate(p=0.744):
+    """A single binary unit that keeps its state with probability ``p``
+    (Mayner, Marshall & Tononi 2026, Fig 2A-B): an imperfect COPY for
+    ``p > 0.5``. Its φₛ is ``min{p·log₂(2p), −log₂ p}`` (2026, Eq. 27),
+    maximal at ``p ≈ 0.744`` where φₛ ≈ 0.427 (Fig 2C).
+    """
+    # Rows are the current state (0, 1); the column is P(unit is ON next).
+    return Substrate(np.array([[1 - p], [p]]), node_labels=("M",))
