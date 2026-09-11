@@ -31,6 +31,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import intrinsic_specification_label
 from pyphi.display.numbers import format_value
 from pyphi.formalism import iit3
 from pyphi.formalism.queries import _never_shortcircuit
@@ -456,6 +457,7 @@ class SystemIrreducibilityAnalysis(
         cls = type(self).__name__
         idiff = self.intrinsic_differentiation
         state = self.system_state
+        spec_label = intrinsic_specification_label(self.config)
         sections = [
             Section(
                 rows=(
@@ -469,7 +471,7 @@ class SystemIrreducibilityAnalysis(
         if state is not None and state.cause is not None:
             cause_rows = [
                 Row("Specified state", state.cause.state),
-                Row("Intrinsic information", state.cause.intrinsic_information),
+                Row(spec_label, state.cause.intrinsic_information),
                 Row(
                     "Intrinsic differentiation",
                     idiff[Direction.CAUSE] if idiff else None,
@@ -481,10 +483,7 @@ class SystemIrreducibilityAnalysis(
         if state is not None and state.effect is not None:
             effect_rows = [
                 Row("Specified state", state.effect.state),
-                Row(
-                    "Intrinsic information",
-                    state.effect.intrinsic_information,
-                ),
+                Row(spec_label, state.effect.intrinsic_information),
                 Row(
                     "Intrinsic differentiation",
                     idiff[Direction.EFFECT] if idiff else None,

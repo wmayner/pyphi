@@ -36,6 +36,34 @@ def system_phi_label(config: Any) -> str:
     return "Φ" if version == "IIT_3_0" else "φ_s"
 
 
+def intrinsic_specification_label(config: Any) -> str:
+    """The label for a specified state's selectivity-times-informativeness
+    value under ``config``'s formalism.
+
+    Mayner et al. (2026, Eqs. 7 and 9) call it intrinsic specification;
+    Albantakis et al. (2023, Eqs. 5 and 7) call the same quantity intrinsic
+    information.
+
+    Parameters
+    ----------
+    config : ConfigSnapshot or None
+        The snapshot carried by the result being displayed. ``None`` falls back
+        to the 2026 label.
+
+    Returns
+    -------
+    str
+        ``"Intrinsic information"`` under IIT 4.0 (2023),
+        ``"Intrinsic specification"`` otherwise.
+    """
+    version = getattr(
+        getattr(getattr(config, "formalism", None), "iit", None), "version", None
+    )
+    if version == "IIT_4_0_2023":
+        return "Intrinsic information"
+    return "Intrinsic specification"
+
+
 @dataclass(frozen=True)
 class Row:
     """One aligned key/value line with optional trailing extra fields.
