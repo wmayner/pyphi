@@ -90,7 +90,8 @@ class TestIncompatibleCombosRejected:
 
 class TestConfirmedValidCombos:
     def test_iit4_2023_with_intrinsic_information_system_is_allowed(self) -> None:
-        """The cap is keyed on the measure (``applies_ii_cap``), not the version,
+        """The requirement is keyed on the measure
+        (``applies_intrinsic_information_requirement``), not the version,
         so IIT_4_0_2023 + INTRINSIC_INFORMATION correctly applies the cap and is
         a valid (if redundant) configuration — it must NOT be rejected."""
         with config.override(**{"iit.system_phi_measure": "INTRINSIC_INFORMATION"}):

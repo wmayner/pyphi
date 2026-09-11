@@ -4,6 +4,7 @@
 # pylint: disable=too-many-lines
 # flake8: noqa
 
+import functools
 import string
 from collections import defaultdict
 
@@ -12,6 +13,7 @@ import numpy as np
 from . import actual
 from .actual import Transition
 from .conf import config
+from .labels import NodeLabels
 from .substrate import Substrate
 from .substrate_generator import build_substrate, ising
 from .system import System
@@ -1696,14 +1698,16 @@ def iit4_2023_fig6c_system():
 
 
 @register_example
-def iit4_2023_fig6d_substrate():
+def iit4_2023_fig6d_substrate(k=4.0):
     """The 6-unit "specialized" architecture of Fig 6D.
 
     A densely connected network in which each unit has one strong input, two
     intermediate inputs and weak inputs from the rest, producing a highly
     integrated structure with a large number of high-degree relations. The figure
     shows the cause-effect structure of the full system in the canonical state
-    (1, 0, 0, 0, 0, 0).
+    (1, 0, 0, 0, 0, 0). ``k`` is the logistic slope (the paper's determinism
+    parameter, K = 4 in Fig 6D); Mayner et al. (2026, Fig 3D-G) vary it on this
+    same network.
     """
     s = 0.7  # strong connection
     d = (1 - s) / 10  # weak connection (0.03)
@@ -1719,7 +1723,7 @@ def iit4_2023_fig6d_substrate():
         [d, d, s, w, d, m],
     ])
     # fmt: on
-    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / k)
 
 
 @register_example
@@ -1812,11 +1816,9 @@ def iit4_2023_fig7_inactivated_substrate():
     substrate itself. Here E is frozen in its OFF state, conditioning the Fig 7
     substrate's transition probabilities so that E's (strong, weight-0.8) input to
     A becomes a fixed bias; the first-maximal complex then shrinks to {A, B, C, D}.
+    Built with :meth:`~pyphi.substrate.Substrate.inactivate`.
     """
-    return Substrate.from_factored(
-        iit4_2023_fig7_substrate().factored_tpm.condition({4: 0}),
-        node_labels=("A", "B", "C", "D", "E"),
-    )
+    return iit4_2023_fig7_substrate().inactivate({"E": 0})
 
 
 @register_example
@@ -1825,4 +1827,204 @@ def iit4_2023_fig7_inactivated_system():
         iit4_2023_fig7_inactivated_substrate(),
         state=(1, 1, 0, 0, 0),
         node_indices=(0, 1, 2, 3),
+    )
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026) -- Mayner, Marshall & Tononi, Entropy 28(4): 410
+# --------------------------------------------------------------------------- #
+
+
+@register_example
+def mayner_2026_monad_substrate(p=0.744):
+    """A single binary unit that keeps its state with probability ``p``
+    (Mayner, Marshall & Tononi 2026, Fig 2A-B): an imperfect COPY for
+    ``p > 0.5``. Its φₛ is ``min{p·log₂(2p), −log₂ p}`` (2026, Eq. 27),
+    maximal at ``p ≈ 0.744`` where φₛ ≈ 0.427 (Fig 2C).
+    """
+    # Rows are the current state (0, 1); the column is P(unit is ON next).
+    return Substrate(np.array([[1 - p], [p]]), node_labels=("M",))
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), System Integrated Information, Entropy 25(2): 334
+# --------------------------------------------------------------------------- #
+
+
+@register_example
+def marshall_2023_fig1_substrate(variant="deterministic"):
+    """The four-unit systems of Marshall et al. (2023), Fig 1.
+
+    Four all-to-all units with distinct deterministic functions
+    (``A' = B``, ``B' = C``, ``C' = D``, ``D' = A xor B``), a bijection on
+    the state space, so the system in any state specifies a unique cause
+    and effect with ``ii_c = ii_e = 4`` (Fig 1B). ``variant="noisy"``
+    makes ``D`` go to its specified state with probability 0.6 (Fig 1C;
+    ``ii_c = ii_e = 1.95``); ``variant="degenerate"`` gives ``D`` the same
+    function as ``A`` (Fig 1D; ``ii_c = 1.5``, ``ii_e = 3.0``). The paper
+    states the functions only as a figure table; this fixture reproduces
+    the panel values, not the table.
+    """
+    if variant not in ("deterministic", "noisy", "degenerate"):
+        raise ValueError(f"unknown variant {variant!r}")
+    n = 4
+
+    def d_target(a, b, c, d):
+        if variant == "degenerate":
+            return b  # A's function
+        return a ^ b
+
+    functions = (
+        lambda a, b, c, d: b,
+        lambda a, b, c, d: c,
+        lambda a, b, c, d: d,
+        d_target,
+    )
+    marginals = []
+    for i, f in enumerate(functions):
+        factor = np.zeros((2,) * n + (2,))
+        for state in np.ndindex(*(2,) * n):
+            target = f(*state)
+            if i == 3 and variant == "noisy":
+                factor[(*state, target)] = 0.6
+                factor[(*state, 1 - target)] = 0.4
+            else:
+                factor[(*state, target)] = 1.0
+        marginals.append(factor)
+    return Substrate(
+        marginals=marginals,
+        state_space=((0, 1),) * n,
+        node_labels=("A", "B", "C", "D"),
+    )
+
+
+@register_example
+def marshall_2023_fig2_substrate(panel="A"):
+    """The four-unit sigmoid systems of Marshall et al. (2023), Fig 2.
+
+    Units follow Eq. 2 (logistic of the weighted ±1 inputs, ``k = 3``,
+    ``l = 1``) in the all-OFF state. ``panel="A"``: a symmetric cycle of
+    strong (0.4) forward and weaker (0.3) reverse connections, self 0.2,
+    non-neighbour 0.1, with no fault line. ``"B"``: {A, B, C} strongly
+    interconnected (0.3), unit D weakly attached (0.2). ``"C"``: two
+    strongly coupled pairs {A, B}, {C, D} (0.4 within, 0.15 between,
+    self 0.3). Every column sums to 1.
+    """
+    if panel == "A":
+        # forward cycle A->B->C->D->A at 0.4, reverse at 0.3, self 0.2,
+        # opposite unit 0.1
+        w = np.array(
+            [
+                [0.2, 0.4, 0.1, 0.3],
+                [0.3, 0.2, 0.4, 0.1],
+                [0.1, 0.3, 0.2, 0.4],
+                [0.4, 0.1, 0.3, 0.2],
+            ]
+        )
+    elif panel == "B":
+        w = np.array(
+            [
+                [0.2, 0.3, 0.3, 0.2],
+                [0.3, 0.2, 0.3, 0.2],
+                [0.3, 0.3, 0.2, 0.2],
+                [0.2, 0.2, 0.2, 0.4],
+            ]
+        )
+    elif panel == "C":
+        w = np.array(
+            [
+                [0.3, 0.4, 0.15, 0.15],
+                [0.4, 0.3, 0.15, 0.15],
+                [0.15, 0.15, 0.3, 0.4],
+                [0.15, 0.15, 0.4, 0.3],
+            ]
+        )
+    else:
+        raise ValueError(f"unknown panel {panel!r}")
+    assert np.allclose(w.sum(axis=0), 1.0)
+    return build_substrate([ising.probability] * 4, w, temperature=1 / 3)
+
+
+@register_example
+def marshall_2023_fig3_substrate(moderate="forward"):
+    """The eight-unit universe of Marshall et al. (2023), Fig 3.
+
+    A five-unit cluster {A, B, C, D, E} whose strong (0.45) connections
+    form a loop, with a moderate (0.225) input from the next unit in the
+    loop, weak (0.1) inputs from the other two cluster units,
+    a weak self-connection (0.025), and weak (0.033) inputs from the three
+    units outside; unit F with a strong self-connection (0.769); units G
+    and H strongly (0.769) coupled to each other. Sigmoid units per Eq. 2
+    with ``k = 2`` (A-F) and ``k = 0.2`` (G, H), ``l = 1``. Every column
+    sums to 1. Condenses into the complexes {F}, {A, B, C, D, E}, {G, H}
+    (Fig 3C) under the paper's convention of conditioning the background on
+    its current state. The paper leaves the source of the moderate input
+    implicit; taking it from the next unit in the loop reproduces the
+    published φₛ of the cluster (0.12), while ``moderate="back"`` (from the
+    unit two steps back) gives 0.10.
+    """
+    n = 8
+    w = np.zeros((n, n))
+    cluster = range(5)
+    for i in cluster:
+        w[i, i] = 0.025
+        w[(i - 1) % 5, i] = 0.45
+        mod = (i + 1) % 5 if moderate == "forward" else (i - 2) % 5
+        w[mod, i] = 0.225
+        for j in cluster:
+            if j not in (i, (i - 1) % 5, mod):
+                w[j, i] = 0.1
+        for j in (5, 6, 7):
+            w[j, i] = 0.033
+    # F
+    w[5, 5] = 0.769
+    for j in (6, 7):
+        w[j, 5] = 0.033
+    for j in cluster:
+        w[j, 5] = 0.033
+    # G, H
+    for i, other in ((6, 7), (7, 6)):
+        w[other, i] = 0.769
+        w[i, i] = 0.033
+        w[5, i] = 0.033
+        for j in cluster:
+            w[j, i] = 0.033
+    assert np.allclose(w.sum(axis=0), 1.0, atol=0.002)
+    units = [functools.partial(ising.probability, temperature=1 / 2)] * 6 + [
+        functools.partial(ising.probability, temperature=1 / 0.2)
+    ] * 2
+    return build_substrate(units, w, node_labels=NodeLabels("ABCDEFGH", range(n)))
+
+
+# --------------------------------------------------------------------------- #
+# Actual causation (2019) -- Albantakis, Marshall, Hoel & Tononi, Entropy 21:459
+# --------------------------------------------------------------------------- #
+
+
+@register_example
+def ac_2019_three_candidate_election_substrate():
+    """The three-candidate, seven-voter election of Albantakis et al.
+    (2019), Fig 11: voters ``A``-``G`` each in state 0, 1, or 2 (candidates
+    "1", "2", "3"), and ``W`` in state 1, 2, or 3 for the candidate with a
+    strict majority of votes, or 0 for a tie. Voters repeat their state.
+    """
+    n_voters = 7
+    sizes = (3,) * n_voters + (4,)
+    marginals = []
+    for i in range(n_voters):
+        factor = np.zeros((*sizes, 3))
+        for state in np.ndindex(*sizes):
+            factor[(*state, state[i])] = 1.0
+        marginals.append(factor)
+    factor = np.zeros((*sizes, 4))
+    for state in np.ndindex(*sizes):
+        counts = [state[:n_voters].count(c) for c in range(3)]
+        best = max(counts)
+        winner = counts.index(best) + 1 if counts.count(best) == 1 else 0
+        factor[(*state, winner)] = 1.0
+    marginals.append(factor)
+    return Substrate(
+        marginals=marginals,
+        state_space=tuple(tuple(range(k)) for k in sizes),
+        node_labels=(*"ABCDEFG", "W"),
     )

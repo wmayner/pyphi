@@ -31,6 +31,7 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
+from pyphi.display import intrinsic_specification_label
 from pyphi.display.numbers import format_value
 from pyphi.formalism import iit3
 from pyphi.formalism.queries import _never_shortcircuit
@@ -51,6 +52,7 @@ from pyphi.models.explanation import Explanation
 from pyphi.models.explanation import Finding
 from pyphi.models.explanation import NullResultReason
 from pyphi.models.explanation import binding_direction_finding
+from pyphi.models.explanation import requirement_binding_finding
 from pyphi.models.explanation import runner_up_from_candidates
 from pyphi.models.explanation import sia_runner_up_key
 from pyphi.models.pandas import ToPandasMixin
@@ -175,8 +177,9 @@ class SystemIrreducibilityAnalysis(
 
     ``partition_margin`` is the gap in (clamped) normalized φ between the
     MIP and the best competing partition, computed at selection (before
-    the IIT 4.0 2026 ii(s) cap); it is zero when a competitor ties and
-    ``None`` when there was no competitor or the partition sweep stopped
+    the IIT 4.0 (2026) intrinsic-information requirement); it is zero when
+    a competitor ties and ``None`` when there was no competitor or the
+    partition sweep stopped
     early on a reducible partition (in which case no exact margin exists).
     Set ``shortcircuit_sia=False`` to evaluate every partition and obtain
     an exact margin even when φ_s = 0.
@@ -312,6 +315,27 @@ class SystemIrreducibilityAnalysis(
         return min(terms)
 
     @property
+    def intrinsic_specification(self) -> dict[Direction, float | None]:
+        """Per-direction intrinsic specification of the specified system
+        state (Mayner et al. 2026, Eqs. 7 and 9).
+
+        Parallel in shape to :attr:`intrinsic_differentiation`; together
+        the two give ``ii(s) = min over directions of min(i_spec, i_diff)``
+        (2026, Eq. 13), exposed as :attr:`intrinsic_information`. An entry
+        is ``None`` when that direction's state was not specified (null
+        analyses).
+        """
+        out: dict[Direction, float | None] = {}
+        for direction in Direction.both():
+            spec = (
+                self.system_state[direction] if self.system_state is not None else None
+            )
+            out[direction] = (
+                float(spec.intrinsic_specification) if spec is not None else None
+            )
+        return out
+
+    @property
     def integrated_fraction(self) -> float | None:
         """The integrated fraction φₛ / ii(s) of the system intrinsic information.
 
@@ -408,6 +432,18 @@ class SystemIrreducibilityAnalysis(
             "normalized_phi": float(self.normalized_phi),
             "intrinsic_information": _optional_float(self.intrinsic_information),
             "integrated_fraction": _optional_float(self.integrated_fraction),
+            "cause_intrinsic_specification": self.intrinsic_specification[
+                Direction.CAUSE
+            ],
+            "effect_intrinsic_specification": self.intrinsic_specification[
+                Direction.EFFECT
+            ],
+            "cause_intrinsic_differentiation": _optional_float(
+                (self.intrinsic_differentiation or {}).get(Direction.CAUSE)
+            ),
+            "effect_intrinsic_differentiation": _optional_float(
+                (self.intrinsic_differentiation or {}).get(Direction.EFFECT)
+            ),
             "system": self._system_label(),
             "current_state": self.current_state,
             "partition": concise_partition(self.partition)
@@ -423,6 +459,7 @@ class SystemIrreducibilityAnalysis(
         cls = type(self).__name__
         idiff = self.intrinsic_differentiation
         state = self.system_state
+        spec_label = intrinsic_specification_label(self.config)
         sections = [
             Section(
                 rows=(
@@ -436,7 +473,7 @@ class SystemIrreducibilityAnalysis(
         if state is not None and state.cause is not None:
             cause_rows = [
                 Row("Specified state", state.cause.state),
-                Row("Intrinsic information", state.cause.intrinsic_information),
+                Row(spec_label, state.cause.intrinsic_information),
                 Row(
                     "Intrinsic differentiation",
                     idiff[Direction.CAUSE] if idiff else None,
@@ -448,10 +485,7 @@ class SystemIrreducibilityAnalysis(
         if state is not None and state.effect is not None:
             effect_rows = [
                 Row("Specified state", state.effect.state),
-                Row(
-                    "Intrinsic information",
-                    state.effect.intrinsic_information,
-                ),
+                Row(spec_label, state.effect.intrinsic_information),
                 Row(
                     "Intrinsic differentiation",
                     idiff[Direction.EFFECT] if idiff else None,
@@ -555,7 +589,31 @@ class SystemIrreducibilityAnalysis(
             )
         if self.cause is not None and self.effect is not None:
             findings.append(binding_direction_finding(self.cause.phi, self.effect.phi))
+        if self._applies_requirement():
+            finding = requirement_binding_finding(
+                self.phi,
+                self.intrinsic_information,
+                self.intrinsic_specification,
+                self.intrinsic_differentiation or {},
+            )
+            if finding is not None:
+                findings.append(finding)
         return tuple(findings)
+
+    def _applies_requirement(self) -> bool:
+        """Whether the result's own configuration applies the
+        intrinsic-information requirement (Mayner et al. 2026, Eq. 23)."""
+        if self.config is None:
+            return False
+        from pyphi.measures.distribution import resolve_system_measure
+
+        try:
+            measure = resolve_system_measure(
+                self.config.formalism.iit.system_phi_measure
+            )
+        except (AttributeError, KeyError, ValueError):
+            return False
+        return bool(getattr(measure, "applies_intrinsic_information_requirement", False))
 
     def explain(self) -> Explanation:
         """A typed account of why this φ_s value came out as it did."""
@@ -712,7 +770,7 @@ def intrinsic_differentiation_value(
     system: System,
     specified_state: tuple[int, ...],
 ) -> float:
-    """Intrinsic differentiation i_diff(s, s′) for the Eq. 23 cap.
+    """Intrinsic differentiation i_diff(s, s′) for the Eq. 23 requirement.
 
     The forward repertoire is evaluated at the *specified* state s′
     (Mayner et al. 2026, Eqs. 4 and 6, with s′ per Eq. 12) — not at the
@@ -756,8 +814,9 @@ def evaluate_partition(
     ``system_measure`` is a Protocol-typed composite measure used at the
     system level; passed explicitly by the caller (no config fallback).
     Partition integration uses ``system_measure.partition_measure`` if
-    set (otherwise ``system_measure`` itself), and the ``ii(s)`` cap
-    (Eq. 23) is applied when ``system_measure.applies_ii_cap`` is True.
+    set (otherwise ``system_measure`` itself), and the intrinsic-information
+    requirement (Mayner et al. 2026, Eq. 23) is applied when
+    ``system_measure.applies_intrinsic_information_requirement`` is True.
 
     ``intrinsic_differentiation`` depends only on ``(direction, system)``,
     not the partition; a caller evaluating many partitions of the same
@@ -771,8 +830,8 @@ def evaluate_partition(
     validate.directions(directions)
 
     # Eqs. 19-20: partition integration uses the composite measure's
-    # ``partition_measure`` (GID for II; self for GID). The ii(s) cap
-    # (Eq. 23) is applied separately below.
+    # ``partition_measure`` (GID for II; self for GID). The intrinsic-
+    # information requirement (Eq. 23) is applied separately below.
     partition_distance: CompositeMeasure = (
         system_measure.partition_measure or system_measure
     )
@@ -809,15 +868,15 @@ def evaluate_partition(
     # numerics: exact — φ_s is defined as the minimum over directions.
     phi = min(integration[direction].signed_phi for direction in directions)
 
-    # The Eq. 23 ii(s) cap is deliberately NOT applied here. Per the 2026
-    # paper (Eqs. 21-23: the formalism "is the same as the IIT 4.0 definition
-    # of φ_s ... until Equation (23)"), the minimum information partition is
-    # selected on the *uncapped* normalized φ exactly as in IIT 4.0, and the
-    # cap φ_s = min{φ_c, φ_e, ii(s)} is applied in ``sia`` to each SIA as
-    # soon as its MIP is chosen (see ``_apply_ii_cap``).
-    # ``intrinsic_differentiation`` and the system-state
-    # ``intrinsic_information`` are carried on the SIA so the cap can be
-    # applied there. Applying the cap per-partition would let it shift
+    # The Eq. 23 intrinsic-information requirement is deliberately NOT
+    # applied here. Per the 2026 paper (Eqs. 21-23: the formalism "is the
+    # same as the IIT 4.0 definition of φ_s ... until Equation (23)"), the
+    # minimum information partition is selected on the normalized φ without
+    # the requirement, exactly as in IIT 4.0, and φ_s = min{φ_c, φ_e, ii(s)}
+    # is applied in ``sia`` to each SIA as soon as its MIP is chosen (see
+    # ``_apply_ii_cap``). ``intrinsic_differentiation`` and the system-state
+    # ``intrinsic_information`` are carried on the SIA so the requirement
+    # can be applied there. Applying it per partition would let it shift
     # which partition is the MIP — which can make the reported φ_s *exceed*
     # the 2023 value, contradicting the formalism.
 
@@ -858,17 +917,17 @@ def _has_no_cause_or_effect(system_state):
 
 
 def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
-    """Apply the Eq. 23 cap to a single SIA's φ values, in place.
+    """Apply the Eq. 23 requirement to a single SIA's φ values, in place.
 
-    The cap is taken on the raw ``signed_phi`` (so preventative-cause metadata
-    is preserved) and the |·|+-clamped, normalized values are re-derived.
-    Idempotent: re-applying with the same cap terms is a no-op.
+    The minimum is taken on the raw ``signed_phi`` (so preventative-cause
+    metadata is preserved) and the |·|+-clamped, normalized values are
+    re-derived. Idempotent: re-applying with the same ii(s) is a no-op.
     """
     ii = sia.intrinsic_information
     if ii is None:
         return
     # __post_init__ guarantees signed_phi is set (defaulting to phi) for any
-    # constructed SIA, so it is non-None by the time the cap is applied.
+    # constructed SIA, so it is non-None by the time the requirement is applied.
     assert sia.signed_phi is not None
     # numerics: exact — Eq. 23 defines φ_s as a minimum, not a tie decision.
     capped_signed = min(float(sia.signed_phi), ii)
@@ -879,9 +938,9 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     sia.signed_normalized_phi = float(capped_norm)
     sia.normalized_phi = float(utils.positive_part(capped_norm))
     # ii(s) is partition-independent given the specified states, so the same
-    # state-level terms cap the runner-up partition's φ; the reported φ-gap
-    # then compares capped to capped.
-    # numerics: exact — Eq. 23 cap; φ_s is a minimum, not a tie decision.
+    # state-level terms bound the runner-up partition's φ; the reported φ-gap
+    # then compares like with like.
+    # numerics: exact — Eq. 23; φ_s is a minimum, not a tie decision.
     if sia.runner_up is not None and float(sia.runner_up.phi) > ii:
         runner_up_norm = normalization_factor(sia.runner_up.partition)
         capped_runner_up_normalized = (
@@ -899,16 +958,16 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
 def _apply_ii_cap(
     sia: SystemIrreducibilityAnalysis,
 ) -> SystemIrreducibilityAnalysis:
-    """Apply the IIT 4.0 (2026) intrinsic-information cap (Eq. 23).
+    """Apply the IIT 4.0 (2026) intrinsic-information requirement (Eq. 23).
 
-    The MIP is selected on the uncapped normalized integrated information,
-    exactly as in IIT 4.0 (Eqs. 21-22); this applies the cap
+    The MIP is selected on the normalized integrated information without
+    the requirement, exactly as in IIT 4.0 (Eqs. 21-22); this applies
     ``φ_s = min{φ_c, φ_e, ii(s)}`` once per SIA after its MIP is chosen,
     where ``ii(s) = min_d min(i_spec_d, i_diff_d)`` is partition-independent
-    given the (cause, effect) specified-state pair. The cap is applied to
-    ``sia`` **and every member of its tie set**, each with its own cap
-    terms, so tied SIAs stay mutually comparable — φ_s is the capped
-    quantity by definition. Mutates and returns ``sia``.
+    given the (cause, effect) specified-state pair. The requirement is
+    applied to ``sia`` **and every member of its tie set**, each with its
+    own ii(s), so tied SIAs stay mutually comparable — φ_s is the quantity
+    under the requirement by definition. Mutates and returns ``sia``.
     """
     members = {id(sia): sia}
     for tied in sia.ties or ():
@@ -1047,13 +1106,16 @@ def sia(
     cause_specs = _spec_candidates(system_state.cause) or (None,)
     effect_specs = _spec_candidates(system_state.effect) or (None,)
 
-    # Eq. 23 (2026): each SIA is capped by ii(s) as soon as its MIP is
-    # chosen — the MIP itself is selected on *uncapped* normalized φ (Eqs.
-    # 21-22), but everything downstream (the per-state cascade, the tie
-    # set, the reported φ_s) sees the capped value, since φ_s is the capped
-    # quantity by definition. Each tied specified-state pair carries its
-    # own cap terms (i_diff depends on the specified state).
-    apply_cap = getattr(system_measure, "applies_ii_cap", False)
+    # Eq. 23 (2026): the requirement is applied to each SIA as soon as its
+    # MIP is chosen — the MIP itself is selected on normalized φ without
+    # the requirement (Eqs. 21-22), but everything downstream (the
+    # per-state cascade, the tie set, the reported φ_s) sees the value
+    # under the requirement, since that is φ_s by definition. Each tied
+    # specified-state pair carries its own ii(s) (i_diff depends on the
+    # specified state).
+    apply_cap = getattr(
+        system_measure, "applies_intrinsic_information_requirement", False
+    )
 
     if len(cause_specs) <= 1 and len(effect_specs) <= 1:
         mip_sia = _find_mip_for_fixed_state(
@@ -1216,18 +1278,19 @@ def sia_stride_search(
     directions: Iterable[Direction] | None = None,
 ) -> tuple[str, Any]:
     """One campaign stride's SIA search: every (cause, effect) specified-state
-    pair's **uncapped** MIP over ``partitions``.
+    pair's MIP over ``partitions``, without the intrinsic-information
+    requirement.
 
     Returns ``("short_circuit", sia)`` when the search never consults the
     partitions (monad conventions, missing cause or effect under the
     short-circuit option), else ``("pairs", [(key, pair_sia), ...])`` with
-    one uncapped local minimum per pair, keyed by ``(cause_state,
-    effect_state)``. The pair enumeration is partition-independent, so
-    every stride reports the same pair set. MIP selection compares
-    *uncapped* normalized φ (Eqs. 21-22), so strides must not apply the
-    intrinsic-information cap; :func:`merge_pair_minima` applies it once
-    the cross-stride MIP per pair is chosen, exactly as the in-process
-    search caps once its own MIP is chosen.
+    one local minimum per pair, keyed by ``(cause_state, effect_state)``.
+    The pair enumeration is partition-independent, so every stride reports
+    the same pair set. MIP selection compares normalized φ without the
+    requirement (Eqs. 21-22), so strides must not apply it;
+    :func:`merge_pair_minima` applies it once the cross-stride MIP per pair
+    is chosen, exactly as the in-process search does once its own MIP is
+    chosen.
     """
     from pyphi.formalism.base import FORMALISM_REGISTRY
     from pyphi.formalism.iit4.formalism import _resolve_system_measures
@@ -1308,11 +1371,11 @@ def merge_pair_minima(
     """Finish a sharded SIA from the per-pair cross-stride minima.
 
     The merge-side counterpart of the in-process search tail: applies the
-    intrinsic-information cap (when the active system measure carries one)
-    to each pair's globally minimal SIA, then runs the pair-selection
-    cascade via :func:`_resolve_pair_sias`. A single-pair cell returns its
-    capped minimum directly, matching the in-process single-pair fast
-    path.
+    intrinsic-information requirement (when the active system measure
+    applies it) to each pair's globally minimal SIA, then runs the
+    pair-selection cascade via :func:`_resolve_pair_sias`. A single-pair
+    cell returns its minimum, with the requirement applied, directly,
+    matching the in-process single-pair fast path.
     """
     from pyphi.formalism.base import FORMALISM_REGISTRY
     from pyphi.formalism.iit4.formalism import _resolve_system_measures
@@ -1321,7 +1384,7 @@ def merge_pair_minima(
     system_measure, specification_measure = _resolve_system_measures(
         formalism, None, None
     )
-    if getattr(system_measure, "applies_ii_cap", False):
+    if getattr(system_measure, "applies_intrinsic_information_requirement", False):
         merged_pairs = {
             key: _apply_ii_cap(pair_sia) for key, pair_sia in merged_pairs.items()
         }

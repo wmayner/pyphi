@@ -27,14 +27,15 @@ Notes
 -----
 ``system_phi_measure="INTRINSIC_INFORMATION"`` is *not* constrained to
 ``IIT_4_0_2026``. The Eq. 23 intrinsic-information requirement is keyed on the
-measure (``applies_ii_cap``), not the version, so ``IIT_4_0_2023`` paired with
-that measure applies the requirement and yields the same result as
+measure (``applies_intrinsic_information_requirement``), not the version, so
+``IIT_4_0_2023`` paired with that measure applies the requirement and yields
+the same result as
 ``IIT_4_0_2026`` — a valid, if redundant, configuration. The reverse direction
 *is* constrained: ``IIT_4_0_2026`` is defined by the requirement, so it needs
 a ``system_phi_measure`` that applies it (the formalism declares
-``requires_ii_cap``). Version 2026 with a measure that lacks the requirement
-would compute the 2023 quantity while reporting version 2026 — a formalism
-mixture matching no paper.
+``applies_intrinsic_information_requirement``). Version 2026 with a measure
+that lacks the requirement would compute the 2023 quantity while reporting
+version 2026 — a formalism mixture matching no paper.
 
 The ``background_conditioning_compatible_with_version`` constraint pins IIT
 3.0 to ``CONDITION_CURRENT_STATE`` (the shipped preset's convention). The
@@ -390,8 +391,9 @@ def _version_requires_ii_cap(config: Any) -> str | None:
     """A formalism defined by the intrinsic-information requirement (Eq. 23)
     needs a system measure that applies it.
 
-    The requirement is keyed on the measure (``applies_ii_cap``), so
-    ``IIT_4_0_2026`` paired with a measure that lacks it computes the 2023
+    The requirement is keyed on the measure
+    (``applies_intrinsic_information_requirement``), so ``IIT_4_0_2026``
+    paired with a measure that lacks it computes the 2023
     quantity while reporting version 2026 — a formalism mixture matching no
     paper. (The other direction — ``IIT_4_0_2023`` with a requirement-applying
     measure — is valid; see the module Notes.) Registered after the measure
@@ -402,12 +404,12 @@ def _version_requires_ii_cap(config: Any) -> str | None:
     formalism = _active_formalism(version)
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
         return None
-    if not getattr(formalism, "requires_ii_cap", False):
+    if not getattr(formalism, "applies_intrinsic_information_requirement", False):
         return None
     from pyphi.measures.distribution import resolve_system_measure
 
     measure = resolve_system_measure(iit.system_phi_measure)
-    if not getattr(measure, "applies_ii_cap", False):
+    if not getattr(measure, "applies_intrinsic_information_requirement", False):
         return (
             f"formalism.iit.system_phi_measure={iit.system_phi_measure!r} "
             f"does not apply the intrinsic-information requirement (Eq. 23) "

@@ -176,7 +176,7 @@ overlapping candidates, see the
 
 `records` holds every candidate system the search considered, so its length
 is the realized version of the pre-flight estimate. Under a system measure
-with the intrinsic-information cap, the certified prune may skip some
+that applies the intrinsic-information requirement, the certified prune may skip some
 candidates' partition sweeps; those records carry `gated=True` and an upper
 bound in place of an exact φₛ (this page's runs use the 2023 preset, where
 the prune is unavailable and every record is exact). Here the lengths

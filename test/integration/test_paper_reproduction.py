@@ -66,6 +66,31 @@ Currently covered
   wedge tripartition + ``SUM_SMALL_PHI``): ``Phi = 0.44`` over 3 mechanisms. The
   suite's first k>2 (ternary-unit) reproduction.
 
+* **IIT 4.0 (2026), Mayner, Marshall & Tononi, Figs 2, 3, 4.** The monad's
+  ``phi_s`` peak at ``p = 0.744`` with ``phi_s = 0.427`` and its two terms
+  (Fig 2; ``mayner_2026_monad_substrate``); the Fig 6D lattice under a
+  determinism sweep (Fig 3; ``iit4_2023_fig6d_substrate(k=...)``): the
+  complex-size crossover, the threshold above which intrinsic differentiation
+  sets ``phi_s``, and the interior maximum of ``phi_s`` -- PyPhi's two
+  thresholds sit above the paper's quoted 0.775 and 2.839 (documented in the
+  test module); and the macro/micro crossover of the intrinsic-units example
+  (Fig 4), which PyPhi places at ``p ~ 0.058`` rather than 0.096 (documented).
+* **Marshall et al. (2023), System Integrated Information, Figs 1, 2, 3.**
+  Determinism and degeneracy setting ``ii_c``/``ii_e`` (4/4, 1.95/1.95,
+  1.5/3.0; ``marshall_2023_fig1_substrate``); fault lines and integrated
+  fractions (``phi_s`` = 0.3393/0.0628/0.1477 with 48.1 %/10.0 %/21.2 % of
+  the intrinsic information integrated, and the two equivalent MIPs of panel
+  A; ``marshall_2023_fig2_substrate``); and the eight-unit universe condensing
+  into the complexes {F}, {A,B,C,D,E}, {G,H} (``marshall_2023_fig3_substrate``).
+  All under the paper's convention of conditioning the background on its
+  current state.
+
+The actual-causation figures of Albantakis et al. (2019) beyond Fig 6 -- Figs
+7-16, including the three-candidate election of Fig 11 -- are pinned in
+``test_paper_reproduction_ac.py``; the intrinsic-difference channels and
+neurons of Barbosa et al. (2020), Figs 2-4, in
+``test/measures/test_measures_distribution.py``.
+
 The IIT 4.0 Fig 1A substrate is read directly from the figure and self-validated
 against the published ``phi_s`` values. The Fig 6 (A/B/D/E) and Fig 7 weight
 matrices -- given only graphically in the paper -- were supplied by the authors.
@@ -127,6 +152,14 @@ _FIG2_DISTINCTIONS = {
 def _iit4_2023():
     with config.override(
         **presets.iit4_2023, validate_system_states=False, progress_bars=False
+    ):
+        yield
+
+
+@pytest.fixture
+def _iit4_2026():
+    with config.override(
+        **presets.iit4_2026, validate_system_states=False, progress_bars=False
     ):
         yield
 
@@ -672,3 +705,310 @@ def test_ac_2019_fig8b_background_conditions(_iit3):
     }
     assert len(effect_links) == 7
     assert all(alpha == 1.0 for alpha in effect_links.values())
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026) -- Mayner, Marshall & Tononi, Entropy 28(4): 410, Fig 2
+# --------------------------------------------------------------------------- #
+# Fig 2C: the monad's phi_s = min{p log2(2p), -log2 p} (Eq. 27) peaks at
+# p = 0.744 with phi_s = 0.427.
+
+
+def _monad_sia(p):
+    return System(examples.mayner_2026_monad_substrate(p), (1,), node_indices=(0,)).sia()
+
+
+def test_mayner_2026_fig2_monad_peak(_iit4_2026):
+    """Fig 2C / Eq. 27: phi_s(0.744) = 0.427, and the peak is interior."""
+    peak = _monad_sia(0.744)
+    assert float(peak.phi) == pytest.approx(0.427, abs=0.001)
+    assert float(_monad_sia(0.70).phi) < float(peak.phi)
+    assert float(_monad_sia(0.80).phi) < float(peak.phi)
+
+
+@pytest.mark.parametrize("p", [0.6, 0.744, 0.9])
+def test_mayner_2026_fig2_monad_terms(_iit4_2026, p):
+    """Eqs. 24-25 at the ON state: specification p log2(2p) and
+    differentiation -log2 p, identical on the cause and effect sides."""
+    sia = _monad_sia(p)
+    for direction in Direction.both():
+        assert sia.intrinsic_specification[direction] == pytest.approx(
+            p * np.log2(2 * p), abs=1e-9
+        )
+        assert float(sia.intrinsic_differentiation[direction]) == pytest.approx(
+            -np.log2(p), abs=1e-9
+        )
+    assert float(sia.phi) == pytest.approx(
+        min(p * np.log2(2 * p), -np.log2(p)), abs=1e-9
+    )
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026), Fig 3D-G -- the Fig 6D lattice under a determinism sweep
+# --------------------------------------------------------------------------- #
+# Section 3.2 makes three claims about the Fig 6D network as the logistic slope
+# K varies: (1) "the full 6-unit system being a complex for K >~ 0.775 and the
+# system breaking down into two-unit complexes for K <~ 0.775"; (2) "intrinsic
+# differentiation only affects phi_s when K >~ 2.839 (Figure 3F)"; (3) Fig 3G:
+# "phi_s is maximized at an intermediate value of K, balancing intrinsic
+# differentiation and specification". The paper does not state the state
+# analyzed; these tests use the Fig 6D canonical state (1, 0, 0, 0, 0, 0).
+#
+# Deviation (documented, not forced): under the 2026 preset PyPhi places the
+# thresholds higher than the paper's quoted values. The full system becomes the
+# maximal complex between K = 0.90 (a single unit, A, wins: 0.0255 vs 0.0236)
+# and K = 0.95 (the full system wins: 0.0268 vs 0.0265); below the threshold the
+# winner is a one-unit complex, not a two-unit one (the best pair reaches only
+# 0.005). Differentiation binds between K = 3.1 (phi_c = 0.752 < ii = 0.835)
+# and K = 3.2 (ii = 0.785 < phi_c = 0.788). The pins below bracket PyPhi's
+# thresholds; the paper's 0.775 and 2.839 are left as quoted.
+_FIG3_STATE = (1, 0, 0, 0, 0, 0)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(("k", "expected_size"), [(0.95, 6), (0.90, 1)])
+def test_mayner_2026_fig3_complex_size_crossover(_iit4_2026, k, expected_size):
+    """Fig 3D-G / Section 3.2, claim (1): the largest complex is the whole
+    6-unit system just above the crossover and a smaller system just below it
+    (PyPhi's crossover lies in (0.90, 0.95]; the paper quotes 0.775)."""
+    substrate = examples.iit4_2023_fig6d_substrate(k=k)
+    largest = substrate.maximal_complex(_FIG3_STATE)
+    assert len(largest.node_indices) == expected_size
+
+
+def _fig3_full_system_sia(k):
+    return System(
+        examples.iit4_2023_fig6d_substrate(k=k),
+        _FIG3_STATE,
+        node_indices=tuple(range(6)),
+    ).sia()
+
+
+@pytest.mark.parametrize(("k", "binds_on_differentiation"), [(3.2, True), (3.1, False)])
+def test_mayner_2026_fig3_differentiation_binds_above_threshold(
+    _iit4_2026, k, binds_on_differentiation
+):
+    """Fig 3F / Section 3.2, claim (2): intrinsic differentiation sets phi_s of
+    the full system only above a threshold (PyPhi's lies in (3.1, 3.2]; the
+    paper quotes 2.839)."""
+    sia = _fig3_full_system_sia(k)
+    finding = next(
+        (f for f in sia.explain().findings if f.kind == "requirement_binding"), None
+    )
+    binds = finding is not None and finding.value == "differentiation"
+    assert binds == binds_on_differentiation
+
+
+@pytest.mark.slow
+def test_mayner_2026_fig3g_interior_maximum(_iit4_2026):
+    """Fig 3G, claim (3): phi_s of the full system is maximized at an
+    intermediate K -- integration limits it at low K, differentiation at high K."""
+    low, peak, high = (float(_fig3_full_system_sia(k).phi) for k in (2.5, 3.2, 4.0))
+    assert peak > low
+    assert peak > high
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026), Fig 4 -- intrinsic units: macro monad vs micro pair
+# --------------------------------------------------------------------------- #
+# Section 3.3: two imperfect AND gates with parameter p (the cross-input bias is
+# 0.01) in the state s = (0, 0), and the macro unit alpha = 1 iff both are ON
+# (Fig 4B). Claims: alpha "satisfies the maximally irreducible within criteria
+# for all p in (0, 0.5)"; "for p < 0.096 we find phi_s({a,b}) > phi_s(alpha),
+# while for p > 0.096, phi_s(alpha) > phi_s({a,b})"; and "the outcome depends on
+# intrinsic differentiation (via p)".
+#
+# Deviation (documented, not forced): PyPhi's crossover lies in (0.055, 0.060],
+# not at 0.096. The macro monad's phi_s is its effect-side intrinsic
+# differentiation (the requirement binds) and rises with p (0.0049 at
+# p = 0.055, 0.0058 at 0.060, 0.0143 at 0.096); the micro pair's phi_s is its
+# cause-side integration and is nearly flat (0.0051-0.0053 over p in
+# [0.05, 0.09]). A crossover at 0.096 would need the pair near 0.014, which is
+# PyPhi's effect-side value (phi_e = 0.013), so the two implementations differ
+# on the pair's cause side. The pins below bracket PyPhi's crossover; the
+# paper's 0.096 is left as quoted.
+
+
+def _fig4_micro_phi(p):
+    substrate = Substrate(examples.differentiation_micro_tpm(p, 0.01))
+    return float(System(substrate, (0, 0), node_indices=(0, 1)).sia().phi)
+
+
+def _fig4_macro_sia(p):
+    substrate = Substrate(examples.differentiation_macro_tpm(p, 0.01))
+    return System(substrate, (0,), node_indices=(0,)).sia()
+
+
+@pytest.mark.parametrize(("p", "macro_wins"), [(0.060, True), (0.055, False)])
+def test_mayner_2026_fig4_macro_micro_crossover(_iit4_2026, p, macro_wins):
+    """Fig 4C: the macro monad has higher phi_s than the micro pair above a
+    crossover in p and lower below it (PyPhi's crossover lies in
+    (0.055, 0.060]; the paper quotes 0.096)."""
+    assert (float(_fig4_macro_sia(p).phi) > _fig4_micro_phi(p)) == macro_wins
+
+
+@pytest.mark.parametrize("p", [0.05, 0.096, 0.3])
+def test_mayner_2026_fig4_macro_phi_is_set_by_differentiation(_iit4_2026, p):
+    """Section 3.3: the macro monad's phi_s depends on intrinsic
+    differentiation via p -- the requirement binds on the effect side."""
+    sia = _fig4_macro_sia(p)
+    finding = next(f for f in sia.explain().findings if f.kind == "requirement_binding")
+    assert finding.value == "differentiation"
+    assert dict(finding.detail)["direction"] == "EFFECT"
+
+
+@pytest.mark.parametrize("p", [0.05, 0.096, 0.3])
+def test_mayner_2026_fig4_micro_pair_is_maximally_irreducible_within(_iit4_2026, p):
+    """Section 3.3: {a, b} satisfies the maximally-irreducible-within
+    criterion for all p in (0, 0.5) -- its phi_s exceeds each unit alone."""
+    substrate = Substrate(examples.differentiation_micro_tpm(p, 0.01))
+    pair = float(System(substrate, (0, 0), node_indices=(0, 1)).sia().phi)
+    for unit in (0, 1):
+        alone = float(System(substrate, (0, 0), node_indices=(unit,)).sia().phi)
+        assert pair > alone
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), System Integrated Information, Entropy 25:334, Fig 1
+# --------------------------------------------------------------------------- #
+# Fig 1B-D (state ABcD = (1, 1, 0, 1)): ii_c = ii_e = 4 (deterministic,
+# non-degenerate); 1.95 / 1.95 with unit D noisy at 0.6; 1.5 / 3.0 with D's
+# function identical to A's. The whole universe is the system, so the
+# background-conditioning convention is immaterial here.
+_MARSHALL_FIG1_STATE = (1, 1, 0, 1)
+_MARSHALL_FIG1 = {
+    "deterministic": (4.0, 4.0),
+    "noisy": (1.95, 1.95),
+    "degenerate": (1.5, 3.0),
+}
+
+
+@pytest.fixture
+def _iit4_2023_current_state_background():
+    """IIT 4.0 (2023) with background units conditioned on their current
+    state, the convention of Marshall et al. (2023) Section 2.1."""
+    with config.override(
+        **{k: v for k, v in presets.iit4_2023.items() if k != "iit"},
+        iit=replace(
+            presets.iit4_2023["iit"], background_conditioning="CONDITION_CURRENT_STATE"
+        ),
+        validate_system_states=False,
+        progress_bars=False,
+    ):
+        yield
+
+
+@pytest.mark.parametrize(("variant", "expected"), list(_MARSHALL_FIG1.items()))
+def test_marshall_2023_fig1_information(
+    _iit4_2023_current_state_background, variant, expected
+):
+    """Fig 1B/C/D: cause and effect intrinsic information of the four-unit
+    system (the paper's ii_c / ii_e; intrinsic specification in 2026 terms)."""
+    ii_c, ii_e = expected
+    sia = System(
+        examples.marshall_2023_fig1_substrate(variant),
+        _MARSHALL_FIG1_STATE,
+        node_indices=(0, 1, 2, 3),
+    ).sia()
+    spec = sia.intrinsic_specification
+    assert spec[Direction.CAUSE] == pytest.approx(ii_c, abs=0.01)
+    assert spec[Direction.EFFECT] == pytest.approx(ii_e, abs=0.01)
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), Fig 2 -- fault lines reduce integration
+# --------------------------------------------------------------------------- #
+# Section 3.2 (k = 3, l = 1, all units OFF): phi_s = 0.3393 (A, two equivalent
+# MIPs {AB}|{CD} and {AD}|{BC}), 0.0628 (B, MIP {ABC}<- | {D}->), 0.1477 (C,
+# MIP {AB}<->{CD}); the integrated cause and effect information are 48.1 %,
+# 10.0 %, 21.2 % of the intrinsic information.
+_MARSHALL_FIG2 = {
+    "A": (0.3393, 0.481),
+    "B": (0.0628, 0.100),
+    "C": (0.1477, 0.212),
+}
+
+
+@pytest.mark.parametrize(("panel", "expected"), list(_MARSHALL_FIG2.items()))
+def test_marshall_2023_fig2_fault_lines(
+    _iit4_2023_current_state_background, panel, expected
+):
+    """Fig 2A-C: phi_s, and the paper's ratio of integrated to intrinsic
+    information. The paper reports phi_c / ii_c (equal to phi_e / ii_e for
+    these systems, whose specified cause and effect states are the current
+    state); ``integrated_fraction`` divides by ii(s), which also includes the
+    intrinsic differentiation, so the ratio is computed directly here."""
+    phi_s, fraction = expected
+    sia = System(
+        examples.marshall_2023_fig2_substrate(panel),
+        (0, 0, 0, 0),
+        node_indices=(0, 1, 2, 3),
+    ).sia()
+    assert float(sia.phi) == pytest.approx(phi_s, abs=0.0005)
+    ratio = float(sia.cause.phi) / sia.intrinsic_specification[Direction.CAUSE]
+    assert ratio == pytest.approx(fraction, abs=0.001)
+
+
+def test_marshall_2023_fig2a_two_equivalent_mips(_iit4_2023_current_state_background):
+    """Fig 2A: two equivalent minimum partitions, cutting {AB} away from {CD}
+    or {AD} away from {BC}. The SIA resolves the tie canonically (the
+    ``PARTITION_LEX`` component of ``sia_tie_resolution``) and signals it
+    through a zero partition margin; each cut is also evaluated on its own."""
+    from pyphi.partition import system_partitions
+
+    system = System(
+        examples.marshall_2023_fig2_substrate("A"),
+        (0, 0, 0, 0),
+        node_indices=(0, 1, 2, 3),
+    )
+    sia = system.sia()
+    assert sia.partition_margin == 0.0
+    assert "partition" in sia.tied_selections
+
+    def cut(parts):
+        wanted = {frozenset(part) for part in parts}
+        partitions = [
+            partition
+            for partition in system_partitions((0, 1, 2, 3))
+            if {frozenset(part) for part in partition.parts} == wanted
+        ]
+        return float(system.sia(partitions=partitions).phi)
+
+    assert cut(((0, 1), (2, 3))) == pytest.approx(float(sia.phi), abs=1e-9)
+    assert cut(((0, 3), (1, 2))) == pytest.approx(float(sia.phi), abs=1e-9)
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), Fig 3 -- exclusion condenses a universe
+# --------------------------------------------------------------------------- #
+# Section 3.3 / Fig 3C (all units OFF): three complexes, {F} phi_s = 0.49,
+# {A,B,C,D,E} 0.12, {G,H} 0.06. Fig 3E-F: along {A} c {A,B} c ... c
+# {A,...,E} intrinsic information rises with each unit while phi_s stays
+# low until all five units remove the last fault line.
+_MARSHALL_FIG3_STATE = (0,) * 8
+
+
+@pytest.mark.slow
+def test_marshall_2023_fig3_condensation(_iit4_2023_current_state_background):
+    substrate = examples.marshall_2023_fig3_substrate()
+    found = {
+        tuple(c.node_indices): round(float(c.phi), 2)
+        for c in substrate.complexes(_MARSHALL_FIG3_STATE)
+    }
+    assert found == {(5,): 0.49, (0, 1, 2, 3, 4): 0.12, (6, 7): 0.06}
+
+
+@pytest.mark.slow
+def test_marshall_2023_fig3_nested_sequence(_iit4_2023_current_state_background):
+    """Fig 3E-F: ii_c and ii_e increase along the nested sequence; phi_s of the
+    five-unit system exceeds every proper prefix."""
+    substrate = examples.marshall_2023_fig3_substrate()
+    prefixes = [tuple(range(k)) for k in range(1, 6)]
+    sias = [
+        System(substrate, _MARSHALL_FIG3_STATE, node_indices=p).sia() for p in prefixes
+    ]
+    for direction in Direction.both():
+        values = [s.intrinsic_specification[direction] for s in sias]
+        assert values == sorted(values)
+    phis = [float(s.phi) for s in sias]
+    assert phis[-1] > max(phis[:-1])

@@ -353,9 +353,9 @@ def _resolve_prune(prune: str | None) -> str:
     """Resolve the ``prune`` mode against the active system measure.
 
     ``None`` selects ``"certified"`` exactly when the resolved system
-    measure applies the intrinsic-information cap (under which φₛ ≤ ii
-    by construction), and ``"off"`` otherwise. Requesting
-    ``"certified"`` without the cap is an error: ii ≥ φₛ does not hold
+    measure applies the intrinsic-information requirement (under which
+    φₛ ≤ ii by construction), and ``"off"`` otherwise. Requesting
+    ``"certified"`` without the requirement is an error: ii ≥ φₛ does not hold
     under other measures, so a certified prune would be unsound.
     """
     from pyphi.conf import ConfigurationError
@@ -367,15 +367,17 @@ def _resolve_prune(prune: str | None) -> str:
     if prune == "off":
         return "off"
     measure = resolve_system_measure(_config.formalism.iit.system_phi_measure)
-    capped = bool(getattr(measure, "applies_ii_cap", False))
-    if prune == "certified" and not capped:
+    applies_requirement = bool(
+        getattr(measure, "applies_intrinsic_information_requirement", False)
+    )
+    if prune == "certified" and not applies_requirement:
         raise ConfigurationError(
             "prune='certified' requires a system measure that applies the "
-            "intrinsic-information cap "
+            "intrinsic-information requirement "
             "(system_phi_measure='INTRINSIC_INFORMATION'); ii ≥ φₛ does "
             f"not hold under {_config.formalism.iit.system_phi_measure!r}"
         )
-    return "certified" if capped else "off"
+    return "certified" if applies_requirement else "off"
 
 
 def _strictly_below(x: float, y: float) -> bool:
@@ -389,7 +391,7 @@ def _ii_ceiling(system):
     """``(ceiling, system_state)``: the certified φₛ upper bound.
 
     The ceiling is the minimum over directions of the state-maximal
-    intrinsic information — the quantity the Eq. 23 cap bounds φₛ by.
+    intrinsic information — the quantity Eq. 23 bounds φₛ by.
     The returned state specification is the same object ``sia`` computes
     before its partition sweep, so callers can pass it back to ``sia``
     to avoid recomputation. A missing direction contributes 0.0 (no
@@ -960,9 +962,9 @@ def competing_systems(
     """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16).
 
     ``prune="certified"`` skips partition sweeps whose outcome is
-    certified by the intrinsic-information cap; ``"off"`` evaluates
+    certified by the intrinsic-information requirement; ``"off"`` evaluates
     everything; ``None`` (default) selects ``"certified"`` exactly when
-    the active system measure applies the cap. The returned systems are
+    the active system measure applies the requirement. The returned systems are
     identical under every mode.
     """
     _require_iit4()
@@ -1009,9 +1011,9 @@ def is_intrinsic_unit(
     mapping-independent); the recursion is run restricted to the unit's
     footprint to build ``f(U^J, W^J)``. ``prune="certified"`` skips
     competitor partition sweeps whose outcome is certified by the
-    intrinsic-information cap; ``"off"`` evaluates everything; ``None``
+    intrinsic-information requirement; ``"off"`` evaluates everything; ``None``
     (default) selects ``"certified"`` exactly when the active system
-    measure applies the cap. The verdict is identical under every mode.
+    measure applies the requirement. The verdict is identical under every mode.
     """
     _require_iit4()
     mode = _resolve_prune(prune)
@@ -1080,9 +1082,9 @@ def intrinsic_units(
     """The recursion's fixed point: the valid-unit pool plus all verdicts.
 
     ``prune="certified"`` skips competitor partition sweeps whose outcome
-    is certified by the intrinsic-information cap; ``"off"`` evaluates
+    is certified by the intrinsic-information requirement; ``"off"`` evaluates
     everything; ``None`` (default) selects ``"certified"`` exactly when
-    the active system measure applies the cap. Units and verdicts are
+    the active system measure applies the requirement. Units and verdicts are
     identical under every mode.
     """
     _require_iit4()
@@ -1235,9 +1237,9 @@ def complexes(
     cliques that still tie fail exclusion and are reported in ``ties``.
 
     ``prune="certified"`` skips partition sweeps whose outcome is
-    certified by the intrinsic-information cap; ``"off"`` evaluates
+    certified by the intrinsic-information requirement; ``"off"`` evaluates
     everything; ``None`` (default) selects ``"certified"`` exactly when
-    the active system measure applies the cap.
+    the active system measure applies the requirement.
 
     Notes
     -----

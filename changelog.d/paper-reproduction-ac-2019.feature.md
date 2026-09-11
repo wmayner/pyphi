@@ -1,0 +1,1 @@
+The paper-reproduction acceptance suite now pins the causal accounts of Albantakis et al. (2019), "What caused what?", Figs 7–16 — including the three-candidate election of Fig 11, the suite's first multi-valued actual-causation reproduction (new example `ac_2019_three_candidate_election_substrate`).

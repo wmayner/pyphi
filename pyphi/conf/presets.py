@@ -4,7 +4,7 @@ Each preset is a :class:`dict` consumable by :meth:`config.override`:
 
 - :data:`iit3` — IIT 3.0 (Oizumi et al. 2014).
 - :data:`iit4_2023` — IIT 4.0 (Albantakis et al. 2023).
-- :data:`iit4_2026` — IIT 4.0 with the intrinsic-information cap
+- :data:`iit4_2026` — IIT 4.0 with the intrinsic-information requirement
   (Mayner, Marshall, Tononi 2026).
 
 Usage::
@@ -69,7 +69,7 @@ iit3: dict[str, Any] = {
         mechanism_phi_measure="EMD",
         ces_measure="EMD",
         # IIT 3.0's system Φ is the CES-distance, not a 4.0 system measure;
-        # pin GID explicitly so the default's ``INTRINSIC_INFORMATION`` cap is
+        # pin GID explicitly so the default's ``INTRINSIC_INFORMATION`` requirement is
         # never inherited here.
         system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
         # IIT 3.0 partition schemes.
@@ -108,13 +108,13 @@ iit3: dict[str, Any] = {
 
 # The measure fields are set explicitly, not left to the ``IITConfig`` dataclass
 # defaults: those defaults encode the *default* formalism (IIT 4.0 2026, whose
-# ``system_phi_measure`` is the ``INTRINSIC_INFORMATION`` cap), so a non-default
-# preset that omitted a measure would silently inherit the cap. A preset is an
+# ``system_phi_measure`` is ``INTRINSIC_INFORMATION``), so a non-default
+# preset that omitted a measure would silently inherit the requirement. A preset is an
 # absolute formalism, independent of what the current default happens to be.
 iit4_2023: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_4_0_2023",
-        # Uncapped IIT 4.0 system φ: GID at every level.
+        # IIT 4.0 system φ without the requirement: GID at every level.
         mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
         system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
         specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
@@ -126,7 +126,7 @@ iit4_2026: dict[str, Any] = {
     "iit": IITConfig(
         version="IIT_4_0_2026",
         mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-        # System phi caps differentiation with specification per Eq. 23.
+        # System φ applies the intrinsic-information requirement, Eq. 23.
         system_phi_measure="INTRINSIC_INFORMATION",
         specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
     ),

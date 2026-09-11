@@ -1294,3 +1294,18 @@ def test_ces_embeds_sia_card_at_full_verbosity():
     assert "├─ Cause" in out and "├─ Effect" in out and "├─ MIP" in out
     assert "╭─ SystemIrreducibilityAnalysis" not in out  # no nested box
     assert h.count('class="pyphi-card"') == 1  # single card, no nesting
+
+
+def test_specification_row_label_follows_formalism():
+    """The per-direction row is "Intrinsic specification" under IIT 4.0 (2026)
+    and "Intrinsic information" under IIT 4.0 (2023), the papers' own names."""
+    from pyphi.conf import presets
+
+    with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
+        card_2026 = repr(pyphi.examples.basic_system().sia())
+    with pyphi.config.override(**presets.iit4_2023, progress_bars=False):
+        card_2023 = repr(pyphi.examples.basic_system().sia())
+    assert "Intrinsic specification" in card_2026
+    assert "Intrinsic information" not in card_2026
+    assert "Intrinsic information" in card_2023
+    assert "Intrinsic specification" not in card_2023

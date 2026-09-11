@@ -6,6 +6,7 @@ import pyphi
 from pyphi import examples
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.direction import Direction
 from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 from pyphi.utils import positive_part
 
@@ -84,4 +85,55 @@ def test_to_pandas_includes_ii_and_fraction(fig1a_sia_2026):
     )
     assert record["integrated_fraction"] == pytest.approx(
         fig1a_sia_2026.integrated_fraction
+    )
+
+
+def test_state_specification_intrinsic_specification_is_the_2023_intrinsic_information(
+    fig1a_sia_2026,
+):
+    """Mayner et al. (2026) rename the 2023 per-state intrinsic information
+    (Albantakis et al. 2023 Eqs. 5/7) to intrinsic specification (2026 Eqs. 7/9)."""
+    for direction in Direction.both():
+        spec = fig1a_sia_2026.system_state[direction]
+        assert float(spec.intrinsic_specification) == float(spec.intrinsic_information)
+
+
+def test_sia_intrinsic_specification_is_per_direction(fig1a_sia_2026):
+    sia = fig1a_sia_2026
+    spec = sia.intrinsic_specification
+    assert set(spec) == set(Direction.both())
+    for direction in Direction.both():
+        assert spec[direction] == float(
+            sia.system_state[direction].intrinsic_information
+        )
+    # Shape-parallel to the differentiation dict, and ii(s) is their joint minimum.
+    assert set(sia.intrinsic_differentiation) == set(spec)
+    terms = [positive_part(v) for v in spec.values()] + [
+        positive_part(float(v)) for v in sia.intrinsic_differentiation.values()
+    ]
+    assert sia.intrinsic_information == pytest.approx(min(terms))
+
+
+def test_sia_intrinsic_specification_none_on_null_sia():
+    assert NullSystemIrreducibilityAnalysis().intrinsic_specification == {
+        Direction.CAUSE: None,
+        Direction.EFFECT: None,
+    }
+
+
+def test_sia_pandas_has_per_direction_specification_and_differentiation(fig1a_sia_2026):
+    sia = fig1a_sia_2026
+    record = sia.to_pandas()
+    for column in (
+        "cause_intrinsic_specification",
+        "effect_intrinsic_specification",
+        "cause_intrinsic_differentiation",
+        "effect_intrinsic_differentiation",
+    ):
+        assert column in record.index
+    assert record["cause_intrinsic_specification"] == pytest.approx(
+        sia.intrinsic_specification[Direction.CAUSE]
+    )
+    assert record["effect_intrinsic_differentiation"] == pytest.approx(
+        float(sia.intrinsic_differentiation[Direction.EFFECT])
     )

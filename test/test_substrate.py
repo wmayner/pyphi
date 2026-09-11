@@ -3,6 +3,7 @@ import pytest
 
 from pyphi import Direction
 from pyphi import config
+from pyphi import examples
 from pyphi import exceptions
 from pyphi import substrate as substrate_mod
 from pyphi.substrate import Substrate
@@ -303,3 +304,42 @@ def test_conditional_independence_gate_uses_configured_precision():
     rows[0] = rows[0] + np.array([eps, -eps, -eps, eps])
     with pytest.raises(ConditionallyDependentError):
         Substrate(rows)
+
+
+class TestInactivate:
+    def test_matches_manual_conditioning(self):
+        substrate = examples.iit4_2023_fig7_substrate()
+        cm = np.array(substrate.cm)
+        cm[4, :] = 0  # a frozen unit's input axis is constant: no dependence
+        manual = Substrate.from_factored(
+            substrate.factored_tpm.condition({4: 0}),
+            cm=cm,
+            node_labels=("A", "B", "C", "D", "E"),
+        )
+        assert substrate.inactivate({4: 0}) == manual
+        assert substrate.inactivate({"E": 0}) == manual
+
+    def test_labels_preserved(self):
+        substrate = examples.iit4_2023_fig7_substrate()
+        assert tuple(substrate.inactivate({"E": 0}).node_labels) == tuple(
+            substrate.node_labels
+        )
+
+    def test_frozen_unit_no_longer_inputs_to_others(self):
+        substrate = examples.iit4_2023_fig7_substrate()
+        cm = np.asarray(substrate.inactivate({"E": 0}).cm)
+        assert not cm[4, :4].any()
+
+    def test_unknown_unit_and_bad_state_raise(self):
+        substrate = examples.iit4_2023_fig7_substrate()
+        with pytest.raises((ValueError, KeyError)):
+            substrate.inactivate({"Z": 0})
+        with pytest.raises(ValueError):
+            substrate.inactivate({"E": 2})
+
+    def test_fig7c_reproduces_through_the_method(self):
+        """Albantakis et al. (2023) Fig 7C: with E inactivated the complex
+        shrinks to {A, B, C, D} (see test_paper_reproduction.py)."""
+        assert examples.iit4_2023_fig7_inactivated_substrate() == (
+            examples.iit4_2023_fig7_substrate().inactivate({"E": 0})
+        )

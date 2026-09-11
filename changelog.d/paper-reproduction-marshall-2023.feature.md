@@ -1,0 +1,1 @@
+The paper-reproduction acceptance suite now pins Marshall et al. (2023), System Integrated Information: determinism and degeneracy (Fig 1), fault lines and integrated fractions (Fig 2), and the eight-unit universe condensing into three complexes (Fig 3), with new `marshall_2023_fig1_substrate`, `marshall_2023_fig2_substrate`, and `marshall_2023_fig3_substrate` examples.

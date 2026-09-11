@@ -90,7 +90,7 @@ Mayner, Marshall & Tononi (2026), *Intrinsic Cause–Effect Power*, Entropy 28:
 - Eqs. 7–11 — **intrinsic specification** `i_spec` (the renamed 2023 intrinsic
   information).
 - Eq. 13 — `ii = min(i_diff, i_spec)`.
-- Eq. 23 — φₛ = min(φ_c, φ_e, ii): the cap that drives a deterministic system's
+- Eq. 23 — φₛ = min(φ_c, φ_e, ii): the intrinsic-information requirement, which drives a deterministic system's
   φₛ to 0, because a deterministic system has i_diff = 0.
 
 ## The intrinsic difference measure

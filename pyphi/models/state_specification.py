@@ -92,6 +92,8 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         information over ``purview``.
     intrinsic_information : float or DistanceResult
         The intrinsic information of the specified state.
+    intrinsic_specification : float or DistanceResult
+        The same value under the name Mayner et al. (2026) give it.
     repertoire : ArrayLike
         The constrained cause or effect repertoire over ``purview``.
     unconstrained_repertoire : ArrayLike
@@ -158,6 +160,19 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         accept a match against any ii-tied state, so trimming it would
         change the resulting φ-structure, not just the report."""
         return self._ties
+
+    @property
+    def intrinsic_specification(self) -> float | DistanceResult:
+        """The intrinsic specification of the specified state.
+
+        The same value as :attr:`intrinsic_information`: the product of
+        selectivity and informativeness for the specified state. Albantakis
+        et al. (2023, Eqs. 5 and 7) call this quantity intrinsic
+        information; Mayner et al. (2026, Eqs. 7 and 9) rename it intrinsic
+        specification and reserve *intrinsic information* for its minimum
+        with the intrinsic differentiation (2026, Eq. 13).
+        """
+        return self.intrinsic_information
 
     @property
     def state_margin(self) -> float | None:

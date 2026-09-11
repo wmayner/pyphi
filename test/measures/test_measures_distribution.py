@@ -612,3 +612,102 @@ def test_pointwise_mutual_information_vector_undefined_ratios_are_zero():
     q = np.array([0.25, 0.25, 0.0, 0.0])
     result = distribution.pointwise_mutual_information_vector(p, q)
     assert np.array_equal(result, np.array([1.0, 0.0, 0.0, 0.0]))
+
+
+# --------------------------------------------------------------------------- #
+# Barbosa, Marshall, Streipert, Albantakis & Tononi (2020), "A measure for
+# intrinsic information", Sci Rep 10:18803 -- the ID on the paper's channels
+# --------------------------------------------------------------------------- #
+
+
+def _wire_channel(n_wires, reliabilities):
+    """P over 2^N symbols given the sent symbol: wire i delivers its bit with
+    probability reliabilities[i] (independent); the sent symbol is all-zeros."""
+    p = np.ones(1)
+    for r in reliabilities:
+        p = np.kron(p, np.array([r, 1 - r]))
+    return p
+
+
+def _uniform(n_wires):
+    return np.full(2**n_wires, 2.0**-n_wires)
+
+
+def test_barbosa_2020_fig2_enclosures():
+    """Fig 2A-C: a noiseless bit carries 1 ibit, a noiseless byte 8 ibits,
+    and a byte with one noiseless and seven fully noisy wires close to 0."""
+    _id = distribution.intrinsic_difference
+    assert float(_id(_wire_channel(1, [1.0]), _uniform(1))) == pytest.approx(1.0)
+    assert float(_id(_wire_channel(8, [1.0] * 8), _uniform(8))) == pytest.approx(8.0)
+    assert float(_id(_wire_channel(8, [1.0] + [0.5] * 7), _uniform(8))) < 0.01
+
+
+def test_barbosa_2020_fig2e_one_ibit_byte():
+    """Fig 2E: one noiseless wire plus seven at s ~ 0.78 conveys 1 ibit."""
+    value = float(
+        distribution.intrinsic_difference(
+            _wire_channel(8, [1.0] + [0.78] * 7), _uniform(8)
+        )
+    )
+    assert value == pytest.approx(1.0, abs=0.05)
+
+
+@pytest.mark.parametrize(
+    ("n_wires", "expected", "tolerance"),
+    [(1, 0.72, 0.01), (8, 2.41, 0.07), (16, 1.77, 0.09)],
+)
+def test_barbosa_2020_fig3_channel_size(n_wires, expected, tolerance):
+    """Fig 3: at r = 0.88 per wire the ID peaks at N = 8 wires
+    (0.72 / 2.41 / 1.77 ibits for N = 1 / 8 / 16).
+
+    Deviation (documented, not forced): the closed form for this channel is
+    ``r^N * N * log2(2r)``, which at r = 0.88 gives 0.72 / 2.35 / 1.69, and
+    PyPhi computes 0.7200 / 2.3465 / 1.6877. The paper's two larger values
+    are both consistent with r ~ 0.882 instead (2.41 / 1.76). N = 1 is pinned
+    at the paper's precision; N = 8 and 16 at a tolerance that admits the
+    closed form but not a wrong exponent or a wrong maximizer.
+    """
+    value = float(
+        distribution.intrinsic_difference(
+            _wire_channel(n_wires, [0.88] * n_wires), _uniform(n_wires)
+        )
+    )
+    assert value == pytest.approx(expected, abs=tolerance)
+    assert value == pytest.approx(0.88**n_wires * n_wires * np.log2(2 * 0.88), abs=1e-9)
+
+
+def _neuron_fanout(n, t=1.0):
+    """Fig 4: N sender neurons all firing (+1) drive N outputs, each firing
+    with sigmoid probability of h + b, h = sum of inputs, b = 1 - N. Returns
+    (P, Q) over the 2^N output patterns."""
+    from math import comb
+
+    b = 1 - n
+
+    def p_fire(h):
+        return 1.0 / (1.0 + np.exp(-2.0 / t * (h + b)))
+
+    p_all = p_fire(n)  # every input +1
+    P = np.zeros(2**n)
+    Q = np.zeros(2**n)
+    for y in range(2**n):
+        k = bin(y).count("1")  # outputs firing
+        P[y] = p_all**k * (1 - p_all) ** (n - k)
+        Q[y] = sum(
+            comb(n, ones)
+            / 2**n
+            * p_fire(2 * ones - n) ** k
+            * (1 - p_fire(2 * ones - n)) ** (n - k)
+            for ones in range(n + 1)
+        )
+    return P, Q
+
+
+@pytest.mark.parametrize(("n", "expected"), [(1, 0.72), (8, 2.90), (16, 2.10)])
+def test_barbosa_2020_fig4_neuron_fanout(n, expected):
+    """Fig 4C-E (t = 1): senders with 1 / 8 / 16 outputs convey 0.72 / 2.90 /
+    2.10 ibits; the maximum is at eight outputs."""
+    P, Q = _neuron_fanout(n)
+    assert float(distribution.intrinsic_difference(P, Q)) == pytest.approx(
+        expected, abs=0.01
+    )
