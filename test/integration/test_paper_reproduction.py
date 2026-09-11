@@ -781,3 +781,63 @@ def test_mayner_2026_fig3g_interior_maximum(_iit4_2026):
     low, peak, high = (float(_fig3_full_system_sia(k).phi) for k in (2.5, 3.2, 4.0))
     assert peak > low
     assert peak > high
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026), Fig 4 -- intrinsic units: macro monad vs micro pair
+# --------------------------------------------------------------------------- #
+# Section 3.3: two imperfect AND gates with parameter p (the cross-input bias is
+# 0.01) in the state s = (0, 0), and the macro unit alpha = 1 iff both are ON
+# (Fig 4B). Claims: alpha "satisfies the maximally irreducible within criteria
+# for all p in (0, 0.5)"; "for p < 0.096 we find phi_s({a,b}) > phi_s(alpha),
+# while for p > 0.096, phi_s(alpha) > phi_s({a,b})"; and "the outcome depends on
+# intrinsic differentiation (via p)".
+#
+# Deviation (documented, not forced): PyPhi's crossover lies in (0.055, 0.060],
+# not at 0.096. The macro monad's phi_s is its effect-side intrinsic
+# differentiation (the requirement binds) and rises with p (0.0049 at
+# p = 0.055, 0.0058 at 0.060, 0.0143 at 0.096); the micro pair's phi_s is its
+# cause-side integration and is nearly flat (0.0051-0.0053 over p in
+# [0.05, 0.09]). A crossover at 0.096 would need the pair near 0.014, which is
+# PyPhi's effect-side value (phi_e = 0.013), so the two implementations differ
+# on the pair's cause side. The pins below bracket PyPhi's crossover; the
+# paper's 0.096 is left as quoted.
+
+
+def _fig4_micro_phi(p):
+    substrate = Substrate(examples.differentiation_micro_tpm(p, 0.01))
+    return float(System(substrate, (0, 0), node_indices=(0, 1)).sia().phi)
+
+
+def _fig4_macro_sia(p):
+    substrate = Substrate(examples.differentiation_macro_tpm(p, 0.01))
+    return System(substrate, (0,), node_indices=(0,)).sia()
+
+
+@pytest.mark.parametrize(("p", "macro_wins"), [(0.060, True), (0.055, False)])
+def test_mayner_2026_fig4_macro_micro_crossover(_iit4_2026, p, macro_wins):
+    """Fig 4C: the macro monad has higher phi_s than the micro pair above a
+    crossover in p and lower below it (PyPhi's crossover lies in
+    (0.055, 0.060]; the paper quotes 0.096)."""
+    assert (float(_fig4_macro_sia(p).phi) > _fig4_micro_phi(p)) == macro_wins
+
+
+@pytest.mark.parametrize("p", [0.05, 0.096, 0.3])
+def test_mayner_2026_fig4_macro_phi_is_set_by_differentiation(_iit4_2026, p):
+    """Section 3.3: the macro monad's phi_s depends on intrinsic
+    differentiation via p -- the requirement binds on the effect side."""
+    sia = _fig4_macro_sia(p)
+    finding = next(f for f in sia.explain().findings if f.kind == "requirement_binding")
+    assert finding.value == "differentiation"
+    assert dict(finding.detail)["direction"] == "EFFECT"
+
+
+@pytest.mark.parametrize("p", [0.05, 0.096, 0.3])
+def test_mayner_2026_fig4_micro_pair_is_maximally_irreducible_within(_iit4_2026, p):
+    """Section 3.3: {a, b} satisfies the maximally-irreducible-within
+    criterion for all p in (0, 0.5) -- its phi_s exceeds each unit alone."""
+    substrate = Substrate(examples.differentiation_micro_tpm(p, 0.01))
+    pair = float(System(substrate, (0, 0), node_indices=(0, 1)).sia().phi)
+    for unit in (0, 1):
+        alone = float(System(substrate, (0, 0), node_indices=(unit,)).sia().phi)
+        assert pair > alone
