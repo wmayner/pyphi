@@ -888,3 +888,66 @@ def test_marshall_2023_fig1_information(
     spec = sia.intrinsic_specification
     assert spec[Direction.CAUSE] == pytest.approx(ii_c, abs=0.01)
     assert spec[Direction.EFFECT] == pytest.approx(ii_e, abs=0.01)
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), Fig 2 -- fault lines reduce integration
+# --------------------------------------------------------------------------- #
+# Section 3.2 (k = 3, l = 1, all units OFF): phi_s = 0.3393 (A, two equivalent
+# MIPs {AB}|{CD} and {AD}|{BC}), 0.0628 (B, MIP {ABC}<- | {D}->), 0.1477 (C,
+# MIP {AB}<->{CD}); the integrated cause and effect information are 48.1 %,
+# 10.0 %, 21.2 % of the intrinsic information.
+_MARSHALL_FIG2 = {
+    "A": (0.3393, 0.481),
+    "B": (0.0628, 0.100),
+    "C": (0.1477, 0.212),
+}
+
+
+@pytest.mark.parametrize(("panel", "expected"), list(_MARSHALL_FIG2.items()))
+def test_marshall_2023_fig2_fault_lines(
+    _iit4_2023_current_state_background, panel, expected
+):
+    """Fig 2A-C: phi_s, and the paper's ratio of integrated to intrinsic
+    information. The paper reports phi_c / ii_c (equal to phi_e / ii_e for
+    these systems, whose specified cause and effect states are the current
+    state); ``integrated_fraction`` divides by ii(s), which also includes the
+    intrinsic differentiation, so the ratio is computed directly here."""
+    phi_s, fraction = expected
+    sia = System(
+        examples.marshall_2023_fig2_substrate(panel),
+        (0, 0, 0, 0),
+        node_indices=(0, 1, 2, 3),
+    ).sia()
+    assert float(sia.phi) == pytest.approx(phi_s, abs=0.0005)
+    ratio = float(sia.cause.phi) / sia.intrinsic_specification[Direction.CAUSE]
+    assert ratio == pytest.approx(fraction, abs=0.001)
+
+
+def test_marshall_2023_fig2a_two_equivalent_mips(_iit4_2023_current_state_background):
+    """Fig 2A: two equivalent minimum partitions, cutting {AB} away from {CD}
+    or {AD} away from {BC}. The SIA resolves the tie canonically (the
+    ``PARTITION_LEX`` component of ``sia_tie_resolution``) and signals it
+    through a zero partition margin; each cut is also evaluated on its own."""
+    from pyphi.partition import system_partitions
+
+    system = System(
+        examples.marshall_2023_fig2_substrate("A"),
+        (0, 0, 0, 0),
+        node_indices=(0, 1, 2, 3),
+    )
+    sia = system.sia()
+    assert sia.partition_margin == 0.0
+    assert "partition" in sia.tied_selections
+
+    def cut(parts):
+        wanted = {frozenset(part) for part in parts}
+        partitions = [
+            partition
+            for partition in system_partitions((0, 1, 2, 3))
+            if {frozenset(part) for part in partition.parts} == wanted
+        ]
+        return float(system.sia(partitions=partitions).phi)
+
+    assert cut(((0, 1), (2, 3))) == pytest.approx(float(sia.phi), abs=1e-9)
+    assert cut(((0, 3), (1, 2))) == pytest.approx(float(sia.phi), abs=1e-9)

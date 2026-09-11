@@ -1894,3 +1894,50 @@ def marshall_2023_fig1_substrate(variant="deterministic"):
         state_space=((0, 1),) * n,
         node_labels=("A", "B", "C", "D"),
     )
+
+
+@register_example
+def marshall_2023_fig2_substrate(panel="A"):
+    """The four-unit sigmoid systems of Marshall et al. (2023), Fig 2.
+
+    Units follow Eq. 2 (logistic of the weighted ±1 inputs, ``k = 3``,
+    ``l = 1``) in the all-OFF state. ``panel="A"``: a symmetric cycle of
+    strong (0.4) forward and weaker (0.3) reverse connections, self 0.2,
+    non-neighbour 0.1, with no fault line. ``"B"``: {A, B, C} strongly
+    interconnected (0.3), unit D weakly attached (0.2). ``"C"``: two
+    strongly coupled pairs {A, B}, {C, D} (0.4 within, 0.15 between,
+    self 0.3). Every column sums to 1.
+    """
+    if panel == "A":
+        # forward cycle A->B->C->D->A at 0.4, reverse at 0.3, self 0.2,
+        # opposite unit 0.1
+        w = np.array(
+            [
+                [0.2, 0.4, 0.1, 0.3],
+                [0.3, 0.2, 0.4, 0.1],
+                [0.1, 0.3, 0.2, 0.4],
+                [0.4, 0.1, 0.3, 0.2],
+            ]
+        )
+    elif panel == "B":
+        w = np.array(
+            [
+                [0.2, 0.3, 0.3, 0.2],
+                [0.3, 0.2, 0.3, 0.2],
+                [0.3, 0.3, 0.2, 0.2],
+                [0.2, 0.2, 0.2, 0.4],
+            ]
+        )
+    elif panel == "C":
+        w = np.array(
+            [
+                [0.3, 0.4, 0.15, 0.15],
+                [0.4, 0.3, 0.15, 0.15],
+                [0.15, 0.15, 0.3, 0.4],
+                [0.15, 0.15, 0.4, 0.3],
+            ]
+        )
+    else:
+        raise ValueError(f"unknown panel {panel!r}")
+    assert np.allclose(w.sum(axis=0), 1.0)
+    return build_substrate([ising.probability] * 4, w, temperature=1 / 3)
