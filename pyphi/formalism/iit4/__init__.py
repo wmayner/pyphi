@@ -312,6 +312,27 @@ class SystemIrreducibilityAnalysis(
         return min(terms)
 
     @property
+    def intrinsic_specification(self) -> dict[Direction, float | None]:
+        """Per-direction intrinsic specification of the specified system
+        state (Mayner et al. 2026, Eqs. 7 and 9).
+
+        Parallel in shape to :attr:`intrinsic_differentiation`; together
+        the two give ``ii(s) = min over directions of min(i_spec, i_diff)``
+        (2026, Eq. 13), exposed as :attr:`intrinsic_information`. An entry
+        is ``None`` when that direction's state was not specified (null
+        analyses).
+        """
+        out: dict[Direction, float | None] = {}
+        for direction in Direction.both():
+            spec = (
+                self.system_state[direction] if self.system_state is not None else None
+            )
+            out[direction] = (
+                float(spec.intrinsic_specification) if spec is not None else None
+            )
+        return out
+
+    @property
     def integrated_fraction(self) -> float | None:
         """The integrated fraction φₛ / ii(s) of the system intrinsic information.
 
@@ -408,6 +429,18 @@ class SystemIrreducibilityAnalysis(
             "normalized_phi": float(self.normalized_phi),
             "intrinsic_information": _optional_float(self.intrinsic_information),
             "integrated_fraction": _optional_float(self.integrated_fraction),
+            "cause_intrinsic_specification": self.intrinsic_specification[
+                Direction.CAUSE
+            ],
+            "effect_intrinsic_specification": self.intrinsic_specification[
+                Direction.EFFECT
+            ],
+            "cause_intrinsic_differentiation": _optional_float(
+                (self.intrinsic_differentiation or {}).get(Direction.CAUSE)
+            ),
+            "effect_intrinsic_differentiation": _optional_float(
+                (self.intrinsic_differentiation or {}).get(Direction.EFFECT)
+            ),
             "system": self._system_label(),
             "current_state": self.current_state,
             "partition": concise_partition(self.partition)
