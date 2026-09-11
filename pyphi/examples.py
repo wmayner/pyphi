@@ -1941,3 +1941,37 @@ def marshall_2023_fig2_substrate(panel="A"):
         raise ValueError(f"unknown panel {panel!r}")
     assert np.allclose(w.sum(axis=0), 1.0)
     return build_substrate([ising.probability] * 4, w, temperature=1 / 3)
+
+
+# --------------------------------------------------------------------------- #
+# Actual causation (2019) -- Albantakis, Marshall, Hoel & Tononi, Entropy 21:459
+# --------------------------------------------------------------------------- #
+
+
+@register_example
+def ac_2019_three_candidate_election_substrate():
+    """The three-candidate, seven-voter election of Albantakis et al.
+    (2019), Fig 11: voters ``A``-``G`` each in state 0, 1, or 2 (candidates
+    "1", "2", "3"), and ``W`` in state 1, 2, or 3 for the candidate with a
+    strict majority of votes, or 0 for a tie. Voters repeat their state.
+    """
+    n_voters = 7
+    sizes = (3,) * n_voters + (4,)
+    marginals = []
+    for i in range(n_voters):
+        factor = np.zeros((*sizes, 3))
+        for state in np.ndindex(*sizes):
+            factor[(*state, state[i])] = 1.0
+        marginals.append(factor)
+    factor = np.zeros((*sizes, 4))
+    for state in np.ndindex(*sizes):
+        counts = [state[:n_voters].count(c) for c in range(3)]
+        best = max(counts)
+        winner = counts.index(best) + 1 if counts.count(best) == 1 else 0
+        factor[(*state, winner)] = 1.0
+    marginals.append(factor)
+    return Substrate(
+        marginals=marginals,
+        state_space=tuple(tuple(range(k)) for k in sizes),
+        node_labels=(*"ABCDEFG", "W"),
+    )

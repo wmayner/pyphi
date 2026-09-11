@@ -11,6 +11,8 @@ effect set is the output unit.
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -192,3 +194,169 @@ def test_ac_fig12_noisy_copy(_iit3):
     assert account[(Direction.CAUSE, (1,))] == ((0,), 0.848)
     account_b, _ = _account(s, (1, 0), (1, 0), (0,), (1,))
     assert account_b == {}
+
+
+# --------------------------------------------------------------------------- #
+# Fig 10 -- complicated voting, ABCDE = 11000 -> F = 1
+# --------------------------------------------------------------------------- #
+
+
+def _complicated_vote(a, b, c, d, e):
+    if a == b:
+        return a
+    if b == c == d == e:
+        return a
+    return int(a + b + c + d + e >= 3)
+
+
+def test_ac_fig10_complicated_voting(_iit3):
+    """Fig 10: effects {A} 0.70, {B} 0.46, {AB} 0.30, {ACDE} 0.30; the actual
+    cause of {F = 1} is undetermined between {AB = 11} and {ACDE = 1000},
+    both at 1.0."""
+    s = _gate_substrate(5, {"F": _complicated_vote})
+    account, links = _account(
+        s, (1, 1, 0, 0, 0, 0), (1, 1, 0, 0, 0, 1), (0, 1, 2, 3, 4), (5,)
+    )
+    two = {k: (p, round(a, 2)) for k, (p, a) in account.items()}
+    assert two[(Direction.EFFECT, (0,))] == ((5,), 0.70)
+    assert two[(Direction.EFFECT, (1,))] == ((5,), 0.46)
+    assert two[(Direction.EFFECT, (0, 1))] == ((5,), 0.30)
+    assert two[(Direction.EFFECT, (0, 2, 3, 4))] == ((5,), 0.30)
+    cause = next(link for link in links if link.direction == Direction.CAUSE)
+    assert round(float(cause.alpha), 3) == 1.0
+    tied = {tuple(ria.purview) for ria in (cause.purview_ties or ())}
+    assert tied == {(0, 1), (0, 2, 3, 4)}
+
+
+# --------------------------------------------------------------------------- #
+# Fig 11 -- three candidates, seven voters (multi-valued)
+# --------------------------------------------------------------------------- #
+
+
+def test_ac_fig11_three_candidate_election(_iit3):
+    """Fig 11: five votes for "1" (state 0) and two for "2" (state 1) elect
+    "1" (W = 1). Effects of the "1" voters by occurrence order: 0.718 (one),
+    0.581 (two), 0.404 (three), 0.190 (four); the actual cause of {W = 1} is
+    an undetermined set of four "1" voters at 1.893; the "2" votes {F}, {G}
+    have alpha = 0 (no links). The suite's first multi-valued AC pin."""
+    s = examples.ac_2019_three_candidate_election_substrate()
+    before = (0, 0, 0, 0, 0, 1, 1, 0)
+    after = (0, 0, 0, 0, 0, 1, 1, 1)
+    account, links = _account(s, before, after, tuple(range(7)), (7,))
+    # PyPhi gives 0.5805 for the pairs, which the paper prints as 0.581.
+    effects = {
+        tuple(link.mechanism): (tuple(link.purview), float(link.alpha))
+        for link in links
+        if link.direction == Direction.EFFECT
+    }
+    for mech, alpha in (
+        ((0,), 0.718),
+        ((0, 1), 0.581),
+        ((0, 1, 2), 0.404),
+        ((0, 1, 2, 3), 0.190),
+    ):
+        purview, value = effects[mech]
+        assert purview == (7,)
+        assert value == pytest.approx(alpha, abs=0.001)
+    assert not any(5 in m or 6 in m for (d, m) in account if d == Direction.EFFECT)
+    cause = next(link for link in links if link.direction == Direction.CAUSE)
+    assert round(float(cause.alpha), 3) == 1.893
+    tied = {tuple(ria.purview) for ria in (cause.purview_ties or ())}
+    assert tied == set(itertools.combinations(range(5), 4))
+
+
+# --------------------------------------------------------------------------- #
+# Fig 13 -- dot / segment / line classifier, ABC = 001 -> DSL = 100
+# --------------------------------------------------------------------------- #
+
+
+def test_ac_fig13_classifier(_iit3):
+    """Fig 13: effects {A=0} -> {DL=10} 0.608, {B=0} -> {DSL=100} 1.02,
+    {ABC=001} -> {D=1} 1.0; causes {ABC=001} <- {D=1} 1.415, {B=0} <- {S=0}
+    0.415, {{A=0},{B=0}} <- {L=0} 0.193, {B=0} <- {DS=10} 0.263,
+    {{A=0},{B=0}} <- {DL=10} 0.126, {B=0} <- {SL=00} 0.126,
+    {B=0} <- {DSL=100} 0.074."""
+    s = _gate_substrate(
+        3,
+        {
+            "D": lambda a, b, c: int(a + b + c == 1),
+            "S": lambda a, b, c: int((a, b, c) in ((1, 1, 0), (0, 1, 1))),
+            "L": lambda a, b, c: int((a, b, c) == (1, 1, 1)),
+        },
+    )
+    account, links = _account(
+        s, (0, 0, 1, 0, 0, 0), (0, 0, 1, 1, 0, 0), (0, 1, 2), (3, 4, 5)
+    )
+    assert account[(Direction.EFFECT, (0,))] == ((3, 5), 0.608)
+    purview, value = account[(Direction.EFFECT, (1,))]
+    assert (purview, round(value, 2)) == ((3, 4, 5), 1.02)  # the figure gives 2 dp
+    assert account[(Direction.EFFECT, (0, 1, 2))] == ((3,), 1.0)
+    assert account[(Direction.CAUSE, (3,))] == ((0, 1, 2), 1.415)
+    assert account[(Direction.CAUSE, (4,))] == ((1,), 0.415)
+    assert account[(Direction.CAUSE, (3, 4))] == ((1,), 0.263)
+    assert account[(Direction.CAUSE, (4, 5))] == ((1,), 0.126)
+    assert account[(Direction.CAUSE, (3, 4, 5))] == ((1,), 0.074)
+    # Undetermined causes: {A=0} or {B=0} for {L=0} (0.193) and {DL=10} (0.126).
+    by_mech = {
+        tuple(link.mechanism): link
+        for link in links
+        if link.direction == Direction.CAUSE
+    }
+    for mech, alpha in (((5,), 0.193), ((3, 5), 0.126)):
+        link = by_mech[mech]
+        assert round(float(link.alpha), 3) == alpha
+        assert {tuple(r.purview) for r in (link.purview_ties or ())} == {(0,), (1,)}
+
+
+# --------------------------------------------------------------------------- #
+# Fig 15 -- double bi-conditional, ABC = 111 -> DE = 11
+# --------------------------------------------------------------------------- #
+
+
+def test_ac_fig15_double_biconditional(_iit3):
+    """Fig 15: {AB} -> {D}, {BC} -> {E}, {ABC} -> {DE} and the three reverse
+    causes all at 1.0 bits; no first-order links."""
+    s = _gate_substrate(
+        3, {"D": lambda a, b, _c: int(a == b), "E": lambda _a, b, c: int(b == c)}
+    )
+    account, _ = _account(s, (1, 1, 1, 0, 0), (1, 1, 1, 1, 1), (0, 1, 2), (3, 4))
+    assert account[(Direction.EFFECT, (0, 1))] == ((3,), 1.0)
+    assert account[(Direction.EFFECT, (1, 2))] == ((4,), 1.0)
+    assert account[(Direction.EFFECT, (0, 1, 2))] == ((3, 4), 1.0)
+    assert account[(Direction.CAUSE, (3,))] == ((0, 1), 1.0)
+    assert account[(Direction.CAUSE, (4,))] == ((1, 2), 1.0)
+    assert account[(Direction.CAUSE, (3, 4))] == ((0, 1, 2), 1.0)
+    assert not any(len(m) == 1 for (d, m) in account if d == Direction.EFFECT)
+
+
+# --------------------------------------------------------------------------- #
+# Fig 16 -- irreducible vs reducible second-order occurrence
+# --------------------------------------------------------------------------- #
+
+
+def test_ac_fig16a_shared_inputs_irreducible(_iit3):
+    """Fig 16A: OR and AND share inputs A, B; {AB = 10} <- {(OR,AND) = 10} at
+    0.170 in addition to the four first-order links at 0.415; the
+    transition's irreducibility is 0.17 bits."""
+    s = _gate_substrate(2, {"OR": lambda a, b: a | b, "AND": lambda a, b: a & b})
+    account, _ = _account(s, (1, 0, 0, 0), (1, 0, 1, 0), (0, 1), (2, 3))
+    assert account[(Direction.EFFECT, (0,))] == ((2,), 0.415)
+    assert account[(Direction.EFFECT, (1,))] == ((3,), 0.415)
+    assert account[(Direction.CAUSE, (2,))] == ((0,), 0.415)
+    assert account[(Direction.CAUSE, (3,))] == ((1,), 0.415)
+    assert account[(Direction.CAUSE, (2, 3))] == ((0, 1), 0.170)
+    transition = actual.Transition(s, (1, 0, 0, 0), (1, 0, 1, 0), (0, 1), (2, 3))
+    assert round(float(actual.sia(transition).alpha), 2) == 0.17
+
+
+def test_ac_fig16c_independent_inputs_reducible(_iit3):
+    """Fig 16C: with independent inputs (A, B -> OR; C, D -> AND) the
+    second-order link is absent and the transition is reducible (0 bits)."""
+    s = _gate_substrate(
+        4, {"OR": lambda a, b, _c, _d: a | b, "AND": lambda _a, _b, c, d: c & d}
+    )
+    before, after = (1, 0, 1, 0, 0, 0), (1, 0, 1, 0, 1, 0)
+    account, _ = _account(s, before, after, (0, 1, 2, 3), (4, 5))
+    assert (Direction.CAUSE, (4, 5)) not in account
+    transition = actual.Transition(s, before, after, (0, 1, 2, 3), (4, 5))
+    assert float(actual.sia(transition).alpha) == 0.0
