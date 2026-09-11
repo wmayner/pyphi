@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import math
 from collections.abc import Iterable
+from collections.abc import Mapping
 from collections.abc import Sequence
 from functools import cached_property
 from typing import Any
@@ -661,6 +662,65 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         from pyphi import graph
 
         return graph.substrate_to_dbn_dict(self)
+
+    def inactivate(self, fixed: Mapping[int | str, int]) -> Substrate:
+        """Return a copy with the given units frozen in a state.
+
+        Each unit in ``fixed`` (by index or label) is conditioned into every
+        other unit's transition factor at the given state, so it has no
+        counterfactual states and cannot be intervened upon. Node labels
+        are preserved. Inputs from a frozen unit become fixed biases, and
+        its row of the connectivity matrix is cleared.
+
+        Albantakis et al. (2023, Fig 7) distinguish an *inactive* unit, in
+        its OFF state and still contributing distinctions and relations,
+        from an *inactivated* one, whose cause-effect power is abolished
+        (Fig 7C): the complex that contained it shrinks. Inactivation is
+        also distinct from holding a unit as a background condition of a
+        candidate system: a background unit keeps its counterfactual states
+        and is causally marginalized (2023, Eqs. 3-4); an inactivated unit
+        has none.
+
+        Parameters
+        ----------
+        fixed : Mapping[int or str, int]
+            Units (indices or labels) mapped to the state index each is
+            frozen in.
+
+        Returns
+        -------
+        Substrate
+
+        Raises
+        ------
+        ValueError
+            If a unit index is out of range or a state is outside the unit's
+            alphabet.
+        KeyError
+            If a unit label is unknown.
+
+        Examples
+        --------
+        >>> from pyphi import examples
+        >>> lesioned = examples.iit4_2023_fig7_substrate().inactivate({"E": 0})
+        >>> lesioned.size
+        5
+        """
+        frozen: dict[int, int] = {}
+        for unit, state in fixed.items():
+            (index,) = self.node_labels.coerce_to_indices([unit])
+            alphabet = len(self.state_space[index])
+            if not isinstance(state, (int, np.integer)) or not 0 <= state < alphabet:
+                raise ValueError(
+                    f"state {state!r} for unit {unit!r} is not a valid index for "
+                    f"alphabet size {alphabet}"
+                )
+            frozen[index] = int(state)
+        cm = np.array(self.cm, dtype=int)
+        cm[list(frozen), :] = 0
+        return type(self).from_factored(
+            self.factored_tpm.condition(frozen), cm=cm, node_labels=self.node_labels
+        )
 
 
 def irreducible_purviews(

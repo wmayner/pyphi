@@ -1812,11 +1812,9 @@ def iit4_2023_fig7_inactivated_substrate():
     substrate itself. Here E is frozen in its OFF state, conditioning the Fig 7
     substrate's transition probabilities so that E's (strong, weight-0.8) input to
     A becomes a fixed bias; the first-maximal complex then shrinks to {A, B, C, D}.
+    Built with :meth:`~pyphi.substrate.Substrate.inactivate`.
     """
-    return Substrate.from_factored(
-        iit4_2023_fig7_substrate().factored_tpm.condition({4: 0}),
-        node_labels=("A", "B", "C", "D", "E"),
-    )
+    return iit4_2023_fig7_substrate().inactivate({"E": 0})
 
 
 @register_example
