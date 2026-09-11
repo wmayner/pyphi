@@ -4,6 +4,7 @@
 # pylint: disable=too-many-lines
 # flake8: noqa
 
+import functools
 import string
 from collections import defaultdict
 
@@ -12,6 +13,7 @@ import numpy as np
 from . import actual
 from .actual import Transition
 from .conf import config
+from .labels import NodeLabels
 from .substrate import Substrate
 from .substrate_generator import build_substrate, ising
 from .system import System
@@ -1941,6 +1943,57 @@ def marshall_2023_fig2_substrate(panel="A"):
         raise ValueError(f"unknown panel {panel!r}")
     assert np.allclose(w.sum(axis=0), 1.0)
     return build_substrate([ising.probability] * 4, w, temperature=1 / 3)
+
+
+@register_example
+def marshall_2023_fig3_substrate(moderate="forward"):
+    """The eight-unit universe of Marshall et al. (2023), Fig 3.
+
+    A five-unit cluster {A, B, C, D, E} whose strong (0.45) connections
+    form a loop, with a moderate (0.225) input from the next unit in the
+    loop, weak (0.1) inputs from the other two cluster units,
+    a weak self-connection (0.025), and weak (0.033) inputs from the three
+    units outside; unit F with a strong self-connection (0.769); units G
+    and H strongly (0.769) coupled to each other. Sigmoid units per Eq. 2
+    with ``k = 2`` (A-F) and ``k = 0.2`` (G, H), ``l = 1``. Every column
+    sums to 1. Condenses into the complexes {F}, {A, B, C, D, E}, {G, H}
+    (Fig 3C) under the paper's convention of conditioning the background on
+    its current state. The paper leaves the source of the moderate input
+    implicit; taking it from the next unit in the loop reproduces the
+    published φₛ of the cluster (0.12), while ``moderate="back"`` (from the
+    unit two steps back) gives 0.10.
+    """
+    n = 8
+    w = np.zeros((n, n))
+    cluster = range(5)
+    for i in cluster:
+        w[i, i] = 0.025
+        w[(i - 1) % 5, i] = 0.45
+        mod = (i + 1) % 5 if moderate == "forward" else (i - 2) % 5
+        w[mod, i] = 0.225
+        for j in cluster:
+            if j not in (i, (i - 1) % 5, mod):
+                w[j, i] = 0.1
+        for j in (5, 6, 7):
+            w[j, i] = 0.033
+    # F
+    w[5, 5] = 0.769
+    for j in (6, 7):
+        w[j, 5] = 0.033
+    for j in cluster:
+        w[j, 5] = 0.033
+    # G, H
+    for i, other in ((6, 7), (7, 6)):
+        w[other, i] = 0.769
+        w[i, i] = 0.033
+        w[5, i] = 0.033
+        for j in cluster:
+            w[j, i] = 0.033
+    assert np.allclose(w.sum(axis=0), 1.0, atol=0.002)
+    units = [functools.partial(ising.probability, temperature=1 / 2)] * 6 + [
+        functools.partial(ising.probability, temperature=1 / 0.2)
+    ] * 2
+    return build_substrate(units, w, node_labels=NodeLabels("ABCDEFGH", range(n)))
 
 
 # --------------------------------------------------------------------------- #

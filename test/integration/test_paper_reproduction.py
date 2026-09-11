@@ -976,3 +976,39 @@ def test_marshall_2023_fig2a_two_equivalent_mips(_iit4_2023_current_state_backgr
 
     assert cut(((0, 1), (2, 3))) == pytest.approx(float(sia.phi), abs=1e-9)
     assert cut(((0, 3), (1, 2))) == pytest.approx(float(sia.phi), abs=1e-9)
+
+
+# --------------------------------------------------------------------------- #
+# Marshall et al. (2023), Fig 3 -- exclusion condenses a universe
+# --------------------------------------------------------------------------- #
+# Section 3.3 / Fig 3C (all units OFF): three complexes, {F} phi_s = 0.49,
+# {A,B,C,D,E} 0.12, {G,H} 0.06. Fig 3E-F: along {A} c {A,B} c ... c
+# {A,...,E} intrinsic information rises with each unit while phi_s stays
+# low until all five units remove the last fault line.
+_MARSHALL_FIG3_STATE = (0,) * 8
+
+
+@pytest.mark.slow
+def test_marshall_2023_fig3_condensation(_iit4_2023_current_state_background):
+    substrate = examples.marshall_2023_fig3_substrate()
+    found = {
+        tuple(c.node_indices): round(float(c.phi), 2)
+        for c in substrate.complexes(_MARSHALL_FIG3_STATE)
+    }
+    assert found == {(5,): 0.49, (0, 1, 2, 3, 4): 0.12, (6, 7): 0.06}
+
+
+@pytest.mark.slow
+def test_marshall_2023_fig3_nested_sequence(_iit4_2023_current_state_background):
+    """Fig 3E-F: ii_c and ii_e increase along the nested sequence; phi_s of the
+    five-unit system exceeds every proper prefix."""
+    substrate = examples.marshall_2023_fig3_substrate()
+    prefixes = [tuple(range(k)) for k in range(1, 6)]
+    sias = [
+        System(substrate, _MARSHALL_FIG3_STATE, node_indices=p).sia() for p in prefixes
+    ]
+    for direction in Direction.both():
+        values = [s.intrinsic_specification[direction] for s in sias]
+        assert values == sorted(values)
+    phis = [float(s.phi) for s in sias]
+    assert phis[-1] > max(phis[:-1])
