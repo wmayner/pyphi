@@ -1,1 +1,0 @@
-Renamed the measure and formalism Protocol attribute `applies_ii_cap` (and the formalism's `requires_ii_cap`) to `applies_intrinsic_information_requirement`, matching the project's terminology for Mayner et al. (2026) Eq. 23.

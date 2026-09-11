@@ -99,6 +99,11 @@ and `migrate_code` prompt on the MCP server).
 - **An MCP server** (`pyphi-mcp`) exposes PyPhi to AI assistants: building
   substrates, running and inspecting analyses, plotting, cost estimation,
   campaign preparation, and a citation-checked IIT reference.
+- **Published worked examples reproduce as a CI gate.** The paper-reproduction
+  suite pins figures from Albantakis et al. (2023) and (2019), Mayner et al.
+  (2026), Marshall et al. (2023), Barbosa et al. (2020), Oizumi et al. (2014),
+  and Gómez et al. (2020) to their published values, with every deviation from a
+  quoted value documented where the pin lives.
 
 ### API additions
 
@@ -452,6 +457,43 @@ and `migrate_code` prompt on the MCP server).
   The `performance` reference topic now calls the axis out, since it is the one
   that dominates a large *sparse* system: thinning connectivity shrinks every
   other axis through purview pruning but leaves this one untouched. (specified-state-cost-axis)
+- Added `intrinsic_specification` on `StateSpecification` and, per direction, on
+  the IIT 4.0 `SystemIrreducibilityAnalysis` — the name Mayner et al. (2026,
+  Eqs. 7 and 9) give the quantity Albantakis et al. (2023) call intrinsic
+  information — alongside the existing `intrinsic_differentiation`, so both
+  terms of the intrinsic-information requirement (2026, Eq. 13) are readable by
+  their paper names. `to_pandas()` on the SIA gains the four per-direction
+  columns. (intrinsic-specification)
+- `explain()` on an IIT 4.0 system analysis now reports when the
+  intrinsic-information requirement (Mayner et al. 2026, Eq. 23) set φₛ, naming
+  the direction and the term — intrinsic differentiation or intrinsic
+  specification — whose value is the minimum. The finding never fires under
+  formalisms without the requirement. (explain-requirement-binding)
+- Added `Substrate.inactivate(fixed)`: returns a copy with the given units (by
+  index or label) frozen in a state and conditioned into every other unit's
+  dynamics — the lesion Albantakis et al. (2023, Fig 7C) call inactivation,
+  distinct from an inactive unit and from a background condition. The Fig 7C
+  example substrate is built with it. (substrate-inactivate)
+- The paper-reproduction acceptance suite now pins Mayner, Marshall & Tononi
+  (2026): the monad's φₛ peak (Fig 2), the complex-size and differentiation
+  crossovers of the Fig 6D lattice under a determinism sweep (Fig 3), and the
+  macro/micro crossover of the intrinsic-units example (Fig 4). New example
+  `mayner_2026_monad_substrate`; `iit4_2023_fig6d_substrate` takes the logistic
+  slope `k`. (paper-reproduction-2026)
+- The paper-reproduction acceptance suite now pins Marshall et al. (2023),
+  System Integrated Information: determinism and degeneracy (Fig 1), fault lines
+  and integrated fractions (Fig 2), and the eight-unit universe condensing into
+  three complexes (Fig 3), with new `marshall_2023_fig1_substrate`,
+  `marshall_2023_fig2_substrate`, and `marshall_2023_fig3_substrate` examples.
+  (paper-reproduction-marshall-2023)
+- The paper-reproduction acceptance suite now pins the causal accounts of
+  Albantakis et al. (2019), "What caused what?", Figs 7–16 — including the
+  three-candidate election of Fig 11, the suite's first multi-valued
+  actual-causation reproduction (new example
+  `ac_2019_three_candidate_election_substrate`). (paper-reproduction-ac-2019)
+- The intrinsic-difference measure is now pinned against the channel and neuron
+  examples of Barbosa et al. (2020), "A measure for intrinsic information", Figs
+  2–4. (paper-reproduction-barbosa-2020)
 
 ### API changes
 
@@ -713,6 +755,10 @@ and `migrate_code` prompt on the MCP server).
   produced the shard carrying it. `pyphi.cost.SECONDS_PER_UNIT`,
   `units_for_runtime()`, and `runtime_seconds()` convert between units and CPU
   seconds, so `units_per_job` can be set from a per-shard runtime target. (units-runtime-calibration)
+- Renamed the measure and formalism Protocol attribute `applies_ii_cap` (and the
+  formalism's `requires_ii_cap`) to `applies_intrinsic_information_requirement`,
+  matching the project's terminology for Mayner et al. (2026) Eq. 23.
+  (applies-ii-requirement-rename)
 
 ### Config
 
@@ -1325,6 +1371,10 @@ and `migrate_code` prompt on the MCP server).
   writers, the no-clobber filename convention, and saving per-trial values
   alongside summaries. Available through `get_iit_reference` and as the
   `pyphi://theory/reproducible-work` resource. (reproducible-work-topic)
+- Public docstrings, the documentation, and the bundled MCP reference now
+  consistently call Mayner et al. (2026) Eq. 23 the intrinsic-information
+  requirement ("with" / "without the requirement") rather than a cap.
+  (requirement-terminology)
 
 ### Refactor
 

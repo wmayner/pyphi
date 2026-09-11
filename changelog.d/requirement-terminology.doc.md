@@ -1,1 +1,0 @@
-Public docstrings, the documentation, and the bundled MCP reference now consistently call Mayner et al. (2026) Eq. 23 the intrinsic-information requirement ("with" / "without the requirement") rather than a cap.

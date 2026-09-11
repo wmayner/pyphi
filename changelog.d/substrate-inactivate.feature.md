@@ -1,1 +1,0 @@
-Added `Substrate.inactivate(fixed)`: returns a copy with the given units (by index or label) frozen in a state and conditioned into every other unit's dynamics — the lesion Albantakis et al. (2023, Fig 7C) call inactivation, distinct from an inactive unit and from a background condition. The Fig 7C example substrate is built with it.
