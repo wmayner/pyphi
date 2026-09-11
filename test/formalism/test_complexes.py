@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from pyphi import System
@@ -541,3 +542,62 @@ def test_congruence_resolution_maximizes_structure_phi():
                 ),
             )
             assert float(result.big_phi) == pytest.approx(expected, abs=1e-6)
+
+
+def _mirror_symmetric_substrate(c_reliability=0.9):
+    """A 3-unit substrate invariant under swapping A and C: A = OR(A, B),
+    C = OR(C, B), B = OR(A, C), each with reliability 0.9. The candidates
+    {A, B} and {B, C} are mirror images, so they tie in phi_s and in Phi.
+    ``c_reliability`` breaks the symmetry when set away from 0.9."""
+    from pyphi.substrate import Substrate
+
+    def f_a(a, b, c):
+        return 0.9 if (a or b) else 0.1
+
+    def f_b(a, b, c):
+        return 0.9 if (a or c) else 0.1
+
+    def f_c(a, b, c):
+        return c_reliability if (c or b) else 1 - c_reliability
+
+    marginals = []
+    for f in (f_a, f_b, f_c):
+        factor = np.zeros((2, 2, 2, 2))
+        for state in np.ndindex(2, 2, 2):
+            p_on = f(*state)
+            factor[(*state, 1)] = p_on
+            factor[(*state, 0)] = 1 - p_on
+        marginals.append(factor)
+    return Substrate(
+        marginals=marginals, state_space=((0, 1),) * 3, node_labels=("A", "B", "C")
+    )
+
+
+class TestS1TerminalTieBranch:
+    """Albantakis et al. (2023) S1 Text: overlapping systems tied in phi_s and
+    then in Phi do not comply with exclusion; neither is a complex and the
+    next best unique system is chosen."""
+
+    def test_mirror_tied_pair_fails_exclusion_end_to_end(self):
+        substrate = _mirror_symmetric_substrate()
+        state = (0, 0, 0)
+        with config.override(**presets.iit4_2023, validate_system_states=False):
+            ab = System(substrate, state, node_indices=(0, 1)).sia()
+            bc = System(substrate, state, node_indices=(1, 2)).sia()
+            abc = System(substrate, state, node_indices=(0, 1, 2)).sia()
+            # The construction really does tie, at the top phi_s tier.
+            assert float(ab.phi) == pytest.approx(float(bc.phi), abs=1e-12)
+            assert float(ab.phi) > float(abc.phi) > 0
+            complexes = substrate.complexes(state)
+        # Neither tied pair is a complex; the next best unique system, the
+        # whole substrate, is.
+        assert [tuple(c.node_indices) for c in complexes] == [(0, 1, 2)]
+        (whole,) = complexes
+        assert float(whole.phi) == pytest.approx(float(abc.phi))
+        # Both pairs appear among the whole system's exclusions with a
+        # higher phi_s than the accepted complex: they lost on exclusion,
+        # not on integration.
+        excluded = {tuple(e.node_indices): e.phi for e in whole.excluded}
+        assert excluded[(0, 1)] == pytest.approx(float(ab.phi))
+        assert excluded[(1, 2)] == pytest.approx(float(bc.phi))
+        assert excluded[(0, 1)] > float(whole.phi)
