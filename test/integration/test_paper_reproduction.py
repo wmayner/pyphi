@@ -716,3 +716,68 @@ def test_mayner_2026_fig2_monad_terms(_iit4_2026, p):
     assert float(sia.phi) == pytest.approx(
         min(p * np.log2(2 * p), -np.log2(p)), abs=1e-9
     )
+
+
+# --------------------------------------------------------------------------- #
+# IIT 4.0 (2026), Fig 3D-G -- the Fig 6D lattice under a determinism sweep
+# --------------------------------------------------------------------------- #
+# Section 3.2 makes three claims about the Fig 6D network as the logistic slope
+# K varies: (1) "the full 6-unit system being a complex for K >~ 0.775 and the
+# system breaking down into two-unit complexes for K <~ 0.775"; (2) "intrinsic
+# differentiation only affects phi_s when K >~ 2.839 (Figure 3F)"; (3) Fig 3G:
+# "phi_s is maximized at an intermediate value of K, balancing intrinsic
+# differentiation and specification". The paper does not state the state
+# analyzed; these tests use the Fig 6D canonical state (1, 0, 0, 0, 0, 0).
+#
+# Deviation (documented, not forced): under the 2026 preset PyPhi places the
+# thresholds higher than the paper's quoted values. The full system becomes the
+# maximal complex between K = 0.90 (a single unit, A, wins: 0.0255 vs 0.0236)
+# and K = 0.95 (the full system wins: 0.0268 vs 0.0265); below the threshold the
+# winner is a one-unit complex, not a two-unit one (the best pair reaches only
+# 0.005). Differentiation binds between K = 3.1 (phi_c = 0.752 < ii = 0.835)
+# and K = 3.2 (ii = 0.785 < phi_c = 0.788). The pins below bracket PyPhi's
+# thresholds; the paper's 0.775 and 2.839 are left as quoted.
+_FIG3_STATE = (1, 0, 0, 0, 0, 0)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(("k", "expected_size"), [(0.95, 6), (0.90, 1)])
+def test_mayner_2026_fig3_complex_size_crossover(_iit4_2026, k, expected_size):
+    """Fig 3D-G / Section 3.2, claim (1): the largest complex is the whole
+    6-unit system just above the crossover and a smaller system just below it
+    (PyPhi's crossover lies in (0.90, 0.95]; the paper quotes 0.775)."""
+    substrate = examples.iit4_2023_fig6d_substrate(k=k)
+    largest = substrate.maximal_complex(_FIG3_STATE)
+    assert len(largest.node_indices) == expected_size
+
+
+def _fig3_full_system_sia(k):
+    return System(
+        examples.iit4_2023_fig6d_substrate(k=k),
+        _FIG3_STATE,
+        node_indices=tuple(range(6)),
+    ).sia()
+
+
+@pytest.mark.parametrize(("k", "binds_on_differentiation"), [(3.2, True), (3.1, False)])
+def test_mayner_2026_fig3_differentiation_binds_above_threshold(
+    _iit4_2026, k, binds_on_differentiation
+):
+    """Fig 3F / Section 3.2, claim (2): intrinsic differentiation sets phi_s of
+    the full system only above a threshold (PyPhi's lies in (3.1, 3.2]; the
+    paper quotes 2.839)."""
+    sia = _fig3_full_system_sia(k)
+    finding = next(
+        (f for f in sia.explain().findings if f.kind == "requirement_binding"), None
+    )
+    binds = finding is not None and finding.value == "differentiation"
+    assert binds == binds_on_differentiation
+
+
+@pytest.mark.slow
+def test_mayner_2026_fig3g_interior_maximum(_iit4_2026):
+    """Fig 3G, claim (3): phi_s of the full system is maximized at an
+    intermediate K -- integration limits it at low K, differentiation at high K."""
+    low, peak, high = (float(_fig3_full_system_sia(k).phi) for k in (2.5, 3.2, 4.0))
+    assert peak > low
+    assert peak > high

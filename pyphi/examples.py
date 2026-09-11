@@ -1696,14 +1696,16 @@ def iit4_2023_fig6c_system():
 
 
 @register_example
-def iit4_2023_fig6d_substrate():
+def iit4_2023_fig6d_substrate(k=4.0):
     """The 6-unit "specialized" architecture of Fig 6D.
 
     A densely connected network in which each unit has one strong input, two
     intermediate inputs and weak inputs from the rest, producing a highly
     integrated structure with a large number of high-degree relations. The figure
     shows the cause-effect structure of the full system in the canonical state
-    (1, 0, 0, 0, 0, 0).
+    (1, 0, 0, 0, 0, 0). ``k`` is the logistic slope (the paper's determinism
+    parameter, K = 4 in Fig 6D); Mayner et al. (2026, Fig 3D-G) vary it on this
+    same network.
     """
     s = 0.7  # strong connection
     d = (1 - s) / 10  # weak connection (0.03)
@@ -1719,7 +1721,7 @@ def iit4_2023_fig6d_substrate():
         [d, d, s, w, d, m],
     ])
     # fmt: on
-    return build_substrate([ising.probability] * 6, weights, temperature=1 / 4)
+    return build_substrate([ising.probability] * 6, weights, temperature=1 / k)
 
 
 @register_example
