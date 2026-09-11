@@ -66,6 +66,31 @@ Currently covered
   wedge tripartition + ``SUM_SMALL_PHI``): ``Phi = 0.44`` over 3 mechanisms. The
   suite's first k>2 (ternary-unit) reproduction.
 
+* **IIT 4.0 (2026), Mayner, Marshall & Tononi, Figs 2, 3, 4.** The monad's
+  ``phi_s`` peak at ``p = 0.744`` with ``phi_s = 0.427`` and its two terms
+  (Fig 2; ``mayner_2026_monad_substrate``); the Fig 6D lattice under a
+  determinism sweep (Fig 3; ``iit4_2023_fig6d_substrate(k=...)``): the
+  complex-size crossover, the threshold above which intrinsic differentiation
+  sets ``phi_s``, and the interior maximum of ``phi_s`` -- PyPhi's two
+  thresholds sit above the paper's quoted 0.775 and 2.839 (documented in the
+  test module); and the macro/micro crossover of the intrinsic-units example
+  (Fig 4), which PyPhi places at ``p ~ 0.058`` rather than 0.096 (documented).
+* **Marshall et al. (2023), System Integrated Information, Figs 1, 2, 3.**
+  Determinism and degeneracy setting ``ii_c``/``ii_e`` (4/4, 1.95/1.95,
+  1.5/3.0; ``marshall_2023_fig1_substrate``); fault lines and integrated
+  fractions (``phi_s`` = 0.3393/0.0628/0.1477 with 48.1 %/10.0 %/21.2 % of
+  the intrinsic information integrated, and the two equivalent MIPs of panel
+  A; ``marshall_2023_fig2_substrate``); and the eight-unit universe condensing
+  into the complexes {F}, {A,B,C,D,E}, {G,H} (``marshall_2023_fig3_substrate``).
+  All under the paper's convention of conditioning the background on its
+  current state.
+
+The actual-causation figures of Albantakis et al. (2019) beyond Fig 6 -- Figs
+7-16, including the three-candidate election of Fig 11 -- are pinned in
+``test_paper_reproduction_ac.py``; the intrinsic-difference channels and
+neurons of Barbosa et al. (2020), Figs 2-4, in
+``test/measures/test_measures_distribution.py``.
+
 The IIT 4.0 Fig 1A substrate is read directly from the figure and self-validated
 against the published ``phi_s`` values. The Fig 6 (A/B/D/E) and Fig 7 weight
 matrices -- given only graphically in the paper -- were supplied by the authors.
