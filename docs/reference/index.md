@@ -5,6 +5,7 @@
 
 glossary
 configuration
+examples
 api
 ../conventions
 ```
