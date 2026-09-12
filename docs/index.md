@@ -29,7 +29,7 @@ If you use this software in your research, please cite the software paper:
 To report issues, use the [issue tracker](https://github.com/wmayner/pyphi/issues).
 For general discussion, join the [pyphi-users group](https://groups.google.com/forum/#!forum/pyphi-users).
 
-::::{grid} 1 2 3 3
+::::{grid} 1 2 4 4
 :gutter: 3
 
 :::{grid-item-card} Getting started
@@ -67,6 +67,12 @@ The API reference, the glossary, configuration options, and conventions.
 :link: migration/index
 :link-type: doc
 Moving to PyPhi 2.0 from earlier versions and related tools.
+:::
+
+:::{grid-item-card} What's new in 2.0
+:link: whats-new-in-2.0
+:link-type: doc
+The tour of the release, and what changed from 1.x.
 :::
 ::::
 

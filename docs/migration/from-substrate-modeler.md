@@ -369,3 +369,10 @@ the resulting `dynamic_tpm` matches the original library exactly.
 - `pyphi/system.py` — `System`, `from_substrate`, `sia`, `ces`, `distinction`.
 - `pyphi/matching/` — `PerceptualSystem`, `TriggeredTPM`, `MatchingAnalysis`.
 - `pyphi/examples.py` — `*_substrate` / `*_system` factories to use as anchors.
+
+## Where to go next
+
+- {doc}`migration-2.0` covers the rest of the 2.0 API for anyone who also
+  used PyPhi 1.x.
+- {doc}`/howto/build-substrate` shows the four constructions, including
+  `create_substrate` and `build_substrate`.

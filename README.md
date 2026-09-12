@@ -86,11 +86,13 @@ for IIT research:
 
 > **Release status.** The current release on PyPI is the **2.0** line, which
 > implements IIT 4.0. Upgrading from 1.x involves breaking changes; see
-> [What's new in 2.0](https://github.com/wmayner/pyphi/blob/main/docs/whats-new-in-2.0.md).
+> [What's new in 2.0](https://pyphi.readthedocs.io/en/stable/whats-new-in-2.0.html).
 > The **1.x** line (IIT 3.0) remains available: install `"pyphi<2"`.
 
 ## Documentation
 
+- [Getting started](https://pyphi.readthedocs.io/en/stable/getting-started/index.html):
+  install and a first computation in ten minutes
 - [Documentation for the latest stable release](http://pyphi.readthedocs.io/en/stable/)
 - [Documentation for the latest development version](http://pyphi.readthedocs.io/en/latest/)
 - Documentation for any object is also available in the interpreter with the
