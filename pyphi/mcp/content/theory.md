@@ -46,8 +46,11 @@ This distinction is important to keep straight.
 **φₛ (system integrated information)** answers *does this system exist as one
 integrated whole?* It is computed on the cause side and the effect side
 separately, and φₛ is the smaller of the two — a system is only as integrated
-as its weaker direction. It is evaluated over the *normalized* minimum
-information partition, and it is **not** compositional. The set of units that
+as its weaker direction. Under the default IIT 4.0 (2026) a third term enters
+the minimum, the intrinsic information ii(s), so φₛ can be 0 with both sides
+positive; see Formalism versions below and the `requirement_binding` key of the
+`analyze` summary. It is evaluated over the *normalized* minimum information
+partition, and it is **not** compositional. The set of units that
 maximizes φₛ over itself is the complex. φₛ = 0 means the system is reducible.
 
 **Φ (structure integrated information)** answers *how much structure does the

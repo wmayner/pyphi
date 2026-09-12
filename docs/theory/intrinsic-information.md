@@ -86,7 +86,8 @@ analysis.phi
 
 The analysis records exactly where the zero comes from. Both directions have
 substantial integration and a fully specified state, but zero
-differentiation:
+differentiation ($\varphi_c$ and $\varphi_e$ are the cause- and effect-side
+integrated information of {doc}`system-integration`):
 
 ```{code-cell} python
 sia = analysis.sia
@@ -104,6 +105,24 @@ evaluated on the Bayesian posterior over prior states — Eqs. 6 and 11 — so i
 measures predecessor degeneracy and can stay positive even for deterministic
 dynamics; the effect side alone suffices to bring the minimum to zero.) The
 minimum over directions — and with it $\varphi_s$ — is $0$.
+
+## Two ways to reach zero
+
+A system's $\varphi_s$ is zero either because one side's integration is
+already zero (some partition makes no difference, under every formalism) or
+because the requirement binds: both $\varphi_c$ and $\varphi_e$ are positive
+and $\mathit{ii}(s)$ is zero. `explain()` distinguishes them: the second case
+carries a `requirement_binding` finding, the first does not.
+
+```{code-cell} python
+basic = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 1, 0), compute="sia")
+(float(basic.cause.phi), float(basic.effect.phi), basic.intrinsic_information,
+ [f.value for f in basic.explain().findings if f.kind == "requirement_binding"])
+```
+
+The XOR network above is the same case. A network whose cause side is
+reducible outright shows $\varphi_c = 0$ and no such finding; see
+{doc}`Read a result <../howto/read-result>`.
 
 ## Reading the two terms
 
