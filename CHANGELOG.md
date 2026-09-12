@@ -494,6 +494,14 @@ and `migrate_code` prompt on the MCP server).
 - The intrinsic-difference measure is now pinned against the channel and neuron
   examples of Barbosa et al. (2020), "A measure for intrinsic information", Figs
   2–4. (paper-reproduction-barbosa-2020)
+- `Analysis.formalism` names the formalism that produced a result
+  (`"IIT_4_0_2026"`, `"IIT_4_0_2023"`, or `"IIT_3_0"`), and the analysis card
+  leads with it. (analysis-formalism)
+- The MCP `analyze` tool takes a `subset` (node indices or labels) to analyze a
+  candidate system inside a larger substrate, and its summary and card now carry
+  the minimum information partition, the intrinsic information ii(s), and which
+  term of the intrinsic-information requirement set φₛ when it did.
+  (mcp-analyze-subset)
 
 ### API changes
 
@@ -759,6 +767,12 @@ and `migrate_code` prompt on the MCP server).
   formalism's `requires_ii_cap`) to `applies_intrinsic_information_requirement`,
   matching the project's terminology for Mayner et al. (2026) Eq. 23.
   (applies-ii-requirement-rename)
+- `pyphi.cost.estimate_analysis` now takes `subset`, `compute`, `limit`, and
+  `scope` by keyword only, so a state passed by mistake raises instead of being
+  read as the candidate subset. (estimate-analysis-keyword-only)
+- Under IIT 3.0, `System.ces()` and `analyze().ces` return a
+  `ResolvedDistinctions` (its concepts under `.concepts`) rather than the
+  internal `UnresolvedDistinctions`. (iit3-ces-resolved)
 
 ### Config
 
@@ -1375,6 +1389,32 @@ and `migrate_code` prompt on the MCP server).
   consistently call Mayner et al. (2026) Eq. 23 the intrinsic-information
   requirement ("with" / "without the requirement") rather than a cap.
   (requirement-terminology)
+- A configuration reference page lists every option with its layer and default,
+  generated from the configuration classes, followed by their documentation.
+  (configuration-reference)
+- A reference page lists every registered example network with its size and
+  source, generated from the registry at build time. (examples-gallery)
+- A FAQ and troubleshooting page: zero φₛ, numbers that differ from a paper or
+  from 1.x, unreachable states, conditional dependence, capped estimates, long
+  runs, ties, and configuration drift. (faq)
+- A glossary of the terms the documentation and the IIT 4.0 papers use, each
+  entry pointing to the page that treats it. (glossary)
+- New how-to, "Build a substrate": from a transition probability matrix, from a
+  weight matrix with logistic units, from a function per unit, and from recorded
+  transitions, with the checks to run before analyzing. (howto-build-substrate)
+- New how-to, "Estimate the cost before you run": the practical ceilings,
+  `estimate_analysis` with its counting budget, and what to reduce.
+  (howto-estimate-cost)
+- New how-to, "Read a result": every row of the analysis and system cards, the
+  letter-case convention of purview labels, and the two different reasons a
+  system's φₛ can be zero. (howto-read-result)
+- The MCP `estimate_cost` tool and the `performance` reference say which axes
+  `estimated_cpu_seconds` covers: the distinction axis only, so a system-φ
+  estimate reports counts without a time and a full estimate is a lower bound.
+  (mcp-estimate-cost-covers)
+- The migration guide gains the example-network renames, a table from every 1.x
+  configuration option to its 2.0 location, and a table of the quantities (1.x
+  `compute.phi` is `analysis.phi` under IIT 3.0). (migration-guide-tables)
 
 ### Refactor
 

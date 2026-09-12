@@ -1,1 +1,0 @@
-The migration guide gains the example-network renames, a table from every 1.x configuration option to its 2.0 location, and a table of the quantities (1.x `compute.phi` is `analysis.phi` under IIT 3.0).
