@@ -1,10 +1,26 @@
 """Sphinx configuration for the PyPhi documentation."""
 
 import os
+import sys
 from importlib.metadata import metadata
+from pathlib import Path
 
 # Keep the import-time welcome banner out of autodoc's import of pyphi.
 os.environ["PYPHI_WELCOME_OFF"] = "1"
+
+# The Selenized code-block styles live in _ext; register them under the names
+# the theme options use.
+sys.path.insert(0, str(Path(__file__).parent / "_ext"))
+from pygments import styles as _pygments_styles
+
+_pygments_styles._STYLE_NAME_TO_MODULE_MAP["selenized-light"] = (
+    "selenized",
+    "SelenizedLightStyle",
+)
+_pygments_styles._STYLE_NAME_TO_MODULE_MAP["selenized-dark"] = (
+    "selenized",
+    "SelenizedDarkStyle",
+)
 
 project = "PyPhi"
 author = "Will Mayner"
@@ -90,6 +106,8 @@ html_theme_options = {
     "github_url": "https://github.com/wmayner/pyphi",
     "navbar_align": "left",
     "header_links_before_dropdown": 6,
+    "pygments_light_style": "selenized-light",
+    "pygments_dark_style": "selenized-dark",
     "logo": {
         "image_light": "_static/pyphi-logo-text-noborder-776x196.png",
         "image_dark": "_static/pyphi-logo-text-white-noborder-776x196.png",
