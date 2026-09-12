@@ -102,7 +102,7 @@ intersphinx_mapping = {
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_css_files = [
-    "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap",
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Serif:wght@500;600&display=swap",
     "custom.css",
 ]
 html_favicon = "_static/phi-favicon.svg"
@@ -133,4 +133,7 @@ html_theme_options = {
     # three controls to fit on one row.
     "navbar_persistent": ["search-button"],
     "primary_sidebar_end": ["sidebar-cite"],
+    "footer_start": ["copyright"],
+    "footer_end": [],
 }
+html_show_sphinx = False

@@ -8,5 +8,6 @@ configuration
 examples
 api
 ../conventions
+../citing
 ../contributing
 ```

@@ -70,6 +70,7 @@ information, described in:
 > *Entropy* 28(4): 410.
 > <https://doi.org/10.3390/e28040410>
 
+BibTeX entries for these and for the IIT 3.0 paper are on the {doc}`citing` page.
 To report issues, use the [issue tracker](https://github.com/wmayner/pyphi/issues).
 For general discussion, join the [pyphi-users group](https://groups.google.com/forum/#!forum/pyphi-users).
 

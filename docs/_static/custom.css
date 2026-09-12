@@ -70,10 +70,27 @@ html[data-theme="dark"] {
 
 /* ---- Typography ---------------------------------------------------------- */
 
+/* FiraCode Nerd Font (OFL; see fonts/), vendored because it is not served
+   by Google Fonts. Two weights; the browser synthesizes the rest. */
+@font-face {
+  font-family: "FiraCode Nerd Font";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/FiraCodeNerdFont-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "FiraCode Nerd Font";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/FiraCodeNerdFont-Bold.woff2") format("woff2");
+}
+
 html {
   --pst-font-family-base: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --pst-font-family-heading: "IBM Plex Serif", Georgia, "Times New Roman", serif;
-  --pst-font-family-monospace: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --pst-font-family-monospace: "FiraCode Nerd Font", "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
   --pst-font-size-base: 16px;
   --pst-font-weight-heading: 600;
   --pst-font-size-h1: 2rem;
@@ -85,6 +102,9 @@ body { line-height: 1.6; }
 h1, h2, h3, h4 { text-wrap: balance; }
 h1 { margin-bottom: 1.25rem; }
 .bd-content code, .bd-content kbd, .bd-content samp { font-size: 0.9em; }
+/* Fira Code joins ->, !=, >= into ligatures; readers copy code from these
+   pages, so show the characters as typed. */
+.bd-content pre, .bd-content code, .bd-content .pyphi-card { font-variant-ligatures: none; }
 
 /* ---- Code blocks --------------------------------------------------------- */
 
@@ -257,3 +277,27 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
   padding: 0;
   color: inherit;
 }
+
+/* ---- Header and footer --------------------------------------------------- */
+
+/* Centre the section links between the logo and the controls. */
+.bd-header .navbar-header-items__center { flex: 1 1 auto; justify-content: center; }
+.bd-header .navbar-header-items__end { flex: 0 0 auto; }
+
+/* At narrow widths the theme moves the header items into the sidebar drawer:
+   tighter link rows, and the version switcher and icons on one row. */
+.bd-sidebar-primary .sidebar-header-items__center .navbar-nav > li > a.nav-link { padding: 0.2rem 0; }
+.bd-sidebar-primary .sidebar-header-items__center .navbar-nav { gap: 0; }
+.bd-sidebar-primary .sidebar-header-items__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0 0;
+}
+.bd-sidebar-primary .sidebar-header-items__end .navbar-item { display: inline-flex; margin: 0; }
+
+/* One small line. */
+.bd-footer { font-size: 0.8rem; }
+.bd-footer .bd-footer__inner { padding-top: 0.6rem; padding-bottom: 0.6rem; }
+.bd-footer .footer-items__start p, .bd-footer .footer-item p { margin: 0; }

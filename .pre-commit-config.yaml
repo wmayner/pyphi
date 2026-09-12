@@ -14,7 +14,8 @@ repos:
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
-        exclude: ^(papers/|graphify-out/)
+        # docs/_static/fonts holds two vendored FiraCode Nerd Font faces, 1.1 MB each.
+        exclude: ^(papers/|graphify-out/|docs/_static/fonts/)
       - id: debug-statements
       # Skip generated assets (SVG), test data and goldens, and vendored
       # scripts: these should not be whitespace-normalized by lint hooks.
