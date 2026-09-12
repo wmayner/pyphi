@@ -60,7 +60,7 @@ Selected with the `formalism` argument to `analyze`:
   (`background_conditioning="CAUSAL_MARGINALIZATION"`); the 3.0 preset conditions
   on fixed states (`"CONDITION_CURRENT_STATE"`). This only affects proper-subset
   systems (a system smaller than the whole substrate).
-- **The 2026 differentiation cap.** IIT 4.0 (2026) requires the system to
+- **The 2026 intrinsic-information requirement.** IIT 4.0 (2026) requires the system to
   provide itself a repertoire of alternatives (intrinsic differentiation). A
   fully deterministic system provides none, so its φₛ is 0 under 2026 even when
   it is positive under 2023.

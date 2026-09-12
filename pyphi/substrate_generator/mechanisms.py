@@ -63,7 +63,16 @@ def sigmoid(
     inputs=None,
     **kwargs,
 ):
-    """Logistic activation of the weighted input."""
+    """Logistic activation of the weighted input.
+
+    The probability that the unit is ON at the next step is
+    ``σ(determinism · (Σ_i w_i s_i − threshold))``, where the inputs ``s_i``
+    are the unit's current input states (mapped to ±1 when ``ising`` is True)
+    and ``w_i`` their weights. ``determinism`` is the slope ``k`` of the
+    logistic unit in Albantakis et al. (2023, Eq. 60) and Marshall et al.
+    (2023, Eq. 2): larger values make the unit more deterministic. ``floor``
+    and ``ceiling`` clip the output.
+    """
     ins = _ordered_inputs(element, weights, inputs)
     s = np.array([state[i] for i in ins], dtype=float)
     if ising:
