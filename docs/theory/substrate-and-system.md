@@ -56,6 +56,9 @@ quantifies:
 substrate.cm  # cm[i, j] == 1 means unit i is an input to unit j
 ```
 
+To build a substrate of your own from a matrix, weights, or unit functions,
+see {doc}`../howto/build-substrate`.
+
 The transition probabilities *are* the substrate's cause–effect power: the units
 take and make a difference. This is the **existence** postulate, IIT's operational
 starting point — to exist is to have cause–effect power (Albantakis et al., 2023).

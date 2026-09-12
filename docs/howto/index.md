@@ -3,6 +3,8 @@
 ```{toctree}
 :maxdepth: 1
 
+build-substrate
+read-result
 configure
 parallel
 chtc

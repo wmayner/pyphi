@@ -1,0 +1,1 @@
+New how-to, "Build a substrate": from a transition probability matrix, from a weight matrix with logistic units, from a function per unit, and from recorded transitions, with the checks to run before analyzing.

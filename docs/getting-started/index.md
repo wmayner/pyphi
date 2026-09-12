@@ -167,6 +167,9 @@ summed $\varphi$ of the distinctions and relations.
 round(float(ces.big_phi), 4)
 ```
 
+Every row of the card that `analysis` prints is explained in
+{doc}`Read a result <../howto/read-result>`.
+
 ### Save the result
 
 Analyses can be expensive, so it is worth saving them. {func}`~pyphi.save`
@@ -180,6 +183,9 @@ pyphi.save(ces, "ces.json")
 
 That is a full PyPhi computation. From here:
 
+- To analyze a network of your own, {doc}`build a substrate
+  <../howto/build-substrate>` from a transition probability matrix, a weight
+  matrix, or a function per unit.
 - The {doc}`worked example <../tutorials/worked-example>` follows this same
   network through the paper's Figures 1, 2, and 4, reproducing the published
   numbers.

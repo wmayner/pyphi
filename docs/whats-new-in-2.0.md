@@ -312,6 +312,7 @@ mathematical content, the result-affecting configuration, and the pyphi
 version. See [Save and load results](howto/save-load.md) and
 [Caching](howto/cache.md).
 
+(whats-new-estimate)=
 ## Estimate substrates from data
 
 When the TPM is measured rather than known, `pyphi.estimate` keeps the
