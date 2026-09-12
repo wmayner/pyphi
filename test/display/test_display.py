@@ -14,6 +14,7 @@ from pyphi.display.description import Nested
 from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
+from pyphi.display.numbers import format_column
 from pyphi.display.numbers import format_value
 from pyphi.display.render import ascii as ascii_backend
 from pyphi.display.render import html as html_backend
@@ -50,6 +51,29 @@ def test_format_value_passes_through_non_numbers():
     assert format_value((1, 0, 0)) == "(1, 0, 0)"
     assert format_value(None) == "None"
     assert format_value("A,B,C") == "A,B,C"
+
+
+def test_format_column_aligns_numbers_on_decimal_point():
+    col = format_column([0.119203, 0.5, 0.00111254, 12.0, 3])
+    assert col == [
+        " 0.119203  ",
+        " 0.5       ",
+        " 0.00111254",
+        "12.0       ",
+        " 3         ",
+    ]
+    assert len({s.index(".") for s in col if "." in s}) == 1
+
+
+def test_format_column_leaves_mixed_columns_unpadded():
+    assert format_column([1, "·", True]) == ["1", "·", "True"]
+
+
+def test_tables_align_numeric_columns_in_both_backends():
+    table = Table(headers=("state", "A"), rows=((("0",), 0.5), (("1",), 0.0054863)))
+    _, *body = ascii_backend._format_table(table)
+    assert len({line.index("0.") for line in body}) == 1
+    assert ">0.5      </td>" in html_backend._table_html(table)
 
 
 def test_description_is_frozen_and_composes():

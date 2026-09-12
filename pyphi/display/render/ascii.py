@@ -8,6 +8,7 @@ from pyphi.display.description import Nested
 from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
+from pyphi.display.numbers import format_column
 from pyphi.display.numbers import format_value
 
 H = "─"
@@ -48,10 +49,9 @@ def _format_rows(rows: tuple[Row, ...]) -> list[str]:
 
 def _format_table(table: Table) -> list[str]:
     """Render a table with each column padded to its widest cell."""
-    cells = [list(table.headers)] + [
-        [format_value(c) for c in row] for row in table.rows
-    ]
     ncols = len(table.headers)
+    columns = [format_column([row[c] for row in table.rows]) for c in range(ncols)]
+    cells = [list(table.headers)] + [list(r) for r in zip(*columns, strict=True)]
     widths = [max(_vis_len(row[c]) for row in cells) for c in range(ncols)]
     lines = [
         "   ".join(_pad(row[c], widths[c]) for c in range(ncols)).rstrip()

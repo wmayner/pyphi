@@ -27,3 +27,23 @@ def format_value(value, sig_figs: int = SIG_FIGS) -> str:
             formatted += ".0"
         return formatted
     return str(value)
+
+
+def format_column(values, sig_figs: int = SIG_FIGS) -> list[str]:
+    """Format one table column, aligning numbers on the decimal point.
+
+    If every value is a real number, each formatted string is padded with
+    spaces so that the decimal points (or the ends of integers) share a
+    character position and all strings have equal length; in a monospace font
+    the column then reads as decimal-aligned under any text alignment. A column
+    containing any non-numeric value is formatted cell by cell, unpadded.
+    """
+    strings = [format_value(v, sig_figs) for v in values]
+    if not all(isinstance(v, Real) and not isinstance(v, bool) for v in values):
+        return strings
+    parts = [s.partition(".") for s in strings]
+    int_w = max((len(whole) for whole, _, _ in parts), default=0)
+    frac_w = max((len(dot + frac) for _, dot, frac in parts), default=0)
+    return [
+        whole.rjust(int_w) + (dot + frac).ljust(frac_w) for whole, dot, frac in parts
+    ]

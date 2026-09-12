@@ -16,6 +16,7 @@ from pyphi.display.description import Nested
 from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
+from pyphi.display.numbers import format_column
 from pyphi.display.numbers import format_value
 
 # Neutral palette as CSS variables so a single set of rules serves both themes.
@@ -77,7 +78,7 @@ table.pyphi-table{{border-collapse:collapse;width:100%;font-size:12px}}
 table.pyphi-table th{{text-align:left;color:var(--pc-muted);font-weight:600;
  border-bottom:1px solid var(--pc-line);padding:3px 12px 3px 0}}
 table.pyphi-table td{{text-align:left;padding:3px 12px 3px 0;
- border-bottom:1px solid var(--pc-soft);
+ border-bottom:1px solid var(--pc-soft);white-space:pre;
  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
 .pyphi-scroll{{max-height:26em;overflow:auto}}
 .pyphi-more{{color:var(--pc-faint);font-size:12px;padding:3px 0}}
@@ -143,7 +144,7 @@ def _kv_html(rows: tuple[Row, ...]) -> str:
     return f'<div class="pyphi-kv">{"".join(cells)}</div>'
 
 
-def _grid_cells(values: tuple[object, ...], tag: str) -> str:
+def _grid_cells(values: tuple[str, ...] | list[str], tag: str) -> str:
     # Inline text-align so a matrix grid aligns in every notebook front-end
     # (some, e.g. VS Code, override class-based table alignment); the first
     # column is the row label (right-aligned), the rest center.
@@ -151,16 +152,26 @@ def _grid_cells(values: tuple[object, ...], tag: str) -> str:
     for i, v in enumerate(values):
         align = "right" if i == 0 else "center"
         out.append(
-            f'<{tag} style="text-align:{align};padding:3px 9px">'
-            f"{escape(format_value(v))}</{tag}>"
+            f'<{tag} style="text-align:{align};padding:3px 9px;white-space:pre">'
+            f"{escape(v)}</{tag}>"
         )
     return "".join(out)
 
 
+def _formatted_rows(table: Table) -> list[tuple[str, ...]]:
+    """Cell strings row by row, with numeric columns aligned on the decimal."""
+    columns = [
+        format_column([row[c] for row in table.rows]) for c in range(len(table.headers))
+    ]
+    return list(zip(*columns, strict=True))
+
+
 def _table_html(table: Table) -> str:
+    rows = _formatted_rows(table)
     if table.grid:
-        head = f"<tr>{_grid_cells(table.headers, 'th')}</tr>"
-        body = "".join(f"<tr>{_grid_cells(row, 'td')}</tr>" for row in table.rows)
+        headers = [format_value(h) for h in table.headers]
+        head = f"<tr>{_grid_cells(headers, 'th')}</tr>"
+        body = "".join(f"<tr>{_grid_cells(row, 'td')}</tr>" for row in rows)
         grid_html = (
             '<table class="pyphi-table pyphi-grid" '
             'style="border-collapse:collapse;width:auto;margin:0">'
@@ -181,12 +192,12 @@ def _table_html(table: Table) -> str:
     head = "".join(head_cells)
     row_tones = table.row_tones
     body_rows = []
-    for ri, row in enumerate(table.rows):
+    for ri, row in enumerate(rows):
         cell_tones = row_tones[ri] if ri < len(row_tones) else ()
         cells = []
         for ci, c in enumerate(row):
             tone = cell_tones[ci] if ci < len(cell_tones) else None
-            cells.append(f"<td{_tone_style(tone)}>{escape(format_value(c))}</td>")
+            cells.append(f"<td{_tone_style(tone)}>{escape(c)}</td>")
         body_rows.append("<tr>" + "".join(cells) + "</tr>")
     body = "".join(body_rows)
     html = (
