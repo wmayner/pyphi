@@ -16,6 +16,16 @@ How to read an analysis result and explain it in plain language.
 - `summary.formalism` — which version produced these numbers.
 - `summary.num_distinctions` / `summary.num_relations` and their φ sums —
   the size and weight of the Φ-structure.
+- `summary.intrinsic_information` — **ii(s)**, the third term of φₛ under
+  IIT 4.0 (2026); `summary.requirement_binding` names the term and direction
+  when ii(s) is what set φₛ (both φ_c and φ_e positive with φₛ = 0 is the
+  usual sign). `None` when integration set it, and absent under IIT 3.0.
+- Purview and mechanism labels are written in the specified *state*:
+  uppercase is ON, lowercase is OFF, and a subscript gives the state of a
+  unit with more than two states (`A₂`).
+- Under the default analytical backend, relation counts and Σφ_r are
+  closed-form; individual relations are not enumerated, so `inspect` cannot
+  list them. Say so rather than inventing them.
 - `card` — a ready-made human-readable summary.
 
 ## What `compute="distinctions"` gives back
