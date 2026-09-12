@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from contextlib import nullcontext
 from dataclasses import dataclass
+from dataclasses import replace
 from typing import Any
 
 import pandas as pd
@@ -23,6 +24,7 @@ from pyphi.conf import presets
 from pyphi.display import FULL
 from pyphi.display import Description
 from pyphi.display import Displayable
+from pyphi.display import Row
 from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
 from pyphi.serializable import Serializable
@@ -59,6 +61,13 @@ class Analysis(Displayable, Serializable):
         return float(self.sia.phi)
 
     @property
+    def formalism(self) -> str:
+        """str: The formalism that produced this analysis: ``"IIT_4_0_2026"``,
+        ``"IIT_4_0_2023"``, or ``"IIT_3_0"``, read from the configuration
+        snapshot the system irreducibility analysis carries."""
+        return self.sia.config.formalism.iit.version
+
+    @property
     def _phi_label(self) -> str:
         # Under IIT 3.0 the CES is a bare distinction sequence carrying no
         # config snapshot; the SIA always carries one.
@@ -90,6 +99,11 @@ class Analysis(Displayable, Serializable):
         # (capped at FULL) so the card still leads with the system-level value.
         desc = self.ces._describe(verbosity)
         sections = list(desc.sections)
+        # Lead with the formalism: a φ value means nothing without it.
+        first = sections[0]
+        sections[0] = replace(
+            first, rows=(Row("Formalism", self.formalism), *first.rows)
+        )
         if getattr(self.ces, "sia", None) is None:
             sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
         phi_label = self._phi_label
