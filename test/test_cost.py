@@ -459,3 +459,11 @@ def test_system_partition_include_total_changes_the_count():
         off_2 = pyphi.cost.estimate_analysis(substrate).system_partitions
     assert on == off_1 + 1  # the total cut is one extra partition
     assert off_2 == off_1  # no cross-poisoning
+
+
+def test_estimate_analysis_subset_is_keyword_only():
+    """A state passed positionally must not bind to ``subset``."""
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with pytest.raises(TypeError):
+        estimate_analysis(substrate, (0, 1, 1))  # type: ignore[misc]
+    assert estimate_analysis(substrate, subset=(0, 1)).n_units == 2

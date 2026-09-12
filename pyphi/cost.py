@@ -510,6 +510,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
 
 def estimate_analysis(
     substrate: Substrate,
+    *,
     subset: Any = None,
     compute: str | None = None,
     limit: int = 1_000_000,
