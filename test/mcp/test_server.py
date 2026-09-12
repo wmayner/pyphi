@@ -667,3 +667,11 @@ def test_analyze_summary_carries_mip_and_requirement_terms(basic_handle):
     # Integration, not the requirement, set φₛ under 2023: no binding term.
     out_2023 = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_4_0_2023")
     assert out_2023["summary"]["requirement_binding"] is None
+
+
+def test_estimate_cost_states_what_the_seconds_cover(basic_handle):
+    full = srv.estimate_cost(basic_handle, compute="full")
+    sia = srv.estimate_cost(basic_handle, compute="sia")
+    assert "system-partition" in full["estimated_cpu_seconds_covers"]
+    assert sia["estimated_cpu_seconds"] is None
+    assert "system-partition" in sia["estimated_cpu_seconds_covers"]

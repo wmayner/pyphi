@@ -682,7 +682,9 @@ def estimate_cost(
     -------
     dict
         A ``card`` (human-readable text), an ``estimate`` mapping with the
-        counts, and ``estimated_cpu_seconds``; ``capped=true`` marks counts
+        counts, and ``estimated_cpu_seconds`` with a note on what it covers:
+        the distinction axis only, so a ``"sia"`` estimate has no seconds and
+        a ``"full"`` estimate is a lower bound. ``capped=true`` marks counts
         that are lower bounds.
     """
     substrate = _get_substrate(handle)
@@ -701,6 +703,12 @@ def estimate_cost(
         "card": str(estimate),
         "estimate": asdict(estimate),
         "estimated_cpu_seconds": (None if units is None else runtime_seconds(units)),
+        "estimated_cpu_seconds_covers": (
+            "the distinction axis only (mechanisms, purviews, mechanism "
+            "partitions); the system-partition axis is not calibrated to "
+            "seconds and is excluded, so a 'sia' estimate has no seconds and "
+            "a 'full' estimate is a lower bound"
+        ),
     }
 
 
