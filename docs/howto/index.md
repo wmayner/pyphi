@@ -20,4 +20,5 @@ query-relations
 visualize
 tie-breaking
 mcp-server
+faq
 ```
