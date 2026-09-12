@@ -179,3 +179,11 @@ files written here are not readable by the old `pyphi.jsonify` machinery.
 Cause-effect structures are also stored more compactly now: each distinction is
 written once in a table, and relations reference their members by index rather
 than embedding a full copy of every distinction they contain.
+
+## Where to go next
+
+- {doc}`export` converts results to DataFrames, NetworkX graphs, and files
+  other tools read.
+- {doc}`cache` persists results automatically across runs.
+- {doc}`campaigns` saves and collects the pieces of a run sharded across
+  machines.

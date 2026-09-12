@@ -31,10 +31,12 @@ reference.
 - `build_substrate(tpm, cm?, node_labels?, alphabet?)` — build your own from a
   transition probability matrix.
 - `describe_substrate(handle)` — inspect a substrate.
-- `analyze(handle, state, formalism?, compute?, detail?, confirm_large?,
-  parallel?, workers?)` — the workhorse. Returns a readable card, scalar
-  values, and a `result_ref`. `parallel=true` runs that call on multiple
-  cores; see `get_iit_reference("parallelization")`.
+- `analyze(handle, state, subset?, formalism?, compute?, detail?,
+  confirm_large?, parallel?, workers?)` — the workhorse. Returns a readable
+  card, scalar values, and a `result_ref`. `subset` names the candidate
+  system (indices or labels); the rest of the substrate is background.
+  `parallel=true` runs that call on multiple cores; see
+  `get_iit_reference("parallelization")`.
 - `configure_parallel(enable?, levels?, workers?, reset?)` — read or
   persistently set the server's parallelization configuration.
 - `inspect(result_ref, path)` — drill into one part of a result.

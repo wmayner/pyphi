@@ -18,7 +18,7 @@ kernelspec:
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/getting-started/index.ipynb)
 
 This page installs PyPhi and then walks through a complete computation end to
-end: build a small substrate from the IIT 4.0 paper, analyze it in a chosen
+end: build a small {term}`substrate` from the IIT 4.0 paper, analyze it in a chosen
 state, read off the integrated information $\varphi_s$ and the associated
 $\Phi$-structure, and save the result to disk. After installing, the walkthrough
 takes about ten minutes.
@@ -127,7 +127,7 @@ reproduces the value published in the paper's Fig 1E for this system, 0.13.)
 
 Not every subset of units exists as a whole of its own. Subsets *compete*:
 among overlapping candidates, only the one with maximal $\varphi_s$ — a
-**complex** — exists. {meth}`~pyphi.substrate.Substrate.complexes` runs that
+**{term}`complex`** — exists. {meth}`~pyphi.substrate.Substrate.complexes` runs that
 competition over every subset:
 
 ```{code-cell} python
@@ -167,6 +167,9 @@ summed $\varphi$ of the distinctions and relations.
 round(float(ces.big_phi), 4)
 ```
 
+Every row of the card that `analysis` prints is explained in
+{doc}`Read a result <../howto/read-result>`.
+
 ### Save the result
 
 Analyses can be expensive, so it is worth saving them. {func}`~pyphi.save`
@@ -180,6 +183,9 @@ pyphi.save(ces, "ces.json")
 
 That is a full PyPhi computation. From here:
 
+- To analyze a network of your own, {doc}`build a substrate
+  <../howto/build-substrate>` from a transition probability matrix, a weight
+  matrix, or a function per unit.
 - The {doc}`worked example <../tutorials/worked-example>` follows this same
   network through the paper's Figures 1, 2, and 4, reproducing the published
   numbers.

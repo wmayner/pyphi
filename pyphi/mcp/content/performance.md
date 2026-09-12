@@ -22,6 +22,12 @@ direction, over an array of that same size, so it grows fourfold per unit added
 no matter how the units are wired. It is the axis that dominates a large
 sparse system, and the only one whose cost follows from the unit count alone.
 
+`estimated_cpu_seconds` converts only the distinction axis (mechanisms,
+purviews, mechanism partitions) to time. The system-partition axis is not
+calibrated to seconds, so a `compute="sia"` estimate reports counts but no
+time, and a `"full"` estimate is a lower bound. Compare axes by their counts:
+the system-partition count grows fastest with the number of units.
+
 Besides the caching and checkpointing covered here, the other lever for
 expensive work is running on multiple cores. That has its own topic and its
 own pitfalls — in particular, the global `parallel` flag alone does nothing —

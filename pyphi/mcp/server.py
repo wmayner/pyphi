@@ -194,6 +194,26 @@ def _substrate_summary(substrate: Any) -> dict[str, Any]:
     }
 
 
+def _requirement_binding(sia: Any) -> tuple[float, dict[str, str] | None] | None:
+    """The intrinsic information ii(s) of an IIT 4.0 (2026) system
+    irreducibility analysis and, when the intrinsic-information requirement
+    set φₛ, the term and direction that did; ``None`` for analyses without
+    the quantity (IIT 3.0, IIT 4.0 (2023), bare distinctions)."""
+    ii = getattr(sia, "intrinsic_information", None)
+    if ii is None or not hasattr(sia, "explain"):
+        return None
+    finding = next(
+        (f for f in sia.explain().findings if f.kind == "requirement_binding"),
+        None,
+    )
+    if finding is None:
+        return float(ii), None
+    return float(ii), {
+        "term": finding.value,
+        "direction": dict(finding.detail)["direction"],
+    }
+
+
 def _result_summary(result: Any, formalism: str | None = None) -> dict[str, Any]:
     """Build a compact, JSON-safe summary of an analysis result.
 
@@ -247,6 +267,9 @@ def _result_summary(result: Any, formalism: str | None = None) -> dict[str, Any]
         from pyphi.models.partitions import concise_partition
 
         summary["mip"] = concise_partition(sia.partition)
+    binding = _requirement_binding(sia)
+    if binding is not None:
+        summary["intrinsic_information"], summary["requirement_binding"] = binding
 
     # A full analysis carries its cause-effect structure on ``.ces``; a bare
     # cause-effect structure result is one itself (it has ``big_phi``).
@@ -505,6 +528,7 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
 def analyze(
     handle: str,
     state: list[int],
+    subset: list[int | str] | None = None,
     formalism: str | None = None,
     compute: str = "full",
     detail: str = "summary",
@@ -520,6 +544,11 @@ def analyze(
         A substrate handle from ``load_example`` or ``build_substrate``.
     state : list of int
         The current state, one entry per node, in node order (little-endian).
+    subset : list of int or str, optional
+        The candidate system: node indices or labels. Default analyzes the
+        whole substrate. Units outside the subset are the background and are
+        causally marginalized (IIT 4.0) or conditioned on their current
+        state (IIT 3.0); see ``get_iit_reference("theory")``.
     formalism : str, optional
         ``"IIT_4_0_2026"`` (default), ``"IIT_4_0_2023"``, or ``"IIT_3_0"``. Each
         defines integrated information differently, so the same substrate and
@@ -571,18 +600,32 @@ def analyze(
         *reducible*, not that it has no structure.
     """
     substrate = _get_substrate(handle)
+    indices = (
+        None
+        if subset is None
+        else tuple(substrate.node_labels.coerce_to_indices(subset))
+    )
     compute_arg = None if compute == "full" else compute
     if not confirm_large:
         overrides = presets.by_name.get(formalism, {}) if formalism else {}
         with pyphi.config.override(**overrides):
             estimate = estimate_analysis(
-                substrate, compute=compute_arg, limit=_GUARD_COUNT_BUDGET
+                substrate,
+                subset=indices,
+                compute=compute_arg,
+                limit=_GUARD_COUNT_BUDGET,
             )
-        _refuse_if_large(estimate, compute, substrate.size)
+        _refuse_if_large(
+            estimate, compute, substrate.size if indices is None else len(indices)
+        )
 
     with pyphi.config.override(**_parallel_overrides(parallel, workers)):
         result = pyphi.analyze(
-            substrate, tuple(state), formalism=formalism, compute=compute_arg
+            substrate,
+            tuple(state),
+            subset=indices,
+            formalism=formalism,
+            compute=compute_arg,
         )
     ref = _register_result(result)
 
@@ -593,6 +636,7 @@ def analyze(
             result, formalism or pyphi.config.formalism.iit.version
         ),
     }
+    out["summary"]["subset"] = None if subset is None else list(subset)
     if detail == "full":
         target = getattr(result, "ces", result)
         out["serialized"] = serialize.dumps(target).decode("utf-8")
@@ -638,7 +682,9 @@ def estimate_cost(
     -------
     dict
         A ``card`` (human-readable text), an ``estimate`` mapping with the
-        counts, and ``estimated_cpu_seconds``; ``capped=true`` marks counts
+        counts, and ``estimated_cpu_seconds`` with a note on what it covers:
+        the distinction axis only, so a ``"sia"`` estimate has no seconds and
+        a ``"full"`` estimate is a lower bound. ``capped=true`` marks counts
         that are lower bounds.
     """
     substrate = _get_substrate(handle)
@@ -657,6 +703,12 @@ def estimate_cost(
         "card": str(estimate),
         "estimate": asdict(estimate),
         "estimated_cpu_seconds": (None if units is None else runtime_seconds(units)),
+        "estimated_cpu_seconds_covers": (
+            "the distinction axis only (mechanisms, purviews, mechanism "
+            "partitions); the system-partition axis is not calibrated to "
+            "seconds and is excluded, so a 'sia' estimate has no seconds and "
+            "a 'full' estimate is a lower bound"
+        ),
     }
 
 

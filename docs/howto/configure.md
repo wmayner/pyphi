@@ -145,6 +145,11 @@ pyphi.config.formalism.iit.version
 You can override individual options on top of a preset by passing them as
 extra keyword arguments to the same `override` call; later keywords win.
 
+A preset in an `override` block, the `formalism=` argument of
+`pyphi.analyze`, and replacing the formalism layer for a session are the
+three equivalent ways to select a formalism;
+{ref}`formalism-selection` compares them.
+
 ## Loading a configuration file
 
 If a file named `pyphi_config.yml` exists in the directory where you start
@@ -189,6 +194,5 @@ as a complete example, kept in sync with the `IIT_3_0` preset by a test.
 | `version` | formalism.iit | Which IIT version to use. |
 | `ces_measure` | formalism.iit | Distance measure for cause-effect structures. |
 
-For the complete list of options and their meanings, see the configuration
-classes (`IITConfig`, `InfrastructureConfig`, `NumericsConfig`) in the
-{doc}`API reference </reference/index>`.
+For every option with its layer, default, and meaning, see the
+{doc}`configuration reference </reference/configuration>`.

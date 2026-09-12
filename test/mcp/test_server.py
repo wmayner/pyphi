@@ -641,3 +641,37 @@ def test_the_specified_state_limit_matches_the_kernels_own_sweep_bound():
 
 def test_guard_ignores_the_axis_when_the_formalism_has_no_specified_state():
     srv._refuse_if_large(_estimate(specified_state_evaluations=None), "ces", 16)
+
+
+def test_analyze_subset_analyzes_the_candidate_system():
+    """The Fig 1A pair aB reproduces the paper's 0.17 under the 2023 formalism
+    through the tool."""
+    handle = srv.load_example("iit4_2023_fig1a")["handle"]
+    out = srv.analyze(
+        handle, [0, 1, 1], subset=["A", "B"], formalism="IIT_4_0_2023", compute="sia"
+    )
+    assert round(out["summary"]["system_phi"], 2) == 0.17
+    assert out["summary"]["subset"] == ["A", "B"]
+
+
+def test_analyze_summary_carries_mip_and_requirement_terms(basic_handle):
+    out = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_4_0_2026")
+    summary = out["summary"]
+    assert summary["mip"]
+    assert summary["intrinsic_information"] == 0.0
+    assert summary["requirement_binding"] == {
+        "term": "differentiation",
+        "direction": "EFFECT",
+    }
+    assert "MIP" in out["card"] and "ii(s)" in out["card"]
+    # Integration, not the requirement, set φₛ under 2023: no binding term.
+    out_2023 = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_4_0_2023")
+    assert out_2023["summary"]["requirement_binding"] is None
+
+
+def test_estimate_cost_states_what_the_seconds_cover(basic_handle):
+    full = srv.estimate_cost(basic_handle, compute="full")
+    sia = srv.estimate_cost(basic_handle, compute="sia")
+    assert "system-partition" in full["estimated_cpu_seconds_covers"]
+    assert sia["estimated_cpu_seconds"] is None
+    assert "system-partition" in sia["estimated_cpu_seconds_covers"]

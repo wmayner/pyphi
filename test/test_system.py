@@ -614,3 +614,18 @@ def test_system_external_indices_overlap_with_node_indices_allowed(s) -> None:
             external_indices=(1,),
         )
     assert overlapping.external_indices == (1,)
+
+
+def test_iit3_ces_is_a_resolved_distinctions():
+    """Under IIT 3.0 the structure has no tied states to resolve, so the public
+    type is ResolvedDistinctions, not the internal UnresolvedDistinctions."""
+    import pyphi
+    from pyphi.conf import presets
+    from pyphi.models import ResolvedDistinctions
+
+    with config.override(**presets.iit3, progress_bars=False):
+        ces = System(pyphi.examples.basic_substrate(), (1, 0, 0)).ces()
+        analysis = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 0, 0))
+    assert isinstance(ces, ResolvedDistinctions)
+    assert isinstance(analysis.ces, ResolvedDistinctions)
+    assert len(ces.concepts) == 4

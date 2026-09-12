@@ -305,3 +305,13 @@ def test_analyze_compute_distinctions_enumerates_no_system_partition(monkeypatch
         assert not calls
         analyze(substrate, (1, 0, 0), compute="ces")
     assert calls
+
+
+def test_analysis_reports_its_formalism():
+    """A result says which formalism produced it."""
+    substrate = examples.iit4_2023_fig1a_substrate()
+    for name in ("IIT_4_0_2026", "IIT_4_0_2023", "IIT_3_0"):
+        with config.override(**presets.by_name[name], progress_bars=False):
+            analysis = analyze(substrate, (0, 1, 1), subset=(0, 1))
+        assert analysis.formalism == name
+        assert name in repr(analysis)  # the card leads with a Formalism row

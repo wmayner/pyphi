@@ -1,0 +1,1 @@
+The MCP `analyze` tool takes a `subset` (node indices or labels) to analyze a candidate system inside a larger substrate, and its summary and card now carry the minimum information partition, the intrinsic information ii(s), and which term of the intrinsic-information requirement set φₛ when it did.

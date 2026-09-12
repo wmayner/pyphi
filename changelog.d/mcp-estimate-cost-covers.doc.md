@@ -1,0 +1,1 @@
+The MCP `estimate_cost` tool and the `performance` reference say which axes `estimated_cpu_seconds` covers: the distinction axis only, so a system-φ estimate reports counts without a time and a full estimate is a lower bound.

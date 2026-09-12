@@ -252,3 +252,12 @@ print(f"[{cause}] -> [{effect}]")
 
 The single-unit transition $\{OR\} \rightarrow \{OR\}$ is the causal nexus of
 this observed state change.
+
+## Where to go next
+
+- {doc}`causal-reductionism` applies actual causation to the question of
+  which level of description carries the causal power.
+- {doc}`../theory/formalism-versions` places actual causation beside the IIT
+  formalisms and their configuration.
+- {doc}`../howto/build-substrate` builds the substrates these transitions run
+  over.

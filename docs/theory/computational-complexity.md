@@ -68,6 +68,11 @@ The Bell number $B_n$ already grows faster than any $c^n$; the "directed" set
 partitions used for IIT 4.0 system cuts weight each block by one of three
 directions, giving the Bell polynomial $B_n(3)$, faster still.
 
+The enumerators below are shown for small `n` to illustrate the growth. Do
+not call `pyphi.partition.directed_set_partitions` or its relatives directly
+on ten or more units: they materialize every partition. Use
+{func}`pyphi.cost.estimate_analysis`, which counts without enumerating.
+
 ```{code-cell} python
 import pandas as pd
 from pyphi import combinatorics
@@ -274,9 +279,11 @@ pyphi.estimate_analysis(examples.basic_substrate())
 
 The estimate reports counts and structural weights (the state-space size is
 the per-evaluation cost scale); it never predicts wall time, which is
-machine- and configuration-dependent. Counting is budgeted: pass `limit` to
-bound the estimate's own work, and a truncated walk reports lower bounds
-with `capped=True`. The counterpart for grain searches is
+machine- and configuration-dependent. It computes no φ, but its counting
+walk is itself work: on ten fully connected units it takes tens of seconds,
+and it stops at its `limit` budget with `capped=True`, reporting lower
+bounds; see {doc}`../howto/estimate-cost` for raising the budget. The
+counterpart for grain searches is
 `SearchBounds.estimate`, described in the next section.
 
 ## The cost of the grain search
@@ -411,7 +418,7 @@ into three kinds, and the distinction matters for how a result should be read:
 | `mechanism_partition_scheme` | `JOINT_PARTITION_ALL` / `WEDGE_TRIPARTITION` / `JOINT_BIPARTITION` | formalism choice | per-(mechanism, purview) partition count Bell-weighted $> 2^{m-1}3^p > 2^{m+p-1}$ |
 | `prune` (grain search) | `"certified"` (automatic under a measure that applies the intrinsic-information requirement); `"off"` evaluates everything | exact reformulation (identical complexes, ties, and verdicts; skipped candidates report their ii ceiling) | skips candidate partition sweeps certified below an overlapping accepted complex by the requirement; bites in sweep-heavy regimes (mapped-variant sweeps), while runs dominated by unit-derivation evaluations see parity |
 | `shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
-| `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining MICE search once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
+| `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining search for its maximally irreducible cause and effect (MICE) once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
 | `parallel` | `False` → `True` | exact | constant factor set by the number of cores |
 | `system_partition_scheme` (3.0) | `DIRECTED_BIPARTITION` → `…_CUT_ONE` | approximation (upper bound on Φ) | system cuts $2^n \to 2n$ |
 | `assume_partitions_cannot_create_new_concepts` (3.0) | `False` → `True` | approximation (no guaranteed bound) | reuses the unpartitioned distinctions across cuts |

@@ -13,7 +13,7 @@ kernelspec:
 
 Integrated Information Theory (IIT) starts from the properties of experience and
 formulates them as requirements on the *cause–effect power* of a physical
-substrate. PyPhi is a computational implementation of the resulting formalism,
+{term}`substrate`. PyPhi is a computational implementation of the resulting formalism,
 IIT 4.0 (Albantakis et al., 2023). This section explains what PyPhi computes and
 why, mapping each quantity of the theory to the type or function that computes
 it, and following one small example the whole way through.
@@ -29,12 +29,12 @@ Given a **substrate** (a set of interacting units, defined by how they influence
 one another) and a **state** of that substrate, PyPhi answers two questions:
 
 1. **Is a set of units a subject of experience, and how much?** IIT identifies
-   the units that form a *complex* — a set whose cause–effect power is maximally
+   the units that form a {term}`complex` — a set whose cause–effect power is maximally
    irreducible — and measures its irreducibility as the **system integrated
    information**, $\varphi_s$.
 2. **What is the structure of that experience?** From the complex, PyPhi unfolds
-   the **$\Phi$-structure**: the **distinctions** the units specify and the
-   **relations** among them. The $\Phi$-structure's total irreducibility is the
+   the **$\Phi$-structure**: the **{term}`distinctions <distinction>`** the units specify and the
+   **{term}`relations <relation>`** among them. The $\Phi$-structure's total irreducibility is the
    **structure integrated information**, $\Phi$ ("big phi").
 
 The rest of this section builds these two answers up in the order PyPhi computes
@@ -72,7 +72,7 @@ physical counterpart of a property of experience (Albantakis et al., 2023):
 - **Exclusion** — the power must be *definite*: exactly one set of units, the one
   with maximal integrated information, is the complex.
 - **Composition** — the power must be *structured*: subsets of the units
-  (mechanisms) specify cause–effect states over subsets of units (purviews) —
+  ({term}`mechanisms <mechanism>`) specify cause–effect states over subsets of units ({term}`purviews <purview>`) —
   the **distinctions** — which overlap in **relations**, together forming the
   $\Phi$-structure.
 

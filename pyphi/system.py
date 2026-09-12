@@ -854,8 +854,9 @@ class System(Displayable, ToPandasMixin, Serializable):
         """Return the cause-effect structure of this system (Eq. 57).
 
         Under IIT 4.0 returns a :class:`CauseEffectStructure` (distinctions
-        plus their relations). Under IIT 3.0 returns the
-        :class:`Distinctions` (IIT 3.0 has no relations, so the CES is
+        plus their relations). Under IIT 3.0 returns a
+        :class:`~pyphi.models.distinctions.ResolvedDistinctions`, the
+        concepts as ``.concepts`` (IIT 3.0 has no relations, so the CES is
         exactly the set of distinctions).
         """
         from pyphi.cache.disk import maybe_disk_cached
@@ -869,8 +870,10 @@ class System(Displayable, ToPandasMixin, Serializable):
                 from pyphi.formalism.iit3 import (
                     _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
                 )
+                from pyphi.models.distinctions import ResolvedDistinctions
 
-                return _ces(self, **call_kwargs)
+                # IIT 3.0 has no tied specified states to resolve.
+                return ResolvedDistinctions(_ces(self, **call_kwargs))
             from pyphi.formalism.iit4 import ces as _ces
             from pyphi.measures.distribution import resolve_mechanism_measure
             from pyphi.measures.distribution import resolve_system_measure

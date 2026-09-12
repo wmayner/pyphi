@@ -72,12 +72,16 @@ on a `Transition` (a substrate observed across two time steps) rather than a
 the IIT versions above (in particular, the 2026 intrinsic-information
 requirement does not apply to it), and is documented with the tutorials.
 
+(formalism-selection)=
 ## What `formalism=` sets
 
-`formalism=` sets `pyphi.config.formalism.iit.version` together with the
-distance measures each version requires. You can also set the version through
-configuration directly, but then you must make the measures compatible with
-it yourself; using the `formalism` argument, or applying a whole preset from
-`pyphi.conf.presets` (`iit3`, `iit4_2023`, `iit4_2026`) with
-`config.override`, avoids that pitfall. The three IIT versions correspond to
-the namespaces `pyphi.iit3`, `pyphi.iit4_2023`, and `pyphi.iit4_2026`.
+There are three equivalent ways to select a formalism, and every page uses
+one of them: the `formalism=` argument of `pyphi.analyze` (per call);
+`pyphi.config.override(**pyphi.iit4_2023)` (a block; the presets are
+`pyphi.iit3`, `pyphi.iit4_2023`, and `pyphi.iit4_2026`, also under
+`pyphi.conf.presets`); and replacing the formalism layer for a whole session
+(`pyphi.config.formalism = dataclasses.replace(pyphi.config.formalism,
+**pyphi.iit4_2023)`). All three set `pyphi.config.formalism.iit.version` together
+with the distance measures the version requires. Setting `version` alone
+does not: the measures stay at their previous values, and the result belongs
+to no formalism.
