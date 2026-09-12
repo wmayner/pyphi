@@ -13,14 +13,13 @@ os.environ["PYPHI_WELCOME_OFF"] = "1"
 sys.path.insert(0, str(Path(__file__).parent / "_ext"))
 from pygments import styles as _pygments_styles
 
-_pygments_styles._STYLE_NAME_TO_MODULE_MAP["selenized-light"] = (
-    "selenized",
-    "SelenizedLightStyle",
-)
-_pygments_styles._STYLE_NAME_TO_MODULE_MAP["selenized-dark"] = (
-    "selenized",
-    "SelenizedDarkStyle",
-)
+for _cls, _name in (
+    ("SelenizedLightStyle", "selenized-light"),
+    ("SelenizedDarkStyle", "selenized-dark"),
+):
+    # Both maps: get_style_by_name reads the first, get_all_styles the second.
+    _pygments_styles._STYLE_NAME_TO_MODULE_MAP[_name] = ("selenized", _cls)
+    _pygments_styles.STYLES[_cls] = ("selenized", _name, ())
 
 project = "PyPhi"
 author = "Will Mayner"
@@ -100,7 +99,10 @@ intersphinx_mapping = {
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-html_css_files = ["custom.css"]
+html_css_files = [
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap",
+    "custom.css",
+]
 html_favicon = "_static/phi-favicon.svg"
 html_theme_options = {
     "github_url": "https://github.com/wmayner/pyphi",
@@ -112,4 +114,18 @@ html_theme_options = {
         "image_light": "_static/pyphi-logo-text-noborder-776x196.png",
         "image_dark": "_static/pyphi-logo-text-white-noborder-776x196.png",
     },
+    "announcement": (
+        "PyPhi 2.0 is released: "
+        '<a href="https://pyphi.readthedocs.io/en/stable/whats-new-in-2.0.html">'
+        "what's new</a>, and the "
+        '<a href="https://pyphi.readthedocs.io/en/stable/migration/migration-2.0.html">'
+        "migration guide</a> for 1.x users."
+    ),
+    "switcher": {
+        "json_url": "https://pyphi.readthedocs.io/en/latest/_static/switcher.json",
+        "version_match": os.environ.get("READTHEDOCS_VERSION", "latest"),
+    },
+    "check_switcher": False,
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    "primary_sidebar_end": ["sidebar-cite"],
 }
