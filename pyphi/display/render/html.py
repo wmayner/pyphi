@@ -16,6 +16,7 @@ from pyphi.display.description import Nested
 from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
+from pyphi.display.description import card_label_width
 from pyphi.display.numbers import format_column
 from pyphi.display.numbers import format_value
 
@@ -70,7 +71,7 @@ _STYLE = f"""\
 .pyphi-section{{padding:8px 14px;border-top:1px solid var(--pc-soft)}}
 .pyphi-label{{font-weight:600;color:var(--pc-muted);font-size:10px;
  text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}}
-.pyphi-kv{{display:grid;grid-template-columns:auto 1fr;gap:3px 14px}}
+.pyphi-kv{{display:grid;grid-template-columns:var(--pc-kcol,auto) 1fr;gap:3px 14px}}
 .pyphi-k{{color:var(--pc-faint)}}
 .pyphi-v{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
 .pyphi-extra{{color:var(--pc-faint);margin-left:10px;font-size:12px}}
@@ -249,7 +250,7 @@ def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
     sections = "".join(_section_html(section) for section in description.sections)
     return (
         _STYLE
-        + '<div class="pyphi-card">'
+        + f'<div class="pyphi-card" style="--pc-kcol:{card_label_width(description)}ch">'
         + f'<div class="pyphi-head">{"".join(head)}</div>'
         + f'<div class="pyphi-body">{sections}</div></div>'
     )
