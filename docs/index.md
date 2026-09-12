@@ -87,4 +87,5 @@ howto/index
 theory/index
 reference/index
 migration/index
+contributing
 ```

@@ -161,6 +161,9 @@ just bench   # run the performance benchmarks
 just docs    # build the HTML documentation
 ```
 
+The [contributing page](https://pyphi.readthedocs.io/en/stable/contributing.html)
+covers the test suite, changelog fragments, and the documentation build.
+
 ## User group
 
 For discussion about the software or integrated information theory in general,
