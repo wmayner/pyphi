@@ -25,6 +25,7 @@ from pyphi.display import FULL
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
+from pyphi.display import Section
 from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
 from pyphi.serializable import Serializable
@@ -106,12 +107,36 @@ class Analysis(Displayable, Serializable):
         )
         if getattr(self.ces, "sia", None) is None:
             sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
+        elif verbosity < FULL and getattr(self.sia, "partition", None) is not None:
+            # Below FULL the structure card does not embed the SIA; show the
+            # system-level facts a reader needs to interpret φₛ.
+            sections.append(Section(label="System", rows=self._system_rows()))
         phi_label = self._phi_label
         return Description(
             title="Analysis",
             sections=tuple(sections),
             compact=f"Analysis({phi_label}={format_value(self.phi)})",
         )
+
+    def _system_rows(self) -> tuple[Row, ...]:
+        from pyphi.models.partitions import concise_partition
+
+        rows = [Row("MIP", concise_partition(self.sia.partition))]
+        ii = getattr(self.sia, "intrinsic_information", None)
+        if ii is not None:
+            rows.append(Row("ii(s)", ii))
+            binding = next(
+                (
+                    f
+                    for f in self.sia.explain().findings
+                    if f.kind == "requirement_binding"
+                ),
+                None,
+            )
+            if binding is not None:
+                direction = dict(binding.detail)["direction"]
+                rows.append(Row("Requirement binds", f"{binding.value} ({direction})"))
+        return tuple(rows)
 
     def to_pandas(self) -> pd.DataFrame:
         # IIT 4.0: ces carries .distinctions and .relations.
