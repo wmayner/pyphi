@@ -257,13 +257,18 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
 
 /* ---- Download links ------------------------------------------------------ */
 
-/* The theme renders {download} links as underlined monospace code; make them
-   a small button beside the Colab badge. */
+/* The theme renders {download} links as underlined, bordered monospace code;
+   make them a small button the height of the Colab badge beside them. */
 .bd-content a.reference.download {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 20px;
+  padding: 0 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1;
   border: 1px solid var(--pp-rule);
-  border-radius: 6px;
-  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
   background: var(--pp-raised);
   color: var(--pp-link);
   text-decoration: none;
@@ -271,12 +276,18 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
 }
 .bd-content a.reference.download:hover { border-color: var(--pp-link); }
 .bd-content a.reference.download code {
-  font-family: var(--pst-font-family-base);
-  font-size: 0.9rem;
+  border: 0;
+  box-shadow: none;
   background: transparent;
   padding: 0;
+  font-family: var(--pst-font-family-base);
+  font-size: inherit;
+  font-weight: 400;
   color: inherit;
 }
+.bd-content a.reference.download i,
+.bd-content a.reference.download svg { font-size: 0.8rem; margin: 0; }
+.bd-content a.reference.download ~ a img { vertical-align: middle; }
 
 /* ---- Header and footer --------------------------------------------------- */
 
@@ -301,3 +312,13 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
 .bd-footer { font-size: 0.8rem; }
 .bd-footer .bd-footer__inner { padding-top: 0.6rem; padding-bottom: 0.6rem; }
 .bd-footer .footer-items__start p, .bd-footer .footer-item p { margin: 0; }
+
+/* ---- Sidebar search and site tree --------------------------------------- */
+
+.bd-sidebar-primary .sidebar-primary-item form.bd-search { margin-bottom: 0.75rem; }
+.bd-sidebar-primary .bd-search .form-control { border-radius: 6px; border-color: var(--pp-rule); background: var(--pp-ground); }
+.bd-content .toctree-wrapper > ul { columns: 2; column-gap: 2.5rem; padding-left: 0; list-style: none; }
+.bd-content .toctree-wrapper > ul > li { break-inside: avoid; margin-bottom: 0.9rem; }
+.bd-content .toctree-wrapper > ul > li > a { font-weight: 600; }
+.bd-content .toctree-wrapper > ul > li > ul { padding-left: 0.9rem; margin-top: 0.2rem; }
+@media (max-width: 720px) { .bd-content .toctree-wrapper > ul { columns: 1; } }

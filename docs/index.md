@@ -1,7 +1,7 @@
 # PyPhi
 
 ```{raw} html
-<p class="pp-tagline">Integrated information, computed. Given a substrate and a state, PyPhi finds the complexes, their φ<sub>s</sub>, and the Φ-structure each one specifies.</p>
+<p class="pp-tagline">The toolbox for Integrated Information Theory.</p>
 ```
 
 ::::{grid} 1 2 3 3
@@ -74,9 +74,10 @@ BibTeX entries for these and for the IIT 3.0 paper are on the {doc}`citing` page
 To report issues, use the [issue tracker](https://github.com/wmayner/pyphi/issues).
 For general discussion, join the [pyphi-users group](https://groups.google.com/forum/#!forum/pyphi-users).
 
+## Everything in the docs
+
 ```{toctree}
-:hidden:
-:maxdepth: 1
+:maxdepth: 2
 
 getting-started/index
 tutorials/index

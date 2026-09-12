@@ -133,7 +133,12 @@ html_theme_options = {
     # three controls to fit on one row.
     "navbar_persistent": ["search-button"],
     "primary_sidebar_end": ["sidebar-cite"],
+    # The sidebar shows the whole site (sections and their pages); the API
+    # reference's generated pages stay behind its own page.
+    "navigation_depth": 2,
+    "show_nav_level": 1,
     "footer_start": ["copyright"],
     "footer_end": [],
 }
 html_show_sphinx = False
+html_sidebars = {"**": ["sidebar-collapse", "search-field", "sidebar-nav-all"]}
