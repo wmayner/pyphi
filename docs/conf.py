@@ -44,7 +44,6 @@ exclude_patterns = [
     "_build",
     "superpowers/**",
     "**/.ipynb_checkpoints",
-    "examples/IIT_4.0_demo.ipynb",
     # Paired notebooks are download artifacts; the .md is the rendered source.
     # Exclude the .ipynb so Sphinx does not see two files per document.
     "getting-started/*.ipynb",
@@ -61,6 +60,9 @@ myst_enable_extensions = [
     "substitution",
 ]
 nb_execution_mode = "cache"
+# The demo notebook is committed with its outputs (refresh with
+# ``just notebook-outputs``); the build renders them without executing.
+nb_execution_excludepatterns = ["examples/IIT_4.0_demo.ipynb"]
 nb_execution_timeout = 300
 nb_execution_raise_on_error = True
 # Drop stderr stream output (e.g. the tqdm/ipywidgets notice) from rendered

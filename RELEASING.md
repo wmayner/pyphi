@@ -17,11 +17,11 @@ defect at least once; skipping one is how regressions ship.
    executes at build). CI also runs this build on every push, but run it
    locally at the cut so a failure is diagnosed before tagging rather than
    after.
-4. **Demo notebook**: re-execute `docs/examples/IIT_4.0_demo.ipynb` end to
-   end (it is excluded from the docs build; only re-execution catches
-   breaks). Run it through `nbclient` inside the project venv — a bare
-   `jupyter nbconvert` can silently resolve to a system Jupyter and the
-   wrong kernel.
+4. **Demo notebook**: `docs/examples/IIT_4.0_demo.ipynb` renders from its
+   stored outputs, guarded by `test/docs/test_demo_notebook.py` (a fast
+   code-hash check in the default suite, and a full re-execution diff in
+   the slow lane). To refresh the outputs after a change, run
+   `just notebook-outputs` and commit the notebook.
 5. **Packaging**: `uv build` (both sdist and wheel — the sdist→wheel path
    has failed while `uv build --wheel` passed), then install the wheel into
    a fresh venv and `python -c "import pyphi"` with a clean `PATH`.
