@@ -1,7 +1,244 @@
-/* PyPhi rich-object cards style themselves for both themes, so suppress the
-   light backdrop pydata-sphinx-theme adds behind generic HTML cell outputs in
-   dark mode (a readability heuristic for reprs that assume a light background).
-   Scoped to cards via :has(), leaving other HTML outputs' backdrop intact. */
+/* PyPhi docs: tokens and component rules. Every colour is a token with a
+   light and a dark value; components never name a colour directly. The
+   cause and effect tones match the result cards' own (Okabe–Ito). */
+
+html[data-theme="light"] {
+  --pp-ground: #fbfaf7;
+  --pp-raised: #f2f0ea;
+  --pp-text: #1d1f22;
+  --pp-muted: #5b6068;
+  --pp-rule: #d9d6ce;
+  --pp-primary: #0072b2;
+  --pp-link: #0b6e9e;
+  --pp-tint: #e4f0f7;
+  --pp-cause: #d55c00;
+  --pp-effect: #009e73;
+
+  --pst-color-background: var(--pp-ground);
+  --pst-color-on-background: var(--pp-raised);
+  --pst-color-surface: var(--pp-raised);
+  --pst-color-on-surface: var(--pp-text);
+  --pst-color-text-base: var(--pp-text);
+  --pst-color-text-muted: var(--pp-muted);
+  --pst-color-heading: var(--pp-text);
+  --pst-color-border: var(--pp-rule);
+  --pst-color-border-muted: var(--pp-rule);
+  --pst-color-primary: var(--pp-primary);
+  --pst-color-primary-bg: var(--pp-tint);
+  --pst-color-secondary: var(--pp-link);
+  --pst-color-link: var(--pp-link);
+  --pst-color-link-hover: var(--pp-primary);
+  --pst-color-inline-code: var(--pp-text);
+  --pst-color-inline-code-links: var(--pp-link);
+  --pst-color-table-heading-bg: var(--pp-raised);
+  --pst-color-table-row-zebra-low-bg: var(--pp-raised);
+  --pst-color-table-row-zebra-high-bg: var(--pp-ground);
+}
+
+html[data-theme="dark"] {
+  --pp-ground: #15171a;
+  --pp-raised: #1d2024;
+  --pp-text: #e8e6e1;
+  --pp-muted: #a2a7ae;
+  --pp-rule: #33373d;
+  --pp-primary: #5db4dd;
+  --pp-link: #5db4dd;
+  --pp-tint: #14323f;
+  --pp-cause: #d55c00;
+  --pp-effect: #009e73;
+
+  --pst-color-background: var(--pp-ground);
+  --pst-color-on-background: var(--pp-raised);
+  --pst-color-surface: var(--pp-raised);
+  --pst-color-on-surface: var(--pp-text);
+  --pst-color-text-base: var(--pp-text);
+  --pst-color-text-muted: var(--pp-muted);
+  --pst-color-heading: var(--pp-text);
+  --pst-color-border: var(--pp-rule);
+  --pst-color-border-muted: var(--pp-rule);
+  --pst-color-primary: var(--pp-primary);
+  --pst-color-primary-bg: var(--pp-tint);
+  --pst-color-secondary: var(--pp-link);
+  --pst-color-link: var(--pp-link);
+  --pst-color-link-hover: var(--pp-primary);
+  --pst-color-inline-code: var(--pp-text);
+  --pst-color-inline-code-links: var(--pp-link);
+  --pst-color-table-heading-bg: var(--pp-raised);
+  --pst-color-table-row-zebra-low-bg: var(--pp-raised);
+  --pst-color-table-row-zebra-high-bg: var(--pp-ground);
+}
+
+/* ---- Typography ---------------------------------------------------------- */
+
+html {
+  --pst-font-family-base: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pst-font-family-heading: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --pst-font-family-monospace: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --pst-font-size-base: 16px;
+  --pst-font-weight-heading: 600;
+  --pst-font-size-h1: 2rem;
+  --pst-font-size-h2: 1.5rem;
+  --pst-font-size-h3: 1.2rem;
+  --pst-font-size-h4: 1rem;
+}
+body { line-height: 1.6; }
+h1, h2, h3, h4 { text-wrap: balance; }
+h1 { margin-bottom: 1.25rem; }
+.bd-content code, .bd-content kbd, .bd-content samp { font-size: 0.9em; }
+
+/* ---- Code blocks --------------------------------------------------------- */
+
+.bd-content div.highlight pre {
+  border: 1px solid var(--pp-rule);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+}
+/* MyST-NB accents executed cells with a thick coloured left bar; the plain
+   border above is enough. */
+.bd-content div.cell div.cell_input,
+.bd-content div.cell details.above-input > summary {
+  border-left: 1px solid var(--pp-rule);
+  border-radius: 6px;
+}
+.bd-content div.cell div.cell_input div.highlight pre { border: 0; }
+.bd-content .cell_output .output pre { border-radius: 6px; }
+
+/* ---- Result cards -------------------------------------------------------- */
+
+.bd-content .pyphi-card {
+  --pc-bg: var(--pp-ground);
+  --pc-fg: var(--pp-text);
+  --pc-line: var(--pp-rule);
+  --pc-soft: var(--pp-raised);
+  --pc-head: var(--pp-raised);
+  --pc-muted: var(--pp-muted);
+  --pc-faint: var(--pp-muted);
+  --pc-badge-bg: var(--pp-tint);
+  --pc-badge-fg: var(--pp-primary);
+  --pc-shadow: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  font-family: var(--pst-font-family-base);
+}
+.bd-content .pyphi-card .pyphi-v,
+.bd-content .pyphi-card .pyphi-badge,
+.bd-content .pyphi-card .pyphi-leaf,
+.bd-content .pyphi-card table.pyphi-table td { font-family: var(--pst-font-family-monospace); }
+.bd-content .pyphi-card .pyphi-label { letter-spacing: 0.04em; }
+/* The cards set their own colours, so drop the light backdrop the theme adds
+   behind HTML outputs in dark mode. */
 html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi-card) {
   background-color: transparent;
 }
+
+/* ---- Tables -------------------------------------------------------------- */
+
+.bd-content table.table,
+.bd-content table.docutils,
+.bd-content table.dataframe {
+  width: auto;
+  margin-left: 0;
+  max-width: 100%;
+  font-variant-numeric: tabular-nums;
+  border-collapse: collapse;
+}
+.bd-content table.table thead th,
+.bd-content table.docutils thead th,
+.bd-content table.dataframe thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pp-muted);
+  background: transparent;
+  border-bottom: 2px solid var(--pp-rule);
+  text-align: left;
+  vertical-align: bottom;
+}
+.bd-content table.table td,
+.bd-content table.docutils td,
+.bd-content table.dataframe td,
+.bd-content table.dataframe tbody th {
+  border-bottom: 1px solid var(--pp-rule);
+  padding: 0.45rem 0.6rem;
+}
+.bd-content table.table tbody tr:nth-child(even) td,
+.bd-content table.docutils tbody tr:nth-child(even) td,
+.bd-content table.dataframe tbody tr:nth-child(even) td,
+.bd-content table.dataframe tbody tr:nth-child(even) th { background: var(--pp-raised); }
+.bd-content .pst-scrollable-table-container,
+.bd-content .table-responsive,
+.bd-content div.cell_output .output.text_html { overflow-x: auto; }
+
+/* ---- Admonitions --------------------------------------------------------- */
+
+.bd-content .admonition,
+.bd-content div.admonition {
+  border: 0;
+  border-left: 4px solid var(--pp-primary);
+  border-radius: 0 6px 6px 0;
+  background: var(--pp-tint);
+  box-shadow: none;
+}
+.bd-content .admonition > .admonition-title {
+  background: transparent;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+.bd-content .admonition > .admonition-title::after { display: none; }
+.bd-content .admonition.warning,
+.bd-content .admonition.danger,
+.bd-content .admonition.caution {
+  border-left-color: var(--pp-cause);
+  background: color-mix(in srgb, var(--pp-cause) 12%, var(--pp-ground));
+}
+.bd-content .admonition.tip,
+.bd-content .admonition.hint {
+  border-left-color: var(--pp-effect);
+  background: color-mix(in srgb, var(--pp-effect) 12%, var(--pp-ground));
+}
+
+/* ---- Landing page -------------------------------------------------------- */
+
+.pp-tagline {
+  font-size: 1.15rem;
+  color: var(--pp-muted);
+  max-width: 60ch;
+  margin: 0 0 1.5rem;
+}
+.bd-content .sd-card {
+  border-color: var(--pp-rule);
+  background: var(--pp-raised);
+  border-radius: 6px;
+}
+.bd-content .sd-card .sd-card-title .octicon {
+  color: var(--pp-primary);
+  margin-right: 0.4rem;
+}
+.pp-cite {
+  font-size: 0.9rem;
+  color: var(--pp-muted);
+  border-top: 1px solid var(--pp-rule);
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+.pp-cite p { margin: 0.25rem 0; }
+
+/* ---- Sidebar ------------------------------------------------------------- */
+
+.pp-sidebar-cite {
+  font-size: 0.8rem;
+  color: var(--pp-muted);
+  padding: 1rem 0;
+  border-top: 1px solid var(--pp-rule);
+}
+.pp-sidebar-cite p { margin: 0.25rem 0; }
+
+/* ---- Announcement -------------------------------------------------------- */
+
+.bd-header-announcement {
+  background: var(--pp-primary);
+  color: var(--pp-ground);
+}
+.bd-header-announcement a { color: var(--pp-ground); text-decoration: underline; }
