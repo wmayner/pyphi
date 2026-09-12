@@ -5,6 +5,7 @@
 
 build-substrate
 read-result
+estimate-cost
 configure
 parallel
 chtc

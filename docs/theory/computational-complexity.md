@@ -68,6 +68,11 @@ The Bell number $B_n$ already grows faster than any $c^n$; the "directed" set
 partitions used for IIT 4.0 system cuts weight each block by one of three
 directions, giving the Bell polynomial $B_n(3)$, faster still.
 
+The enumerators below are shown for small `n` to illustrate the growth. Do
+not call `pyphi.partition.directed_set_partitions` or its relatives directly
+on ten or more units: they materialize every partition. Use
+{func}`pyphi.cost.estimate_analysis`, which counts without enumerating.
+
 ```{code-cell} python
 import pandas as pd
 from pyphi import combinatorics
@@ -274,9 +279,11 @@ pyphi.estimate_analysis(examples.basic_substrate())
 
 The estimate reports counts and structural weights (the state-space size is
 the per-evaluation cost scale); it never predicts wall time, which is
-machine- and configuration-dependent. Counting is budgeted: pass `limit` to
-bound the estimate's own work, and a truncated walk reports lower bounds
-with `capped=True`. The counterpart for grain searches is
+machine- and configuration-dependent. It computes no φ, but its counting
+walk is itself work: on ten fully connected units it takes tens of seconds,
+and it stops at its `limit` budget with `capped=True`, reporting lower
+bounds; see {doc}`../howto/estimate-cost` for raising the budget. The
+counterpart for grain searches is
 `SearchBounds.estimate`, described in the next section.
 
 ## The cost of the grain search
