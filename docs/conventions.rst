@@ -177,7 +177,7 @@ has the following connectivity matrix:
     ...       [0, 0, 0, 1]]
 
 Where to go next
-----------------
+================
 
 - :doc:`/howto/build-substrate` builds a substrate from a matrix in any of
   these forms.
