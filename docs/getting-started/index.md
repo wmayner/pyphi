@@ -18,7 +18,7 @@ kernelspec:
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/getting-started/index.ipynb)
 
 This page installs PyPhi and then walks through a complete computation end to
-end: build a small substrate from the IIT 4.0 paper, analyze it in a chosen
+end: build a small {term}`substrate` from the IIT 4.0 paper, analyze it in a chosen
 state, read off the integrated information $\varphi_s$ and the associated
 $\Phi$-structure, and save the result to disk. After installing, the walkthrough
 takes about ten minutes.
@@ -127,7 +127,7 @@ reproduces the value published in the paper's Fig 1E for this system, 0.13.)
 
 Not every subset of units exists as a whole of its own. Subsets *compete*:
 among overlapping candidates, only the one with maximal $\varphi_s$ — a
-**complex** — exists. {meth}`~pyphi.substrate.Substrate.complexes` runs that
+**{term}`complex`** — exists. {meth}`~pyphi.substrate.Substrate.complexes` runs that
 competition over every subset:
 
 ```{code-cell} python

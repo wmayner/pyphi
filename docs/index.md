@@ -47,7 +47,8 @@ Learn the library through worked, executable examples.
 :::{grid-item-card} How-to guides
 :link: howto/index
 :link-type: doc
-Recipes for specific tasks: configuration, parallelism, caching, export.
+Recipes for specific tasks: building a substrate, reading a result,
+configuration, parallelism, caching, export, and a FAQ.
 :::
 
 :::{grid-item-card} Theory
@@ -59,7 +60,7 @@ How IIT 4.0's mathematics maps onto PyPhi's types and functions.
 :::{grid-item-card} Reference
 :link: reference/index
 :link-type: doc
-The API reference, configuration options, and conventions.
+The API reference, the glossary, configuration options, and conventions.
 :::
 
 :::{grid-item-card} Migration
