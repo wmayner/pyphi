@@ -1,1 +1,0 @@
-The documentation site has a new visual design: a palette anchored on the result cards' cause and effect colours, IBM Plex type, Selenized code blocks in both themes, restyled cards, tables, and admonitions, a landing page that leads with the section cards, an announcement bar, a version switcher, and a sidebar citation.

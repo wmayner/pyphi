@@ -773,6 +773,11 @@ and `migrate_code` prompt on the MCP server).
 - Under IIT 3.0, `System.ces()` and `analyze().ces` return a
   `ResolvedDistinctions` (its concepts under `.concepts`) rather than the
   internal `UnresolvedDistinctions`. (iit3-ces-resolved)
+- Result cards align every key/value section to one label-column width, so
+  values line up down the whole card in both the text and the HTML rendering.
+  (card-label-column)
+- Numeric columns in display tables, such as TPMs in HTML cards and text output,
+  are aligned on the decimal point. (display-decimal-alignment)
 
 ### Config
 
@@ -1415,6 +1420,15 @@ and `migrate_code` prompt on the MCP server).
 - The migration guide gains the example-network renames, a table from every 1.x
   configuration option to its 2.0 location, and a table of the quantities (1.x
   `compute.phi` is `analysis.phi` under IIT 3.0). (migration-guide-tables)
+- The IIT 4.0 demo notebook is now rendered in full on its tutorial page from
+  stored outputs, with a fast test that detects code edits made without
+  re-execution and a slow-lane test that re-executes it and compares every
+  output. (demo-notebook-page)
+- The documentation site has a new visual design: a palette anchored on the
+  result cards' cause and effect colours, IBM Plex type, Selenized code blocks
+  in both themes, restyled cards, tables, and admonitions, a landing page that
+  leads with the section cards, an announcement bar, a version switcher, and a
+  sidebar citation. (docs-restyle)
 
 ### Refactor
 

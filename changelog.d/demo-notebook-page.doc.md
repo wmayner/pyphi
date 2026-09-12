@@ -1,1 +1,0 @@
-The IIT 4.0 demo notebook is now rendered in full on its tutorial page from stored outputs, with a fast test that detects code edits made without re-execution and a slow-lane test that re-executes it and compares every output.
