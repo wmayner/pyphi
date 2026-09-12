@@ -15,7 +15,7 @@ the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.Network` | `pyphi.Substrate` |
 | `pyphi.Subsystem` | `pyphi.System` |
 | `pyphi.network_generator` | `pyphi.substrate_generator` |
-| `pyphi.compute.big_phi(...)` / `pyphi.compute.ces(...)` | `pyphi.analyze(...)` |
+| `pyphi.compute.phi(...)` / `pyphi.compute.ces(...)` | `pyphi.analyze(...)` |
 | `from pyphi import new_big_phi` | `from pyphi.formalism import iit4` |
 | `pyphi.new_big_phi.phi_structure` | `pyphi.formalism.iit4.ces` |
 | `pyphi.new_big_phi.sia` | `pyphi.formalism.iit4.sia` |
@@ -33,14 +33,56 @@ Two traps in that table:
   `pyphi.models.Distinctions`; the old `PhiStructure` is now
   `pyphi.models.CauseEffectStructure`. The same words point at different
   objects, so an unported import can succeed and still be wrong.
-- **`big_phi` changed kind.** The top-level `pyphi.compute.big_phi(subsystem)`
-  *function* is gone. `big_phi` now names the **Φ** property on a cause-effect
-  structure (`ces.big_phi`). Do not translate the old function call into a
-  property access blindly — the modern entry point is `pyphi.analyze`.
+- **`phi` and `big_phi` changed kind.** The top-level
+  `pyphi.compute.phi(subsystem)` *function* (IIT 3.0's Φ) is gone. `.phi` is
+  now the φₛ property of an analysis, and `big_phi` names the **Φ** property
+  of an IIT 4.0 cause-effect structure (`ces.big_phi`). Do not translate the
+  old function call into a property access blindly; the modern entry point
+  is `pyphi.analyze`.
 
 `cause_marginal` / `effect_marginal` are the causal marginals of IIT 4.0. The
 old `cause_tpm` / `effect_tpm` names were a misnomer: the value was never a
 transition probability matrix but a distribution over cause/effect states.
+
+### Example networks
+
+Every `*_network` example is now `*_substrate` and every `*_subsystem` is
+`*_system` (`basic_network()` → `basic_substrate()`, `basic_subsystem()` →
+`basic_system()`, and so on for `xor`, `residue`, `grid3`, `rule110`,
+`rule154`, `macro`, `fig4`, `fig5a`, `fig5b`); `frog_example()` split into
+`frog_substrate()` and `frog_transition()`. Transitions and bare matrices keep
+their names. The IIT 4.0 paper's networks are new: `iit4_2023_fig1a_substrate()`
+and the other `iit4_2023_*` functions.
+
+### Configuration options
+
+| 1.x option | 2.0 option |
+| --- | --- |
+| `IIT_VERSION` | `formalism.iit.version`; prefer `analyze(..., formalism=)` or a preset |
+| `MEASURE` (before 1.2), `REPERTOIRE_DISTANCE` | `formalism.iit.mechanism_phi_measure` and `formalism.iit.system_phi_measure` |
+| `REPERTOIRE_DISTANCE_SPECIFICATION` | `formalism.iit.specification_measure` |
+| `REPERTOIRE_DISTANCE_DIFFERENTIATION` | removed: differentiation is the surprisal of the specified state |
+| `CES_DISTANCE` | `formalism.iit.ces_measure` |
+| `ACTUAL_CAUSATION_MEASURE` | `formalism.actual_causation.alpha_measure` |
+| `PARTITION_TYPE` / `SYSTEM_PARTITION_TYPE` | `formalism.iit.mechanism_partition_scheme` / `system_partition_scheme` |
+| `SYSTEM_PARTITION_INCLUDE_COMPLETE` | `formalism.iit.system_partition_include_total` |
+| `SYSTEM_CUTS` | removed; the `iit3` preset sets `system_partition_scheme="DIRECTED_BIPARTITION"` |
+| `PICK_SMALLEST_PURVIEW` (before 1.2), `*_TIE_RESOLUTION` | `formalism.iit.purview_tie_resolution`, `state_tie_resolution`, `mip_tie_resolution`, `sia_tie_resolution` |
+| `DISTINCTION_PHI_NORMALIZATION`, `RELATION_COMPUTATION`, `SHORTCIRCUIT_SIA`, `ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`, `SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI` | the same names, lowercase, under `formalism.iit` (`assume_partitions_cannot_create_new_concepts`) |
+| `PRECISION` | `numerics.precision` |
+| `PARALLEL*`, `CACHE_*`, `PROGRESS_BARS`, `WELCOME_OFF`, `REPR_VERBOSITY`, `PRINT_FRACTIONS`, `LABEL_SEPARATOR`, `VALIDATE_*` | the same names, lowercase, under `infrastructure` (`PARALLEL_CUT_EVALUATION` → `parallel_partition_evaluation`, `PARALLEL_CONCEPT_EVALUATION` → `parallel_distinction_evaluation`, `VALIDATE_SUBSYSTEM_STATES` → `validate_system_states`, `CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA` → `clear_system_caches_after_computing_sia`) |
+| `MAXIMUM_CACHE_MEMORY_PERCENTAGE` | `infrastructure.memory_ceiling_percentage` |
+| `REDIS_*`, `RAY_CONFIG`, `VALIDATE_JSON_VERSION` | removed; results persist through `infrastructure.disk_cache_results` |
+| `LOG_*` | `pyphi.enable_logging(level, file)` |
+
+### The quantities
+
+| 1.x | 2.0 |
+| --- | --- |
+| `compute.phi(subsystem)`, IIT 3.0's Φ | `analyze(substrate, state, formalism="IIT_3_0").phi`; `.big_phi` is IIT 4.0's Φ and raises under IIT 3.0 |
+| `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
+| `compute.ces(subsystem)` | `analyze(..., formalism="IIT_3_0").ces`, a `ResolvedDistinctions` with the concepts under `.concepts` |
+| `compute.major_complex(network, state)` | `substrate.complexes(state)`; the first entry is the strongest |
 
 ## 2. Building and analyzing
 
@@ -54,7 +96,7 @@ import pyphi
 
 network = pyphi.Network(tpm, cm)
 subsystem = pyphi.Subsystem(network, state, nodes)
-phi = pyphi.compute.big_phi(subsystem)
+phi = pyphi.compute.phi(subsystem)
 ces = pyphi.compute.ces(subsystem)
 ```
 

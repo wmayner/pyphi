@@ -36,6 +36,92 @@ topic is tagged with who it affects:
 transition probability matrix but a distribution over cause/effect states. See
 [Substrate and system](../theory/substrate-and-system.md) for what they are.
 
+### Example networks
+
+The example functions follow the same vocabulary: every `*_network` is now
+`*_substrate` and every `*_subsystem` is `*_system`. Transitions and bare
+matrices (`prevention_transition`, `cond_depend_tpm`, `cond_independ_tpm`,
+`differentiation_*_tpm`) keep their names.
+
+| Old | New |
+| --- | --- |
+| `examples.basic_network()` | `examples.basic_substrate()` |
+| `examples.basic_subsystem()` | `examples.basic_system()` |
+| `examples.basic_noisy_selfloop_network()` / `_subsystem()` | `examples.basic_noisy_selfloop_substrate()` / `_system()` |
+| `examples.grid3_network()` / `_subsystem()` | `examples.grid3_substrate()` / `_system()` |
+| `examples.residue_network()` / `_subsystem()` | `examples.residue_substrate()` / `_system()` |
+| `examples.xor_network()` / `_subsystem()` | `examples.xor_substrate()` / `_system()` |
+| `examples.rule110_network()` / `_subsystem()` | `examples.rule110_substrate()` / `_system()` |
+| `examples.rule154_network()` / `_subsystem()` | `examples.rule154_substrate()` / `_system()` |
+| `examples.macro_network()` / `_subsystem()` | `examples.macro_substrate()` / `_system()` |
+| `examples.blackbox_network()` | `examples.blackbox_substrate()` |
+| `examples.propagation_delay_network()` | `examples.propagation_delay_substrate()` |
+| `examples.fig1a_network()`, `fig3a`, `fig3b`, `fig16` | `examples.fig1a_substrate()`, `fig3a_substrate()`, `fig3b_substrate()`, `fig16_substrate()` |
+| `examples.fig4_network()` / `_subsystem()`, `fig5a`, `fig5b` | `examples.fig4_substrate()` / `_system()`, `fig5a_*`, `fig5b_*` |
+| `examples.actual_causation_network()` | `examples.actual_causation_substrate()` |
+| `examples.disjunction_conjunction_network()` | `examples.disjunction_conjunction_substrate()` |
+| `examples.frog_example()` | `examples.frog_substrate()` and `examples.frog_transition()` |
+| `examples.differentiation_micro_1_subsystem()` | `examples.differentiation_micro_1_system()` |
+
+The IIT 4.0 paper's networks are new in 2.0 (`iit4_2023_fig1a_substrate()`
+and the other `iit4_2023_*`, `marshall_2023_*`, and `mayner_2026_*`
+functions); the {doc}`examples gallery </reference/examples>` lists every
+registered example.
+
+### Configuration options
+
+Every 1.x option and where it went. Names are lowercase and live under a
+layer; set one with `pyphi.config.<layer>.<option>` or a top-level write such
+as `pyphi.config.precision = 6`, which is routed to its layer. Measure values
+are the names in {mod}`pyphi.measures`.
+
+| 1.x option | 2.0 option |
+| --- | --- |
+| `IIT_VERSION` | `formalism.iit.version` (`"IIT_3_0"`, `"IIT_4_0_2023"`, `"IIT_4_0_2026"`); prefer `analyze(..., formalism=)` or a preset, which also set the measures |
+| `MEASURE` (before 1.2), `REPERTOIRE_DISTANCE` | `formalism.iit.mechanism_phi_measure` (mechanism level) and `formalism.iit.system_phi_measure` (system level) |
+| `REPERTOIRE_DISTANCE_SPECIFICATION` | `formalism.iit.specification_measure` |
+| `REPERTOIRE_DISTANCE_DIFFERENTIATION` | removed: intrinsic differentiation is the surprisal of the specified state and has no measure option |
+| `CES_DISTANCE` | `formalism.iit.ces_measure` |
+| `ACTUAL_CAUSATION_MEASURE` | `formalism.actual_causation.alpha_measure` |
+| `PARTITION_TYPE` | `formalism.iit.mechanism_partition_scheme` |
+| `SYSTEM_PARTITION_TYPE` | `formalism.iit.system_partition_scheme` |
+| `SYSTEM_PARTITION_INCLUDE_COMPLETE` | `formalism.iit.system_partition_include_total` |
+| `SYSTEM_CUTS` | removed; the `iit3` preset sets `system_partition_scheme="DIRECTED_BIPARTITION"` (the 3.0-style cut), and concept-style cuts are gone |
+| `DISTINCTION_PHI_NORMALIZATION` | `formalism.iit.distinction_phi_normalization` |
+| `RELATION_COMPUTATION` | `formalism.iit.relation_computation` |
+| `STATE_TIE_RESOLUTION`, `MIP_TIE_RESOLUTION`, `PURVIEW_TIE_RESOLUTION` | `formalism.iit.state_tie_resolution`, `mip_tie_resolution`, `purview_tie_resolution` (plus the new `sia_tie_resolution`); see {doc}`/howto/tie-breaking` |
+| `PICK_SMALLEST_PURVIEW` (before 1.2) | `formalism.iit.purview_tie_resolution` |
+| `ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS` | `formalism.iit.assume_partitions_cannot_create_new_concepts` |
+| `SHORTCIRCUIT_SIA` | `formalism.iit.shortcircuit_sia` |
+| `SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI` | `formalism.iit.single_micro_nodes_with_selfloops_have_phi` |
+| `PRECISION` | `numerics.precision` |
+| `PARALLEL`, `PARALLEL_WORKERS`, `PARALLEL_BACKEND` | `infrastructure.parallel`, `parallel_workers`, `parallel_backend` |
+| `PARALLEL_COMPLEX_EVALUATION`, `PARALLEL_PURVIEW_EVALUATION`, `PARALLEL_MECHANISM_PARTITION_EVALUATION`, `PARALLEL_RELATION_EVALUATION` | the same names, lowercase, under `infrastructure` |
+| `PARALLEL_CUT_EVALUATION` | `infrastructure.parallel_partition_evaluation` |
+| `PARALLEL_CONCEPT_EVALUATION` | `infrastructure.parallel_distinction_evaluation`; see {doc}`/howto/parallel` |
+| `MAXIMUM_CACHE_MEMORY_PERCENTAGE` | `infrastructure.memory_ceiling_percentage` (and `memory_ceiling_bytes`) |
+| `CACHE_REPERTOIRES`, `CACHE_POTENTIAL_PURVIEWS` | the same names under `infrastructure`; see {doc}`/howto/cache` |
+| `CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA` | `infrastructure.clear_system_caches_after_computing_sia` |
+| `REDIS_CACHE`, `REDIS_CONFIG` | removed; results persist through the disk result cache, `infrastructure.disk_cache_results` |
+| `RAY_CONFIG` | removed |
+| `LOG_FILE`, `LOG_FILE_LEVEL`, `LOG_STDOUT_LEVEL` | `pyphi.enable_logging(level, file)` |
+| `PROGRESS_BARS` | `infrastructure.progress_bars` |
+| `WELCOME_OFF` | `infrastructure.welcome_off` |
+| `REPR_VERBOSITY`, `PRINT_FRACTIONS`, `LABEL_SEPARATOR` | the same names under `infrastructure` |
+| `VALIDATE_SUBSYSTEM_STATES` | `infrastructure.validate_system_states` |
+| `VALIDATE_CONDITIONAL_INDEPENDENCE` | `infrastructure.validate_conditional_independence` |
+| `VALIDATE_JSON_VERSION` | removed |
+
+### The quantities
+
+| 1.x | 2.0 |
+| --- | --- |
+| `compute.phi(subsystem)`, IIT 3.0's Φ | `analyze(substrate, state, formalism="IIT_3_0").phi`: the same quantity. `.big_phi` is IIT 4.0's structure integrated information and raises under IIT 3.0 |
+| `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
+| `compute.ces(subsystem)`, the concepts | `analyze(..., formalism="IIT_3_0").ces`, a `ResolvedDistinctions`; the concepts are `.concepts` |
+| `concept.phi`, `concept.mechanism` | unchanged on each concept |
+| `compute.major_complex(network, state)` | `substrate.complexes(state)`, recursive exclusion over every subset; the first entry is the strongest |
+
 ## Building and analyzing
 
 **[1.x]** The two core objects are renamed, and the `compute` module is replaced
@@ -48,7 +134,7 @@ import pyphi
 
 network = pyphi.Network(tpm, cm)
 subsystem = pyphi.Subsystem(network, state, nodes)
-phi = pyphi.compute.big_phi(subsystem)
+phi = pyphi.compute.phi(subsystem)
 ces = pyphi.compute.ces(subsystem)
 ```
 
@@ -98,7 +184,8 @@ The available formalisms are `"IIT_3_0"`, `"IIT_4_0_2023"`, and `"IIT_4_0_2026"`
 Because the default changed from IIT 3.0 to IIT 4.0, the same substrate and state
 give a different result than a 1.x default run unless you request
 `formalism="IIT_3_0"`. See [formalism versions](../theory/formalism-versions.md)
-for the differences.
+for the differences, and {ref}`formalism-selection` for the three equivalent
+ways to select one.
 
 ## Configuration
 
