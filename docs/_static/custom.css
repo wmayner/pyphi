@@ -216,14 +216,6 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
   color: var(--pp-primary);
   margin-right: 0.4rem;
 }
-.pp-cite {
-  font-size: 0.9rem;
-  color: var(--pp-muted);
-  border-top: 1px solid var(--pp-rule);
-  margin-top: 2rem;
-  padding-top: 1rem;
-}
-.pp-cite p { margin: 0.25rem 0; }
 
 /* ---- Sidebar ------------------------------------------------------------- */
 
@@ -242,3 +234,26 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
   color: var(--pp-ground);
 }
 .bd-header-announcement a { color: var(--pp-ground); text-decoration: underline; }
+
+/* ---- Download links ------------------------------------------------------ */
+
+/* The theme renders {download} links as underlined monospace code; make them
+   a small button beside the Colab badge. */
+.bd-content a.reference.download {
+  display: inline-block;
+  border: 1px solid var(--pp-rule);
+  border-radius: 6px;
+  padding: 0.15rem 0.6rem;
+  background: var(--pp-raised);
+  color: var(--pp-link);
+  text-decoration: none;
+  vertical-align: middle;
+}
+.bd-content a.reference.download:hover { border-color: var(--pp-link); }
+.bd-content a.reference.download code {
+  font-family: var(--pst-font-family-base);
+  font-size: 0.9rem;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}

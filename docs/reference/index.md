@@ -8,4 +8,5 @@ configuration
 examples
 api
 ../conventions
+../contributing
 ```

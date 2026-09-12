@@ -129,5 +129,8 @@ html_theme_options = {
     },
     "check_switcher": False,
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    # An icon instead of the search field: the header has six sections and
+    # three controls to fit on one row.
+    "navbar_persistent": ["search-button"],
     "primary_sidebar_end": ["sidebar-cite"],
 }
