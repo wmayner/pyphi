@@ -139,3 +139,16 @@ class Description:
     sections: tuple[Section, ...] = ()
     compact: str | None = None
     tone: str | None = None
+
+
+def card_label_width(description: Description) -> int:
+    """The widest key/value label in a card, in visible characters.
+
+    Every key/value section of a card aligns its values to this width, so
+    values line up down the whole card rather than per section.
+    """
+    labels: list[str] = []
+    for section in description.sections:
+        labels.extend(row.label for row in section.rows)
+        labels.extend(comp.label for comp in section.body if isinstance(comp, Row))
+    return max((len(label) for label in labels), default=0)

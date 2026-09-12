@@ -67,3 +67,7 @@ clean:
 [private]
 clean-dist:
     rm -rf dist
+
+# Re-execute the demo notebook and store its outputs (about 15 minutes)
+notebook-outputs:
+    PYPHI_WELCOME_OFF=1 PYPHI_AGENT_NOTE_OFF=1 uv run python scripts/execute_notebook.py docs/examples/IIT_4.0_demo.ipynb

@@ -1,6 +1,57 @@
 # PyPhi
 
-PyPhi is a Python library for computing integrated information.
+```{raw} html
+<p class="pp-tagline">The toolbox for Integrated Information Theory.</p>
+```
+
+::::{grid} 1 2 3 3
+:gutter: 3
+
+:::{grid-item-card} {octicon}`rocket` Getting started
+:link: getting-started/index
+:link-type: doc
+Install PyPhi and compute your first φ.
+:::
+
+:::{grid-item-card} {octicon}`book` Tutorials
+:link: tutorials/index
+:link-type: doc
+Learn the library through worked, executable examples.
+:::
+
+:::{grid-item-card} {octicon}`tools` How-to guides
+:link: howto/index
+:link-type: doc
+Build a substrate, read a result, size a run, configure, parallelize, export.
+:::
+
+:::{grid-item-card} {octicon}`beaker` Theory
+:link: theory/index
+:link-type: doc
+How IIT 4.0's mathematics maps onto PyPhi's types and functions.
+:::
+
+:::{grid-item-card} {octicon}`list-unordered` Reference
+:link: reference/index
+:link-type: doc
+The API reference, the glossary, configuration options, and conventions.
+:::
+
+:::{grid-item-card} {octicon}`arrow-switch` Migration
+:link: migration/index
+:link-type: doc
+Moving to PyPhi 2.0 from earlier versions and related tools.
+:::
+::::
+
+---
+
+If you use this software in your research, please cite the software paper:
+
+> Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018).
+> PyPhi: A toolbox for integrated information theory.
+> *PLOS Computational Biology* 14(7): e1006343.
+> <https://doi.org/10.1371/journal.pcbi.1006343>
 
 The formalism it implements (IIT 4.0) is described in:
 
@@ -19,73 +70,19 @@ information, described in:
 > *Entropy* 28(4): 410.
 > <https://doi.org/10.3390/e28040410>
 
-If you use this software in your research, please cite the software paper:
-
-> Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018).
-> PyPhi: A toolbox for integrated information theory.
-> *PLOS Computational Biology* 14(7): e1006343.
-> <https://doi.org/10.1371/journal.pcbi.1006343>
-
+BibTeX entries for these and for the IIT 3.0 paper are on the {doc}`citing` page.
 To report issues, use the [issue tracker](https://github.com/wmayner/pyphi/issues).
 For general discussion, join the [pyphi-users group](https://groups.google.com/forum/#!forum/pyphi-users).
 
-::::{grid} 1 2 4 4
-:gutter: 3
-
-:::{grid-item-card} Getting started
-:link: getting-started/index
-:link-type: doc
-Install PyPhi and compute your first φ.
-:::
-
-:::{grid-item-card} Tutorials
-:link: tutorials/index
-:link-type: doc
-Learn the library through worked, executable examples.
-:::
-
-:::{grid-item-card} How-to guides
-:link: howto/index
-:link-type: doc
-Recipes for specific tasks: building a substrate, reading a result,
-configuration, parallelism, caching, export, and a FAQ.
-:::
-
-:::{grid-item-card} Theory
-:link: theory/index
-:link-type: doc
-How IIT 4.0's mathematics maps onto PyPhi's types and functions.
-:::
-
-:::{grid-item-card} Reference
-:link: reference/index
-:link-type: doc
-The API reference, the glossary, configuration options, and conventions.
-:::
-
-:::{grid-item-card} Migration
-:link: migration/index
-:link-type: doc
-Moving to PyPhi 2.0 from earlier versions and related tools.
-:::
-
-:::{grid-item-card} What's new in 2.0
-:link: whats-new-in-2.0
-:link-type: doc
-The tour of the release, and what changed from 1.x.
-:::
-::::
+## Everything in the docs
 
 ```{toctree}
-:hidden:
-:maxdepth: 1
+:maxdepth: 2
 
 getting-started/index
-whats-new-in-2.0
 tutorials/index
 howto/index
 theory/index
 reference/index
 migration/index
-contributing
 ```

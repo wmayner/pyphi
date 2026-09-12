@@ -202,5 +202,5 @@ default formalism:
   full map from paper symbols to code.
 - {doc}`../theory/intrinsic-information` — why a *deterministic* network
   computes $\varphi_s = 0$ under this formalism.
-- {doc}`iit-4.0-demo` — the paper's own supplementary notebook, going deeper
+- {doc}`../examples/IIT_4.0_demo` — the paper's own supplementary notebook, going deeper
   into the algorithm.

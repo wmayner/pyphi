@@ -8,6 +8,7 @@ from pyphi.display.description import Nested
 from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
+from pyphi.display.description import card_label_width
 from pyphi.display.numbers import format_column
 from pyphi.display.numbers import format_value
 
@@ -33,11 +34,16 @@ def _framed(content: str, inner_width: int) -> str:
     return f"{V} {_pad(content, inner_width)} {V}"
 
 
-def _format_rows(rows: tuple[Row, ...]) -> list[str]:
-    """Render key/value rows with labels aligned to a common width."""
+def _format_rows(rows: tuple[Row, ...], label_w: int | None = None) -> list[str]:
+    """Render key/value rows with labels aligned to a common width.
+
+    ``label_w`` is the card-wide label width; when None the rows' own widest
+    label is used.
+    """
     if not rows:
         return []
-    label_w = max(_vis_len(row.label) for row in rows)
+    if label_w is None:
+        label_w = max(_vis_len(row.label) for row in rows)
     lines = []
     for row in rows:
         parts = [f"{_pad(row.label, label_w)}   {format_value(row.value)}"]
@@ -71,16 +77,16 @@ def _compact(description: Description) -> str:
     return description.title
 
 
-def _section_lines(section: Section) -> list[str]:
+def _section_lines(section: Section, label_w: int | None = None) -> list[str]:
     """Flatten a section's rows and body components into content lines."""
-    lines = list(_format_rows(section.rows))
+    lines = list(_format_rows(section.rows, label_w))
     for comp in section.body:
         if isinstance(comp, Table):
             lines.extend(_format_table(comp))
         elif isinstance(comp, Inline):
             lines.extend(comp.text.splitlines())
         elif isinstance(comp, Row):
-            lines.extend(_format_rows((comp,)))
+            lines.extend(_format_rows((comp,), label_w))
         elif isinstance(comp, Nested):
             lines.append(_compact(comp.description))
     return lines
@@ -108,14 +114,15 @@ def render(description: Description, verbosity: int) -> str:  # noqa: ARG001
     if not description.sections:
         return description.compact or description.title
 
+    label_w = card_label_width(description)
     blocks: list[tuple[str | None, list[str]]] = []
     if description.subtitle:
         blocks.append((None, [description.subtitle]))
     for section in description.sections:
         if section.label is None and not blocks:
-            blocks.append((None, _section_lines(section)))
+            blocks.append((None, _section_lines(section, label_w)))
         else:
-            blocks.append((section.label, _section_lines(section)))
+            blocks.append((section.label, _section_lines(section, label_w)))
 
     content_lines = [line for _, block in blocks for line in block]
     # Card must be wide enough for the longest content line, the title, and every

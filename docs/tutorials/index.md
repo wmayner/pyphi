@@ -3,7 +3,7 @@
 ```{toctree}
 :maxdepth: 1
 
-iit-4.0-demo
+../examples/IIT_4.0_demo
 worked-example
 macro
 recursive-exclusion

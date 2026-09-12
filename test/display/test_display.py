@@ -915,27 +915,27 @@ def test_every_displayable_type_overrides_describe():
 
 
 _GOLDEN_IIT4_SIA = """\
-╭─ SystemIrreducibilityAnalysis ────────╮
-│ φ_s              0.415037             │
-│ Normalized φ_s   0.207519             │
-│ System           A,B,C                │
-│ Current state    (1, 0, 0)            │
-├─ Cause ───────────────────────────────┤
-│ Specified state             (1, 1, 0) │
-│ Intrinsic information       3.0       │
-│ Intrinsic differentiation   0.0       │
-├─ Effect ──────────────────────────────┤
-│ Specified state             (0, 0, 1) │
-│ Intrinsic information       3.0       │
-│ Intrinsic differentiation   0.0       │
-├─ MIP ─────────────────────────────────┤
-│ Partition   2 parts: {A,BC}           │
-│ Tied MIPs   0                         │
-│     A   B   C                         │
-│ A   ·   ·   ·                         │
-│ B   ✕   ·   ·                         │
-│ C   ✕   ·   ·                         │
-╰───────────────────────────────────────╯"""
+╭─ SystemIrreducibilityAnalysis ──────────────╮
+│ φ_s                         0.415037        │
+│ Normalized φ_s              0.207519        │
+│ System                      A,B,C           │
+│ Current state               (1, 0, 0)       │
+├─ Cause ─────────────────────────────────────┤
+│ Specified state             (1, 1, 0)       │
+│ Intrinsic information       3.0             │
+│ Intrinsic differentiation   0.0             │
+├─ Effect ────────────────────────────────────┤
+│ Specified state             (0, 0, 1)       │
+│ Intrinsic information       3.0             │
+│ Intrinsic differentiation   0.0             │
+├─ MIP ───────────────────────────────────────┤
+│ Partition                   2 parts: {A,BC} │
+│ Tied MIPs                   0               │
+│     A   B   C                               │
+│ A   ·   ·   ·                               │
+│ B   ✕   ·   ·                               │
+│ C   ✕   ·   ·                               │
+╰─────────────────────────────────────────────╯"""
 
 
 def test_iit4_sia_ascii_golden():
@@ -1333,3 +1333,37 @@ def test_specification_row_label_follows_formalism():
     assert "Intrinsic information" not in card_2026
     assert "Intrinsic information" in card_2023
     assert "Intrinsic specification" not in card_2023
+
+
+def test_ascii_card_shares_one_label_column_across_sections():
+    """Values line up down the whole card, not per section."""
+    d = Description(
+        title="Demo",
+        sections=(
+            Section(label=None, rows=(Row("Φ", 1.5), Row("φ_s", 0.4))),
+            Section(label="System", rows=(Row("Requirement binds", "x"),)),
+        ),
+    )
+    out = ascii_backend.render(d, verbosity=2)
+    lines = out.splitlines()
+    value_cols = [line.index("1.5") for line in lines if "1.5" in line]
+    value_cols += [
+        line.index("x", line.index("binds"))
+        for line in lines
+        if "Requirement binds" in line
+    ]
+    assert len(value_cols) == 2
+    assert len(set(value_cols)) == 1
+
+
+def test_html_card_emits_label_column_width():
+    d = Description(
+        title="Demo",
+        sections=(
+            Section(label=None, rows=(Row("Φ", 1.5),)),
+            Section(label="System", rows=(Row("Requirement binds", "x"),)),
+        ),
+    )
+    out = html_backend.render(d, verbosity=2)
+    assert 'class="pyphi-card" style="--pc-kcol:17ch"' in out
+    assert "grid-template-columns:var(--pc-kcol,auto) 1fr" in out
