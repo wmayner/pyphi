@@ -1,0 +1,1 @@
+Passing a 2-D transition probability matrix with a multi-valued `alphabet=` or `state_space=`, or a state-by-state matrix whose state count is not a power of two, now raises an error that says the 2-D forms describe binary units and points at the factored form, instead of failing inside a conversion with "expected integer".

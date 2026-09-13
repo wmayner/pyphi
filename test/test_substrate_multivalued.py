@@ -113,3 +113,30 @@ def test_kary_account_exercises_kary_code_path() -> None:
         f"{effect_marginal.alphabet_sizes}"
     )
     assert effect_marginal.alphabet_sizes == (3, 3)
+
+
+def test_two_dimensional_tpm_with_multivalued_alphabet_is_rejected_clearly():
+    """The 2-D joint forms describe binary units; asking for a wider alphabet
+    must say so and point at the factored form."""
+    import numpy as np
+    import pytest
+
+    from pyphi import Substrate
+
+    sbs = np.eye(9)[:, ::-1]
+    with pytest.raises(ValueError, match="marginals="):
+        Substrate(sbs, alphabet=3)
+    with pytest.raises(ValueError, match="marginals="):
+        Substrate(sbs, state_space=((0, 1, 2), (0, 1, 2)))
+
+
+def test_state_by_state_tpm_with_non_power_of_two_states_is_rejected_clearly():
+    """Without an alphabet, a 9-state matrix used to fail inside the log2
+    conversion with 'expected integer'."""
+    import numpy as np
+    import pytest
+
+    from pyphi import Substrate
+
+    with pytest.raises(ValueError, match="2\\*\\*n states"):
+        Substrate(np.eye(9)[:, ::-1])

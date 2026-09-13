@@ -101,6 +101,18 @@ def _coerce_state_to_indices(
     return tuple(indices)
 
 
+def _has_multivalued_unit(state_space: StateSpace) -> bool:
+    """Whether ``state_space`` (any accepted spelling) gives a unit more than
+    two states. ``None`` means binary."""
+    if state_space is None:
+        return False
+    if isinstance(state_space, int):
+        return state_space != 2
+    if state_space and all(not isinstance(labels, tuple) for labels in state_space):
+        return len(state_space) != 2  # one flat alphabet applied to every unit
+    return any(len(labels) != 2 for labels in state_space)
+
+
 class Substrate(Displayable, ToPandasMixin, Serializable):
     """A substrate of nodes.
 
@@ -199,7 +211,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         if marginals is not None:
             self._factored_tpm = FactoredTPM(factors=marginals, state_space=state_space)
         else:
-            arr = self._coerce_joint_array(tpm)
+            arr = self._coerce_joint_array(tpm, state_space=state_space)
             self._factored_tpm = FactoredTPM.from_joint(arr, state_space=state_space)
 
         self._cm, self._cm_hash = self._build_cm(cm)
@@ -214,6 +226,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
     @staticmethod
     def _coerce_joint_array(
         tpm: NDArray[np.float64] | dict[str, Any] | Any,
+        state_space: StateSpace = None,
     ) -> NDArray[np.float64]:
         """Coerce supported ``tpm=`` argument forms to a joint ndarray.
 
@@ -234,6 +247,17 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
             data = tpm
 
         arr = np.asarray(data, dtype=np.float64)
+        # The 2-D forms describe binary units only; multi-valued units need
+        # the factored form or the explicit-alphabet joint array.
+        if arr.ndim == 2 and _has_multivalued_unit(state_space):
+            raise ValueError(
+                "a 2-D TPM (state-by-node or state-by-state) describes binary "
+                "units, but state_space/alphabet gives a unit more than two "
+                "states. For multi-valued units pass the factored form, "
+                "marginals=[...] with one array per unit of shape "
+                "(*alphabet_sizes, k_i), or the explicit-alphabet joint array "
+                "of shape (*alphabet_sizes, n_units, max_alphabet)."
+            )
         # Explicit-alphabet shape: (*alphabet_sizes, n_nodes, max_alphabet).
         # Detected when ndim == n + 2 with a leading per-axis alphabet block.
         # For binary substrates that's (2, ..., 2, n, 2) where ndim == n + 2
@@ -270,6 +294,15 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
             from pyphi import exceptions
             from pyphi.conf import config as _config
 
+            n_states = int(arr.shape[0])
+            if n_states < 2 or n_states & (n_states - 1):
+                raise ValueError(
+                    f"a state-by-state TPM with {n_states} states cannot describe "
+                    "binary units, which need 2**n states for n units. For "
+                    "multi-valued units pass the factored form, marginals=[...] "
+                    "with one array per unit of shape (*alphabet_sizes, k_i), "
+                    "together with state_space= or alphabet=."
+                )
             sbn = convert.state_by_state2state_by_node(arr)
             check_independence = _config.infrastructure.validate_conditional_independence
             tol = max(10 ** (-_config.numerics.precision), 1e-15)
