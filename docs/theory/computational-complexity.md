@@ -198,6 +198,7 @@ timings, aggregates, fitted rates, and figure are written to
 ```{figure} ../_static/complexity/scaling.png
 :alt: Log-scale wall-clock runtime versus system size for each formalism and stage.
 :width: 100%
+:class: dark-light
 
 Median wall-clock runtime versus system size $n$, one curve per formalism and
 stage, on a logarithmic vertical axis. A straight line indicates exponential
@@ -428,6 +429,7 @@ Measured on the same ring family (`benchmarks/complexity/options.py`):
 ```{figure} ../_static/complexity/options.png
 :alt: Runtime versus system size for each configuration option, three panels.
 :width: 100%
+:class: dark-light
 
 Median runtime versus $n$ for each option, logarithmic vertical axis. Left: the
 mechanism partition scheme separates the curves the most — it has the strongest
@@ -483,6 +485,7 @@ any one alone — is what moves the ceiling.
 ```{figure} ../_static/complexity/combos.png
 :alt: Runtime versus system size for stacked settings, two panels.
 :width: 100%
+:class: dark-light
 
 Median runtime versus $n$ for stacked settings, logarithmic vertical axis. Right,
 IIT 4.0 CES: `bipartitions + analytical` (bottom) is far below the others and

@@ -287,6 +287,52 @@ def save(results: list[Trial], beta: float, trials: int) -> dict[str, Path]:
     return {"raw": raw_path, "agg": agg_path, "fits": fits_path}
 
 
+# Okabe-Ito without black, so curves read on the light and dark docs grounds.
+PALETTE = ["#0072B2", "#D55C00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9"]
+FORMALISM_LABELS = {
+    "IIT_3_0": "IIT 3.0",
+    "IIT_4_0_2023": "IIT 4.0 (2023)",
+    "IIT_4_0_2026": "IIT 4.0 (2026)",
+    "AC_2019": "AC 2019",
+}
+STAGE_LABELS = {"sia": "SIA", "ces": "CES", "account": "account"}
+
+
+def set_plot_theme() -> None:
+    """Seaborn theme matched to the docs: transparent ground, muted mid-grey
+    text and grid that read on both the light and dark site themes, Okabe-Ito
+    curves, IBM Plex Sans when installed."""
+    import seaborn as sns
+
+    sns.set_theme(
+        style="whitegrid",
+        palette=PALETTE,
+        rc={
+            "font.family": "sans-serif",
+            "font.sans-serif": ["IBM Plex Sans", "Helvetica Neue", "DejaVu Sans"],
+            "figure.facecolor": "none",
+            "axes.facecolor": "none",
+            "savefig.facecolor": "none",
+            "savefig.dpi": 200,
+            "text.color": "#80858c",
+            "axes.labelcolor": "#80858c",
+            "axes.titlecolor": "#80858c",
+            "axes.titleweight": "medium",
+            "xtick.color": "#80858c",
+            "ytick.color": "#80858c",
+            "axes.edgecolor": "#80858c",
+            "grid.color": "#80858c",
+            "grid.alpha": 0.3,
+            "grid.linewidth": 0.6,
+            "lines.linewidth": 1.8,
+            "lines.markersize": 5,
+            "legend.frameon": False,
+            "legend.fontsize": 9,
+            "legend.title_fontsize": 9,
+        },
+    )
+
+
 def plot(agg_path: Path) -> Path:
     """Draw log-scale runtime-vs-n curves per formalism/stage from an agg CSV."""
     import matplotlib
@@ -296,25 +342,30 @@ def plot(agg_path: Path) -> Path:
     import seaborn as sns
 
     agg = pd.read_csv(agg_path)
-    agg["label"] = agg["formalism"] + " / " + agg["stage"]
-    sns.set_theme(style="whitegrid")
-    fig, ax = plt.subplots(figsize=(7, 5))
+    agg["formalism"] = agg["formalism"].map(FORMALISM_LABELS).fillna(agg["formalism"])
+    agg["stage"] = agg["stage"].map(STAGE_LABELS).fillna(agg["stage"])
+    set_plot_theme()
+    fig, ax = plt.subplots(figsize=(7, 4.5))
     sns.lineplot(
         data=agg,
         x="n",
         y="seconds_median",
-        hue="label",
-        marker="o",
+        hue="formalism",
+        style="stage",
+        markers=True,
+        dashes=False,
+        markeredgewidth=0,
         ax=ax,
     )
     ax.set_yscale("log")
+    ax.set_xticks(sorted(agg["n"].unique()))
     ax.set_xlabel("system size n (units)")
-    ax.set_ylabel("wall-clock seconds (median)")
-    ax.set_title("PyPhi computation cost vs. system size")
-    ax.legend(title="formalism / stage", fontsize=8)
+    ax.set_ylabel("median seconds")
+    ax.legend(ncols=2)
+    sns.despine(fig, left=True, bottom=True)
     fig.tight_layout()
     fig_path = _versioned_path(agg_path.with_suffix("").with_suffix(".png"))
-    fig.savefig(fig_path, dpi=150)
+    fig.savefig(fig_path)
     print(f"wrote {fig_path.name}")
     return fig_path
 

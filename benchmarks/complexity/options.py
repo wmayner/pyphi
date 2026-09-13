@@ -40,6 +40,7 @@ import pyphi
 from benchmarks.complexity.scaling import RESULTS_DIR
 from benchmarks.complexity.scaling import _versioned_path
 from benchmarks.complexity.scaling import ring_substrate
+from benchmarks.complexity.scaling import set_plot_theme
 
 PRESETS = {"iit3": pyphi.iit3, "iit4_2023": pyphi.iit4_2023}
 
@@ -170,6 +171,15 @@ def save(results: list[Trial], beta: float, trials: int, tag: str) -> dict[str, 
     return {"raw": raw_path, "agg": agg_path}
 
 
+CONFIG_LABELS = {
+    "JOINT_BIPARTITION": "joint bipartitions",
+    "JOINT_PARTITION_ALL": "all joint partitions",
+    "WEDGE_TRIPARTITION": "wedge tripartitions",
+    "cut-one 2n": "cut-one (2n cuts)",
+    "full 2**n": "full (2^n cuts)",
+}
+
+
 def plot(agg_path: Path) -> Path:
     import matplotlib
 
@@ -178,20 +188,31 @@ def plot(agg_path: Path) -> Path:
     import seaborn as sns
 
     agg = pd.read_csv(agg_path)
+    agg["config"] = agg["config"].map(CONFIG_LABELS).fillna(agg["config"])
     knobs = list(dict.fromkeys(agg["knob"]))
-    sns.set_theme(style="whitegrid")
-    fig, axes = plt.subplots(1, len(knobs), figsize=(5 * len(knobs), 4.5), squeeze=False)
+    set_plot_theme()
+    fig, axes = plt.subplots(1, len(knobs), figsize=(4.5 * len(knobs), 4), squeeze=False)
     for ax, knob in zip(axes[0], knobs, strict=True):
         sub = pd.DataFrame(agg[agg["knob"] == knob])
-        sns.lineplot(data=sub, x="n", y="seconds_median", hue="config", marker="o", ax=ax)
+        sns.lineplot(
+            data=sub,
+            x="n",
+            y="seconds_median",
+            hue="config",
+            marker="o",
+            markeredgewidth=0,
+            ax=ax,
+        )
         ax.set_yscale("log")
+        ax.set_xticks(sorted(sub["n"].unique()))
         ax.set_title(knob)
         ax.set_xlabel("system size n")
         ax.set_ylabel("median seconds")
-        ax.legend(fontsize=8)
+        ax.legend()
+    sns.despine(fig, left=True, bottom=True)
     fig.tight_layout()
     fig_path = _versioned_path(agg_path.with_suffix("").with_suffix(".png"))
-    fig.savefig(fig_path, dpi=150)
+    fig.savefig(fig_path)
     print(f"wrote {fig_path.name}")
     return fig_path
 
