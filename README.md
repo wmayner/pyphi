@@ -1,5 +1,5 @@
 <p>
-  <a href="http://pyphi.readthedocs.io/">
+  <a href="https://pyphi.readthedocs.io/">
     <img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/main/docs/_static/pyphi-logo-text-776x196.png" height="90px" width="380px" style="max-width:100%">
   </a>
 </p>
@@ -50,7 +50,7 @@ print(analysis.big_phi)  # structure integrated information, Φ ≈ 1.56
 
 The result carries the full Φ-structure — its distinctions, relations, and the
 minimum-information partition. See the
-[documentation](http://pyphi.readthedocs.io/) and the
+[documentation](https://pyphi.readthedocs.io/) and the
 [IIT 4.0 demo notebook](https://github.com/wmayner/pyphi/blob/main/docs/examples/IIT_4.0_demo.ipynb)
 for a complete walkthrough.
 
@@ -93,8 +93,8 @@ for IIT research:
 
 - [Getting started](https://pyphi.readthedocs.io/en/stable/getting-started/index.html):
   install and a first computation in ten minutes
-- [Documentation for the latest stable release](http://pyphi.readthedocs.io/en/stable/)
-- [Documentation for the latest development version](http://pyphi.readthedocs.io/en/latest/)
+- [Documentation for the latest stable release](https://pyphi.readthedocs.io/en/stable/)
+- [Documentation for the latest development version](https://pyphi.readthedocs.io/en/latest/)
 - Documentation for any object is also available in the interpreter with the
   `help` function.
 

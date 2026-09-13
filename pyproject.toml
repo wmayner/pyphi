@@ -22,12 +22,16 @@ keywords = [
 ]
 requires-python = ">=3.13"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
 ]
 dependencies = [
     "joblib>=0.8.0",
@@ -94,8 +98,10 @@ docs = [
 
 [project.urls]
 documentation = "https://pyphi.readthedocs.io"
+source = "https://github.com/wmayner/pyphi"
+changelog = "https://github.com/wmayner/pyphi/blob/main/CHANGELOG.md"
 bugs = "https://github.com/wmayner/pyphi/issues"
-homepage = "http://integratedinformationtheory.org/"
+homepage = "https://integratedinformationtheory.org/"
 discussion = "https://groups.google.com/forum/#!forum/pyphi-users"
 
 [tool.hatch.version]
@@ -106,6 +112,10 @@ source = "vcs"
 # cannot derive a version from tags; fall back instead of failing the build.
 # Ignored whenever git history is present, so normal builds are unaffected.
 fallback_version = "0.0.0"
+
+[tool.hatch.build]
+# Assistant guidance files are for the repository, not the distributions.
+exclude = ["**/CLAUDE.md", "**/AGENTS.md"]
 
 [tool.hatch.build.targets.sdist]
 # `include` is an allowlist: anything not matched here is excluded from the
