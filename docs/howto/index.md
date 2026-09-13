@@ -9,6 +9,7 @@ I want to…
 - reproduce a published number: {doc}`../tutorials/worked-example` and
   {doc}`../theory/formalism-versions`
 - run on many cores or a cluster: {doc}`parallel`, {doc}`campaigns`
+- work with an AI assistant: {doc}`mcp-server`
 - fix an error: {doc}`faq`
 
 ```{toctree}
