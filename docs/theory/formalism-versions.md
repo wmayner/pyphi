@@ -11,8 +11,8 @@ kernelspec:
 
 # Formalism versions
 
-The preceding pages describe IIT 4.0 in its 2026 refinement — PyPhi's default
-formalism. PyPhi also implements the 2023 formulation and IIT 3.0, and a
+The preceding pages describe IIT 4.0 (2026), PyPhi's default formalism. PyPhi
+also implements the 2023 formulation and IIT 3.0, and a
 separate analysis of actual causation. A **formalism** is the set of rules
 that turns a system into results; which one applies is a matter of
 configuration.

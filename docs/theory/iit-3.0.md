@@ -55,5 +55,5 @@ structure is a set of concepts rather than the distinctions and relations of a
 Use IIT 3.0 to reproduce or compare against results computed under the earlier
 formalism. For new work, IIT 4.0 is the current theory and PyPhi's default; see
 [formalism versions](formalism-versions.md) for selecting between them and for
-the further refinement in IIT 4.0 (2026). For the full IIT 3.0 formalism, see
+the 2023 and 2026 formulations of IIT 4.0. For the full IIT 3.0 formalism, see
 Oizumi, Albantakis & Tononi (2014).

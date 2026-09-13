@@ -75,8 +75,8 @@ The formalism it implements (IIT 4.0) is described in:
 > *PLoS Computational Biology* 19(10): e1011465.
 > <https://doi.org/10.1371/journal.pcbi.1011465>
 
-The default formalism includes the 2026 refinement of system integrated
-information, described in:
+The default formalism is IIT 4.0 (2026), whose system integrated information
+is described in:
 
 > Mayner WGP, Marshall W, Tononi G. (2026).
 > Intrinsic cause–effect power: the tradeoff between differentiation and

@@ -180,7 +180,7 @@ interface, and the paper's mechanism library is ported into
 
 ## IIT 4.0 (2026) is the default formalism
 
-PyPhi 2.0 computes the 2026 refinement of IIT 4.0 by default: the system's
+PyPhi 2.0 computes IIT 4.0 (2026) by default: the system's
 intrinsic information enters the minimum that defines system integrated
 information (Mayner, Marshall, Tononi 2026), so a system must both furnish
 itself a repertoire of alternatives and specify one of them. One consequence

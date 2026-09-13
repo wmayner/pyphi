@@ -94,7 +94,7 @@ does not exist and has no standing to exclude $\{C,D\}$. The recursion
 carves the substrate from the top down, and $\{C,D\}$ is the maximum among
 the candidates that remain.
 
-## Shadows: excluded candidates with higher φₛ
+## Excluded candidates with higher φₛ
 
 Each complex records the overlapping candidates excluded in its favor:
 
@@ -105,21 +105,21 @@ cd = found[1]
 phi = float(cd.phi)
 for record in sorted(cd.excluded, key=lambda r: -r.phi):
     beaten = record.phi < phi or numerics.eq(record.phi, phi)
-    print(f"{record.node_indices}  φₛ={record.phi:.4f}  [{'beaten' if beaten else 'shadow'}]")
+    print(f"{record.node_indices}  φₛ={record.phi:.4f}  [{'beaten' if beaten else 'excluded earlier'}]")
 ```
 
 $\{C,D\}$'s records contain candidates with **higher** $\varphi_s$ than
-$\{C,D\}$ itself — $\{B,C\}$ among them. These are *shadows*: candidates
-with more integrated information than the complex, excluded by a different
-complex before this one was accepted. They document the recursion at work;
-they were never rivals that $\{C,D\}$ had to beat.
+$\{C,D\}$ itself — $\{B,C\}$ among them. They have more integrated
+information than the complex, and were excluded by a different complex before
+this one was accepted. They document the recursion at work: they were never
+rivals that $\{C,D\}$ had to beat.
 
 ## Selection margins
 
 How decisively did each complex win? The `exclusion_margin` of a
 {class}`~pyphi.models.complex.Complex` reports the $\varphi_s$ gap to the
-best overlapping rival the complex actually beat — shadows do not enter
-the margin:
+best overlapping rival the complex actually beat — candidates excluded
+earlier by another complex do not enter the margin:
 
 ```{code-cell} python
 for complex_ in found:

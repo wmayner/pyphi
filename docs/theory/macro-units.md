@@ -123,10 +123,9 @@ is the set of micro units it ultimately covers; the cascade walks candidates in
 descending $\varphi_s$, accepts the maximal one, drops every remaining candidate
 whose footprint overlaps it, and continues on what is left. The cascade is
 **recursive**: a candidate that has been excluded by an accepted complex has no
-standing to exclude anything else in turn. One consequence is counterintuitive:
-a complex can coexist with an overlapping candidate of *higher*
-$\varphi_s$, a **shadow**, provided that shadow was itself excluded by some other
-complex. Ties within a tier escalate to the composition measure Φ, and a tier
+standing to exclude anything else in turn. A complex can therefore coexist with
+an overlapping candidate of *higher* $\varphi_s$, when that candidate was
+excluded earlier by a different complex. Ties within a tier escalate to the composition measure Φ, and a tier
 that still ties fails exclusion outright: none of its members becomes a complex,
 and their units remain available to lower-$\varphi_s$ candidates further down.
 
@@ -135,8 +134,9 @@ search uses; the macro search simply feeds it candidate systems at every grain.
 It returns a {class}`~pyphi.macro.ComplexesResult` whose winners are
 {class}`~pyphi.models.complex.Complex` objects. Each winner reports an
 {attr}`~pyphi.models.complex.Complex.exclusion_margin` — the $\varphi_s$ gap to
-the best overlapping rival it beat — and records the candidates it excluded,
-shadows included; shadows do not enter the margin. A margin of zero means a
+the best overlapping rival it beat — and records the candidates excluded in
+its favor, including any with higher $\varphi_s$ that an earlier complex had
+already excluded; those do not enter the margin. A margin of zero means a
 rival tied at the configured precision, so the selection was decided by
 criteria beyond $\varphi_s$. For
 how the recursion resolves overlapping candidates step by step, see the

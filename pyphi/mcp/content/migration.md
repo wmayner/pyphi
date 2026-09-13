@@ -222,17 +222,16 @@ The precision-aware helpers `eq`, `is_positive`, and `is_nonpositive` moved from
 `pyphi.utils` to `pyphi.numerics`, joined by `is_zero`, `positive_mask`, and
 `round_to_precision`.
 
-## 7. Changed default: the φ_s = 0 surprise
+## 7. Changed default formalism: φ_s = 0 for deterministic systems
 
 Because the default formalism changed from IIT 3.0 to IIT 4.0 (2026), the same
 substrate and state give a **different result** than a 1.x default run unless
 `formalism="IIT_3_0"` is requested.
 
-The consequence that could surprise people migrating: under the 2026 default,
-**deterministic networks compute φ_s = 0.** The classic examples (`xor`,
+Under the 2026 default, **deterministic networks compute φ_s = 0.** The classic examples (`xor`,
 `basic`, the cellular-automaton rules) are all deterministic, so analyses ported
 from 1.x or from the literature will show 0 where papers print nonzero values.
-This is the intended behavior of the 2026 intrinsic-information requirement. To
+This follows from the intrinsic-information requirement of IIT 4.0 (2026). To
 reproduce old numbers:
 
 - IIT 3.0 numbers → `formalism="IIT_3_0"`

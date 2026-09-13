@@ -166,10 +166,10 @@ rival = max(winner.excluded, key=lambda candidate: candidate.phi)
 rival.node_indices, round(rival.phi, 6)
 ```
 
-In a condensation with several complexes, `excluded` can also hold *shadows* —
-candidates whose own φₛ is *higher* than the complex they appear under, kept out
-not by that complex but by a different one that overlapped their footprint. There is
-a single complex here, so no shadows arise. Exclusion is recursive: an excluded
+In a condensation with several complexes, `excluded` can also hold candidates
+whose own φₛ is *higher* than the complex they appear under, kept out not by
+that complex but by a different one that overlapped their footprint. There is a
+single complex here, so that does not arise. Exclusion is recursive: an excluded
 candidate cannot in turn exclude anything. For how the cascade resolves
 overlapping candidates, see the
 {doc}`recursive-exclusion tutorial <../tutorials/recursive-exclusion>`.

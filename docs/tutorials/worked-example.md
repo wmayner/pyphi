@@ -35,7 +35,7 @@ from pyphi.conf import presets
 
 pyphi.config.progress_bars = False
 # This page reproduces the 2023 paper's published values, so it pins the
-# paper's formalism; PyPhi's default is the 2026 refinement.
+# paper's formalism; PyPhi's default is IIT 4.0 (2026).
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # advisory config-change notices
     pyphi.config.iit = presets.iit4_2023["iit"]
