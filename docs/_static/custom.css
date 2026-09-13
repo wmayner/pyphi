@@ -330,3 +330,24 @@ a:hover, .bd-sidebar-primary a:hover, .bd-content a:hover, .bd-header a:hover {
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
 }
+
+/* ---- Code cross-references ---------------------------------------------- */
+
+/* The theme gives a code cross-reference three cues at once: a bordered chip,
+   bold, and an underline. Keep the link colour and the bold; drop the border
+   and the underline (it returns on hover). Plain inline code stays regular
+   weight in the text colour. */
+.bd-content code.literal { border: 0; }
+.bd-content a code.xref, .bd-content a > code {
+  font-weight: 600;
+  color: var(--pp-link);
+  border: 0;
+  text-decoration: none;
+}
+.bd-content a:hover code.xref, .bd-content a:hover > code {
+  color: var(--pp-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+.bd-content a.reference.internal:has(> code.xref) { text-decoration: none; }
