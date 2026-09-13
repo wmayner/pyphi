@@ -27,9 +27,6 @@ analysis
 
 ## The analysis card
 
-- **Formalism**: which version of the theory produced the numbers. Every
-  other row depends on it; a φ value reported without it cannot be compared
-  with anything. It is `analysis.formalism`.
 - **Φ**: the structure integrated information, the sum of φ over every
   distinction and every relation. It measures how much structure the system
   specifies. It is `analysis.big_phi`. Under IIT 3.0 there are no relations
@@ -44,6 +41,9 @@ analysis
   in closed form; the individual relations are not enumerated, so they
   cannot be listed one by one. {doc}`query-relations` shows what can be asked
   of them and how to enumerate when you must.
+- **Formalism**: which version of the theory produced the numbers above.
+  Every other row depends on it; a φ value reported without it cannot be
+  compared with anything. It is `analysis.formalism`.
 - **The distinction table**: one row per distinction: its mechanism, φ_d,
   and its cause and effect purviews, each written in the *state* the
   distinction specifies. An uppercase letter is a unit ON, lowercase is OFF,

@@ -496,7 +496,7 @@ and `migrate_code` prompt on the MCP server).
   2–4. (paper-reproduction-barbosa-2020)
 - `Analysis.formalism` names the formalism that produced a result
   (`"IIT_4_0_2026"`, `"IIT_4_0_2023"`, or `"IIT_3_0"`), and the analysis card
-  leads with it. (analysis-formalism)
+  shows it. (analysis-formalism)
 - The MCP `analyze` tool takes a `subset` (node indices or labels) to analyze a
   candidate system inside a larger substrate, and its summary and card now carry
   the minimum information partition, the intrinsic information ii(s), and which

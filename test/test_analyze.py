@@ -314,4 +314,4 @@ def test_analysis_reports_its_formalism():
         with config.override(**presets.by_name[name], progress_bars=False):
             analysis = analyze(substrate, (0, 1, 1), subset=(0, 1))
         assert analysis.formalism == name
-        assert name in repr(analysis)  # the card leads with a Formalism row
+        assert name in repr(analysis)  # the card's summary ends with a Formalism row

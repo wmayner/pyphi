@@ -100,10 +100,11 @@ class Analysis(Displayable, Serializable):
         # (capped at FULL) so the card still leads with the system-level value.
         desc = self.ces._describe(verbosity)
         sections = list(desc.sections)
-        # Lead with the formalism: a φ value means nothing without it.
+        # Close the summary with the formalism: a φ value means nothing without
+        # it, and the quantities come first.
         first = sections[0]
         sections[0] = replace(
-            first, rows=(Row("Formalism", self.formalism), *first.rows)
+            first, rows=(*first.rows, Row("Formalism", self.formalism))
         )
         if getattr(self.ces, "sia", None) is None:
             sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
