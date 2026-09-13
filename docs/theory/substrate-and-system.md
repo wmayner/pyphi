@@ -34,7 +34,7 @@ This factorization is the causal-model assumption the whole framework rests on;
 see [conditional independence](conditional-independence.md) for what it means
 and how PyPhi enforces it.
 
-In PyPhi a substrate is a `Substrate`. The worked example is the paper's
+In PyPhi a substrate is a {class}`~pyphi.substrate.Substrate`. The worked example is the paper's
 three-unit logistic network:
 
 ```{code-cell} python
@@ -73,7 +73,7 @@ of the system. PyPhi enforces this by **causally marginalizing** the background
 units — conditioning on their current state and averaging them out, so they
 become causally inert (Albantakis et al., 2023, Fig 1B).
 
-A `System` is a candidate subset of a substrate in a definite state. The worked
+A {class}`~pyphi.system.System` is a candidate subset of a substrate in a definite state. The worked
 example's candidate is the pair $\{A, B\}$, so unit $C$ is background:
 
 ```{code-cell} python

@@ -98,7 +98,7 @@ identified, is an absolute one.
 Each such choice has a **margin**: the gap between the winner and the best
 competitor, in the units of the comparison. PyPhi reports these on the
 analysis — `partition_margin` (in normalized $\varphi$), the per-direction
-specified-state margins (in intrinsic information), and `tied_selections`
+specified-state margins (in intrinsic information), and {attr}`~pyphi.formalism.iit4.SystemIrreducibilityAnalysis.tied_selections`
 listing any selection whose margin is within the configured numerical
 precision of zero.
 

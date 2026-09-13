@@ -20,7 +20,7 @@ information of every distinction and relation it contains (Albantakis et al.,
 
 $$ \Phi = \sum_{d} \varphi_d \;+\; \sum_{r} \varphi_r. $$
 
-In PyPhi the $\Phi$-structure is a `CauseEffectStructure`, returned as
+In PyPhi the $\Phi$-structure is a {class}`~pyphi.models.ces.CauseEffectStructure`, returned as
 `analysis.ces`:
 
 ```{code-cell} python
@@ -58,22 +58,22 @@ them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), 
 
 | Symbol | Quantity | In PyPhi |
 | --- | --- | --- |
-| $U$ | substrate (units and their interactions) | `Substrate`, e.g. `pyphi.examples.iit4_2023_fig1a_substrate()` |
-| $\mathcal{T}_U$ | transition probability matrix (Eq. 1) | `substrate.tpm`, `substrate.factored_tpm` |
-| $S$ | candidate system in a state | `System`; analyzed via `pyphi.analyze` |
+| $U$ | substrate (units and their interactions) | {class}`~pyphi.substrate.Substrate`, e.g. {func}`~pyphi.examples.iit4_2023_fig1a_substrate` |
+| $\mathcal{T}_U$ | transition probability matrix (Eq. 1) | `substrate.tpm`, {attr}`substrate.factored_tpm <pyphi.substrate.Substrate.factored_tpm>` |
+| $S$ | candidate system in a state | {class}`~pyphi.system.System`; analyzed via {func}`pyphi.analyze` |
 | $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | `analysis.sia.system_state` (per-direction `intrinsic_information`) |
 | $\varphi_c,\ \varphi_e$ | cause- and effect-side integrated information | `analysis.sia.cause.phi`, `analysis.sia.effect.phi` |
 | MIP | minimum information partition | `analysis.sia.partition` |
 | $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e)$; under the 2026 default the minimum also includes $\mathit{ii}(s)$ (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
-| $\varphi_s^{\ast}$ | maximal system integrated information (the complex's) | the $\varphi_s$ of a complex from `Substrate.complexes` |
-| complex | maximal substrate | `Substrate.complexes`; the analyzed candidate is `analysis.system` |
+| $\varphi_s^{\ast}$ | maximal system integrated information (the complex's) | the $\varphi_s$ of a complex from {meth}`~pyphi.substrate.Substrate.complexes` |
+| complex | maximal substrate | {meth}`~pyphi.substrate.Substrate.complexes`; the analyzed candidate is `analysis.system` |
 | mechanism | subset specifying a distinction | `distinction.mechanism` |
-| purview | subset a mechanism constrains | `distinction.cause_purview`, `distinction.effect_purview` |
-| distinction | mechanism with its cause and effect state | `Distinction`; `analysis.ces.distinctions` |
+| purview | subset a mechanism constrains | {attr}`distinction.cause_purview <pyphi.models.distinction.Distinction.cause_purview>`, {attr}`distinction.effect_purview <pyphi.models.distinction.Distinction.effect_purview>` |
+| distinction | mechanism with its cause and effect state | {class}`~pyphi.models.distinction.Distinction`; `analysis.ces.distinctions` |
 | $\varphi_d$ | distinction integrated information | `distinction.phi` |
 | relation | congruent overlap of distinctions | `Relation`; `analysis.ces.relations` (closed-form by default, enumerate with `.materialize()`/`.strongest()`) |
 | $\varphi_r$ | relation integrated information | `relation.phi` |
-| $\Phi$-structure | the distinctions and relations together | `CauseEffectStructure`; `analysis.ces` |
+| $\Phi$-structure | the distinctions and relations together | {class}`~pyphi.models.ces.CauseEffectStructure`; `analysis.ces` |
 | $\Phi$ | structure integrated information | `analysis.ces.big_phi` |
 
 The worked example on the preceding pages walks this table from top to bottom.

@@ -43,7 +43,7 @@ pyphi.config.progress_bars = False
 pyphi.examples.cond_depend_tpm()
 ```
 
-Building a `Substrate` from it raises an error rather than silently accepting an
+Building a {class}`~pyphi.substrate.Substrate` from it raises an error rather than silently accepting an
 ill-defined causal model:
 
 ```{code-cell} python
@@ -68,7 +68,7 @@ convert.state_by_node2state_by_state(sbn)
 ```
 
 The dependence in the original matrix can always be restored by adding the
-missing variable explicitly. `pyphi.examples.cond_independ_tpm()` does this for
+missing variable explicitly. {func}`~pyphi.examples.cond_independ_tpm` does this for
 the same two units, introducing a third unit whose state decides whether they
 flip; the resulting three-unit substrate satisfies conditional independence and
 is accepted. Deterministic transitions are always conditionally independent, so

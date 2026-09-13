@@ -46,9 +46,9 @@ PyPhi's objects mirror the theory's layering:
 
 $$ \textsf{Substrate} \;\rightarrow\; \textsf{System} \;\rightarrow\; \textsf{formalism} \;\rightarrow\; \Phi\textsf{-structure} $$
 
-- A `Substrate` is the causal model: the units and their transition
+- A {class}`~pyphi.substrate.Substrate` is the causal model: the units and their transition
   probabilities.
-- A `System` is a candidate subset of the substrate's units, in a state.
+- A {class}`~pyphi.system.System` is a candidate subset of the substrate's units, in a state.
 - A **formalism** (IIT 4.0, IIT 3.0, actual causation) is the set of rules for
   turning a system into results; which one applies is a matter of configuration.
 - The **$\Phi$-structure** is the result: the distinctions and relations the

@@ -18,7 +18,7 @@ that turns a system into results; which one applies is a matter of
 configuration.
 
 The simplest way to select a formalism is the `formalism` argument to
-`pyphi.analyze`, which sets the compatible measures for you. The same
+{func}`pyphi.analyze`, which sets the compatible measures for you. The same
 substrate and state yield a different system integrated information under
 each formalism, because each defines that quantity differently — here on the
 three-XOR network:
@@ -67,8 +67,8 @@ see the [IIT 3.0 overview](iit-3.0.md).
 Actual causation answers a different question — not *how integrated is this
 system*, but *which past events actually caused a given present event, and
 which effects will it actually cause* (Albantakis et al., 2019). It operates
-on a `Transition` (a substrate observed across two time steps) rather than a
-`System`, and is provided by `pyphi.actual`. It is its own formalism, unaffected by
+on a {class}`~pyphi.actual.Transition` (a substrate observed across two time steps) rather than a
+{class}`~pyphi.system.System`, and is provided by `pyphi.actual`. It is its own formalism, unaffected by
 the IIT versions above (in particular, the 2026 intrinsic-information
 requirement does not apply to it), and is documented with the tutorials.
 
@@ -76,10 +76,10 @@ requirement does not apply to it), and is documented with the tutorials.
 ## What `formalism=` sets
 
 There are three equivalent ways to select a formalism, and every page uses
-one of them: the `formalism=` argument of `pyphi.analyze` (per call);
+one of them: the `formalism=` argument of {func}`pyphi.analyze` (per call);
 `pyphi.config.override(**pyphi.iit4_2023)` (a block; the presets are
 `pyphi.iit3`, `pyphi.iit4_2023`, and `pyphi.iit4_2026`, also under
-`pyphi.conf.presets`); and replacing the formalism layer for a whole session
+{mod}`pyphi.conf.presets`); and replacing the formalism layer for a whole session
 (`pyphi.config.formalism = dataclasses.replace(pyphi.config.formalism,
 **pyphi.iit4_2023)`). All three set `pyphi.config.formalism.iit.version` together
 with the distance measures the version requires. Setting `version` alone

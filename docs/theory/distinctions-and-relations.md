@@ -74,7 +74,7 @@ A relation can also bind a *single* distinction with itself, where its own
 cause and effect purviews overlap congruently — a self-relation. Counting
 these, the worked example has seven relations. By default the relation set is
 a closed-form summary; individual relations are enumerated explicitly with
-`materialize()`:
+{meth}`materialize() <pyphi.relations.Relations.materialize>`:
 
 ```{code-cell} python
 relations = ces.relations.materialize()

@@ -97,7 +97,7 @@ side alone brings the minimum, and with it $\varphi_s$, to $0$.
 A system's $\varphi_s$ is zero either because one side's integration is zero
 (some partition makes no difference) or because the requirement binds: both
 $\varphi_c$ and $\varphi_e$ are positive and $\mathit{ii}(s)$ is zero.
-`explain()` distinguishes them: the second case carries a
+{meth}`explain() <pyphi.formalism.iit4.SystemIrreducibilityAnalysis.explain>` distinguishes them: the second case carries a
 `requirement_binding` finding, the first does not.
 
 ```{code-cell} python
@@ -113,11 +113,11 @@ reducible outright shows $\varphi_c = 0$ and no such finding; see
 ## Reading the two terms
 
 Both terms are available on the result. On the system irreducibility
-analysis, `intrinsic_specification` gives, per direction, the selectivity
+analysis, {attr}`~pyphi.formalism.iit4.SystemIrreducibilityAnalysis.intrinsic_specification` gives, per direction, the selectivity
 times informativeness of the specified state (Eqs. 7 and 9);
 `intrinsic_differentiation` gives that state's surprisal (Eqs. 4 and 6);
-`intrinsic_information` is their joint minimum (Eq. 13); and
-`integrated_fraction` is $\varphi_s / \mathit{ii}(s)$. The two-unit system aB
+{attr}`~pyphi.formalism.iit4.SystemIrreducibilityAnalysis.intrinsic_information` is their joint minimum (Eq. 13); and
+{attr}`~pyphi.formalism.iit4.SystemIrreducibilityAnalysis.integrated_fraction` is $\varphi_s / \mathit{ii}(s)$. The two-unit system aB
 of the Fig 1A network (Albantakis et al., 2023) has all four:
 
 ```{code-cell} python
@@ -131,7 +131,7 @@ sia = pyphi.analyze(fig1a, (0, 1, 1), subset=(0, 1)).sia
 sia.intrinsic_information, sia.integrated_fraction
 ```
 
-When the requirement sets $\varphi_s$, `explain()` reports which direction
+When the requirement sets $\varphi_s$, {meth}`explain() <pyphi.formalism.iit4.SystemIrreducibilityAnalysis.explain>` reports which direction
 and which term did so:
 
 ```{code-cell} python

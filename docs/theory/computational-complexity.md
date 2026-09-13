@@ -53,23 +53,23 @@ The differences between formalisms are entirely in *which* levels they visit and
 schemes.
 
 The counts at each level are closed-form combinatorial quantities. PyPhi's
-enumerators are in `pyphi.partition` and `pyphi.combinatorics`.
+enumerators are in {mod}`pyphi.partition` and `pyphi.combinatorics`.
 
 | Quantity | Count | Enumerator |
 |---|---|---|
 | Subsets / mechanisms of $n$ units | $2^n$ | `pyphi.utils.powerset` |
-| Undirected bipartitions | $2^{\,n-1}$ | `pyphi.partition.bipartition` |
-| Directed tripartitions | $3^n$ | `directed_tripartition` |
+| Undirected bipartitions | $2^{\,n-1}$ | {func}`pyphi.partition.bipartition` |
+| Directed tripartitions | $3^n$ | {func}`~pyphi.partition.directed_tripartition` |
 | Set partitions | Bell number $B_n$ | `pyphi.combinatorics.set_partitions` |
-| Set partitions into $k$ blocks | Stirling $S(n,k)$ | `k_partitions` |
-| Directed set partitions (4.0 system cuts) | $\sum_{q\ge 2} S(n,q)\,3^q \sim B_n(3)$ | `directed_set_partitions` |
+| Set partitions into $k$ blocks | Stirling $S(n,k)$ | {func}`~pyphi.partition.k_partitions` |
+| Directed set partitions (4.0 system cuts) | $\sum_{q\ge 2} S(n,q)\,3^q \sim B_n(3)$ | {func}`~pyphi.partition.directed_set_partitions` |
 
 The Bell number $B_n$ already grows faster than any $c^n$; the "directed" set
 partitions used for IIT 4.0 system cuts weight each block by one of three
 directions, giving the Bell polynomial $B_n(3)$, faster still.
 
 The enumerators below are shown for small `n` to illustrate the growth. Do
-not call `pyphi.partition.directed_set_partitions` or its relatives directly
+not call {func}`pyphi.partition.directed_set_partitions` or its relatives directly
 on ten or more units: they materialize every partition. Use
 {func}`pyphi.cost.estimate_analysis`, which counts without enumerating.
 
@@ -96,7 +96,7 @@ The innermost operation builds a **repertoire** — a probability distribution o
 the states of a purview — and measures a distance between two of them. A
 repertoire over a purview of $p$ units, in a substrate of alphabet size $k$, is an
 array of $k^p$ numbers. PyPhi builds it as a product of per-unit factors over a
-factored transition-probability matrix (`pyphi.core.repertoire_algebra`), so a
+factored transition-probability matrix ({mod}`pyphi.core.repertoire_algebra`), so a
 mechanism of $m$ units costs $O(m\,k^p)$ multiplications, and the results are
 memoized so repeated mechanism–purview pairs across the partition sweep are free.
 IIT 4.0's intrinsic-difference measures read the distribution in a single pass,
@@ -125,7 +125,7 @@ Sec 2.2):
 
 $$ |R| = 2^{\,2^n - 1} - 1. $$
 
-The counts are computed exactly by `pyphi.formalism.iit4.bounds`:
+The counts are computed exactly by {mod}`pyphi.formalism.iit4.bounds`:
 
 ```{code-cell} python
 import pyphi
@@ -163,20 +163,20 @@ the whole system at each, with no inner mechanism loop.
 The **2023** and **2026** variants have identical asymptotic cost. The 2026
 intrinsic-information term (Eq. 23) is evaluated once, at the already-selected
 minimum-information partition, an $O(1)$ step that does not change the number of
-partitions swept; `shortcircuit_sia` is a constant-factor pre-check that returns
+partitions swept; {attr}`~pyphi.conf.formalism.IITConfig.shortcircuit_sia` is a constant-factor pre-check that returns
 early when the system has no cause or effect.
 
 The published φ *upper bounds* — as opposed to the counts — are also codified,
-with citations, in `pyphi.formalism.iit4.bounds`: distinction φ is at most
+with citations, in {mod}`pyphi.formalism.iit4.bounds`: distinction φ is at most
 $|M|\,|Z|$ (Theorem 1), system $\varphi_s$ at most $n(n-1)$ (Table 2), the sum of
 distinction φ grows as $\approx \tfrac{n^2}{2}2^n$ (Eq. 6), and the sum of relation
 φ grows hyper-exponentially, $O(n^2\,2^{\,2^n})$ (Zaeemzadeh & Tononi, 2024).
 Alongside these worst-case, size-based ceilings, the same module provides
 *measured* certificates: given a computed distinction set,
-`sum_phi_relations_measured_bound` evaluates the paper's linear-program maximum
+{func}`~pyphi.formalism.iit4.bounds.sum_phi_relations_measured_bound` evaluates the paper's linear-program maximum
 on the measured per-atom profile — a certified bound on the sum of relation φ
 that is typically orders of magnitude tighter than the worst-case ceiling — and
-`big_phi_measured_bound` adds the exact distinction-φ sum to give a certified
+{func}`~pyphi.formalism.iit4.bounds.big_phi_measured_bound` adds the exact distinction-φ sum to give a certified
 ceiling on Φ.
 
 ### How it scales in practice
@@ -264,10 +264,10 @@ determines the practical ceiling at least as much as unit count does.
 ## Estimating a workload before running it
 
 Every count above is knowable before any φ is computed.
-`pyphi.estimate_analysis` walks the same enumeration machinery the analysis
+{func}`pyphi.estimate_analysis <pyphi.cost.estimate_analysis>` walks the same enumeration machinery the analysis
 would use — the active system partition scheme, the connectivity-pruned
 purview sets, the mechanism partitions per (mechanism, purview) size pair —
-and returns the counts as an `AnalysisEstimate`, without evaluating
+and returns the counts as an {class}`~pyphi.cost.AnalysisEstimate`, without evaluating
 anything:
 
 ```{code-cell} python
@@ -331,7 +331,7 @@ are already fixed (Marshall et al., 2024, Fig. 3E).
 Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ work,
 whose dominant, mapping-independent share is paid once per distinct
 (footprint, grain, apportionment) combination rather than once per candidate:
-those intermediates are cached per substrate (the `cache_macro_construction`
+those intermediates are cached per substrate (the {attr}`~pyphi.conf.infrastructure.InfrastructureConfig.cache_macro_construction`
 option, on by default), so candidates that differ only in their mapping reuse
 them. The estimate's
 `construction_keys_upper_bound` counts the distinct (footprint, grain) keys; under
@@ -417,7 +417,7 @@ into three kinds, and the distinction matters for how a result should be read:
 | `relation_computation` | `ANALYTICAL` (default); set `CONCRETE` to enumerate | exact reformulation (yields the count and summed φ, not individual relations) | removes the $2^D$ relation enumeration; the CES then scales like its distinctions alone |
 | `mechanism_partition_scheme` | `JOINT_PARTITION_ALL` / `WEDGE_TRIPARTITION` / `JOINT_BIPARTITION` | formalism choice | per-(mechanism, purview) partition count Bell-weighted $> 2^{m-1}3^p > 2^{m+p-1}$ |
 | `prune` (grain search) | `"certified"` (automatic under a measure that applies the intrinsic-information requirement); `"off"` evaluates everything | exact reformulation (identical complexes, ties, and verdicts; skipped candidates report their ii ceiling) | skips candidate partition sweeps certified below an overlapping accepted complex by the requirement; bites in sweep-heavy regimes (mapped-variant sweeps), while runs dominated by unit-derivation evaluations see parity |
-| `shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
+| {attr}`~pyphi.conf.formalism.IITConfig.shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
 | `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining search for its maximally irreducible cause and effect (MICE) once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
 | `parallel` | `False` → `True` | exact | constant factor set by the number of cores |
 | `system_partition_scheme` (3.0) | `DIRECTED_BIPARTITION` → `…_CUT_ONE` | approximation (upper bound on Φ) | system cuts $2^n \to 2n$ |
