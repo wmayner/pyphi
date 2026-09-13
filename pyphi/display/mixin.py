@@ -71,5 +71,14 @@ class Displayable:
             )
         return render(description, backend="html", verbosity=verbosity)
 
+    def _repr_pretty_(self, p, cycle: bool) -> None:
+        """IPython's pretty printer: the card on its own, the compact form
+        inside a container, so a list of results prints one line per item.
+        """
+        if cycle or len(p.stack) > 1:
+            p.text(self._compact_repr())
+        else:
+            p.text(repr(self))
+
     def _repr_mimebundle_(self, **kwargs) -> dict[str, str]:  # noqa: ARG002
         return {"text/plain": str(self), "text/html": self._repr_html_()}

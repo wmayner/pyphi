@@ -2,7 +2,9 @@
 
 Unlike the ASCII backend, this renders HTML-native structure: a header with a
 metric badge, sections as flex-wrapping panels (so cause/effect sit
-side-by-side), key/value grids, and real ``<table>`` elements for collections.
+side-by-side), and real ``<table>`` elements for both key/value rows and
+collections, so converting the card to plain text preserves the pairing of
+each label with its value.
 """
 
 from __future__ import annotations
@@ -71,8 +73,11 @@ _STYLE = f"""\
 .pyphi-section{{padding:8px 14px;border-top:1px solid var(--pc-soft)}}
 .pyphi-label{{font-weight:600;color:var(--pc-muted);font-size:10px;
  text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}}
-.pyphi-kv{{display:grid;grid-template-columns:var(--pc-kcol,auto) 1fr;gap:3px 14px}}
-.pyphi-k{{color:var(--pc-faint)}}
+table.pyphi-kv{{border-collapse:collapse;border-spacing:0;margin:0;width:auto}}
+table.pyphi-kv th,table.pyphi-kv td{{border:0;background:none;padding:1.5px 0;
+ text-align:left;vertical-align:baseline;font-weight:400}}
+table.pyphi-kv th.pyphi-k{{color:var(--pc-faint);padding-right:14px;
+ white-space:nowrap}}
 .pyphi-v{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}}
 .pyphi-extra{{color:var(--pc-faint);margin-left:10px;font-size:12px}}
 table.pyphi-table{{border-collapse:collapse;width:100%;font-size:12px}}
@@ -126,6 +131,15 @@ def _sub(text: str) -> str:
     return _SUBSCRIPT_RE.sub(r"\1<sub>\2</sub>", text)
 
 
+def _sub_title(text: str) -> str:
+    """``title`` attribute spelling out a subscripted symbol, else empty string.
+
+    Converting the card to plain text discards ``<sub>`` structure, so the
+    underscore spelling (e.g. ``φ_s``) travels with the element as a hint.
+    """
+    return f' title="{escape(text)}"' if _SUBSCRIPT_RE.search(text) else ""
+
+
 def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
     parts = [f'<span class="pyphi-v">{escape(format_value(value))}</span>']
     for name, val in extra:
@@ -137,12 +151,17 @@ def _value_html(value: object, extra: tuple[tuple[str, object], ...]) -> str:
 
 
 def _kv_html(rows: tuple[Row, ...]) -> str:
-    cells = []
+    trs = []
     for row in rows:
-        cells.append(f'<span class="pyphi-k">{_sub(escape(row.label))}</span>')
+        label = (
+            f'<th scope="row" class="pyphi-k" style="width:var(--pc-kcol)"'
+            f"{_sub_title(row.label)}>{_sub(escape(row.label))}</th>"
+        )
         val = _value_html(row.value, row.extra)
-        cells.append(f'<span class="pyphi-vcell{_tone_cls(row.tone)}">{val}</span>')
-    return f'<div class="pyphi-kv">{"".join(cells)}</div>'
+        trs.append(
+            f'<tr>{label}<td class="pyphi-vcell{_tone_cls(row.tone)}">{val}</td></tr>'
+        )
+    return f'<table class="pyphi-kv">{"".join(trs)}</table>'
 
 
 def _grid_cells(values: tuple[str, ...] | list[str], tag: str) -> str:

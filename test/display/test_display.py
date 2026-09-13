@@ -1366,4 +1366,30 @@ def test_html_card_emits_label_column_width():
     )
     out = html_backend.render(d, verbosity=2)
     assert 'class="pyphi-card" style="--pc-kcol:17ch"' in out
-    assert "grid-template-columns:var(--pc-kcol,auto) 1fr" in out
+    assert out.count('<th scope="row" class="pyphi-k" style="width:var(--pc-kcol)"') == 2
+
+
+def test_html_card_key_values_are_table_rows():
+    """Key/value rows survive HTML-to-text conversion, which drops CSS grids."""
+    d = Description(
+        title="Demo",
+        sections=(Section(label=None, rows=(Row("φ_s", 1.5),)),),
+    )
+    out = html_backend.render(d, verbosity=2)
+    assert '<table class="pyphi-kv"><tr><th scope="row"' in out
+    assert 'title="φ_s"' in out  # plain-text hint for the subscripted symbol
+    assert "φ<sub>s</sub></th>" in out
+    assert '<td class="pyphi-vcell"><span class="pyphi-v">1.5</span></td></tr>' in out
+
+
+def test_ipython_pretty_prints_compact_form_inside_containers():
+    """A list of results prints one compact line per item, not stacked cards."""
+    from IPython.lib.pretty import pretty
+
+    substrate = pyphi.examples.basic_substrate()
+    sia = pyphi.analyze(substrate, (1, 1, 0), compute="sia")
+    alone = pretty(sia)
+    listed = pretty([sia, sia])
+    assert alone.startswith("╭")
+    assert "╭" not in listed
+    assert listed.count(sia._compact_repr()) == 2
