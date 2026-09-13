@@ -98,6 +98,22 @@ for IIT research:
 - Documentation for any object is also available in the interpreter with the
   `help` function.
 
+### For AI assistants
+
+PyPhi ships an [MCP server](https://pyphi.readthedocs.io/en/stable/howto/mcp-server.html)
+(`pip install "pyphi[mcp]"`, then `pyphi-mcp install`) that gives an assistant
+tools for building substrates, estimating cost, and running analyses, along with
+the theory reference it needs to interpret results. The documentation site is
+also readable without it:
+
+- <https://pyphi.readthedocs.io/en/stable/llms.txt> lists every page with a
+  one-line summary; `llms-full.txt` at the same location is the whole site as
+  one markdown file.
+- Every page's MyST source is served under `_sources/`, for example
+  <https://pyphi.readthedocs.io/en/stable/_sources/theory/conditional-independence.md.txt>.
+- <https://pyphi.readthedocs.io/en/stable/objects.inv> is the intersphinx
+  inventory that maps API names to their pages.
+
 ## Installation
 
 PyPhi requires **Python 3.13+**.

@@ -1,0 +1,1 @@
+The documentation site now publishes `llms.txt` and `llms-full.txt` (the narrative pages as one markdown file) and a sitemap, and the landing page and README point AI assistants at the MCP server, the per-page sources, and the intersphinx inventory.

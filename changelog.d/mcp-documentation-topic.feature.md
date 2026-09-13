@@ -1,0 +1,1 @@
+The MCP server has a `documentation` reference topic describing how to read the documentation site programmatically (llms.txt, per-page sources, the API inventory), and the primer, migration, and visualization topics link to the pages they condense.

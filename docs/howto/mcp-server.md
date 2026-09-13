@@ -216,8 +216,9 @@ image.
 - `list_examples` / `load_example` — the standard networks from the IIT
   literature.
 - `build_substrate` — build a substrate from a transition probability matrix.
-- `describe_substrate` — inspect a substrate's nodes, connectivity, and state
-  convention.
+- `describe_substrate` — inspect a substrate's nodes, connectivity, state
+  convention, and its transition probability matrix as state-by-node rows
+  (up to 256 states).
 - `analyze` — compute system integrated information φₛ and the Φ-structure of a
   substrate in a state (under the default IIT 4.0 formalism, or an earlier
   version if you ask for one), optionally on multiple cores for that call
@@ -232,7 +233,8 @@ image.
   repertoires (`"repertoires"`), the causal connectivity graph
   (`"connectivity"`), or the transition probability matrix (`"tpm"`).
 - `get_iit_reference` — read the bundled, citation-checked reference on the
-  theory, the equations, and the common pitfalls.
+  theory, the equations, and the common pitfalls; its `documentation` topic
+  tells the assistant how to read this site directly (see below).
 
 **Resources** — the same reference documents, at `pyphi://theory/{topic}`.
 
@@ -285,3 +287,18 @@ launch reliable:
   aware that when the resolved package provides no such executable, `uvx` falls
   back to running whatever `pyphi-mcp` is on `PATH`, which can quietly start a
   different installation than the one you named.
+
+## Reading the documentation without the server
+
+An assistant that cannot run the server can still read this site directly.
+Three files are published for that purpose:
+
+- `llms.txt` at the site root lists every page with a one-line summary, and
+  `llms-full.txt` beside it is the whole narrative site as one markdown file
+  (the generated API pages are left out; the inventory below covers them).
+- Every page's MyST source is served under `_sources/`, so the markdown behind
+  this page is at `_sources/howto/mcp-server.md.txt` relative to the site root.
+- `objects.inv` is the intersphinx inventory: it maps every documented API name
+  to its page and anchor.
+
+On the stable site these resolve against `https://pyphi.readthedocs.io/en/stable/`.

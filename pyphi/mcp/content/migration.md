@@ -5,8 +5,10 @@ pre-2.0 name below is gone, not aliased, so old code raises `ImportError` or
 `AttributeError` until it is updated. When helping someone port their code,
 change every occurrence — a partial rename will not run.
 
-(The full human-readable guide is `docs/migration/migration-2.0.md`; this is
-the condensed agent-facing copy. Keep the two in sync.)
+(The full guide is at
+https://pyphi.readthedocs.io/en/stable/migration/migration-2.0.html, with its
+markdown source at `_sources/migration/migration-2.0.md.txt` under the same
+site root; this is the condensed agent-facing copy. Keep the two in sync.)
 
 ## 1. Renames at a glance
 

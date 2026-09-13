@@ -38,6 +38,8 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx_tippy",
+    "sphinx_llms_txt",
+    "sphinx_sitemap",
 ]
 
 templates_path = ["_templates"]
@@ -158,3 +160,23 @@ html_theme_options = {
 }
 html_show_sphinx = False
 html_sidebars = {"**": ["sidebar-collapse", "search-field", "sidebar-nav-all"]}
+
+# --- Machine-readable copies of the site --------------------------------------
+# Read the Docs sets READTHEDOCS_CANONICAL_URL per version; the stable URL is
+# the fallback for local builds. The base URL is what the sitemap and llms.txt
+# resolve page links against.
+html_baseurl = os.environ.get(
+    "READTHEDOCS_CANONICAL_URL", "https://pyphi.readthedocs.io/en/stable/"
+)
+sitemap_url_scheme = "{link}"
+llms_txt_title = "PyPhi"
+llms_txt_summary = (
+    "PyPhi computes the quantities of Integrated Information Theory (IIT 4.0): "
+    "system integrated information, cause-effect structures, and related "
+    "measures, for discrete dynamical systems given as transition probability "
+    "matrices."
+)
+# The narrative pages only: the generated API stubs would triple the size of
+# llms-full.txt (the intersphinx inventory, objects.inv, resolves API names),
+# and the demo notebook's source is JSON with embedded outputs.
+llms_txt_exclude = ["reference/_autosummary/*", "examples/IIT_4.0_demo"]

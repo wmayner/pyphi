@@ -44,6 +44,20 @@ Moving to PyPhi 2.0 from earlier versions and related tools.
 :::
 ::::
 
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} {octicon}`dependabot` AI assistants
+:link: howto/mcp-server
+:link-type: doc
+PyPhi ships an MCP server that lets an assistant build substrates, size runs,
+and analyze them with the formalism recorded on every result. The site is also
+readable without it: `llms.txt` and `llms-full.txt` at the site root, the MyST
+source of every page under `_sources/`, and `objects.inv` for resolving API
+names.
+:::
+::::
+
 ---
 
 If you use this software in your research, please cite the software paper:

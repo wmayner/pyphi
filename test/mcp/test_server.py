@@ -199,6 +199,7 @@ def test_reference_topics_load():
         "parallelization",
         "campaigns",
         "visualization",
+        "documentation",
         "reproducible-work",
     }
     for topic in topics:
@@ -675,3 +676,32 @@ def test_estimate_cost_states_what_the_seconds_cover(basic_handle):
     assert "system-partition" in full["estimated_cpu_seconds_covers"]
     assert sia["estimated_cpu_seconds"] is None
     assert "system-partition" in sia["estimated_cpu_seconds_covers"]
+
+
+def test_substrate_summary_carries_the_tpm_as_rows(basic_handle):
+    tpm = srv.describe_substrate(basic_handle)["tpm"]
+    assert tpm["form"] == "state-by-node"
+    assert tpm["units"] == ["A", "B", "C"]
+    rows = {tuple(r["state"]): r["p_on"] for r in tpm["rows"]}
+    assert len(rows) == 8
+    # A is the OR of B and C, B copies C, C is the XOR of A and B.
+    for (a, b, c), p_on in rows.items():
+        assert p_on == [float(b or c), float(c), float(a ^ b)]
+
+
+def test_multivalued_summary_uses_per_unit_distributions():
+    handle = srv.load_example("gomez_p53_mdm2")["handle"]
+    tpm = srv.describe_substrate(handle)["tpm"]
+    assert tpm["alphabet_sizes"] == [3, 2, 2]
+    row = tpm["rows"][0]
+    assert "p_next" in row
+    assert [len(d) for d in row["p_next"]] == [3, 2, 2]
+    assert all(abs(sum(d) - 1.0) < 1e-9 for d in row["p_next"])
+
+
+def test_large_substrate_summary_omits_the_tpm():
+    n = 9  # 512 states, above the limit
+    handle = srv.build_substrate(tpm=[[0] * n for _ in range(2**n)])["handle"]
+    tpm = srv.describe_substrate(handle)["tpm"]
+    assert "rows" not in tpm
+    assert "512 states" in tpm["omitted"]

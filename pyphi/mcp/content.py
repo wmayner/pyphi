@@ -81,6 +81,12 @@ TOPICS: dict[str, tuple[str, str]] = {
         "seeding, the provenance writers, filename and no-clobber "
         "conventions, and saving raw values alongside summaries.",
     ),
+    "documentation": (
+        "documentation.md",
+        "Reading the full documentation site programmatically: llms.txt, "
+        "per-page markdown sources, the API inventory, and what each section "
+        "of the site covers.",
+    ),
 }
 
 

@@ -53,8 +53,11 @@ reference.
 These tools cover the common path. For anything beyond them — sweeps over many
 systems, macro (coarse-graining), actual causation, relation queries, saving and
 loading results — drive PyPhi through its Python API. Consult the documentation
-at https://pyphi.readthedocs.io, or the installed package's own docstrings
-(`help(pyphi.analyze)`, `dir(pyphi)`), rather than guessing method names.
+(`get_iit_reference("documentation")` lists its machine-readable entry points:
+`llms.txt`, per-page markdown sources, and the API inventory at
+https://pyphi.readthedocs.io/en/stable/), or the installed package's own
+docstrings (`help(pyphi.analyze)`, `dir(pyphi)`), rather than guessing method
+names.
 
 When you run PyPhi in a shell rather than through these tools, use the project's
 virtual environment — `uv run python` if it is a uv project, otherwise the

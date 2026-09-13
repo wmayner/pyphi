@@ -107,5 +107,6 @@ way, `fig.savefig("figure.png")`.
 This covers the cause-effect-structure plots. For the complete walkthrough of
 every helper on a worked example — connectivity, repertoires, trajectories, the
 Ising building blocks, and Φ-fold highlighting — see the "Visualize results"
-how-to at https://pyphi.readthedocs.io, or read the docstrings directly
-(`help(pyphi.visualize.plot_ces)`).
+how-to at https://pyphi.readthedocs.io/en/stable/howto/visualize.html (markdown
+source: `_sources/howto/visualize.md.txt` under the site root), or read the
+docstrings directly (`help(pyphi.visualize.plot_ces)`).

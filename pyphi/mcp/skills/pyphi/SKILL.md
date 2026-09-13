@@ -98,4 +98,6 @@ provenance; and save per-trial values alongside any summary computed from them.
 ## References
 
 `references/` holds one file per reference topic. Read the one the task calls
-for rather than all of them.
+for rather than all of them. For anything they do not cover, the documentation
+site is readable directly: `references/documentation.md` gives its `llms.txt`,
+per-page markdown sources, and API inventory.

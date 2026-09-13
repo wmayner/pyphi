@@ -183,6 +183,59 @@ def _get_substrate(handle: str) -> Any:
         ) from None
 
 
+#: Largest state count for which a substrate summary carries its TPM as text.
+TPM_MAX_STATES = 256
+
+
+def _tpm_rows(substrate: Any) -> dict[str, Any]:
+    """The substrate's TPM in state-by-node form, as JSON-ready rows.
+
+    One row per current state, in little-endian order (the first unit varies
+    fastest). For binary units each row carries ``p_on``, the probability
+    that each unit is on at the next step; otherwise ``p_next``, each unit's
+    distribution over its own alphabet. Substrates with more than
+    ``TPM_MAX_STATES`` states get a note instead of the rows.
+    """
+    factored = substrate.factored_tpm
+    sizes = tuple(int(k) for k in factored.alphabet_sizes)
+    num_states = int(np.prod(sizes))
+    if num_states > TPM_MAX_STATES:
+        return {
+            "omitted": (
+                f"{num_states} states exceeds the {TPM_MAX_STATES}-state limit; "
+                "use plot(kind='tpm') or load the substrate in a script."
+            )
+        }
+    binary = all(k == 2 for k in sizes)
+    rows = []
+    for state in pyphi.utils.all_states(sizes):
+        dists = [
+            np.asarray(factored._factor_at(i, state), dtype=float)
+            for i in range(len(sizes))
+        ]
+        row: dict[str, Any] = {"state": list(state)}
+        if binary:
+            row["p_on"] = [round(float(d[1]), 6) for d in dists]
+        else:
+            row["p_next"] = [[round(float(x), 6) for x in d] for d in dists]
+        rows.append(row)
+    return {
+        "form": "state-by-node",
+        "units": list(map(str, substrate.node_labels)),
+        "alphabet_sizes": list(sizes),
+        "rows": rows,
+        "note": (
+            "Each row is a current state (little-endian: the first unit varies "
+            "fastest) and, per unit, "
+            + (
+                "the probability that the unit is on at the next step."
+                if binary
+                else "the distribution over that unit's next state."
+            )
+        ),
+    }
+
+
 def _substrate_summary(substrate: Any) -> dict[str, Any]:
     return {
         "num_nodes": substrate.size,
@@ -191,6 +244,7 @@ def _substrate_summary(substrate: Any) -> dict[str, Any]:
         if hasattr(substrate, "tpm")
         else None,
         "connectivity_matrix": np.asarray(substrate.cm).astype(int).tolist(),
+        "tpm": _tpm_rows(substrate),
     }
 
 
@@ -369,7 +423,7 @@ def load_example(name: str) -> dict[str, Any]:
     -------
     dict
         The substrate ``handle`` (pass it to ``analyze``/``describe_substrate``)
-        and a summary of its nodes and connectivity.
+        and a summary of its nodes, connectivity, and TPM.
     """
     try:
         func = examples.EXAMPLES["substrate"][name]
@@ -438,8 +492,9 @@ def describe_substrate(handle: str) -> dict[str, Any]:
     Returns
     -------
     dict
-        The substrate's nodes, labels, connectivity, state count, and a
-        reminder of the little-endian state-index convention.
+        The substrate's nodes, labels, connectivity, state count, its TPM
+        as state-by-node rows (omitted above ``TPM_MAX_STATES`` states), and
+        a reminder of the little-endian state-index convention.
     """
     substrate = _get_substrate(handle)
     return {
