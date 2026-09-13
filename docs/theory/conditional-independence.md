@@ -21,10 +21,26 @@ happen to do at the same step:
 
 $$ p(\bar{u} \mid u) = \prod_{i=1}^{n} p(\bar{u}_i \mid u). $$
 
+The assumption follows from what a substrate is taken to be. A substrate is a
+complete causal model: it contains every variable that influences its units,
+so any dependence between them can be traced to a state inside the model rather
+than to something left out (Albantakis et al., 2019). Time in the model is
+explicit and discrete, and units act on one another only from one step to the
+next, never within a step. Its transition probabilities are defined by
+intervention: each state is imposed with the do-operator and the next state
+observed, so the units are physical in the sense that each can be observed and
+manipulated on its own (Albantakis et al., 2023). Put together, once the whole
+previous state is fixed there is nothing left for two units' next states to
+share. Any residual correlation between them would have to come from a common
+influence within the same step, which a complete model rules out. The joint
+transition therefore factors into one term per unit.
+
 This is what lets a substrate be described by per-unit transition probabilities
-(a state-by-node transition probability matrix) rather than by joint transitions.
-It is the second equation of the IIT 4.0 formalism (Albantakis et al., 2023,
-Eq. 2), and PyPhi requires it of every substrate.
+(a state-by-node transition probability matrix) rather than by joint transitions,
+and it is what allows a partition to be applied to individual connections: noising
+one unit's inputs changes that unit's factor and leaves the others as they were.
+The assumption is the second equation of the IIT 4.0 formalism (Albantakis et
+al., 2023, Eq. 2), and PyPhi requires it of every substrate.
 
 ## PyPhi enforces it
 
@@ -73,3 +89,11 @@ the same two units, introducing a third unit whose state decides whether they
 flip; the resulting three-unit substrate satisfies conditional independence and
 is accepted. Deterministic transitions are always conditionally independent, so
 deterministic substrates never run into this constraint.
+
+## References
+
+- Albantakis L, Marshall W, Hoel E, Tononi G (2019). What caused what? A
+  quantitative account of actual causation using dynamical causal networks.
+  *Entropy* 21(5): 459.
+- Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023). Integrated
+  information theory (IIT) 4.0. *PLOS Computational Biology* 19(10): e1011465.
