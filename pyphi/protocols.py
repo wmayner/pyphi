@@ -1,9 +1,9 @@
 # pyright: strict
 """Runtime-checkable Protocols for PyPhi's dispatch points and core abstractions.
 
-Defines the structural contracts that registered metrics, partition schemes,
+Defines the structural contracts that registered measures, partition schemes,
 and phi formalisms must satisfy. The corresponding registries
-(the typed metric registries in :mod:`pyphi.measures.distribution`,
+(the typed measure registries in :mod:`pyphi.measures.distribution`,
 ``pyphi.partition.partition_types``) validate registered objects against
 these Protocols at registration time, so wrong-shape registrations fail
 at import — not at the bottom of a long phi computation.

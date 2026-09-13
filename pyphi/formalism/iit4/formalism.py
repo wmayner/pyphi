@@ -6,7 +6,8 @@ Two variants are registered:
 - ``IIT_4_0_2023``: Albantakis et al. 2023. Default measure
   ``GENERALIZED_INTRINSIC_DIFFERENCE``.
 - ``IIT_4_0_2026``: Mayner, Marshall, Tononi 2026. Default measure
-  ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff, i_spec)`` cap.
+  ``INTRINSIC_INFORMATION`` and the intrinsic-information requirement:
+  φₛ = min(φ_c, φ_e, ii(s)) with ``ii(s) = min(i_diff, i_spec)``.
 
 Both delegate to the algorithms in :mod:`pyphi.formalism.iit4` (the
 ``__init__`` module that holds ``sia``, ``ces``,

@@ -1,5 +1,6 @@
 """Cartesian batch driver: run an IIT computation across substrates, states,
-subsystems, and formalisms, and collect the results into one tidy DataFrame.
+candidate subsets, and formalisms, and collect the results into one tidy
+DataFrame.
 
 ``sweep`` takes one or more substrates and up to three further axes (states,
 candidate subsets, formalisms), runs the chosen computation on the cartesian

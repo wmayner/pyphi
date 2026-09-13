@@ -3,7 +3,7 @@
 
 The IIT 4.0 system-level analysis lives in
 :mod:`pyphi.formalism.iit4` (under the same name); the class here is the
-IIT 3.0 result type that ``compute.system.sia`` produces.
+IIT 3.0 result type that :func:`pyphi.formalism.iit3.sia` produces.
 """
 
 from __future__ import annotations
