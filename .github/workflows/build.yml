@@ -81,3 +81,29 @@ jobs:
           pyphi.examples.basic_substrate()
           print('PyPhi imported successfully')
           "
+
+  # Publishes the distributions built above to PyPI when a version tag is
+  # pushed, after the fresh-install test has passed on every platform. Uses
+  # PyPI trusted publishing (OIDC): no token is stored. One-time setup on
+  # PyPI: add a trusted publisher for the project with owner "wmayner",
+  # repository "pyphi", workflow "build.yml", environment "pypi". A tag such
+  # as v2.0.0rc1 publishes a pre-release, which pip installs only with --pre.
+  publish:
+    needs: test-install
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pyphi/
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

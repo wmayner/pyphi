@@ -44,6 +44,10 @@ defect at least once; skipping one is how regressions ship.
 ## After tagging
 
 11. Push the tag and the release branch only after every gate above is
-    green; publish to PyPI from CI, not a laptop.
+    green. The `publish` job in `.github/workflows/build.yml` uploads to
+    PyPI on any `v*` tag once the fresh-install test passes on every
+    platform (PyPI trusted publishing, environment `pypi`; no token). A
+    pre-release tag such as `v2.0.0rc1` publishes a pre-release that
+    `pip` installs only with `--pre`.
 12. Verify `pip install pyphi` in a fresh environment imports and runs the
     README example.
