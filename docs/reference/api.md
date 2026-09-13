@@ -10,6 +10,9 @@ protocols, type aliases, utilities) are not listed.
 `import pyphi` gives the everyday API in one place: `Substrate`, `System`,
 `analyze`, `sweep`, `examples`, `config`, and the formalism presets.
 
+The [example networks](examples.md) page shows every registered example
+rendered from the objects themselves.
+
 ```{eval-rst}
 .. autosummary::
    :toctree: _autosummary
