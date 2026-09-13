@@ -40,84 +40,156 @@ _VALID_ALPHA_AGGREGATIONS = frozenset({"SUBTRACTIVE"})
 class IITConfig:
     """IIT-formalism configuration sub-namespace.
 
-    Background conditioning (``background_conditioning``)
-        How substrate units outside the candidate system (the background)
-        enter cause repertoires when the system is a proper subset of its
-        substrate:
-
-        - ``"CAUSAL_MARGINALIZATION"`` (default): the background past is
-          causally marginalized conditional on the current state — the
-          "extended background" of IIT 4.0 (Albantakis et al. 2023, Eq. 4).
-          Definitional for IIT 4.0.
-        - ``"CONDITION_CURRENT_STATE"``: the background is fixed at its
-          observed current state — the convention of PyPhi 1.x and the
-          post-2014 IIT 3.0 literature. Selected by ``presets.iit3`` so
-          that IIT 3.0 analyses of proper-subset systems reproduce
-          published results.
-
-        The IIT 3.0 paper itself (Oizumi et al. 2014, Box 1) fixes the
-        background at its actual *past* state on the cause side. That
-        convention requires the past state as an input, which no PyPhi
-        version has ever taken, and it is not implemented.
-
-        The effect side conditions the background at its current state
-        under every convention, and full-substrate systems have no
-        background, so the setting affects neither. Actual-causation
-        analyses are unaffected: the AC background rule is set by
-        ``ActualCausationConfig.background_scheme``.
-
-    Reducibility short-circuiting (``shortcircuit_sia``)
-        When ``True`` (default), IIT 4.0 analyses stop early on detected
-        reducibility: a system whose specified state has no cause or no
-        effect returns a null SIA without a partition search, and the
-        system- and mechanism-level partition sweeps stop at the first
-        partition with zero integrated information. Early stops leave
-        selection margins undefined (``partition_margin`` is ``None``)
-        because the remaining partitions were never evaluated. When
-        ``False``, every partition is evaluated: reducible cases cost the
-        full sweep, computed φ values are unchanged, and selection
-        margins are exact everywhere. Does not gate IIT 3.0's early-exit
-        logic.
-
-    Distinction short-circuiting (``shortcircuit_distinctions``)
-        When ``True`` (default), evaluating a distinction stops early on
-        detected reducibility: if the effect direction has no candidate
-        purviews, neither MICE search runs, and if the cause MICE comes
-        out with φ = 0, the effect search is skipped. A skipped
-        direction is a null MICE carrying the
-        ``OTHER_DIRECTION_REDUCIBLE`` reason; its φ reads 0 as a
-        placeholder (that direction's own maximal φ is unknown), and its
-        selection margins and ties are absent. The distinction's φ —
-        the minimum across directions — is unaffected, so cause-effect
-        structures are identical either way; only the contents of
-        zero-φ distinctions differ. When ``False``, both directions are
-        always evaluated in full, with exact margins and complete ties.
-        Applies to every formalism, including IIT 3.0 concepts.
+    Which IIT version computes results and the measures, partition schemes,
+    background conditioning, short-circuiting, and tie-resolution policies
+    it uses. Each attribute documents its own values; the presets
+    ``pyphi.iit3``, ``pyphi.iit4_2023``, and ``pyphi.iit4_2026`` set them
+    together so that a version never runs with options it does not define.
     """
 
     version: str = "IIT_4_0_2026"
+    """Which IIT formalism computes results: ``"IIT_4_0_2026"`` (default;
+    IIT 4.0 with the intrinsic-information requirement of Mayner et al.
+    2026), ``"IIT_4_0_2023"`` (Albantakis et al. 2023), or ``"IIT_3_0"``
+    (Oizumi et al. 2014). Select a version through a preset
+    (``pyphi.iit3``, ``pyphi.iit4_2023``, ``pyphi.iit4_2026``) or the
+    ``formalism=`` argument of :func:`pyphi.analyze`, which also set the
+    measures and schemes the version requires; changing this option alone
+    can leave the others at values the version rejects."""
     mechanism_phi_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    """The distance between a mechanism's repertoire and its partitioned
+    repertoire, from which a distinction's φ is computed. IIT 4.0 accepts
+    ``"GENERALIZED_INTRINSIC_DIFFERENCE"`` (default) and
+    ``"INTRINSIC_INFORMATION"``. IIT 3.0 accepts a distribution distance:
+    ``"EMD"`` (the 2014 paper's earth mover's distance, set by the ``iit3``
+    preset), ``"KLD"``, ``"L1"``, ``"ENTROPY_DIFFERENCE"``, ``"ID"``,
+    ``"AID"``, ``"PSQ2"``, or ``"MP2Q"``. A version rejects a measure it
+    does not define."""
     system_phi_measure: str = "INTRINSIC_INFORMATION"
+    """How system integrated information φₛ is computed under IIT 4.0.
+    ``"INTRINSIC_INFORMATION"`` (default) applies the intrinsic-information
+    requirement, φₛ = min(φ_c, φ_e, ii(s)) (Mayner et al. 2026, Eq. 23);
+    ``"GENERALIZED_INTRINSIC_DIFFERENCE"`` gives the 2023 definition,
+    φₛ = min(φ_c, φ_e), without it. IIT 3.0 does not read this option."""
     specification_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
+    """The measure that selects the specified state, the purview or system
+    state with maximal intrinsic information, under IIT 4.0:
+    ``"GENERALIZED_INTRINSIC_DIFFERENCE"`` (default),
+    ``"INTRINSIC_INFORMATION"``, or ``"INTRINSIC_SPECIFICATION"``. IIT 3.0
+    does not read this option."""
     ces_measure: str = "SUM_SMALL_PHI"
+    """The distance between the unpartitioned and partitioned cause-effect
+    structures, which is IIT 3.0's system-level Φ: ``"SUM_SMALL_PHI"``
+    (default; the summed φ of the concepts the partition destroys or
+    changes) or ``"EMD"`` (the 2014 paper's earth mover's distance over
+    concept space, set by the ``iit3`` preset). IIT 4.0 accepts only
+    ``"SUM_SMALL_PHI"``."""
     mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
+    """How a mechanism and its purview are partitioned when a distinction's
+    irreducibility is evaluated: ``"JOINT_PARTITION_ALL"`` (default; every
+    partition of the mechanism and purview into any number of parts, the
+    IIT 4.0 scheme), ``"JOINT_BIPARTITION"`` (bipartitions only, the IIT
+    3.0 scheme, set by the ``iit3`` preset), or ``"WEDGE_TRIPARTITION"``
+    (bipartitions of the mechanism with a third part cut from the
+    purview)."""
     system_partition_scheme: str = "DIRECTED_SET_PARTITION"
+    """How a system is partitioned when φₛ is evaluated:
+    ``"DIRECTED_SET_PARTITION"`` (default; every set partition of the units
+    with a direction assigned to each part, the IIT 4.0 scheme),
+    ``"DIRECTED_BIPARTITION"`` (the IIT 3.0 scheme, set by the ``iit3``
+    preset), ``"DIRECTED_BIPARTITION_CUT_ONE"``,
+    ``"DIRECTED_BIPARTITION_SEQUENTIAL"``, ``"EDGE_CUT_ALL"``, or
+    ``"EDGE_CUT_BIDIRECTIONAL"``. IIT 3.0 accepts only the two directed
+    bipartition schemes. Under IIT 4.0 a non-default scheme computes a
+    well-defined φₛ for that scheme, which is not the papers' value."""
     system_partition_include_total: bool = False
+    """Whether the system partition search includes the total partition,
+    which severs every connection (default ``False``). A single-unit system
+    always includes it, since it has no other partition."""
     distinction_phi_normalization: str = "NUM_CONNECTIONS_CUT"
+    """How a distinction's φ is normalized before candidate partitions are
+    compared: ``"NUM_CONNECTIONS_CUT"`` (default; divided by the number of
+    connections the partition severs, the IIT 4.0 rule) or ``"NONE"`` (the
+    raw value, set by the ``iit3`` preset)."""
     background_conditioning: str = "CAUSAL_MARGINALIZATION"
+    """How the units outside a candidate system (its background) enter its
+    cause repertoires when the system is a proper subset of the substrate:
+    ``"CAUSAL_MARGINALIZATION"`` (default; the background's past is causally
+    marginalized conditional on the current state, the extended background
+    of IIT 4.0, Albantakis et al. 2023, Eq. 4) or
+    ``"CONDITION_CURRENT_STATE"`` (the background is fixed at its observed
+    current state, the PyPhi 1.x convention, set by the ``iit3`` preset and
+    the only value IIT 3.0 accepts). The effect side conditions the
+    background at its current state under both, and a system that is the
+    whole substrate has no background, so neither is affected."""
     relation_computation: str = "ANALYTICAL"
+    """How the relations of a Φ-structure are computed: ``"ANALYTICAL"``
+    (default; relation counts and φ sums in closed form, without
+    enumerating relations, so individual relations cannot be listed) or
+    ``"CONCRETE"`` (every relation enumerated, which grows exponentially
+    with the number of distinctions). See :mod:`pyphi.relations`."""
     assume_partitions_cannot_create_new_concepts: bool = False
+    """IIT 3.0 only. When ``True``, evaluating a system partition considers
+    only the mechanisms that were concepts in the unpartitioned system,
+    which is faster but misses concepts a partition creates. Default
+    ``False``."""
     shortcircuit_sia: bool = True
+    """When ``True`` (default), IIT 4.0 analyses stop early on detected
+    reducibility: a system whose specified state has no cause or no effect
+    returns a null result without a partition search, and the system- and
+    mechanism-level partition sweeps stop at the first partition with zero
+    integrated information. Computed φ values are unchanged; early stops
+    leave the selection margins undefined, since the remaining partitions
+    were never evaluated. When ``False``, every partition is evaluated and
+    the margins are exact. Does not affect IIT 3.0's own early exits."""
     shortcircuit_distinctions: bool = True
+    """When ``True`` (default), evaluating a distinction stops early on
+    detected reducibility: if the effect direction has no candidate
+    purviews, neither search runs, and if the cause's maximally irreducible
+    purview has φ = 0, the effect search is skipped. The distinction's φ,
+    the minimum over the two directions, is unchanged, so cause-effect
+    structures are identical either way; only the contents of zero-φ
+    distinctions differ (the skipped direction is a null result without
+    margins or ties). Applies to every formalism."""
     single_micro_nodes_with_selfloops_have_phi: bool = True
+    """Whether a single-unit system whose unit has a self-connection can
+    have positive φₛ (default ``True``). When ``False``, such systems have
+    φₛ = 0 by definition, the PyPhi 1.x convention set by the ``iit3``
+    preset. A single unit without a self-connection has φₛ = 0 regardless."""
     state_tie_resolution: str = "PHI"
+    """How a tie among candidate specified states is broken: a strategy name
+    or a list applied in order, keeping the candidates that are extremal
+    under each. ``"PHI"`` (default) keeps the states with maximal φ, and
+    the tie survives in the result if several remain. Other strategies:
+    ``"NORMALIZED_PHI"``, ``"PURVIEW_SIZE"``, their ``"NEGATIVE_*"``
+    forms, ``"PARTITION_LEX"``, and ``"NONE"`` (keep all). See
+    :doc:`/howto/tie-breaking`."""
     mip_tie_resolution: Sequence[str] = field(
         default_factory=lambda: ("NORMALIZED_PHI", "NEGATIVE_PHI")
     )
+    """How a tie among a mechanism's candidate partitions at the minimum is
+    broken, a list of strategies applied in order. The default
+    ``("NORMALIZED_PHI", "NEGATIVE_PHI")`` keeps the partitions with the
+    smallest normalized φ, then those with the largest raw φ; the ``iit3``
+    preset uses ``("PHI", "PARTITION_LEX")``. See
+    :doc:`/howto/tie-breaking`."""
     purview_tie_resolution: str | Sequence[str] = "PHI"
+    """How a tie among purviews with maximal φ is broken, a strategy name or
+    a list applied in order. ``"PHI"`` (default) keeps every purview at the
+    maximum, so the tie is reported on the result; the ``iit3`` preset uses
+    ``("PHI", "PURVIEW_SIZE")``, which then keeps the largest purview, the
+    PyPhi 1.x convention. See :doc:`/howto/tie-breaking`."""
     sia_tie_resolution: Sequence[str] = field(
         default_factory=lambda: ("NORMALIZED_PHI", "NEGATIVE_PHI", "PARTITION_LEX")
     )
+    """How a tie among system partitions at the minimum is broken, a list of
+    strategies applied in order. The default ``("NORMALIZED_PHI",
+    "NEGATIVE_PHI", "PARTITION_LEX")`` keeps the partitions with the
+    smallest normalized φ, then the largest raw φ, then the first in
+    lexicographic order, so one minimum information partition is always
+    selected; a ``partition_margin`` of zero on the result records that
+    it was tied. The ``iit3`` preset uses ``("PHI", "PARTITION_LEX")``.
+    See :doc:`/howto/tie-breaking`."""
 
     __repr__ = yaml_repr
 
@@ -172,17 +244,32 @@ class ActualCausationConfig:
     """
 
     version: str = "AC_2019"
+    """The actual-causation formalism: ``"AC_2019"`` (Albantakis et al. 2019)
+    is the only registered version."""
     alpha_measure: str = "PMI"
-    # The partition family for actual-causation MIP search. JOINT_PARTITION_ALL
-    # is the Albantakis et al. (2019) family (Eq. 7 + Fig. 3B: all partitions of
-    # the occurrence, excluding the m=1 non-full-cut cases forbidden for
-    # first-order occurrences). Other registered schemes are deliberate
-    # variants — notably JOINT_BIPARTITION admits those m=1 partitions and so
-    # yields alpha below the published values on first-order occurrences.
+    """The pointwise information measure behind a causal link's strength α:
+    ``"PMI"`` (default; pointwise mutual information, the 2019 paper) or
+    ``"WPMI"`` (pointwise mutual information weighted by the probability of
+    the occurrence)."""
     mechanism_partition_scheme: str = "JOINT_PARTITION_ALL"
+    """The family of partitions searched for an occurrence's minimum
+    information partition: ``"JOINT_PARTITION_ALL"`` (default; the 2019
+    paper's family, Eq. 7 and Fig. 3B, which excludes the single-part cuts
+    the paper forbids for first-order occurrences), ``"JOINT_BIPARTITION"``
+    (a variant that admits those cuts and so gives lower α on first-order
+    occurrences), or ``"WEDGE_TRIPARTITION"``. Read independently of the
+    IIT option of the same name."""
     partitioned_repertoire_scheme: str = "PRODUCT"
+    """How the partitioned repertoire of an occurrence is formed:
+    ``"PRODUCT"`` (the product of the parts' repertoires) is the only
+    registered value."""
     background_scheme: str = "UNIFORM"
+    """How units outside the transition are treated: ``"UNIFORM"``
+    (marginalized under a uniform distribution) is the only registered
+    value."""
     alpha_aggregation: str = "SUBTRACTIVE"
+    """How α is obtained from the unpartitioned and partitioned information:
+    ``"SUBTRACTIVE"`` (their difference) is the only registered value."""
 
     __repr__ = yaml_repr
 

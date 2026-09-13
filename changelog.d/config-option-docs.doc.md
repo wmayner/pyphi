@@ -1,0 +1,1 @@
+Every configuration option carries a docstring stating what it controls, its accepted values, and which preset changes it; the configuration reference lists them by layer with their defaults and renders the full descriptions.

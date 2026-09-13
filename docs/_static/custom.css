@@ -372,3 +372,14 @@ html .tippy-box p { margin: 0.3rem 0; }
 html .tippy-box dt, .tippy-box .sig-name, .tippy-box .sig-prename { font-weight: 600; }
 html .tippy-box a { color: var(--pp-link); }
 html .tippy-box code { font-family: var(--pst-font-family-monospace); font-size: 0.85em; }
+
+/* ---- Configuration option list ------------------------------------------- */
+
+.pp-options h2 { margin-top: 2rem; }
+.pp-options h2 small { font-family: var(--pst-font-family-monospace); font-size: 0.8rem; font-weight: 400; color: var(--pp-muted); }
+.pp-options dl { margin: 0.5rem 0 0; }
+.pp-options dt { margin-top: 0.6rem; font-weight: 400; }
+.pp-options dt code { font-weight: 600; }
+.pp-options .pp-default { font-family: var(--pst-font-family-monospace); font-size: 0.85rem; color: var(--pp-muted); margin-left: 0.4rem; }
+.pp-options dd { margin: 0.15rem 0 0 1.2rem; max-width: 70ch; color: var(--pp-text); }
+.pp-options dd code { font-size: 0.85em; }

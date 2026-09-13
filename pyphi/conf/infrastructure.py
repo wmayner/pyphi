@@ -66,6 +66,10 @@ class InfrastructureConfig:
     """
 
     parallel: bool = False
+    """Master switch for parallel computation (default ``False``). ``False``
+    runs every level sequentially; ``True`` permits the levels whose own
+    ``parallel_*_evaluation`` mapping has ``parallel`` set. See
+    :doc:`/howto/parallel`."""
     # Each level's sequential_threshold is the dispatch gate (workloads
     # below it run sequentially) and encodes that level's typical per-item
     # cost: parallel dispatch amortizes at roughly 0.5-1 s of total work
@@ -79,98 +83,192 @@ class InfrastructureConfig:
     parallel_complex_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**4, 2**6, progress=True)
     )
+    """Parallelism for the candidate systems of a complexes search: a mapping with the
+    keys ``parallel`` (whether this level may run in parallel; ``False`` by
+    default), ``sequential_threshold`` (workloads with fewer items than this run
+    sequentially regardless), ``chunksize`` (items per task), and ``progress``
+    (show a progress bar). A partial mapping merges over the level's defaults;
+    unknown keys are rejected. The master switch ``parallel`` must also be on.
+    See :doc:`/howto/parallel`."""
     parallel_partition_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**6, 2**12, progress=False)
     )
+    """Parallelism for the system partitions of a system irreducibility analysis: a
+    mapping with the keys ``parallel`` (whether this level may run in parallel;
+    ``False`` by default), ``sequential_threshold`` (workloads with fewer items
+    than this run sequentially regardless), ``chunksize`` (items per task), and
+    ``progress`` (show a progress bar). A partial mapping merges over the
+    level's defaults; unknown keys are rejected. The master switch ``parallel``
+    must also be on. See :doc:`/howto/parallel`."""
     parallel_distinction_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**6, 2**8, progress=True)
     )
+    """Parallelism for the mechanisms of a cause-effect structure: a mapping with the
+    keys ``parallel`` (whether this level may run in parallel; ``False`` by
+    default), ``sequential_threshold`` (workloads with fewer items than this run
+    sequentially regardless), ``chunksize`` (items per task), and ``progress``
+    (show a progress bar). A partial mapping merges over the level's defaults;
+    unknown keys are rejected. The master switch ``parallel`` must also be on.
+    See :doc:`/howto/parallel`."""
     parallel_purview_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**6, 2**8, progress=True)
     )
+    """Parallelism for the candidate purviews of a mechanism: a mapping with the keys
+    ``parallel`` (whether this level may run in parallel; ``False`` by default),
+    ``sequential_threshold`` (workloads with fewer items than this run
+    sequentially regardless), ``chunksize`` (items per task), and ``progress``
+    (show a progress bar). A partial mapping merges over the level's defaults;
+    unknown keys are rejected. The master switch ``parallel`` must also be on.
+    See :doc:`/howto/parallel`."""
     parallel_mechanism_partition_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**13, 2**12, progress=True)
     )
+    """Parallelism for the partitions of a mechanism and purview: a mapping with the
+    keys ``parallel`` (whether this level may run in parallel; ``False`` by
+    default), ``sequential_threshold`` (workloads with fewer items than this run
+    sequentially regardless), ``chunksize`` (items per task), and ``progress``
+    (show a progress bar). A partial mapping merges over the level's defaults;
+    unknown keys are rejected. The master switch ``parallel`` must also be on.
+    See :doc:`/howto/parallel`."""
     parallel_relation_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**13, 2**12, progress=True)
     )
+    """Parallelism for the relations of a Φ-structure under concrete relation
+    computation: a mapping with the keys ``parallel`` (whether this level may
+    run in parallel; ``False`` by default), ``sequential_threshold`` (workloads
+    with fewer items than this run sequentially regardless), ``chunksize``
+    (items per task), and ``progress`` (show a progress bar). A partial mapping
+    merges over the level's defaults; unknown keys are rejected. The master
+    switch ``parallel`` must also be on. See :doc:`/howto/parallel`."""
     parallel_macro_system_evaluation: Mapping[str, Any] = field(
         default_factory=lambda: _default_parallel_dict(2**4, 2**6, progress=True)
     )
+    """Parallelism for the candidate macro systems of a grain search: a mapping with
+    the keys ``parallel`` (whether this level may run in parallel; ``False`` by
+    default), ``sequential_threshold`` (workloads with fewer items than this run
+    sequentially regardless), ``chunksize`` (items per task), and ``progress``
+    (show a progress bar). A partial mapping merges over the level's defaults;
+    unknown keys are rejected. The master switch ``parallel`` must also be on.
+    See :doc:`/howto/parallel`."""
     parallel_workers: int = -1
+    """Number of worker processes or threads; ``-1`` (default) uses every
+    core."""
     parallel_backend: str = "local"
+    """Where parallel work runs: ``"local"`` (default; a pool of processes),
+    ``"thread"`` (a pool of threads), or ``"auto"`` (threads on a
+    free-threaded interpreter, processes otherwise). Cluster schedulers are
+    configured through :mod:`pyphi.parallel` and the ``cluster`` extra."""
 
-    # Share of the memory this process may use that in-memory caches may
-    # occupy. The denominator is the process's cgroup allowance where it has
-    # one — a scheduler-managed job, a container — and total physical memory
-    # otherwise, so the share bounds a confined process rather than measuring
-    # against a machine it cannot fill.
     memory_ceiling_percentage: int = 50
-    # An absolute ceiling on process resident memory, above which in-memory
-    # caches hold their occupancy steady, admitting new entries by evicting
-    # least recently used ones. Replaces `memory_ceiling_percentage` when
-    # set, for an allowance no cgroup reports.
-    #
-    # Size it from what the process may use, not from expected cache size: it
-    # is compared against total resident memory, of which the caches are
-    # usually a small part. Sampled through a 21-unit scoped cause-effect
-    # structure shard, they held 70-130 MB against 2.6 GB resident, the rest
-    # being the interpreter, the substrate TPM, and numpy working space. The
-    # allowance the caches actually get is this ceiling less that baseline.
+    """The share of the memory this process may use that the in-memory
+    caches may occupy (default ``50``), above which they evict least
+    recently used entries to admit new ones. The denominator is the
+    process's cgroup allowance where it has one (a scheduler-managed job, a
+    container) and total physical memory otherwise."""
     memory_ceiling_bytes: int | None = None
+    """An absolute ceiling on the process's resident memory, above which the
+    in-memory caches hold their occupancy steady by evicting least recently
+    used entries (default ``None``). Replaces ``memory_ceiling_percentage``
+    when set, for an allowance no cgroup reports. It is compared against
+    the whole process's resident memory, of which the caches are usually a
+    small part, so size it from what the process may use: the caches get
+    the ceiling less the interpreter, the substrate, and working space."""
     cache_repertoires: bool = True
+    """Cache the repertoires computed within a system (default ``True``).
+    ``False`` recomputes them on every use, which is slower but bounds
+    memory."""
     cache_potential_purviews: bool = True
-    # When True (default), the macro TPM construction caches its
-    # mapping-independent Steps 1-2 intermediates (the discounted transition
-    # matrix and the per-grain sequence-class distributions) per substrate, so
-    # candidate units sharing a footprint, update grain, and apportionment
-    # structure reuse them. Results are identical either way; set False to
-    # disable the cache entirely (no reads or writes).
+    """Cache each mechanism's connectivity-pruned candidate purviews on the
+    substrate (default ``True``)."""
     cache_macro_construction: bool = True
+    """Cache the mapping-independent intermediates of macro-unit
+    construction (the discounted transition matrix and the per-grain
+    sequence-class distributions) per substrate, so candidate units that
+    share a footprint, update grain, and apportionment reuse them (default
+    ``True``). Results are identical either way."""
     clear_system_caches_after_computing_sia: bool = False
+    """Clear a system's caches after each system irreducibility analysis
+    (default ``False``). Frees memory in sweeps over many systems at the
+    cost of recomputing what a later analysis of the same system would
+    have reused."""
     disk_cache_results: bool = False
+    """Persist top-level results (system irreducibility analyses and
+    cause-effect structures) to a content-addressed cache on disk, in
+    ``__pyphi_cache__`` under the working directory, and reuse them across
+    runs (default ``False``). The key includes the configuration and the
+    code version, so a changed setting or release never returns a stale
+    result. See :doc:`/howto/cache`."""
 
     progress_bars: bool = True
+    """Show progress bars during long computations (default ``True``)."""
     repr_verbosity: int = 2
-    # Maximum number of rows shown in a collection table (distinctions,
-    # relations, account links) in a result's repr/HTML. Larger collections
-    # are truncated with a "… N more" indicator; the full data is always
-    # available via the object's iterables and ``to_pandas()``.
+    """How much a result's ``repr`` shows, ``0`` to ``4``: ``0`` the one-line
+    compact form; ``1`` the card without expensive embedded grids such as a
+    substrate's TPM; ``2`` (default) the standard card; ``3`` the card plus
+    all mathematical content, such as partition cut grids and selection
+    margins; ``4`` that plus a provenance section recording how, when, and
+    by what code the result was computed."""
     repr_max_table_rows: int = 50
+    """Maximum rows shown in a collection table (distinctions, relations,
+    account links) in a result's text or HTML rendering (default ``50``).
+    Larger collections are truncated with a "… N more" line; the full data
+    is always available from the object itself and ``to_pandas()``."""
     print_fractions: bool = True
+    """When ``True`` (default), a probability in text output that is close to
+    a simple fraction (denominator at most 128) is printed as that fraction;
+    otherwise probabilities print as decimals at the configured
+    precision."""
     label_separator: str = ""
+    """The string placed between unit labels when a set of units is written
+    as one label (default ``""``, so units A and B print as ``AB``; ``","``
+    gives ``A,B``)."""
     welcome_off: bool = False
-    # Suppress the note printed to stderr when PyPhi is imported under an AI
-    # coding agent. Independent of ``welcome_off``: the two messages have
-    # different audiences and different channels.
+    """Suppress the welcome message printed when PyPhi is imported (default
+    ``False``). The environment variable ``PYPHI_WELCOME_OFF`` has the same
+    effect. Controls only the welcome; the agent note has its own switch."""
     agent_note_off: bool = False
+    """Suppress the note printed to standard error when PyPhi is imported
+    under an AI coding agent, detected through the ``CLAUDECODE`` or
+    ``PYPHI_AGENT`` environment variables (default ``False``). The
+    environment variable ``PYPHI_AGENT_NOTE_OFF`` has the same effect.
+    Independent of ``welcome_off``: the two messages have different
+    audiences and channels."""
 
     validate_system_states: bool = True
+    """When ``True`` (default), constructing a system checks that its state
+    can be reached under the substrate's dynamics and raises
+    :class:`~pyphi.exceptions.StateUnreachableForwardsError` otherwise,
+    since a state with no possible predecessor has no defined analysis."""
     validate_conditional_independence: bool = True
+    """When ``True`` (default), constructing a substrate checks that its
+    units are conditionally independent given the previous state and
+    raises :class:`~pyphi.exceptions.ConditionallyDependentError`
+    otherwise. See :doc:`/theory/conditional-independence`."""
 
-    # When True (default), a substrate's connectivity matrix is checked against
-    # the edges its TPM implies, and an under-specified CM (one that omits a
-    # real edge, silently marginalizing a true dependency and under-counting
-    # phi) is rejected with a ``ValueError`` naming the missing edge(s).
-    # Over-specification (declaring an unused edge) stays legal. Set False to
-    # opt out (e.g. for a deliberately permissive CM).
     validate_connectivity: bool = True
+    """When ``True`` (default), a substrate's connectivity matrix is checked
+    against the connections its TPM implies, and a matrix that omits a real
+    connection (which would silently marginalize a true dependency and
+    under-count φ) is rejected with a ``ValueError`` naming the missing
+    connections. Declaring an unused connection stays legal. Set ``False``
+    for a deliberately permissive matrix."""
 
-    # When True, every result-construction site checks its phi against the
-    # theorem-certified Zaeemzadeh (2024) upper bound and raises
-    # BoundViolationError on an in-domain overshoot (a proof of a formalism
-    # bug). Off by default — it adds per-construction bound arithmetic to the
-    # hot path; intended for CI and debugging. Outside the certified domain
-    # (non-binary, non-GID, etc.) the check is silently skipped.
     validate_phi_bounds: bool = False
+    """When ``True``, every result checks its φ against the certified upper
+    bound of Zaeemzadeh et al. (2024) and raises ``BoundViolationError`` on
+    an overshoot within the bound's domain, which would prove a formalism
+    bug. Off by default, since it adds bound arithmetic to the hot path;
+    intended for continuous integration and debugging. Outside the
+    certified domain (non-binary units, other measures) the check is
+    skipped."""
 
-    # When True (default), config-combination constraints are checked eagerly
-    # on ``override`` and ``load_yaml`` (see :mod:`pyphi.conf.constraints`),
-    # rejecting silently-wrong combinations (e.g. an IIT version paired with a
-    # measure it does not define) with a ``ConfigurationError`` naming the two
-    # conflicting fields and a fix. Set False to opt out (e.g. for
-    # experimentation with unsupported combinations).
     validate_config: bool = True
+    """When ``True`` (default), combinations of options are checked eagerly
+    on ``override`` and when a configuration file is loaded, so that an IIT
+    version paired with a measure or scheme it does not define is rejected
+    with a ``ConfigurationError`` naming the two fields and a fix (see
+    :mod:`pyphi.conf.constraints`). Set ``False`` to experiment with
+    unsupported combinations."""
 
     __repr__ = yaml_repr
 

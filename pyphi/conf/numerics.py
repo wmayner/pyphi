@@ -14,18 +14,14 @@ from pyphi.conf._helpers import yaml_repr
 
 @dataclass(frozen=True)
 class NumericsConfig:
-    """Numerical-comparison settings.
-
-    Attributes
-    ----------
-    precision : int
-        Decimal places of agreement required when comparing φ values via
-        :func:`pyphi.numerics.eq` and the other :mod:`pyphi.numerics`
-        predicates. Values smaller than ``10**-precision`` are treated as
-        zero.
-    """
+    """Numerical-comparison settings."""
 
     precision: int = 13
+    """Decimal places of agreement required when φ, Φ, and α values are
+    compared through :func:`pyphi.numerics.eq` and the other
+    :mod:`pyphi.numerics` predicates; values smaller than
+    ``10**-precision`` are treated as zero (default ``13``; the ``iit3``
+    preset sets ``6``)."""
 
     __repr__ = yaml_repr
 
