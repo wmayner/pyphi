@@ -149,9 +149,12 @@ uncertainty through an analysis; see {ref}`the what's-new tour
 
 ## Units with more than two states
 
-Pass `alphabet=` (one size for every unit) or `state_space=` (a tuple of
-state labels per unit). The number of rows is then the product of the
-alphabet sizes, still with the first unit changing fastest.
+The state-by-node and state-by-state inputs are for binary units. A unit
+with more states is given in factored form: `marginals=`, one array per
+unit of shape `(*alphabet_sizes, k_i)` holding the unit's next-state
+distribution for every current state, together with `alphabet=` (one size
+for every unit) or `state_space=` (a tuple of state labels per unit). The
+{ref}`TPM conventions <tpm-conventions>` page has a worked example.
 
 ## Check the substrate before analyzing it
 
