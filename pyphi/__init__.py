@@ -17,14 +17,60 @@ PyPhi
 
 PyPhi is a Python library for computing integrated information.
 
-If you use this software in your research, please cite the paper:
+Usage
+~~~~~
+
+A :class:`~pyphi.substrate.Substrate` is the causal model: a set of units and
+the probability of each unit's next state given the current state of all of
+them. A :class:`~pyphi.system.System` is a candidate subset of a substrate's
+units in a state; integrated information is a property of systems.
+
+:func:`~pyphi.analyze.analyze` is the entry point. Given a substrate and a
+state it returns an :class:`~pyphi.analyze.Analysis` whose ``phi`` is φₛ, the
+system integrated information (whether the system exists as one whole), whose
+``ces`` is the Φ-structure the system specifies, and whose ``big_phi`` is Φ,
+the structure integrated information (how much structure it specifies). The
+two quantities are different and must not be reported as one another. Under
+IIT 3.0, ``phi`` is that formalism's Φ and ``big_phi`` is not defined.
+
+The default formalism is IIT 4.0 (2026), which includes the
+intrinsic-information requirement. Select another per call with
+``formalism="IIT_4_0_2023"`` or ``"IIT_3_0"``, or apply a preset
+(:data:`pyphi.iit3`, :data:`pyphi.iit4_2023`, :data:`pyphi.iit4_2026`) with
+``pyphi.config.override``.
+
+:meth:`Substrate.complexes <pyphi.substrate.Substrate.complexes>` finds the
+complexes of a substrate in a state. :func:`~pyphi.sweep.sweep` runs one
+computation over many states, subsets, and formalisms.
+:func:`~pyphi.cost.estimate_analysis` counts the work of an analysis before
+it runs. :func:`~pyphi.serialize.save` and :func:`~pyphi.serialize.load`
+persist results. To search across macro grains, pass ``grains=True`` to
+:func:`~pyphi.analyze.analyze` or use :mod:`pyphi.macro`.
+
+Configuration
+~~~~~~~~~~~~~
+
+Options are read from a ``pyphi_config.yml`` in the working directory, with
+the layers ``formalism``, ``infrastructure``, and ``numerics``; without one,
+the defaults apply. At runtime, assign an option (``pyphi.config.precision =
+6``) or scope a change with ``pyphi.config.override(...)``. The shipped
+defaults are in the repository's `pyphi_config.yml
+<https://raw.githubusercontent.com/wmayner/pyphi/main/pyphi_config.yml>`_;
+:mod:`pyphi.conf` documents every option.
+
+Citation and support
+~~~~~~~~~~~~~~~~~~~~
+
+If you use this software in your research, please cite the software paper,
+and the paper of the formalism your results were computed under:
 
     Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G.
     (2018). PyPhi: A toolbox for integrated information theory.
     PLOS Computational Biology 14(7): e1006343.
     https://doi.org/10.1371/journal.pcbi.1006343
 
-Online documentation is available at `<https://pyphi.readthedocs.io/>`_.
+Online documentation is available at `<https://pyphi.readthedocs.io/>`_,
+with BibTeX entries on its citing page.
 
 For general discussion, you are welcome to join the `pyphi-users group
 <https://groups.google.com/forum/#!forum/pyphi-users>`_.
@@ -32,41 +78,6 @@ For general discussion, you are welcome to join the `pyphi-users group
 To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
-
-
-Usage
-~~~~~
-
-The :class:`~pyphi.substrate.Substrate` object is the main object on which
-computations are performed. It represents the substrate of interest.
-
-The :class:`~pyphi.system.System` object is the secondary object; it
-represents a system of a substrate. Φ is a function of systems.
-
-The :func:`~pyphi.analyze.analyze` function is the main entry point for the
-library. It computes a system's cause-effect structure and its system
-integrated information (Φ). See its documentation for details. To search a
-substrate for its complexes, use :func:`~pyphi.substrate.complexes`. To search
-across macro grains — which units, at which grain, are intrinsic — pass
-``grains=True`` (or a :class:`~pyphi.macro.SearchBounds`) to
-:func:`~pyphi.analyze.analyze`, or call :func:`pyphi.macro.complexes` directly.
-
-
-Configuration (optional)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-There are several package-level options that control aspects of the
-computation.
-
-These are loaded from a YAML configuration file, ``pyphi_config.yml``. **This
-file must be in the directory where PyPhi is run**. If there is no such file,
-the default configuration will be used.
-
-You can download an example configuration file `here
-<https://raw.githubusercontent.com/wmayner/pyphi/master/pyphi_config.yml>`_.
-
-See the documentation for the :mod:`~pyphi.conf` module for a description of
-the options and their defaults.
 """
 
 import importlib
@@ -144,7 +155,7 @@ _SUBMODULE_NAMES = frozenset(name for _, name, _ in pkgutil.iter_modules(__path_
 def __getattr__(name: str) -> ModuleType:
     """Lazily import a public submodule on first attribute access (PEP 562).
 
-    Keeps ``pyphi.examples``, ``pyphi.compute``, and the like working after a
+    Keeps ``pyphi.examples``, ``pyphi.macro``, and the like working after a
     bare ``import pyphi`` without importing the whole package eagerly, so
     ``import pyphi`` is fast and is not broken by an unrelated submodule that
     fails to import.
