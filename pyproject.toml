@@ -89,6 +89,7 @@ docs = [
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
+    "sphinx-tippy>=0.4.3",
 ]
 
 [project.urls]

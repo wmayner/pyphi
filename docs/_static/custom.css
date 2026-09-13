@@ -351,3 +351,24 @@ a:hover, .bd-sidebar-primary a:hover, .bd-content a:hover, .bd-header a:hover {
   text-underline-offset: 0.15em;
 }
 .bd-content a.reference.internal:has(> code.xref) { text-decoration: none; }
+
+/* ---- Hover tooltips ------------------------------------------------------ */
+
+/* sphinx-tippy popovers on cross-references, in the site's own colours. The
+   html prefix outranks tippy's own stylesheet, which loads after this one. */
+html .tippy-box {
+  background: var(--pp-raised);
+  color: var(--pp-text);
+  border: 1px solid var(--pp-rule);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  font-family: var(--pst-font-family-base);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+html .tippy-box .tippy-content { padding: 0.6rem 0.8rem; }
+html .tippy-box .tippy-arrow { color: var(--pp-raised); }
+html .tippy-box p { margin: 0.3rem 0; }
+html .tippy-box dt, .tippy-box .sig-name, .tippy-box .sig-prename { font-weight: 600; }
+html .tippy-box a { color: var(--pp-link); }
+html .tippy-box code { font-family: var(--pst-font-family-monospace); font-size: 0.85em; }

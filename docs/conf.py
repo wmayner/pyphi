@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
     "sphinx_design",
+    "sphinx_tippy",
 ]
 
 templates_path = ["_templates"]
@@ -68,6 +69,20 @@ nb_execution_raise_on_error = True
 # Drop stderr stream output (e.g. the tqdm/ipywidgets notice) from rendered
 # pages; genuine cell errors still fail the build via raise_on_error above.
 nb_output_stderr = "remove"
+
+# --- Hover tooltips ----------------------------------------------------------
+
+# Cross-references in the article body (glossary terms, API objects, other
+# pages) show their target's first paragraph on hover.
+tippy_anchor_parent_selector = "article.bd-article"
+tippy_skip_anchor_classes = ("headerlink", "sd-stretched-link", "download")
+# MathJax is not loaded on pages without math, and the tooltip code would
+# call it there.
+tippy_enable_mathjax = False
+# No network fetches at build time: no Wikipedia or DOI tooltips.
+tippy_enable_wikitips = False
+tippy_enable_doitips = False
+tippy_props = {"placement": "auto-start", "maxWidth": 480, "interactive": True, "delay": [200, 100]}
 
 # --- API reference ----------------------------------------------------------
 
