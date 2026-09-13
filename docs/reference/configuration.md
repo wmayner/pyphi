@@ -38,8 +38,8 @@ for layer, cls in (
         rows.append(
             {
                 "option": field.name,
-                "layer": layer,
                 "default": repr(getattr(instance, field.name)),
+                "layer": layer,
             }
         )
 pd.set_option("display.max_rows", None)
