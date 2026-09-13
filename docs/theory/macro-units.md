@@ -117,13 +117,19 @@ maximal, and this applies across grains — a micro candidate system and a macro
 candidate system over the same micro units are rivals, not separate answers
 (Marshall et al., 2024, Eq. 19).
 
-PyPhi runs this competition as one cascade over **micro footprints**, so
+The procedure is recursive (Albantakis et al., 2023, Eqs. 24–26; Marshall et
+al., 2023, Algorithm A1): the candidate with maximal $\varphi_s$ is accepted as
+a complex, every candidate overlapping it is excluded, and the search repeats
+on what remains until the substrate is exhausted. The papers state this over
+one substrate at one grain; across grains they state the criterion, that two
+candidates overlap when they share micro units (Marshall et al., 2024, Eq. 19).
+PyPhi puts the two together as one cascade over **micro footprints**, so
 candidates at every grain compete on the same basis. Each candidate's footprint
 is the set of micro units it ultimately covers; the cascade walks candidates in
 descending $\varphi_s$, accepts the maximal one, drops every remaining candidate
-whose footprint overlaps it, and continues on what is left. The cascade is
-**recursive**: a candidate that has been excluded by an accepted complex has no
-standing to exclude anything else in turn. A complex can therefore coexist with
+whose footprint overlaps it, and continues on what is left. Because an excluded
+candidate is removed from the search, it has no standing to exclude anything
+else in turn. A complex can therefore coexist with
 an overlapping candidate of *higher* $\varphi_s$, when that candidate was
 excluded earlier by a different complex. Ties within a tier escalate to the composition measure Φ, and a tier
 that still ties fails exclusion outright: none of its members becomes a complex,
@@ -165,3 +171,5 @@ reading margins and controlling how ties are broken, see
   <https://doi.org/10.1101/2024.04.12.589163>
 - Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023). Integrated
   information theory (IIT) 4.0. *PLOS Computational Biology* 19(10): e1011465.
+- Marshall W, Grasso M, Mayner WGP, Tononi G, Albantakis L (2023). System
+  integrated information. *Entropy* 25(2): 334.
