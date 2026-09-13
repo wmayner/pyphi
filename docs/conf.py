@@ -134,9 +134,9 @@ html_theme_options = {
     "navbar_persistent": ["search-button"],
     "primary_sidebar_end": ["sidebar-cite"],
     # The sidebar shows the whole site: sections, their pages, and under the
-    # API reference the package and its modules (depth 4); module members
-    # stay behind each module's page.
-    "navigation_depth": 4,
+    # API reference the curated modules (depth 3); module members stay behind
+    # each module's page.
+    "navigation_depth": 3,
     "show_nav_level": 1,
     "footer_start": ["copyright"],
     "footer_end": [],

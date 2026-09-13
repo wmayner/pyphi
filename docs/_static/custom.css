@@ -322,3 +322,11 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
 .bd-content .toctree-wrapper > ul > li > a { font-weight: 600; }
 .bd-content .toctree-wrapper > ul > li > ul { padding-left: 0.9rem; margin-top: 0.2rem; }
 @media (max-width: 720px) { .bd-content .toctree-wrapper > ul { columns: 1; } }
+
+/* ---- Links --------------------------------------------------------------- */
+
+/* The theme underlines hovered links three pixels thick; one is enough. */
+a:hover, .bd-sidebar-primary a:hover, .bd-content a:hover, .bd-header a:hover {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
