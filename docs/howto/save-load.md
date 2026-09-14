@@ -173,10 +173,10 @@ metadata = provenance.read_metadata(path)
 
 ## Compatibility note
 
-This serializer is a deliberate format break from the `jsonify` layer used in
+This serializer is a format break from the `jsonify` layer used in
 PyPhi 1.x. Files written by the old layer cannot be read by `pyphi.load`, and
 files written here are not readable by the old `pyphi.jsonify` machinery.
-Cause-effect structures are also stored more compactly now: each distinction is
+Cause-effect structures are also stored compactly: each distinction is
 written once in a table, and relations reference their members by index rather
 than embedding a full copy of every distinction they contain.
 

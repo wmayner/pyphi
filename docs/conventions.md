@@ -154,9 +154,8 @@ from pyphi.convert import le_index2state, state2le_index
 state2le_index((1, 0)), le_index2state(2, 2)
 ```
 
-The reason for the choice is that the little-endian mapping is stable under
-changes in the number of units: the same bit always corresponds to the same
-unit index. The big-endian mapping does not have this property.
+The little-endian mapping is stable under changes in the number of units: the
+same bit always corresponds to the same unit index.
 
 ```{note}
 This applies only where an integer index encodes a state. A state written

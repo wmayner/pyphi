@@ -171,9 +171,8 @@ per-cell estimate and packing decision is recorded in `manifest.json`.
 ## Declare the feasible surface (scope)
 
 For large systems the full distinction computation is combinatorially out of
-reach; a **scope** declares which part of it you compute. A scope changes
-*what* is computed — with the exclusions recorded and certified — never a
-silent approximation: within the scope, every value is exact.
+reach; a **scope** declares which part of it you compute. A scope changes *what* is computed; within the scope every value is exact,
+and the exclusions are recorded and certified.
 
 ```python
 from pyphi.campaign.scope import AxisScope, CESScope
@@ -337,5 +336,4 @@ enabled. Prefer the fat-node pattern when:
 Prefer sharding when a single state cannot finish in one slot, when
 big-memory slots are scarce (stratified shard requests keep small work in
 small slots), or when you need per-shard retry granularity on a busy
-pool. Per-shard memory requests are estimated automatically, so holds
-from underestimated memory are no longer the deciding factor.
+pool. Per-shard memory requests are estimated automatically.

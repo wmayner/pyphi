@@ -36,8 +36,7 @@ substrate = pyphi.examples.xor_substrate()
 
 ## IIT 4.0 (2026)
 
-`"IIT_4_0_2026"` — the default. It refines the account of system integrated
-information to require both that a system *specify* a cause–effect state and
+`"IIT_4_0_2026"` — the default. It defines system integrated information to require both that a system *specify* a cause–effect state and
 that it provide itself with a *repertoire of alternatives* — intrinsic
 **differentiation**. The system's intrinsic information enters the minimum
 that defines $\varphi_s$ (Mayner, Marshall, Tononi 2026). The XOR network

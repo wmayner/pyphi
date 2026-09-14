@@ -17,8 +17,7 @@ example is one function call away. Every example is registered in
 `pyphi.examples.EXAMPLES`, a mapping from category (`substrate`, `system`,
 `tpm`, `transition`) to the functions that build them; `xor_substrate`, for
 instance, is `EXAMPLES["substrate"]["xor"]`. The cards and connectivity graphs
-below are drawn from the objects themselves when this page is built, so they
-cannot drift from the code. The cards leave out the transition probability
+below are drawn from the objects themselves when this page is built. The cards leave out the transition probability
 matrices; load an example to see its TPM.
 
 ```{code-cell} python

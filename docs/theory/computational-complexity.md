@@ -218,7 +218,7 @@ the number of distinctions.
 | 5 | 31 | 1 413 375 |
 
 The fitted growth factors (over $n \ge 3$, where fixed overhead no longer
-dominates) confirm the picture, and the 2023 and 2026 variants track each other
+dominates) are below; the 2023 and 2026 variants track each other
 exactly:
 
 | Stage | raw base $e^b$ | base after dividing out $n^5$ | $R^2$ |
@@ -248,8 +248,8 @@ evaluated at all (Mayner et al., 2018).
 
 Two further reductions act at the system level. A subsystem that is not strongly
 connected has $\varphi_s = 0$ by construction and is excluded from the search for
-the maximal complex; the measured major-complex cost lies below its $7^n$ worst
-case for precisely this reason. And because relations are supported on the
+the maximal complex, so the measured major-complex cost lies below its $7^n$
+worst case. And because relations are supported on the
 congruent overlaps of distinction purviews, the smaller and less overlapping
 purviews of a sparse system yield far fewer realized relations than the
 $2^{\,2^n-1}-1$ worst case.
@@ -356,7 +356,7 @@ fixed micro size $n$, while the partition sweep grows with $m$ and is paid for
 every candidate.
 
 **Measured shape.** On the four-unit substrate of Example 1 from Marshall et al.
-(2024) — the coarse-graining example rediscovered in the
+(2024) — the coarse-graining example worked through in the
 {doc}`intrinsic-units tutorial <../tutorials/macro>` — the default bounds (one
 macroing level, update grain 1, the coarse-graining and blackboxing families)
 evaluate about eighty candidate systems and finish in about a second, almost
@@ -417,7 +417,7 @@ into three kinds, and the distinction matters for how a result should be read:
 |---|---|---|---|
 | `relation_computation` | `ANALYTICAL` (default); set `CONCRETE` to enumerate | exact reformulation (yields the count and summed φ, not individual relations) | removes the $2^D$ relation enumeration; the CES then scales like its distinctions alone |
 | `mechanism_partition_scheme` | `JOINT_PARTITION_ALL` / `WEDGE_TRIPARTITION` / `JOINT_BIPARTITION` | formalism choice | per-(mechanism, purview) partition count Bell-weighted $> 2^{m-1}3^p > 2^{m+p-1}$ |
-| `prune` (grain search) | `"certified"` (automatic under a measure that applies the intrinsic-information requirement); `"off"` evaluates everything | exact reformulation (identical complexes, ties, and verdicts; skipped candidates report their ii ceiling) | skips candidate partition sweeps certified below an overlapping accepted complex by the requirement; bites in sweep-heavy regimes (mapped-variant sweeps), while runs dominated by unit-derivation evaluations see parity |
+| `prune` (grain search) | `"certified"` (automatic under a measure that applies the intrinsic-information requirement); `"off"` evaluates everything | exact reformulation (identical complexes, ties, and verdicts; skipped candidates report their ii ceiling) | skips candidate partition sweeps certified below an overlapping accepted complex by the requirement; saves most when mapped variants dominate the candidate set; when unit-derivation evaluations dominate, the cost is unchanged |
 | {attr}`~pyphi.conf.formalism.IITConfig.shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
 | `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining search for its maximally irreducible cause and effect (MICE) once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
 | `parallel` | `False` → `True` | exact | constant factor set by the number of cores |
@@ -448,7 +448,7 @@ shallower and reaches one unit further than the full cut sweep.
 | system cuts (3.0) | cut-one ($2n$) | 22 s | **6** |
 | | full ($2^n$, default) | 56 s | 5 |
 
-Three findings, one per option:
+Reading the table, one option at a time:
 
 - **The mechanism partition scheme has the largest effect on IIT 4.0 distinction
   cost.** At $n=5$ the default `JOINT_PARTITION_ALL` is about 15× slower than
@@ -461,9 +461,8 @@ Three findings, one per option:
 - **Analytical relations help only modestly here**, ~1.2× at $n=5$, because for
   this system the cause–effect structure cost is dominated by its *distinctions*,
   not its relations: the relation term that `ANALYTICAL` eliminates is not the bottleneck
-  at reachable sizes. (In a run without the time budget, IIT 4.0 CES at $n=6$
-  still took ~30 minutes even with analytical relations — nearly all of it in
-  the distinction computation.) On a system with a large, densely overlapping set of distinctions
+  at reachable sizes. Without a per-evaluation time budget, IIT 4.0 CES at $n=6$ takes about 30
+minutes with analytical relations, nearly all of it in the distinctions. On a system with a large, densely overlapping set of distinctions
   the relation term dominates instead, and the closed form is the difference
   between tractable and not.
 
@@ -472,7 +471,7 @@ Three findings, one per option:
   system cuts with $2n$. It returns an upper bound on Φ rather than the exact
   value.
 
-The lesson is that no single approximation makes IIT 4.0 tractable at larger $n$: the
+No single approximation makes IIT 4.0 tractable at larger $n$: the
 distinction cost (set by the partition scheme) and the relation cost (set by
 `relation_computation`) are separate terms, and reaching higher $n$ means
 lowering both.
@@ -565,7 +564,7 @@ subsystem's Φ for every candidate subsystem; a size-$k$ subsystem costs $\sim 6
 and there are $\binom{n}{k}$ of them, so $\sum_k \binom{n}{k} 6^k = 7^n$ takes the
 base to $7$: $O(n^5\,7^n)$.[^hw]
 
-Measurement bears out the $3 \to 6 \to 7$ progression. After dividing out the
+The measured growth follows the $3 \to 6 \to 7$ progression. After dividing out the
 $n^5$ polynomial, a single cause–effect structure fits base **3.1** ($R^2=0.999$)
 and one subsystem's Φ fits **4.7**, rising toward 6 at larger sizes. The major
 complex (`Substrate.maximal_complex`, timed in

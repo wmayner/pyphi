@@ -9,8 +9,8 @@ a person; every code block runs as shown.
 `pyphi.substrate_generator`, so the recommended path is a **full PyPhi-native
 rebuild** with no runtime dependency on the old library. The 16 unit mechanisms,
 the 6 composite-combination strategies, and a per-node `create_substrate()`
-factory are all built in, and the resulting substrate reproduces the original
-library's `dynamic_tpm` **byte-for-byte**.
+factory are all built in, and the resulting substrate's TPM matches the original library's
+`dynamic_tpm`.
 
 ---
 
@@ -107,7 +107,7 @@ preserves the original library's semantics exactly.
 | `substrate_modeler` mechanism | `create_substrate` `"mechanism"` | params (defaults) |
 |---|---|---|
 | `sigmoid` | `"sigmoid"` | `input_weights`, `determinism` (5.0), `threshold` (0.0), `ising` (True), `floor` (0.0), `ceiling` (1.0) |
-| `resonator` | `"resonator"` | `determinism`, `threshold`, `weight_scale_mapping` (the matching-paper coupling *g*), `input_weights`, `floor`, `ceiling` |
+| `resonator` | `"resonator"` | `determinism`, `threshold`, `weight_scale_mapping` (the coupling factor *g*), `input_weights`, `floor`, `ceiling` |
 | `sor` | `"sor"` | `pattern_selection`, `ceiling`, `selectivity` (2.0) |
 | `gabor` | `"gabor"` | `preferred_states`, `ceiling`, `floor` |
 | `mismatch_corrector` | `"mismatch_corrector"` | `bias` (0.0), `floor`, `ceiling` |
@@ -126,7 +126,7 @@ takes its weights under `input_weights` (the original used `weights`).
 `"resonnator"`; PyPhi uses the corrected `"resonator"`, so update that name when
 porting.
 
-**Two caveats (both faithfully handled, neither used by the matching paper):**
+**Two caveats:**
 
 - `mismatch_pattern_detector`: the original library has a bug (a `Nonee` typo)
   that raises on every call; the PyPhi port implements the *documented* intended
@@ -136,7 +136,7 @@ porting.
   (modulators are exactly `modulation["modulator"]`), so it does not reproduce
   that artifact.
 
-Everything else reproduces the original's `dynamic_tpm` byte-for-byte.
+
 
 ---
 
@@ -144,8 +144,7 @@ Everything else reproduces the original's `dynamic_tpm` byte-for-byte.
 
 `resonator`, `mismatch_corrector`, `mismatch_pattern_detector`,
 `modulated_sigmoid`, and `stabilized_sigmoid` depend on the unit's **own current
-state** (`state[element]`). `resonator` is the matching paper's "endorsement"
-mechanism: inputs agreeing with the unit's state are excitatory and amplified,
+state** (`state[element]`). `resonator` is the endorsement mechanism: inputs agreeing with the unit's state are excitatory and amplified,
 disagreeing inputs inhibitory. Its default `weight_scale_mapping` is the paper's
 coupling factor *g* = `{(0,0): 1.0, (1,0): 0.5, (0,1): 0.75, (1,1): 1.5}`
 (keyed by `(unit_state, input_state)`).
@@ -255,8 +254,7 @@ Count distinctions in a cause-effect structure with `len(ces.distinctions)`
 
 ### Matching / perception
 
-If the script used the matching research repo's perception layer, that is now
-in `pyphi.matching` (`PerceptualSystem`, `TriggeredTPM`, `triggering_coefficient`,
+Perception-layer code moves to `pyphi.matching` (`PerceptualSystem`, `TriggeredTPM`, `triggering_coefficient`,
 `Perception`, `Differentiation`, `MatchingAnalysis`). A natively-built substrate
 feeds straight in:
 
@@ -329,13 +327,11 @@ print("distinctions:", len(system.ces().distinctions))
 ```
 
 This `substrate` is byte-identical to `pyphi.examples.basic_substrate()` (Φ =
-0.415037 under the IIT 4.0 (2023) formalism pinned above) — a handy
-correctness check while porting. It uses `build_substrate`
+0.415037 under the IIT 4.0 (2023) formalism pinned above). It uses `build_substrate`
 with the **weighted-threshold** gates because this network has a single-input
 `B = and(C)`, which a 2-input truth-table gate can't express; the weighted
 `"and"`/`"or"` handle any fan-in (§5). For a mechanism-rich or endorsement
-substrate, use `create_substrate` with `resonator` / composite specs (§2, §4) —
-the resulting `dynamic_tpm` matches the original library exactly.
+substrate, use `create_substrate` with `resonator` / composite specs (§2, §4).
 
 ---
 

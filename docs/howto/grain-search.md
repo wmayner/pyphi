@@ -51,11 +51,11 @@ tpm = np.array(
 substrate = Substrate(tpm, node_labels=("A", "B"))
 ```
 
-Every computation below runs under the configuration preset that reproduces
-the settings of Marshall et al. (2024). (The pin also matters for the
-numbers: several specimens here are deterministic or near-deterministic, so
-under the 2026 default's intrinsic-information requirement they would compute
-$\varphi_s = 0$ — see {doc}`../theory/intrinsic-information`.)
+Every computation below runs under the IIT 4.0 (2023) preset, matching
+Marshall et al. (2024). The setting matters for the numbers: the substrates
+here are deterministic or near-deterministic, so under the 2026 default's
+intrinsic-information requirement they give $\varphi_s = 0$; see
+{doc}`../theory/intrinsic-information`.
 
 ## Pre-flight the cost
 

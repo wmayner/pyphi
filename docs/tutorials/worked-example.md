@@ -74,8 +74,8 @@ for subset in [(0,), (0, 1), (0, 1, 2)]:
 
 These reproduce the paper's Fig 1E values: $0.04$, $0.17$, and $0.13$. The
 pair aB beats both its subset and its superset — and in fact every candidate
-that overlaps it — so **aB is a complex**. PyPhi's exhaustive competition
-confirms it, and finds one other, non-overlapping complex:
+that overlaps it — so **aB is a complex**. The exhaustive competition over all candidates returns aB and one other,
+non-overlapping complex:
 
 ```{code-cell} python
 for complex_ in substrate.complexes(state):
@@ -83,9 +83,8 @@ for complex_ in substrate.complexes(state):
 ```
 
 The single unit $\{C\}$ has the globally maximal $\varphi_s$ here; since it
-does not overlap aB, both exist. The paper presents aB as *a* complex —
-maximal among the candidates that share its units — which is exactly what
-PyPhi finds.
+does not overlap aB, both exist. The paper presents aB as *a* complex: maximal among the candidates that
+share its units.
 
 Where does aB's $\varphi_s$ come from? Fig 1D splits it by temporal
 direction. Integration is measured separately over the system's causes and
@@ -185,8 +184,8 @@ $0.17$ here). Both are reported on the analysis: `aB.phi` is $\varphi_s$;
 
 ## Summary
 
-For the paper's Fig 1A network in state aBC, PyPhi reproduces, under the
-default formalism:
+For the paper's Fig 1A network in state aBC, under the 2023 formalism
+pinned above:
 
 - $\varphi_s = 0.04 / 0.17 / 0.13$ for $\{A\}$ / aB / aBC (Fig 1E), with
   $\varphi_c = 0.24$, $\varphi_e = 0.17$ for aB (Fig 1D);

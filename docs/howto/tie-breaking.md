@@ -30,9 +30,7 @@ changes is which representative object is reported.
 In contrast to the examples often used in the literature, realistic systems are often noisy and lack exact symmetry, so ties are less important in empirical practice.
 ```
 
-The PyPhi authors have been aware of ties since this project was conceived, but
-earlier versions did not implement a principled method for breaking them. For
-others' treatment of ties in the formalism, see Krohn & Ostwald (2017), Moon
+For treatments of ties in the formalism, see Krohn & Ostwald (2017), Moon
 (2019), and Hanson & Walker (2021).
 
 ```{code-cell} python

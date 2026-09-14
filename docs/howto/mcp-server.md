@@ -17,7 +17,7 @@ one is explained below.
 ```bash
 uv init my-iit-project
 cd my-iit-project
-uv add "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
+uv add "pyphi[mcp]"
 uv run pyphi-mcp install
 ```
 
@@ -33,17 +33,12 @@ The `mcp` extra brings in the server and its `pyphi-mcp` command. Add
 `visualize` as well — `"pyphi[mcp,visualize] @ …"` — if you want the `plot` tool,
 which needs the visualization stack.
 
-The `@main` reference is there because the server arrived in PyPhi 2.0, which is
-not released yet. Once 2.0 is on PyPI, `uv add "pyphi[mcp]"` will get you the
-same thing; until then that shorter form installs PyPhi 1.2.0, which has no
-`mcp` extra and no server.
+
 
 `uv run` finds `pyphi-mcp` because PyPhi is now a dependency of the project you
 are standing in, so the command needs no activated environment and no absolute
-path. This is the one thing `uv run` is good for here — `uv run --with` and
-`uvx` build an environment for a single command and then throw it away, so a
-registration written from one would point at a directory that no longer exists.
-`install` refuses to write such an entry rather than let you find out later.
+path. `uv run --with` and `uvx` build a throwaway environment for a single
+command, so `install` refuses to write a registration from one.
 
 Outside a uv project, run `pyphi-mcp install` with the environment holding PyPhi
 activated, or call it by its full path, `/path/to/venv/bin/pyphi-mcp install`.
@@ -52,10 +47,8 @@ activated, or call it by its full path, `/path/to/venv/bin/pyphi-mcp install`.
 
 It registers the server in `.mcp.json` and writes a short block of PyPhi facts
 into `AGENTS.md` — the two quantities φₛ and Φ, the little-endian state order,
-and the cost of an analysis. That block matters because a server's
-`instructions` only reach an assistant that connects to it, and one that
-decides to drive PyPhi from a shell never sees them. A project's instruction
-file is read before anything else happens.
+and the cost of an analysis. A project's instruction file is read before the server connects, so the
+block also reaches an assistant that drives PyPhi from a shell.
 
 Claude Code reads `CLAUDE.md` rather than `AGENTS.md`, so `install` also adds
 an `@AGENTS.md` import line to `CLAUDE.md`. Both files are safe to already
@@ -189,9 +182,7 @@ The assistant calls `analyze` with the state `(1, 1, 0)` and reports:
 
 φₛ = 0 does not mean the network has no structure — it still specifies a rich
 Φ-structure. Because φₛ and Φ are different quantities — one is about
-existing as a whole, the other about how much structure is specified — a good
-assistant keeps them distinct rather than reporting "the phi value." The
-bundled reference is what teaches it to do that (see below).
+existing as a whole, the other about how much structure is specified — the server's reference keeps the two distinct (see below).
 
 **You:** *Which mechanism contributes the most, and why?*
 
@@ -203,9 +194,7 @@ conversation.
 **You:** *Show me the cause-effect structure.*
 
 The assistant calls `plot`. The Φ-structure is an interactive 3-D figure, so the
-tool returns a path to a self-contained HTML file to open in a browser — it is
-not shown inline, because a static snapshot of something meant to be rotated and
-hovered would be misleading. The connectivity graph, transition probability
+tool returns a path to a self-contained HTML file to open in a browser — it is not shown inline. The connectivity graph, transition probability
 matrix, and repertoire plots are static, so those *are* returned as an inline
 image.
 

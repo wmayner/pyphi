@@ -7,8 +7,7 @@ through configuration. There are no deprecation shims: code written against pre-
 PyPhi must be updated to run.
 
 The PyPhi MCP server carries a condensed, agent-facing copy of this guide as its
-`migration` reference topic (`pyphi/mcp/content/migration.md`), so an assistant
-can port code without the docs build. Keep the two in sync when the API changes.
+`migration` reference topic, so an assistant can port code without this site.
 
 This guide documents the changes a pre-2.0 user hits, organized by topic. Each
 topic is tagged with who it affects:

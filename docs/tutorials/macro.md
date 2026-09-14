@@ -36,8 +36,8 @@ pyphi.config.progress_bars = False
 ```
 
 Throughout we use the configuration preset that reproduces the paper's
-settings. (The pin also matters for the numbers: several specimens here are
-deterministic or near-deterministic, so under the 2026 default's
+settings. (The preset also matters for the numbers: several of the substrates here
+are deterministic or near-deterministic, so under the 2026 default's
 intrinsic-information requirement they would compute $\varphi_s = 0$ — see
 {doc}`../theory/intrinsic-information`.)
 
@@ -355,9 +355,9 @@ winner.units[0], round(winner.exclusion_margin, 6)
 ```
 
 Its `exclusion_margin` is how far it beats the strongest overlapping
-alternative. The competition was real: the whole substrate
-`{A, B, C}` evaluated at micro time (every unit at update grain 1) is itself
-integrated, and it appears in the winner's `excluded` record:
+alternative. The whole substrate `{A, B, C}` evaluated at micro time (every unit at
+update grain 1) is itself integrated, and appears in the winner's `excluded`
+record:
 
 ```{code-cell} python
 micro_universe = max(
@@ -380,9 +380,7 @@ system read update by update.
 Temporal wins are not automatic. On a symmetric substrate — a deterministic
 rotation, say — the integration criterion rejects a pair decomposition before
 any temporal variant of it is ever built, so no unit longer than one update
-survives. Asymmetric substrates are what make temporal units win outright: a
-seeded random search over such substrates found temporal complexes in roughly
-one run in five. The mixed-grain case occurs too, where a single complex holds
+survives. Asymmetric substrates are what make temporal units win outright. The mixed-grain case occurs too, where a single complex holds
 units of the same system at different grains.
 
 ## Bounding the search

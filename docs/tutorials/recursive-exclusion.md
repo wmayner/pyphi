@@ -26,7 +26,7 @@ accepted complex claims its units, and a candidate excluded
 by an accepted complex no longer exists, so it cannot exclude anything
 else in turn.
 
-This recursion has a counterintuitive consequence: **a complex
+This recursion has a consequence worth stating explicitly: **a complex
 can coexist with an overlapping candidate of higher $\varphi_s$**, as long
 as that candidate was itself excluded by some other complex. This tutorial
 builds a small substrate where that happens, finds its complexes, and
@@ -72,7 +72,7 @@ $\{A,B\} > \{B,C\} > \{C,D\}$, with $\{B,C\}$ overlapping both of its
 neighbors.
 
 The φₛ values in this tutorial are computed under the 2023 formalism, pinned
-explicitly below: the chain's φₛ ladder was constructed for the 2023
+explicitly below: the chain's φₛ ladder is clearest under the 2023
 measure, and the exclusion mechanics being demonstrated are identical under
 both formalisms.
 

@@ -100,9 +100,8 @@ pyphi.sweep(
 ).df.round(6)
 ```
 
-The deterministic `basic` network is chosen deliberately: the two rows differ
-(φ = 0.415 under 2023, 0 under 2026) because deterministic systems compute
-zero under the 2026 formalism's intrinsic-information requirement — see
+The two rows differ (φ = 0.415 under 2023, 0 under 2026) because `basic`
+is deterministic, and deterministic systems compute zero under the 2026 formalism's intrinsic-information requirement — see
 {doc}`../theory/intrinsic-information`.
 
 When more than one axis varies at once, the index becomes a `MultiIndex` with

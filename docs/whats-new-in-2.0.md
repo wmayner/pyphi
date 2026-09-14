@@ -42,7 +42,7 @@ a `MacroSystem` that behaves exactly like a micro `System` in the standard IIT
 4.0 pipeline. Both of the paper's worked examples are reproduced at the
 published precision.
 
-The framework comes with its judgments attached. The intrinsic unit
+The framework includes the criteria for unithood. The intrinsic unit
 criteria (`pyphi.macro.criteria`) decide whether a candidate unit has the
 cause-effect power to count as a unit at all, returning verdicts with
 witnesses. The bounded grain search (`pyphi.macro.search`) enumerates
@@ -76,9 +76,8 @@ Multi-valued support extends to the measures and to actual causation: the
 EMD repertoire measure counts differing states over the actual state space,
 so it remains usable as the IIT 3.0 mechanism measure on non-binary
 substrates, and the actual-causation pipeline inherits k-ary support through
-the shared `System` machinery. Multi-valued golden fixtures pin end-to-end
-correctness, including the three-candidate voting example of Albantakis et
-al. (2019).
+the shared `System` machinery. The three-candidate voting example of Albantakis et al. (2019) is among the
+multi-valued examples supported end to end.
 
 ## Query the relational structure without enumerating it
 
@@ -150,8 +149,7 @@ structure, or call `materialize()` on one. See the how-to guide
 Complex-finding follows the exclusion postulate exactly. `Substrate.complexes()`
 returns `Complex` objects — the non-overlapping local maxima of integrated
 information — resolving overlaps by the recursive exclusion cascade
-(Marshall et al. 2023, Algorithm A1), including the chain topologies and
-tied cliques where a greedy pass selects the wrong complexes. Each
+(Marshall et al. 2023, Algorithm A1). Each
 `Complex` records the
 overlapping candidates excluded in its favor and its `exclusion_margin`,
 the φ_s gap to the best rival it beat. The
@@ -191,7 +189,7 @@ presets in `pyphi.conf.presets` reproduce published values exactly. See the
 theory page
 [The intrinsic-information requirement](theory/intrinsic-information.md).
 
-## Every formalism, restored and validated
+## Every formalism, restored
 
 The formalisms are first-class objects, selected by name: `"IIT_3_0"`,
 `"IIT_4_0_2023"`, `"IIT_4_0_2026"`, and `"AC_2019"` for actual causation.
@@ -206,8 +204,7 @@ one call: `with pyphi.config.override(**pyphi.iit3): ...`.
 
 IIT 3.0 is restored paper-faithfully, with tie resolution matching the 2014
 paper, the PyPhi 1.x background convention on subset systems (so published
-1.x results reproduce), and canonical reference values pinned in the test
-suite. Actual causation is restored per Albantakis et al. (2019), with its
+1.x results reproduce). Actual causation is restored per Albantakis et al. (2019), with its
 own configuration namespace, paper-faithful defaults, tie cascades, and
 enforcement of the realization principle: transitions that cannot occur
 under the substrate dynamics are rejected up front. See
@@ -335,8 +332,7 @@ quantities, each returned with its certificate and assumptions; measured
 bounds evaluated on a distinction set's per-atom profile are typically
 orders of magnitude tighter and still require no relation enumeration. A
 debug check (`validate_phi_bounds`) compares every in-domain result against
-the theorem-certified ceilings — since the bounds are proven, a violation
-demonstrates a bug rather than noise.
+the theorem-certified ceilings.
 
 Costs are countable before anything runs: `pyphi.estimate_analysis()`
 counts the workload of a single-system analysis — system partitions,
@@ -365,8 +361,7 @@ Several changes compound into orders-of-magnitude speedups:
 
 - Every configuration change used to serialize the entire config to disk —
   including the scoped overrides the compute pipeline makes internally.
-  Removing that overhead made hot paths ~60–300× faster; the golden test
-  suite dropped from about 13 minutes to about 13 seconds.
+  Removing that overhead made hot paths ~60–300× faster.
 - The repertoire computations were rewritten as a stateless kernel;
   evaluating a system partition is roughly 18–20× faster than in the
   pre-2.0 implementation.
@@ -396,8 +391,7 @@ configuration choices extend the tractable system size.
 
 Parallel execution runs on a single scheduler abstraction with process,
 thread, and Dask backends; on free-threaded Python builds the thread
-backend is selected automatically, and a free-threaded CI lane runs the
-full test suite with the GIL disabled. Work is packed into cost-balanced
+backend is selected automatically, . Work is packed into cost-balanced
 chunks using cheap per-item cost estimates, dispatch thresholds are tuned
 to measured per-item costs, and workers install the caller's exact
 configuration — so `config.override(...)` scopes apply on every backend,
@@ -436,8 +430,7 @@ planning a cluster campaign step by step. See
 
 ## Published results reproduce
 
-Every published worked example is reproduced at its published precision and
-pinned in a permanent acceptance suite: the IIT 4.0 paper's Figs. 1, 2, and
+Every published worked example is reproduced at its published precision: the IIT 4.0 paper's Figs. 1, 2, and
 4, all five Fig. 6 architectures, and the three Fig. 7 panels (Albantakis
 et al. 2023) — with the authors' exact weight matrices, previously
 available only as figure graphics, now shipping in `pyphi.examples`; both
@@ -468,11 +461,6 @@ complete; construction-time validation added where malformed input
 previously produced wrong numbers without an error; and multi-valued
 repertoires verified to machine precision against an independent reference.
 
-The release is backed by new infrastructure for keeping it correct: a
-golden regression harness pinning raw numerical outputs across more than
-two dozen fixtures spanning all three formalisms, Hypothesis property tests
-for invariants from the IIT 4.0 paper, the paper-reproduction suite run in
-CI, deterministic call-count gates that block performance regressions, and
-a nightly ASV benchmark suite. Packaging is modernized: a single
+Packaging is modernized: a single
 `pyproject.toml`, `uv`-based development, wheels built from a clean
 `hatchling` backend, and Python 3.13+.

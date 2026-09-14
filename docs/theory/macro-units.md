@@ -76,7 +76,7 @@ index, the base of the hierarchy.
 
 ## The intrinsic-unit criteria
 
-A grouping does not become a unit by fiat. To exist as *one* unit, a candidate's
+To exist as *one* unit, a candidate's
 constituent system — the constituents evaluated over the full universe, with
 everything else held as background — must satisfy the same postulates a complex
 does. Two criteria capture this (Marshall et al., 2024, Eqs. 15–16). First, the
@@ -123,7 +123,7 @@ a complex, every candidate overlapping it is excluded, and the search repeats
 on what remains until the substrate is exhausted. The papers state this over
 one substrate at one grain; across grains they state the criterion, that two
 candidates overlap when they share micro units (Marshall et al., 2024, Eq. 19).
-PyPhi puts the two together as one cascade over **micro footprints**, so
+PyPhi puts the two together as one cascade over micro footprints, so
 candidates at every grain compete on the same basis. Each candidate's footprint
 is the set of micro units it ultimately covers; the cascade walks candidates in
 descending $\varphi_s$, accepts the maximal one, drops every remaining candidate
@@ -136,7 +136,7 @@ that still ties fails exclusion outright: none of its members becomes a complex,
 and their units remain available to lower-$\varphi_s$ candidates further down.
 
 This cascade is the same {mod}`pyphi.condensation` machinery the micro complex
-search uses; the macro search simply feeds it candidate systems at every grain.
+search uses; the macro search feeds it candidate systems at every grain.
 It returns a {class}`~pyphi.macro.ComplexesResult` whose winners are
 {class}`~pyphi.models.complex.Complex` objects. Each winner reports an
 {attr}`~pyphi.models.complex.Complex.exclusion_margin` — the $\varphi_s$ gap to

@@ -168,8 +168,7 @@ for species in ("F3", "F2", "F1"):
 
 `F3`, with its dedicated super-bug detector, has the richest composite
 structure; `F1`, the reductionist baseline, the least. But the count is never
-zero: composite causes are a feature of the wiring, not an artifact of one
-elaborate design.
+zero: composite causes arise from the wiring itself.
 
 ## Takeaway
 

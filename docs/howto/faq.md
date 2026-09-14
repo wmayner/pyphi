@@ -72,6 +72,5 @@ active settings; pin the formalism per call with `formalism=`.
 
 ## Where is the API reference?
 
-Under {doc}`Reference </reference/index>` on the built site (it is
-generated from the docstrings and is not in the source tree), and in the
+Under {doc}`Reference </reference/index>` on the built site (generated from the docstrings), and in the
 interpreter with `help()`.

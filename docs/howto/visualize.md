@@ -263,8 +263,7 @@ fig.write_html("ces.html", include_plotlyjs="inline")
 ```
 
 Do not rasterize these to PNG: static image export needs
-[kaleido](https://github.com/plotly/Kaleido), which PyPhi does not depend on, and
-a still frame of a figure meant to be rotated and hovered is misleading. Keep the
+[kaleido](https://github.com/plotly/Kaleido), which PyPhi does not depend on, and these figures are meant to be rotated and hovered. Keep the
 cause-effect-structure plots as HTML. The Matplotlib figures (`plot_system`,
 `plot_graph`, `plot_tpm`, `plot_distribution`, `plot_repertoires`,
 `plot_dynamics`, the Ising helpers) save as images the usual way:

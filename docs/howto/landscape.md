@@ -110,12 +110,11 @@ switches.
 
 This substrate — the published Figure 1A system, at its published weights —
 is about `0.0017` away, in the A→B weight, from a switch in the specified
-cause state. Crossing it sends $\varphi_s$ to zero: the published value is
-correct and exactly reproducible, and also close to a boundary where the
-substrate specifies a different past state. That distance is invisible in
-$\varphi_s$ itself and in its derivative; it is what the margins and
-`switch_distances` are for. (The estimate is a linearization; here it agrees
-with the bisected switch location to about one percent.)
+cause state. Crossing it sends $\varphi_s$ to zero: the published weights lie close to
+a boundary where the substrate specifies a different past state. That
+distance is invisible in $\varphi_s$ itself and in its derivative; it is
+what the margins and `switch_distances` are for. The estimate is
+first-order, so check a candidate switch by evaluating on both sides.
 
 ```{code-cell} python
 before = pyphi.analyze(axis(0.700), (1, 0, 0), compute="sia")

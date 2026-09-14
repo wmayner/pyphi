@@ -49,8 +49,8 @@ From: python:3.13-bookworm
 apptainer build pyphi.sif pyphi.def
 ```
 
-Once PyPhi 2.0 is on PyPI the `%files` section can be dropped in favor of
-`pip install pyphi` in `%post`.
+To install a published release instead of a local checkout, drop the
+`%files` section and use `pip install pyphi` in `%post`.
 
 ## Pattern A — many independent runs (fully supported)
 

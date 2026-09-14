@@ -13,8 +13,7 @@ kernelspec:
 
 {func}`pyphi.analyze` returns an {class}`~pyphi.analyze.Analysis`. This page
 walks through what it prints and what each row means, then through the
-system irreducibility analysis underneath it and the questions to ask when
-a value surprises you.
+system irreducibility analysis underneath it and how to interpret an unexpected value.
 
 ```{code-cell} python
 import pyphi
