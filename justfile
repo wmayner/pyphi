@@ -22,9 +22,9 @@ docs:
 serve-docs port="1337": docs
     cd docs/_build/html && uv run python -m http.server {{ port }}
 
-# Serve docs with live reload (first build ~1 min; then tutorial edits reload in seconds, API cached)
+# Serve docs with live reload: rebuilds on save (serial, like `docs`; executed pages come from the cache)
 watch-docs port="1337":
-    uv run --all-extras --group docs sphinx-autobuild -j auto -W --keep-going -b html --port {{ port }} docs docs/_build/html
+    uv run --all-extras --group docs sphinx-autobuild -W --keep-going -b html --port {{ port }} docs docs/_build/html
 
 # Run the benchmark suite once locally (current env, quick mode)
 bench *args:
