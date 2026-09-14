@@ -50,11 +50,12 @@ analysis
   and a unit with more than two states carries its state as a subscript
   (`A₂`). A cause purview `a` means the mechanism specifies unit A being OFF
   in the past.
-- **System: MIP, ii(s), Requirement binds**: the minimum information
-  partition (the cut that makes the least difference: the system's weakest
-  link), the system's intrinsic information, and, when the
-  intrinsic-information requirement set φ_s, which term and direction did
-  so. The next section explains these.
+- **System**: the units and current state analyzed, the cause and effect
+  states the system specifies, the minimum information partition (the cut
+  that makes the least difference: the system's weakest link), the system's
+  intrinsic information ii(s), and, when the intrinsic-information
+  requirement set φ_s, which term and direction did so. The next section
+  explains these.
 
 ## The system irreducibility analysis
 

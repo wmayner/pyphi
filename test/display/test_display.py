@@ -1393,3 +1393,21 @@ def test_ipython_pretty_prints_compact_form_inside_containers():
     assert alone.startswith("╭")
     assert "╭" not in listed
     assert listed.count(sia._compact_repr()) == 2
+
+
+def test_analysis_card_states_the_system_and_its_specified_states():
+    """The System section names the units, the current state, and the states
+    the system specifies, before the MIP."""
+    analysis = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 1, 0))
+    lines = repr(analysis).splitlines()
+    labels = [line.split("│")[1].split("  ")[0].strip() for line in lines if "│" in line]
+    system_labels = labels[labels.index("Units") :]
+    assert system_labels[:5] == [
+        "Units",
+        "Current state",
+        "Specified cause state",
+        "Specified effect state",
+        "MIP",
+    ]
+    assert "│ Units                    A,B,C" in repr(analysis)
+    assert "│ Current state            (1, 1, 0)" in repr(analysis)

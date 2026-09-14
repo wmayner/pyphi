@@ -122,7 +122,17 @@ class Analysis(Displayable, Serializable):
     def _system_rows(self) -> tuple[Row, ...]:
         from pyphi.models.partitions import concise_partition
 
-        rows = [Row("MIP", concise_partition(self.sia.partition))]
+        rows = [
+            Row("Units", self.sia._system_label()),
+            Row("Current state", self.sia.current_state),
+        ]
+        state = getattr(self.sia, "system_state", None)
+        if state is not None:
+            if state.cause is not None:
+                rows.append(Row("Specified cause state", state.cause.state))
+            if state.effect is not None:
+                rows.append(Row("Specified effect state", state.effect.state))
+        rows.append(Row("MIP", concise_partition(self.sia.partition)))
         ii = getattr(self.sia, "intrinsic_information", None)
         if ii is not None:
             rows.append(Row("ii(s)", ii))
