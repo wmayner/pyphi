@@ -53,10 +53,8 @@ from pyphi.conf.formalism import IITConfig
 # ``system_partition_include_total``, ``relation_computation``,
 # ``state_tie_resolution`` — guarded out at the call boundary or
 # only consumed by 4.0-exclusive code.
-# ``distinction_phi_normalization`` set to ``"NONE"`` here for
-# documentation (post-fix, the 3.0 path no longer reads
-# ``RIA.normalized_phi`` for any decision; this short-circuits
-# the per-RIA division cost).
+# ``distinction_phi_normalization`` is ``"NONE"``: the 3.0 path never reads
+# ``RIA.normalized_phi`` for any decision, so this skips the per-RIA division.
 # ``shortcircuit_sia`` does NOT gate IIT 3.0's short-circuit logic;
 # 3.0's early-exit conditions live in ``iit3._sia`` independent of
 # the flag.
@@ -99,10 +97,8 @@ iit3: dict[str, Any] = {
         # causation (Albantakis et al. 2019).
         alpha_measure="PMI",
     ),
-    # IIT 3.0 pins precision 6: the EMD comparison tolerance was unreliable at
-    # finer precisions under the historical pyemd backend, and the published
-    # goldens are calibrated to it. (Whether the POT backend now permits a finer
-    # precision is a separate question, left unchanged here to preserve results.)
+    # IIT 3.0 uses precision 6, the tolerance at which its published values
+    # were computed.
     "precision": 6,
 }
 

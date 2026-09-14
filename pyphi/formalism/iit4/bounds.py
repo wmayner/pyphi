@@ -787,7 +787,7 @@ def report(n: int | None = None, substrate: Substrate | None = None) -> dict[str
 
 
 ##############################################################################
-# Runtime bound-certificate assertions (B1)
+# Runtime bound-certificate assertions
 ##############################################################################
 
 
