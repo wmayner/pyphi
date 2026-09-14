@@ -206,8 +206,8 @@ image.
   literature.
 - `build_substrate` — build a substrate from a transition probability matrix.
 - `describe_substrate` — inspect a substrate's nodes, connectivity, state
-  convention, and its transition probability matrix as state-by-node rows
-  (up to 256 states).
+  convention, its transition probability matrix as state-by-node rows
+  (up to 256 states), and the PyPhi version serving it.
 - `analyze` — compute system integrated information φₛ and the Φ-structure of a
   substrate in a state (under the default IIT 4.0 formalism, or an earlier
   version if you ask for one), optionally on multiple cores for that call

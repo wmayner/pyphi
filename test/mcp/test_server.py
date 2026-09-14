@@ -705,3 +705,9 @@ def test_large_substrate_summary_omits_the_tpm():
     tpm = srv.describe_substrate(handle)["tpm"]
     assert "rows" not in tpm
     assert "512 states" in tpm["omitted"]
+
+
+def test_describe_substrate_reports_the_pyphi_version(basic_handle):
+    from importlib.metadata import version
+
+    assert srv.describe_substrate(basic_handle)["pyphi_version"] == version("pyphi")

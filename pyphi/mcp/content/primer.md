@@ -30,7 +30,9 @@ reference.
   literature. Start here.
 - `build_substrate(tpm, cm?, node_labels?, alphabet?)` — build your own from a
   transition probability matrix.
-- `describe_substrate(handle)` — inspect a substrate.
+- `describe_substrate(handle)` — inspect a substrate: units, connectivity, its
+  TPM as state-by-node rows (up to 256 states), and the PyPhi version serving
+  it.
 - `analyze(handle, state, subset?, formalism?, compute?, detail?,
   confirm_large?, parallel?, workers?)` — the workhorse. Returns a readable
   card, scalar values, and a `result_ref`. `subset` names the candidate

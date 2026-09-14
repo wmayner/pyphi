@@ -17,6 +17,7 @@ import itertools
 import tempfile
 import uuid
 from dataclasses import asdict
+from importlib import metadata
 from pathlib import Path
 from typing import Any
 
@@ -493,12 +494,14 @@ def describe_substrate(handle: str) -> dict[str, Any]:
     -------
     dict
         The substrate's nodes, labels, connectivity, state count, its TPM
-        as state-by-node rows (omitted above ``TPM_MAX_STATES`` states), and
-        a reminder of the little-endian state-index convention.
+        as state-by-node rows (omitted above ``TPM_MAX_STATES`` states), the
+        installed PyPhi version, and a reminder of the little-endian
+        state-index convention.
     """
     substrate = _get_substrate(handle)
     return {
         "handle": handle,
+        "pyphi_version": metadata.version("pyphi"),
         **_substrate_summary(substrate),
         "state_convention": (
             "States are little-endian: the first node is the "
