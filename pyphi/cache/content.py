@@ -14,15 +14,13 @@ admits new entries by evicting least recently used ones. Occupancy is measured
 in bytes rather than entries because cached repertoires vary in size by orders
 of magnitude across purview orders.
 
-Safe for concurrent use by worker threads: cached values are correct, eviction
-is sound, and no operation raises under concurrent access. The ``hits`` and
-``misses`` counters are best-effort under free-threaded Python (exact under the
-GIL and under process isolation) — they are diagnostics, left out of the lock
-to keep the hot path contention-free. The tracked byte weight carries the same
-caveat: a hit reinserting its entry concurrently with a fingerprint eviction
-can leave the weight off by that entry, which shifts where the bound falls
-without affecting any cached value. Admission and eviction themselves are
-locked.
+Safe for concurrent use by worker threads: cached values are correct, eviction is sound,
+and no operation raises under concurrent access. The ``hits`` and ``misses`` counters are
+best-effort under free-threaded Python (exact under the GIL and under process isolation)
+— they are diagnostics, updated outside the lock. The tracked byte weight carries the
+same caveat: a hit reinserting its entry concurrently with a fingerprint eviction can
+leave the weight off by that entry, which shifts where the bound falls without affecting
+any cached value. Admission and eviction themselves are locked.
 """
 
 from __future__ import annotations

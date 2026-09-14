@@ -302,9 +302,8 @@ class ExactFormalism(PhiFormalism, Protocol):
 class ApproximateFormalism(PhiFormalism, Protocol):
     """Formalism that computes approximate values with error characterization.
 
-    Reserved for the approximation framework (φ*, φ_G, geometric
-    integrated information, certified Zaeemzadeh pruning). Declared here so
-    downstream code can branch on ``exact`` cleanly.
+    Its ``exact`` attribute is False, and ``error_info`` characterizes the
+    approximation.
     """
 
     exact: Literal[False]

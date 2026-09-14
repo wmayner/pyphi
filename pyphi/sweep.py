@@ -97,10 +97,8 @@ def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
 def _normalize_formalisms(formalisms: Any) -> list[str | None]:
     """Normalize the formalisms axis; ``None`` means the ambient config.
 
-    ``None`` is kept as a sentinel rather than resolved to the ambient
-    version name: an explicit version name applies its complete preset,
-    while the ambient config may carry user customizations that a preset
-    would silently reset.
+    ``None`` means the ambient config; a version name applies its complete
+    preset.
     """
     if formalisms is None:
         return [None]

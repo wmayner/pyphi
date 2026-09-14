@@ -1,6 +1,6 @@
 """Numerics layer of the PyPhi config.
 
-Holds knobs that govern numerical comparison (precision, future tolerances).
+Holds knobs that govern numerical comparison (precision).
 Frozen dataclass — replace via :func:`dataclasses.replace` or top-level
 write on the global config.
 """

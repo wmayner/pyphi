@@ -120,8 +120,7 @@ def shard_memory_bytes(max_repertoire_cells: int) -> int:
 
     ``REPERTOIRE_FACTOR × 8 bytes × max_repertoire_cells +
     BASE_MEMORY_BYTES + CACHE_HEADROOM_BYTES``. The factor and base are
-    calibration constants validated against scheduler-reported memory
-    usage; the headroom is the cache allowance that
+    calibration constants; the headroom is the cache allowance that
     :func:`shard_cache_budget_bytes` enforces during execution. Requests
     derived from this estimate are rounded with
     :func:`round_memory_bytes`.

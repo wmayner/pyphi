@@ -63,9 +63,8 @@ def transient_repertoires() -> Iterator[None]:
     intermediates themselves are full repertoires. Admitting them costs
     the product of the state count and the repertoire size — for an
     n-unit system, order 4ⁿ cells to answer 2ⁿ single-use questions — for
-    a hit rate of zero within the sweep. Suppressing admission there bounds
-    its memory at one repertoire and adds no recomputation inside it. A
-    later single-state probe of the same repertoire recomputes rather than
+    a hit rate of zero within the sweep. A later single-state probe of the
+    same repertoire recomputes rather than
     hitting a retained entry, which is one evaluation against the state
     count's worth of retained cells.
 
@@ -554,13 +553,10 @@ def unconstrained_forward_effect_repertoire(
 
     Notes
     -----
-    Sequential accumulation can differ from a stacked ``mean`` in the final
-    floating-point bits once numpy's pairwise summation engages (above 128
-    states); tolerance-based comparisons downstream absorb this.
+    The accumulated value can differ in the final floating-point bits from a
+    single stacked mean; downstream comparisons are tolerance-based.
 
-    Results are not memoized. Callers request each ``(mechanism, purview)``
-    once, so a cached entry would rarely be read back — which holds for the
-    loop's own per-state repertoires too, hence the transient scope.
+    Results are not memoized.
     """
     alphabet_sizes = cs.substrate.factored_tpm.alphabet_sizes
     mech_k = tuple(alphabet_sizes[i] for i in mechanism)

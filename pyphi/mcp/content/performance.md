@@ -52,10 +52,10 @@ or a cgroup, the allowance is detected from the cgroup; set
 
 Both options bound **total resident memory**, not the caches alone, so size
 them from what the process may use rather than from how big you expect the
-caches to get. On a sampled 21-unit cause-effect-structure shard the caches
-held 70–130 MB while the process held 2.6 GB — the rest being the interpreter,
-the substrate TPM, and numpy working space — so the allowance the caches
-actually receive is the ceiling less that baseline.
+caches to get. In a large analysis the caches are a small part of the
+footprint; the interpreter, the substrate TPM, and numpy working space make up
+the rest, so the allowance the caches actually receive is the ceiling less
+that baseline.
 
 Note also what the ceiling means for a scheduled job: because it follows the
 memory actually granted, asking the scheduler for more memory grows the caches

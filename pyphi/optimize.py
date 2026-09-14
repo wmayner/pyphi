@@ -362,11 +362,11 @@ def optimize(
         search dimension.
     seed : int
         Seeds an isolated ``np.random.default_rng`` driving the optimizer, and
-        is recorded on the result. Required — reproducibility is not optional.
+        is recorded on the result. Required.
     objective : str or Callable
         ``"signed_normalized_phi"`` (default), ``"phi"``, ``"signed_phi"``, or
-        ``"normalized_phi"`` by name, or a callable ``SIA → float`` for
-        objectives the roughness gate did not validate.
+        ``"normalized_phi"`` by name, or a callable ``SIA → float`` for any
+        other objective.
     direction : str
         ``"maximize"`` (default) or ``"minimize"``.
     x0 : NDArray, optional

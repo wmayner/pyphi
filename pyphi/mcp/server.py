@@ -1174,9 +1174,8 @@ def plot(
 ) -> Any:
     """Render one of PyPhi's built-in visualizations.
 
-    Requires the ``visualize`` extra (``pip install pyphi[visualize]``). PyPhi
-    already provides these figures, so this exposes them rather than
-    reconstructing anything. The interactive ``"ces"`` plot is returned as a
+    Requires the ``visualize`` extra (``pip install pyphi[visualize]``). The
+    interactive ``"ces"`` plot is returned as a
     path to a self-contained HTML file to open in a browser (it cannot be shown
     inline); the static figures are returned as an inline PNG.
 
@@ -1259,10 +1258,7 @@ def _render_figure(fig: Any, kind: str, plt: Any) -> Any:
     """Write a plotly or matplotlib figure to disk and return it for the client.
 
     Interactive (plotly) figures are returned as an HTML path only, with no
-    inline image: a static snapshot of a figure meant to be rotated and hovered
-    is misleading, and an inline preview would let a reader mistake it for the
-    real thing and never open the interactive file. Static (matplotlib) figures
-    have no interactive form, so they are returned as an inline PNG.
+    inline image. Static (matplotlib) figures are returned as an inline PNG.
     """
     from mcp.server.fastmcp import Image
 

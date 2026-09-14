@@ -1,11 +1,9 @@
 """Delivery of the PyPhi agent skills to the coding agents installed on a
 machine.
 
-A skill is matched against the task before the model acts, which is what the
-Model Context Protocol registration and the project instruction block cannot
-do: both are consulted only once something has decided to consult them. The
-skills shipped under ``pyphi/mcp/skills/`` are copied out of the package into
-each agent's own skills directory.
+A skill is matched against the task before the model acts. The skills shipped under
+``pyphi/mcp/skills/`` are copied out of the package into each agent's own skills
+directory.
 
 Nothing here imports the optional ``mcp`` dependency.
 """

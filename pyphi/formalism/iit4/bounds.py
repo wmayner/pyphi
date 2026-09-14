@@ -599,11 +599,7 @@ def sum_phi_relations_measured_bound(distinctions: Iterable[Any]) -> UpperBound:
     Notes
     -----
     Atoms are state-tagged units, exactly the objects in each
-    distinction's ``purview_union``. Grouping by bare unit index with
-    index-count denominators is unsound: when a purview union contains
-    the same unit in two states, the merged density can fall below the
-    true per-atom contribution, and the resulting value can fall below
-    Σφ_r itself.
+    distinction's ``purview_union``.
 
     The certificate holds because the true per-atom contribution (the
     inner sum of Eq 11) satisfies the linear program's budget constraint
@@ -799,7 +795,7 @@ class BoundViolationError(AssertionError):
     """A computed phi exceeded its theorem-certified upper bound.
 
     Within the certified domain the bound holds for every system, so an
-    overshoot is a *proof* of a formalism bug, not a numerical artifact.
+    overshoot proves a formalism bug.
     Raised only when ``config.infrastructure.validate_phi_bounds`` is set and
     the system is in the certified domain (IIT 4.0 + GID/II, binary units,
     and — for the system bound — a set-partition scheme). Subclasses

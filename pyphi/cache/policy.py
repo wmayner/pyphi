@@ -1,10 +1,8 @@
 """Cache policy Protocol and adapters.
 
-A ``CachePolicy`` is the uniform observability and control surface across all
-of PyPhi's cache flavors: it declares only ``name``, ``info()``, and
-``clear()``. It does not include ``get`` / ``put`` / ``key``, because those
-have different signatures across flavors (the kernel keys on ``id(cs)``,
-module-level caches on ``_make_key``, instance-level caches on custom keys).
+A ``CachePolicy`` is the uniform observability and control surface across all of PyPhi's
+cache flavors: it declares only ``name``, ``info()``, and ``clear()``. ``get`` / ``put``
+/ ``key`` are not part of it; their signatures differ across cache flavors.
 """
 
 from __future__ import annotations
@@ -36,17 +34,14 @@ class CachePolicy(Protocol):
 class _DictCacheAdapter:
     """Adapter wrapping a backing dict with externally-tracked hit/miss counts.
 
-    Used by the module-level ``@cache(...)`` decorator and by ``ContentCache``
-    instances. The ``stats`` callable returns ``(hits, misses)`` so the
-    adapter doesn't need to mutate them — the wrapper closure that updates
-    the counts owns them. The optional ``weigh`` callable returns
-    ``(nbytes, evictions)`` for caches that track occupancy in bytes; caches
-    that do not report zero for both. The optional ``reset`` callable clears
-    the owning cache through its own clear path — resetting its tracked byte
-    weight and any latched admission budget along with the entries, since the
-    purpose of clearing is recovering memory. Without it, ``clear()`` falls
-    back to emptying the backing dict, which suits plain unweighted dicts
-    only.
+    Used by the module-level ``@cache(...)`` decorator and by ``ContentCache`` instances.
+    The ``stats`` callable returns ``(hits, misses)``; the wrapper closure that updates
+    the counts owns them. The optional ``weigh`` callable returns ``(nbytes, evictions)``
+    for caches that track occupancy in bytes; caches that do not report zero for both.
+    The optional ``reset`` callable clears the owning cache through its own clear path —
+    resetting its tracked byte weight and any latched admission budget along with the
+    entries, since the purpose of clearing is recovering memory. Without it, ``clear()``
+    falls back to emptying the backing dict, which suits plain unweighted dicts only.
     """
 
     name: str

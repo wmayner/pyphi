@@ -5,8 +5,7 @@ changes only how work is scheduled, never a result — the same computation
 returns the identical value sequentially and in parallel, so wall-clock time
 is the only thing at stake. The default backend is a local process pool
 (loky, via joblib, a core dependency): **nothing extra needs to be
-installed**. Older documentation mentions a `pyphi[parallel]` extra; no such
-extra exists.
+installed**.
 
 ## The rule: two gates and a threshold
 
@@ -37,8 +36,8 @@ concluding that parallelism does not work.
 | distinctions | `parallel_distinction_evaluation` | Mechanisms, when unfolding the distinctions of a cause-effect structure (both formalisms share this loop) | 64 | A CES over many mechanisms |
 | complexes | `parallel_complex_evaluation` | Candidate systems within a substrate | 16 | Complex searches over many candidate systems |
 | macro_systems | `parallel_macro_system_evaluation` | Coarse-grained candidate systems in a macro search | 16 | Macro searches |
-| mechanism_partitions | `parallel_mechanism_partition_evaluation` | Partitions of a single mechanism | 8192 | Almost never — items cost ~50 µs, and no benefit was measured below 8192 of them |
-| relations | `parallel_relation_evaluation` | Relations among distinctions | 8192 | **Never at any measured size.** Relation objects are lazy, so the mapped work is microseconds and the cost is dominated by pickling results back to the parent. Leave it off. |
+| mechanism_partitions | `parallel_mechanism_partition_evaluation` | Partitions of a single mechanism | 8192 | Almost never: items cost about 50 µs, so dispatch only pays past the threshold |
+| relations | `parallel_relation_evaluation` | Relations among distinctions | 8192 | **Never.** Relation objects are lazy, so the mapped work is microseconds and the cost is dominated by pickling results back to the parent. Leave it off. |
 
 `chunksize` governs how many items each worker receives per batch (it never
 affects results), and `progress` controls that level's progress bar (also

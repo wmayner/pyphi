@@ -469,7 +469,8 @@ class IIT4_2026Formalism:
 
     Mechanism phi uses GID per Eqs. 19-20 (same as IIT 4.0 2023). System
     phi uses ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff,
-    i_spec)`` cap from Eq. 23 — that's the 2026-specific divergence.
+    i_spec)`` cap from Eq. 23, which is where this variant differs from
+    IIT 4.0 (2023).
     Scope-explicit overrides ensure each level uses the right measure.
     """
 

@@ -166,9 +166,7 @@ class _PartitionBase(ToPandasMixin):
         (``PARTITION_LEX``, the SIA sort key). ``__eq__``/``__hash__`` are
         defined per subclass and unchanged; partitions with identical induced
         cuts but distinct structure sort as equal-rank, so all four
-        comparison operators are defined on ``lex_key`` directly (a
-        ``total_ordering``-derived ``<=`` would combine ``<`` with the
-        structural ``__eq__`` and turn equal-rank pairs incoherent). For the
+        comparison operators are defined on ``lex_key`` directly. For the
         refinement relation use :meth:`refines`/:meth:`coarsens`, NOT ``<``.
         """
         if not isinstance(other, _PartitionBase):
@@ -258,8 +256,7 @@ class _PartitionBase(ToPandasMixin):
 
         Default derivation from :meth:`cut_matrix`; concrete subclasses
         override with an equivalent structural form that avoids materializing
-        the full ``n x n`` matrix. The two must agree (verified by
-        ``test_partition_edge_set.py``).
+        the full ``n x n`` matrix. The two forms agree.
         """
         indices = self.indices
         if not indices:

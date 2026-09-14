@@ -654,8 +654,8 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         """Build a :class:`Substrate` from a networkx DiGraph topology and a TPM.
 
         The graph supplies connectivity and node order; ``tpm`` supplies the
-        dynamics (required). Runs the B19 connectivity validator, so a graph
-        that omits a real TPM-implied edge is rejected.
+        dynamics (required). A graph that omits an edge the TPM implies is
+        rejected.
         """
         from pyphi import graph as graph_module
 

@@ -707,8 +707,7 @@ def effect_emd(p: ArrayLike, q: ArrayLike) -> float:
     for product distributions under the additive Hamming ground metric). For a
     node, that per-node EMD is the total variation between its marginals; for a
     binary node this reduces to the absolute difference in the probabilities that
-    the node is OFF (the original binary expression, kept so binary results are
-    unchanged).
+    the node is OFF.
 
     Parameters
     ----------
@@ -1572,10 +1571,7 @@ def resolve_mechanism_measure(
     Mechanism-level integration accepts distribution measures (IIT 3.0
     EMD/L1/KLD/...), state-aware pointwise measures, stateful-distribution
     measures (IIT 4.0 small-phi variants), or composite measures (GID at
-    the partition layer). Pyright sees the Protocol union; downstream
-    parameters typed as a narrower Protocol (e.g.,
-    :class:`CompositeMeasure` at the system level) statically reject
-    scope-mismatched assignments.
+    the partition layer).
 
     When ``alphabet_sizes`` is provided, the resolved measure's
     ``supports_alphabet`` predicate is evaluated and
@@ -1620,7 +1616,7 @@ def resolve_system_measure(name: str) -> CompositeMeasure:
     """Look up a measure usable at the system level.
 
     Only composite measures are valid system-level measures; the return
-    type is :class:`CompositeMeasure` so pyright catches scope mismatches.
+    type is :class:`CompositeMeasure`.
     """
     from typing import cast
 
@@ -1635,8 +1631,7 @@ def resolve_distribution_measure(name: str) -> DistributionMeasure:
     """Look up a distribution measure for EMD ground distance and IIT-side dispatch.
 
     Only distribution measures (two-distribution distances) are valid
-    here; the return type is :class:`DistributionMeasure` so pyright
-    catches scope mismatches.
+    here; the return type is :class:`DistributionMeasure`.
     """
     from typing import cast
 
@@ -1653,8 +1648,7 @@ def resolve_actual_causation_measure(name: str) -> DistributionMeasure:
 
     The actual-causation alpha computation uses ``(p, q) -> float``
     distribution-shape callables from :data:`actual_causation_measures`
-    (e.g., ``PMI``, ``WPMI``). The return type is :class:`DistributionMeasure`
-    so call-site type checks reject scope-mismatched assignments.
+    (e.g., ``PMI``, ``WPMI``). The return type is :class:`DistributionMeasure`.
     """
     from typing import cast
 

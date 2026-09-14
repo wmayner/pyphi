@@ -1,11 +1,10 @@
 # substrate_generator/mechanism_combinations.py
-"""Combination strategies for composite units, ported from ``substrate_modeler``.
+"""Combination strategies for composite units.
 
 A composite unit holds several sub-mechanisms and combines their activation
 probabilities into one. In the present=past substrate TPM every sub-mechanism is
 evaluated at the same from-state, so a combination is simply a function of the
-list of sub-mechanism probabilities (the original library's per-input-state TPM
-expansion is unnecessary here).
+list of sub-mechanism probabilities.
 
 :func:`composite` builds a unit function from a list of sub-mechanism specs and a
 combination strategy.
@@ -36,8 +35,8 @@ def first_necessary(probs, *, steepness=5.0, offset=0.5, **kwargs):
     """The first (primary) sub-mechanism, boosted toward 1 when the others are
     inactive — but only if the primary is already above 0.5.
 
-    ``steepness`` and ``offset`` parameterize the logistic boost (the original
-    used the fixed values 5 and 0.5, which are the defaults here).
+    ``steepness`` and ``offset`` parameterize the logistic boost; they default
+    to 5 and 0.5.
     """
     primary = probs[0]
     if primary > 0.5:

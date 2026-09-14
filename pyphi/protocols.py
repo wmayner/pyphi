@@ -9,8 +9,7 @@ these Protocols at registration time, so wrong-shape registrations fail
 at import — not at the bottom of a long phi computation.
 
 Also declares the public-surface contract for ``System`` as
-:class:`SystemPublicInterface`. ``test/test_system_surface.py`` fails CI if
-``System``'s public surface drifts from this declaration.
+:class:`SystemPublicInterface`.
 """
 
 from __future__ import annotations
@@ -74,8 +73,7 @@ class MechanismPartition(Protocol):
     "disintegrating" partitions Θ(M, Z) of Albantakis et al. 2023, Eq. 38,
     used by ``System.find_mip`` for distinctions) from system-level directional
     partitions (Eqs. 14-18, used by SIA). The two have different mathematical
-    roles and different probability constructions; making the distinction
-    explicit in the type system prevents accidental cross-use.
+    roles and different probability constructions.
     """
 
     mechanism: Any
@@ -91,7 +89,7 @@ class SystemPartitionLike(Protocol):
     """A directional partition of a set of system nodes.
 
     Concrete realizations are :class:`pyphi.models.partitions.DirectedBipartition`
-    (the canonical 2.0 type, with explicit ``Direction``) and the general
+    (with explicit ``Direction``) and the general
     set-partition variants (:class:`pyphi.models.partitions.EdgeCut`,
     :class:`pyphi.models.partitions.DirectedSetPartition`).
 
@@ -253,11 +251,9 @@ of an explicit refactor; do not let drift accumulate."""
 class SystemPublicInterface(Protocol):
     """The cross-module contract for ``System``.
 
-    Generated from ``dir(System)`` plus instance attributes set in
-    ``__init__``, filtered to the names that actually appear in cross-module
-    accesses inside ``pyphi/``. Internal-only members (callable from inside
-    ``System`` itself but not by external callers) are kept on the class
-    but excluded from this Protocol.
+    Lists the ``System`` members that other modules in ``pyphi/`` access. Internal-only
+    members (callable from inside ``System`` itself but not by external callers) are kept
+    on the class but excluded from this Protocol.
 
     The members are typed ``Any``. The Protocol's role is structural
     conformance and drift detection: the type system enforces that any caller

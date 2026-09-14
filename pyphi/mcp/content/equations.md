@@ -2,8 +2,7 @@
 
 Equation numbers below are cited to specific papers. Where a paper numbers only
 some of its equations, that is noted — cite unnumbered formulas by name, not by
-a number. When in doubt, verify against the PDFs in `papers/` and the
-concept-to-code map in `graphify-out/bridge-edges.json`. Never cite a number
+a number. When in doubt, verify against the paper itself. Never cite a number
 from memory.
 
 Symbols: `s`, `s̄` are system states (current, and a candidate cause/effect

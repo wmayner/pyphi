@@ -1,0 +1,1 @@
+Docstrings and the bundled MCP reference topics no longer carry development narrative (verification stories, ticket labels, test-suite references, design defences); they describe what the code is and does.

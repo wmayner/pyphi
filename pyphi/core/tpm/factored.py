@@ -306,7 +306,7 @@ class FactoredTPM(Displayable, ToPandasMixin):
 
         Materializing the joint costs exponential space in the number of
         units, so this is used only at boundaries where a dense joint is
-        required (serialization, fixture comparison, ``Substrate.joint_tpm()``).
+        required (serialization, ``Substrate.joint_tpm()``).
         """
         n = self.n_nodes
         a = self.alphabet_sizes

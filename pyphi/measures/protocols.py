@@ -25,7 +25,7 @@ attributes the runtime-checkable Protocols declare, so ``isinstance``
 returns False for them. The ``satisfies_*`` helpers below capture the
 structural intent by inspecting parameter names with
 ``inspect.signature``; the typed registries use these at registration
-time and the protocol-pinning tests use the same helpers.
+time.
 """
 
 from __future__ import annotations

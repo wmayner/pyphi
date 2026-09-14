@@ -201,9 +201,7 @@ def residue_substrate():
     The input units C, D, E carry self-copying TPM columns, but the
     connectivity matrix (matching the diagram below) gives them no inputs, so
     their self-state is marginalized to an unconstrained (uniform) effect
-    repertoire — the intended input-unit behavior. The connectivity-consistency
-    check is disabled (via the decorator) because it would otherwise flag those
-    self-loops.
+    repertoire.
 
     Current and previous state are all nodes OFF.
 
@@ -1387,9 +1385,9 @@ def differentiation_micro_1_system():
 # unit's next state is a logistic (sigmoid) function of its weighted inputs in
 # {-1, +1} with slope k = 4, realized by `ising.probability` at
 # `temperature = 1 / k` (weights[i, j] is the weight of the edge from unit i to
-# unit j). Figure 1A's weights are read directly from the figure and
-# self-validated against its published phi_s values; the Figure 6 and 7 weight
-# matrices, given only graphically in the paper, were supplied by the authors.
+# unit j). Figure 1A's weights are read from the figure; the Figure 6 and 7
+# weight matrices, given only graphically in the paper, were supplied by the
+# authors.
 
 
 @register_example
@@ -1405,12 +1403,10 @@ def iit4_2023_fig1a_substrate():
         B→A = +0.7   B→B = −0.2   (no B→C)
         (no C→A)     C→B = −0.8   C→C = +0.2
 
-    This reading is self-validating: in the canonical state aBC = (0, 1, 1),
-    the three φₛ values published in Fig 1E — 0.04 for {A}, 0.17 for the
-    complex {A, B}, 0.13 for {A, B, C} — all reproduce to the paper's
-    two-decimal precision, which they would not if any weight were misread.
-    Because the substrate is probabilistic, these values are identical under
-    the 2023 and 2026 formalisms.
+    In the state aBC = (0, 1, 1) the paper reports φₛ = 0.04 for {A}, 0.17 for
+    {A, B} (the complex), and 0.13 for {A, B, C} (Fig 1E). Because the
+    substrate is probabilistic, these values are identical under the 2023 and
+    2026 formalisms.
     """
     # fmt: off
     weights = np.array([
@@ -1697,9 +1693,7 @@ def marshall_2023_fig1_substrate(variant="deterministic"):
     and effect with ``ii_c = ii_e = 4`` (Fig 1B). ``variant="noisy"``
     makes ``D`` go to its specified state with probability 0.6 (Fig 1C;
     ``ii_c = ii_e = 1.95``); ``variant="degenerate"`` gives ``D`` the same
-    function as ``A`` (Fig 1D; ``ii_c = 1.5``, ``ii_e = 3.0``). The paper
-    states the functions only as a figure table; this fixture reproduces
-    the panel values, not the table.
+    function as ``A`` (Fig 1D; ``ii_c = 1.5``, ``ii_e = 3.0``).
     """
     if variant not in ("deterministic", "noisy", "degenerate"):
         raise ValueError(f"unknown variant {variant!r}")
@@ -1794,10 +1788,11 @@ def marshall_2023_fig3_substrate(moderate="forward"):
     with ``k = 2`` (A-F) and ``k = 0.2`` (G, H), ``l = 1``. Every column
     sums to 1. Condenses into the complexes {F}, {A, B, C, D, E}, {G, H}
     (Fig 3C) under the paper's convention of conditioning the background on
-    its current state. The paper leaves the source of the moderate input
-    implicit; taking it from the next unit in the loop reproduces the
-    published φₛ of the cluster (0.12), while ``moderate="back"`` (from the
-    unit two steps back) gives 0.10.
+    its current state. The paper does not say which unit supplies the
+    moderate input: ``moderate="next"`` (the default) takes it from the next
+    unit in the loop, which gives the published cluster φₛ of 0.12, and
+    ``moderate="back"`` takes it from the unit two steps back, which gives
+    0.10.
     """
     n = 8
     w = np.zeros((n, n))

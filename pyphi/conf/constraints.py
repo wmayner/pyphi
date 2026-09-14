@@ -10,9 +10,8 @@ point of configuration with a :class:`~pyphi.conf.ConfigurationError` that
 names the two conflicting fields and a concrete fix — rather than at compute
 time, deep in the math, or not at all.
 
-A constraint fires only on a combination that is genuinely wrong, not one
-that is merely inert: every shipped preset (``iit3``, ``iit4_2023``,
-``iit4_2026``) passes. An option left at a default that the active formalism
+A constraint fires only on a combination that is wrong, not one that is
+merely inert. An option left at a default that the active formalism
 never consults is not flagged — for example, an IIT 3.0 config leaves
 ``system_phi_measure`` at its IIT 4.0 default, but IIT 3.0 never reads it.
 
@@ -37,18 +36,12 @@ a ``system_phi_measure`` that applies it (the formalism declares
 that lacks the requirement would compute the 2023 quantity while reporting
 version 2026 — a formalism mixture matching no paper.
 
-The ``background_conditioning_compatible_with_version`` constraint pins IIT
-3.0 to ``CONDITION_CURRENT_STATE`` (the shipped preset's convention). The
-deliberately marginalized IIT 3.0 variant — pinned by the golden zoo's
-``noisy_or_subset_iit3_emd_marginalized`` fixture and the background-oracle
-tests — opts out via ``validate_config=False``, which also disables the
-matching dispatch-boundary checks.
+The ``background_conditioning_compatible_with_version`` constraint pins IIT 3.0 to
+``CONDITION_CURRENT_STATE`` (the shipped preset's convention). The marginalized IIT 3.0
+variant opts out via ``validate_config=False``, which also disables the matching
+dispatch-boundary checks.
 
-No EMD-precision constraint is registered. Under the POT backend
-(``ot.emd2``, an exact network-simplex linear program) the EMD noise floor is
-machine epsilon, and IIT 3.0 phi is stable across precision 6-13 with an
-identical MIP. The ``precision: 6`` pin in the IIT 3.0 preset calibrates the
-golden values; it is not a correctness requirement.
+``precision`` is not constrained against any other field.
 
 The ``system_partition_scheme_compatible_with_version`` constraint binds only
 under formalisms that restrict their system partition schemes. IIT 3.0 accepts

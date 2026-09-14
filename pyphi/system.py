@@ -202,9 +202,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         math fingerprint, the index-coerced state, the node and external indices,
         the partition's mathematical content (``indices`` + ``removed_edges``),
         and the pinned background convention. Used as the repertoire kernel
-        cache key so distinct-but-equivalent systems share entries. Changing
-        this digest orphans old disk-cache entries, which the key-addressed
-        disk cache handles by design.
+        cache key so distinct-but-equivalent systems share entries.
         """
         h = hashlib.blake2b(digest_size=32)
         h.update(self.substrate._fingerprint)
@@ -299,9 +297,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         downstream through the cut connectivity matrix when node TPMs
         marginalize out severed inputs — so the marginals are materialized
         on this instance and shared with the new one rather than re-derived.
-        (Materializing here, not just copying-if-present, keeps a partition
-        search at one inversion even when this instance's own repertoires
-        were served by a cross-system cache and never touched its marginals.)
+
         """
         from dataclasses import replace
 

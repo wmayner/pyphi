@@ -16,9 +16,7 @@ outcome. Selection among competing φ-objects goes through
 :mod:`pyphi.resolve_ties`, which clusters candidates with :func:`eq`.
 
 The tolerance is ``10**-precision`` with ``precision`` read from
-``config.numerics.precision`` at call time (default 13, roughly two
-orders of magnitude above the observed noise floor and far below
-genuine φ differences).
+``config.numerics.precision`` at call time (default 13).
 """
 
 import math

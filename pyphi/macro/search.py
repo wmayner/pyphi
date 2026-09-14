@@ -281,9 +281,8 @@ def _evaluate_one(item) -> float:
     dispatcher enters ``config.override(parallel=False)`` around the
     ``map_reduce`` call (see :func:`_evaluate_systems`), so process
     workers inherit it via the config snapshot and thread workers see
-    the parent's single override — the worker body itself must not open
-    an override, since concurrent enter/exit pairs on the thread
-    backend would interleave on the shared global config.
+    the parent's single override. The worker body opens no override of its
+    own.
     """
     system, system_state = item
     kwargs = {} if system_state is None else {"system_state": system_state}

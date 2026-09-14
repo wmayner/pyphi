@@ -46,14 +46,12 @@ class Orderable:
     constraints (for example, ``AcSystemIrreducibilityAnalysis`` requires
     both operands to have the same ``direction``).
 
-    Ordering (``<``/``>``) compares ``order_by()`` values exactly, while
-    ``__eq__`` on phi-objects is typically tolerance-aware (see
-    :func:`numpy_aware_eq`). The two are deliberately different notions:
-    exact ordering keeps selection (max/min/sort) deterministic — with
-    genuine ties handled explicitly by :mod:`pyphi.resolve_ties` — while
-    tolerant equality absorbs float drift in structural comparison. A
-    consequence is that ``<=``/``>=`` (defined as strict ordering *or*
-    tolerant equality) can both hold for two objects whose values differ by
+    Ordering (``<``/``>``) compares ``order_by()`` values exactly, while ``__eq__`` on
+    phi-objects is typically tolerance-aware (see :func:`numpy_aware_eq`). Exact ordering
+    keeps selection (max/min/sort) deterministic — with genuine ties handled explicitly
+    by :mod:`pyphi.resolve_ties` — while tolerant equality absorbs float drift in
+    structural comparison. A consequence is that ``<=``/``>=`` (defined as strict
+    ordering *or* tolerant equality) can both hold for two objects whose values differ by
     less than the equality tolerance.
     """
 

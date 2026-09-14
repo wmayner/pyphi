@@ -339,8 +339,7 @@ def _apply_snapshot_if_changed(snapshot: Any, snap_hash: int) -> None:
     """Apply ``snapshot`` to the worker's global config; idempotent.
 
     ``snap_hash`` identifies the snapshot; it is computed once on the
-    parent side (hashing the snapshot repr is ~1 ms, far too slow to pay
-    per item) and compared against the last-applied hash here. The
+    parent side and compared against the last-applied hash here. The
     check-and-install is atomic so that multithreaded workers cannot
     interleave installations.
 

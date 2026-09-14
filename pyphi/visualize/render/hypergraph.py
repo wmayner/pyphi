@@ -167,8 +167,8 @@ def _reorder_rings(
     Repeated anchored sweeps: each member's target angle is the circular
     mean of its graph neighbors' current angles (updated sequentially in
     sorted order for determinism), then the ring is re-spread evenly in
-    target order. An interim heuristic that shortens drawn edges; not a
-    crossing-minimizer.
+    target order. A heuristic that shortens drawn edges; it does not minimize
+    crossings.
     """
     rings = {size: list(members) for size, members in rings.items()}
     angles = _ring_angles(rings)
@@ -486,8 +486,7 @@ _RELATION_COLORBAR = {"title": "relation φ", "x": 1.14, "len": 0.6}
 
 def _relation_colorscale(theme):
     """A fixed-hue scale whose opacity (not lightness) tracks φ, so low-φ
-    relations fade toward transparency rather than toward a pale colour that
-    would compete with the neutral grey spokes.
+    relations fade toward transparency.
     """
     r, g, b = theme.relation_rgb
     lo, hi = theme.relation_alpha_range

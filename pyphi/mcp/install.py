@@ -3,11 +3,10 @@ an assistant needs before it acts.
 
 ``pyphi-mcp install`` writes two things: the server's entry in the client's
 Model Context Protocol configuration, and a short block of PyPhi facts in the
-project's agent instruction file. The second exists because the first is not
-enough — a client may or may not surface a server's ``instructions``, and an
-assistant that decides to drive PyPhi from a shell never reads them at all,
-while a project's instruction file is in context before the first tool call
-either way.
+project's agent instruction file. A client may or may not show a server's
+``instructions`` to the assistant, and an assistant driving PyPhi from a shell
+never reads them, while a project's instruction file is in context before the
+first tool call.
 
 Nothing here imports the optional ``mcp`` dependency.
 """

@@ -372,8 +372,7 @@ def _combinations_with_nonempty_congruent_overlap(
     the intersection of their purview-unions is nonempty. Because the
     intersection compares :class:`UnitState` values — ``(index, state)``
     pairs — congruence of the shared state is enforced here at candidate
-    generation, so the family is exactly the Eq. 49/56 congruent overlaps
-    (not an over-approximation later filtered down).
+    generation, so the family is exactly the Eq. 49/56 congruent overlaps.
 
     Parameters
     ----------
@@ -414,18 +413,17 @@ def _maximal_sets(sets):
 def maximal_relations(distinctions, atoms=None):
     """Return the relations maximal under set inclusion of their relata.
 
-    These are the facets of the relation complex: the relations (degree
-    ≥ 2) form a downward-closed family, so every relation's relata are a
-    subset of some maximal relation's. A set of distinctions is a relation
-    exactly when it is contained in some Z(n) — the distinctions whose
-    purview-union contains the state-tagged unit n [1]_ — and each Z(n) is
-    itself a relation, so the maximal relations are the inclusion-maximal
-    elements of {Z(n)}. No relations are enumerated; cost is quadratic in
-    the number of atoms. Self-relations are excluded: the family is not
-    downward-closed into degree 1 (a self-relation's overlap is the
-    congruent intersection of one distinction's cause and effect purviews,
-    which can be empty even when the distinction relates strongly to
-    others). For φ_r-ranked relations see :meth:`Relations.strongest`.
+    These are the facets of the relation complex: the relations (degree ≥ 2) form a
+    downward-closed family, so every relation's relata are a subset of some maximal
+    relation's. A set of distinctions is a relation exactly when it is contained in some
+    Z(n) — the distinctions whose purview-union contains the state-tagged unit n [1]_ —
+    and each Z(n) is itself a relation, so the maximal relations are the
+    inclusion-maximal elements of {Z(n)}. No relations are enumerated; cost is quadratic
+    in the number of atoms. Self-relations are excluded: the family is not
+    downward-closed into degree 1 (a self-relation's overlap is the congruent
+    intersection of one distinction's cause and effect purviews, which can be empty even
+    when the distinction relates strongly to others). For φ_r-ranked relations see
+    :meth:`Relations.strongest`.
 
     Parameters
     ----------
@@ -721,9 +719,9 @@ class Relations(Displayable, ToPandasMixin, Serializable):
     ) -> ConcreteRelations:
         """Return the relations as an explicit :class:`ConcreteRelations`.
 
-        The one deliberately loud way to obtain enumerable relation objects
-        from a non-enumerating backend. ``max_degree`` and ``min_phi``
-        (tolerant ``≥``) bound what is materialized.
+        Enumerates relation objects from a backend that otherwise answers
+        queries in closed form. ``max_degree`` and ``min_phi`` (tolerant ``≥``)
+        bound what is materialized.
         """
         return ConcreteRelations(
             relation
@@ -1275,10 +1273,9 @@ class AnalyticalRelations(Relations):
         """Enumerate the relations as an explicit
         :class:`ConcreteRelations`.
 
-        The one deliberately loud way to obtain relation objects from this
-        backend — the output is exponential in the number of distinctions,
-        so ``max_degree`` and ``min_phi`` (tolerant ``≥``) exist to bound
-        it. Self-relations are always included (they have degree 1 and
+        The output is exponential in the number of distinctions, so
+        ``max_degree`` and ``min_phi`` (tolerant ``≥``) bound it. Self-relations are
+        always included (they have degree 1 and
         there are at most ``|D|`` of them).
         """
         return ConcreteRelations(

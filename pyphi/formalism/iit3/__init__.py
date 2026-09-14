@@ -374,9 +374,7 @@ def sia_partitions(
 
 def _ces(system: System, **kwargs: Any) -> Distinctions:
     """Compute the unpartitioned :class:`~pyphi.models.distinctions.Distinctions`
-    using the partition-evaluation
-    parallel settings, on the rationale that no cuts are being evaluated yet
-    so the same worker budget is available.
+    using the partition-evaluation parallel settings.
     """
     kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     return _compute_distinctions(system, **kwargs)

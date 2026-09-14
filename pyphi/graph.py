@@ -74,11 +74,11 @@ def substrate_from_networkx(
 ) -> Substrate:
     """Build a :class:`Substrate` from a DiGraph topology plus a TPM.
 
-    The graph supplies the connectivity (its adjacency, self-loops kept) and the
-    node order (``node_labels`` if given, else ``list(graph.nodes())``). ``tpm``
-    is required and must accept the forms ``Substrate(tpm=...)`` accepts, with a
-    unit order matching the node order. Construction runs the default-on B19
-    connectivity validator, so a topology that omits a real TPM edge is rejected.
+    The graph supplies the connectivity (its adjacency, self-loops kept) and the node
+    order (``node_labels`` if given, else ``list(graph.nodes())``). ``tpm`` is required
+    and must accept the forms ``Substrate(tpm=...)`` accepts, with a unit order matching
+    the node order. Construction validates connectivity, so a topology that omits a real
+    TPM edge is rejected.
     """
     from pyphi.substrate import Substrate
 

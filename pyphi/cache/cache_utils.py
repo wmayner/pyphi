@@ -23,7 +23,7 @@ _CacheInfo = namedtuple(
 def _process_handle(pid: int) -> psutil.Process:
     """The psutil handle for ``pid``, kept for reuse.
 
-    Constructing the handle costs ten times as much as reading resident
+    Constructing the handle is far more expensive than reading resident
     memory from an existing one, and :func:`memory_full` is called on every
     cache miss. Holding only the newest handle means a forked child replaces
     its parent's rather than reusing it.
@@ -159,13 +159,11 @@ _MISSING = object()
 def entry_weight(value: Any) -> int:
     """Estimated bytes one cached value occupies, including its key and slot.
 
-    An ndarray view keeps its whole underlying buffer alive, and the cache may
-    be that buffer's only owner, so a view is charged the buffer of the array
-    it derives from. A base that is itself also cached is then charged twice;
-    overcounting a shared buffer only evicts sooner, where undercounting lets
-    the bound exceed real memory. A sequence — the combinatorial index tables
-    are lists of tuples — is charged per element, since its cost is the
-    elements rather than any single buffer.
+    An ndarray view keeps its whole underlying buffer alive, and the cache may be that
+    buffer's only owner, so a view is charged the buffer of the array it derives from. A
+    base that is itself also cached is then charged twice, so the estimate is
+    conservative. A sequence — the combinatorial index tables are lists of tuples — is
+    charged per element, since its cost is the elements rather than any single buffer.
     """
     if isinstance(value, np.ndarray):
         owner = value
@@ -197,8 +195,7 @@ def _element_weight(element: Any, depth: int = 0) -> int:
     """Bytes one element of a cached sequence occupies.
 
     Recurses through nested sequences to a fixed depth, since the index tables
-    nest two or three levels and a bound that stopped at the first would
-    undercount them by the width of every inner tuple.
+    nest two or three levels.
     """
     if depth < _MAX_WEIGHT_DEPTH and isinstance(element, tuple | list):
         return (

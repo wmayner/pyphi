@@ -8,8 +8,7 @@ by worker threads: cached values are correct, eviction is sound, and no
 operation raises under concurrent access. Its ``hits``/``misses`` counters are
 best-effort under free-threaded Python — exact under the GIL and under
 process-isolated parallelism, approximate when threads share one cache — since
-they are diagnostics that nothing computes on, and are deliberately left out of
-the lock to keep the hot path free of contention.
+they are diagnostics and are updated outside the lock.
 
 The caches built by the ``cache`` decorator below are module-level, so the
 thread scheduler shares them across worker threads. They follow the same

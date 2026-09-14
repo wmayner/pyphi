@@ -7,10 +7,8 @@ never identified with a node implementing a different one, even when their
 wiring is identical.
 
 Canonicalization is exact: the automorphism group and canonical form are
-found by enumerating node permutations. This is tractable because Phi is
-``O(2**n)``, so substrates on which it is computed have few nodes; the
-asymptotic regime where graph-isomorphism libraries (e.g. nauty) would help
-is one in which Phi itself is intractable.
+found by enumerating node permutations, which is factorial in the number of
+nodes.
 """
 
 from __future__ import annotations
@@ -262,9 +260,7 @@ def are_structures_isomorphic(ces1, ces2) -> bool:
     their node indices, at the resolution of :func:`structure_signature`.
 
     Exact search over index bijections, with cheap invariant pruning first.
-    Factorial in the number of units; substrates on which Φ is computed are
-    small, so this is tractable (same rationale as
-    :func:`substrate_automorphisms`).
+    Factorial in the number of units.
     """
     indices1 = _structure_node_indices(ces1)
     indices2 = _structure_node_indices(ces2)

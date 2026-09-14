@@ -11,8 +11,7 @@ The dispatch path is::
         → FORMALISM_REGISTRY[config.formalism.iit.version].evaluate_X(cs, ...)
         → concrete formalism's algorithm
 
-The kernel never imports this module — see
-``test_core_layering.test_repertoire_algebra_does_not_import_formalism``.
+The kernel never imports this module.
 """
 
 from __future__ import annotations
@@ -51,10 +50,9 @@ if TYPE_CHECKING:
 def _never_shortcircuit(_result: Any) -> bool:
     """Predicate that never short-circuits a partition sweep.
 
-    Deliberately distinct from :func:`pyphi.parallel.false`: the parallel
-    backends collect results in completion order when no short-circuit
-    predicate is set, and MIP tie resolution requires the deterministic
-    enumeration order that an installed predicate preserves.
+    Distinct from :func:`pyphi.parallel.false`: backends collect results in
+    completion order when no predicate is set, while an installed predicate
+    preserves enumeration order, which MIP tie resolution requires.
     """
     return False
 

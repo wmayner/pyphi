@@ -223,8 +223,7 @@ class SubstratePosterior(Serializable):
         how *much* a factor varies, at a caller-chosen scale.
 
         ``threshold`` has no default: the scale below which a dependence is
-        treated as absent is a modeling choice the caller must own, exactly
-        the kind of assertion the estimation API refuses to make implicitly.
+        treated as absent is a modeling choice the caller must make.
 
         Parameters
         ----------
@@ -439,8 +438,8 @@ def phi_posterior(
     posterior mean say nothing about a draw far from the mean, so under a
     diffuse posterior a screened ``complex_identity`` degenerates to a
     point mass that the unscreened run would not show. The threshold is a
-    modeling assertion about the scale at which a selection counts as
-    safely untied — it is deliberately required from the caller. Use
+    modeling choice about the scale at which a selection counts as safely
+    untied, which the caller must make. Use
     screening after the posterior is tight, or after an unscreened pilot.
     """
     if n_samples < 1:

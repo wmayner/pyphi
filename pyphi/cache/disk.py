@@ -102,9 +102,7 @@ def _config_digest(snapshot: Any) -> bytes:
 
     Complete by construction: any field added to the formalism or numerics
     layers automatically enters the key. Infrastructure settings are excluded
-    because they must not affect result values. Over-keying costs only cache
-    misses; under-keying silently returns a result computed under a different
-    configuration.
+    because they must not affect result values.
     """
     return repr(
         (
