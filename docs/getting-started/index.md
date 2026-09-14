@@ -125,10 +125,11 @@ reproduces the value published in the paper's Fig 1E for this system, 0.13.)
 
 ### Find the complexes
 
-Not every subset of units exists as a whole of its own. Subsets *compete*:
-among overlapping candidates, only the one with maximal $\varphi_s$ — a
-**{term}`complex`** — exists. {meth}`~pyphi.substrate.Substrate.complexes` runs that
-competition over every subset:
+Not every subset of units exists as a whole of its own. Subsets *compete*: among
+overlapping candidates, only the one with maximal $\varphi_s$ exists. Such a
+subset is called a **{term}`complex`**.
+{meth}`~pyphi.substrate.Substrate.complexes` runs that competition over every
+subset:
 
 ```{code-cell} python
 for complex_ in substrate.complexes(state):
