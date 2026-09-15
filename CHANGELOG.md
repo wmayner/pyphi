@@ -5,7 +5,7 @@ Changelog
 
 2.0.0
 -----
-_2026-09-10_
+_2026-09-15_
 
 PyPhi 2.0 is a comprehensive rework of the library around IIT 4.0 (Albantakis et
 al. 2023; Mayner et al. 2026): new core value types, first-class formalism

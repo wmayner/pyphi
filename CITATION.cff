@@ -4,7 +4,7 @@ title: PyPhi
 abstract: "A Python platform for research in Integrated Information Theory (IIT): computing integrated information (Φ), cause–effect structures, and related quantities and objects."
 type: software
 version: 2.0.0
-date-released: "2026-09-10"
+date-released: "2026-09-15"
 repository-code: "https://github.com/wmayner/pyphi"
 url: "https://pyphi.readthedocs.io"
 license: GPL-3.0-or-later
