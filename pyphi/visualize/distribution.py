@@ -57,9 +57,11 @@ def _plot_distribution_bar(
     label,
     show_label=True,
     label_font="monospace",
-    label_color="black",
+    label_color=None,
     **kwargs,
 ):
+    if label_color is None:
+        label_color = plt.rcParams["text.color"]
     sb.barplot(data=data, x="state", y="probability", ax=ax, **kwargs)
 
     # Set xtick labels rotation and alignment using correct matplotlib API

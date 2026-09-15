@@ -119,7 +119,7 @@ h1 { margin-bottom: 1.25rem; }
    border above is enough. */
 .bd-content div.cell div.cell_input,
 .bd-content div.cell details.above-input > summary {
-  border-left: 1px solid var(--pp-rule);
+  border: 1px solid var(--pp-rule);
   border-radius: 6px;
 }
 .bd-content div.cell div.cell_input div.highlight pre { border: 0; }
@@ -388,6 +388,14 @@ html .tippy-box code { font-family: var(--pst-font-family-monospace); font-size:
 .pp-options .pp-default { font-family: var(--pst-font-family-monospace); font-size: 0.85rem; color: var(--pp-muted); margin-left: 0.4rem; }
 .pp-options dd { margin: 0.15rem 0 0 1.2rem; max-width: 70ch; color: var(--pp-text); }
 .pp-options dd code { font-size: 0.85em; }
+
+/* Executed figures are transparent with mid-grey text (docs/matplotlib.rc), so
+   the dark theme need not paint a white box behind them or dim them. */
+html[data-theme="dark"] .bd-content div.cell_output img {
+  background: none;
+  filter: none;
+  padding: 0;
+}
 
 /* ---- Sidebar collapse ------------------------------------------------------ */
 

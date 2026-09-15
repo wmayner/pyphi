@@ -1,0 +1,28 @@
+# Matplotlib settings for figures executed while building the docs.
+# Transparent ground and mid-grey text so one PNG reads on both site themes;
+# Okabe-Ito colours; the site's sans face when installed.
+figure.facecolor: none
+axes.facecolor: none
+savefig.facecolor: none
+savefig.edgecolor: none
+savefig.dpi: 150
+figure.dpi: 100
+font.family: sans-serif
+font.sans-serif: IBM Plex Sans, Helvetica Neue, DejaVu Sans
+text.color: 80858c
+axes.labelcolor: 80858c
+axes.titlecolor: 80858c
+axes.edgecolor: 80858c
+axes.linewidth: 0.8
+axes.spines.top: False
+axes.spines.right: False
+xtick.color: 80858c
+ytick.color: 80858c
+axes.grid: True
+grid.color: 80858c
+grid.alpha: 0.25
+grid.linewidth: 0.6
+axes.prop_cycle: cycler('color', ['0072B2', 'D55C00', '009E73', 'CC79A7', 'E69F00', '56B4E9'])
+lines.linewidth: 1.8
+legend.frameon: False
+legend.fontsize: 9

@@ -159,8 +159,7 @@ whether it belongs to the subsystem and by its current state:
 
 ```{code-cell} python
 system = examples.xor_system()
-viz.plot_system(system)
-plt.gcf()
+viz.plot_system(system);
 ```
 
 `plot_graph` draws the bare directed graph of any connectivity matrix (as a
@@ -171,7 +170,6 @@ import networkx as nx
 
 graph = nx.from_numpy_array(system.cm, create_using=nx.DiGraph)
 viz.plot_graph(graph)
-plt.gcf()
 ```
 
 `plot_tpm` shows the transition probability matrix as a heatmap. It expects a
@@ -184,7 +182,6 @@ from pyphi import convert
 state_by_node = examples.xor_substrate().tpm.to_pandas().values
 state_by_state = convert.state_by_node2state_by_state(state_by_node)
 fig, ax = viz.plot_tpm(state_by_state)
-fig
 ```
 
 ## Repertoires
@@ -196,7 +193,6 @@ over its past states:
 ```{code-cell} python
 repertoire = system.cause_repertoire(system.node_indices, system.node_indices)
 fig, ax = viz.plot_distribution(repertoire)
-fig
 ```
 
 `plot_repertoires` compares the intact system's forward repertoire against its
@@ -208,7 +204,6 @@ from pyphi.formalism import queries
 
 sia = queries.sia(system)
 fig, axes, reps = viz.plot_repertoires(system, sia)
-fig
 ```
 
 ## Trajectories
@@ -225,7 +220,6 @@ trajectory = dynamics.simulate(
     tpm, initial_state=(1, 0, 0), timesteps=20, rng=np.random.default_rng(0)
 )
 fig, ax = viz.plot_dynamics(np.array(trajectory), node_labels=list(system.node_labels))
-fig
 ```
 
 Any array of shape `(timesteps, units)` works, so a recorded or synthetic
@@ -240,15 +234,14 @@ temperature, and field:
 
 ```{code-cell} python
 weights = np.array([[0.0, 1.0], [1.0, 0.0]])
-viz.ising.plot(weights, temperature=1.0, field=0.0)
+viz.ising.plot(weights, temperature=1.0, field=0.0);
 ```
 
 `plot_sigmoid` draws the activation probability curve alone, over a range of
 input energies:
 
 ```{code-cell} python
-viz.ising.plot_sigmoid(np.linspace(-5, 5, 100), temperature=1.0, field=0.0)
-plt.gcf()
+viz.ising.plot_sigmoid(np.linspace(-5, 5, 100), temperature=1.0, field=0.0);
 ```
 
 ## Saving a figure

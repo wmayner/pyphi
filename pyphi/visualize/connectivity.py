@@ -48,6 +48,7 @@ def plot_graph(g, **kwargs):
         g,
         **kwargs,
     )
+    (kwargs.get("ax") or plt.gca()).set_axis_off()
 
 
 def _system_graph(system):

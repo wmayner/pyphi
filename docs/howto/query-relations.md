@@ -146,7 +146,7 @@ grid = sns.catplot(
     height=3.5,
     aspect=1.1,
     sharey=False,
-    color="#4C72B0",
+    color="#0072B2",
 )
 grid.set_titles("{col_name}")
 grid.figure.suptitle("grid3 relation degree spectrum (exact)", y=1.05)
@@ -189,7 +189,7 @@ hist_df = (
 )
 hist_df["φ_r"] = hist_df["phi_r"].map(lambda v: f"{v:.3f}")
 
-ax = sns.barplot(data=hist_df, x="φ_r", y="count", color="#55A868")
+ax = sns.barplot(data=hist_df, x="φ_r", y="count", color="#0072B2")
 ax.set_title("grid3 exact φ_r histogram")
 plt.xticks(rotation=45, ha="right")
 plt.tight_layout()
@@ -324,7 +324,7 @@ imp_df = pd.DataFrame(
     ]
 )
 
-ax = sns.barplot(data=imp_df, x="mechanism", y="contribution", color="#4C72B0")
+ax = sns.barplot(data=imp_df, x="mechanism", y="contribution", color="#0072B2")
 ax.set_title("grid3 distinction importance (contributions tile Φ)")
 plt.tight_layout()
 plt.show()

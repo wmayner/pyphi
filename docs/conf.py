@@ -56,6 +56,10 @@ exclude_patterns = [
 
 # --- MyST / executable pages ------------------------------------------------
 
+# Figures drawn while executing pages use the site's matplotlib settings; the
+# kernel inherits this environment.
+os.environ.setdefault("MATPLOTLIBRC", str(Path(__file__).parent / "matplotlib.rc"))
+
 myst_enable_extensions = [
     "amsmath",
     "colon_fence",
