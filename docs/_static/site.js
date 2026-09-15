@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sidebar.classList.add("pst-squeeze");
       button.setAttribute("aria-expanded", "false");
       button.dataset.busy = "false";
+      document.documentElement.classList.remove("pp-sidebar-collapsed");
       requestAnimationFrame(() => requestAnimationFrame(() => { sidebar.style.transition = ""; }));
     }
   });

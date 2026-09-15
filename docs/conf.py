@@ -124,7 +124,9 @@ intersphinx_mapping = {
 html_theme = "pydata_sphinx_theme"
 html_title = "PyPhi"
 html_static_path = ["_static"]
-html_js_files = ["site.js"]
+# The first script is tiny and blocking so a remembered sidebar state applies
+# before the first paint; the second is the site behaviour.
+html_js_files = [("sidebar-early.js", {"priority": 100}), "site.js"]
 html_css_files = [
     "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Serif:wght@500;600&display=swap",
     "custom.css",

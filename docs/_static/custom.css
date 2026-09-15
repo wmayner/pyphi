@@ -255,6 +255,11 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
    header's bottom edge, announcement bar included while it is on screen), so
    the sidebar's last item never ends below the viewport. */
 @media (min-width: 960px) {
+  /* Drawn collapsed from the first paint when sidebar-early.js finds a
+     remembered collapse; site.js then applies the theme's own collapsed state. */
+  html.pp-sidebar-collapsed .bd-sidebar-primary:not(.pst-squeeze) { width: 4rem; overflow: hidden; }
+  html.pp-sidebar-collapsed .bd-sidebar-primary:not(.pst-squeeze) .sidebar-primary-item:not(.pst-sidebar-collapse),
+  html.pp-sidebar-collapsed .bd-sidebar-primary:not(.pst-squeeze) .pst-collapse-sidebar-label { visibility: hidden; opacity: 0; }
   .bd-sidebar-primary {
     top: var(--pp-sidebar-top, var(--pst-header-height));
     max-height: calc(100vh - var(--pp-sidebar-top, var(--pst-header-height)));
