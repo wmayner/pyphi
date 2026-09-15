@@ -201,7 +201,8 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
   background: var(--pp-tint);
   box-shadow: none;
 }
-.bd-content .admonition > .admonition-title {
+/* [class] outranks the theme's per-type title backgrounds (div.admonition.note). */
+.bd-content div.admonition[class] > .admonition-title {
   background: transparent;
   font-weight: 600;
   letter-spacing: 0.04em;
