@@ -36,7 +36,7 @@ are numbered in the main text; this is the reference for 4.0.
 - Eqs. 12–13 — the **maximal cause–effect state** is `argmax` of ii over
   candidate states, and the system's intrinsic information is ii at that state.
 
-**Integration: φₛ over the minimum information partition**
+**Integration: φₛ over the minimum partition**
 - Eqs. 14–16 — **directional system partitions** Θ(S): each part has its
   inputs, outputs, or both cut.
 - Eqs. 17–18 — the partitioned TPMs (cut connections replaced by independent
@@ -45,7 +45,7 @@ are numbered in the main text; this is the reference for 4.0.
   positive part of an intrinsic-difference term against the *partitioned*
   repertoire).
 - Eq. 21 — for a partition, `φₛ(θ) = min(φ_c(θ), φ_e(θ))`.
-- Eq. 22 — `φₛ = φₛ(θ′)` at the minimum information partition θ′.
+- Eq. 22 — `φₛ = φₛ(θ′)` at the minimum partition θ′.
 - Eq. 23 — the **MIP**: the partition minimizing φₛ *normalized* by the maximum
   possible value for that partition (its number of cut connections). The
   normalization makes the MIP find the system's fault line.

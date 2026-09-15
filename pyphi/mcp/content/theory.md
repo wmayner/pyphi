@@ -31,7 +31,7 @@ property of experience:
 - **Information** — the system in its state must select a specific cause–effect
   state, the one with maximal **intrinsic information** (ii).
 - **Integration** — the system must specify that state *irreducibly*, as one
-  whole. Irreducibility is measured over the **minimum information partition**
+  whole. Irreducibility is measured over the **minimum partition**
   (MIP) — the partition that makes the least difference.
 - **Exclusion** — exactly one set of units counts: the one with maximal φₛ,
   called the **complex**.

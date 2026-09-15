@@ -941,7 +941,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     def find_mip(
         self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any:
-        """Return the minimum information partition for a mechanism over a purview.
+        """Return the minimum partition for a mechanism over a purview.
 
         Resolves mechanism- and specification-level measures from config at
         the public boundary so the active formalism's MIP search is never

@@ -31,7 +31,7 @@ concluding that parallelism does not work.
 
 | Level | Config option | Parallelizes over | Threshold | When it pays |
 | --- | --- | --- | --- | --- |
-| partitions | `parallel_partition_evaluation` | System partitions in the SIA's search for the minimum information partition | 64 | A large single SIA |
+| partitions | `parallel_partition_evaluation` | System partitions in the SIA's search for the minimum partition | 64 | A large single SIA |
 | purviews | `parallel_purview_evaluation` | Candidate purviews for one mechanism | 64 | Mechanisms with many candidate purviews |
 | distinctions | `parallel_distinction_evaluation` | Mechanisms, when unfolding the distinctions of a cause-effect structure (both formalisms share this loop) | 64 | A CES over many mechanisms |
 | complexes | `parallel_complex_evaluation` | Candidate systems within a substrate | 16 | Complex searches over many candidate systems |

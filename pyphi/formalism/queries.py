@@ -207,7 +207,7 @@ def find_mip(
     state: Any | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Return the minimum information partition for a mechanism over a purview."""
+    """Return the minimum partition for a mechanism over a purview."""
 
     def null_mip(**kw: Any) -> Any:  # noqa: ARG001
         return _null_ria(

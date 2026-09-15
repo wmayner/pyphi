@@ -176,7 +176,7 @@ A system with $\varphi_s = 0$ is not a complex, so this structure is not
 specified by any existing whole; it remains available for analysis and
 comparison.
 
-The minimum information partition is selected on the normalized integrated
+The minimum partition is selected on the normalized integrated
 information without the intrinsic-information term, and $\mathit{ii}(s)$
 enters the minimum at the selected partition. Specified-state ties are
 compared on $\varphi_s$ including the term, so a deterministic system's tied

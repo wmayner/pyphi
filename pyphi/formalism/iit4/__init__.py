@@ -871,7 +871,7 @@ def evaluate_partition(
     # The Eq. 23 intrinsic-information requirement is deliberately NOT
     # applied here. Per the 2026 paper (Eqs. 21-23: the formalism "is the
     # same as the IIT 4.0 definition of φ_s ... until Equation (23)"), the
-    # minimum information partition is selected on the normalized φ without
+    # minimum partition is selected on the normalized φ without
     # the requirement, exactly as in IIT 4.0, and φ_s = min{φ_c, φ_e, ii(s)}
     # is applied in ``sia`` to each SIA as soon as its MIP is chosen (see
     # ``_apply_ii_cap``). ``intrinsic_differentiation`` and the system-state
@@ -993,7 +993,7 @@ def sia(
     system_state: SystemStateSpecification | None = None,
     **kwargs,
 ) -> SystemIrreducibilityAnalysis:
-    """Find the minimum information partition of a system.
+    """Find the minimum partition of a system.
 
     ``system_measure`` and ``specification_measure`` are Protocol-typed
     measure callables passed explicitly by the active formalism (no

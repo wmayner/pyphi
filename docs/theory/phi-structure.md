@@ -63,7 +63,7 @@ them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), 
 | $S$ | candidate system in a state | {class}`~pyphi.system.System`; analyzed via {func}`pyphi.analyze` |
 | $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | `analysis.sia.system_state` (per-direction `intrinsic_information`) |
 | $\varphi_c,\ \varphi_e$ | cause- and effect-side integrated information | `analysis.sia.cause.phi`, `analysis.sia.effect.phi` |
-| MIP | minimum information partition | `analysis.sia.partition` |
+| MIP | minimum partition | `analysis.sia.partition` |
 | $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e)$; under the 2026 default the minimum also includes $\mathit{ii}(s)$ (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
 | $\varphi_s^{\ast}$ | maximal system integrated information (the complex's) | the $\varphi_s$ of a complex from {meth}`~pyphi.substrate.Substrate.complexes` |
 | complex | maximal substrate | {meth}`~pyphi.substrate.Substrate.complexes`; the analyzed candidate is `analysis.system` |

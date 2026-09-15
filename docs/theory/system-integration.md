@@ -44,7 +44,7 @@ is not enough: the system must specify its cause–effect state *irreducibly*,
 as one set of units rather than as independent parts. Irreducibility is tested by
 **partitioning** the system and measuring how much the partition reduces the
 intrinsic information. The reduction is evaluated over the partition that makes
-the *least* difference — the **minimum information partition** (MIP) — so that the
+the *least* difference — the **minimum partition** (MIP) — so that the
 result reflects the system's weakest link (Albantakis et al., 2023).
 
 Integrated information is computed separately on the cause side and the effect

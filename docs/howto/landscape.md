@@ -60,7 +60,7 @@ section.df[["phi", "signed_phi", "normalized_phi", "partition_margin", "regime"]
 ```
 
 The `regime` column groups grid points by their **selection regime**: the
-set of points where the minimum information partition and the specified
+set of points where the minimum partition and the specified
 cause and effect states are all the same. Within a regime, $\varphi_s$ is a
 smooth function of the parameter. At a regime boundary a selection switches,
 and the reported $\varphi_s$ can jump — here, the MIP switches near

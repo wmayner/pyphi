@@ -134,7 +134,7 @@ The available levels are:
 | --- | --- |
 | `parallel_complex_evaluation` | Candidate systems (complexes) within a substrate |
 | `parallel_distinction_evaluation` | Distinctions within a cause-effect structure |
-| `parallel_partition_evaluation` | System partitions when searching for the minimum information partition |
+| `parallel_partition_evaluation` | System partitions when searching for the minimum partition |
 | `parallel_purview_evaluation` | Candidate purviews for a mechanism |
 | `parallel_mechanism_partition_evaluation` | Partitions of a single mechanism |
 | `parallel_relation_evaluation` | Relations between distinctions |

@@ -8,7 +8,7 @@ How to read an analysis result and explain it in plain language.
   the system exists as one integrated whole; 0 means it is reducible.
   `summary.cause_phi` and `summary.effect_phi` are the two sides; φₛ is the
   smaller of them. Under IIT 3.0 this value is that formalism's Φ.
-- `summary.mip` — the minimum information partition, the system's weakest link.
+- `summary.mip` — the minimum partition, the system's weakest link.
 - `summary.big_phi` — **Φ**, the total structure integrated information (the sum
   over distinctions and relations). IIT 4.0 only, and never equal to
   `system_phi` by definition — if you find yourself reporting the same number
@@ -58,7 +58,7 @@ distinctions are the structure as computed.
    system has φₛ ≈ 0.21, so it exists as one integrated whole; its experience
    has structure integrated information Φ ≈ 1.86." Do not call Φ "the phi
    value" without saying which one.
-2. **Say what the weakest link is.** The minimum information partition is where
+2. **Say what the weakest link is.** The minimum partition is where
    the system is closest to falling apart into independent parts. Name it.
 3. **Describe the structure concretely.** Use `inspect(result_ref, "ces.distinctions[0]")`
    to read a distinction: which mechanism, which cause and effect purviews,

@@ -186,7 +186,7 @@ class IITConfig:
     strategies applied in order. The default ``("NORMALIZED_PHI",
     "NEGATIVE_PHI", "PARTITION_LEX")`` keeps the partitions with the
     smallest normalized φ, then the largest raw φ, then the first in
-    lexicographic order, so one minimum information partition is always
+    lexicographic order, so one minimum partition is always
     selected; a ``partition_margin`` of zero on the result records that
     it was tied. The ``iit3`` preset uses ``("PHI", "PARTITION_LEX")``.
     See :doc:`/howto/tie-breaking`."""

@@ -99,7 +99,7 @@ print("φ_s =", round(aB.phi, 4))
 
 $\varphi_c = 0.24$ and $\varphi_e = 0.17$, the paper's published split; the
 effect side is the weaker one, so $\varphi_s = \varphi_e$. The partition
-responsible — the minimum information partition — is on the analysis as
+responsible — the minimum partition — is on the analysis as
 `aB.sia.partition`.
 
 ## Figure 2: the distinctions

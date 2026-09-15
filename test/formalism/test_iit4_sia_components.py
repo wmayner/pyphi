@@ -211,7 +211,7 @@ class TestSIAComponentStructure:
         """SIA includes partition information.
 
         For irreducible systems (phi > 0), partition information describes
-        the minimum information partition (MIP).
+        the minimum partition (MIP).
         """
         for system in [s, micro_s]:
             result = system.sia()

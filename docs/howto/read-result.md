@@ -50,7 +50,7 @@ analysis
   (`A₂`). A cause purview `a` means the mechanism specifies unit A being OFF
   in the past.
 - **System**: the units and current state analyzed, the cause and effect
-  states the system specifies, the minimum information partition (the cut
+  states the system specifies, the minimum partition (the cut
   that makes the least difference: the system's weakest link), the system's
   intrinsic information ii(s), and, when the intrinsic-information
   requirement set $\varphi_s$, which term and direction did so. The next section
@@ -64,7 +64,7 @@ sia
 ```
 
 - **Normalized $\varphi_s$**: $\varphi_s$ divided by the partition's normalization; the
-  minimum information partition is chosen on this value.
+  minimum partition is chosen on this value.
 - **Specified state** (cause and effect): the past and future states the
   system specifies with maximal intrinsic information.
 - **Intrinsic specification** (labelled **Intrinsic information** under the

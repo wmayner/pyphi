@@ -24,7 +24,7 @@ the system is empty or uninteresting. Feed-forward systems, for instance, have
 
 `analyze(...).phi` (and `.sia.phi`) is **φₛ**, system integrated information:
 whether the system exists as one whole, computed as the minimum over the cause
-and effect sides, over the normalized minimum information partition.
+and effect sides, over the normalized minimum partition.
 `analyze(...).big_phi` (and `.ces.big_phi`) is **Φ**, structure integrated
 information: the plain sum of φ over all distinctions and relations. φₛ decides
 existence; Φ measures the quantity of structure. Do not report one as if it were
