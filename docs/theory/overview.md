@@ -18,7 +18,7 @@ IIT 4.0 (Albantakis et al., 2023). This section explains what PyPhi computes and
 why, mapping each quantity of the theory to the type or function that computes
 it, and following one small example the whole way through.
 
-For a broad orientation to the theory itself, see the [IIT wiki](https://iit.wiki);
+For a broad orientation to the theory itself, see the [IIT wiki](https://www.iit.wiki);
 the authoritative source for the formalism is Albantakis et al. (2023). You
 don't need to have read either to follow this section, but the paper is cited
 for the full derivations that aren't repeated here.
