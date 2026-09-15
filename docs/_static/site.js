@@ -31,3 +31,33 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", update);
   window.addEventListener("scroll", update, { passive: true });
 })();
+
+// Remember whether the reader collapsed the sidebar, and restore that on the
+// next page. The theme's own handler toggles the collapse; this only records
+// the choice and replays it once the handler is installed.
+(() => {
+  const KEY = "pp-sidebar-collapsed";
+  const read = () => { try { return localStorage.getItem(KEY) === "1"; } catch { return false; } };
+  const write = (collapsed) => { try { localStorage.setItem(KEY, collapsed ? "1" : "0"); } catch {} };
+  window.addEventListener("load", () => {
+    const button = document.querySelector("#pst-collapse-sidebar-button");
+    const sidebar = document.querySelector(".bd-sidebar-primary");
+    if (!button || !sidebar) return;
+    // Capture phase: runs before the theme's handler, so the attribute still
+    // shows the state being left.
+    button.addEventListener("click", () => write(button.getAttribute("aria-expanded") !== "false"), true);
+    if (read() && button.getAttribute("aria-expanded") !== "false") {
+      // Collapse the way the theme does under prefers-reduced-motion: pin
+      // each item's width, add the class, and mark the button collapsed.
+      // Its later expand click then behaves as on any collapsed sidebar.
+      Array.from(sidebar.children).forEach((child) => {
+        child.style.width = `${child.getBoundingClientRect().width}px`;
+      });
+      sidebar.style.transition = "none";
+      sidebar.classList.add("pst-squeeze");
+      button.setAttribute("aria-expanded", "false");
+      button.dataset.busy = "false";
+      requestAnimationFrame(() => requestAnimationFrame(() => { sidebar.style.transition = ""; }));
+    }
+  });
+})();
