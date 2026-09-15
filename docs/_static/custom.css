@@ -41,9 +41,9 @@ html[data-theme="dark"] {
   --pp-text: #e8e6e1;
   --pp-muted: #a2a7ae;
   --pp-rule: #33373d;
-  --pp-primary: #4fc3cf;
-  --pp-link: #4fc3cf;
-  --pp-tint: #12363a;
+  --pp-primary: #48a0a4;
+  --pp-link: #48a0a4;
+  --pp-tint: #10302f;
   --pp-cause: #d55c00;
   --pp-effect: #009e73;
 
@@ -385,3 +385,20 @@ html .tippy-box code { font-family: var(--pst-font-family-monospace); font-size:
 .pp-options .pp-default { font-family: var(--pst-font-family-monospace); font-size: 0.85rem; color: var(--pp-muted); margin-left: 0.4rem; }
 .pp-options dd { margin: 0.15rem 0 0 1.2rem; max-width: 70ch; color: var(--pp-text); }
 .pp-options dd code { font-size: 0.85em; }
+
+/* ---- Sidebar collapse ------------------------------------------------------ */
+
+/* The theme animates the collapse over 0.4 s and spins the button's icon.
+   Make it quick, and flip the icon without animating it. */
+@media (prefers-reduced-motion: no-preference) {
+  .bd-sidebar-primary { transition: width 0.12s ease; }
+  .bd-sidebar-primary #pst-collapse-sidebar-button .pst-icon { transition: none; }
+  .bd-sidebar-primary.pst-squeeze .pst-collapse-sidebar-label {
+    transition: opacity 0.1s linear, visibility 0s linear 0.1s, width 0s linear 0.1s, height 0s linear 0.1s;
+  }
+  .bd-sidebar-primary.pst-squeeze .sidebar-primary-item:not(.pst-sidebar-collapse) {
+    transition: opacity 0.1s linear, visibility 0s linear 0.1s;
+  }
+  .bd-sidebar-primary.pst-squeeze .pst-expand-sidebar-label { transition: visibility 0s linear 0.1s; }
+  .bd-sidebar-primary:not(.pst-squeeze) .pst-collapse-sidebar-label { transition: opacity 0.1s linear; }
+}
