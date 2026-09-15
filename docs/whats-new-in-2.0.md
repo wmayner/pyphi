@@ -5,7 +5,7 @@ value types; first-class formalisms covering IIT 3.0, both IIT 4.0
 formulations, and actual causation; multi-valued units; closed-form
 relations; analysis across spatiotemporal scales; and rebuilt configuration,
 serialization, display, and parallel execution. This page tours the
-highlights; the complete list of changes is in the
+highlights, most broadly useful first; the complete list of changes is in the
 [changelog](https://github.com/wmayner/pyphi/blob/main/CHANGELOG.md).
 
 ## Upgrading from 1.x
@@ -30,7 +30,70 @@ The [migration guide](migration/migration-2.0.md) covers all of this with
 before-and-after examples for code written against 1.x or the
 `feature/iit-4.0` branch.
 
-## Intrinsic units: analysis across scales
+## The essentials
+
+### One call from substrate to answer
+
+The common workflows are one call each:
+
+```python
+analysis = pyphi.analyze(substrate, state)    # SIA, CES, and Φ in one bundle
+analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
+
+result = pyphi.sweep(                         # batch across axes
+    {"grid": grid, "ring": ring},
+    states="all",
+    formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
+    compute="sia",
+)
+result.df                                     # tidy long-format DataFrame
+```
+
+`sweep()` enumerates the cartesian product of substrates, states, candidate
+subsystems, and formalisms, runs cells in parallel, records
+dynamically-unreachable states instead of aborting, and returns both a tidy
+DataFrame and the aligned raw result objects. See
+[Sweep states and subsystems](howto/sweep.md).
+
+### IIT 4.0 (2026) is the default formalism
+
+PyPhi 2.0 computes IIT 4.0 (2026) by default: the system's
+intrinsic information enters the minimum that defines system integrated
+information (Mayner, Marshall, Tononi 2026), so a system must both furnish
+itself a repertoire of alternatives and specify one of them. One consequence
+to know before comparing against published numbers: **deterministic systems
+compute $\varphi_s = 0$** under the default. The 2023 formulation and IIT 3.0 remain
+fully supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the
+presets in `pyphi.conf.presets` reproduce published values exactly. See the
+theory page
+[The intrinsic-information requirement](theory/intrinsic-information.md).
+
+### Every formalism, restored
+
+The formalisms are first-class objects, selected by name: `"IIT_3_0"`,
+`"IIT_4_0_2023"`, `"IIT_4_0_2026"`, and `"AC_2019"` for actual causation.
+Each formalism owns its algorithms, partition schemes, and compatible
+measures, and configurations that mix formalisms incoherently — a
+distribution distance with an IIT 4.0 version, say — are rejected when you
+set them rather than computing a quantity the papers never defined.
+Configuration is layered to match — options that affect results
+(`formalism`), options that only affect execution (`infrastructure`), and
+numerical settings (`numerics`) — and presets switch formalism wholesale in
+one call: `with pyphi.config.override(**pyphi.iit3): ...`.
+
+IIT 3.0 is restored paper-faithfully, with tie resolution matching the 2014
+paper, the PyPhi 1.x background convention on subset systems (so published
+1.x results reproduce). Actual causation is restored per Albantakis et al. (2019), with its
+own configuration namespace, paper-faithful defaults, tie cascades, and
+enforcement of the realization principle: transitions that cannot occur
+under the substrate dynamics are rejected up front. See
+[Formalism versions](theory/formalism-versions.md),
+[IIT 3.0](theory/iit-3.0.md), and the
+[actual-causation tutorial](tutorials/actual-causation.md).
+
+## New capabilities
+
+### Intrinsic units: analysis across scales
 
 What is the right spatiotemporal grain at which to analyze the causal powers of
 a system? IIT provides a principled answer to this question. PyPhi 2.0
@@ -60,7 +123,7 @@ See the theory page [Macro units](theory/macro-units.md), the how-to
 [Search across grains](howto/grain-search.md), and the
 [macro tutorial](tutorials/macro.md).
 
-## Multi-valued units
+### Multi-valued units
 
 Units are no longer required to be binary. The whole pipeline —
 repertoires, partitions, the system irreducibility analysis, cause-effect
@@ -79,7 +142,7 @@ substrates, and the actual-causation pipeline inherits k-ary support through
 the shared `System` machinery. The three-candidate voting example of Albantakis et al. (2019) is among the
 multi-valued examples supported end to end.
 
-## Query the relational structure without enumerating it
+### Query the relational structure without enumerating it
 
 Relations dominate a cause-effect structure at any interesting scale. The
 IIT 4.0 paper's specialized-lattice example (Fig. 6D) has 27 distinctions
@@ -144,7 +207,7 @@ Enumerated relation sets remain available: set
 structure, or call `materialize()` on one. See the how-to guide
 [Query relational structure](howto/query-relations.md).
 
-## Finding complexes
+### Finding complexes
 
 Complex-finding follows the exclusion postulate exactly. `Substrate.complexes()`
 returns `Complex` objects — the non-overlapping local maxima of integrated
@@ -156,7 +219,21 @@ the $\varphi_s$ gap to the best rival it beat. The
 [recursive exclusion tutorial](tutorials/recursive-exclusion.md) walks
 through how complexes carve up a substrate.
 
-## Intrinsic meaning and matching
+### Ties are resolved by the postulates
+
+Whenever candidates tie — specified states, mechanism partitions, purviews,
+system partitions, or overlapping candidate systems — PyPhi 2.0 resolves
+the tie the way the theory says to: by escalating through the postulates
+(the IIT 4.0 S1 tie supplement), at every selection point, under every
+formalism. A tie that survives the cascade is reported as a tie: the tied
+set is carried on the result (`sia.ties`, partition and state ties on
+repertoire analyses, purview ties on MICE), survives serialization, and a
+tie the postulates cannot adjudicate at all yields a null result with an
+explicit reason. Outcomes are deterministic — across runs, across parallel
+backends, and regardless of worker scheduling. See
+[Break ties deliberately](howto/tie-breaking.md).
+
+### Intrinsic meaning and matching
 
 `pyphi.matching` implements the perception and matching framework of
 Mayner, Juel & Tononi (2024,
@@ -176,80 +253,55 @@ Composable environment generators (`segment`, `point`, `noise`,
 interface, and the paper's mechanism library is ported into
 `pyphi.substrate_generator`, so perceptual substrates can be built natively.
 
-## IIT 4.0 (2026) is the default formalism
+(whats-new-estimate)=
+### Estimate substrates from data
 
-PyPhi 2.0 computes IIT 4.0 (2026) by default: the system's
-intrinsic information enters the minimum that defines system integrated
-information (Mayner, Marshall, Tononi 2026), so a system must both furnish
-itself a repertoire of alternatives and specify one of them. One consequence
-to know before comparing against published numbers: **deterministic systems
-compute $\varphi_s = 0$** under the default. The 2023 formulation and IIT 3.0 remain
-fully supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the
-presets in `pyphi.conf.presets` reproduce published values exactly. See the
-theory page
-[The intrinsic-information requirement](theory/intrinsic-information.md).
+When the TPM is measured rather than known, `pyphi.estimate` keeps the
+uncertainty attached. `estimate_substrate(data, regime=...)` builds a
+`SubstratePosterior` from perturbational transition pairs or an
+observational trajectory, with a `CoverageReport` recording which states
+the data actually constrained. Any existing computation applies to
+posterior samples unchanged, and `phi_posterior()` propagates the posterior
+through the analysis by Monte Carlo, reporting the full mixture — the
+probability the system is integrated at all, conditional and unconditional
+quantiles, raw Φ samples, and which unit set is maximal per sample.
+Coercing the result to a bare float raises, pointing at the summaries that
+respect the uncertainty.
 
-## Every formalism, restored
+### Explore the substrate landscape
 
-The formalisms are first-class objects, selected by name: `"IIT_3_0"`,
-`"IIT_4_0_2023"`, `"IIT_4_0_2026"`, and `"AC_2019"` for actual causation.
-Each formalism owns its algorithms, partition schemes, and compatible
-measures, and configurations that mix formalisms incoherently — a
-distribution distance with an IIT 4.0 version, say — are rejected when you
-set them rather than computing a quantity the papers never defined.
-Configuration is layered to match — options that affect results
-(`formalism`), options that only affect execution (`infrastructure`), and
-numerical settings (`numerics`) — and presets switch formalism wholesale in
-one call: `with pyphi.config.override(**pyphi.iit3): ...`.
+IIT quantities are functions of the substrate's parameters, and PyPhi 2.0
+treats them that way. `pyphi.landscape` evaluates the analysis along
+continuous parameter axes: `landscape_section()` tracks φ, the identity of
+every discrete selection (MIP, specified states), the selection margins,
+and the boundaries where a selection switches; `perturb()` estimates local
+derivatives and the parameter distance to the nearest selection switch.
+`pyphi.optimize()` searches over connection weights for maximizers of
+signed normalized $\varphi_s$ (or any other objective), seeded and with the full
+evaluation trajectory saved. See
+[Explore substrate parameter landscapes](howto/landscape.md).
 
-IIT 3.0 is restored paper-faithfully, with tie resolution matching the 2014
-paper, the PyPhi 1.x background convention on subset systems (so published
-1.x results reproduce). Actual causation is restored per Albantakis et al. (2019), with its
-own configuration namespace, paper-faithful defaults, tie cascades, and
-enforcement of the realization principle: transitions that cannot occur
-under the substrate dynamics are rejected up front. See
-[Formalism versions](theory/formalism-versions.md),
-[IIT 3.0](theory/iit-3.0.md), and the
-[actual-causation tutorial](tutorials/actual-causation.md).
+### Know the bounds, and the cost, before you run
 
-## One call from substrate to answer
+`pyphi.formalism.iit4.bounds` implements the certified upper bounds of
+Zaeemzadeh & Tononi (2024) on distinction, relation, system, and structure
+quantities, each returned with its certificate and assumptions; measured
+bounds evaluated on a distinction set's per-atom profile are typically
+orders of magnitude tighter and still require no relation enumeration. A
+debug check (`validate_phi_bounds`) compares every in-domain result against
+the theorem-certified ceilings.
 
-The common workflows are one call each:
+Costs are countable before anything runs: `pyphi.estimate_analysis()`
+counts the workload of a single-system analysis — system partitions,
+mechanisms, purview evaluations, mechanism-partition sweeps — without
+computing any φ, and `SearchBounds.estimate()` does the same for the grain
+search. These pre-flights power admission checks in the MCP server and the
+cluster-campaign planner, so an intractable run is refused with numbers
+instead of discovered by timeout.
 
-```python
-analysis = pyphi.analyze(substrate, state)    # SIA, CES, and Φ in one bundle
-analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
+## Ergonomics and quality of life
 
-result = pyphi.sweep(                         # batch across axes
-    {"grid": grid, "ring": ring},
-    states="all",
-    formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
-    compute="sia",
-)
-result.df                                     # tidy long-format DataFrame
-```
-
-`sweep()` enumerates the cartesian product of substrates, states, candidate
-subsystems, and formalisms, runs cells in parallel, records
-dynamically-unreachable states instead of aborting, and returns both a tidy
-DataFrame and the aligned raw result objects. See
-[Sweep states and subsystems](howto/sweep.md).
-
-## Ties are resolved by the postulates
-
-Whenever candidates tie — specified states, mechanism partitions, purviews,
-system partitions, or overlapping candidate systems — PyPhi 2.0 resolves
-the tie the way the theory says to: by escalating through the postulates
-(the IIT 4.0 S1 tie supplement), at every selection point, under every
-formalism. A tie that survives the cascade is reported as a tie: the tied
-set is carried on the result (`sia.ties`, partition and state ties on
-repertoire analyses, purview ties on MICE), survives serialization, and a
-tie the postulates cannot adjudicate at all yields a null result with an
-explicit reason. Outcomes are deterministic — across runs, across parallel
-backends, and regardless of worker scheduling. See
-[Break ties deliberately](howto/tie-breaking.md).
-
-## Results explain themselves
+### Results explain themselves
 
 Every result can account for itself:
 
@@ -270,7 +322,7 @@ Every result can account for itself:
   `pyphi.config.override(**result.config.as_overrides())` reruns it
   exactly.
 
-## Every result displays itself
+### Every result displays itself
 
 Every result type renders as a structured card — grouped sections, readable
 numbers, collections as tables — in the terminal, and as styled HTML in
@@ -295,7 +347,7 @@ declared connectivity matrix.
 See [Visualize results](howto/visualize.md) and
 [Export results](howto/export.md).
 
-## Save anything, load it anywhere
+### Save anything, load it anywhere
 
 `pyphi.save(obj, path)` and `pyphi.load(path)` (and `.save()`/`.load()` on
 result objects) serialize every result type through typed schemas, as JSON
@@ -309,53 +361,61 @@ mathematical content, the result-affecting configuration, and the pyphi
 version. See [Save and load results](howto/save-load.md) and
 [Caching](howto/cache.md).
 
-(whats-new-estimate)=
-## Estimate substrates from data
+### Smaller conveniences
 
-When the TPM is measured rather than known, `pyphi.estimate` keeps the
-uncertainty attached. `estimate_substrate(data, regime=...)` builds a
-`SubstratePosterior` from perturbational transition pairs or an
-observational trajectory, with a `CoverageReport` recording which states
-the data actually constrained. Any existing computation applies to
-posterior samples unchanged, and `phi_posterior()` propagates the posterior
-through the analysis by Monte Carlo, reporting the full mixture — the
-probability the system is integrated at all, conditional and unconditional
-quantiles, raw Φ samples, and which unit set is maximal per sample.
-Coercing the result to a bare float raises, pointing at the summaries that
-respect the uncertainty.
+Many changes are small on their own and add up to a library that is easier to
+live with:
 
-## Know the bounds, and the cost, before you run
+- **Every displayable object exports to pandas.** `to_pandas()` returns a
+  labeled Series for a scalar result and a DataFrame for a collection, on
+  analyses, structures, distinctions, relations, TPMs, partitions, and
+  state specifications alike. `sweep()` returns its results the same way.
+- **Results print well in a list.** Under IPython and Jupyter, a result
+  nested in a list, tuple, or dict prints its one-line compact form instead
+  of stacking full cards; on its own it still prints the card. Long tables
+  truncate at `repr_max_table_rows` (default 50) with a count of what was
+  left out.
+- **A result says which formalism produced it.** `Analysis.formalism` names
+  it, the card shows it, and φₛ and Φ are labelled distinctly everywhere.
+- **Cheaper partial computations.** `pyphi.analyze(..., compute="sia")` or
+  `compute="distinctions"` computes only what you asked for; the latter
+  skips the system-partition search, which dominates on sparse substrates.
+- **Configuration mistakes fail early and say why.** A 1.x uppercase option
+  raises a `ConfigurationError` with a table of the new names, an unknown
+  option points at the migration guide, and an incompatible combination
+  names both fields and a fix. Flat writes like `pyphi.config.precision = 6`
+  are routed to the right layer. Logging is off unless you call
+  `pyphi.enable_logging()`.
+- **The examples are a registry.** `pyphi.examples.EXAMPLES` maps each
+  category to its builders, the
+  [example networks](reference/examples.md) page renders every substrate's
+  card and connectivity graph from the object itself, and
+  `Substrate.inactivate()` builds a lesioned substrate in one call.
+- **Files that describe themselves.** `pyphi.provenance.save_json`,
+  `save_npz`, and `save_dataframe` put the parameters in the filename,
+  refuse to overwrite, and embed a provenance record that
+  `read_metadata()` reads back without loading the payload.
+- **Guided errors.** Iterating an analytical relation set raises a
+  `TypeError` that points at `strongest(k)`, `materialize()`, or the
+  `CONCRETE` setting; coercing a Φ posterior to a float points at the
+  summaries that respect the uncertainty; an intractable request fails at
+  once with its estimated cost instead of by timeout.
+- **Faster, lighter imports.** Submodules and optional dependencies load on
+  first use, `from pyphi import *` works on a base install, and the welcome
+  banner goes to stderr where it cannot corrupt captured output.
+- **Caches you can see.** `pyphi.cache.info()` reports hits, misses, bytes,
+  and evictions per cache; `clear(name)` and `clear_all()` reset them.
+- **Type hints for your editor.** The package ships a `py.typed` marker, so
+  type checkers and completions use PyPhi's annotations in your own code.
+- **Reference pages generated from the code.** The configuration reference
+  lists every option with its layer, default, and description; the FAQ,
+  the glossary, and the [Read a result](howto/read-result.md) how-to cover
+  the questions that come up first, including the letter-case convention
+  for purview states.
 
-`pyphi.formalism.iit4.bounds` implements the certified upper bounds of
-Zaeemzadeh & Tononi (2024) on distinction, relation, system, and structure
-quantities, each returned with its certificate and assumptions; measured
-bounds evaluated on a distinction set's per-atom profile are typically
-orders of magnitude tighter and still require no relation enumeration. A
-debug check (`validate_phi_bounds`) compares every in-domain result against
-the theorem-certified ceilings.
+## Performance and scale
 
-Costs are countable before anything runs: `pyphi.estimate_analysis()`
-counts the workload of a single-system analysis — system partitions,
-mechanisms, purview evaluations, mechanism-partition sweeps — without
-computing any φ, and `SearchBounds.estimate()` does the same for the grain
-search. These pre-flights power admission checks in the MCP server and the
-cluster-campaign planner, so an intractable run is refused with numbers
-instead of discovered by timeout.
-
-## Explore the substrate landscape
-
-IIT quantities are functions of the substrate's parameters, and PyPhi 2.0
-treats them that way. `pyphi.landscape` evaluates the analysis along
-continuous parameter axes: `landscape_section()` tracks φ, the identity of
-every discrete selection (MIP, specified states), the selection margins,
-and the boundaries where a selection switches; `perturb()` estimates local
-derivatives and the parameter distance to the nearest selection switch.
-`pyphi.optimize()` searches over connection weights for maximizers of
-signed normalized $\varphi_s$ (or any other objective), seeded and with the full
-evaluation trajectory saved. See
-[Explore substrate parameter landscapes](howto/landscape.md).
-
-## Faster across the board
+### Faster across the board
 
 Several changes compound into orders-of-magnitude speedups:
 
@@ -387,18 +447,18 @@ The [computational complexity](theory/computational-complexity.md) page
 derives where the time goes for every formalism and measures which
 configuration choices extend the tractable system size.
 
-## Parallelism, overhauled
+### Parallelism, overhauled
 
 Parallel execution runs on a single scheduler abstraction with process,
 thread, and Dask backends; on free-threaded Python builds the thread
-backend is selected automatically, . Work is packed into cost-balanced
+backend is selected automatically. Work is packed into cost-balanced
 chunks using cheap per-item cost estimates, dispatch thresholds are tuned
 to measured per-item costs, and workers install the caller's exact
 configuration — so `config.override(...)` scopes apply on every backend,
 and parallel results are identical to sequential ones, including tie
 resolution. See [Parallelize computations](howto/parallel.md).
 
-## From laptop to cluster
+### From laptop to cluster
 
 `pyphi.campaign` turns a computation into a directory of self-contained
 batch jobs for an HTCondor pool: `prepare()` packs the work into
@@ -428,7 +488,9 @@ code, turning a natural-language description into a valid substrate, and
 planning a cluster campaign step by step. See
 [Use the MCP server](howto/mcp-server.md).
 
-## Published results reproduce
+## Reproduction and correctness
+
+### Published results reproduce
 
 Every published worked example is reproduced at its published precision: the IIT 4.0 paper's Figs. 1, 2, and
 4, all five Fig. 6 architectures, and the three Fig. 7 panels (Albantakis
@@ -449,13 +511,13 @@ states; resolving those ties by the rule of the paper's own S1 supplement
 and Φ = 19.32 for Fig. 7B). $\varphi_s$ and the distinction counts match the
 figures exactly in both cases.
 
-## Correctness and development
+### Correctness and development
 
 Beyond the features, 2.0 closes a long list of correctness gaps; the
 [changelog](https://github.com/wmayner/pyphi/blob/main/CHANGELOG.md)
 has the full accounting. The themes: formalism equations validated against
 the papers (including two fixes to the Eq. 23 intrinsic-information
-requirement found by cross-formalism property tests); parallel results made
+requirement); parallel results made
 deterministic and identical to sequential ones; serialization made
 complete; construction-time validation added where malformed input
 previously produced wrong numbers without an error; and multi-valued
