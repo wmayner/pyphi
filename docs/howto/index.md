@@ -6,6 +6,7 @@ I want to…
 - understand what a result means: {doc}`read-result`
 - know whether a run will finish: {doc}`estimate-cost`
 - compute over every state: {doc}`sweep`
+- save, export, or plot a result: {doc}`save-load`, {doc}`export`, {doc}`visualize`
 - reproduce a published number: {doc}`../tutorials/worked-example` and
   {doc}`../theory/formalism-versions`
 - run on many cores or a cluster: {doc}`parallel`, {doc}`campaigns`
@@ -14,23 +15,48 @@ I want to…
 
 ```{toctree}
 :maxdepth: 1
+:caption: Start
 
 build-substrate
 read-result
 estimate-cost
 configure
-parallel
-chtc
-campaigns
-cache
+mcp-server
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Results
+
+sweep
 save-load
 export
-sweep
-grain-search
-landscape
-query-relations
 visualize
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Scale up
+
+parallel
+cache
+chtc
+campaigns
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Go deeper
+
+grain-search
+query-relations
+landscape
 tie-breaking
-mcp-server
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Help
+
 faq
 ```
