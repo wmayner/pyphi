@@ -9,21 +9,27 @@ import hashlib
 import sys
 from pathlib import Path
 
-import nbformat
-from nbclient import NotebookClient
-
 
 def code_hash(nb) -> str:
-    """SHA-256 over the sources of the notebook's code cells, in order."""
+    """SHA-256 over the sources of the notebook's code cells, in order.
+
+    Accepts an nbformat notebook or the plain JSON dictionary of one.
+    """
     h = hashlib.sha256()
-    for cell in nb.cells:
-        if cell.cell_type == "code":
-            h.update(cell.source.encode())
+    for cell in nb["cells"]:
+        if cell["cell_type"] == "code":
+            source = cell["source"]
+            if not isinstance(source, str):
+                source = "".join(source)
+            h.update(source.encode())
             h.update(b"\0")
     return h.hexdigest()
 
 
 def main(path: str) -> None:
+    import nbformat
+    from nbclient import NotebookClient
+
     file = Path(path)
     nb = nbformat.read(file, as_version=4)
     client = NotebookClient(

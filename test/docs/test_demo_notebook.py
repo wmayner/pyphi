@@ -1,10 +1,10 @@
 """The demo notebook's stored outputs must match its code and the library."""
 
+import json
 import re
 import sys
 from pathlib import Path
 
-import nbformat
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,8 +16,8 @@ from execute_notebook import code_hash  # noqa: E402
 
 def test_stored_outputs_match_the_code():
     """Editing a code cell without re-executing leaves a stale hash."""
-    nb = nbformat.read(NOTEBOOK, as_version=4)
-    assert nb.metadata["pyphi"]["code_hash"] == code_hash(nb), (
+    nb = json.loads(NOTEBOOK.read_text())
+    assert nb["metadata"]["pyphi"]["code_hash"] == code_hash(nb), (
         "the notebook's code changed since its outputs were stored; "
         "run `just notebook-outputs`"
     )
@@ -39,7 +39,8 @@ def _text_outputs(cell) -> list[str]:
 @pytest.mark.slow
 def test_stored_outputs_match_a_fresh_execution():
     """Library changes that alter a printed value must be caught before release."""
-    from nbclient import NotebookClient
+    nbformat = pytest.importorskip("nbformat")
+    NotebookClient = pytest.importorskip("nbclient").NotebookClient
 
     stored = nbformat.read(NOTEBOOK, as_version=4)
     fresh = nbformat.read(NOTEBOOK, as_version=4)
