@@ -1,1 +1,0 @@
-The documentation pages, the 2.0.0 changelog, and the demo notebook no longer carry development narrative (fragment labels, test-suite references, verification stories, intermediate states, design defences).

@@ -1,1 +1,0 @@
-Figures drawn while building the docs use the site palette and a transparent ground, so they read in both themes; graph plots no longer show an axes frame; the visualize how-to no longer shows each figure twice.

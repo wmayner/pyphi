@@ -1,1 +1,0 @@
-Reference has an executed gallery of the example networks, rendered from the objects themselves, and the hand-copied TPM and connectivity-matrix tables were removed from the `pyphi.examples` docstrings.

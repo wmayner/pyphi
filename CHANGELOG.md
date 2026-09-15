@@ -498,6 +498,16 @@ and `migrate_code` prompt on the MCP server).
   candidate system inside a larger substrate, and its summary and card now carry
   the minimum information partition, the intrinsic information ii(s), and which
   term of the intrinsic-information requirement set φₛ when it did.
+- The package ships a `py.typed` marker, so type checkers use PyPhi's type hints
+  in downstream projects.
+- The MCP server has a `documentation` reference topic describing how to read
+  the documentation site programmatically (llms.txt, per-page sources, the API
+  inventory), and the primer, migration, and visualization topics link to the
+  pages they condense.
+- MCP substrate summaries (`load_example`, `describe_substrate`) now include the
+  transition probability matrix as state-by-node rows for substrates of up to
+  256 states. `describe_substrate` also reports the installed PyPhi version, so
+  an assistant can tell which release it is talking to.
 
 
 ### API changes
@@ -752,6 +762,12 @@ and `migrate_code` prompt on the MCP server).
 
 - Numeric columns in display tables, such as TPMs in HTML cards and text output,
   are aligned on the decimal point.
+- Result objects print their one-line compact form when nested in a list, tuple,
+  or dict under IPython and Jupyter, instead of stacking full cards.
+- The Analysis card's System section now names the units, the current state, and
+  the specified cause and effect states ahead of the MIP.
+- Result-card summary headers render as real two-column tables, so converting a
+  card to plain text keeps each label paired with its value.
 
 ### Config
 
@@ -1275,6 +1291,11 @@ and `migrate_code` prompt on the MCP server).
 - `IIT3SystemIrreducibilityAnalysis` no longer includes `distinctions` in its hash. The compute path assigns `distinctions` to tie peers after construction, which changed the hash mid-lifetime.
 - `formalism.iit.version="IIT_4_0_2026"` now requires a `system_phi_measure` that applies the intrinsic-information requirement (Eq. 23), i.e. `INTRINSIC_INFORMATION`. Previously pairing version 2026 with `GENERALIZED_INTRINSIC_DIFFERENCE` passed validation and computed the 2023 quantity while results reported version 2026.
 - `Substrate` now rejects a non-square 2-D `tpm=` array whose row count is not `2**n` for its `n` columns (for example 8 rows with 2 columns), naming the expected row count. Such arrays were previously reshaped into a scrambled substrate over the wrong number of nodes.
+- Passing a 2-D transition probability matrix with a multi-valued `alphabet=` or
+  `state_space=`, or a state-by-state matrix whose state count is not a power of
+  two, now raises an error that says the 2-D forms describe binary units and
+  points at the factored form, instead of failing inside a conversion with
+  "expected integer".
 
 ### Documentation
 
@@ -1350,6 +1371,35 @@ and `migrate_code` prompt on the MCP server).
   in both themes, restyled cards, tables, and admonitions, a landing page that
   leads with the section cards, an announcement bar, a version switcher, and a
   sidebar citation.
+- Every configuration option carries a docstring stating what it controls, its
+  accepted values, and which preset changes it; the configuration reference
+  lists them by layer with their defaults and renders the full descriptions.
+- Reference has an executed gallery of the example networks, rendered from the
+  objects themselves, and the hand-copied TPM and connectivity-matrix tables
+  were removed from the `pyphi.examples` docstrings.
+- The conditional-independence theory page now opens with the reasoning behind
+  the assumption: a substrate is a complete causal model whose transitions are
+  defined by intervention, so units act only across steps and their joint
+  transition factors per unit.
+- Docs describe an excluded candidate with higher φₛ in plain words instead of a
+  coined term, and refer to the default formalism as IIT 4.0 (2026) rather than
+  a refinement.
+- Docstrings, the bundled MCP reference topics, the documentation pages, the
+  changelog, and the demo notebook no longer carry development narrative
+  (verification stories, work-item labels, test-suite references, design
+  defences); they describe what the code is and does.
+- The documentation site now publishes `llms.txt` and `llms-full.txt` (the
+  narrative pages as one markdown file) and a sitemap, and the landing page and
+  README point AI assistants at the MCP server, the per-page sources, and the
+  intersphinx inventory.
+- The documentation site is restyled: a teal accent, figures drawn while
+  building the docs (and the precomputed complexity figures) on a transparent
+  ground in the site palette so they read in both themes, φₛ and the other
+  subscripted quantities written as math in prose, page titles of the form "Page
+  — PyPhi", Open Graph tags for link previews, an install line and a four-line
+  example on the landing page, Ctrl+B (Cmd+B) to toggle the sidebar, and the
+  how-to guides and the what's-new page ordered by how soon a reader needs each
+  item, the latter with a new part on ergonomics and quality of life.
 
 ### Refactor
 

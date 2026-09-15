@@ -1,1 +1,0 @@
-The conditional-independence theory page now opens with the reasoning behind the assumption: a substrate is a complete causal model whose transitions are defined by intervention, so units act only across steps and their joint transition factors per unit.
