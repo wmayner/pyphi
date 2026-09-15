@@ -1400,6 +1400,12 @@ and `migrate_code` prompt on the MCP server).
   example on the landing page, Ctrl+B (Cmd+B) to toggle the sidebar, and the
   how-to guides and the what's-new page ordered by how soon a reader needs each
   item, the latter with a new part on ergonomics and quality of life.
+- Checked the glossary against the IIT wiki glossary: self-relations are now
+  covered, "minimum partition" replaces "minimum information partition" in the
+  IIT 4.0 docs and docstrings (the actual-causation paper keeps the older name),
+  and twelve terms were added (unit, order, cause–effect state, congruent,
+  normalized φ, partition scheme, preset, SIA, relation face, degree, unfolding,
+  condensation, tie, grain).
 
 ### Refactor
 

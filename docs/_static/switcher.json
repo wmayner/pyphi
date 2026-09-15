@@ -1,5 +1,4 @@
 [
   {"name": "stable", "version": "stable", "url": "https://pyphi.readthedocs.io/en/stable/", "preferred": true},
-  {"name": "latest", "version": "latest", "url": "https://pyphi.readthedocs.io/en/latest/"},
-  {"name": "2.0.0", "version": "v2.0.0", "url": "https://pyphi.readthedocs.io/en/v2.0.0/"}
+  {"name": "latest", "version": "latest", "url": "https://pyphi.readthedocs.io/en/latest/"}
 ]
