@@ -8,9 +8,9 @@ html[data-theme="light"] {
   --pp-text: #1d1f22;
   --pp-muted: #5b6068;
   --pp-rule: #d9d6ce;
-  --pp-primary: #0072b2;
-  --pp-link: #0b6e9e;
-  --pp-tint: #e4f0f7;
+  --pp-primary: #007c85;
+  --pp-link: #056b73;
+  --pp-tint: #dff1f1;
   --pp-cause: #d55c00;
   --pp-effect: #009e73;
 
@@ -41,9 +41,9 @@ html[data-theme="dark"] {
   --pp-text: #e8e6e1;
   --pp-muted: #a2a7ae;
   --pp-rule: #33373d;
-  --pp-primary: #5db4dd;
-  --pp-link: #5db4dd;
-  --pp-tint: #14323f;
+  --pp-primary: #4fc3cf;
+  --pp-link: #4fc3cf;
+  --pp-tint: #12363a;
   --pp-cause: #d55c00;
   --pp-effect: #009e73;
 
@@ -254,6 +254,8 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
   color: var(--pp-ground);
 }
 .bd-header-announcement a { color: var(--pp-ground); text-decoration: underline; }
+/* The theme's link hover colour is the primary, which is this bar's background. */
+.bd-header-announcement a:hover { color: var(--pp-ground); text-decoration-thickness: 2px; }
 
 /* ---- Download links ------------------------------------------------------ */
 
