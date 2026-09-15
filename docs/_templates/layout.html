@@ -1,0 +1,9 @@
+{% extends "pydata_sphinx_theme/layout.html" %}
+{% block extrahead %}
+{#- Fetch the faces used above the fold alongside the stylesheet, so text
+    paints in the right font instead of swapping after layout. -#}
+<link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/fonts/IBMPlexSans-Variable.woff2', 1) }}">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/fonts/IBMPlexSerif-600.woff2', 1) }}">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/fonts/FiraCodeNerdFont-Regular.woff2', 1) }}">
+{{ super() }}
+{% endblock %}

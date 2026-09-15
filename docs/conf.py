@@ -128,7 +128,7 @@ html_static_path = ["_static"]
 # before the first paint; the second is the site behaviour.
 html_js_files = [("sidebar-early.js", {"priority": 100}), "site.js"]
 html_css_files = [
-    "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Serif:wght@500;600&display=swap",
+    "plex.css",
     "custom.css",
 ]
 html_favicon = "_static/phi-favicon.svg"

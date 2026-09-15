@@ -62,3 +62,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 })();
+
+// Colab opens in its own tab; the notebook page stays where the reader was.
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('a[href*="colab.research.google.com"]').forEach((link) => {
+    link.target = "_blank";
+    link.rel = "noopener";
+  });
+});
