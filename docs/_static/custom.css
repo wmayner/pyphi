@@ -33,6 +33,7 @@ html[data-theme="light"] {
   --pst-color-table-heading-bg: var(--pp-raised);
   --pst-color-table-row-zebra-low-bg: var(--pp-raised);
   --pst-color-table-row-zebra-high-bg: var(--pp-ground);
+  --pst-color-target: var(--pp-tint);
 }
 
 html[data-theme="dark"] {
@@ -66,6 +67,7 @@ html[data-theme="dark"] {
   --pst-color-table-heading-bg: var(--pp-raised);
   --pst-color-table-row-zebra-low-bg: var(--pp-raised);
   --pst-color-table-row-zebra-high-bg: var(--pp-ground);
+  --pst-color-target: var(--pp-tint);
 }
 
 /* ---- Typography ---------------------------------------------------------- */

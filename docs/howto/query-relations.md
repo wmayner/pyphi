@@ -15,7 +15,7 @@ kernelspec:
 
 In IIT 4.0, a cause-effect structure is a set of **distinctions** together with the
 **relations** among them. A relation is any set of two or more distinctions whose
-purviews overlap in a congruent way, and its integrated information φ_r contributes
+purviews overlap in a congruent way, and its integrated information $\varphi_r$ contributes
 to the system's Φ. Relations are the combinatorial bottleneck: a structure with
 `|D|` distinctions can have up to `2^{|D|} − 1` relations, and `|D|` itself can reach
 `2^n − 1` for `n` units. The IIT 4.0 paper's Figure 6D — 27 distinctions — has
@@ -117,7 +117,7 @@ the enumeration where it is cheap to do so.
 ### Degree spectrum
 
 The **degree** of a relation is its number of relata. `degree_spectrum()` returns,
-for each degree, how many relations have it and how much φ_r they contribute —
+for each degree, how many relations have it and how much $\varphi_r$ they contribute —
 exactly, without listing a single relation. (Degree 1 is the self-relations: a distinction's
 cause overlapping its own effect.)
 
@@ -155,8 +155,8 @@ plt.show()
 
 ### Moments, extremes, and faces
 
-The φ_r distribution's mean and standard deviation, the single strongest relation's
-φ_r, and the total number of relation *faces* are all closed-form. The `basic`
+The $\varphi_r$ distribution's mean and standard deviation, the single strongest relation's
+$\varphi_r$, and the total number of relation *faces* are all closed-form. The `basic`
 statistics come from the count and the first two moments; `max_phi` scans only pairs
 and self-relations (the maximum is provably attained at degree ≤ 2); `num_faces`
 counts faces by Möbius inversion over the individual causes and effects.
@@ -174,9 +174,9 @@ assert analytical.num_faces() == concrete.num_faces()
 print("\n(analytical == concrete enumeration)")
 ```
 
-### The exact φ_r histogram
+### The exact $\varphi_r$ histogram
 
-`phi_histogram()` returns the exact distribution of φ_r values over all relations,
+`phi_histogram()` returns the exact distribution of $\varphi_r$ values over all relations,
 grouped at the configured numerical precision. On a million-relation structure this
 is the same closed-form computation and just as fast.
 
@@ -221,7 +221,7 @@ plt.show()
 
 The relations of degree ≥ 2 are **downward-closed**: every subset (with at
 least two members) of a relation's relata is itself a relation, with equal
-or larger overlap and equal or larger φ_r. The whole family is therefore
+or larger overlap and equal or larger $\varphi_r$. The whole family is therefore
 determined by its inclusion-**maximal** members — the facets of the relation
 complex — and these are closed-form: a set of distinctions relates exactly
 when some atom is shared by all its members, so the facets are the maximal
@@ -229,9 +229,9 @@ atom groups. There are at most as many facets as atoms.
 
 `maximal_relations()` returns them as an ordinary `ConcreteRelations`, so
 the whole query surface applies to the facet set. Note that facets are a
-*topological* skeleton, not a φ summary: φ_r never increases along a chain
-of nested relations, so the facets are the φ_r-weakest members of their
-chains, and Σφ_r lives mostly in their sub-relations.
+*topological* skeleton, not a φ summary: $\varphi_r$ never increases along a chain
+of nested relations, so the facets are the $\varphi_r$-weakest members of their
+chains, and $\Sigma\varphi_r$ lives mostly in their sub-relations.
 
 ```{code-cell} python
 facets = analytical.maximal_relations()
@@ -254,8 +254,8 @@ individual causes and effects.
 
 ## 4. The strongest relations, lazily
 
-`strongest(k)` yields relations one at a time in exact descending φ_r order, and
-stops after `k`. Because φ_r never increases when a relatum is added, a best-first
+`strongest(k)` yields relations one at a time in exact descending $\varphi_r$ order, and
+stops after `k`. Because $\varphi_r$ never increases when a relatum is added, a best-first
 search produces the global order without materializing the rest — so the top few of
 a million-relation structure cost a handful of operations, not a million.
 
@@ -335,7 +335,7 @@ print(f"Σ contributions = {imp_df['contribution'].sum():.4f}  (Φ = {ces.big_ph
 A **fold** is the slice of the structure seeded by a set of distinctions: those
 distinctions plus every relation incident to them. Every query above works on a
 fold, restricted to the incident relations. Here we fold on the single most
-important distinction and confirm the fold's relation count and Σφ_r match the
+important distinction and confirm the fold's relation count and $\Sigma\varphi_r$ match the
 relations that actually touch it.
 
 ```{code-cell} python

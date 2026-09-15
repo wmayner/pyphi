@@ -30,12 +30,12 @@ analysis
   distinction and every relation. It measures how much structure the system
   specifies. It is `analysis.big_phi`. Under IIT 3.0 there are no relations
   and this row is absent; that formalism's Φ is the next row.
-- **φ_s**: the system integrated information: whether the system exists as
+- **$\varphi_s$**: the system integrated information: whether the system exists as
   one whole, and how irreducibly. It is `analysis.phi`. Zero means
-  *reducible*, not "no structure": a system can have φ_s = 0 and a nonzero Φ.
-- **Distinctions, Σφ_d**: how many mechanisms specify an irreducible
+  *reducible*, not "no structure": a system can have $\varphi_s = 0$ and a nonzero Φ.
+- **Distinctions, $\Sigma\varphi_d$**: how many mechanisms specify an irreducible
   cause–effect state, and their total φ.
-- **Relations, Σφ_r**: how many congruent overlaps bind those distinctions,
+- **Relations, $\Sigma\varphi_r$**: how many congruent overlaps bind those distinctions,
   and their total φ. Under the default analytical backend these are computed
   in closed form; the individual relations are not enumerated, so they
   cannot be listed one by one. {doc}`query-relations` shows what can be asked
@@ -43,7 +43,7 @@ analysis
 - **Formalism**: which version of the theory produced the numbers above.
   Every other row depends on it; a φ value reported without it cannot be
   compared with anything. It is `analysis.formalism`.
-- **The distinction table**: one row per distinction: its mechanism, φ_d,
+- **The distinction table**: one row per distinction: its mechanism, $\varphi_d$,
   and its cause and effect purviews, each written in the *state* the
   distinction specifies. An uppercase letter is a unit ON, lowercase is OFF,
   and a unit with more than two states carries its state as a subscript
@@ -53,7 +53,7 @@ analysis
   states the system specifies, the minimum information partition (the cut
   that makes the least difference: the system's weakest link), the system's
   intrinsic information ii(s), and, when the intrinsic-information
-  requirement set φ_s, which term and direction did so. The next section
+  requirement set $\varphi_s$, which term and direction did so. The next section
   explains these.
 
 ## The system irreducibility analysis
@@ -63,7 +63,7 @@ sia = analysis.sia
 sia
 ```
 
-- **Normalized φ_s**: φ_s divided by the partition's normalization; the
+- **Normalized $\varphi_s$**: $\varphi_s$ divided by the partition's normalization; the
   minimum information partition is chosen on this value.
 - **Specified state** (cause and effect): the past and future states the
   system specifies with maximal intrinsic information.
@@ -76,8 +76,8 @@ sia
 - **MIP**: the partition and, in the grid, the connections it severs; "Tied
   MIPs" counts partitions tied with it.
 
-Under the default formalism, IIT 4.0 (2026), φ_s is the smallest of three
-terms: the cause-side integration φ_c, the effect-side integration φ_e, and
+Under the default formalism, IIT 4.0 (2026), $\varphi_s$ is the smallest of three
+terms: the cause-side integration $\varphi_c$, the effect-side integration $\varphi_e$, and
 the intrinsic information ii(s), itself the smaller of specification and
 differentiation over both directions (see
 {doc}`../theory/intrinsic-information`). `sia.explain()` says which term
@@ -88,11 +88,11 @@ for finding in sia.explain().findings:
     print(finding.kind, "=", finding.value)
 ```
 
-Here the effect-side differentiation is the smallest term, so it is φ_s.
+Here the effect-side differentiation is the smallest term, so it is $\varphi_s$.
 Under the 2023 formalism, which does not apply the requirement, the same
-pair has φ_s = min(φ_c, φ_e) = 0.17, the value the paper prints.
+pair has $\varphi_s = \min(\varphi_c, \varphi_e) = 0.17$, the value the paper prints.
 
-## When φ_s is zero
+## When φₛ is zero
 
 There are two different reasons, and the findings above tell them apart.
 
@@ -101,10 +101,10 @@ partition of the system makes no difference to its cause or effect
 repertoire. Then `binding_direction` names that side and there is no
 `requirement_binding` finding. This happens under every formalism.
 
-**The intrinsic-information requirement.** Both φ_c and φ_e are positive,
+**The intrinsic-information requirement.** Both $\varphi_c$ and $\varphi_e$ are positive,
 but the system provides itself no repertoire of alternatives (a
 deterministic transition has zero differentiation), so ii(s) is zero and
-with it φ_s. Then a `requirement_binding` finding gives the term
+with it $\varphi_s$. Then a `requirement_binding` finding gives the term
 (`differentiation` or `specification`) and the direction. This happens only
 under IIT 4.0 (2026); the same system under `formalism="IIT_4_0_2023"` keeps
 its `min(φ_c, φ_e)`.
@@ -117,7 +117,7 @@ print(float(basic.cause.phi), float(basic.effect.phi), basic.intrinsic_informati
 
 ## Reading the numbers across formalisms
 
-The same substrate and state give different φ_s under each formalism,
+The same substrate and state give different $\varphi_s$ under each formalism,
 because each defines it differently; see {doc}`../theory/formalism-versions`.
 Compare values only within one formalism, and compare them tolerantly:
 `pyphi.numerics.eq(a, b)` respects the configured precision where `==` does

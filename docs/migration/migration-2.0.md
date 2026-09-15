@@ -288,7 +288,7 @@ migration that expects IIT 3.0 numbers must request `formalism="IIT_3_0"`
 explicitly; request `formalism="IIT_4_0_2023"` for the IIT 4.0 system φ
 without that requirement.
 
-A practical consequence: **deterministic networks compute φ_s = 0 under the
+A practical consequence: **deterministic networks compute $\varphi_s = 0$ under the
 2026 default.** The classic examples (`xor`, `basic`, the cellular-automaton
 rules) are all deterministic, so analyses ported from 1.x or from the
 literature will show 0 where papers print nonzero values. This is the

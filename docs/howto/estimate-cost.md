@@ -24,7 +24,7 @@ pyphi.config.progress_bars = False
 
 | What | Formalism | About |
 | --- | --- | --- |
-| system integrated information φ_s | IIT 4.0 | 10–12 units |
+| system integrated information $\varphi_s$ | IIT 4.0 | 10–12 units |
 | distinctions and relations (the Φ-structure) | IIT 4.0 | 6–8 units |
 | cause–effect structure, Φ | IIT 3.0 | 10–12 units |
 
@@ -61,7 +61,7 @@ estimate.capped, estimate.mechanism_partition_sweeps
 `compute="sia"` counts only the system-partition search; `"distinctions"`
 only the distinction axis; the default counts everything. The
 system-partition count grows fastest with the number of units and is the
-axis to watch for φ_s.
+axis to watch for $\varphi_s$.
 
 ```{code-cell} python
 pyphi.cost.estimate_analysis(substrate, compute="sia").system_partitions
@@ -73,7 +73,7 @@ pyphi.cost.estimate_analysis(substrate, compute="sia").system_partitions
 - **The candidate system.** Analyze a subset (`subset=`) rather than the
   whole substrate; `substrate.complexes(state)` still has to consider every
   subset.
-- **What you compute.** `compute="sia"` for φ_s alone.
+- **What you compute.** `compute="sia"` for $\varphi_s$ alone.
 - **Settings.** The cost-reduction table in
   {doc}`../theory/computational-complexity` lists the partition schemes and
   short-circuit options and what each gives up.

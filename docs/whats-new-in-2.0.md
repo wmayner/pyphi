@@ -18,7 +18,7 @@ Three changes affect existing code and results:
 - **The default formalism is IIT 4.0 (2026)**, which adds
   [the intrinsic-information requirement](theory/intrinsic-information.md)
   to system integrated information; under it, **deterministic systems
-  compute φ_s = 0**. The 2023 formulation and IIT 3.0 remain fully supported
+  compute $\varphi_s = 0$**. The 2023 formulation and IIT 3.0 remain fully supported
   and reproduce published values (see the "Published results reproduce"
   section below for the two documented exceptions).
 - **Other breaking changes:** Python 3.13+ is required, configuration is
@@ -112,7 +112,7 @@ relations.maximal_faces()     # the inclusion-maximal relation faces
 Three more tools cover what closed forms can't:
 
 - `relations.strongest(k)` yields relations one at a time in exact
-  descending φ_r order, so the top ten of a million-relation structure
+  descending $\varphi_r$ order, so the top ten of a million-relation structure
   cost about a millisecond — useful for plots and reports that only ever
   show the strongest few.
 - `relations.sample(n, seed=...)` draws an unbiased sample of relations
@@ -152,7 +152,7 @@ information — resolving overlaps by the recursive exclusion cascade
 (Marshall et al. 2023, Algorithm A1). Each
 `Complex` records the
 overlapping candidates excluded in its favor and its `exclusion_margin`,
-the φ_s gap to the best rival it beat. The
+the $\varphi_s$ gap to the best rival it beat. The
 [recursive exclusion tutorial](tutorials/recursive-exclusion.md) walks
 through how complexes carve up a substrate.
 
@@ -183,7 +183,7 @@ intrinsic information enters the minimum that defines system integrated
 information (Mayner, Marshall, Tononi 2026), so a system must both furnish
 itself a repertoire of alternatives and specify one of them. One consequence
 to know before comparing against published numbers: **deterministic systems
-compute φ_s = 0** under the default. The 2023 formulation and IIT 3.0 remain
+compute $\varphi_s = 0$** under the default. The 2023 formulation and IIT 3.0 remain
 fully supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the
 presets in `pyphi.conf.presets` reproduce published values exactly. See the
 theory page
@@ -351,7 +351,7 @@ every discrete selection (MIP, specified states), the selection margins,
 and the boundaries where a selection switches; `perturb()` estimates local
 derivatives and the parameter distance to the nearest selection switch.
 `pyphi.optimize()` searches over connection weights for maximizers of
-signed normalized φ_s (or any other objective), seeded and with the full
+signed normalized $\varphi_s$ (or any other objective), seeded and with the full
 evaluation trajectory saved. See
 [Explore substrate parameter landscapes](howto/landscape.md).
 
@@ -446,7 +446,7 @@ its Fig. 7B, embed an ordering-dependent resolution of tied distinction
 states; resolving those ties by the rule of the paper's own S1 supplement
 (the state that maximizes Φ) yields strictly larger structures, and PyPhi
 2.0 computes those values instead (Φ = 12395 for Fig. 6D; 13498 relations
-and Φ = 19.32 for Fig. 7B). φ_s and the distinction counts match the
+and Φ = 19.32 for Fig. 7B). $\varphi_s$ and the distinction counts match the
 figures exactly in both cases.
 
 ## Correctness and development

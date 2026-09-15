@@ -312,9 +312,9 @@ print(report)
 ```
 
 The **scope report** records what was computed and what the scope
-excluded, with certificates: the computed Σφ_r is an exact lower bound for
+excluded, with certificates: the computed $\Sigma\varphi_r$ is an exact lower bound for
 the full structure (partial structures are exact substructures), and the
-measured upper bounds on Σφ_r and Φ come from the certified bound
+measured upper bounds on $\Sigma\varphi_r$ and Φ come from the certified bound
 machinery. Missing shard groups (from failed or pending tasks collected
 with `partial=True`) are listed separately from scope exclusions.
 

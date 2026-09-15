@@ -57,7 +57,7 @@ rich, which is what the plots show.)
 
 `plot_ces` offers five views of the same structure, chosen with `view`. The
 **lattice** view is a 2-D Hasse diagram of the distinctions ordered by inclusion;
-marker size encodes each distinction's total relation φ (Σφ_r), color its own φ.
+marker size encodes each distinction's total relation φ ($\Sigma\varphi_r$), color its own φ.
 
 ```{code-cell} python
 viz.plot_ces(ces, view="lattice")
@@ -85,7 +85,7 @@ viz.plot_ces(ces, view="matrix")
 ```
 
 The **spectrum** view summarizes the high-degree structure as a bar panel of
-relation count and Σφ_r per relation degree:
+relation count and $\Sigma\varphi_r$ per relation degree:
 
 ```{code-cell} python
 viz.plot_ces(ces, view="spectrum")
@@ -97,7 +97,7 @@ For larger structures the relation set is far too big to enumerate, so by
 default PyPhi computes relations *analytically* — every aggregate answered in
 closed form, nothing materialized (see {doc}`query-relations`). Because that
 relation set cannot be listed, `plot_ces` renders the **strongest** relations
-by φ_r, defaulting to the strongest 1000 when the set is not enumerable;
+by $\varphi_r$, defaulting to the strongest 1000 when the set is not enumerable;
 `max_relations` chooses the cap:
 
 ```{code-cell} python

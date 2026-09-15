@@ -1,6 +1,6 @@
 # FAQ and troubleshooting
 
-## Why is φ_s zero?
+## Why is φₛ zero?
 
 Two reasons, and `analysis.sia.explain()` tells them apart. Either one side
 of the system is reducible outright (some partition makes no difference to
@@ -48,7 +48,7 @@ reduce the work: {doc}`estimate-cost`.
 
 ## The analysis is taking hours
 
-It is probably past the practical ceiling: about 10–12 units for φ_s and
+It is probably past the practical ceiling: about 10–12 units for $\varphi_s$ and
 6–8 for the full Φ-structure on a fully connected substrate. Stop it,
 count the work with `pyphi.cost.estimate_analysis`, and reduce it
 ({doc}`estimate-cost`). PyPhi has no checkpointing; a killed run loses its
