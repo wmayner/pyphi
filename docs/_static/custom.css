@@ -100,6 +100,9 @@ html {
   --pst-font-size-h3: 1.2rem;
   --pst-font-size-h4: 1rem;
 }
+/* Reserve the scrollbar's space on every page, so a page too short to scroll
+   does not lay out wider than its neighbours and shift the sidebar. */
+html { scrollbar-gutter: stable; }
 body { line-height: 1.6; }
 h1, h2, h3, h4 { text-wrap: balance; }
 h1 { margin-bottom: 1.25rem; }
