@@ -1,0 +1,1 @@
+Page titles read "Page — PyPhi"; shared links show a preview card; the landing page opens with an install line and a four-line example; Ctrl+B (Cmd+B) toggles the sidebar; the conditional-independence page follows the substrate page in the theory section.

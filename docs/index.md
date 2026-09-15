@@ -4,6 +4,21 @@
 <p class="pp-tagline">The toolbox for Integrated Information Theory.</p>
 ```
 
+```bash
+pip install pyphi
+```
+
+```python
+import pyphi
+
+# The IIT 4.0 paper's Fig. 1A network, analyzing units A and B
+substrate = pyphi.examples.iit4_2023_fig1a_substrate()
+analysis = pyphi.analyze(substrate, state=(0, 1, 1), subset=(0, 1))
+
+analysis.phi      # φₛ ≈ 0.04, system integrated information
+analysis.big_phi  # Φ ≈ 1.56, structure integrated information
+```
+
 ::::{grid} 1 2 3 3
 :gutter: 3
 

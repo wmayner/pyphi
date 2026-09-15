@@ -1404,9 +1404,9 @@ def iit4_2023_fig1a_substrate():
         (no C→A)     C→B = −0.8   C→C = +0.2
 
     In the state aBC = (0, 1, 1) the paper reports φₛ = 0.04 for {A}, 0.17 for
-    {A, B} (the complex), and 0.13 for {A, B, C} (Fig 1E). Because the
-    substrate is probabilistic, these values are identical under the 2023 and
-    2026 formalisms.
+    {A, B} (the complex), and 0.13 for {A, B, C} (Fig 1E), the values under
+    the 2023 formalism. Under IIT 4.0 (2026), {A} and {A, B, C} are unchanged
+    and {A, B} gives 0.04, where the intrinsic-information requirement binds.
     """
     # fmt: off
     weights = np.array([

@@ -10,6 +10,7 @@ the [IIT wiki](https://www.iit.wiki); the authoritative source is
 
 overview
 substrate-and-system
+conditional-independence
 system-integration
 intrinsic-information
 distinctions-and-relations
@@ -17,6 +18,5 @@ phi-structure
 macro-units
 computational-complexity
 formalism-versions
-conditional-independence
 iit-3.0
 ```

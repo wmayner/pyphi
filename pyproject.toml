@@ -96,6 +96,7 @@ docs = [
     "sphinx-llms-txt>=0.7.1",
     "sphinx-sitemap>=2.9.0",
     "sphinx-tippy>=0.4.3",
+    "sphinxext-opengraph>=0.9",
 ]
 
 [project.urls]

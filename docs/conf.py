@@ -40,6 +40,7 @@ extensions = [
     "sphinx_tippy",
     "sphinx_llms_txt",
     "sphinx_sitemap",
+    "sphinxext.opengraph",
 ]
 
 templates_path = ["_templates"]
@@ -117,7 +118,9 @@ intersphinx_mapping = {
 # --- HTML output ------------------------------------------------------------
 
 html_theme = "pydata_sphinx_theme"
+html_title = "PyPhi"
 html_static_path = ["_static"]
+html_js_files = ["sidebar-shortcut.js"]
 html_css_files = [
     "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,600&family=IBM+Plex+Serif:wght@500;600&display=swap",
     "custom.css",
@@ -169,6 +172,11 @@ html_baseurl = os.environ.get(
     "READTHEDOCS_CANONICAL_URL", "https://pyphi.readthedocs.io/en/stable/"
 )
 sitemap_url_scheme = "{link}"
+# Link previews (Open Graph) for pages shared in chat and social clients.
+ogp_site_url = html_baseurl
+ogp_site_name = "PyPhi"
+ogp_image = html_baseurl + "_static/pyphi-logo-text-776x196.png"
+ogp_description_length = 200
 llms_txt_title = "PyPhi"
 llms_txt_summary = (
     "PyPhi computes the quantities of Integrated Information Theory (IIT 4.0): "
