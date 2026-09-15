@@ -374,7 +374,7 @@ Several changes compound into orders-of-magnitude speedups:
   reuse each other's results.
 - The specified-state computation no longer materializes the full state
   space — memory drops from 2ⁿ repertoires to one — and parallel dispatch
-  decisions were retuned against measured per-item costs.
+  decisions were returned against measured per-item costs.
 
 These are per-partition and per-structure gains; end-to-end wall time also
 depends on how many partitions the configured scheme sweeps, and the

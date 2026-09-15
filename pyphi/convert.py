@@ -398,7 +398,7 @@ def state_by_node2state_by_state(sbn):
     n_next = sbn.shape[-1]
 
     # First make the OFF probabilities explicit; the last dimension will
-    # correpsond to OFF/ON probability
+    # correspond to OFF/ON probability
     sbn = np.stack([1 - sbn, sbn], axis=-1)
 
     # Preallocate the state-by-state TPM

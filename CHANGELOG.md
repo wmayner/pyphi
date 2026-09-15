@@ -770,7 +770,7 @@ and `migrate_code` prompt on the MCP server).
   load, and at import time for `pyphi_config.yml`.
 - `infrastructure.repr_max_table_rows` (default 50): collection tables in
   result displays truncate with a `… N more` indicator.
-- Parallel dispatch thresholds are retuned to measured per-item costs:
+- Parallel dispatch thresholds are returned to measured per-item costs:
   `parallel_partition_evaluation` 1024 → 64,
   `parallel_mechanism_partition_evaluation` and
   `parallel_relation_evaluation` 1024 → 8192.
@@ -1423,7 +1423,7 @@ _2018-05-30_
   version >= 4.20.0.
 - Made model hashes deterministic (6b59061). This fixes an issue with the Redis
   MICE cache in which cached values were not shared between processes and
-  program invokations.
+  program invocations.
 - Fixed the connectivity matrix in `examples.disjunction_conjunction.network()`.
 
 ### API additions
@@ -1592,7 +1592,7 @@ _2017-12-04_
 - Replace `constants.DIRECTIONS`, `constants.PAST`, and `constants.FUTURE` with
   a proper `Enum` class: `constants.Direction`. Past and future are now
   represented by `constants.Direction.PAST` and `constants.Direction.FUTURE`.
-- Simplifed logging config to use `config.LOG_STDOUT_LEVEL`,
+- Simplified logging config to use `config.LOG_STDOUT_LEVEL`,
   `config.LOG_FILE_LEVEL` and `config.LOG_FILE`.
 - Removed the `location` property of `Concept`.
 

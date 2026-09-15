@@ -281,7 +281,7 @@ def sum_of_ratio_of_minima_among_subsets(
         if not candiate_elements.issubset(superset):
             continue
 
-        # Number of subsets of size >1 of the superset that contain the candiate
+        # Number of subsets of size >1 of the superset that contain the candidate
         # elements
         num_occurences = 2 ** len(superset - candiate_elements)
         if len(candiate_elements) == 1:
