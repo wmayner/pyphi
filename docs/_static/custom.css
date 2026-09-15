@@ -249,6 +249,17 @@ html[data-theme="dark"] .bd-content div.cell_output .output.text_html:has(.pyphi
   border-top: 1px solid var(--pp-rule);
 }
 .pp-sidebar-cite p { margin: 0.25rem 0; }
+/* The theme ends the sidebar flush with its last item. */
+.bd-sidebar-primary .sidebar-primary-items__end { padding-bottom: 1.25rem; }
+/* Pin the sidebar under the header as it actually is (site.js measures the
+   header's bottom edge, announcement bar included while it is on screen), so
+   the sidebar's last item never ends below the viewport. */
+@media (min-width: 960px) {
+  .bd-sidebar-primary {
+    top: var(--pp-sidebar-top, var(--pst-header-height));
+    max-height: calc(100vh - var(--pp-sidebar-top, var(--pst-header-height)));
+  }
+}
 
 /* ---- Announcement -------------------------------------------------------- */
 
