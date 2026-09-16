@@ -16,7 +16,7 @@ from execute_notebook import code_hash  # noqa: E402
 
 def test_stored_outputs_match_the_code():
     """Editing a code cell without re-executing leaves a stale hash."""
-    nb = json.loads(NOTEBOOK.read_text())
+    nb = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     assert nb["metadata"]["pyphi"]["code_hash"] == code_hash(nb), (
         "the notebook's code changed since its outputs were stored; "
         "run `just notebook-outputs`"

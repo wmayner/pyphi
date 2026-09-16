@@ -1382,9 +1382,31 @@ def test_html_card_key_values_are_table_rows():
     assert '<td class="pyphi-vcell"><span class="pyphi-v">1.5</span></td></tr>' in out
 
 
+class _Printer:
+    """The two parts of IPython's pretty printer that ``_repr_pretty_`` reads."""
+
+    def __init__(self, stack):
+        self.stack = stack
+        self.out = ""
+
+    def text(self, s):
+        self.out += s
+
+
+def test_repr_pretty_uses_compact_form_only_when_nested():
+    substrate = pyphi.examples.basic_substrate()
+    sia = pyphi.analyze(substrate, (1, 1, 0), compute="sia")
+    alone = _Printer(stack=[sia])
+    sia._repr_pretty_(alone, cycle=False)
+    assert alone.out.startswith("╭")
+    nested = _Printer(stack=[[sia], sia])
+    sia._repr_pretty_(nested, cycle=False)
+    assert nested.out == sia._compact_repr()
+
+
 def test_ipython_pretty_prints_compact_form_inside_containers():
     """A list of results prints one compact line per item, not stacked cards."""
-    from IPython.lib.pretty import pretty
+    pretty = pytest.importorskip("IPython.lib.pretty").pretty
 
     substrate = pyphi.examples.basic_substrate()
     sia = pyphi.analyze(substrate, (1, 1, 0), compute="sia")
