@@ -1,0 +1,11 @@
+{#- The theme's announcement is a raw string, so its links cannot be relative
+    to the page. Render the banner here instead, with links resolved by
+    pathto, so they stay inside whichever version of the site is being read. -#}
+<div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="{{ _('Version warning') }}"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">PyPhi 2.0 is released:
+    <a href="{{ pathto('whats-new-in-2.0') }}">what's new</a>, and the
+    <a href="{{ pathto('migration/migration-2.0') }}">migration guide</a> for 1.x users.</div>
+</aside>

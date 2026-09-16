@@ -142,13 +142,10 @@ html_theme_options = {
         "image_light": "_static/pyphi-logo-text-noborder-776x196.png",
         "image_dark": "_static/pyphi-logo-text-white-noborder-776x196.png",
     },
-    "announcement": (
-        "PyPhi 2.0 is released: "
-        '<a href="https://pyphi.readthedocs.io/en/stable/whats-new-in-2.0.html">'
-        "what's new</a>, and the "
-        '<a href="https://pyphi.readthedocs.io/en/stable/migration/migration-2.0.html">'
-        "migration guide</a> for 1.x users."
-    ),
+    # The banner itself is rendered by _templates/sections/announcement.html
+    # so its links resolve within the version being read; this value only
+    # tells the theme that there is an announcement.
+    "announcement": "PyPhi 2.0 is released.",
     "switcher": {
         "json_url": "https://pyphi.readthedocs.io/en/latest/_static/switcher.json",
         "version_match": os.environ.get("READTHEDOCS_VERSION", "latest"),
