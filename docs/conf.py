@@ -178,7 +178,10 @@ sitemap_url_scheme = "{link}"
 # Link previews (Open Graph) for pages shared in chat and social clients.
 ogp_site_url = html_baseurl
 ogp_site_name = "PyPhi"
-ogp_image = html_baseurl + "_static/pyphi-logo-text-776x196.png"
+# A 1200x630 card with an opaque background: the bare logo PNG has a
+# transparent background, which renders as black-on-black in dark-mode
+# chat clients.
+ogp_image = html_baseurl + "_static/pyphi-social-card.png"
 ogp_description_length = 200
 llms_txt_title = "PyPhi"
 llms_txt_summary = (
