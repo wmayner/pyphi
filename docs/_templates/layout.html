@@ -5,5 +5,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/fonts/IBMPlexSans-Variable.woff2', 1) }}">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/fonts/IBMPlexSerif-600.woff2', 1) }}">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/fonts/FiraCodeNerdFont-Regular.woff2', 1) }}">
+{#- The icon faces are otherwise discovered only once layout reaches an
+    icon, so they arrive a beat after the page and the glyphs pop in. -#}
+<link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/vendor/fontawesome/webfonts/fa-solid-900.woff2', 1) }}">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="{{ pathto('_static/vendor/fontawesome/webfonts/fa-brands-400.woff2', 1) }}">
 {{ super() }}
 {% endblock %}
