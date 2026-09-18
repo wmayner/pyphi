@@ -4,8 +4,11 @@
 <p class="pp-tagline">The toolbox for Integrated Information Theory.</p>
 ```
 
+PyPhi 2.0 is out as a release candidate. Install it with `--pre`; without
+the flag, pip installs the 1.2 release instead.
+
 ```bash
-pip install pyphi
+pip install --pre pyphi
 ```
 
 ```python

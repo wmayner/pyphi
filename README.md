@@ -129,10 +129,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Install the current release:
+Install the current release. Version 2.0 is out as a release candidate, so
+`--pre` is needed until the final release; without it, pip installs 1.2
+instead.
 
 ```bash
-uv pip install pyphi
+uv pip install --pre pyphi
 ```
 
 To install the latest development version from GitHub instead:
@@ -147,13 +149,13 @@ Optional features are available as extras: `visualize` (plotting), `caching`
 (the MCP server for AI assistants). Install one or more with, e.g.:
 
 ```bash
-uv pip install "pyphi[visualize,emd]"
+uv pip install --pre "pyphi[visualize,emd]"
 ```
 
 ### Using pip
 
 ```bash
-python -m pip install pyphi                                       # current release
+python -m pip install --pre pyphi                                 # 2.0 release candidate
 python -m pip install "git+https://github.com/wmayner/pyphi@main" # development version
 ```
 

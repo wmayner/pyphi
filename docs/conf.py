@@ -145,7 +145,7 @@ html_theme_options = {
     # The banner itself is rendered by _templates/sections/announcement.html
     # so its links resolve within the version being read; this value only
     # tells the theme that there is an announcement.
-    "announcement": "PyPhi 2.0 is released.",
+    "announcement": "PyPhi 2.0 is out as a release candidate.",
     "switcher": {
         "json_url": "https://pyphi.readthedocs.io/en/latest/_static/switcher.json",
         "version_match": os.environ.get("READTHEDOCS_VERSION", "latest"),

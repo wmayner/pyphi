@@ -38,10 +38,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Then install PyPhi:
+Then install PyPhi. Version 2.0 is out as a release candidate, so `--pre` is
+needed until the final release; without it, pip installs 1.2 instead.
 
 ```bash
-uv pip install pyphi
+uv pip install --pre pyphi
 ```
 
 Optional features are available as extras: `visualize` (plotting), `caching`
@@ -49,7 +50,7 @@ Optional features are available as extras: `visualize` (plotting), `caching`
 (labeled array export). Install one or more with, e.g.:
 
 ```bash
-uv pip install "pyphi[visualize,emd]"
+uv pip install --pre "pyphi[visualize,emd]"
 ```
 
 To install the latest development version:
@@ -61,7 +62,7 @@ uv pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"
 ### Using pip
 
 ```bash
-pip install pyphi                                                  # latest stable release
+pip install --pre pyphi                                            # 2.0 release candidate
 pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"  # latest development version
 ```
 
