@@ -351,9 +351,11 @@ def _background_conditioning_compatible_with_version(config: Any) -> str | None:
     """The cause-side background-conditioning convention must be one the
     active formalism defines.
 
-    IIT 3.0 fixes background units at their observed current state (the
-    PyPhi 1.x / post-2014-literature convention, pinned by the shipped
-    preset); pairing it with IIT 4.0's causal marginalization silently
+    PyPhi's IIT 3.0 formalism fixes background units at their observed
+    current state on the cause side (the PyPhi 1.x / post-2014-literature
+    convention, pinned by the shipped preset). Oizumi et al. (2014) itself
+    fixed them at their actual past state for causes (IIT 4.0, S2 Text).
+    Pairing it with IIT 4.0's causal marginalization silently
     computes a different phi on proper-subset systems. Formalisms that accept
     any registered convention declare
     ``compatible_background_conditioning = None`` and are not constrained.

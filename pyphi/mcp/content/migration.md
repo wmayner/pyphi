@@ -42,9 +42,11 @@ Two traps in that table:
   old function call into a property access blindly; the modern entry point
   is `pyphi.analyze`.
 
-`cause_marginal` / `effect_marginal` are the causal marginals of IIT 4.0. The
-old `cause_tpm` / `effect_tpm` names were a misnomer: the value was never a
-transition probability matrix but a distribution over cause/effect states.
+`cause_marginal` / `effect_marginal` replace the old `cause_tpm` /
+`effect_tpm`. IIT 4.0 calls these objects the cause and effect TPMs, 𝒯_c and
+𝒯_e (Albantakis et al. 2023, Eqs. 3–4). The new attributes hold them in
+factored, per-unit form, with the background causally marginalized conditional
+on the current state.
 
 ### Example networks
 

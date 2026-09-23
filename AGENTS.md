@@ -71,9 +71,12 @@ investigation and exposed the bug.
 
 ### Key Computational Concepts
 
-1. **Φ (Big Phi)**: Integrated information of a system
-   - Computed by finding the Minimum Information Partition (MIP)
-   - Combinatorially expensive: requires evaluating all partitions
+1. **φₛ and Φ**: Under the default IIT 4.0, system integrated information φₛ
+   is the quantity computed over the Minimum Information Partition (MIP), and
+   structure integrated information Φ is the sum of φ over all distinctions and
+   relations (Albantakis et al. 2023, Eq. 59). (Under IIT 3.0, Φ was the MIP
+   quantity.)
+   - The MIP search is combinatorially expensive: it evaluates all partitions
 
 2. **φ (Small Phi)**: Mechanism integration
    - How irreducible a mechanism's cause-effect repertoire is
@@ -89,7 +92,8 @@ investigation and exposed the bug.
 5. **Distinctions**: Irreducible mechanisms (IIT 4.0)
    - Concepts with cause-effect power
 
-6. **Relations**: Dependencies between distinctions (IIT 4.0)
+6. **Relations**: Congruent overlaps among the cause and effect purviews of
+   distinctions (IIT 4.0; Albantakis et al. 2023, Eqs. 49–55)
 
 ---
 

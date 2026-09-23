@@ -144,7 +144,9 @@ class TransitionSystem(Serializable):
     :class:`Transition`, one per direction.
 
     The underlying System is pinned to ``background_conditioning =
-    "CAUSAL_MARGINALIZATION"``: actual causation's background rule is
+    "CONDITION_CURRENT_STATE"`` with ``background_state = before_state``,
+    so the background units are held at their before-state values in both
+    directions. Actual causation's background rule is
     ``ActualCausationConfig.background_scheme``, not the IIT-formalism
     ``background_conditioning`` option, so the pin keeps AC results
     identical regardless of that option's value.

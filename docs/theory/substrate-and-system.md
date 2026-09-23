@@ -68,10 +68,12 @@ starting point — to exist is to have cause–effect power (Albantakis et al., 
 The units we analyze are usually an open subset $S \subseteq U$ of a larger
 substrate. The **intrinsicality** postulate requires that a system's cause–effect
 power be assessed *from its own perspective*: the remaining units $W = U \setminus S$
-are treated as fixed background conditions that do not themselves count as part
-of the system. PyPhi enforces this by **causally marginalizing** the background
-units — conditioning on their current state and averaging them out, so they
-become causally inert (Albantakis et al., 2023, Fig 1B).
+are background conditions: they do not count as part of the system and
+contribute no cause–effect power of their own. PyPhi enforces this by
+**causally marginalizing** the background units conditional on the current
+state: for effects they are held at their current state, and for causes their
+possible past states are weighted by their probability given the current state
+(Albantakis et al., 2023, Eqs. 3–4 and Fig 1B).
 
 A {class}`~pyphi.system.System` is a candidate subset of a substrate in a definite state. The worked
 example's candidate is the pair $\{A, B\}$, so unit $C$ is background:
@@ -83,7 +85,9 @@ system
 
 Here `node_indices` selects the subset $S = \{A, B\}$; the remaining unit $C$
 is causally marginalized, so the analysis sees $A$ and $B$ from their own
-intrinsic perspective, with $C$'s influence averaged out.
+intrinsic perspective: $C$ is held at its current state for effects, and its
+past states are weighted by their probability given the current state for
+causes.
 
 From the system's intrinsic point of view, IIT derives a **cause marginal**
 and an **effect marginal** by marginalizing the background — and, on the

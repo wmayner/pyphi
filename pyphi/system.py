@@ -50,12 +50,14 @@ if TYPE_CHECKING:
 class System(Displayable, ToPandasMixin, Serializable):
     """A substrate evaluated in a specific state over a node subset, with partition.
 
-    The ``external_indices`` field specifies which substrate units are
-    conditioned at their observed state when computing repertoires. When
-    ``None`` (the default), it resolves in ``__post_init__`` to
-    ``substrate - node_indices`` — the "extended background" convention
-    of IIT 4.0. An explicit override (used by ``TransitionSystem`` for
-    actual-causation analysis) may overlap with ``node_indices``.
+    The ``external_indices`` field specifies which substrate units are the
+    background when computing repertoires. When ``None`` (the default), it
+    resolves in ``__post_init__`` to ``substrate - node_indices``, the
+    background units W = U \\ S, which under the default convention are
+    causally marginalized conditional on the current state (IIT 4.0,
+    Albantakis et al. 2023, Eqs. 3-4). An explicit override (used by
+    ``TransitionSystem`` for actual-causation analysis) may overlap with
+    ``node_indices``.
 
     The ``background_conditioning`` field pins this System to one
     cause-side background convention. ``None`` (the default) resolves

@@ -20,10 +20,12 @@ system
 
 background conditions
 background
-  The current state of the units outside a system. Under IIT 4.0 those
-  units are causally marginalized (averaged out conditional on their
-  current state); under the IIT 3.0 preset they are fixed at their current
-  state. The `background_conditioning` option selects the rule;
+  The units outside a system. They contribute no cause–effect power of
+  their own. Under IIT 4.0 they are causally marginalized conditional on
+  the current state: held at their current state for effects, with their
+  past states weighted by their probability given the current state for
+  causes. Under the IIT 3.0 preset they are held at their current state for
+  causes too. The `background_conditioning` option selects the rule;
   {doc}`../theory/substrate-and-system`.
 
 transition probability matrix (TPM)

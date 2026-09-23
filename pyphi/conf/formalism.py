@@ -115,8 +115,8 @@ class IITConfig:
     """How the units outside a candidate system (its background) enter its
     cause repertoires when the system is a proper subset of the substrate:
     ``"CAUSAL_MARGINALIZATION"`` (default; the background's past is causally
-    marginalized conditional on the current state, the extended background
-    of IIT 4.0, Albantakis et al. 2023, Eq. 4) or
+    marginalized conditional on the current state, IIT 4.0, Albantakis et
+    al. 2023, Eq. 4) or
     ``"CONDITION_CURRENT_STATE"`` (the background is fixed at its observed
     current state, the PyPhi 1.x convention, set by the ``iit3`` preset and
     the only value IIT 3.0 accepts). The effect side conditions the

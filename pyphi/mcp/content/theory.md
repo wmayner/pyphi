@@ -34,7 +34,7 @@ property of experience:
   state, the one with maximal **intrinsic information** (ii).
 - **Integration** — the system must specify that state *irreducibly*, as one
   whole. Irreducibility is measured over the **minimum partition**
-  (MIP) — the partition that makes the least difference.
+  (MIP) — the partition that minimizes the normalized φ (Eq. 23).
 - **Exclusion** — exactly one set of units counts: the one with maximal φₛ,
   called the **complex**.
 - **Composition** — subsets of the units (**mechanisms**) specify their own
@@ -53,7 +53,10 @@ the minimum, the intrinsic information ii(s), so φₛ can be 0 with both sides
 positive; see Formalism versions below and the `requirement_binding` key of the
 `analyze` summary. It is evaluated over the *normalized* minimum information
 partition, and it is **not** compositional. The set of units that
-maximizes φₛ over itself is the complex. φₛ = 0 means the system is reducible.
+maximizes φₛ over itself is the complex. φₛ = 0 means the system does not exist
+as one whole: either some partition makes no difference (the system is
+reducible), or, under IIT 4.0 (2026), the system provides itself no repertoire
+of alternatives (ii(s) = 0; see `requirement_binding`).
 
 **Φ (structure integrated information)** answers *how much structure does the
 complex specify?* Once the complex is fixed, its Φ-structure is unfolded, and Φ

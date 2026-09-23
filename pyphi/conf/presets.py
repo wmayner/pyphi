@@ -88,8 +88,10 @@ iit3: dict[str, Any] = {
         distinction_phi_normalization="NONE",
         # Background units are fixed at their observed current state on the
         # cause side (the PyPhi 1.x / post-2014-literature convention), so
-        # proper-subset analyses reproduce published IIT 3.0 results. The
-        # global default is IIT 4.0 Eq. 4 causal marginalization.
+        # proper-subset analyses reproduce PyPhi 1.x results. Oizumi et al.
+        # (2014) itself fixed them at their actual past state for causes
+        # (IIT 4.0, S2 Text). The global default is IIT 4.0 Eq. 4 causal
+        # marginalization.
         background_conditioning="CONDITION_CURRENT_STATE",
     ),
     "actual_causation": ActualCausationConfig(

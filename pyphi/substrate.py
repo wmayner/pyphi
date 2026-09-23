@@ -710,9 +710,10 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         from an *inactivated* one, whose cause-effect power is abolished
         (Fig 7C): the complex that contained it shrinks. Inactivation is
         also distinct from holding a unit as a background condition of a
-        candidate system: a background unit keeps its counterfactual states
-        and is causally marginalized (2023, Eqs. 3-4); an inactivated unit
-        has none.
+        candidate system: a background unit is causally marginalized, held
+        at its current state for effects and with its past states weighted
+        by their probability given the current state for causes (2023,
+        Eqs. 3-4); an inactivated unit has no alternative states.
 
         Parameters
         ----------

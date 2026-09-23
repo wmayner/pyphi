@@ -49,7 +49,10 @@ with pyphi.config.override(precision=10):
 A preset is a bundle of options reproducing a specific paper's settings. Three
 are provided as dictionaries you unpack into `override`:
 
-- `iit3` — IIT 3.0 (Oizumi et al. 2014)
+- `iit3` — IIT 3.0 (Oizumi et al. 2014). Its background convention is
+  PyPhi 1.x's: the background is held at its current state for causes as well
+  as effects. Oizumi et al. (2014) held it at its actual past state for causes
+  (IIT 4.0, S2 Text).
 - `iit4_2023` — IIT 4.0 (Albantakis et al. 2023), without the
   intrinsic-information requirement
 - `iit4_2026` — IIT 4.0 with the requirement (Mayner, Marshall, Tononi 2026),

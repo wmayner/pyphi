@@ -369,7 +369,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         the bare distinctions.
     specified_state_evaluations : int or None
         Forward-repertoire evaluations the specified-state search performs
-        (Albantakis et al. 2023, Eq. 53). The search maximizes intrinsic
+        (Albantakis et al. 2023, Eqs. 12-13). The search maximizes intrinsic
         information over the whole system as both mechanism and purview, so
         it evaluates one repertoire per system state per direction: twice
         the state space, each evaluation over an array of that same size.
@@ -590,7 +590,7 @@ def estimate_analysis(
     version = config.formalism.iit.version
 
     # Under IIT 4.0 a cause-effect structure embeds its own system
-    # irreducibility analysis (Eq. 57), so it pays the system-partition axis
+    # irreducibility analysis (Eq. 58), so it pays the system-partition axis
     # too; under IIT 3.0 the structure is the bare distinctions. Only
     # ``"distinctions"`` skips that axis under every formalism.
     counts_system_partitions = scope in ("full", "sia") or (

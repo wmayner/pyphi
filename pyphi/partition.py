@@ -932,7 +932,7 @@ def all_edge_cuts(
 
 
 # Single-edge cuts need not disconnect the system, so SIA searches must
-# filter these schemes' output to disconnecting cuts (IIT 4.0 Eq. 14).
+# filter these schemes' output to disconnecting cuts (IIT 4.0 Eqs. 14-16).
 all_edge_cuts.may_yield_non_disconnecting_cuts = True  # pyright: ignore[reportFunctionMemberAccess, reportAttributeAccessIssue]
 
 

@@ -17,7 +17,7 @@ is actually large under the active formalism, scheme, and connectivity.
 Watch the specified-state axis in particular on a sparse substrate. The other
 axes shrink as connectivity thins, because pruning leaves fewer purviews to
 evaluate; that one does not. Searching for the system's specified cause and
-effect states (Eq. 53) evaluates one forward repertoire per system state per
+effect states (Eqs. 12–13) evaluates one forward repertoire per system state per
 direction, over an array of that same size, so it grows fourfold per unit added
 no matter how the units are wired. It is the axis that dominates a large
 sparse system, and the only one whose cost follows from the unit count alone.

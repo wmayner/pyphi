@@ -467,7 +467,8 @@ class IIT4_2023Formalism:
 class IIT4_2026Formalism:
     """IIT 4.0 (Mayner, Marshall, Tononi 2026) — intrinsic-information requirement.
 
-    Mechanism phi uses GID per Eqs. 19-20 (same as IIT 4.0 2023). System
+    Mechanism phi uses GID per Albantakis et al. (2023), Eqs. 41 and 44
+    (same as IIT 4.0 2023). System
     phi uses ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff,
     i_spec)`` cap from Eq. 23, which is where this variant differs from
     IIT 4.0 (2023).

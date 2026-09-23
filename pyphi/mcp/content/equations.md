@@ -12,8 +12,9 @@ information.
 
 ## IIT 4.0 (2023) — the canonical formalism
 
-Albantakis et al. (2023), PLoS Comput Biol 19(10): e1011465. All equations 1–55
-are numbered in the main text; this is the reference for 4.0.
+Albantakis et al. (2023), PLoS Comput Biol 19(10): e1011465. The published
+version numbers its equations 1–61; this is the reference for 4.0. The arXiv
+preprint numbers them differently, so do not cite preprint numbers.
 
 **Substrate and conditional independence**
 - Eq. 1 — the transition probability matrix: `𝒯_U ≡ p(ū | u)`.
@@ -58,8 +59,9 @@ are numbered in the main text; this is the reference for 4.0.
 
 **Composition: distinctions**
 - Eq. 27 — a distinction `d(m) = (m, z*, φ_d)`.
-- Eqs. 28–33 — mechanism purview probabilities via product (causally
-  marginalized) distributions.
+- Eqs. 28–33 — mechanism purview probabilities: the system units outside the
+  mechanism (X = S \ M) are causally marginalized with a uniform distribution,
+  and the per-unit probabilities are combined as products.
 - Eqs. 34–35 — mechanism intrinsic information `ii_e(m, z)`, `ii_c(m, z)`.
 - Eqs. 36–37 — the maximal purview state and mechanism intrinsic information.
 - Eq. 38 — the **disintegrating partitions** Θ(M, Z) of a mechanism–purview
@@ -76,9 +78,14 @@ are numbered in the main text; this is the reference for 4.0.
   purview units, times the joint-overlap size, minimized over the relation's
   distinctions).
 
-**Φ** — the structure integrated information is the plain sum
-`Φ = Σ_d φ_d + Σ_r φ_r` over all distinctions and relations (stated in the text;
-not a numbered equation).
+**Cause–effect structures and Φ**
+- Eq. 56 — `R(D)`, the set of all relations (φ_r > 0) among a set of
+  distinctions D.
+- Eq. 57 — a cause–effect structure `C(D) = D ∪ R(D)`.
+- Eq. 58 — the **Φ-structure**: the cause–effect structure specified by a
+  complex.
+- Eq. 59 — the structure integrated information `Φ = Σ φ`, the plain sum over
+  all distinctions and relations of the Φ-structure.
 
 ## IIT 4.0 (2026) — intrinsic differentiation
 
@@ -90,7 +97,9 @@ Mayner, Marshall & Tononi (2026), *Intrinsic Cause–Effect Power*, Entropy 28:
   system provide itself a repertoire of alternatives?
 - Eqs. 7–11 — **intrinsic specification** `i_spec` (the renamed 2023 intrinsic
   information).
-- Eq. 13 — `ii = min(i_diff, i_spec)`.
+- Eq. 13 — the system intrinsic information `ii(s) = min{ii_c(s), ii_e(s)}`.
+  The per-direction value `ii_c/e = min(i_diff, i_spec)` is stated just before
+  Eq. 13 and is not numbered.
 - Eq. 23 — φₛ = min(φ_c, φ_e, ii): the intrinsic-information requirement, which drives a deterministic system's
   φₛ to 0, because a deterministic system has i_diff = 0.
 
@@ -114,15 +123,19 @@ Eqs. 1–9 plus Theorem 1.
 Marshall et al. (2023), *System Integrated Information*, Entropy 25: 334.
 **Only Eqs. 1–2 and "Theorem 1" are numbered**; cite the φₛ / MIP formulas by
 section or name.
-- Eq. 1 — the system transition function with background conditioning.
+- Eq. 1 — the system transition function with background conditioning. It
+  holds the background at its current state for both causes and effects, the
+  pre-4.0 convention that IIT 4.0 Eqs. 3–4 replace.
 - Theorem 1 — the maximum φₛ for a partition equals the number of connections
   it cuts.
 
 ## Macro units and grain
 
-Marshall et al. (2024), *Intrinsic Units*, bioRxiv (preprint; Eqs. 1–42 all
-numbered). Eqs. 26–40 give the four-step macro-TPM construction (discount
-extrinsic connections, extend to update sequences, causally marginalize the
+Marshall et al. (2026), *Intrinsic units: identifying a system's causal
+grain*, Neurosci. Conscious. 2026(1): niag013 (PMC13082400). The equation
+numbers here are from the bioRxiv preprint (Eqs. 1–42 all numbered).
+Eqs. 26–40 give the four-step macro-TPM construction (discount extrinsic
+connections, extend to update sequences, causally marginalize the
 background, compress into macro states).
 
 ## IIT 3.0

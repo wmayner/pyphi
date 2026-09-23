@@ -604,9 +604,11 @@ def analyze(
         The current state, one entry per node, in node order (little-endian).
     subset : list of int or str, optional
         The candidate system: node indices or labels. Default analyzes the
-        whole substrate. Units outside the subset are the background and are
-        causally marginalized (IIT 4.0) or conditioned on their current
-        state (IIT 3.0); see ``get_iit_reference("theory")``.
+        whole substrate. Units outside the subset are the background:
+        causally marginalized conditional on the current state (IIT 4.0,
+        Eqs. 3-4), or held at their current state for causes too (PyPhi's
+        IIT 3.0 preset, the PyPhi 1.x convention); see
+        ``get_iit_reference("theory")``.
     formalism : str, optional
         ``"IIT_4_0_2026"`` (default), ``"IIT_4_0_2023"``, or ``"IIT_3_0"``. Each
         defines integrated information differently, so the same substrate and
@@ -654,8 +656,11 @@ def analyze(
     -------
     dict
         A ``card`` (human-readable text), a ``summary`` of scalar quantities,
-        and a ``result_ref`` for ``inspect``. Φ=0 means the system is
-        *reducible*, not that it has no structure.
+        and a ``result_ref`` for ``inspect``. φₛ = 0 means the system does
+        not exist as one whole, not that it has no structure: either some
+        partition makes no difference (the system is *reducible*), or, under
+        IIT 4.0 (2026), the system provides itself no repertoire of
+        alternatives (ii(s) = 0; see ``requirement_binding``).
     """
     substrate = _get_substrate(handle)
     indices = (

@@ -294,7 +294,7 @@ class SystemIrreducibilityAnalysis(
 
     @property
     def intrinsic_information(self) -> float | None:
-        """The system intrinsic information ii(s) (Mayner et al. 2026, Eq. 23).
+        """The system intrinsic information ii(s) (Mayner et al. 2026, Eq. 13).
 
         The minimum over directions of min(i_spec, i_diff), where i_spec
         is the intrinsic information of the specified state and i_diff its
@@ -1049,7 +1049,7 @@ def sia(
     if partitions is None:
         filter_func = None
         # Edge-cut schemes can yield cuts that leave the system strongly
-        # connected; Eq. 14 requires the MIP search to consider only
+        # connected; Eqs. 14-16 require the MIP search to consider only
         # disconnecting partitions.
         if getattr(
             system_partition_types[partition_scheme],
@@ -1663,7 +1663,7 @@ def congruent_distinctions(
     """Return the system's distinctions without the system-partition search.
 
     The specified state used for congruence filtering is taken from the
-    system's intrinsic information (Eq. 53) rather than from a system
+    system's intrinsic information (Eqs. 12-13) rather than from a system
     irreducibility analysis, so no system partition is evaluated.
 
     Returns
@@ -1711,7 +1711,7 @@ def ces(
     ces_kwargs: dict | None = None,
     relations_kwargs: dict | None = None,
 ) -> CauseEffectStructure:
-    """Analyze the irreducible cause-effect structure of a system (Eq. 57).
+    """Analyze the irreducible cause-effect structure of a system (Eq. 58).
 
     ``system_measure`` and ``specification_measure`` are Protocol-typed
     measure callables passed explicitly by the active formalism (no

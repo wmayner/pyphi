@@ -5,14 +5,18 @@ How to read an analysis result and explain it in plain language.
 ## What `analyze` gives back
 
 - `summary.system_phi` — **φₛ**, system integrated information. Positive means
-  the system exists as one integrated whole; 0 means it is reducible.
-  `summary.cause_phi` and `summary.effect_phi` are the two sides; φₛ is the
-  smaller of them. Under IIT 3.0 this value is that formalism's Φ.
+  the system is irreducible: it exists as one integrated whole. 0 means it does
+  not: either some partition makes no difference (the system is reducible), or,
+  under IIT 4.0 (2026), the system provides itself no repertoire of
+  alternatives (ii(s) = 0; see `requirement_binding` below).
+  `summary.cause_phi` and `summary.effect_phi` are the two sides. Under IIT 4.0
+  (2023) φₛ is the smaller of them; under the default IIT 4.0 (2026) it is the
+  smallest of the two and ii(s). Under IIT 3.0 this value is that formalism's Φ.
 - `summary.mip` — the minimum partition, the system's weakest link.
 - `summary.big_phi` — **Φ**, the total structure integrated information (the sum
-  over distinctions and relations). IIT 4.0 only, and never equal to
-  `system_phi` by definition — if you find yourself reporting the same number
-  for both, you have read the wrong field.
+  over distinctions and relations). IIT 4.0 only. It is a different quantity
+  from `system_phi`; do not report one for the other. If you find yourself
+  reporting the same number for both, you have read the wrong field.
 - `summary.formalism` — which version produced these numbers.
 - `summary.num_distinctions` / `summary.num_relations` and their φ sums —
   the size and weight of the Φ-structure.
@@ -55,9 +59,12 @@ distinctions are the structure as computed.
 ## How to narrate it
 
 1. **Lead with the two headline numbers, and keep them distinct.** "This
-   system has φₛ ≈ 0.21, so it exists as one integrated whole; its experience
-   has structure integrated information Φ ≈ 1.86." Do not call Φ "the phi
-   value" without saying which one.
+   system has φₛ ≈ 0.21, so it is irreducible: it exists as one integrated
+   whole. Its cause–effect structure has structure integrated information
+   Φ ≈ 1.86." The system is a complex, and its cause–effect structure a
+   Φ-structure, only if its φₛ is also maximal among the overlapping candidate
+   systems. `analyze` does not check this; in Python, `substrate.complexes(state)`
+   does. Do not call Φ "the phi value" without saying which one.
 2. **Say what the weakest link is.** The minimum partition is where
    the system is closest to falling apart into independent parts. Name it.
 3. **Describe the structure concretely.** Use `inspect(result_ref, "ces.distinctions[0]")`
@@ -71,7 +78,8 @@ distinctions are the structure as computed.
 ## Common misreadings to avoid
 
 - Reporting Φ when asked about φₛ, or vice versa.
-- Reading Φ = 0 as "nothing interesting" rather than "reducible".
+- Reading φₛ = 0 as "nothing interesting" rather than "does not exist as one
+  whole" (reducible, or under IIT 4.0 (2026) possibly ii(s) = 0).
 - Treating a small-network result as canonical when a symmetric TPM may have
   produced a tie.
 - Comparing φ values across formalism versions as if they were the same

@@ -13,18 +13,24 @@ order. This is the most common source of indexing mistakes. Always pass and
 read states as tuples in node order, e.g. `(1, 1, 0)`, and let PyPhi handle the
 indexing.
 
-## 2. Φ = 0 means reducible, not "no structure"
+## 2. φₛ = 0 means the system does not exist as one whole, not "no structure"
 
-A zero value of φₛ or Φ means the system is **reducible** — some partition makes
-no difference, so it does not exist as one integrated whole. It does not mean
-the system is empty or uninteresting. Feed-forward systems, for instance, have
-Φ = 0 by construction.
+A zero value of φₛ means the system does not exist as one integrated whole.
+There are two ways to reach it. Either the system is **reducible**: some
+partition makes no difference. Or, under the default IIT 4.0 (2026), the system
+provides itself no repertoire of alternatives (ii(s) = 0), which sets φₛ to 0
+even when φ_c and φ_e are both positive; the `requirement_binding` key of the
+`analyze` summary says when this is the case. Neither means the system is empty
+or uninteresting. Feed-forward systems, for instance, have φₛ = 0 by
+construction: the way the minimum partition is defined (Albantakis et al. 2023,
+Eq. 23) ensures φₛ = 0 for any system that is not strongly connected.
 
 ## 3. φₛ and Φ are different quantities
 
 `analyze(...).phi` (and `.sia.phi`) is **φₛ**, system integrated information:
 whether the system exists as one whole, computed as the minimum over the cause
-and effect sides, over the normalized minimum partition.
+and effect sides (and, under IIT 4.0 (2026), ii(s)), over the normalized
+minimum partition.
 `analyze(...).big_phi` (and `.ces.big_phi`) is **Φ**, structure integrated
 information: the plain sum of φ over all distinctions and relations. φₛ decides
 existence; Φ measures the quantity of structure. Do not report one as if it were
@@ -41,8 +47,11 @@ the networks a newcomer reaches for first. IIT resolves them by appealing to
 the subsequent postulates: tied system states are compared on φₛ and then on
 the structure integrated information Φ; a distinction's tied readings are
 filtered to those congruent with the system's cause–effect state, and any
-remaining choice is the combination of readings that maximizes Φ. When a tie
-cannot be resolved, the cause–effect structure is genuinely non-unique. If a small
+remaining choice is the combination of readings that maximizes Φ. If candidate
+systems or system states still tie in Φ, the system does not qualify as a
+complex, unless the tied cause–effect structures are identical from the
+intrinsic perspective (Albantakis et al. 2023, S1 Text). PyPhi's tie-resolution
+settings pick one reading so that the computation can proceed. If a small
 example gives a surprising or unstable result, suspect a tie. In realistic
 systems with graded connection strengths and some indeterminism, ties are less
 likely.
