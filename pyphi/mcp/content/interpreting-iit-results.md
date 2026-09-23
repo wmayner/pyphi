@@ -6,24 +6,24 @@ How to read an analysis result and explain it in plain language.
 
 - `summary.system_phi` — **φₛ**, system integrated information. Positive means
   the system is irreducible: it exists as one integrated whole. 0 means it does
-  not: either some partition makes no difference (the system is reducible), or,
-  under IIT 4.0 (2026), the system provides itself no repertoire of
-  alternatives (ii(s) = 0; see `requirement_binding` below).
-  `summary.cause_phi` and `summary.effect_phi` are the two sides. Under IIT 4.0
-  (2023) φₛ is the smaller of them; under the default IIT 4.0 (2026) it is the
-  smallest of the two and ii(s). Under IIT 3.0 this value is that formalism's Φ.
+  not: either some partition makes no difference (the system is reducible), or
+  the system provides itself no repertoire of alternatives (ii(s) = 0; see
+  `requirement_binding` below). `summary.cause_phi` and `summary.effect_phi`
+  are the integration on the cause and effect sides; φₛ is the smallest of
+  those two and ii(s).
 - `summary.mip` — the minimum partition, the system's weakest link.
 - `summary.big_phi` — **Φ**, the total structure integrated information (the sum
-  over distinctions and relations). IIT 4.0 only. It is a different quantity
+  over distinctions and relations). It is a different quantity
   from `system_phi`; do not report one for the other. If you find yourself
   reporting the same number for both, you have read the wrong field.
-- `summary.formalism` — which version produced these numbers.
+- `summary.formalism` — the version of IIT that produced these numbers,
+  recorded for reproducibility.
 - `summary.num_distinctions` / `summary.num_relations` and their φ sums —
   the size and weight of the Φ-structure.
-- `summary.intrinsic_information` — **ii(s)**, the third term of φₛ under
-  IIT 4.0 (2026); `summary.requirement_binding` names the term and direction
-  when ii(s) is what set φₛ (both φ_c and φ_e positive with φₛ = 0 is the
-  usual sign). `None` when integration set it, and absent under IIT 3.0.
+- `summary.intrinsic_information` — **ii(s)**, the third term of φₛ.
+  `summary.requirement_binding` gives the term and direction when ii(s) is
+  what set φₛ (both φ_c and φ_e positive with φₛ = 0 is the usual sign), and
+  is `None` when integration set it.
 - Purview and mechanism labels are written in the specified *state*:
   uppercase is ON, lowercase is OFF, and a subscript gives the state of a
   unit with more than two states (`A₂`).
@@ -35,8 +35,8 @@ How to read an analysis result and explain it in plain language.
 ## What `compute="distinctions"` gives back
 
 `analyze(..., compute="distinctions")` returns the distinctions on their own,
-skipping the system-partition search that an IIT 4.0 cause-effect structure
-runs before it unfolds anything. Over a sparse substrate that search is most of
+skipping the system-partition search that a cause-effect structure runs
+before it unfolds anything. Over a sparse substrate that search is most of
 the running time, so this is the cheap way to see which mechanisms specify what
 when you do not need φₛ, Φ, or the relations.
 
@@ -52,9 +52,6 @@ Read `summary.congruence` first:
   distinctions congruent with the system's specified state and that filter can
   remove any number of them, including all. Report these as upper bounds, or
   rerun with `compute="ces"` for the actual set.
-
-IIT 3.0 has no congruence filter, so it reports no `congruence` key and its
-distinctions are the structure as computed.
 
 ## How to narrate it
 
@@ -72,17 +69,17 @@ distinctions are the structure as computed.
    which states, what φ_d. Relations bind distinctions that specify the same
    units in the same state.
 4. **Name the caveats.** If the substrate is small and deterministic, mention
-   that ties may make the structure non-unique (see gotchas). If a non-default
-   formalism was used, say so.
+   that ties may make the structure non-unique (see gotchas). If the result
+   was computed under an earlier version of IIT, say so.
 
 ## Common misreadings to avoid
 
 - Reporting Φ when asked about φₛ, or vice versa.
 - Reading φₛ = 0 as "nothing interesting" rather than "does not exist as one
-  whole" (reducible, or under IIT 4.0 (2026) possibly ii(s) = 0).
+  whole" (reducible, or ii(s) = 0).
 - Treating a small-network result as canonical when a symmetric TPM may have
   produced a tie.
-- Comparing φ values across formalism versions as if they were the same
-  quantity — they are defined differently.
+- Comparing φ values computed under different versions of IIT as if they were
+  the same quantity. They are defined differently.
 - Quoting a `_upper_bound` count from `compute="distinctions"` as the number of
   distinctions the Φ-structure has. Congruence filtering has not run yet.

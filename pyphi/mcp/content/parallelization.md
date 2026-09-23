@@ -33,7 +33,7 @@ concluding that parallelism does not work.
 | --- | --- | --- | --- | --- |
 | partitions | `parallel_partition_evaluation` | System partitions in the SIA's search for the minimum partition | 64 | A large single SIA |
 | purviews | `parallel_purview_evaluation` | Candidate purviews for one mechanism | 64 | Mechanisms with many candidate purviews |
-| distinctions | `parallel_distinction_evaluation` | Mechanisms, when unfolding the distinctions of a cause-effect structure (both formalisms share this loop) | 64 | A CES over many mechanisms |
+| distinctions | `parallel_distinction_evaluation` | Mechanisms, when unfolding the distinctions of a cause-effect structure | 64 | A CES over many mechanisms |
 | complexes | `parallel_complex_evaluation` | Candidate systems within a substrate | 16 | Complex searches over many candidate systems |
 | macro_systems | `parallel_macro_system_evaluation` | Coarse-grained candidate systems in a macro search | 16 | Macro searches |
 | mechanism_partitions | `parallel_mechanism_partition_evaluation` | Partitions of a single mechanism | 8192 | Almost never: items cost about 50 µs, so dispatch only pays past the threshold |

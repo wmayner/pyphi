@@ -20,8 +20,7 @@ viz.plot_ces(analysis.ces, view="lattice")
 ```
 
 `analysis.ces` is a `CauseEffectStructure`. `system.ces()` returns the same
-thing. **This needs IIT 4.0** — under IIT 3.0, `ces()` returns bare distinctions
-with no relations, which `plot_ces` cannot draw.
+thing.
 
 ## The five views
 

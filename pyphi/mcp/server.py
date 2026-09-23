@@ -7,7 +7,7 @@ resources and prompts are registered from :mod:`pyphi.mcp.resources` and
 
 The server holds built substrates and analysis results in an in-process
 registry keyed by short handles, so a substrate is built once and then explored
-across many states and formalism versions without resending its transition
+across many states and subsets without resending its transition
 probability matrix.
 """
 
@@ -250,10 +250,10 @@ def _substrate_summary(substrate: Any) -> dict[str, Any]:
 
 
 def _requirement_binding(sia: Any) -> tuple[float, dict[str, str] | None] | None:
-    """The intrinsic information ii(s) of an IIT 4.0 (2026) system
-    irreducibility analysis and, when the intrinsic-information requirement
-    set φₛ, the term and direction that did; ``None`` for analyses without
-    the quantity (IIT 3.0, IIT 4.0 (2023), bare distinctions)."""
+    """The intrinsic information ii(s) of a system irreducibility analysis
+    and, when the intrinsic-information requirement set φₛ, the term and
+    direction that did; ``None`` for analyses without the quantity (earlier
+    versions of IIT, bare distinctions)."""
     ii = getattr(sia, "intrinsic_information", None)
     if ii is None or not hasattr(sia, "explain"):
         return None
@@ -604,24 +604,21 @@ def analyze(
         The current state, one entry per node, in node order (little-endian).
     subset : list of int or str, optional
         The candidate system: node indices or labels. Default analyzes the
-        whole substrate. Units outside the subset are the background:
-        causally marginalized conditional on the current state (IIT 4.0,
-        Eqs. 3-4), or held at their current state for causes too (PyPhi's
-        IIT 3.0 preset, the PyPhi 1.x convention); see
-        ``get_iit_reference("theory")``.
+        whole substrate. Units outside the subset are the background, causally
+        marginalized conditional on the current state (Albantakis et al.
+        2023, Eqs. 3-4); see ``get_iit_reference("theory")``.
     formalism : str, optional
-        ``"IIT_4_0_2026"`` (default), ``"IIT_4_0_2023"``, or ``"IIT_3_0"``. Each
-        defines integrated information differently, so the same substrate and
-        state give different values under each. IIT 3.0 has no relations; the
-        2026 variant drives a fully deterministic system's φₛ to zero.
+        Leave unset for IIT. Pass an earlier version (``"IIT_4_0_2023"`` or
+        ``"IIT_3_0"``) only to reproduce published results; read
+        ``get_iit_reference("configuration")`` first.
     compute : str
         ``"full"`` (default: system integrated information φₛ *and* the full
         Φ-structure), ``"sia"`` (φₛ only), ``"ces"`` (the cause-effect
         structure), or ``"distinctions"`` (the distinctions alone).
 
         ``"distinctions"`` is the only one that skips the system-partition
-        search, which under IIT 4.0 a cause-effect structure otherwise runs
-        before unfolding anything; over a sparse substrate that search is
+        search, which a cause-effect structure otherwise runs before
+        unfolding anything; over a sparse substrate that search is
         almost the entire cost. It reports ``congruence`` in the summary:
         ``"resolved"`` means the distinctions are exactly the Φ-structure's,
         while ``"unresolved"`` means the system's specified state is tied and
@@ -658,9 +655,9 @@ def analyze(
         A ``card`` (human-readable text), a ``summary`` of scalar quantities,
         and a ``result_ref`` for ``inspect``. φₛ = 0 means the system does
         not exist as one whole, not that it has no structure: either some
-        partition makes no difference (the system is *reducible*), or, under
-        IIT 4.0 (2026), the system provides itself no repertoire of
-        alternatives (ii(s) = 0; see ``requirement_binding``).
+        partition makes no difference (the system is *reducible*), or the
+        system provides itself no repertoire of alternatives (ii(s) = 0; see
+        ``requirement_binding``).
     """
     substrate = _get_substrate(handle)
     indices = (

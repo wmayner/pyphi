@@ -21,16 +21,16 @@ site root.
 ## What the sections cover
 
 - **Getting started**: installation and a first computation.
-- **Tutorials**: worked, executed examples: the complete IIT 4.0 analysis, macro
+- **Tutorials**: worked, executed examples: a complete IIT analysis, macro
   units and grains, recursive exclusion, actual causation, causal reductionism.
 - **How-to guides**: one task each: build a substrate, read a result, estimate
   cost, configure, run in parallel, sweep, run a cluster campaign, cache,
-  export, query relations, search across grains, visualize, and use this MCP
-  server.
-- **Theory**: how the IIT 4.0 mathematics maps onto PyPhi's objects: substrate
-  and system, conditional independence, the intrinsic-information requirement,
-  distinctions and relations, the Φ-structure, macro units, computational
-  complexity, formalism versions, IIT 3.0.
+  export, query relations, search across grains, visualize, use this MCP
+  server, and reproduce results from earlier versions of IIT.
+- **Theory**: how IIT's mathematics maps onto PyPhi's objects: substrate and
+  system, conditional independence, the intrinsic-information requirement,
+  distinctions and relations, the Φ-structure, macro units, and computational
+  complexity.
 - **Reference**: the curated API page, the executed gallery of example
   networks, the configuration options, the glossary, and the conventions for
   transition probability matrices and states.

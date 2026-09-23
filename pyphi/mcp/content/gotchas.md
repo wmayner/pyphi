@@ -17,10 +17,10 @@ indexing.
 
 A zero value of φₛ means the system does not exist as one integrated whole.
 There are two ways to reach it. Either the system is **reducible**: some
-partition makes no difference. Or, under the default IIT 4.0 (2026), the system
-provides itself no repertoire of alternatives (ii(s) = 0), which sets φₛ to 0
-even when φ_c and φ_e are both positive; the `requirement_binding` key of the
-`analyze` summary says when this is the case. Neither means the system is empty
+partition makes no difference. Or the system provides itself no repertoire of
+alternatives (ii(s) = 0), which sets φₛ to 0 even when φ_c and φ_e are both
+positive; the `requirement_binding` key of the `analyze` summary says when
+this is the case. Neither means the system is empty
 or uninteresting. Feed-forward systems, for instance, have φₛ = 0 by
 construction: the way the minimum partition is defined (Albantakis et al. 2023,
 Eq. 23) ensures φₛ = 0 for any system that is not strongly connected.
@@ -28,16 +28,14 @@ Eq. 23) ensures φₛ = 0 for any system that is not strongly connected.
 ## 3. φₛ and Φ are different quantities
 
 `analyze(...).phi` (and `.sia.phi`) is **φₛ**, system integrated information:
-whether the system exists as one whole, computed as the minimum over the cause
-and effect sides (and, under IIT 4.0 (2026), ii(s)), over the normalized
-minimum partition.
+whether the system exists as one whole, computed as the minimum of the cause
+side, the effect side (both over the normalized minimum partition), and the
+system's intrinsic information ii(s).
 `analyze(...).big_phi` (and `.ces.big_phi`) is **Φ**, structure integrated
 information: the plain sum of φ over all distinctions and relations. φₛ decides
 existence; Φ measures the quantity of structure. Do not report one as if it were
 the other. The result card prints both, labelled `φ_s` and `Φ`; the `analyze`
-tool's summary returns them as `system_phi` and `big_phi`. Under IIT 3.0 there
-are no relations and no structure integrated information, so that formalism's Φ
-*is* the system-level value, and `.big_phi` raises.
+tool's summary returns them as `system_phi` and `big_phi`.
 
 ## 4. Ties are common in small toy networks
 
@@ -56,28 +54,12 @@ example gives a surprising or unstable result, suspect a tie. In realistic
 systems with graded connection strengths and some indeterminism, ties are less
 likely.
 
-## 5. The formalism versions differ, numerically and conceptually
+## 5. Results from earlier versions of IIT are not comparable
 
-Selected with the `formalism` argument to `analyze`:
-
-- **Measure.** IIT 3.0 uses the **earth mover's distance** (a sum that weights
-  distant states more); IIT 4.0 uses the **intrinsic difference** (a max over a
-  single state). The same substrate gives different φ under each.
-- **Relations.** IIT 3.0 has **no relations** — they are a 4.0 addition. A 3.0
-  result has concepts, not distinctions and relations.
-- **Background conditioning.** Both settings hold the background at its current
-  state on the effect side; they differ only on the cause side. IIT 4.0 causally
-  marginalizes the background *conditional on the current state of the universe*
-  (`background_conditioning="CAUSAL_MARGINALIZATION"`, Eqs. 3–4): past background
-  states are weighted by their probability given the current state, not
-  averaged uniformly. The 3.0 preset instead holds the background at its current
-  state on the cause side too (`"CONDITION_CURRENT_STATE"`, the post-2014
-  convention IIT 4.0 replaced). This only affects proper-subset systems (a
-  system smaller than the whole substrate).
-- **The 2026 intrinsic-information requirement.** IIT 4.0 (2026) requires the system to
-  provide itself a repertoire of alternatives (intrinsic differentiation). A
-  fully deterministic system provides none, so its φₛ is 0 under 2026 even when
-  it is positive under 2023.
+PyPhi can also compute earlier versions of IIT, to reproduce published results.
+Their φ values are defined differently and cannot be compared with values
+computed under IIT; read `get_iit_reference("configuration")` before running or
+interpreting one.
 
 ## 6. Multi-valued (k-ary) units
 
@@ -112,12 +94,9 @@ appears unaware of this caveat, alert them.
 IIT evaluates a system that *is* in a state, and a state with
 no possible predecessor has no cause. PyPhi refuses such a state: `analyze` raises
 `StateUnreachableForwardsError`. The substrate's state must have a possible
-predecessor (its marginal probability must be positive). Under IIT 4.0's
-background treatment (Eq. 4) that is sufficient. Under the IIT 3.0 preset,
-which holds the background at its current state for causes too, the system's
-own state must also be producible with the background held there — the
-convention IIT 4.0 replaced precisely because it makes reachable states
-unreachable (S2 Text).
+predecessor (its marginal probability must be positive). Because IIT causally
+marginalizes the background (Albantakis et al. 2023, Eq. 4), that is
+sufficient.
 
 This is common in small deterministic toy models. In the 3-node XOR network
 every unit is the XOR of the other two, so every state the network can produce

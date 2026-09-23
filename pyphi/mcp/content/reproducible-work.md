@@ -33,14 +33,14 @@ path = save_json(
     results,
     directory="results",
     name="phi-sweep",
-    params={"seed": seed, "n": n_trials, "formalism": "iit4_2026"},
+    params={"seed": seed, "n": n_trials},
 )
 ```
 
 Each writer does three things a bare `open()` does not:
 
 - **The parameters go into the filename.** `params` becomes one
-  `{key}{value}` segment per entry, so `phi-sweep_seed42_n60_formalismiit4_2026.json`
+  `{key}{value}` segment per entry, so `phi-sweep_seed42_n60.json`
   says what it holds without being opened.
 - **An existing file is never overwritten.** A colliding name gets a `_v2`,
   then `_v3`, and so on. Replacing a result stays the user's decision, made by
@@ -71,14 +71,18 @@ observations are part of the output.
 
 ## Pin the formalism
 
-A φ value means nothing without the formalism that produced it. Pin it
-explicitly in the script rather than inheriting the ambient default, and record
-which one in the output:
+A script should not depend on a configuration it does not set: a
+`pyphi_config.yml` in the working directory, or a later change to PyPhi's
+defaults, would otherwise change its numbers. Apply the complete preset for
+IIT, and record `analysis.formalism` in the output:
 
 ```python
 with pyphi.config.override(**pyphi.iit4_2026):
     analysis = pyphi.analyze(substrate, state)
 ```
+
+In prose, call the result's theory IIT. Name the version only when the result
+was computed under an earlier one (see `get_iit_reference("configuration")`).
 
 ## Long runs
 

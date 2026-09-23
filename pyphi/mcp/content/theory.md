@@ -3,8 +3,10 @@
 This is a working understanding of Integrated Information Theory sufficient to
 use PyPhi correctly and explain its results. For the equations, see
 `get_iit_reference("equations")`; for the subtleties, `get_iit_reference("gotchas")`.
-The authoritative source is Albantakis et al. (2023), *Integrated information
-theory (IIT) 4.0*, PLoS Computational Biology 19(10): e1011465.
+The authoritative sources are Albantakis et al. (2023), *Integrated
+information theory (IIT) 4.0*, PLoS Computational Biology 19(10): e1011465, and
+Mayner, Marshall & Tononi (2026), *Intrinsic cause–effect power: the tradeoff
+between differentiation and specification*, Entropy 28(4): 410.
 
 ## The starting point: cause–effect power
 
@@ -46,17 +48,19 @@ property of experience:
 This distinction is important to keep straight.
 
 **φₛ (system integrated information)** answers *does this system exist as one
-integrated whole?* It is computed on the cause side and the effect side
-separately, and φₛ is the smaller of the two — a system is only as integrated
-as its weaker direction. Under the default IIT 4.0 (2026) a third term enters
-the minimum, the intrinsic information ii(s), so φₛ can be 0 with both sides
-positive; see Formalism versions below and the `requirement_binding` key of the
-`analyze` summary. It is evaluated over the *normalized* minimum information
-partition, and it is **not** compositional. The set of units that
-maximizes φₛ over itself is the complex. φₛ = 0 means the system does not exist
-as one whole: either some partition makes no difference (the system is
-reducible), or, under IIT 4.0 (2026), the system provides itself no repertoire
-of alternatives (ii(s) = 0; see `requirement_binding`).
+integrated whole?* It is the minimum of three terms:
+φₛ = min(φ_c, φ_e, ii(s)). φ_c and φ_e are the integration of the system on
+the cause side and the effect side, evaluated over the *normalized* minimum
+partition; a system is only as integrated as its weaker direction. ii(s) is
+the system's **intrinsic information**, which is positive only if the system
+both specifies a cause–effect state and provides itself a repertoire of
+alternatives to it (Mayner, Marshall & Tononi 2026). A fully deterministic
+system provides no alternatives, so its φₛ is 0. φₛ is **not**
+compositional. The set of units that maximizes φₛ over itself is the complex.
+φₛ = 0 means the system does not exist as one whole: either some partition
+makes no difference (the system is reducible), or the system provides itself
+no repertoire of alternatives (ii(s) = 0). The `requirement_binding` key of the
+`analyze` summary says when ii(s) set the value.
 
 **Φ (structure integrated information)** answers *how much structure does the
 complex specify?* Once the complex is fixed, its Φ-structure is unfolded, and Φ
@@ -86,7 +90,7 @@ compute relation totals analytically without enumerating them.
 ## The pipeline in PyPhi
 
 ```
-Substrate  →  System (a candidate subset in a state)  →  formalism  →  Φ-structure
+Substrate  →  System (a candidate subset in a state)  →  Φ-structure
 ```
 
 `pyphi.analyze(substrate, state)` analyzes the given units — the whole
@@ -95,23 +99,7 @@ substrate by default, or a `subset` — computing φₛ and unfolding the
 `substrate.complexes()` or `substrate.maximal_complex()` for that. The MCP
 `analyze` tool wraps `pyphi.analyze`.
 
-## Formalism versions
+## Actual causation
 
-- **IIT 4.0 (2026)** — the default. φₛ = min{φ_c, φ_e, ii(s)}: system
-  integrated information is bounded by the system's **intrinsic information**
-  ii(s) — the intrinsic-information requirement — which requires the system to provide itself with a repertoire of
-  alternatives, not just specify an irreducible state. A fully deterministic
-  system provides none, so its φₛ falls to 0 under this version. The
-  cause–effect structure has distinctions and relations; the distance measure
-  is the **intrinsic difference**.
-- **IIT 4.0 (2023)** — the formulation without the requirement:
-  φₛ = min(φ_c, φ_e). Same distinctions, relations, and intrinsic
-  difference as 2026; use it to reproduce published 2023 numbers.
-- **IIT 3.0 (2014)** — the earlier formalism. It computes *concepts* (not
-  distinctions and relations — 3.0 has **no relations**), uses the **earth
-  mover's distance** rather than the intrinsic difference, and defines its
-  quantities differently, so the same substrate gives different numbers.
-
-Select a version with the `formalism` argument to `analyze`. **Actual
-causation** is a separate formalism answering a different question — see the
-gotchas reference.
+**Actual causation** answers a different question from the rest of IIT: what
+caused what in a single realized transition. See the gotchas reference.

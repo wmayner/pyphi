@@ -438,8 +438,7 @@ connected, or
 otherwise.
 
 Where the server is connected, use its tools for exploration and for
-interpreting results: they report which formalism produced each number, refuse
-runs too large to finish, and keep φₛ and Φ distinct. The server holds results
-only in memory, so anything that has to be reproducible belongs in a script —
-where these same facts still apply.
+interpreting results: they refuse runs too large to finish and keep φₛ and Φ
+distinct. The server holds results only in memory, so anything that has to be
+reproducible belongs in a script — where these same facts still apply.
 <!-- pyphi:end -->

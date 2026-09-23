@@ -37,7 +37,9 @@ In order of preference:
 
 ## Which formulation is current
 
-- **IIT 4.0** (Albantakis et al. 2023) is the canonical mathematical statement.
+- **IIT 4.0** is the canonical mathematical statement: Albantakis et al. 2023,
+  together with Mayner, Marshall & Tononi 2026, *Intrinsic cause–effect power*,
+  which defines the system's intrinsic information and its bound on φₛ.
 - **Tononi & Boly 2025**, *Integrated Information Theory: A Consciousness-First
   Approach to What Exists*, is the current non-mathematical account. Prefer it
   for framing, motivation, and the ontology.

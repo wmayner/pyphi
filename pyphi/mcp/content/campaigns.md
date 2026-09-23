@@ -12,8 +12,7 @@ purely from the campaign directory, from any machine, at any time.
 ## Workflow
 
 1. **Prepare** (`prepare_campaign` tool, or `pyphi.campaign.prepare` in
-   Python): enumerates the sweep cells — substrates × formalisms × subsets ×
-   states — estimates each cell's workload, packs cells into cost-balanced
+   Python): enumerates the sweep cells — substrates × subsets × states — estimates each cell's workload, packs cells into cost-balanced
    tasks, and writes the campaign directory:
 
    - `manifest.json` — axes, per-cell estimates, packing, seed
@@ -40,8 +39,7 @@ purely from the campaign directory, from any machine, at any time.
 
 ## Packing and admission control
 
-Cells are weighted by `estimate_analysis` counts under each cell's
-formalism preset. Pass `jobs=K` to pack into exactly K cost-balanced tasks,
+Cells are weighted by `estimate_analysis` counts. Pass `jobs=K` to pack into exactly K cost-balanced tasks,
 or `units_per_job=X` to target X work units per task; with neither, each
 cell is its own job (the canonical high-throughput shape). A work unit is
 one mechanism partition, and a purview evaluation counts for twelve — its

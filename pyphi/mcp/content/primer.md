@@ -74,8 +74,7 @@ into a project's notes or scripts propagates into every later answer.
 
 - **Configuration** is one object, `pyphi.config`, in three layers: `formalism`
   (what is computed), `infrastructure` (parallelism, caching, progress), and
-  `numerics` (precision). Through these tools, select a formalism by passing
-  `formalism=` to `analyze`; read `get_iit_reference("configuration")` before
+  `numerics` (precision). Read `get_iit_reference("configuration")` before
   changing options in a script.
 - **To use multiple cores**, read `get_iit_reference("parallelization")` first
   — the global `parallel` flag alone does nothing; each level of the

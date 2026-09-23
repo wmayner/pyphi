@@ -2,8 +2,8 @@
 name: pyphi
 description: >-
   Use when writing, reading, or running any code that imports pyphi — building
-  a Substrate or a TPM, calling analyze(), choosing a formalism, estimating
-  cost before an expensive run, or saving results reproducibly. Covers the
+  a Substrate or a TPM, calling analyze(), estimating cost before an
+  expensive run, or saving results reproducibly. Covers the
   PyPhi 2.0 API and the MCP server's tools. PyPhi 2.0 renamed most of the
   pre-2.0 surface with no aliases, so code written from memory of older
   versions will not run.
@@ -17,8 +17,8 @@ says, use the `iit` skill; this one is about the software.
 ## Use the server for exploration
 
 Where the PyPhi MCP server is connected, drive it through its tools rather than
-writing a script. They report which formalism produced each number, refuse runs
-too large to finish, and keep φₛ and Φ apart. Where it is not connected,
+writing a script. They refuse runs too large to finish and keep φₛ and Φ
+apart. Where it is not connected,
 `pyphi-mcp install` registers it.
 
 The server holds results in memory only, and none of its tools writes to disk.
@@ -54,16 +54,20 @@ occurrence of either name.
 
 Compare φ values with `pyphi.numerics.eq`, not `==`.
 
-## A φ value means nothing without its formalism
+## Pin the formalism in scripts
 
-φ is defined relative to a formalism, and PyPhi ships three presets:
-`pyphi.iit3`, `pyphi.iit4_2023`, `pyphi.iit4_2026`. Pin one rather than relying
-on the ambient default, and say which one whenever you report a number.
+PyPhi computes IIT by default. A script should still pin it with the complete
+preset, so that a `pyphi_config.yml` in the working directory or a later
+change to PyPhi's defaults cannot change its numbers:
 
 ```python
 with pyphi.config.override(**pyphi.iit4_2026):
     analysis = pyphi.analyze(substrate, state)
 ```
+
+When you report a number, call its theory IIT. Name a version only when the
+number was computed under an earlier one, which PyPhi supports for reproducing
+published results; `references/configuration.md` covers them.
 
 ## States are little-endian
 

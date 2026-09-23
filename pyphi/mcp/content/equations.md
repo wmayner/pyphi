@@ -10,11 +10,19 @@ state); `m` a mechanism state; `z` a purview state; `𝒯_e`, `𝒯_c` the effec
 cause transition probability matrices; φ integrated information; ii intrinsic
 information.
 
-## IIT 4.0 (2023) — the canonical formalism
+## IIT
 
-Albantakis et al. (2023), PLoS Comput Biol 19(10): e1011465. The published
-version numbers its equations 1–61; this is the reference for 4.0. The arXiv
-preprint numbers them differently, so do not cite preprint numbers.
+IIT 4.0 is stated in two papers, cited together:
+
+- Albantakis et al. (2023), *Integrated information theory (IIT) 4.0*, PLoS
+  Comput Biol 19(10): e1011465. The published version numbers its equations
+  1–61. The arXiv preprint numbers them differently, so do not cite preprint
+  numbers.
+- Mayner, Marshall & Tononi (2026), *Intrinsic cause–effect power: the
+  tradeoff between differentiation and specification*, Entropy 28(4): 410.
+  It defines the system's intrinsic information, which bounds φₛ.
+
+### Albantakis et al. (2023)
 
 **Substrate and conditional independence**
 - Eq. 1 — the transition probability matrix: `𝒯_U ≡ p(ū | u)`.
@@ -48,7 +56,9 @@ preprint numbers them differently, so do not cite preprint numbers.
   positive part of an intrinsic-difference term against the *partitioned*
   repertoire).
 - Eq. 21 — for a partition, `φₛ(θ) = min(φ_c(θ), φ_e(θ))`.
-- Eq. 22 — `φₛ = φₛ(θ′)` at the minimum partition θ′.
+- Eq. 22 — the integration at the minimum partition θ′, `φₛ(θ′)`. φₛ is the
+  minimum of this and the system's intrinsic information ii(s) (Mayner et al.
+  2026, Eq. 23; below).
 - Eq. 23 — the **MIP**: the partition minimizing φₛ *normalized* by the maximum
   possible value for that partition (its number of cut connections). The
   normalization makes the MIP find the system's fault line.
@@ -87,21 +97,20 @@ preprint numbers them differently, so do not cite preprint numbers.
 - Eq. 59 — the structure integrated information `Φ = Σ φ`, the plain sum over
   all distinctions and relations of the Φ-structure.
 
-## IIT 4.0 (2026) — intrinsic differentiation
+### Mayner, Marshall & Tononi (2026)
 
-Mayner, Marshall & Tononi (2026), *Intrinsic Cause–Effect Power*, Entropy 28:
-410. Splits intrinsic information into two requirements.
+Intrinsic information has two components, differentiation and specification.
 
 - Eq. 3 — the intrinsic difference `ID(p, q) = maxₛ p(s) · log(p(s) / q(s))`.
 - Eqs. 4–6 — **intrinsic differentiation** `i_diff = −log p(s′ | s)`: does the
   system provide itself a repertoire of alternatives?
-- Eqs. 7–11 — **intrinsic specification** `i_spec` (the renamed 2023 intrinsic
-  information).
+- Eqs. 7–11 — **intrinsic specification** `i_spec` (called intrinsic
+  information in Albantakis et al. 2023).
 - Eq. 13 — the system intrinsic information `ii(s) = min{ii_c(s), ii_e(s)}`.
   The per-direction value `ii_c/e = min(i_diff, i_spec)` is stated just before
   Eq. 13 and is not numbered.
-- Eq. 23 — φₛ = min(φ_c, φ_e, ii): the intrinsic-information requirement, which drives a deterministic system's
-  φₛ to 0, because a deterministic system has i_diff = 0.
+- Eq. 23 — `φₛ = min(φ_c, φ_e, ii(s))`, the intrinsic-information
+  requirement. A deterministic system has i_diff = 0, so its φₛ is 0.
 
 ## The intrinsic difference measure
 
@@ -155,15 +164,6 @@ Eqs. 3–20 differently, so do not cite preprint numbers.
   connections (Eqs. 26–30), extend to update sequences (Eq. 31), causally
   marginalize the background (Eqs. 32–34), compress into macro states
   (Eqs. 35–40). Eqs. 41–42 — the macro cause and effect TPMs.
-
-## IIT 3.0
-
-Oizumi, Albantakis & Tononi (2014), PLoS Comput Biol 10(5): e1003588.
-Eqs. 1–11.
-- Eq. 3 — cause–effect information `cei = min(ci, ei)`.
-- Eq. 8 — small phi `φ = min(φ_cause, φ_effect)` over the MIP.
-- Eq. 11 — big Φ via the **earth mover's distance** between the whole
-  constellation and its unidirectionally partitioned version.
 
 ## Actual causation
 

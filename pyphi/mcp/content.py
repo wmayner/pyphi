@@ -23,8 +23,7 @@ TOPICS: dict[str, tuple[str, str]] = {
     ),
     "theory": (
         "theory.md",
-        "The postulates, the φₛ-versus-Φ distinction, distinctions and "
-        "relations, and the formalism versions.",
+        "The postulates, the φₛ-versus-Φ distinction, and distinctions and relations.",
     ),
     "equations": (
         "equations.md",
@@ -32,8 +31,8 @@ TOPICS: dict[str, tuple[str, str]] = {
     ),
     "gotchas": (
         "gotchas.md",
-        "Subtleties that trip up newcomers: state ordering, φ=0, version "
-        "differences, k-ary units, and more.",
+        "Subtleties that trip up newcomers: state ordering, φ=0, φₛ versus Φ, "
+        "k-ary units, and more.",
     ),
     "interpreting-results": (
         "interpreting-iit-results.md",
@@ -51,8 +50,8 @@ TOPICS: dict[str, tuple[str, str]] = {
     ),
     "configuration": (
         "configuration.md",
-        "The layered config object, override, presets, pyphi_config.yml, and "
-        "the options worth knowing.",
+        "The layered config object, override, earlier versions of IIT, "
+        "pyphi_config.yml, and the options worth knowing.",
     ),
     "performance": (
         "performance.md",

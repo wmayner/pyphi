@@ -37,9 +37,9 @@ def register(mcp: Any) -> None:
             "topics with get_iit_reference. Then use inspect() on the result "
             "to read its parts. In your explanation, cover:\n"
             "- What are φₛ and Φ here; remember that φₛ=0 means the system "
-            "does not exist as one whole: either it is reducible, or, under "
-            "IIT 4.0 (2026), it provides itself no repertoire of alternatives "
-            "(ii(s) = 0; see requirement_binding).\n"
+            "does not exist as one whole: either it is reducible, or it "
+            "provides itself no repertoire of alternatives (ii(s) = 0; see "
+            "requirement_binding).\n"
             "- What the distinctions and relations are, concretely.\n"
             "- Any caveats, such as ties from a symmetric transition probability "
             "matrix.\n"
@@ -67,7 +67,7 @@ def register(mcp: Any) -> None:
             'the old IIT 3.0 default, pass formalism="IIT_3_0" so the numbers '
             "still match. Show the rewritten code and note any change that "
             "alters computed values (especially that deterministic systems give "
-            "φ_s = 0 under the new 2026 default)."
+            "φ_s = 0 under IIT, the new default)."
         )
 
     @mcp.prompt()
@@ -95,7 +95,7 @@ def register(mcp: Any) -> None:
             "Confirm it with describe_substrate. Establish the state to "
             "analyze and what result I actually need: the cause-effect "
             "structure of one system (a CES campaign), or many independent "
-            "runs across states/substrates/formalisms (a sweep campaign).\n"
+            "runs across states or substrates (a sweep campaign).\n"
             "2. Honest feasibility. Price the full, unscoped workload with "
             "estimate_cost. Work units are enumeration counts, not seconds; "
             "as an anchor, a single 72-hour condor slot covers very roughly "

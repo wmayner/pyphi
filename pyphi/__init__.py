@@ -30,18 +30,16 @@ state it returns an :class:`~pyphi.analyze.Analysis` whose ``phi`` is φₛ, the
 system integrated information (whether the system exists as one whole), whose
 ``ces`` is the Φ-structure the system specifies, and whose ``big_phi`` is Φ,
 the structure integrated information (how much structure it specifies). The
-two quantities are different and must not be reported as one another. Under
-IIT 3.0, ``phi`` is that formalism's Φ and ``big_phi`` is not defined.
+two quantities are different and must not be reported as one another.
 
-The default formalism is IIT 4.0 (2026), which includes the
-intrinsic-information requirement. Select another per call with
-``formalism="IIT_4_0_2023"`` or ``"IIT_3_0"``, or apply a preset
-(:data:`pyphi.iit3`, :data:`pyphi.iit4_2023`, :data:`pyphi.iit4_2026`) with
-``pyphi.config.override``.
+PyPhi computes IIT as stated by Albantakis et al. (2023) and Mayner, Marshall &
+Tononi (2026). To reproduce results published under earlier versions of IIT,
+see `Reproduce results from earlier versions of IIT
+<https://pyphi.readthedocs.io/en/latest/howto/earlier-versions.html>`_.
 
 :meth:`Substrate.complexes <pyphi.substrate.Substrate.complexes>` finds the
 complexes of a substrate in a state. :func:`~pyphi.sweep.sweep` runs one
-computation over many states, subsets, and formalisms.
+computation over many states or subsets.
 :func:`~pyphi.cost.estimate_analysis` counts the work of an analysis before
 it runs. :func:`~pyphi.serialize.save` and :func:`~pyphi.serialize.load`
 persist results. To search across macro grains, pass ``grains=True`` to
@@ -61,13 +59,24 @@ defaults are in the repository's `pyphi_config.yml
 Citation and support
 ~~~~~~~~~~~~~~~~~~~~
 
-If you use this software in your research, please cite the software paper,
-and the paper of the formalism your results were computed under:
+If you use this software in your research, please cite the software paper
+and the papers that state IIT:
 
     Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G.
     (2018). PyPhi: A toolbox for integrated information theory.
     PLOS Computational Biology 14(7): e1006343.
     https://doi.org/10.1371/journal.pcbi.1006343
+
+    Albantakis L, Barbosa L, Findlay G, Grasso M, Haun AM, Marshall W,
+    Mayner WGP, Zaeemzadeh A, Boly M, Juel BE, Sasai S, Fujii K, David I,
+    Hendren J, Lang JP, Tononi G. (2023). Integrated information theory
+    (IIT) 4.0: Formulating the properties of phenomenal existence in
+    physical terms. PLOS Computational Biology 19(10): e1011465.
+    https://doi.org/10.1371/journal.pcbi.1011465
+
+    Mayner WGP, Marshall W, Tononi G. (2026). Intrinsic cause-effect power:
+    the tradeoff between differentiation and specification. Entropy 28(4):
+    410. https://doi.org/10.3390/e28040410
 
 Online documentation is available at `<https://pyphi.readthedocs.io/>`_,
 with BibTeX entries on its citing page.
@@ -290,8 +299,8 @@ if (
 PyPhi — notes for AI assistants
 
   Where the PyPhi MCP server is connected, use its tools for exploration and
-  for interpreting results: they report which formalism produced each number,
-  refuse runs too large to finish, and keep φ_s and Φ distinct. The server
+  for interpreting results: they refuse runs too large to finish and keep φ_s
+  and Φ distinct. The server
   holds results only in memory, so anything that has to be reproducible belongs
   in a script — where these same facts still apply.
 
