@@ -60,9 +60,8 @@ removes both, and anything you wrote around them survives.
 
 `install` also offers to write two skills into every AI coding agent it finds:
 `iit`, which stops an assistant answering about the theory from recollection
-and points it at the reference, and `pyphi`, which covers the 2.0 API, the
-formalism requirement, state ordering, cost estimation, and the conventions for
-a reproducible script.
+and points it at the reference, and `pyphi`, which covers the 2.0 API, state
+ordering, cost estimation, and the conventions for a reproducible script.
 
 It probes `~/.claude`, `~/.codex` and `~/.cursor`, and asks before writing:
 
@@ -171,9 +170,9 @@ network where A is an OR, B a COPY, and C an XOR of the others.
 
 The assistant calls `analyze` with the state `(1, 1, 0)` and reports:
 
-- **φₛ = 0.0** — the system integrated information. PyPhi's default formalism
-  requires a system to do more than specify an irreducible cause–effect state:
-  it must also provide itself with a repertoire of alternatives (see
+- **φₛ = 0.0** — the system integrated information. IIT requires a system to
+  do more than specify an irreducible cause–effect state: it must also provide
+  itself with a repertoire of alternatives (see
   {doc}`../theory/intrinsic-information`). "Basic" is fully
   deterministic — nothing else could have happened — so it provides itself
   none, and φₛ falls to 0.
@@ -209,8 +208,7 @@ image.
   convention, its transition probability matrix as state-by-node rows
   (up to 256 states), and the PyPhi version serving it.
 - `analyze` — compute system integrated information φₛ and the Φ-structure of a
-  substrate in a state (under the default IIT 4.0 formalism, or an earlier
-  version if you ask for one), optionally on multiple cores for that call
+  substrate in a state, optionally on multiple cores for that call
   (`parallel`, `workers`). `compute` narrows the work to φₛ alone (`"sia"`),
   the cause-effect structure (`"ces"`), or the distinctions alone
   (`"distinctions"`, the only one that skips the system-partition search).

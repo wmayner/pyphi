@@ -63,10 +63,11 @@ substrate = pyphi.examples.frog_substrate("F3")
 substrate
 ```
 
-## Setting the formalism
+## Reproducing the paper's settings
 
-The paper's analysis is IIT 3.0 actual causation. We build that configuration
-from the built-in `iit3` preset and layer on the specific choices the paper
+The paper's analysis is actual causation computed with IIT 3.0 measures (see
+{doc}`../howto/earlier-versions`). We build that configuration from the
+built-in `iit3` preset and layer on the specific choices the paper
 uses: `WEDGE_TRIPARTITION` mechanism partitions, the absolute-intrinsic-
 difference (`AID`) measure, and the `WPMI` α-measure for actual causation. State
 validation is turned off because the frogs' observed states need not be
@@ -182,5 +183,5 @@ than the sum of its parts.
 ## Where to go next
 
 - {doc}`actual-causation` — the actual-causation tools on a smaller network.
-- {doc}`../howto/configure` — reading, setting, and scoping configuration,
-  including the formalism presets used here.
+- {doc}`../howto/earlier-versions` — the earlier versions of IIT and the
+  presets that reproduce them.

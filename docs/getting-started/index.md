@@ -139,10 +139,8 @@ for complex_ in substrate.complexes(state):
 
 The substrate condenses into two complexes: the single unit `C`, and the pair
 `{A, B}` — the complex the paper features in Fig 1E, written "aB". (Its
-$\varphi_s$ here differs from the paper's published $0.17$, which was computed
-under the 2023 formulation; the {doc}`worked example
-</tutorials/worked-example>` reproduces the published values under that
-preset.) Every other candidate, including the full three-unit system we just
+$\varphi_s$ here differs from the published value; see the {doc}`worked
+example </tutorials/worked-example>`.) Every other candidate, including the full three-unit system we just
 analyzed, is excluded by one of these two. This is IIT's exclusion postulate
 in action: $\varphi_s > 0$ makes a candidate *eligible*; the competition then
 proceeds recursively — the strongest candidate claims its units first, and
@@ -193,6 +191,6 @@ That is a full PyPhi computation. From here:
   numbers.
 - The theory page {doc}`../theory/overview` explains what these quantities mean
   and how they are defined.
-- Deterministic networks have $\varphi_s = 0$ under the default formalism —
-  see {doc}`../theory/intrinsic-information` for why, and for how to
-  reproduce values published under earlier formulations.
+- Deterministic networks have $\varphi_s = 0$, because they provide
+  themselves no alternatives; {doc}`../theory/intrinsic-information`
+  explains why.

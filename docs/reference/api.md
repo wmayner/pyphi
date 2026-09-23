@@ -8,7 +8,7 @@ protocols, type aliases, utilities) are not listed.
 ## The top-level namespace
 
 `import pyphi` gives the everyday API in one place: `Substrate`, `System`,
-`analyze`, `sweep`, `examples`, `config`, and the formalism presets.
+`analyze`, `sweep`, `examples`, and `config`.
 
 The [example networks](examples.md) page shows every registered example
 rendered from the objects themselves.

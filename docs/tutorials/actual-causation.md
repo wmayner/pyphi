@@ -38,11 +38,8 @@ pyphi.config.progress_bars = False
 from pyphi import actual, Direction
 ```
 
-Unlike the integrated-information computations elsewhere in the documentation,
-actual causation uses its own formalism, configured by default to reproduce the
-2019 paper. No special configuration is needed — in particular, the IIT
-formalism version (and the 2026 intrinsic-information requirement) does not
-affect actual causation.
+Actual causation needs no configuration: PyPhi's defaults reproduce the 2019
+paper.
 
 ## The example network
 
@@ -257,7 +254,5 @@ this observed state change.
 
 - {doc}`causal-reductionism` applies actual causation to the question of
   which level of description carries the causal power.
-- {doc}`../theory/formalism-versions` places actual causation beside the IIT
-  formalisms and their configuration.
 - {doc}`../howto/build-substrate` builds the substrates these transitions run
   over.

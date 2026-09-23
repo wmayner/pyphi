@@ -1,9 +1,8 @@
 # What's new in PyPhi 2.0
 
 PyPhi 2.0 is a comprehensive rework of the library around IIT 4.0: new core
-value types; first-class formalisms covering IIT 3.0, both IIT 4.0
-formulations, and actual causation; multi-valued units; closed-form
-relations; analysis across spatiotemporal scales; and rebuilt configuration,
+value types; multi-valued units; closed-form relations; analysis across
+spatiotemporal scales; actual causation; and rebuilt configuration,
 serialization, display, and parallel execution. This page tours the
 highlights, most broadly useful first; the complete list of changes is in the
 [changelog](https://github.com/wmayner/pyphi/blob/main/CHANGELOG.md).
@@ -15,12 +14,13 @@ Three changes affect existing code and results:
 - **The core types follow the IIT 4.0 paper's vocabulary.** `Network` is now
   `Substrate`, `Subsystem` is now `System`, `Concept` is now `Distinction`,
   and the partition and cut names follow the paper throughout.
-- **The default formalism is IIT 4.0 (2026)**, which adds
+- **System integrated information includes the system's intrinsic
+  information**, following
   [the intrinsic-information requirement](theory/intrinsic-information.md)
-  to system integrated information; under it, **deterministic systems
-  compute $\varphi_s = 0$**. The 2023 formulation and IIT 3.0 remain fully supported
-  and reproduce published values (see the "Published results reproduce"
-  section below for the two documented exceptions).
+  (Mayner, Marshall & Tononi 2026), so **deterministic systems compute
+  $\varphi_s = 0$**. Values published under earlier versions of IIT still
+  reproduce; see
+  [Reproduce results from earlier versions of IIT](howto/earlier-versions.md).
 - **Other breaking changes:** Python 3.13+ is required, configuration is
   restructured into layered namespaces, and logging is off by default —
   PyPhi no longer writes a `pyphi.log` file into the working directory; opt
@@ -38,58 +38,30 @@ The common workflows are one call each:
 
 ```python
 analysis = pyphi.analyze(substrate, state)    # SIA, CES, and Φ in one bundle
-analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
 
 result = pyphi.sweep(                         # batch across axes
     {"grid": grid, "ring": ring},
     states="all",
-    formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
     compute="sia",
 )
 result.df                                     # tidy long-format DataFrame
 ```
 
-`sweep()` enumerates the cartesian product of substrates, states, candidate
-subsystems, and formalisms, runs cells in parallel, records
+`sweep()` enumerates the cartesian product of substrates, states, and
+candidate subsystems, runs cells in parallel, records
 dynamically-unreachable states instead of aborting, and returns both a tidy
 DataFrame and the aligned raw result objects. See
 [Sweep states and subsystems](howto/sweep.md).
 
-### IIT 4.0 (2026) is the default formalism
+### System integrated information requires intrinsic information
 
-PyPhi 2.0 computes IIT 4.0 (2026) by default: the system's
-intrinsic information enters the minimum that defines system integrated
-information (Mayner, Marshall, Tononi 2026), so a system must both furnish
-itself a repertoire of alternatives and specify one of them. One consequence
-to know before comparing against published numbers: **deterministic systems
-compute $\varphi_s = 0$** under the default. The 2023 formulation and IIT 3.0 remain
-fully supported — `pyphi.analyze(..., formalism="IIT_4_0_2023")` or the
-presets in `pyphi.conf.presets` reproduce published values exactly. See the
-theory page
+PyPhi 2.0 defines system integrated information as
+$\varphi_s = \min(\varphi_c, \varphi_e, \mathit{ii}(s))$: the system's
+intrinsic information enters the minimum (Mayner, Marshall, Tononi 2026), so a
+system must both provide itself a repertoire of alternatives and specify one
+of them. One consequence to know before comparing against published numbers:
+**deterministic systems compute $\varphi_s = 0$**. See the theory page
 [The intrinsic-information requirement](theory/intrinsic-information.md).
-
-### Every formalism, restored
-
-The formalisms are first-class objects, selected by name: `"IIT_3_0"`,
-`"IIT_4_0_2023"`, `"IIT_4_0_2026"`, and `"AC_2019"` for actual causation.
-Each formalism owns its algorithms, partition schemes, and compatible
-measures, and configurations that mix formalisms incoherently — a
-distribution distance with an IIT 4.0 version, say — are rejected when you
-set them rather than computing a quantity the papers never defined.
-Configuration is layered to match — options that affect results
-(`formalism`), options that only affect execution (`infrastructure`), and
-numerical settings (`numerics`) — and presets switch formalism wholesale in
-one call: `with pyphi.config.override(**pyphi.iit3): ...`.
-
-IIT 3.0 is restored paper-faithfully, with tie resolution matching the 2014
-paper, the PyPhi 1.x background convention on subset systems (so published
-1.x results reproduce). Actual causation is restored per Albantakis et al. (2019), with its
-own configuration namespace, paper-faithful defaults, tie cascades, and
-enforcement of the realization principle: transitions that cannot occur
-under the substrate dynamics are rejected up front. See
-[Formalism versions](theory/formalism-versions.md),
-[IIT 3.0](theory/iit-3.0.md), and the
-[actual-causation tutorial](tutorials/actual-causation.md).
 
 ## New capabilities
 
@@ -113,15 +85,23 @@ candidate mappings within explicit `SearchBounds` and answers the top-level
 question — which systems, at which grains, are complexes? — with
 `pyphi.macro.complexes()`, returning winners, ties, and the full evaluation
 record. The search is also reachable from the main entry point:
-`pyphi.analyze(substrate, state, grains=True)`. Under the default
-formalism, the search skips partition sweeps whose outcome is already
-certified by
+`pyphi.analyze(substrate, state, grains=True)`. The search skips partition
+sweeps whose outcome is already certified by
 [the intrinsic-information requirement](theory/intrinsic-information.md),
 with identical results.
 
 See the theory page [Macro units](theory/macro-units.md), the how-to
 [Search across grains](howto/grain-search.md), and the
 [macro tutorial](tutorials/macro.md).
+
+### Actual causation
+
+Actual causation (Albantakis et al. 2019) asks which past events caused a
+given present event, and which effects it will cause. PyPhi 2.0 implements it
+in `pyphi.actual` with its own configuration namespace, paper-faithful
+defaults, tie cascades, and enforcement of the realization principle:
+transitions that cannot occur under the substrate dynamics are rejected up
+front. See the [actual-causation tutorial](tutorials/actual-causation.md).
 
 ### Multi-valued units
 
@@ -224,8 +204,7 @@ through how complexes carve up a substrate.
 Whenever candidates tie — specified states, mechanism partitions, purviews,
 system partitions, or overlapping candidate systems — PyPhi 2.0 resolves
 the tie the way the theory says to: by escalating through the postulates
-(the IIT 4.0 S1 tie supplement), at every selection point, under every
-formalism. A tie that survives the cascade is reported as a tie: the tied
+(the IIT 4.0 S1 tie supplement), at every selection point. A tie that survives the cascade is reported as a tie: the tied
 set is carried on the result (`sia.ties`, partition and state ties on
 repertoire analyses, purview ties on MICE), survives serialization, and a
 tie the postulates cannot adjudicate at all yields a null result with an
@@ -375,8 +354,9 @@ live with:
   of stacking full cards; on its own it still prints the card. Long tables
   truncate at `repr_max_table_rows` (default 50) with a count of what was
   left out.
-- **A result says which formalism produced it.** `Analysis.formalism` names
-  it, the card shows it, and φₛ and Φ are labelled distinctly everywhere.
+- **φₛ and Φ are labelled distinctly everywhere.** A result computed under
+  an earlier version of IIT also says so on its card and in
+  `Analysis.formalism`.
 - **Cheaper partial computations.** `pyphi.analyze(..., compute="sia")` or
   `compute="distinctions"` computes only what you asked for; the latter
   skips the system-partition search, which dominates on sparse substrates.
@@ -444,7 +424,7 @@ the 1.x default. So a run under default settings is not directly comparable
 to a 1.x timing, and can even take longer despite the faster kernel.
 
 The [computational complexity](theory/computational-complexity.md) page
-derives where the time goes for every formalism and measures which
+derives where the time goes and measures which
 configuration choices extend the tractable system size.
 
 ### Parallelism, overhauled
@@ -511,6 +491,19 @@ states; resolving those ties by the rule of the paper's own S1 supplement
 2.0 computes those values instead (Φ = 12395 for Fig. 6D; 13498 relations
 and Φ = 19.32 for Fig. 7B). $\varphi_s$ and the distinction counts match the
 figures exactly in both cases.
+
+### Earlier versions of IIT
+
+The earlier versions of the theory are implemented in full, so results
+published under them reproduce: IIT 4.0 as first published in 2023
+(Albantakis et al. 2023), and IIT 3.0 (Oizumi et al. 2014), with tie
+resolution matching the 2014 paper and the PyPhi 1.x background convention on
+subset systems, so published 1.x results reproduce too. Each version is
+selected as a whole, by name or preset, and a configuration that mixes
+versions incoherently (a distribution distance with an IIT 4.0 version, say)
+is rejected when you set it rather than computing a quantity no paper
+defines. See
+[Reproduce results from earlier versions of IIT](howto/earlier-versions.md).
 
 ### Correctness and development
 

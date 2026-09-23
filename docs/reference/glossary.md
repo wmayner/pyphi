@@ -21,11 +21,9 @@ system
 background conditions
 background
   The units outside a system. They contribute no cause–effect power of
-  their own. Under IIT 4.0 they are causally marginalized conditional on
-  the current state: held at their current state for effects, with their
-  past states weighted by their probability given the current state for
-  causes. Under the IIT 3.0 preset they are held at their current state for
-  causes too. The `background_conditioning` option selects the rule;
+  their own. They are causally marginalized conditional on the current
+  state: held at their current state for effects, with their past states
+  weighted by their probability given the current state for causes.
   {doc}`../theory/substrate-and-system`.
 
 transition probability matrix (TPM)
@@ -84,15 +82,14 @@ congruent
 
 intrinsic information
   For a mechanism or a system: how selectively and informatively it picks
-  out its specified state. Under IIT 4.0 (2026) the *system's* intrinsic
-  information ii(s) is the smaller of its {term}`intrinsic specification`
+  out its specified state. The *system's* intrinsic information ii(s) is the smaller of its {term}`intrinsic specification`
   and {term}`intrinsic differentiation` over both directions.
   {doc}`../theory/intrinsic-information`.
 
 intrinsic specification
   The selectivity times informativeness of the specified state (Mayner et
   al. 2026, Eqs. 7 and 9); Albantakis et al. (2023) call the same quantity
-  intrinsic information, and the card follows the formalism's own name.
+  intrinsic information.
   {doc}`../theory/intrinsic-information`.
 
 intrinsic differentiation
@@ -101,7 +98,7 @@ intrinsic differentiation
   transition. {doc}`../theory/intrinsic-information`.
 
 intrinsic-information requirement
-  Under IIT 4.0 (2026), φₛ = min{φ_c, φ_e, ii(s)}: the system's integrated
+  φₛ = min{φ_c, φ_e, ii(s)}: the system's integrated
   information cannot exceed its intrinsic information (Mayner et al. 2026,
   Eq. 23). {doc}`../theory/intrinsic-information`.
 
@@ -124,8 +121,7 @@ normalized φ
 
 partition scheme
   The family of partitions a search ranges over: one setting for system
-  partitions and one for mechanism partitions, fixed by the formalism
-  preset. {doc}`../theory/computational-complexity`.
+  partitions and one for mechanism partitions, fixed by the theory. {doc}`../theory/computational-complexity`.
 
 integrated information (φ)
   How much a partition changes what is specified. φ_d for a distinction,
@@ -205,14 +201,16 @@ tie
   cascades and reported with a zero margin. {doc}`../howto/tie-breaking`.
 
 formalism
-  The set of rules that turns a system into results: IIT 4.0 (2026), IIT
-  4.0 (2023), IIT 3.0, or actual causation. {doc}`../theory/formalism-versions`.
+  The set of rules that turns a system into results. PyPhi computes IIT;
+  it also implements the earlier IIT 3.0 and IIT 4.0 as published in 2023,
+  for reproducing published results, and actual causation, which is a
+  separate analysis. {doc}`../howto/earlier-versions`.
 
 preset
-  A complete formalism configuration: `iit3`, `iit4_2023`, or `iit4_2026`
-  in `pyphi.conf.presets`, applied with `config.override(**preset)`;
-  `analyze(..., formalism="IIT_4_0_2026")` selects one for a single run.
-  {doc}`../theory/formalism-versions`.
+  The complete configuration of an earlier version of IIT: `iit3` or
+  `iit4_2023` in `pyphi.conf.presets`, applied with
+  `config.override(**preset)`; `analyze(..., formalism="IIT_4_0_2023")`
+  selects one for a single run. {doc}`../howto/earlier-versions`.
 
 actual causation
   The analysis of what caused what in one observed transition, measured in

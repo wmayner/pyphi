@@ -29,8 +29,8 @@ transition probabilities — and a **state**, PyPhi computes:
   (irreducible mechanisms) a system specifies and the **relations** that bind
   them, whose total is **Φ**, the structure integrated information.
 
-It implements the current formalism, **IIT 4.0** ([Albantakis et al., 2023](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011465)), and
-retains the earlier **IIT 3.0** formalism, selectable by configuration.
+It implements **IIT 4.0** ([Albantakis et al., 2023](https://doi.org/10.1371/journal.pcbi.1011465);
+[Mayner, Marshall & Tononi, 2026](https://doi.org/10.3390/e28040410)).
 
 ## Example
 
@@ -41,7 +41,7 @@ import pyphi
 substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 state = (0, 1, 1)
 
-# Analyze the candidate system {A, B} in that state under IIT 4.0.
+# Analyze the candidate system {A, B} in that state.
 analysis = pyphi.analyze(substrate, state, subset=(0, 1))
 
 print(analysis.phi)      # system integrated information, φ_s ≈ 0.04
@@ -50,9 +50,7 @@ print(analysis.big_phi)  # structure integrated information, Φ ≈ 1.56
 
 The result carries the full Φ-structure — its distinctions, relations, and the
 minimum-information partition. See the
-[documentation](https://pyphi.readthedocs.io/) and the
-[IIT 4.0 demo notebook](https://github.com/wmayner/pyphi/blob/main/docs/examples/IIT_4.0_demo.ipynb)
-for a complete walkthrough.
+[documentation](https://pyphi.readthedocs.io/) for a complete walkthrough.
 
 ## Beyond Φ
 
@@ -215,7 +213,7 @@ Biology 14(7): e1006343.
 }
 ```
 
-For the theory PyPhi 2.0 implements, cite the IIT 4.0 paper:
+For the theory PyPhi 2.0 implements, cite the IIT 4.0 papers:
 
 Albantakis L, Barbosa L, Findlay G, Grasso M, Haun AM, Marshall W, Mayner WGP,
 Zaeemzadeh A, Boly M, Juel BE, Sasai S, Fujii K, David I, Hendren J, Lang JP,
@@ -239,7 +237,26 @@ Biology 19(10): e1011465.
 }
 ```
 
-For the IIT 3.0 formalism, cite:
+Mayner WGP, Marshall W, Tononi G. (2026). [Intrinsic cause–effect power: the
+tradeoff between differentiation and
+specification](https://doi.org/10.3390/e28040410). Entropy 28(4): 410.
+
+```
+@article{mayner2026intrinsic,
+  title={Intrinsic cause--effect power: the tradeoff between differentiation and specification},
+  author={Mayner, William GP and Marshall, William and Tononi, Giulio},
+  journal={Entropy},
+  volume={28},
+  number={4},
+  pages={410},
+  year={2026},
+  publisher={MDPI},
+  doi={10.3390/e28040410},
+  url={https://doi.org/10.3390/e28040410}
+}
+```
+
+For results computed under the earlier IIT 3.0, cite:
 
 Oizumi M, Albantakis L, Tononi G. (2014). [From the Phenomenology to the
 Mechanisms of Consciousness: Integrated Information Theory

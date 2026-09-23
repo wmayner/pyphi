@@ -46,7 +46,7 @@ Build a substrate, read a result, size a run, configure, parallelize, export.
 :::{grid-item-card} {octicon}`beaker` Theory
 :link: theory/index
 :link-type: doc
-How IIT 4.0's mathematics maps onto PyPhi's types and functions.
+How IIT's mathematics maps onto PyPhi's types and functions.
 :::
 
 :::{grid-item-card} {octicon}`list-unordered` Reference
@@ -69,10 +69,9 @@ Moving to PyPhi 2.0 from earlier versions and related tools.
 :link: howto/mcp-server
 :link-type: doc
 PyPhi ships an MCP server that lets an assistant build substrates, size runs,
-and analyze them with the formalism recorded on every result. The site is also
-readable without it: `llms.txt` and `llms-full.txt` at the site root, the MyST
-source of every page under `_sources/`, and `objects.inv` for resolving API
-names.
+and analyze them. The site is also readable without it: `llms.txt` and
+`llms-full.txt` at the site root, the MyST source of every page under
+`_sources/`, and `objects.inv` for resolving API names.
 :::
 ::::
 
@@ -85,24 +84,21 @@ If you use this software in your research, please cite the software paper:
 > *PLOS Computational Biology* 14(7): e1006343.
 > <https://doi.org/10.1371/journal.pcbi.1006343>
 
-The formalism it implements (IIT 4.0) is described in:
+The theory it implements, IIT 4.0, is described in:
 
 > Albantakis L, Barbosa L, Findlay G, Grasso M, … Tononi G. (2023).
 > Integrated information theory (IIT) 4.0: formulating the properties of
 > phenomenal existence in physical terms.
 > *PLoS Computational Biology* 19(10): e1011465.
 > <https://doi.org/10.1371/journal.pcbi.1011465>
-
-The default formalism is IIT 4.0 (2026), whose system integrated information
-is described in:
-
+>
 > Mayner WGP, Marshall W, Tononi G. (2026).
 > Intrinsic cause–effect power: the tradeoff between differentiation and
 > specification.
 > *Entropy* 28(4): 410.
 > <https://doi.org/10.3390/e28040410>
 
-BibTeX entries for these and for the IIT 3.0 paper are on the {doc}`citing` page.
+BibTeX entries are on the {doc}`citing` page.
 To report issues, use the [issue tracker](https://github.com/wmayner/pyphi/issues).
 For general discussion, join the [pyphi-users group](https://groups.google.com/forum/#!forum/pyphi-users).
 

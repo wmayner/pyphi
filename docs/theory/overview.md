@@ -9,19 +9,21 @@ kernelspec:
   name: python3
 ---
 
-# What IIT 4.0 computes
+# What IIT computes
 
 Integrated Information Theory (IIT) starts from the properties of experience and
 formulates them as requirements on the *cause–effect power* of a physical
-{term}`substrate`. PyPhi is a computational implementation of the resulting formalism,
-IIT 4.0 (Albantakis et al., 2023). This section explains what PyPhi computes and
-why, mapping each quantity of the theory to the type or function that computes
-it, and following one small example the whole way through.
+{term}`substrate`. PyPhi is a computational implementation of the resulting
+formalism, IIT 4.0 (Albantakis et al., 2023; Mayner, Marshall & Tononi, 2026).
+This section explains what PyPhi computes and why, mapping each quantity of the
+theory to the type or function that computes it, and following one small
+example the whole way through.
 
 For a broad orientation to the theory itself, see the [IIT wiki](https://www.iit.wiki);
-the authoritative source for the formalism is Albantakis et al. (2023). You
-don't need to have read either to follow this section, but the paper is cited
-for the full derivations that aren't repeated here.
+the authoritative sources for the formalism are Albantakis et al. (2023) and
+Mayner, Marshall & Tononi (2026). You don't need to have read them to follow
+this section, but the papers are cited for the full derivations that aren't
+repeated here.
 
 ## What PyPhi computes
 
@@ -44,13 +46,11 @@ them.
 
 PyPhi's objects mirror the theory's layering:
 
-$$ \textsf{Substrate} \;\rightarrow\; \textsf{System} \;\rightarrow\; \textsf{formalism} \;\rightarrow\; \Phi\textsf{-structure} $$
+$$ \textsf{Substrate} \;\rightarrow\; \textsf{System} \;\rightarrow\; \Phi\textsf{-structure} $$
 
 - A {class}`~pyphi.substrate.Substrate` is the causal model: the units and their transition
   probabilities.
 - A {class}`~pyphi.system.System` is a candidate subset of the substrate's units, in a state.
-- A **formalism** (IIT 4.0, IIT 3.0, actual causation) is the set of rules for
-  turning a system into results; which one applies is a matter of configuration.
 - The **$\Phi$-structure** is the result: the distinctions and relations the
   complex specifies, with their integrated-information values.
 
@@ -104,9 +104,11 @@ analysis.phi  # the system integrated information, φ_s
 ```
 
 This value, $\varphi_s \approx 0.04$, answers the first question: aB exists
-as one system, and $\varphi_s$ measures how irreducible it is. (Fig 1E of the paper reports $0.17$ for this system, the value under the
-2023 formulation; select it with the `iit4_2023` preset.) The second question — the structure — is
-answered by the $\Phi$-structure it specifies:
+as one system, and $\varphi_s$ measures how irreducible it is. (Fig 1E of the
+paper reports $0.17$, a value computed before intrinsic information entered
+the definition of $\varphi_s$; see {doc}`/howto/earlier-versions`.) The
+second question — the structure — is answered by the $\Phi$-structure it
+specifies:
 
 ```{code-cell} python
 (len(analysis.ces.distinctions), analysis.ces.relations.num_relations(), round(float(analysis.ces.big_phi), 3))

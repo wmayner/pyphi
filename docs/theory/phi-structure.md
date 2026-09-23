@@ -45,16 +45,15 @@ ces.to_pandas()
 ```
 
 This is the complete answer to the two questions from the [overview](overview.md):
-the system exists with system integrated information $\varphi_s \approx 0.04$
-under the default formalism (the paper's 2023 value is $0.17$), and the
-experience it specifies has the $\Phi$-structure above, of quantity
+the system exists with system integrated information $\varphi_s \approx 0.04$,
+and the experience it specifies has the $\Phi$-structure above, of quantity
 $\Phi \approx 1.563$.
 
 ## From paper to code
 
 Every named quantity of IIT 4.0 corresponds to a type or attribute in PyPhi. The
-table maps the symbols of Albantakis et al. (2023) to the code that implements
-them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))`).
+table maps the symbols of Albantakis et al. (2023) and Mayner, Marshall &
+Tononi (2026) to the code that implements them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))`).
 
 | Symbol | Quantity | In PyPhi |
 | --- | --- | --- |
@@ -64,7 +63,7 @@ them, using the worked example (`analysis = pyphi.analyze(substrate, (0, 1, 1), 
 | $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | `analysis.sia.system_state` (per-direction `intrinsic_information`) |
 | $\varphi_c,\ \varphi_e$ | cause- and effect-side integrated information | `analysis.sia.cause.phi`, `analysis.sia.effect.phi` |
 | MIP | minimum partition | `analysis.sia.partition` |
-| $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e)$; under the 2026 default the minimum also includes $\mathit{ii}(s)$ (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
+| $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e, \mathit{ii}(s))$ (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |
 | $\varphi_s^{\ast}$ | maximal system integrated information (the complex's) | the $\varphi_s$ of a complex from {meth}`~pyphi.substrate.Substrate.complexes` |
 | complex | maximal substrate | {meth}`~pyphi.substrate.Substrate.complexes`; the analyzed candidate is `analysis.system` |
 | mechanism | subset specifying a distinction | `distinction.mechanism` |

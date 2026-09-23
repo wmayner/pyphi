@@ -13,8 +13,7 @@ kernelspec:
 
 PyPhi's behavior is controlled by a single configuration object,
 `pyphi.config`. This page shows how to read options, change them (globally
-or temporarily), load a configuration file, and switch between the built-in
-formalism presets.
+or temporarily), and load a configuration file.
 
 ```{code-cell} python
 import pyphi
@@ -27,9 +26,8 @@ pyphi.config.progress_bars = False
 Configuration is split into three namespaces, grouped by what the options
 affect:
 
-- **`formalism`** — the theory itself: which IIT version, which distance
-  measures, which partition schemes, tie-resolution rules. This layer
-  determines *what* is computed.
+- **`formalism`** — the theory itself: the distance measures, partition
+  schemes, and tie-resolution rules that define what is computed.
 - **`infrastructure`** — how the computation is carried out: parallelization,
   caching, progress bars, and output verbosity. Changing this layer never
   changes a result, only how fast you get it and what you see.
@@ -49,7 +47,7 @@ pyphi.config.numerics.precision
 ```
 
 ```{code-cell} python
-pyphi.config.formalism.iit.version
+pyphi.config.formalism.iit.relation_computation
 ```
 
 ```{code-cell} python
@@ -112,43 +110,10 @@ its own copy of the configuration.
 
 ## Presets
 
-A preset is a bundle of options that reproduces the settings of a specific
-IIT paper. Three are provided:
-
-- `iit3` — IIT 3.0 (Oizumi et al. 2014)
-- `iit4_2023` — IIT 4.0 (Albantakis et al. 2023), without the
-  intrinsic-information requirement
-- `iit4_2026` — IIT 4.0 with the intrinsic-information requirement (Mayner,
-  Marshall, Tononi 2026), the default formalism
-
-Each preset is a dictionary, so you apply it by unpacking it into
-`override`. Applying `iit3`, for example, switches the version, the distance
-measures, the partition schemes, and `precision` all at once:
-
-```{code-cell} python
-import warnings
-
-from pyphi import iit3
-
-# Switching the formalism emits advisory warnings that several config options
-# are changing; they are silenced here to keep the output readable.
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    with pyphi.config.override(**iit3):
-        print("version:  ", pyphi.config.formalism.iit.version)
-        print("precision:", pyphi.config.precision)
-
-# back to the default formalism outside the block
-pyphi.config.formalism.iit.version
-```
-
-You can override individual options on top of a preset by passing them as
-extra keyword arguments to the same `override` call; later keywords win.
-
-A preset in an `override` block, the `formalism=` argument of
-`pyphi.analyze`, and replacing the formalism layer for a session are the
-three equivalent ways to select a formalism;
-{ref}`formalism-selection` compares them.
+The default `formalism` settings compute IIT. Earlier versions of the theory,
+which are needed to reproduce some published results, are each defined by a
+complete set of `formalism` settings, packaged as a preset.
+{doc}`earlier-versions` describes them and how to apply one.
 
 ## Loading a configuration file
 
@@ -171,16 +136,9 @@ change directories before importing PyPhi, or run from a directory without
 the file, the built-in defaults apply. To change options after import, use
 the assignment and `override` forms shown above.
 
-```{warning}
-Setting `version` in a config file does not by itself select a formalism:
-the measures, partition schemes, and tie-resolution options stay at their
-defaults, which belong to the default formalism, and the result is a mixture
-that matches no published paper. To select a formalism, apply a preset at
-runtime (`pyphi.config.override(**pyphi.iit4_2023)`), or spell out
-every field the preset sets — the repository ships
-[`pyphi_config_3.0.yml`](https://github.com/wmayner/pyphi/blob/develop/pyphi_config_3.0.yml)
-as a complete example.
-```
+The `formalism` layer takes its settings as a complete set. To reproduce an
+earlier version of IIT from a configuration file, write out every field its
+preset sets; see {doc}`earlier-versions`.
 
 ## A few options worth knowing
 
@@ -191,8 +149,6 @@ as a complete example.
 | `cache_repertoires` | infrastructure | Cache repertoire computations. |
 | `progress_bars` | infrastructure | Show progress bars during long computations. |
 | `repr_verbosity` | infrastructure | Detail level of `repr()` output for result objects. |
-| `version` | formalism.iit | Which IIT version to use. |
-| `ces_measure` | formalism.iit | Distance measure for cause-effect structures. |
 
 For every option with its layer, default, and meaning, see the
 {doc}`configuration reference </reference/configuration>`.

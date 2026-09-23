@@ -150,8 +150,7 @@ The specified cause and effect states of a *system* are selected by maximal
 intrinsic information (Eq. 12), and symmetric substrates routinely tie. These
 ties are not resolved by a configurable cascade: they follow the postulate
 ladder of the S1 tie-resolution supplement (Albantakis et al. 2023, S1),
-applied with each formalism's own $\varphi_s$ — under IIT 4.0 (2026), the
-value including the intrinsic-information term.
+applied to $\varphi_s$ including its intrinsic-information term.
 
 1. **Integration.** Each tied $(\text{cause}, \text{effect})$ reading gets
    its own MIP search, and the readings are compared on $\varphi_s$. A unique
@@ -171,8 +170,8 @@ value including the intrinsic-information term.
    not qualify as a complex, and the SIA is null with reason
    ``NONUNIQUE_SYSTEM_STATE``.
 
-When every tied reading has $\varphi_s = 0$ — under the 2026 default this is
-every deterministic system — the system is not a complex under any reading,
+When every tied reading has $\varphi_s = 0$, as in every deterministic
+system, the system is not a complex under any reading,
 so nothing remains for $\Phi$ to adjudicate. The ladder stops: no
 cause–effect structure is computed, and the reported state is a canonical,
 relabeling-invariant representative whose choice is presentational.
@@ -314,8 +313,8 @@ fewer. The EMD distance measure used by the IIT 3.0 formalism is particularly
 prone to $\varphi$ ties across purviews and, because of its numerical optimizer,
 runs at a lower default precision than the intrinsic-difference measures.
 
-The built-in presets set tie-resolution options to match their respective
-papers. Applying the `iit3` preset, for instance, switches
+The presets for earlier versions of IIT (see {doc}`earlier-versions`) set
+tie-resolution options to match their respective papers. Applying the `iit3` preset, for instance, switches
 `purview_tie_resolution` to the two-step cascade `["PHI", "PURVIEW_SIZE"]` used
 by PyPhi 1.x, and sets the MIP and system-partition options to break remaining
 ties lexicographically:

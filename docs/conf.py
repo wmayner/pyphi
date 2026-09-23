@@ -185,7 +185,7 @@ ogp_image = html_baseurl + "_static/pyphi-social-card.png"
 ogp_description_length = 200
 llms_txt_title = "PyPhi"
 llms_txt_summary = (
-    "PyPhi computes the quantities of Integrated Information Theory (IIT 4.0): "
+    "PyPhi computes the quantities of Integrated Information Theory (IIT): "
     "system integrated information, cause-effect structures, and related "
     "measures, for discrete dynamical systems given as transition probability "
     "matrices."

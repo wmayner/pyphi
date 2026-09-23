@@ -37,7 +37,6 @@ whom.
 import numpy as np
 
 import pyphi
-from pyphi.conf import presets
 
 pyphi.config.progress_bars = False
 ```
@@ -71,16 +70,10 @@ By construction the $\varphi_s$ landscape is a chain:
 $\{A,B\} > \{B,C\} > \{C,D\}$, with $\{B,C\}$ overlapping both of its
 neighbors.
 
-The φₛ values in this tutorial are computed under the 2023 formalism, pinned
-explicitly below: the chain's φₛ ladder is clearest under the 2023
-measure, and the exclusion mechanics being demonstrated are identical under
-both formalisms.
-
 ## Finding the complexes
 
 ```{code-cell} python
-with pyphi.config.override(**presets.iit4_2023):
-    found = substrate.complexes(state)
+found = substrate.complexes(state)
 
 for complex_ in found:
     print(complex_.node_indices, float(complex_.phi))
@@ -130,7 +123,8 @@ for complex_ in found:
     )
 ```
 
-$\{A,B\}$ won by a wide margin over the runner-up on its units. $\{C,D\}$
+$\{A,B\}$ beat its strongest overlapping rival, $\{B,C\}$, by about
+$0.04$. $\{C,D\}$
 beat only the singletons $\{C\}$ and $\{D\}$, and its margin measures the
 gap to the best of them. A margin of zero (equivalently,
 `complex_.effectively_tied`) would mean an overlapping rival tied at the

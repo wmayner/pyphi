@@ -36,17 +36,22 @@ import pyphi
 pyphi.config.progress_bars = False
 ```
 
-Throughout we use the configuration preset that reproduces the paper's
-settings. (The preset also matters for the numbers: several of the substrates here
-are deterministic or near-deterministic, so under the 2026 default's
-intrinsic-information requirement they would compute $\varphi_s = 0$ — see
-{doc}`../theory/intrinsic-information`.)
+The paper's values were computed before the system's intrinsic information
+became part of the definition of $\varphi_s$, so this page pins the version of
+IIT the paper used (see {doc}`../howto/earlier-versions`).
 
 ```{code-cell} python
+import warnings
+
 import numpy as np
 
 from pyphi import config
 from pyphi.conf import presets
+
+# Reproduce the paper's values under the version of IIT it used.
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")  # advisory config-change notices
+    config.iit = presets.iit4_2023["iit"]
 ```
 
 ## A minimal example, at the micro grain
@@ -75,8 +80,7 @@ state = (0, 0)
 At the micro grain the system is barely integrated:
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    micro_phi = System(substrate, state).sia().phi
+micro_phi = System(substrate, state).sia().phi
 round(micro_phi, 6)
 ```
 
@@ -128,8 +132,7 @@ macro.state
 ```
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    macro_phi = macro.sia().phi
+macro_phi = macro.sia().phi
 round(macro_phi, 6)
 ```
 
@@ -147,8 +150,7 @@ a verdict with the evidence:
 ```{code-cell} python
 from pyphi.macro import is_intrinsic_unit
 
-with config.override(**presets.iit4_2023):
-    verdict = is_intrinsic_unit(substrate, alpha, state)
+verdict = is_intrinsic_unit(substrate, alpha, state)
 
 verdict.valid, round(verdict.phi, 6), verdict.num_competitors
 ```
@@ -163,8 +165,7 @@ case of the recursion), even when their own $\varphi_s$ is zero:
 ```{code-cell} python
 from pyphi.macro import micro_unit
 
-with config.override(**presets.iit4_2023):
-    verdict = is_intrinsic_unit(substrate, micro_unit(0), state)
+verdict = is_intrinsic_unit(substrate, micro_unit(0), state)
 
 verdict.valid, verdict.phi
 ```
@@ -186,8 +187,7 @@ full evaluation record:
 ```{code-cell} python
 from pyphi.macro import SearchBounds, complexes
 
-with config.override(**presets.iit4_2023):
-    result = complexes(substrate, state, SearchBounds(mappings="EXHAUSTIVE"))
+result = complexes(substrate, state, SearchBounds(mappings="EXHAUSTIVE"))
 
 len(result.complexes)
 ```
@@ -247,8 +247,7 @@ substrate4 = Substrate(tpm4, node_labels=("A", "B", "C", "D"))
 ```
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    result = complexes(substrate4, (0, 0, 0, 0))  # a few seconds
+result = complexes(substrate4, (0, 0, 0, 0))  # a few seconds
 
 len(result.complexes)
 ```
@@ -298,8 +297,7 @@ boxed = MacroUnit(
     mapping=blackbox(2, 1, (0,)),
 )
 boxed_macro = MacroSystem.from_micro(substrate, (boxed,), state)
-with config.override(**presets.iit4_2023):
-    boxed_phi = boxed_macro.sia().phi
+boxed_phi = boxed_macro.sia().phi
 
 boxed_macro.state, round(float(boxed_phi), 6)
 ```
@@ -336,10 +334,9 @@ micro updates. Each complex reports its footprint, its φₛ, and the update
 grain of each of its units:
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    result = pyphi.analyze(
-        substrate, history, grains=SearchBounds(max_update_grain=2)
-    )
+result = pyphi.analyze(
+    substrate, history, grains=SearchBounds(max_update_grain=2)
+)
 
 for complex_ in result.complexes:
     grains = [unit.micro_grain for unit in complex_.units]
@@ -406,14 +403,14 @@ Every $\varphi_s$ evaluation in a driver run is memoized, and
 per judged decomposition, and {func}`pyphi.macro.valid_systems` the
 admissible-system set.
 
-Under a system measure that applies the intrinsic-information requirement (the
-default), the drivers skip partition sweeps whose outcome is certified: a
-candidate whose intrinsic information — an upper bound on $\varphi_s$ under
-the requirement — is strictly below an overlapping accepted complex's $\varphi_s$
-cannot change the outcome. Skipped candidates appear in `result.records`
-with `gated=True`, carrying their ceiling in place of an exact
-$\varphi_s$. Results are identical either way; pass `prune="off"` to
-evaluate every candidate exactly.
+Because a system's $\varphi_s$ is at most its intrinsic information, the
+drivers skip partition sweeps whose outcome is already certified: a candidate
+whose intrinsic information is strictly below an overlapping accepted
+complex's $\varphi_s$ cannot change the outcome. Skipped candidates appear in
+`result.records` with `gated=True`, carrying their ceiling in place of an
+exact $\varphi_s$. Results are identical either way; pass `prune="off"` to
+evaluate every candidate exactly. (The version of IIT pinned on this page
+does not bound $\varphi_s$ this way, so here every candidate is evaluated.)
 
 ## Parallelism
 

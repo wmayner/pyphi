@@ -24,7 +24,7 @@ in {doc}`chtc`.
 ## Prepare the campaign
 
 `prepare` takes the same axes as {func}`~pyphi.sweep.sweep` — substrates,
-states, subsets, formalisms, and the computation — plus packing controls,
+states, subsets, and the computation — plus packing controls,
 and writes a self-contained directory:
 
 ```python
@@ -37,7 +37,6 @@ status = campaign.prepare(
         "basic": examples.basic_substrate(),
     },
     states="all",
-    formalisms=["IIT_4_0_2026"],
     compute="sia",
     directory="my-campaign",
     units_per_job=1e6,
@@ -135,8 +134,7 @@ with the full traceback).
 
 ## Packing and admission control
 
-Each cell is weighted by {func}`~pyphi.cost.estimate_analysis` counts under
-its formalism preset. A work unit is one mechanism partition; a purview
+Each cell is weighted by {func}`~pyphi.cost.estimate_analysis` counts. A work unit is one mechanism partition; a purview
 evaluation counts for twelve, its measured cost relative to a partition
 ({data}`~pyphi.cost.PURVIEW_EVALUATION_UNITS`). Weighting the two axes this
 way means a unit is the same amount of work whatever mix produces it, so
@@ -199,7 +197,7 @@ scoped workload before you commit to it.
 ## Distribute scoped cause-effect structures
 
 `prepare_ces` turns a scoped analysis into a campaign. It takes the same
-axes as `prepare` — substrates, states, subsets, formalisms, with scalars
+axes as `prepare` — substrates, states, and subsets, with scalars
 accepted anywhere — all sharing one scope:
 
 ```python
@@ -213,7 +211,7 @@ status = campaign.prepare_ces(
 )
 ```
 
-A sweep over many states (or substrates, or formalisms) under the same
+A sweep over many states (or substrates) under the same
 scope is one campaign directory rather than many:
 
 ```python

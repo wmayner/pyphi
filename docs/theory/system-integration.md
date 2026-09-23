@@ -49,13 +49,12 @@ result reflects the system's weakest link (Albantakis et al., 2023).
 
 Integrated information is computed separately on the cause side and the effect
 side, $\varphi_c$ and $\varphi_e$, and a system is only as integrated as its
-weaker direction. In the 2023 formulation the system integrated information is
-their minimum,
+weaker direction. A system must also provide itself with alternatives and
+specify one of them, which its *intrinsic information* $\mathit{ii}(s)$
+measures. The system integrated information is the smallest of the three
+(Mayner, Marshall & Tononi, 2026, Eq. 23):
 
-$$ \varphi_s = \min(\varphi_c, \varphi_e), $$
-
-and under the default (2026) formulation the minimum additionally includes the
-system's *intrinsic information* $\mathit{ii}(s)$:
+$$ \varphi_s = \min(\varphi_c, \varphi_e, \mathit{ii}(s)). $$
 
 ```{code-cell} python
 (analysis.sia.cause.phi, analysis.sia.effect.phi, analysis.phi)
@@ -63,10 +62,9 @@ system's *intrinsic information* $\mathit{ii}(s)$:
 
 For the worked example, $\varphi_c \approx 0.245$ and $\varphi_e \approx
 0.172$ reproduce the paper's Fig 1D split ($\varphi_c = 0.24$, $\varphi_e =
-0.17$), and under the 2023 formulation $\varphi_s = \varphi_e \approx 0.172$,
-the paper's Fig 1E value. Here the default formalism's intrinsic-information
-term is smaller still, so $\varphi_s \approx 0.04$ — the value printed above.
-The partition responsible — the MIP — is stored on the analysis:
+0.17$). The intrinsic information is smaller than both, so
+$\varphi_s \approx 0.04$, the value printed above. The partition
+responsible — the MIP — is stored on the analysis:
 
 ```{code-cell} python
 analysis.sia.partition

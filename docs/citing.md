@@ -1,7 +1,7 @@
 # Citing PyPhi
 
-If you use PyPhi in your research, please cite the software paper, and the
-paper of the formalism your results were computed under.
+If you use PyPhi in your research, please cite the software paper and the
+papers that describe the theory.
 
 ## The software
 
@@ -24,28 +24,9 @@ Biology* 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 }
 ```
 
-## IIT 4.0 (2026), the default formalism
+## IIT 4.0
 
-Mayner WGP, Marshall W, Tononi G. (2026). Intrinsic cause–effect power: the
-tradeoff between differentiation and specification. *Entropy* 28(4): 410.
-<https://doi.org/10.3390/e28040410>
-
-```bibtex
-@article{mayner2026intrinsic,
-  title={Intrinsic cause--effect power: the tradeoff between differentiation and specification},
-  author={Mayner, William GP and Marshall, William and Tononi, Giulio},
-  journal={Entropy},
-  volume={28},
-  number={4},
-  pages={410},
-  year={2026},
-  publisher={MDPI},
-  doi={10.3390/e28040410},
-  url={https://doi.org/10.3390/e28040410}
-}
-```
-
-## IIT 4.0 (2023)
+IIT 4.0 is described in two papers; cite both.
 
 Albantakis L, Barbosa L, Findlay G, Grasso M, Haun AM, Marshall W, Mayner WGP,
 Zaeemzadeh A, Boly M, Juel BE, Sasai S, Fujii K, David I, Hendren J, Lang JP,
@@ -68,7 +49,28 @@ Biology* 19(10): e1011465. <https://doi.org/10.1371/journal.pcbi.1011465>
 }
 ```
 
-## IIT 3.0
+Mayner WGP, Marshall W, Tononi G. (2026). Intrinsic cause–effect power: the
+tradeoff between differentiation and specification. *Entropy* 28(4): 410.
+<https://doi.org/10.3390/e28040410>
+
+```bibtex
+@article{mayner2026intrinsic,
+  title={Intrinsic cause--effect power: the tradeoff between differentiation and specification},
+  author={Mayner, William GP and Marshall, William and Tononi, Giulio},
+  journal={Entropy},
+  volume={28},
+  number={4},
+  pages={410},
+  year={2026},
+  publisher={MDPI},
+  doi={10.3390/e28040410},
+  url={https://doi.org/10.3390/e28040410}
+}
+```
+
+## Earlier versions
+
+For results computed under IIT 3.0, cite:
 
 Oizumi M, Albantakis L, Tononi G. (2014). From the phenomenology to the
 mechanisms of consciousness: Integrated Information Theory 3.0. *PLOS

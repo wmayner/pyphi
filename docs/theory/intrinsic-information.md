@@ -26,10 +26,9 @@ information:
 $$ \varphi_s = \min\{\varphi_c,\ \varphi_e,\ \mathit{ii}(s)\}. $$
 
 This is Eq. 23 of "Intrinsic Cause–Effect Power: The Tradeoff Between
-Differentiation and Specification" (*Entropy* 28, 410), the formulation
-PyPhi computes by default. $\mathit{ii}(s)$ is the minimum, across the cause
-and effect directions, of each direction's intrinsic information, itself the
-minimum of that direction's differentiation $i^{c/e}_{\mathrm{diff}}(s)$ and
+Differentiation and Specification" (*Entropy* 28, 410). $\mathit{ii}(s)$ is
+the minimum, across the cause and effect directions, of each direction's
+intrinsic information, itself the minimum of that direction's differentiation $i^{c/e}_{\mathrm{diff}}(s)$ and
 specification $i^{c/e}_{\mathrm{spec}}(s)$ (Section 2.3, preceding Eq. 13):
 
 $$
@@ -184,24 +183,9 @@ readings compare equal at zero and the reported state is a canonical
 representative, while readings tied at positive $\varphi_s$ escalate to
 $\Phi$ (see {doc}`Control tie-breaking <../howto/tie-breaking>`).
 
-## The 2023 formulation
+## Reproducing earlier values
 
-Albantakis et al. (2023) define system integrated information as
-$\varphi_s = \min\{\varphi_c, \varphi_e\}$, without the intrinsic-information
-term; that paper's "intrinsic information" is the quantity called intrinsic
-specification here, and the analysis card uses each formulation's own name
-for it. The two formulations share the partition search, the specified-state
-search, and every mechanism-level quantity, so they differ only where
-$\mathit{ii}(s)$ is the smallest of the three terms: deterministic systems,
-which the 2023 formulation assigns a positive value, and probabilistic systems
-whose intrinsic information is below their integration. The three-XOR network
-under the 2023 formulation:
-
-```{code-cell} python
-pyphi.analyze(xor, (0, 0, 0), formalism="IIT_4_0_2023").phi
-```
-
-Values published under the 2023 formulation, including those of the
-deterministic examples in the IIT literature, reproduce under
-`formalism="IIT_4_0_2023"` or `pyphi.config.override(**pyphi.iit4_2023)`;
-{doc}`formalism-versions` describes selecting a formulation.
+Albantakis et al. (2023) first defined $\varphi_s$ as
+$\min\{\varphi_c, \varphi_e\}$, and many published values, including those
+of the deterministic examples in the IIT literature, were computed under that
+definition. {doc}`/howto/earlier-versions` shows how to reproduce them.

@@ -4,20 +4,22 @@
 
 Two reasons, and `analysis.sia.explain()` tells them apart. Either one side
 of the system is reducible outright (some partition makes no difference to
-its cause or its effect repertoire), or, under the default IIT 4.0 (2026),
-the system provides itself no repertoire of alternatives, so its intrinsic
-information is zero: every deterministic network is in this second case.
-{doc}`read-result` walks through both; {doc}`../theory/intrinsic-information`
-explains the requirement. To see the value without it, pass
-`formalism="IIT_4_0_2023"`.
+its cause or its effect repertoire), or the system provides itself no
+repertoire of alternatives, so its intrinsic information is zero. Every
+deterministic network is in the second case: from its own perspective, its
+current state admits only one past and one future, so there is no
+difference for it to make to itself. Any indeterminism provides
+alternatives, so a noisy version of the same network can have positive
+$\varphi_s$. {doc}`read-result` walks through both cases, and
+{doc}`../theory/intrinsic-information` explains the requirement.
 
 ## My numbers differ from a paper, or from PyPhi 1.x
 
-Check the formalism first: `analysis.formalism`. Published IIT 4.0 values
-from 2023 need `formalism="IIT_4_0_2023"`; 1.x values need
-`formalism="IIT_3_0"` (1.x's Φ is `analysis.phi` under that formalism,
-not `analysis.big_phi`). {doc}`../theory/formalism-versions` lists what
-each changes; {doc}`../migration/migration-2.0` covers 1.x. If the formalism
+Check which version of IIT the paper used. Values published with the IIT 4.0
+paper in 2023 need `formalism="IIT_4_0_2023"`; 1.x values need
+`formalism="IIT_3_0"` (1.x's Φ is `analysis.phi` under that version, not
+`analysis.big_phi`). {doc}`earlier-versions` describes what each version
+computes, and {doc}`../migration/migration-2.0` covers 1.x. If the version
 matches and a value still differs in the last decimals, compare with
 `pyphi.numerics.eq`, which respects the configured precision.
 
@@ -67,8 +69,7 @@ margins say how close it was. {doc}`tie-breaking`.
 Something in the configuration changed between them: an `override` block
 still open, a `pyphi_config.yml` in one working directory and not the
 other, or a preset applied in one session. `print(pyphi.config)` shows the
-active settings; pin the formalism per call with `formalism=`.
-{doc}`configure`.
+active settings. {doc}`configure`.
 
 ## Where is the API reference?
 

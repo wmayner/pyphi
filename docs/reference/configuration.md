@@ -14,8 +14,8 @@ kernelspec:
 Every option with its default and what it does, read from the configuration
 classes at build time so the page cannot drift from the code. The three
 layers and how to set an option are described in {doc}`../howto/configure`;
-the presets `pyphi.iit3`, `pyphi.iit4_2023`, and `pyphi.iit4_2026` set the
-formalism options together. The classes themselves are
+the formalism options that define earlier versions of IIT are set together by
+presets ({doc}`../howto/earlier-versions`). The classes themselves are
 {class}`~pyphi.conf.formalism.IITConfig`,
 {class}`~pyphi.conf.formalism.ActualCausationConfig`,
 {class}`~pyphi.conf.infrastructure.InfrastructureConfig`, and

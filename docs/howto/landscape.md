@@ -162,6 +162,6 @@ result.to_pandas().head()
 - Each grid point is one full SIA, so section cost scales linearly with the
   grid and exponentially with the number of units; `perturb` costs exactly
   three analyses.
-- For sweeping the discrete axes of a *fixed* substrate — states, candidate
-  subsystems, formalisms — see
+- For sweeping the discrete axes of a *fixed* substrate — states and
+  candidate subsystems — see
   {doc}`Sweep states and subsystems <sweep>`.

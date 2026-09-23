@@ -321,13 +321,13 @@ substrate = build_substrate(
 )
 
 system = pyphi.System.from_substrate(substrate, state=(1, 0, 0))
-with pyphi.config.override(**pyphi.iit4_2023):  # this network is deterministic,
-    print("phi:", float(system.sia().phi))      # so Φ = 0 under the 2026 default
+with pyphi.config.override(**pyphi.iit4_2023):  # deterministic, so φ_s = 0
+    print("phi:", float(system.sia().phi))      # without this 2023 pin
 print("distinctions:", len(system.ces().distinctions))
 ```
 
-This `substrate` is byte-identical to `pyphi.examples.basic_substrate()` (Φ =
-0.415037 under the IIT 4.0 (2023) formalism pinned above). It uses `build_substrate`
+This `substrate` is byte-identical to `pyphi.examples.basic_substrate()`
+(φ_s = 0.415037 under the 2023 version of IIT 4.0 pinned above). It uses `build_substrate`
 with the **weighted-threshold** gates because this network has a single-input
 `B = and(C)`, which a 2-input truth-table gate can't express; the weighted
 `"and"`/`"or"` handle any fan-in (§5). For a mechanism-rich or endorsement

@@ -11,8 +11,8 @@ kernelspec:
 
 # Sweep states and subsystems
 
-`pyphi.sweep` runs one IIT computation across many states, candidate
-subsystems, and formalisms in a single call, and collects every result into
+`pyphi.sweep` runs one IIT computation across many states and candidate
+subsystems in a single call, and collects every result into
 one tidy long-format DataFrame. It saves you from writing the nested loops,
 building each `System` by hand, and stitching the results back together.
 (To vary the substrate's *parameters* — its connection weights — rather than
@@ -87,25 +87,10 @@ Here we hold the state fixed and vary the subsystem:
 pyphi.sweep(substrate, states=(0, 1, 1), subsets="all").df.round(6)
 ```
 
-## Sweeping over formalisms
-
-Pass a list of version names to `formalisms` to compute the same cell under
-each formalism. The active formalism is used when this argument is omitted.
-
-```{code-cell} python
-pyphi.sweep(
-    pyphi.examples.basic_substrate(),
-    states=(1, 0, 0),
-    formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
-).df.round(6)
-```
-
-The two rows differ (φ = 0.415 under 2023, 0 under 2026) because `basic`
-is deterministic, and deterministic systems compute zero under the 2026 formalism's intrinsic-information requirement — see
-{doc}`../theory/intrinsic-information`.
-
 When more than one axis varies at once, the index becomes a `MultiIndex` with
-one level per varying axis.
+one level per varying axis. The `formalisms=` argument adds one more axis, for
+computing the same cells under earlier versions of IIT; see
+{doc}`earlier-versions`.
 
 ## Choosing what to compute
 
@@ -133,8 +118,8 @@ tied = result.df[result.df.effectively_tied.astype(bool)]
 tied[["phi", "partition_margin", "cause_state_margin", "effect_state_margin"]].round(6)
 ```
 
-Cells computed under a formalism without margin reporting (IIT 3.0) have
-`None` in these columns.
+Cells computed under IIT 3.0, which does not report margins, have `None` in
+these columns.
 
 ## Running in parallel
 

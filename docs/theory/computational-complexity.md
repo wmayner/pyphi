@@ -15,8 +15,8 @@ Computing integrated information is combinatorially expensive: it searches over
 subsets, purviews, and partitions of a system, and the number of each grows
 exponentially or superexponentially with the number of units $n$. This page has two aims:
 to give a sense of what each stage costs, and to lay out the options for reducing
-it by configuring PyPhi to use heuristics. IIT 4.0 is the formalism PyPhi computes by default, so we focus on it; IIT
-3.0 and actual causation are covered more briefly at the end.
+it by configuring PyPhi to use heuristics. The page focuses on IIT 4.0; actual
+causation and the earlier IIT 3.0 are covered more briefly at the end.
 
 | Formalism | Stage | Dominant cost | Practical ceiling |
 |---|---|---|---|
@@ -131,15 +131,14 @@ The counts are computed exactly by {mod}`pyphi.formalism.iit4.bounds`:
 import pyphi
 from pyphi.formalism.iit4 import bounds
 
-with pyphi.config.override(**pyphi.iit4_2023):
-    rows = [
-        {
-            "n": n,
-            "possible distinctions (2**n - 1)": bounds.number_of_possible_distinctions(n),
-            "possible relations (2**(2**n - 1) - 1)": bounds.number_of_possible_relations(n),
-        }
-        for n in range(1, 7)
-    ]
+rows = [
+    {
+        "n": n,
+        "possible distinctions (2**n - 1)": bounds.number_of_possible_distinctions(n),
+        "possible relations (2**(2**n - 1) - 1)": bounds.number_of_possible_relations(n),
+    }
+    for n in range(1, 7)
+]
 
 import pandas as pd
 pd.DataFrame(rows).set_index("n")
@@ -160,9 +159,9 @@ lazy: its φ and faces are computed only when read.
 `DIRECTED_SET_PARTITION` system cuts — $B_n(3)$ before de-duplication — evaluating
 the whole system at each, with no inner mechanism loop.
 
-The **2023** and **2026** variants have identical asymptotic cost. The 2026
-intrinsic-information term (Eq. 23) is evaluated once, at the already-selected
-minimum-information partition, an $O(1)$ step that does not change the number of
+The intrinsic-information term of $\varphi_s$ (Mayner, Marshall & Tononi,
+2026, Eq. 23) is evaluated once, at the already-selected minimum-information
+partition, an $O(1)$ step that does not change the number of
 partitions swept; {attr}`~pyphi.conf.formalism.IITConfig.shortcircuit_sia` is a constant-factor pre-check that returns
 early when the system has no cause or effect.
 
@@ -196,14 +195,15 @@ timings, aggregates, fitted rates, and figure are written to
 ```
 
 ```{figure} ../_static/complexity/scaling.png
-:alt: Log-scale wall-clock runtime versus system size for each formalism and stage.
+:alt: Log-scale wall-clock runtime versus system size for each stage.
 :width: 100%
 :class: dark-light
 
-Median wall-clock runtime versus system size $n$, one curve per formalism and
-stage, on a logarithmic vertical axis. A straight line indicates exponential
-growth; the upward-bending IIT 4.0 cause–effect-structure curves are
-super-exponential. The 2023 and 2026 curves coincide.
+Median wall-clock runtime versus system size $n$, one curve per stage, on a
+logarithmic vertical axis. A straight line indicates exponential growth; the
+upward-bending IIT 4.0 cause–effect-structure curves are super-exponential.
+The figure also times IIT 4.0 as published in 2023, whose curves coincide with
+the current ones, and IIT 3.0.
 ```
 
 The **IIT 4.0 cause–effect structure** grows fastest of all, and not at a fixed
@@ -218,13 +218,12 @@ the number of distinctions.
 | 5 | 31 | 1 413 375 |
 
 The fitted growth factors (over $n \ge 3$, where fixed overhead no longer
-dominates) are below; the 2023 and 2026 variants track each other
-exactly:
+dominates) are below:
 
 | Stage | raw base $e^b$ | base after dividing out $n^5$ | $R^2$ |
 |---|---|---|---|
-| IIT 4.0 — CES (2023) | 28.1 | 7.8 | 0.993 |
-| IIT 4.0 — $\varphi_s$ (2023) | 7.9 | 2.8 | 0.999 |
+| IIT 4.0 — CES | 28.1 | 7.8 | 0.993 |
+| IIT 4.0 — $\varphi_s$ | 7.9 | 2.8 | 0.999 |
 
 ### Connectivity matters as much as size
 
@@ -372,8 +371,6 @@ built or any $\varphi_s$ computed:
 ```{code-cell} python
 import numpy as np
 
-import pyphi
-from pyphi.conf import presets
 from pyphi.macro import SearchBounds
 from pyphi.substrate import Substrate
 
@@ -387,8 +384,7 @@ tpm = np.array(
 )
 substrate = Substrate(tpm, node_labels=("A", "B"))
 
-with pyphi.config.override(**presets.iit4_2023):
-    estimate = SearchBounds().estimate(substrate)
+estimate = SearchBounds().estimate(substrate)
 estimate.distinct_systems_upper_bound
 ```
 
@@ -418,7 +414,7 @@ into three kinds, and the distinction matters for how a result should be read:
 |---|---|---|---|
 | `relation_computation` | `ANALYTICAL` (default); set `CONCRETE` to enumerate | exact reformulation (yields the count and summed φ, not individual relations) | removes the $2^D$ relation enumeration; the CES then scales like its distinctions alone |
 | `mechanism_partition_scheme` | `JOINT_PARTITION_ALL` / `WEDGE_TRIPARTITION` / `JOINT_BIPARTITION` | formalism choice | per-(mechanism, purview) partition count Bell-weighted $> 2^{m-1}3^p > 2^{m+p-1}$ |
-| `prune` (grain search) | `"certified"` (automatic under a measure that applies the intrinsic-information requirement); `"off"` evaluates everything | exact reformulation (identical complexes, ties, and verdicts; skipped candidates report their ii ceiling) | skips candidate partition sweeps certified below an overlapping accepted complex by the requirement; saves most when mapped variants dominate the candidate set; when unit-derivation evaluations dominate, the cost is unchanged |
+| `prune` (grain search) | `"certified"` (default); `"off"` evaluates everything | exact reformulation (identical complexes, ties, and verdicts; skipped candidates report their ii ceiling) | skips candidate partition sweeps certified below an overlapping accepted complex by the requirement; saves most when mapped variants dominate the candidate set; when unit-derivation evaluations dominate, the cost is unchanged |
 | {attr}`~pyphi.conf.formalism.IITConfig.shortcircuit_sia` | `True` | exact early-exit | returns before the sweep when a system has no cause or effect; constant factor |
 | `shortcircuit_distinctions` | `True` | exact early-exit | skips a distinction's remaining search for its maximally irreducible cause and effect (MICE) once one direction is found reducible; on reducible mechanisms this saves an entire purview sweep |
 | `parallel` | `False` → `True` | exact | constant factor set by the number of cores |

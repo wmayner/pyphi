@@ -18,14 +18,15 @@ kernelspec:
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wmayner/pyphi/blob/main/docs/tutorials/worked-example.ipynb)
 
 This page follows the worked example of the IIT 4.0 paper (Albantakis et al.
-2023) from start to finish, reproducing its published numbers under the
-paper's own formalism (the `iit4_2023` preset — the published system-level
-values predate the intrinsic-information requirement of the current default;
-mechanism-level quantities are the same under both): **Figure 1** — is a set of units a complex, and how
-irreducible is it ($\varphi_s$)? **Figure 2** — what distinctions compose its
+2023) from start to finish, reproducing its published numbers: **Figure 1** —
+is a set of units a complex, and how irreducible is it ($\varphi_s$)? **Figure 2** — what distinctions compose its
 cause-effect structure? **Figure 4** — how do those distinctions bind into
 relations? All three use the same small network:
 {func}`pyphi.examples.iit4_2023_fig1a_substrate`.
+
+The paper's $\varphi_s$ values were computed before the system's intrinsic
+information became part of the definition of $\varphi_s$, so this page pins
+the version of IIT the paper used (see {doc}`../howto/earlier-versions`).
 
 ```{code-cell} python
 import warnings
@@ -34,8 +35,7 @@ import pyphi
 from pyphi.conf import presets
 
 pyphi.config.progress_bars = False
-# This page reproduces the 2023 paper's published values, so it pins the
-# paper's formalism; PyPhi's default is IIT 4.0 (2026).
+# Reproduce the paper's published values under the version of IIT it used.
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # advisory config-change notices
     pyphi.config.iit = presets.iit4_2023["iit"]
@@ -184,8 +184,7 @@ $0.17$ here). Both are reported on the analysis: `aB.phi` is $\varphi_s$;
 
 ## Summary
 
-For the paper's Fig 1A network in state aBC, under the 2023 formalism
-pinned above:
+For the paper's Fig 1A network in state aBC:
 
 - $\varphi_s = 0.04 / 0.17 / 0.13$ for $\{A\}$ / aB / aBC (Fig 1E), with
   $\varphi_c = 0.24$, $\varphi_e = 0.17$ for aB (Fig 1D);
@@ -199,7 +198,8 @@ pinned above:
 
 - {doc}`../theory/index` — the same pipeline, quantity by quantity, with the
   full map from paper symbols to code.
-- {doc}`../theory/intrinsic-information` — why a *deterministic* network
-  computes $\varphi_s = 0$ under this formalism.
+- {doc}`../theory/intrinsic-information` — how the system's intrinsic
+  information enters $\varphi_s$, and why a *deterministic* network has
+  $\varphi_s = 0$.
 - {doc}`../examples/IIT_4.0_demo` — the paper's own supplementary notebook, going deeper
   into the algorithm.

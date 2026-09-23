@@ -1,9 +1,10 @@
 # Migrating to PyPhi 2.0
 
-PyPhi 2.0 is a breaking release. Its default formalism is IIT 4.0 in the 2026
-revision with the intrinsic-information requirement (Mayner, Marshall &
-Tononi, 2026), with IIT 4.0 (2023, Albantakis et al.) and IIT 3.0 retained
-through configuration. There are no deprecation shims: code written against pre-2.0
+PyPhi 2.0 is a breaking release. It computes IIT 4.0 (Albantakis et al., 2023;
+Mayner, Marshall & Tononi, 2026), in which system integrated information
+includes the system's intrinsic information. IIT 3.0, and IIT 4.0 as published
+in 2023, remain available for reproducing earlier results. There are no
+deprecation shims: code written against pre-2.0
 PyPhi must be updated to run.
 
 The PyPhi MCP server carries a condensed, agent-facing copy of this guide as its
@@ -160,8 +161,8 @@ specific subset, pass `subset=` or construct a `System` directly:
 ## Choosing a formalism
 
 **[both]** In 1.x a single `IIT_VERSION` config toggle selected the formalism,
-defaulting to IIT 3.0. In 2.0 the formalism is chosen per call, and **the default
-is now IIT 4.0 (2026)** (with the intrinsic-information requirement):
+defaulting to IIT 3.0. In 2.0 **the default is IIT 4.0** (with the
+intrinsic-information requirement), and an earlier version is selected per call:
 
 Before:
 
@@ -182,7 +183,8 @@ pyphi.config.formalism.iit.version   # "IIT_4_0_2026" by default
 The available formalisms are `"IIT_3_0"`, `"IIT_4_0_2023"`, and `"IIT_4_0_2026"`.
 Because the default changed from IIT 3.0 to IIT 4.0, the same substrate and state
 give a different result than a 1.x default run unless you request
-`formalism="IIT_3_0"`. See [formalism versions](../theory/formalism-versions.md)
+`formalism="IIT_3_0"`. See
+[Reproduce results from earlier versions of IIT](../howto/earlier-versions.md)
 for the differences, and {ref}`formalism-selection` for the three equivalent
 ways to select one.
 
@@ -280,18 +282,19 @@ order-independent.
 
 ## Changed defaults
 
-**[both]** The default formalism changed from IIT 3.0 (1.x) to IIT 4.0 (2026)
-— with the intrinsic-information requirement
+**[both]** The default changed from IIT 3.0 (1.x) to IIT 4.0, with the
+intrinsic-information requirement
 (`system_phi_measure="INTRINSIC_INFORMATION"`).
 This silently changes computed values relative to a 1.x default run, so a
 migration that expects IIT 3.0 numbers must request `formalism="IIT_3_0"`
 explicitly; request `formalism="IIT_4_0_2023"` for the IIT 4.0 system φ
 without that requirement.
 
-A practical consequence: **deterministic networks compute $\varphi_s = 0$ under the
-2026 default.** The classic examples (`xor`, `basic`, the cellular-automaton
+A practical consequence: **deterministic networks compute $\varphi_s = 0$ by
+default.** The classic examples (`xor`, `basic`, the cellular-automaton
 rules) are all deterministic, so analyses ported from 1.x or from the
 literature will show 0 where papers print nonzero values. This is the
-expected behavior of the 2026 formalism's intrinsic-information requirement;
-pin `formalism="IIT_4_0_2023"` to reproduce published 2023 numbers. See
+expected behavior of the intrinsic-information requirement; pin
+`formalism="IIT_4_0_2023"` to reproduce numbers published with the IIT 4.0
+paper in 2023. See
 {doc}`../theory/intrinsic-information`.

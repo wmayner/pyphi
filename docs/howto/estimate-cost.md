@@ -22,14 +22,14 @@ pyphi.config.progress_bars = False
 
 ## The practical ceilings
 
-| What | Formalism | About |
-| --- | --- | --- |
-| system integrated information $\varphi_s$ | IIT 4.0 | 10–12 units |
-| distinctions and relations (the Φ-structure) | IIT 4.0 | 6–8 units |
-| cause–effect structure, Φ | IIT 3.0 | 10–12 units |
+| What | About |
+| --- | --- |
+| system integrated information $\varphi_s$ | 10–12 units |
+| distinctions and relations (the Φ-structure) | 6–8 units |
 
 These are for fully connected substrates on one core; sparser connectivity
-raises them, since absent connections shrink every search.
+raises them, since absent connections shrink every search. (Under the earlier
+IIT 3.0, the cause–effect structure and its Φ reach about 10–12 units.)
 
 ## Count the work
 

@@ -51,7 +51,7 @@ the relations among them. Compute one first:
 ces = examples.xor_system().ces()
 ```
 
-(The XOR system's *system-level* φₛ is 0 under the default formalism — see
+(The XOR system's *system-level* φₛ is 0 — see
 {doc}`../theory/intrinsic-information` — but its cause-effect structure is
 rich, which is what the plots show.)
 

@@ -22,7 +22,14 @@ behind macro units and grains, see
 {doc}`../theory/macro-units`; for a guided walkthrough, see the
 {doc}`intrinsic-units tutorial <../tutorials/macro>`.
 
+The examples reproduce values from Marshall et al. (2026), which were computed
+before the system's intrinsic information became part of the definition of
+$\varphi_s$, so this page pins the version of IIT that paper used (see
+{doc}`earlier-versions`).
+
 ```{code-cell} python
+import warnings
+
 import numpy as np
 
 import pyphi
@@ -32,6 +39,11 @@ from pyphi.macro.search import SearchBounds
 from pyphi.substrate import Substrate
 
 pyphi.config.progress_bars = False
+
+# Reproduce the paper's values under the version of IIT it used.
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")  # advisory config-change notices
+    config.iit = presets.iit4_2023["iit"]
 ```
 
 The demos use a two-unit substrate. Each unit is nearly silent on its own and
@@ -50,12 +62,6 @@ tpm = np.array(
 )
 substrate = Substrate(tpm, node_labels=("A", "B"))
 ```
-
-Every computation below runs under the IIT 4.0 (2023) preset, matching
-Marshall et al. (2026). The setting matters for the numbers: the substrates
-here are deterministic or near-deterministic, so under the 2026 default's
-intrinsic-information requirement they give $\varphi_s = 0$; see
-{doc}`../theory/intrinsic-information`.
 
 ## Pre-flight the cost
 
@@ -97,8 +103,7 @@ Pass `grains=True` to {func}`pyphi.analyze <pyphi.analyze>` to run the search
 with the default bounds:
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    result = pyphi.analyze(substrate, (0, 0), grains=True)
+result = pyphi.analyze(substrate, (0, 0), grains=True)
 round(result.maximal_complex.phi, 6)
 ```
 
@@ -116,21 +121,19 @@ the bounds admit any grain above 1, the search needs a micro history rather
 than a bare state. Passing a bare state raises:
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    try:
-        pyphi.analyze(substrate, (0, 0), grains=SearchBounds(max_update_grain=2))
-    except ValueError as error:
-        print(error)
+try:
+    pyphi.analyze(substrate, (0, 0), grains=SearchBounds(max_update_grain=2))
+except ValueError as error:
+    print(error)
 ```
 
 Supply the history as a sequence of universe states, oldest first. Its
 required length is `max_update_grain ** max_depth` — here `2 ** 1 == 2`:
 
 ```{code-cell} python
-with config.override(**presets.iit4_2023):
-    temporal = pyphi.analyze(
-        substrate, [(0, 0), (0, 0)], grains=SearchBounds(max_update_grain=2)
-    )
+temporal = pyphi.analyze(
+    substrate, [(0, 0), (0, 0)], grains=SearchBounds(max_update_grain=2)
+)
 len(temporal.complexes)
 ```
 
@@ -175,12 +178,11 @@ overlapping candidates, see the
 {doc}`recursive-exclusion tutorial <../tutorials/recursive-exclusion>`.
 
 `records` holds every candidate system the search considered, so its length
-is the realized version of the pre-flight estimate. Under a system measure
-that applies the intrinsic-information requirement, the certified prune may skip some
-candidates' partition sweeps; those records carry `gated=True` and an upper
-bound in place of an exact φₛ (this page's runs use the 2023 preset, where
-the prune is unavailable and every record is exact). Here the lengths
-match: the worst case of eight candidate systems was reached exactly.
+is the realized version of the pre-flight estimate. Because a system's φₛ is
+at most its intrinsic information, the search may skip some candidates'
+partition sweeps; those records carry `gated=True` and an upper bound in place
+of an exact φₛ. (The version of IIT pinned on this page does not bound φₛ this
+way, so every record here is exact.) Here the lengths match: the worst case of eight candidate systems was reached exactly.
 
 ```{code-cell} python
 len(result.records), estimate.distinct_systems_upper_bound
