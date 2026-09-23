@@ -293,7 +293,7 @@ The sections above cost a *single* IIT 4.0 analysis, evaluated at the micro
 grain. When the units that exist for a substrate are not its smallest parts, the
 analysis must instead search over grains — grouping micro units into macro units,
 reading them over windows of several updates, and asking which grouping maximizes
-$\varphi_s$ (Marshall et al., 2024). This search wraps a full system-$\varphi_s$
+$\varphi_s$ (Marshall et al., 2026). This search wraps a full system-$\varphi_s$
 computation inside a further combinatorial sweep, so its cost is the per-candidate
 cost of the previous sections multiplied by the number of candidates the sweep
 visits. The theory is on the {doc}`macro-units page <macro-units>`; running and
@@ -306,9 +306,10 @@ count.
   set-partition growth of the earlier table (Bell numbers), with each group capped
   at `max_constituents` units.
 - *Mappings.* Each group of $|V|$ constituents read over an update grain $\tau'$
-  admits $2^{\,2^{\tau'|V|} - 1} - 1$ state mappings, counted up to complementation
-  of the macro state labels (Marshall et al.,
-  2024, given after Eq. 13), doubly exponential in $\tau'|V|$: a pair at grain 1
+  admits $2^{\,2^{\tau'|V|}} - 2$ non-constant state mappings (Marshall et al.,
+  2026, in the text after Eq. 14). Counted up to complementation of the macro
+  state labels, as PyPhi enumerates them, that is $2^{\,2^{\tau'|V|} - 1} - 1$,
+  doubly exponential in $\tau'|V|$: a pair at grain 1
   already admits 7, three constituents 127, four constituents 32 767. This is why
   the default search enumerates only the coarse-graining and blackboxing families
   and bounds the exhaustive alternative with `exhaustive_cap`.
@@ -317,16 +318,16 @@ count.
   `max_update_grain ** max_depth` is the length of micro history the search then
   requires.
 - *Assemblies.* Valid units combine into a candidate system only when their micro
-  footprints and backgrounds are disjoint (Marshall et al., 2024, Eq. 18).
+  footprints and backgrounds are disjoint (Marshall et al., 2026, Eq. 19).
 
 One structural fact keeps this short of the full product of the four axes. The
-intrinsic-unit criteria (Marshall et al., 2024, Eqs. 15–16) are properties of a
+intrinsic-unit criteria (Marshall et al., 2026, Eqs. 16–17) are properties of a
 decomposition and its background alone — a candidate's mapping and update grain
 enter neither inequality — so the search judges each decomposition *once*, and that
 single verdict covers all of its variants, whatever their mappings and update
 grains. Building a unit on meso constituents rather than directly on the micro
 units narrows the mapping axis further, because the meso units' own mappings
-are already fixed (Marshall et al., 2024, Fig. 3E).
+are already fixed (Marshall et al., 2026, Fig. 3E).
 
 **What one candidate costs.** Each candidate has two separate costs.
 Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ work,
@@ -355,8 +356,8 @@ The $\varphi_s$ evaluations dominate: macro-TPM construction is polynomial in th
 fixed micro size $n$, while the partition sweep grows with $m$ and is paid for
 every candidate.
 
-**Measured shape.** On the four-unit substrate of Example 1 from Marshall et al.
-(2024) — the coarse-graining example worked through in the
+**Measured shape.** On the four-unit substrate of Example 2 from Marshall et al.
+(2026) — the coarse-graining example worked through in the
 {doc}`intrinsic-units tutorial <../tutorials/macro>` — the default bounds (one
 macroing level, update grain 1, the coarse-graining and blackboxing families)
 evaluate about eighty candidate systems and finish in about a second, almost
@@ -607,8 +608,9 @@ account fits a base of 2.3 after dividing out $n^5$ over the measured range.
   Biology* 14(7): e1006343.
 - Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023). Integrated
   information theory (IIT) 4.0. *PLOS Computational Biology* 19(10): e1011465.
-- Marshall W, Findlay G, Albantakis L, Tononi G (2024). Intrinsic units:
-  identifying a system's causal grain. *bioRxiv* 2024.04.12.589163.
+- Marshall W, Findlay G, Albantakis L, Tononi G (2026). Intrinsic units:
+  identifying a system's causal grain. *Neuroscience of Consciousness*
+  2026(1): niag013.
 - Zaeemzadeh A, Tononi G (2024). Upper bounds for integrated information.
   *PLOS Computational Biology* 20(8): e1012323.
 - Hanson JR, Walker SI (2023). On the non-uniqueness problem in integrated

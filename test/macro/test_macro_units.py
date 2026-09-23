@@ -169,7 +169,7 @@ class TestMappingConstructors:
         assert unit.micro_mapping == (0, 1)
 
     def test_coarse_grain_both_on(self):
-        # Example 1's mapping: ON iff both constituents ON
+        # Example 2's mapping: ON iff both constituents ON
         assert coarse_grain(2, on_counts={2}) == (0, 0, 0, 1)
 
     def test_coarse_grain_at_least_one(self):
@@ -188,7 +188,7 @@ class TestMappingConstructors:
             )
 
     def test_blackbox_single_output_final_update(self):
-        # Example 2's mapping: 4 constituents, tau = 2, output = local
+        # Example 3's mapping: 4 constituents, tau = 2, output = local
         # index 2 (C); state = C at the final update.
         table = blackbox(4, update_grain=2, output_constituents=(2,))
         assert len(table) == 2**8

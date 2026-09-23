@@ -77,7 +77,7 @@ class MacroSystem(System):
         substrate : Substrate
             The binary micro universe.
         units : sequence of MacroUnit
-            The system's macro units (Eq. 18 must hold).
+            The system's macro units (Eq. 19 must hold).
         micro_history : sequence of universe states
             Universe micro states, oldest first, of length
             ``max(tau_J)``. A bare state is accepted when every unit has

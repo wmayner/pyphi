@@ -273,7 +273,7 @@ class TestHandComputedTinyCase:
 
 class TestPaperExampleTPMs:
     def test_cg_construction_exact(self):
-        """Example 1. The construction values are derived in closed form.
+        """Example 2. The construction values are derived in closed form.
 
         The authors' committed macro TPM (their repo, results from a
         hand-entered matrix) contains a rounding (0.006833 for 0.0615/9)
@@ -304,7 +304,7 @@ class TestPaperExampleTPMs:
             assert np.allclose(built, expected, atol=1e-14)
 
     def test_bbx_construction_matches_authors_computation(self):
-        """Example 2: must equal the authors' computed TPM to ~1e-15.
+        """Example 3: must equal the authors' computed TPM to ~1e-15.
 
         Their computation (repo, `_get_blackbox_example_macro_tpm`):
         square the state-by-state micro TPM, condition on the (C, G)
@@ -369,8 +369,8 @@ class TestMicroReductionWithBackground:
 
 
 class TestApportionedBackgroundPath:
-    """Eq 29 path: no published anchor (both paper examples have empty
-    background) -- unit-level checks only until sub-project 3."""
+    """Eq 29 path: no published anchor (all three paper examples have
+    empty background) -- unit-level checks only until sub-project 3."""
 
     def test_apportionment_invisible_at_tau_1(self):
         substrate = _asymmetric_substrate()

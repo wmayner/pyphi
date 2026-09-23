@@ -98,12 +98,12 @@ under the substrate dynamics are rejected up front. See
 What is the right spatiotemporal grain at which to analyze the causal powers of
 a system? IIT provides a principled answer to this question. PyPhi 2.0
 implements the macro-unit framework of Marshall, Findlay, Albantakis & Tononi
-(2024) in `pyphi.macro`: macro units are defined by coarse-graining or
+(2026) in `pyphi.macro`: macro units are defined by coarse-graining or
 blackboxing constituents at a finer grain — over space, over update steps, or
 both — and the four-step macro TPM construction turns a set of macro units into
 a `MacroSystem` that behaves exactly like a micro `System` in the standard IIT
-4.0 pipeline. Both of the paper's worked examples are reproduced at the
-published precision.
+4.0 pipeline. The paper's coarse-graining and black-boxing examples
+(Examples 2 and 3) are reproduced at the published precision.
 
 The framework includes the criteria for unithood. The intrinsic unit
 criteria (`pyphi.macro.criteria`) decide whether a candidate unit has the
@@ -495,8 +495,9 @@ planning a cluster campaign step by step. See
 Every published worked example is reproduced at its published precision: the IIT 4.0 paper's Figs. 1, 2, and
 4, all five Fig. 6 architectures, and the three Fig. 7 panels (Albantakis
 et al. 2023) — with the authors' exact weight matrices, previously
-available only as figure graphics, now shipping in `pyphi.examples`; both
-worked examples of the macro-unit paper (Marshall et al. 2024); the Fig. 12
+available only as figure graphics, now shipping in `pyphi.examples`; the
+coarse-graining and black-boxing examples of the macro-unit paper
+(Marshall et al. 2026); the Fig. 12
 constellation and Φ of the IIT 3.0 paper (Oizumi et al. 2014); the
 canonical OR-AND account and the three-candidate voting example of the
 actual-causation paper (Albantakis et al. 2019); the multi-valued p53-Mdm2

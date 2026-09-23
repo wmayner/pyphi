@@ -1,4 +1,4 @@
-# Marshall et al. 2024 committed result sets
+# Marshall et al. 2026 committed result sets
 
 The `*.summary.txt` files in this directory are verbatim copies of the
 `results/*/summary.txt` files from the paper authors' repository:
@@ -9,9 +9,10 @@ The `*.summary.txt` files in this directory are verbatim copies of the
   pinned-commit raw URLs
 - **License:** GPL-3.0 (same as PyPhi); files reproduced with
   attribution
-- **Paper:** Marshall, Findlay, Albantakis, Tononi (2024), "System
-  Integrated Information" / intrinsic units,
-  https://doi.org/10.1101/2024.04.12.589163
+- **Paper:** Marshall, Findlay, Albantakis, Tononi (2026), "Intrinsic
+  units: identifying a system's causal grain", Neuroscience of
+  Consciousness 2026(1): niag013, https://doi.org/10.1093/nc/niag013
+  (preprint: https://doi.org/10.1101/2024.04.12.589163)
 
 Each value is φ_s of one subsystem, computed by the authors with
 `Subsystem(network, state, subset).sia()` under old pyphi at their

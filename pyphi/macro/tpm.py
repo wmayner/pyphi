@@ -1,4 +1,4 @@
-"""The four-step macro TPM construction (Marshall et al. 2024, Eqs. 26-40).
+"""The four-step macro TPM construction (Marshall et al. 2026, Eqs. 26-40).
 
 Step 1 discounts micro connections extrinsic to the macro unit being
 updated (Eqs. 26-30). Step 2 chains the modified probabilities into
@@ -270,7 +270,7 @@ def _state_weights(units, system_indices, macro_state) -> np.ndarray:
     """``r(u^S, s)`` over system micro states (Eqs. 37-39).
 
     Factorizes as the product of per-unit final-state proportions
-    because the ``U^J`` are disjoint (Eq. 18) and exactly cover ``U^S``
+    because the ``U^J`` are disjoint (Eq. 19) and exactly cover ``U^S``
     (Eq. 23).
     """
     num_system_states = 2 ** len(system_indices)
@@ -390,7 +390,7 @@ def _validate_units(substrate: Substrate, units: tuple[MacroUnit, ...]) -> None:
         if claimed & footprint:
             raise ValueError(
                 "units' micro constituents and apportionments must be "
-                f"pairwise disjoint (Eq. 18); overlap: {sorted(claimed & footprint)}"
+                f"pairwise disjoint (Eq. 19); overlap: {sorted(claimed & footprint)}"
             )
         claimed |= footprint
     system = set(_system_micro_indices(units))
@@ -405,14 +405,14 @@ def _validate_units(substrate: Substrate, units: tuple[MacroUnit, ...]) -> None:
 
 
 def _validate_nested_apportionment(unit: MacroUnit) -> None:
-    """Eq. 12: constituents' apportionments nest within their parent's."""
+    """Eq. 13: constituents' apportionments nest within their parent's."""
     parent = set(unit.background_apportionment)
     for c in unit.constituents:
         if isinstance(c, MacroUnit):
             if not set(c.background_apportionment) <= parent:
                 raise ValueError(
                     "a constituent's background apportionment must be a "
-                    "subset of its parent's (Eq. 12); offending indices: "
+                    "subset of its parent's (Eq. 13); offending indices: "
                     f"{sorted(set(c.background_apportionment) - parent)}"
                 )
             _validate_nested_apportionment(c)
@@ -455,7 +455,7 @@ def macro_tpms(substrate, units, micro_history):
         universe.
     units : sequence of MacroUnit
         The system's macro units. Their ``U^J union W^J`` must be
-        pairwise disjoint (Eq. 18).
+        pairwise disjoint (Eq. 19).
     micro_history : sequence of universe states
         Universe micro states, oldest first, of length ``max(tau_J)``;
         the last entry is the current state.
@@ -470,7 +470,7 @@ def macro_tpms(substrate, units, micro_history):
     ------
     ValueError
         If the substrate is not binary, the units are not pairwise
-        disjoint (Eq. 18), or ``micro_history`` does not have exactly
+        disjoint (Eq. 19), or ``micro_history`` does not have exactly
         ``max(tau_J)`` entries.
     """
     factored = substrate.factored_tpm

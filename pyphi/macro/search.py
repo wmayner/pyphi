@@ -1,8 +1,8 @@
 """Bounded search for intrinsic units and complexes (Marshall et al.
-2024, Sec. 2.2.2).
+2026, "Applying the postulates to units").
 
 The recursion starts from the micro units, which are axiomatically
-valid (Eqs. 15-16 gate macroing only). Each level derives candidate
+valid (Eqs. 16-17 gate macroing only). Each level derives candidate
 decompositions ``V`` from the previous level's pool of valid units and
 judges each ``(V, W)`` pair once -- validity is a property of the
 decomposition, independent of the candidate's own mapping and update
@@ -14,16 +14,16 @@ validated at strictly finer footprints.
 ``f(U^J, W^J)`` is the set of valid systems whose total micro
 constituents are a subset (not necessarily strict) of ``U^J`` and whose
 background apportionments are non-overlapping subsets of ``W^J``,
-excluding the candidate ``v^J`` itself (the comparison in Eq. 16 is
+excluding the candidate ``v^J`` itself (the comparison in Eq. 17 is
 over ``v' != v^J``). Members are assembled from units validated at
 strictly finer footprints, so a system whose constituents equal ``U^J``
 competes only when it splits them into several smaller meso/micro units
 (a same-union reorganization), while a single unit spanning all of
 ``U^J`` -- the candidate's own grain -- never enters ``f``. The set
-``P(u)`` extends the same assembly to the whole universe (Eq. 18), and
+``P(u)`` extends the same assembly to the whole universe (Eq. 19), and
 a member is a complex if
 it strictly beats every other member whose micro constituents overlap
-its own (Eq. 19). Candidate systems whose state is unreachable under
+its own (Eq. 20). Candidate systems whose state is unreachable under
 their own TPM specify no cause and cannot exist; they are dropped.
 
 All φₛ evaluations within one driver run share a memo keyed on
@@ -468,7 +468,7 @@ def _as_constituent(unit: MacroUnit) -> MacroUnit | int:
 
 
 def _assemble_systems(pool, background_cap: int):
-    """Nonempty unit sets with pairwise-disjoint stakes (Eq. 18).
+    """Nonempty unit sets with pairwise-disjoint stakes (Eq. 19).
 
     Yields tuples in depth-first inclusion order over ``pool``.
     """
@@ -519,7 +519,7 @@ def _apportionments(n, footprint, inherited, bounds: SearchBounds):
     """Candidate ``W^J`` sets for a footprint.
 
     Always contains the union of the constituents' apportionments
-    (Eq. 12). Under ENUMERATE, extends it with subsets of the remaining
+    (Eq. 13). Under ENUMERATE, extends it with subsets of the remaining
     background up to ``max_background`` total.
     """
     inherited = tuple(sorted(inherited))
@@ -549,7 +549,7 @@ def _f(
     gates,
     mode,
 ):
-    """``f(U^J, W^J)``: competitor entries ``(system, φₛ)`` (Eq. 16).
+    """``f(U^J, W^J)``: competitor entries ``(system, φₛ)`` (Eq. 17).
 
     Under the certified prune, a competitor whose intrinsic-information
     ceiling is strictly below the candidate's φₛ at precision carries
@@ -659,7 +659,7 @@ def _trivial_verdict(phi) -> UnitVerdict:
 def _is_micro(unit: MacroUnit) -> bool:
     """Micro for gating purposes: one micro constituent at grain 1.
 
-    Eqs. 15-16 gate macroing only; micro units are axiomatically valid.
+    Eqs. 16-17 gate macroing only; micro units are axiomatically valid.
     """
     return len(unit.micro_constituents) == 1 and unit.micro_grain == 1
 
@@ -958,7 +958,7 @@ def competing_systems(
     parallel_kwargs: dict | None = None,
     prune: str | None = None,
 ) -> tuple[MacroSystem, ...]:
-    """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 16).
+    """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 17).
 
     ``prune="certified"`` skips partition sweeps whose outcome is
     certified by the intrinsic-information requirement; ``"off"`` evaluates
@@ -1004,9 +1004,9 @@ def is_intrinsic_unit(
     parallel_kwargs: dict | None = None,
     prune: str | None = None,
 ) -> UnitVerdict:
-    """Eqs. 15-16 for one candidate; micro units return VALID trivially.
+    """Eqs. 16-17 for one candidate; micro units return VALID trivially.
 
-    The unit's own mapping and update grain are ignored (Eq. 15 is
+    The unit's own mapping and update grain are ignored (Eq. 16 is
     mapping-independent); the recursion is run restricted to the unit's
     footprint to build ``f(U^J, W^J)``. ``prune="certified"`` skips
     competitor partition sweeps whose outcome is certified by the
@@ -1114,7 +1114,7 @@ def valid_systems(
     parallel_kwargs: dict | None = None,
     prune: str | None = None,
 ) -> tuple[MacroSystem, ...]:
-    """The bounded ``P(u)``: every Eq-18-compatible system of intrinsic
+    """The bounded ``P(u)``: every Eq-19-compatible system of intrinsic
     units, evaluated over the full universe with everything else as
     background. Systems whose state is unreachable are dropped.
     ``prune`` gates the unit derivation's competitor sweeps as in
@@ -1171,7 +1171,7 @@ class EvaluationRecord:
 
 @dataclass(frozen=True)
 class ComplexesResult:
-    """The complexes of the bounded candidate space (Eq. 19, applied
+    """The complexes of the bounded candidate space (Eq. 20, applied
     recursively).
 
     Attributes
@@ -1228,9 +1228,9 @@ def complexes(
     """Identify the complexes of the bounded candidate space -- the
     one-call driver.
 
-    Every admissible system of intrinsic units (Eq. 18) is evaluated over
+    Every admissible system of intrinsic units (Eq. 19) is evaluated over
     the full universe, then condensed by the recursive exclusion cascade:
-    Eq. 19's comparison is applied tier by tier, so a candidate excluded
+    Eq. 20's comparison is applied tier by tier, so a candidate excluded
     by an accepted complex has no standing to exclude other candidates.
     φₛ ties between overlapping candidates escalate to Composition (Φ);
     cliques that still tie fail exclusion and are reported in ``ties``.

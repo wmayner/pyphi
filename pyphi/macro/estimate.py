@@ -123,7 +123,7 @@ class SearchEstimate(Displayable, ToPandasMixin):
     worst_case_pool_by_level : tuple[int, ...]
         Concrete units in the pool after each level, all-pass.
     assemblies_upper_bound : int
-        Candidate systems the final sweep assembles (Eq. 18).
+        Candidate systems the final sweep assembles (Eq. 19).
     distinct_systems_upper_bound : int
         Deduplicated candidate systems across judgment candidates,
         judgment competitors, and the final sweep — the number to compare

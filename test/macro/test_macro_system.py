@@ -85,7 +85,7 @@ class TestConstruction:
         substrate = _asymmetric_substrate()
         inner = MacroUnit((0,), 1, (0, 1), background_apportionment=(3,))
         outer = MacroUnit((inner, 1), 1, coarse_grain(2, on_counts={2}))
-        with pytest.raises(ValueError, match=r"Eq\. 12"):
+        with pytest.raises(ValueError, match=r"Eq\. 13"):
             MacroSystem.from_micro(substrate, (outer,), ((1, 0, 1, 0),))
 
     def test_nonbinary_substrate_rejected(self):
@@ -239,7 +239,10 @@ class TestMicroReduction:
 
 
 class TestPaperExample1:
-    """Marshall et al. 2024, Example 1 (coarse-graining, Fig. 4)."""
+    """Marshall et al. 2026, Example 2 (coarse-graining, Fig. 5).
+
+    Example 1 in the bioRxiv preprint.
+    """
 
     def test_micro_panel(self):
         with config.override(**presets.iit4_2023):
@@ -291,7 +294,10 @@ class TestPaperExample1:
 
 
 class TestPaperExample2:
-    """Marshall et al. 2024, Example 2 (black-boxing, Fig. 5)."""
+    """Marshall et al. 2026, Example 3 (black-boxing, Fig. 6).
+
+    Example 2 in the bioRxiv preprint.
+    """
 
     def _macro_system(self):
         substrate = Substrate(_bbx_micro_tpm(), node_labels=tuple("ABCDEFGH"))

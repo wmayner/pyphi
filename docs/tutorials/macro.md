@@ -19,14 +19,15 @@ kernelspec:
 
 A system's cause-effect power need not be maximal at the grain of its
 smallest parts. The intrinsic-units framework of Marshall, Findlay,
-Albantakis, and Tononi (2024) extends the IIT analysis to *macro units*:
+Albantakis, and Tononi (2026) extends the IIT analysis to *macro units*:
 groups of micro units, possibly evaluated over several micro updates, whose
 joint state is read out by an explicit state mapping. PyPhi implements the
 full framework in {mod}`pyphi.macro`: the macro TPM construction, the
 intrinsic-unit criteria, and a bounded search that answers "which units, and
 which grain, are intrinsic for this substrate in this state?"
 
-This tutorial walks through the authors' *minimal* example, then lets the
+This tutorial walks through the authors' *minimal* example (Example 1 of the
+paper), then lets the
 search rediscover the coarse-graining example from the paper.
 
 ```{code-cell} python
@@ -138,9 +139,9 @@ magnitude — the framework's central phenomenon.
 ## Is the macro unit intrinsic?
 
 A grouping does not automatically count as one unit. A candidate is an
-*intrinsic unit* only if its constituent system is integrated (Eq. 15) and
+*intrinsic unit* only if its constituent system is integrated (Eq. 16) and
 strictly more irreducible than every competing system that could be built
-within its footprint (Eq. 16). {func}`pyphi.macro.is_intrinsic_unit` returns
+within its footprint (Eq. 17). {func}`pyphi.macro.is_intrinsic_unit` returns
 a verdict with the evidence:
 
 ```{code-cell} python
@@ -172,10 +173,10 @@ verdict.valid, verdict.phi
 
 {func}`pyphi.macro.complexes` is the one-call driver: it derives every
 intrinsic unit within the search bounds, assembles every admissible system of
-them (Eq. 18), evaluates each over the full universe, and condenses the
+them (Eq. 19), evaluates each over the full universe, and condenses the
 candidates into the *complexes* by the recursive exclusion cascade — accept
 the φₛ-maximal candidate, exclude everything overlapping it, and continue on
-the remainder (Eq. 19 applied tier by tier; a candidate excluded by an
+the remainder (Eq. 20 applied tier by tier; a candidate excluded by an
 accepted complex has no standing to exclude others). The same search is
 also available as `pyphi.analyze(substrate, state,
 grains=True)`. The winners are
@@ -214,7 +215,7 @@ cascade continues past it.
 
 ## Rediscovering the paper's coarse-graining example
 
-Example 1 of the paper is a four-unit substrate built from two interacting
+Example 2 of the paper is a four-unit substrate built from two interacting
 pairs. Its micro system has $\varphi_s$ of about $0.02$, but the authors show
 that coarse-graining each pair into a both-ON macro unit yields a two-unit
 macro system with $\varphi_s$ of about $1.004$. The default search bounds
@@ -397,7 +398,7 @@ search is explicitly bounded by {class}`pyphi.macro.SearchBounds`:
   or `"EXHAUSTIVE"` (every surjective table, capped by `exhaustive_cap`
   sequence-states);
 - `apportionment` / `max_background` — opt-in enumeration of background
-  apportionments (Eq. 12/29).
+  apportionments (Eq. 13/29).
 
 Every $\varphi_s$ evaluation in a driver run is memoized, and
 `result.records` exposes all of them, so the derivation is fully inspectable:

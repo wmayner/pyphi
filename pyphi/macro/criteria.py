@@ -1,11 +1,11 @@
-"""Intrinsic-unit criteria (Marshall et al. 2024, Eqs. 15-16).
+"""Intrinsic-unit criteria (Marshall et al. 2026, Eqs. 16-17).
 
 A candidate macro unit J with direct constituents ``V^J`` exists as one
 unit only if its constituent system -- the system of the elements of
 ``V^J`` over the full universe, with everything else as background --
-is integrated (Eq. 15) and strictly more irreducible than every
+is integrated (Eq. 16) and strictly more irreducible than every
 competing system that can be built within the unit's footprint
-(Eq. 16). Both criteria are properties of the pair ``(V^J, W^J)``: the
+(Eq. 17). Both criteria are properties of the pair ``(V^J, W^J)``: the
 candidate's own mapping and update grain do not enter, so mapped and
 grained variants of one decomposition share a verdict.
 
@@ -38,7 +38,7 @@ class Reason(Enum):
 
 @dataclass(frozen=True)
 class UnitVerdict:
-    """The outcome of checking Eqs. 15-16 for one candidate decomposition.
+    """The outcome of checking Eqs. 16-17 for one candidate decomposition.
 
     Attributes
     ----------
@@ -46,7 +46,7 @@ class UnitVerdict:
         Whether the candidate satisfies both criteria.
     reason : Reason
         ``VALID``, or which criterion failed: ``NOT_INTEGRATED``
-        (Eq. 15), ``NOT_MAXIMAL`` or ``TIED`` (Eq. 16).
+        (Eq. 16), ``NOT_MAXIMAL`` or ``TIED`` (Eq. 17).
     phi : float
         φₛ(v^J), the constituent system's integrated information.
     witness : MacroSystem or None
@@ -71,7 +71,7 @@ def judge_candidate(
     *,
     num_gated: int = 0,
 ) -> UnitVerdict:
-    """Eqs. 15-16 given φₛ(v^J) and the evaluated competitor set.
+    """Eqs. 16-17 given φₛ(v^J) and the evaluated competitor set.
 
     All inequalities are strict at ``config.numerics.precision``; a
     candidate that ties its strongest competitor is invalid with reason
@@ -164,7 +164,7 @@ def constituent_system(
     constituents: Iterable[MacroUnit | int],
     micro_history,
 ) -> MacroSystem:
-    """The system of a unit's direct constituents (Eq. 15).
+    """The system of a unit's direct constituents (Eq. 16).
 
     Each element of ``V^J`` participates with its full definition: a
     micro index becomes an identity micro unit; a meso constituent
@@ -194,7 +194,7 @@ def unit_integration(
     constituents: Iterable[MacroUnit | int],
     micro_history,
 ) -> float:
-    """φₛ(v^J): the constituent system's integrated information (Eq. 15).
+    """φₛ(v^J): the constituent system's integrated information (Eq. 16).
 
     A constituent system whose state is unreachable specifies no cause
     and cannot exist; its integration is zero.

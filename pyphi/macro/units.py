@@ -1,4 +1,4 @@
-"""Macro unit value objects (Marshall et al. 2024, Eq. 11).
+"""Macro unit value objects (Marshall et al. 2026, Eq. 12).
 
 A macro unit ``J = (U^J, V^J, tau'_J, g'_J, W^J)`` is specified by its
 direct constituents ``V^J`` (micro unit indices or meso ``MacroUnit``
@@ -44,7 +44,7 @@ def _mixed_radix_digits(index, radices):
 
 @dataclass(frozen=True)
 class MacroUnit:
-    """A macro unit ``J = (U^J, V^J, tau'_J, g'_J, W^J)`` (Eq. 11).
+    """A macro unit ``J = (U^J, V^J, tau'_J, g'_J, W^J)`` (Eq. 12).
 
     Parameters
     ----------
@@ -211,7 +211,7 @@ class MacroUnit:
 
     @cached_property
     def micro_mapping(self) -> tuple[int, ...]:
-        """``g_J``: the composed truth table over micro windows (Eq. 14).
+        """``g_J``: the composed truth table over micro windows (Eq. 15).
 
         Indexed with the same convention as :attr:`mapping`, with the
         micro constituents of ``U^J`` in ascending order as the

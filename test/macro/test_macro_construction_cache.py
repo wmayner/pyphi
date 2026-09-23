@@ -98,7 +98,7 @@ class TestReuse:
 class TestSweepReuse:
     def test_default_sweep_shares_across_variants(self, monkeypatch):
         """Mirrors the measured redundancy: the default complexes() sweep on
-        the Example 1 substrate performs ~162 per-unit constructions over 6
+        the Example 2 substrate performs ~162 per-unit constructions over 6
         distinct (footprint, grain) keys."""
         from pyphi.macro.search import SearchBounds
         from pyphi.macro.search import complexes

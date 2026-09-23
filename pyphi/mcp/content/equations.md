@@ -132,11 +132,29 @@ section or name.
 ## Macro units and grain
 
 Marshall et al. (2026), *Intrinsic units: identifying a system's causal
-grain*, Neurosci. Conscious. 2026(1): niag013 (PMC13082400). The equation
-numbers here are from the bioRxiv preprint (Eqs. 1–42 all numbered).
-Eqs. 26–40 give the four-step macro-TPM construction (discount extrinsic
-connections, extend to update sequences, causally marginalize the
-background, compress into macro states).
+grain*, Neurosci. Conscious. 2026(1): niag013 (PMC13082400,
+doi:10.1093/nc/niag013). Eqs. 1–42 are all numbered; the numbers below are
+from the published version. The bioRxiv preprint (2024.04.12.589163) numbers
+Eqs. 3–20 differently, so do not cite preprint numbers.
+
+- Eqs. 3–8 — background conditions at the micro grain: `q_e` (Eq. 3), the
+  Bayes posterior `q_c` (Eqs. 4–6), the cause TPM `𝒯_c` (Eq. 7), the effect
+  TPM `𝒯_e` (Eq. 8).
+- Eq. 9 — a complex at a single grain; Eq. 20 — a complex across grains
+  (overlap judged on micro constituents).
+- Eq. 12 — a unit `J = (U^J, V^J, τ′_J, g′_J, W^J)`; Eq. 13 — constituents'
+  background apportionments nest within `W^J`; Eq. 14 — the mapping `g′_J`
+  from constituent sequences; Eq. 15 — the composed mapping `g_J` from micro
+  sequences. The text after Eq. 14 counts `2^(2^(τ′|V|)) − 2` possible
+  mappings.
+- Eqs. 16–17 — the intrinsic-unit criteria: `φₛ(v^J) > 0`, and `φₛ(v^J)`
+  exceeds every competitor in `f(U^J, W^J, τ_J)`.
+- Eq. 19 — units of a system have disjoint micro constituents and
+  apportionments.
+- Eqs. 26–40 — the four-step macro-TPM construction: discount extrinsic
+  connections (Eqs. 26–30), extend to update sequences (Eq. 31), causally
+  marginalize the background (Eqs. 32–34), compress into macro states
+  (Eqs. 35–40). Eqs. 41–42 — the macro cause and effect TPMs.
 
 ## IIT 3.0
 

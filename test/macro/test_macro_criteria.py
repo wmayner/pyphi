@@ -1,4 +1,4 @@
-"""Tests for pyphi.macro.criteria: intrinsic-unit criteria (Eqs 15-16)."""
+"""Tests for pyphi.macro.criteria: intrinsic-unit criteria (Eqs 16-17)."""
 
 import numpy as np
 import pytest

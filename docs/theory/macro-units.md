@@ -17,7 +17,7 @@ their state over a window of several micro updates, can raise a system's
 integrated information $\varphi_s$ by orders of magnitude. IIT takes this
 seriously: the units that actually exist for a substrate are the ones — at
 whichever spatial grouping and temporal window — that *maximize* $\varphi_s$,
-its **intrinsic units** (Marshall et al., 2024). This page covers what a macro
+its **intrinsic units** (Marshall et al., 2026). This page covers what a macro
 unit is, the criteria a candidate unit must satisfy, and how candidates at
 different grains compete in a single exclusion cascade. It maps each notion onto
 the types in {mod}`pyphi.macro`; for a worked walkthrough see the
@@ -28,11 +28,11 @@ bounding the search see {doc}`Search across grains <../howto/grain-search>`.
 
 A macro unit is a coarser unit built from finer ones. Formally it is a tuple of
 its direct constituents, an update grain, and a mapping — the core of the unit
-tuple of Eq. 11 (Marshall et al., 2024): the constituents $V$ are the finer
+tuple of Eq. 12 (Marshall et al., 2026): the constituents $V$ are the finer
 units it is composed of; the update
 grain $\tau'$ is the number of micro updates over which those constituents are
 read; and the mapping $g'$ is a truth table that assigns a binary macro state to
-each joint sequence-state of the constituents over the window (Eq. 13),
+each joint sequence-state of the constituents over the window (Eq. 14),
 
 $$ g' : \Omega^{\tau'}_{V} \to \{0, 1\}. $$
 
@@ -45,19 +45,21 @@ constituents' joint states by their ON-count: the macro unit is ON exactly for a
 chosen set of counts, at update grain 1. A **blackboxing** reads out a
 designated subset of *output* constituents at the final update of the window,
 and admits any update grain. These are the two families the default search
-enumerates; the full space is every non-constant mapping. The number of possible
-mappings for a unit with $|V|$ constituents at update grain $\tau'$, counted up
-to complementation of the two macro state labels, is
+enumerates; the full space is every non-constant mapping. A unit with $|V|$ constituents
+at update grain $\tau'$ has $2^{\,2^{\tau'|V|}} - 2$ non-constant mappings
+(Marshall et al., 2026, in the text after Eq. 14). A mapping and its complement
+describe the same unit with its two macro state labels swapped, so PyPhi counts
+mappings up to complementation, which halves that number to
 
-$$ 2^{\,2^{\tau'|V|} - 1} - 1 $$
+$$ 2^{\,2^{\tau'|V|} - 1} - 1 . $$
 
-(Marshall et al., 2024, given after Eq. 13). It grows doubly exponentially in
+The count grows doubly exponentially in
 $\tau'|V|$, which is why the search enumerates the two mapping families by
 default and bounds the exhaustive alternative.
 
 Macro units stack into a hierarchy. A unit's constituents may themselves be
 macro units (**meso** units), so that its mapping composes with theirs down to
-the micro units at the bottom (Marshall et al., 2024, Eq. 14; Fig.
+the micro units at the bottom (Marshall et al., 2026, Eq. 15; Fig.
 3E). Building a unit directly on micro constituents leaves more mappings to
 choose from than building it on meso constituents, whose mappings are already
 fixed; which construction wins is decided, like everything else, by whichever
@@ -79,18 +81,18 @@ index, the base of the hierarchy.
 To exist as *one* unit, a candidate's
 constituent system — the constituents evaluated over the full universe, with
 everything else held as background — must satisfy the same postulates a complex
-does. Two criteria capture this (Marshall et al., 2024, Eqs. 15–16). First, the
+does. Two criteria capture this (Marshall et al., 2026, Eqs. 16–17). First, the
 constituent system must be **integrated**: its own system integrated information
 is positive,
 
-$$ \varphi_s(v^{J}) > 0 \qquad \text{(Eq. 15).} $$
+$$ \varphi_s(v^{J}) > 0 \qquad \text{(Eq. 16).} $$
 
 Second, it must be **maximally irreducible within** its footprint: no competing
 system that could be built from the same micro units and background may match or
 beat it,
 
 $$ \varphi_s(v^{J}) > \varphi_s(v') \quad \text{for every competitor } v'
-\qquad \text{(Eq. 16).} $$
+\qquad \text{(Eq. 17).} $$
 
 Both criteria are properties of the pair (constituents, background) alone. A
 candidate's mapping and update grain do not enter either inequality, so all
@@ -103,8 +105,8 @@ $\varphi_s$ and its evaluated competitor set and returns a
 {class}`~pyphi.macro.UnitVerdict`. The verdict's `reason` is a
 {class}`~pyphi.macro.Reason`: `VALID` when both criteria hold, `NOT_INTEGRATED`
 when the constituent system has $\varphi_s = 0$ and so fails the integration
-criterion of Eq. 15, and `NOT_MAXIMAL` or `TIED` when a competitor beats or ties
-it under Eq. 16. Micro units are exempt — they are the base case of the
+criterion of Eq. 16, and `NOT_MAXIMAL` or `TIED` when a competitor beats or ties
+it under Eq. 17. Micro units are exempt — they are the base case of the
 recursion, and count as units even when their own $\varphi_s$ is zero.
 
 ## Exclusion across grains
@@ -115,14 +117,14 @@ set of units (Albantakis et al., 2023). IIT resolves the competition by keeping,
 among overlapping candidates, only the one whose system integrated information is
 maximal, and this applies across grains — a micro candidate system and a macro
 candidate system over the same micro units are rivals, not separate answers
-(Marshall et al., 2024, Eq. 19).
+(Marshall et al., 2026, Eq. 20).
 
 The procedure is recursive (Albantakis et al., 2023, Eqs. 24–26; Marshall et
 al., 2023, Algorithm A1): the candidate with maximal $\varphi_s$ is accepted as
 a complex, every candidate overlapping it is excluded, and the search repeats
 on what remains until the substrate is exhausted. The papers state this over
 one substrate at one grain; across grains they state the criterion, that two
-candidates overlap when they share micro units (Marshall et al., 2024, Eq. 19).
+candidates overlap when they share micro units (Marshall et al., 2026, Eq. 20).
 PyPhi puts the two together as one cascade over micro footprints, so
 candidates at every grain compete on the same basis. Each candidate's footprint
 is the set of micro units it ultimately covers; the cascade walks candidates in
@@ -154,21 +156,22 @@ reading margins and controlling how ties are broken, see
 
 | Notion | Type or function |
 | --- | --- |
-| A macro unit: constituents, update grain, mapping (Eqs. 11, 13) | {class}`~pyphi.macro.MacroUnit` |
+| A macro unit: constituents, update grain, mapping (Eqs. 12, 14) | {class}`~pyphi.macro.MacroUnit` |
 | Coarse-graining and blackboxing mapping families | {func}`~pyphi.macro.coarse_grain`, {func}`~pyphi.macro.blackbox` |
 | The trivial micro unit | {func}`~pyphi.macro.micro_unit` |
 | A system of macro units, evaluated by the IIT pipeline | {class}`~pyphi.macro.MacroSystem` |
-| The intrinsic-unit criteria (Eqs. 15–16) | {func}`~pyphi.macro.judge_candidate`, {class}`~pyphi.macro.UnitVerdict`, {class}`~pyphi.macro.Reason` |
-| The recursive exclusion cascade (Eq. 19) | {mod}`pyphi.condensation` |
+| The intrinsic-unit criteria (Eqs. 16–17) | {func}`~pyphi.macro.judge_candidate`, {class}`~pyphi.macro.UnitVerdict`, {class}`~pyphi.macro.Reason` |
+| The recursive exclusion cascade (Eq. 20) | {mod}`pyphi.condensation` |
 | The bounded search across grains | {func}`pyphi.macro.complexes`, `pyphi.analyze(substrate, state, grains=...)` |
 | The search bounds and their cost estimate | {class}`~pyphi.macro.SearchBounds`, {class}`~pyphi.macro.SearchEstimate` |
 | The search result: complexes, ties, and evaluation records | {class}`~pyphi.macro.ComplexesResult` |
 
 ## References
 
-- Marshall W, Findlay G, Albantakis L, Tononi G (2024). Intrinsic units:
-  identifying a system's causal grain. *bioRxiv* 2024.04.12.589163.
-  <https://doi.org/10.1101/2024.04.12.589163>
+- Marshall W, Findlay G, Albantakis L, Tononi G (2026). Intrinsic units:
+  identifying a system's causal grain. *Neuroscience of Consciousness*
+  2026(1): niag013.
+  <https://doi.org/10.1093/nc/niag013>
 - Albantakis L, Barbosa L, Findlay G, Grasso M, et al. (2023). Integrated
   information theory (IIT) 4.0. *PLOS Computational Biology* 19(10): e1011465.
 - Marshall W, Grasso M, Mayner WGP, Tononi G, Albantakis L (2023). System

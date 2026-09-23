@@ -1,4 +1,4 @@
-"""Tests for pyphi.macro.search: bounded intrinsic-unit search (Eqs 15-19)."""
+"""Tests for pyphi.macro.search: bounded intrinsic-unit search (Eqs 16-20)."""
 
 import hypothesis.extra.numpy as hnp
 import numpy as np
@@ -244,7 +244,7 @@ class TestMicroExemption:
 class TestGrainRaisedSingleton:
     def test_no_competitors_and_gated_by_integration(self):
         # Macroing over updates (Fig 3D): a singleton footprint admits
-        # no proper-subset competitors, so the verdict reduces to Eq 15.
+        # no proper-subset competitors, so the verdict reduces to Eq 16.
         unit = MacroUnit((0,), 2, blackbox(1, 2, (0,)))
         bounds = SearchBounds(max_update_grain=2)
         history = ((1, 0, 1, 0), (1, 0, 1, 0))
@@ -294,7 +294,7 @@ def _spans_footprint(system, footprint):
 
 
 class TestWrappingExcludedFromF:
-    """Eq 16's competition excludes v^J, the candidate itself.
+    """Eq 17's competition excludes v^J, the candidate itself.
 
     Marshall (clarification): the subset condition in f(U^J, W^J) is on
     the total constituents and is not strict, and the comparison is over
@@ -328,7 +328,7 @@ class TestWrappingExcludedFromF:
 
     def test_admitting_wrapping_would_flip_min_verdict(self):
         # The control: were the wrapping admitted (the naive-literal
-        # reading), min's macro unit would fail Eq 16. This is why the
+        # reading), min's macro unit would fail Eq 17. This is why the
         # exclusion is load-bearing, not a free choice.
         with config.override(**presets.iit4_2023):
             shipped = competing_systems(min_substrate(), MIN_BOTH_ON, (0, 0))
@@ -364,7 +364,7 @@ class TestWrappingExcludedFromF:
 
 
 class TestVerdictMappingIndependence:
-    """Battery 4: Eq 15 mapping-independence -- mapped and grained
+    """Battery 4: Eq 16 mapping-independence -- mapped and grained
     variants of one decomposition share the verdict."""
 
     def test_variants_share_verdict(self):
@@ -455,7 +455,7 @@ class TestIntrinsicUnits:
 
 
 def assert_eq18(system):
-    """Eq 18: stakes (footprint union apportionment) pairwise disjoint."""
+    """Eq 19: stakes (footprint union apportionment) pairwise disjoint."""
     claimed = set()
     for unit in system.units:
         stake = set(unit.micro_constituents) | set(unit.background_apportionment)
@@ -654,7 +654,7 @@ class TestCostGuard:
         for record in result.records:
             assert_eq18(record.system)
         # Driver-outcome golden, recorded at implementation time: the
-        # search recovers the paper's Example 1 macro system -- both-on
+        # search recovers the paper's Example 2 macro system -- both-on
         # coarse-grainings over (A, B) and (C, D) -- as the unique
         # complex, at SP1's exact-construction phi golden.
         assert len(result.complexes) == 1

@@ -1,4 +1,4 @@
-"""Regression goldens from Marshall et al. 2024's committed result sets.
+"""Regression goldens from Marshall et al. 2026's committed result sets.
 
 The expected values are parsed from the authors' verbatim
 ``summary.txt`` files in ``test/data/intrinsic_units/`` (see that
