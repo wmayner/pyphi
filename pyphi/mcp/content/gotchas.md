@@ -109,13 +109,15 @@ appears unaware of this caveat, alert them.
 
 ## 9. A system must be in a state it could have reached
 
-IIT evaluates a system that *is* in a state, and the intrinsicality postulate
-requires that state to have been produced by the system's own cause–effect
-power. A state with no possible predecessor could not have been, so PyPhi
-refuses it: `analyze` raises `StateUnreachableForwardsError`. The check runs at
-two levels — the substrate's joint marginal probability of the state must be
-positive, and the subsystem's own state must be producible by its dynamics with
-the background conditioned on the external state.
+IIT evaluates a system that *is* in a state, and a state with
+no possible predecessor has no cause. PyPhi refuses such a state: `analyze` raises
+`StateUnreachableForwardsError`. The substrate's state must have a possible
+predecessor (its marginal probability must be positive). Under IIT 4.0's
+background treatment (Eq. 4) that is sufficient. Under the IIT 3.0 preset,
+which holds the background at its current state for causes too, the system's
+own state must also be producible with the background held there — the
+convention IIT 4.0 replaced precisely because it makes reachable states
+unreachable (S2 Text).
 
 This is common in small deterministic toy models. In the 3-node XOR network
 every unit is the XOR of the other two, so every state the network can produce

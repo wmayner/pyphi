@@ -63,9 +63,14 @@ def test_validate_state_error(s):
         System(s.substrate, state, s.node_indices)
 
 
+FIXED = "CONDITION_CURRENT_STATE"
+MARGINALIZED = "CAUSAL_MARGINALIZATION"
+
+
 def test_validate_state_subsystem_unreachable(s):
-    """Subsystem-level reachability: state component must be in image of
-    background-conditioned subsystem dynamics.
+    """Subsystem-level reachability under CONDITION_CURRENT_STATE: the
+    state component must be in the image of the subsystem dynamics with
+    the background's past held at its current state.
 
     For the standard substrate ``s`` in state ``(1, 0, 0)``, the singleton
     subsystem ``{A}`` cannot have A=1 because the conditioned dynamics
@@ -74,11 +79,42 @@ def test_validate_state_subsystem_unreachable(s):
     ``{B}`` passes because conditioned B_next = COPY(C=0) = 0 matches B=0.
     """
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(s.substrate, s.state, (0,))
+        System(s.substrate, s.state, (0,), background_conditioning=FIXED)
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(s.substrate, s.state, (2,))
+        System(s.substrate, s.state, (2,), background_conditioning=FIXED)
     # No raise for B:
-    System(s.substrate, s.state, (1,))
+    System(s.substrate, s.state, (1,), background_conditioning=FIXED)
+
+
+def test_validate_state_subsystem_reachable_under_causal_marginalization(s):
+    """Under IIT 4.0 the substrate-level check is sufficient.
+
+    The background's past is weighted by its probability given the current
+    state (Albantakis et al. 2023, Eq. 4), not held at its current state,
+    so ``{A}`` and ``{C}`` in ``(1, 0, 0)`` have causes.
+    """
+    for indices in [(0,), (1,), (2,)]:
+        System(s.substrate, s.state, indices, background_conditioning=MARGINALIZED)
+
+
+def test_validate_state_background_past_differs_from_present():
+    """Regression: a state reachable only through a background past that
+    differs from the background's present.
+
+    A copies B and B flips (A' = B, B' = NOT B). In state (A=1, B=0) the
+    only possible past has B=1. Holding B's past at its present value 0
+    makes A=1 unreachable, which is the pathology IIT 4.0 removed (S2 Text,
+    "Background Conditions"). Under Eq. 4 the cause of A=1 is certain.
+    """
+    tpm = np.array([[0, 1], [0, 1], [1, 0], [1, 0]], dtype=float)
+    sub = Substrate(tpm)
+    state = (1, 0)
+    system = System(sub, state, (0,), background_conditioning=MARGINALIZED)
+    np.testing.assert_array_equal(
+        system.cause_marginal.factor(0).squeeze(), [[0.0, 1.0], [0.0, 1.0]]
+    )
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        System(sub, state, (0,), background_conditioning=FIXED)
 
 
 def _k3_copy_substrate() -> Substrate:
@@ -101,16 +137,18 @@ def test_validate_state_subsystem_unreachable_kary():
     produces node-0-next = 1, and node 1 is always 0). But subsystem
     ``{0}`` with node 1 fixed at its observed value 0 can only produce
     node-0-next = 0, so ``proper_state = (1,)`` is unreachable under the
-    conditioned dynamics.
+    conditioned dynamics. Under causal marginalization the past with
+    node 1 = 1 is the cause, so ``{0}`` is reachable.
     """
     sub = _k3_copy_substrate()
     # Full substrate: reachable, no raise.
     System(sub, (1, 0), (0, 1))
     # Subsystem {0}: node-0 conditioned dynamics cannot produce 1.
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(sub, (1, 0), (0,))
+        System(sub, (1, 0), (0,), background_conditioning=FIXED)
+    System(sub, (1, 0), (0,), background_conditioning=MARGINALIZED)
     # Subsystem {1}: node 1 is constant 0, so {1}=0 is reachable.
-    System(sub, (1, 0), (1,))
+    System(sub, (1, 0), (1,), background_conditioning=FIXED)
 
 
 @pytest.mark.skip(

@@ -238,16 +238,22 @@ def state_reachable(system: object) -> None:
     """Raise :class:`~pyphi.exceptions.StateUnreachableForwardsError` if the
     state is unreachable.
 
-    Two checks fire:
-
     1. Substrate-level: the marginal probability
        ``P(state) = Σ_{s_t} ∏_i factor_i(s_t)[state[i]]`` must be positive
        under the substrate's joint factored TPM.
-    2. Subsystem-level: the subsystem's component of the state must be
-       producible by the background-conditioned subsystem dynamics. Some
-       past state of the *subsystem* (with background fixed at the
-       external state) must transition to the subsystem's ``proper_state``
-       with nonzero probability.
+    2. Subsystem-level, under ``CONDITION_CURRENT_STATE`` only: the
+       subsystem's component of the state must be producible with the
+       background's past held at its current state. Some past state of the
+       *subsystem* must transition to the subsystem's ``proper_state`` with
+       nonzero probability.
+
+    Under ``CAUSAL_MARGINALIZATION`` (IIT 4.0), check 1 is sufficient: the
+    background's past states are weighted by their probability given the
+    current state (Albantakis et al. 2023, Eq. 4), so if some past universe
+    state produces the current one, the cause TPM gives the system's state
+    positive probability from that past state. Holding the background fixed
+    on the cause side is the convention IIT 4.0 replaced because it makes
+    reachable states unreachable (S2 Text, "Background Conditions").
     """
     factored = system.substrate.factored_tpm  # type: ignore[attr-defined]
     state = system.state  # type: ignore[attr-defined]
@@ -257,8 +263,12 @@ def state_reachable(system: object) -> None:
     if pr_joint.sum() <= 0.0:
         raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
 
-    # Subsystem-level: conditioned dynamics must produce proper_state.
-    if not _proper_state_in_image_of_conditioned_tpm(system):
+    # Subsystem-level: only when the background's past is held at its
+    # current state.
+    if (
+        system._resolved_background_conditioning() == "CONDITION_CURRENT_STATE"  # type: ignore[attr-defined]
+        and not _proper_state_in_image_of_conditioned_tpm(system)
+    ):
         raise exceptions.StateUnreachableForwardsError(system.state)  # type: ignore[attr-defined]
 
 

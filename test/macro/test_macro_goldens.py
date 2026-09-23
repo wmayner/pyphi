@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 
 from pyphi import config
-from pyphi import exceptions
 from pyphi.conf import presets
 from pyphi.macro import MacroSystem
 from pyphi.macro import MacroUnit
@@ -166,8 +165,7 @@ class TestBuDocumentedDeviation:
         with config.override(**presets.iit4_2023):
             assert System(substrate, state, (0,)).sia().phi == 1.0
             assert System(substrate, state, (1,)).sia().phi == 1.0
-            with pytest.raises(exceptions.StateUnreachableForwardsError):
-                System(substrate, state, (2,))
+            assert System(substrate, state, (2,)).sia().phi == 0.0
             for pair in [(0, 1), (0, 2), (1, 2)]:
                 assert System(substrate, state, pair).sia().phi == pytest.approx(
                     0.0, abs=1e-13

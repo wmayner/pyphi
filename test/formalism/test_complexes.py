@@ -15,12 +15,12 @@ from test.conftest import IIT_4_CONFIG
 
 
 def test_possible_complexes(s):
+    # Under IIT 4.0 every subset of a reachable substrate state is a
+    # candidate: the background's past is weighted by its probability given
+    # the current state (Eq. 4), so no subset's state is unreachable.
     assert list(possible_complexes(s.substrate, s.state)) == [
-        System.from_substrate(s.substrate, s.state, (0, 1, 2)),
-        System.from_substrate(s.substrate, s.state, (1, 2)),
-        System.from_substrate(s.substrate, s.state, (0, 2)),
-        System.from_substrate(s.substrate, s.state, (0, 1)),
-        System.from_substrate(s.substrate, s.state, (1,)),
+        System.from_substrate(s.substrate, s.state, indices)
+        for indices in [(0, 1, 2), (1, 2), (0, 2), (0, 1), (2,), (1,), (0,)]
     ]
 
 
