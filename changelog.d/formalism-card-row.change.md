@@ -1,0 +1,1 @@
+The printed card for an `analyze()` result shows the `Formalism` row only when the result was computed under an earlier version of IIT (`IIT_4_0_2023` or `IIT_3_0`). `Analysis.formalism` and serialized results still record the version for every result.

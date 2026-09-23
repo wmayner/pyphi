@@ -12,6 +12,7 @@ from pyphi.analyze import Analysis
 from pyphi.analyze import analyze
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.conf.formalism import IITConfig
 from pyphi.display import LOW
 from pyphi.formalism import iit4
 from pyphi.models.distinctions import ResolvedDistinctions
@@ -308,10 +309,17 @@ def test_analyze_compute_distinctions_enumerates_no_system_partition(monkeypatch
 
 
 def test_analysis_reports_its_formalism():
-    """A result says which formalism produced it."""
+    """A result records which formalism produced it. The card shows the
+    version only when it is not the default."""
     substrate = examples.iit4_2023_fig1a_substrate()
     for name in ("IIT_4_0_2026", "IIT_4_0_2023", "IIT_3_0"):
         with config.override(**presets.by_name[name], progress_bars=False):
             analysis = analyze(substrate, (0, 1, 1), subset=(0, 1))
         assert analysis.formalism == name
-        assert name in repr(analysis)  # the card's summary ends with a Formalism row
+        card = repr(analysis)
+        if name == IITConfig.version:
+            assert "Formalism" not in card
+            assert name not in card
+        else:
+            assert "Formalism" in card
+            assert name in card

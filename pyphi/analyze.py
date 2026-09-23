@@ -21,6 +21,7 @@ import pandas as pd
 
 from pyphi.conf import config
 from pyphi.conf import presets
+from pyphi.conf.formalism import IITConfig
 from pyphi.display import FULL
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -100,12 +101,14 @@ class Analysis(Displayable, Serializable):
         # (capped at FULL) so the card still leads with the system-level value.
         desc = self.ces._describe(verbosity)
         sections = list(desc.sections)
-        # Close the summary with the formalism: a φ value means nothing without
-        # it, and the quantities come first.
-        first = sections[0]
-        sections[0] = replace(
-            first, rows=(*first.rows, Row("Formalism", self.formalism))
-        )
+        # A result computed under an earlier version of IIT closes its summary
+        # with that version. The version is always recorded on ``.formalism``
+        # and in serialized results.
+        if self.formalism != IITConfig.version:
+            first = sections[0]
+            sections[0] = replace(
+                first, rows=(*first.rows, Row("Formalism", self.formalism))
+            )
         if getattr(self.ces, "sia", None) is None:
             sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
         elif verbosity < FULL and getattr(self.sia, "partition", None) is not None:
