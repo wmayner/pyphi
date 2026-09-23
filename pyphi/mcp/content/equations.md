@@ -21,9 +21,11 @@ are numbered in the main text; this is the reference for 4.0.
 
 **Intrinsic perspective: cause and effect TPMs (causal marginalization)**
 - Eq. 3 — effect TPM, background fixed in the current state: `𝒯_e = p_e(s̄ | s)`.
-- Eq. 4 — cause TPM, background causally marginalized (a uniform average over
-  past background states). This is the `CAUSAL_MARGINALIZATION` background
-  scheme.
+- Eq. 4 — cause TPM, background causally marginalized over its past states,
+  weighted by their probability given the current state of the universe (a
+  uniform prior updated by conditioning on u). Not a uniform average: the
+  weights are in general neither uniform nor deterministic. This is the
+  `CAUSAL_MARGINALIZATION` background scheme.
 
 **Intrinsic information (informativeness × selectivity)**
 - Eq. 5 — intrinsic effect information: `ii_e(s, s̄) = p_e(s̄ | s) · log(p_e(s̄ | s) / p_e(s̄))`.

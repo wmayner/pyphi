@@ -26,8 +26,10 @@ property of experience:
 
 - **Existence** — the units must have cause–effect power.
 - **Intrinsicality** — that power must be assessed from the system's own
-  perspective. Units outside the system are treated as fixed background and are
-  *causally marginalized* so they do not contribute.
+  perspective. Units outside the system are background conditions, *causally
+  marginalized* conditional on the current state so they do not contribute: held
+  at their current state for effects, and weighted by their probability given
+  the current state for causes.
 - **Information** — the system in its state must select a specific cause–effect
   state, the one with maximal **intrinsic information** (ii).
 - **Integration** — the system must specify that state *irreducibly*, as one

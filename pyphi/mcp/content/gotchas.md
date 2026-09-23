@@ -56,10 +56,15 @@ Selected with the `formalism` argument to `analyze`:
   single state). The same substrate gives different φ under each.
 - **Relations.** IIT 3.0 has **no relations** — they are a 4.0 addition. A 3.0
   result has concepts, not distinctions and relations.
-- **Background conditioning.** IIT 4.0 causally marginalizes background units
-  (`background_conditioning="CAUSAL_MARGINALIZATION"`); the 3.0 preset conditions
-  on fixed states (`"CONDITION_CURRENT_STATE"`). This only affects proper-subset
-  systems (a system smaller than the whole substrate).
+- **Background conditioning.** Both settings hold the background at its current
+  state on the effect side; they differ only on the cause side. IIT 4.0 causally
+  marginalizes the background *conditional on the current state of the universe*
+  (`background_conditioning="CAUSAL_MARGINALIZATION"`, Eqs. 3–4): past background
+  states are weighted by their probability given the current state, not
+  averaged uniformly. The 3.0 preset instead holds the background at its current
+  state on the cause side too (`"CONDITION_CURRENT_STATE"`, the post-2014
+  convention IIT 4.0 replaced). This only affects proper-subset systems (a
+  system smaller than the whole substrate).
 - **The 2026 intrinsic-information requirement.** IIT 4.0 (2026) requires the system to
   provide itself a repertoire of alternatives (intrinsic differentiation). A
   fully deterministic system provides none, so its φₛ is 0 under 2026 even when
