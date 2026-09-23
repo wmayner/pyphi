@@ -139,11 +139,11 @@ with warnings.catch_warnings():
         print("precision:", pyphi.config.precision)
 ```
 
-Apply the whole preset. Setting `formalism.iit.version` on its own either
-raises a `ConfigurationError` or leaves the other settings at their current
-values, and the result then matches no published version. The same holds in
-a `pyphi_config.yml` file: to select a version there, write out every field
-the preset sets. The repository ships
+Apply the whole preset. Setting `formalism.iit.version` on its own raises a
+`ConfigurationError`, because the other settings would stay at their current
+values and the result would match no published version. The same holds in a
+`pyphi_config.yml` file: to select a version there, write out every field the
+preset sets. The repository ships
 [`pyphi_config_3.0.yml`](https://github.com/wmayner/pyphi/blob/develop/pyphi_config_3.0.yml)
 as a complete example for IIT 3.0.
 

@@ -92,9 +92,9 @@ with pyphi.config.override(**iit3):
 ```
 
 The presets are `pyphi.iit3`, `pyphi.iit4_2023`, and `pyphi.iit4_2026` (IIT,
-the default). Do not set `formalism.iit.version` on its own: the measures stay
-where they were, and the result is a mixture matching no paper. Some such
-mixtures are rejected with a `ConfigurationError`, but not all.
+the default). Setting `formalism.iit.version` on its own raises a
+`ConfigurationError`: the measures would stay where they were, and the result
+would be a mixture matching no paper.
 
 ## Configuration file
 

@@ -24,17 +24,15 @@ Register a constraint by appending a :class:`ConfigConstraint` to
 
 Notes
 -----
-``system_phi_measure="INTRINSIC_INFORMATION"`` is *not* constrained to
-``IIT_4_0_2026``. The Eq. 23 intrinsic-information requirement is keyed on the
-measure (``applies_intrinsic_information_requirement``), not the version, so
-``IIT_4_0_2023`` paired with that measure applies the requirement and yields
-the same result as
-``IIT_4_0_2026`` — a valid, if redundant, configuration. The reverse direction
-*is* constrained: ``IIT_4_0_2026`` is defined by the requirement, so it needs
-a ``system_phi_measure`` that applies it (the formalism declares
-``applies_intrinsic_information_requirement``). Version 2026 with a measure
-that lacks the requirement would compute the 2023 quantity while reporting
-version 2026 — a formalism mixture matching no paper.
+The intrinsic-information requirement (Eq. 23) is keyed on the system
+measure (``applies_intrinsic_information_requirement``), and each IIT 4.0
+formalism declares whether it is defined by the requirement. The two must
+agree. ``IIT_4_0_2026`` with a measure that lacks the requirement would compute
+the 2023 quantity while reporting version 2026; ``IIT_4_0_2023`` with a
+measure that applies it would compute the 2026 quantity while reporting
+version 2023. Both are formalism mixtures matching no paper. The second is
+also what setting ``formalism.iit.version`` alone produces, since the default
+system measure applies the requirement.
 
 The ``background_conditioning_compatible_with_version`` constraint pins IIT 3.0 to
 ``CONDITION_CURRENT_STATE`` (the shipped preset's convention). The marginalized IIT 3.0
@@ -381,37 +379,40 @@ def _background_conditioning_compatible_with_version(config: Any) -> str | None:
     return None
 
 
-@register_constraint("version_requires_ii_cap")
-def _version_requires_ii_cap(config: Any) -> str | None:
-    """A formalism defined by the intrinsic-information requirement (Eq. 23)
-    needs a system measure that applies it.
+@register_constraint("system_measure_matches_requirement")
+def _system_measure_matches_requirement(config: Any) -> str | None:
+    """The system measure applies the intrinsic-information requirement
+    (Eq. 23) exactly when the version is defined by it.
 
-    The requirement is keyed on the measure
-    (``applies_intrinsic_information_requirement``), so ``IIT_4_0_2026``
-    paired with a measure that lacks it computes the 2023
-    quantity while reporting version 2026 — a formalism mixture matching no
-    paper. (The other direction — ``IIT_4_0_2023`` with a requirement-applying
-    measure — is valid; see the module Notes.) Registered after the measure
-    constraint, so ``system_phi_measure`` is known resolvable here.
+    A mismatch computes one version's quantity while reporting another's; see
+    the module Notes. Registered after the measure constraint, so
+    ``system_phi_measure`` is known resolvable here.
     """
     iit = config.formalism.iit
     version = iit.version
     formalism = _active_formalism(version)
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
         return None
-    if not getattr(formalism, "applies_intrinsic_information_requirement", False):
+    if not getattr(formalism, "uses_system_phi_measure", False):
         return None
     from pyphi.measures.distribution import resolve_system_measure
 
-    measure = resolve_system_measure(iit.system_phi_measure)
-    if not getattr(measure, "applies_intrinsic_information_requirement", False):
-        return (
-            f"formalism.iit.system_phi_measure={iit.system_phi_measure!r} "
-            f"does not apply the intrinsic-information requirement (Eq. 23) "
-            f"that defines formalism.iit.version={version!r}; this "
-            f"combination computes the IIT_4_0_2023 quantity while reporting "
-            f"version {version!r}. Fix: set formalism.iit.system_phi_measure "
-            f"to 'INTRINSIC_INFORMATION', or set formalism.iit.version to "
-            f"'IIT_4_0_2023'."
-        )
-    return None
+    required = getattr(formalism, "applies_intrinsic_information_requirement", False)
+    applied = getattr(
+        resolve_system_measure(iit.system_phi_measure),
+        "applies_intrinsic_information_requirement",
+        False,
+    )
+    if required == applied:
+        return None
+    does = "does" if applied else "does not"
+    fix = "'INTRINSIC_INFORMATION'" if required else "'GENERALIZED_INTRINSIC_DIFFERENCE'"
+    return (
+        f"formalism.iit.system_phi_measure={iit.system_phi_measure!r} {does} "
+        f"apply the intrinsic-information requirement (Eq. 23), which "
+        f"formalism.iit.version={version!r} "
+        f"{'requires' if required else 'excludes'}. Fix: select the version "
+        f"with the formalism= argument or a preset (pyphi.iit4_2023, "
+        f"pyphi.iit4_2026), which set every field together, or set "
+        f"formalism.iit.system_phi_measure to {fix}."
+    )

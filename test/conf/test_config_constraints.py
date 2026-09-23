@@ -8,8 +8,9 @@ time, rather than at compute time or not at all. These tests pin:
     config);
   - known-wrong measure/version combinations raise ``ConfigurationError`` with
     a message naming both conflicting fields and a fix;
-  - the confirmed-*valid* ``IIT_4_0_2023`` + ``INTRINSIC_INFORMATION`` case is
-    NOT rejected (the Eq. 23 cap follows the measure, not the version);
+  - the system measure applies the intrinsic-information requirement exactly
+    when the version is defined by it, so setting the version alone is
+    rejected;
   - ``validate_config=False`` opts out;
   - a rejected override/load does not corrupt global config state;
   - an enumeration over each version's ``compatible_measures`` is classified
@@ -88,15 +89,33 @@ class TestIncompatibleCombosRejected:
             pass
 
 
-class TestConfirmedValidCombos:
-    def test_iit4_2023_with_intrinsic_information_system_is_allowed(self) -> None:
-        """The requirement is keyed on the measure
-        (``applies_intrinsic_information_requirement``), not the version,
-        so IIT_4_0_2023 + INTRINSIC_INFORMATION correctly applies the cap and is
-        a valid (if redundant) configuration — it must NOT be rejected."""
-        with config.override(**{"iit.system_phi_measure": "INTRINSIC_INFORMATION"}):
+class TestIntrinsicInformationRequirement:
+    """The system measure must apply the intrinsic-information requirement
+    exactly when the version is defined by it, in both directions."""
+
+    def test_version_2023_alone_is_rejected(self) -> None:
+        """Setting only the version leaves the requirement-applying default
+        measure in place, which would label the current quantity as 2023."""
+        with (
+            pytest.raises(ConfigurationError, match="IIT_4_0_2023"),
+            config.override(**presets.iit4_2026, **{"iit.version": "IIT_4_0_2023"}),
+        ):
             pass
 
+    def test_version_2026_with_gid_system_measure_is_rejected(self) -> None:
+        with (
+            pytest.raises(ConfigurationError, match="IIT_4_0_2026"),
+            config.override(**presets.iit4_2023, **{"iit.version": "IIT_4_0_2026"}),
+        ):
+            pass
+
+    @pytest.mark.parametrize("preset", ["iit4_2023", "iit4_2026"])
+    def test_presets_are_allowed(self, preset: str) -> None:
+        with config.override(**getattr(presets, preset)):
+            pass
+
+
+class TestConfirmedValidCombos:
     def test_iit3_system_measure_left_at_default_is_allowed(self) -> None:
         """IIT 3.0 never consults system_phi_measure, so its (4.0-default) value
         is not flagged."""
@@ -247,7 +266,8 @@ class TestSystemSchemeConstraint:
     def test_iit4_accepts_every_registered_scheme(self, version: str) -> None:
         for scheme in system_partition_types.store:
             with config.override(
-                **{"iit.version": version, "iit.system_partition_scheme": scheme}
+                **getattr(presets, _VERSION_PRESETS[version]),
+                **{"iit.system_partition_scheme": scheme},
             ):
                 assert config.formalism.iit.system_partition_scheme == scheme
 
