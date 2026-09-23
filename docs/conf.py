@@ -194,3 +194,32 @@ llms_txt_summary = (
 # llms-full.txt (the intersphinx inventory, objects.inv, resolves API names),
 # and the demo notebook's source is JSON with embedded outputs.
 llms_txt_exclude = ["reference/_autosummary/*", "examples/IIT_4.0_demo"]
+
+# --- Redirects for moved pages ------------------------------------------------
+# Old page path -> new page path, both relative to the docs root and without a
+# suffix. Each old path gets a stub HTML page that forwards to the new one, so
+# published links keep working after a page moves.
+redirects = {
+    "theory/formalism-versions": "howto/earlier-versions",
+    "theory/iit-3.0": "howto/earlier-versions",
+}
+
+
+def _write_redirects(app, exception):
+    if exception is not None or app.builder.format != "html":
+        return
+    for old, new in redirects.items():
+        stub = Path(app.outdir, old + ".html")
+        stub.parent.mkdir(parents=True, exist_ok=True)
+        target = os.path.relpath(new + ".html", Path(old).parent)
+        stub.write_text(
+            f'<!DOCTYPE html><html><head><meta charset="utf-8">'
+            f'<meta http-equiv="refresh" content="0; url={target}">'
+            f'<link rel="canonical" href="{html_baseurl}{new}.html">'
+            f'</head><body><a href="{target}">This page has moved.</a>'
+            f"</body></html>\n"
+        )
+
+
+def setup(app):
+    app.connect("build-finished", _write_redirects)
