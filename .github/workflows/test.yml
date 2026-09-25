@@ -37,7 +37,9 @@ jobs:
 
       - name: Run tests with coverage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
-        run: uv run --all-extras pytest --tb=short -v --cov=pyphi --cov-report=xml
+        # Coverage tracing slows the hot path about fivefold, which eats the
+        # wall-time budgets' margin; the other matrix jobs enforce them.
+        run: uv run --all-extras pytest --tb=short -v -m "not perf" --cov=pyphi --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
