@@ -308,7 +308,7 @@ def project_ces(ces, node_labels=None, max_relations=None) -> CESProjection:
         DistinctionNode(
             id=i,
             mechanism=tuple(d.mechanism),
-            label=str(d.mechanism_label),
+            label=node_labels.label_string(d.mechanism, d.mechanism_state),
             cause_purview=tuple(d.cause_purview),
             effect_purview=tuple(d.effect_purview),
             mechanism_state=tuple(d.mechanism_state),

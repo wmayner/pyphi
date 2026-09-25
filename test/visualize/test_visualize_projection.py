@@ -363,3 +363,14 @@ def test_plot_ces_iit3_views_render(iit3_xor_ces, view):
 
     fig = plot_ces(iit3_xor_ces, view=view)
     assert fig is not None
+
+
+def test_project_node_labels_override_mechanism_labels():
+    from pyphi import examples
+    from pyphi.labels import NodeLabels
+    from pyphi.visualize.projection import project_ces
+
+    ces = examples.xor_system().ces()
+    proj = project_ces(ces, node_labels=NodeLabels(("X", "Y", "Z"), (0, 1, 2)))
+    assert [n.label for n in proj.nodes] == ["xy", "xz", "yz", "xyz"]
+    assert {e.label for e in proj.endpoints} <= {"x", "y", "z", "xy", "xz", "yz", "xyz"}
