@@ -230,6 +230,21 @@ class TestFlow:
         assert (home / ".codex" / "skills" / "pyphi").is_dir()
         assert any("could not" in line for line in actions)
 
+    @pytest.mark.parametrize("interactive", [True, False])
+    def test_a_retired_skill_is_removed_even_when_skills_are_declined(
+        self, tmp_path, monkeypatch, interactive
+    ):
+        home = self._home(tmp_path)
+        old = home / ".claude" / "skills" / "iit"
+        old.mkdir(parents=True)
+        (old / mod.SENTINEL).write_text("2.0.0rc1\n", encoding="utf-8")
+        monkeypatch.setattr(mod, "interactive", lambda: interactive)
+        monkeypatch.setattr(mod, "confirm", lambda _question: False)
+        actions = mod.install_step(skills=None, names=[], paths=[], home=home)
+        assert not old.exists()
+        assert any("iit" in line for line in actions)
+        assert not (home / ".claude" / "skills" / "pyphi").exists()
+
     def test_the_report_gives_full_paths(self, tmp_path):
         home = self._home(tmp_path)
         actions = mod.install_step(skills=True, names=[], paths=[], home=home)
@@ -306,6 +321,18 @@ class TestExecute:
         script.chmod(0o755)
         monkeypatch.setenv("PATH", str(tmp_path))
         assert real_execute(("claude", "plugin", "list")) is None
+
+    def test_a_command_cannot_wait_on_hidden_input(self, monkeypatch):
+        monkeypatch.setattr(mod.shutil, "which", lambda name: f"/bin/{name}")
+        seen = {}
+
+        def run(*args, **kwargs):
+            seen.update(kwargs)
+            return subprocess.CompletedProcess(args[0], 0, "", "")
+
+        monkeypatch.setattr(mod.subprocess, "run", run)
+        assert real_execute(("claude", "plugin", "list")) is None
+        assert seen["stdin"] is subprocess.DEVNULL
 
     def test_a_hung_command_times_out(self, monkeypatch):
         monkeypatch.setattr(mod.shutil, "which", lambda name: f"/bin/{name}")

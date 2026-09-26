@@ -303,6 +303,7 @@ def _execute(command: tuple[str, ...]) -> str | None:
     try:
         result = subprocess.run(
             [executable, *command[1:]],
+            stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
             timeout=PLUGIN_TIMEOUT,
@@ -346,19 +347,28 @@ def install_step(
     list of str
         One line per action taken, empty where nothing was written.
     """
-    targets, covered = _split_cursor(
-        resolve(names, paths, home=home), explicit=bool(names or paths)
-    )
+    resolved = resolve(names, paths, home=home)
+    # A retired skill goes whether or not new skills are accepted, so an
+    # upgrade never leaves it beside the skill that replaced it.
+    retired = [
+        f"removed the retired {', '.join(removed)} skill from {target.path}"
+        for target in resolved
+        if (removed := _remove_marked(target.path, sorted(RETIRED)))
+    ]
+    targets, covered = _split_cursor(resolved, explicit=bool(names or paths))
     if not targets or skills is False:
-        return []
+        return retired
     if skills is None:
         if not interactive():
-            return ["skipped the skills; run `pyphi-mcp install --skills` to add them"]
+            return [
+                *retired,
+                "skipped the skills; run `pyphi-mcp install --skills` to add them",
+            ]
         displayed = ", ".join(target.display for target in targets)
         if not confirm(f"Install the PyPhi skills for {displayed}?"):
-            return []
+            return retired
     installed = ", ".join(skill_names())
-    actions = []
+    actions = retired
     for target in targets:
         try:
             deliver(target)
