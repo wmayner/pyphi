@@ -12,7 +12,9 @@ description: >-
 # PyPhi
 
 PyPhi computes Integrated Information Theory quantities. For what the theory
-says, use the `iit` skill; this one is about the software.
+says, use the `iit-expert` skill from the IIT Expert plugin
+(`pyphi-mcp install` offers it; see https://learniit.org/install); this one is
+about the software.
 
 ## Use the server for exploration
 

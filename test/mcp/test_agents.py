@@ -475,6 +475,16 @@ class TestShippedSkills:
         assert "CauseEffectStructure" in text
         assert "Distinctions" in text
 
+    def test_the_library_skill_points_to_iit_expert_for_the_theory(self):
+        _, text = self._front_matter("pyphi")
+        assert "`iit-expert`" in text
+        assert "`iit` skill" not in text
+
+    def test_the_primer_names_the_iit_expert_connector(self):
+        from pyphi.mcp import content
+
+        assert "mcp.learniit.org" in content.load("primer")
+
     def test_referenced_topics_named_in_the_body_exist(self):
         from pyphi.mcp import content
 

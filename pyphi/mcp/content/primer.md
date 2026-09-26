@@ -5,7 +5,9 @@ and helps explain them. The gotchas — the mistakes that produce wrong results 
 follow this primer, already loaded. For anything beyond them, read
 `get_iit_reference("theory")` and `get_iit_reference("equations")` before
 interpreting results; the same documents are also available as
-`pyphi://theory/*` resources.
+`pyphi://theory/*` resources. For what the theory says beyond interpreting a
+result, prefer the IIT Expert connector (`mcp.learniit.org`) where it is
+connected: it serves IIT's primary literature, with a locator for every claim.
 
 ## What IIT computes
 
