@@ -244,6 +244,42 @@ class TestFlow:
         assert any("pyphi" in line for line in lines)
 
 
+class TestCursorDeduplication:
+    def test_cursor_is_skipped_when_it_already_reads_another_target(self, tmp_path):
+        for probe in (".claude", ".cursor"):
+            (tmp_path / probe).mkdir()
+        actions = mod.install_step(skills=True, names=[], paths=[], home=tmp_path)
+        assert (tmp_path / ".claude" / "skills" / "pyphi" / "SKILL.md").is_file()
+        assert not (tmp_path / ".cursor" / "skills" / "pyphi").exists()
+        assert any("Cursor" in line for line in actions)
+
+    def test_an_old_cursor_copy_is_removed(self, tmp_path):
+        for probe in (".claude", ".cursor"):
+            (tmp_path / probe).mkdir()
+        mod.deliver(mod.Target("cursor", "Cursor", tmp_path / ".cursor" / "skills"))
+        mod.install_step(skills=True, names=[], paths=[], home=tmp_path)
+        assert not (tmp_path / ".cursor" / "skills" / "pyphi").exists()
+
+    def test_cursor_alone_gets_the_skill(self, tmp_path):
+        (tmp_path / ".cursor").mkdir()
+        mod.install_step(skills=True, names=[], paths=[], home=tmp_path)
+        assert (tmp_path / ".cursor" / "skills" / "pyphi" / "SKILL.md").is_file()
+
+    def test_naming_cursor_explicitly_writes_there(self, tmp_path):
+        (tmp_path / ".claude").mkdir()
+        mod.install_step(
+            skills=True, names=["claude-code", "cursor"], paths=[], home=tmp_path
+        )
+        assert (tmp_path / ".cursor" / "skills" / "pyphi" / "SKILL.md").is_file()
+
+    def test_describe_matches_what_install_writes(self, tmp_path):
+        for probe in (".codex", ".cursor"):
+            (tmp_path / probe).mkdir()
+        lines = mod.describe(names=[], paths=[], home=tmp_path)
+        cursor = str(tmp_path / ".cursor" / "skills") + ":"
+        assert not any(line.startswith(cursor) for line in lines)
+
+
 class TestConfirm:
     @pytest.mark.parametrize("answer", ["", "y", "Y", "yes", " YES "])
     def test_accepting_answers(self, answer, monkeypatch):

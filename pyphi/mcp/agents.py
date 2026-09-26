@@ -43,6 +43,10 @@ REFERENCED: frozenset[str] = frozenset({"pyphi"})
 #: Installing and uninstalling both delete a copy PyPhi wrote.
 RETIRED: frozenset[str] = frozenset({"iit"})
 
+#: Agents whose skills directory Cursor also reads, so writing to Cursor's own
+#: directory as well would load every skill twice there.
+CURSOR_READS: frozenset[str] = frozenset({"claude-code", "codex"})
+
 
 @dataclass(frozen=True)
 class Target:
@@ -131,6 +135,21 @@ def resolve(
     if names or paths:
         return chosen(names, paths, home=home)
     return detect(home=home)
+
+
+def _split_cursor(
+    targets: list[Target], explicit: bool
+) -> tuple[list[Target], Target | None]:
+    """Separate a detected Cursor target that another target already covers.
+
+    Returns the targets to write and the Cursor target left out, if any. A
+    target the user named is always written.
+    """
+    names = {target.name for target in targets}
+    if explicit or "cursor" not in names or not names & CURSOR_READS:
+        return targets, None
+    cursor = next(target for target in targets if target.name == "cursor")
+    return [target for target in targets if target is not cursor], cursor
 
 
 def _source() -> Traversable:
@@ -256,7 +275,9 @@ def install_step(
     list of str
         One line per action taken, empty where nothing was written.
     """
-    targets = resolve(names, paths, home=home)
+    targets, covered = _split_cursor(
+        resolve(names, paths, home=home), explicit=bool(names or paths)
+    )
     if not targets or skills is False:
         return []
     if skills is None:
@@ -274,6 +295,12 @@ def install_step(
             actions.append(f"could not write skills to {target.path}: {error}")
         else:
             actions.append(f"installed the {installed} skills in {target.path}")
+    if covered is not None:
+        remove(covered)
+        actions.append(
+            f"left {covered.display} out: it reads the skills written for "
+            "the other agents"
+        )
     return actions
 
 
@@ -296,5 +323,7 @@ def describe(
     installed = ", ".join(skill_names())
     return [
         f"{target.path}: the {installed} skills"
-        for target in resolve(names, paths, home=home)
+        for target in _split_cursor(
+            resolve(names, paths, home=home), explicit=bool(names or paths)
+        )[0]
     ]
