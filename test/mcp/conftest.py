@@ -17,3 +17,18 @@ def isolated_home(tmp_path_factory, monkeypatch):
     directory = tmp_path_factory.mktemp("home")
     monkeypatch.setattr(Path, "home", classmethod(lambda _cls: directory))
     return directory
+
+
+@pytest.fixture(autouse=True)
+def no_agent_commands(monkeypatch):
+    """Keep ``pyphi-mcp install`` from running a real ``claude`` or ``codex``.
+
+    The plugin step runs each agent's own plugin commands, which would change
+    the configuration of whichever agents the developer has installed.
+    """
+    from pyphi.mcp import agents
+
+    def refuse(command):
+        pytest.fail(f"a test ran a real agent command: {' '.join(command)}")
+
+    monkeypatch.setattr(agents, "_execute", refuse)

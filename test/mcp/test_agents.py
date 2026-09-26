@@ -4,9 +4,13 @@ These exercise :mod:`pyphi.mcp.agents`, which does not import the optional
 ``mcp`` dependency, so they run on a base install.
 """
 
+import subprocess
+import sys
+
 import pytest
 
 from pyphi.mcp import agents as mod
+from pyphi.mcp.agents import _execute as real_execute
 
 
 class TestDetection:
@@ -278,6 +282,147 @@ class TestCursorDeduplication:
         lines = mod.describe(names=[], paths=[], home=tmp_path)
         cursor = str(tmp_path / ".cursor" / "skills") + ":"
         assert not any(line.startswith(cursor) for line in lines)
+
+
+class TestExecute:
+    def test_a_missing_executable_is_reported(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("PATH", str(tmp_path))
+        assert "not on PATH" in real_execute(("claude", "plugin", "list"))
+
+    @pytest.mark.skipif(sys.platform == "win32", reason="POSIX shell script")
+    def test_a_failing_command_is_reported_with_its_status(self, monkeypatch, tmp_path):
+        script = tmp_path / "claude"
+        script.write_text("#!/bin/sh\necho boom >&2\nexit 3\n", encoding="utf-8")
+        script.chmod(0o755)
+        monkeypatch.setenv("PATH", str(tmp_path))
+        error = real_execute(("claude", "plugin", "list"))
+        assert "status 3" in error
+        assert "boom" in error
+
+    @pytest.mark.skipif(sys.platform == "win32", reason="POSIX shell script")
+    def test_a_succeeding_command_returns_none(self, monkeypatch, tmp_path):
+        script = tmp_path / "claude"
+        script.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        script.chmod(0o755)
+        monkeypatch.setenv("PATH", str(tmp_path))
+        assert real_execute(("claude", "plugin", "list")) is None
+
+    def test_a_hung_command_times_out(self, monkeypatch):
+        monkeypatch.setattr(mod.shutil, "which", lambda name: f"/bin/{name}")
+
+        def hang(*args, **kwargs):
+            raise subprocess.TimeoutExpired(args[0], mod.PLUGIN_TIMEOUT)
+
+        monkeypatch.setattr(mod.subprocess, "run", hang)
+        assert "timed out" in real_execute(("claude", "plugin", "list"))
+
+
+class TestPluginStep:
+    def _home(self, tmp_path, *probes):
+        for probe in probes:
+            (tmp_path / probe).mkdir()
+        return tmp_path
+
+    def _record(self, monkeypatch, fail_on=None):
+        ran = []
+
+        def execute(command):
+            ran.append(command)
+            return "exited with status 1" if command == fail_on else None
+
+        monkeypatch.setattr(mod, "_execute", execute)
+        return ran
+
+    def test_the_guard_refuses_real_commands(self):
+        with pytest.raises(pytest.fail.Exception):
+            mod._execute(("claude", "plugin", "list"))
+
+    def test_no_agents_means_nothing(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        assert mod.plugin_step(plugin=True, names=[], paths=[], home=tmp_path) == []
+        assert ran == []
+
+    def test_declining_runs_nothing(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        home = self._home(tmp_path, ".claude")
+        assert mod.plugin_step(plugin=False, names=[], paths=[], home=home) == []
+        assert ran == []
+
+    def test_non_interactive_prints_how_instead_of_running(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        monkeypatch.setattr(mod, "interactive", lambda: False)
+        home = self._home(tmp_path, ".claude")
+        (line,) = mod.plugin_step(plugin=None, names=[], paths=[], home=home)
+        assert "--iit-expert" in line
+        assert mod.INSTALL_PAGE in line
+        assert ran == []
+
+    def test_the_prompt_names_every_detected_agent(self, tmp_path, monkeypatch):
+        self._record(monkeypatch)
+        monkeypatch.setattr(mod, "interactive", lambda: True)
+        asked = []
+        monkeypatch.setattr(
+            mod, "confirm", lambda question: asked.append(question) or False
+        )
+        home = self._home(tmp_path, ".claude", ".codex")
+        mod.plugin_step(plugin=None, names=[], paths=[], home=home)
+        assert "IIT Expert" in asked[0]
+        assert "Claude Code, Codex" in asked[0]
+
+    def test_accepting_runs_each_agents_commands_in_order(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        home = self._home(tmp_path, ".claude", ".codex")
+        actions = mod.plugin_step(plugin=True, names=[], paths=[], home=home)
+        assert ran == [
+            *mod.PLUGIN_COMMANDS["claude-code"],
+            *mod.PLUGIN_COMMANDS["codex"],
+        ]
+        assert ran[0] == (
+            "claude",
+            "plugin",
+            "marketplace",
+            "add",
+            mod.PLUGIN_REPOSITORY,
+        )
+        assert sum("installed the IIT Expert plugin" in line for line in actions) == 2
+
+    def test_a_failure_stops_that_agent_and_prints_its_commands(
+        self, tmp_path, monkeypatch
+    ):
+        first = mod.PLUGIN_COMMANDS["claude-code"][0]
+        ran = self._record(monkeypatch, fail_on=first)
+        home = self._home(tmp_path, ".claude", ".codex")
+        actions = mod.plugin_step(plugin=True, names=[], paths=[], home=home)
+        assert mod.PLUGIN_COMMANDS["claude-code"][1] not in ran
+        assert mod.PLUGIN_COMMANDS["codex"][1] in ran
+        failure = next(line for line in actions if "could not" in line)
+        assert "claude plugin install iit-expert@iit-expert" in failure
+
+    def test_cursor_gets_instructions_not_commands(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        home = self._home(tmp_path, ".cursor")
+        (line,) = mod.plugin_step(plugin=True, names=[], paths=[], home=home)
+        assert "From GitHub Repository" in line
+        assert mod.PLUGIN_REPOSITORY in line
+        assert ran == []
+
+    def test_an_explicit_skills_directory_is_not_an_agent(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        result = mod.plugin_step(plugin=True, names=[], paths=[tmp_path], home=tmp_path)
+        assert result == []
+        assert ran == []
+
+    def test_describe_lists_the_commands_and_runs_nothing(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        home = self._home(tmp_path, ".codex")
+        text = "\n".join(mod.describe_plugin(names=[], paths=[], home=home))
+        assert "codex plugin add iit-expert@iit-expert" in text
+        assert ran == []
+
+    def test_uninstall_says_how_to_remove_the_plugin(self, tmp_path):
+        home = self._home(tmp_path, ".claude")
+        (line,) = mod.plugin_removal_hint(names=[], paths=[], home=home)
+        assert "claude plugin uninstall iit-expert@iit-expert" in line
 
 
 class TestConfirm:

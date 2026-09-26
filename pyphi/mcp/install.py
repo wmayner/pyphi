@@ -433,6 +433,20 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_false",
         help="do not install the agent skills",
     )
+    iit_expert = install_parser.add_mutually_exclusive_group()
+    iit_expert.add_argument(
+        "--iit-expert",
+        dest="iit_expert",
+        action="store_true",
+        default=None,
+        help="install the IIT Expert plugin (skill + connector) without asking",
+    )
+    iit_expert.add_argument(
+        "--no-iit-expert",
+        dest="iit_expert",
+        action="store_false",
+        help="do not install the IIT Expert plugin",
+    )
 
     uninstall_parser = sub.add_parser(
         "uninstall", help="remove what install wrote, leaving the rest alone"
@@ -453,6 +467,10 @@ def run(args: argparse.Namespace) -> int:
                 print(block())
                 for line in agents.describe(names=args.agent, paths=args.agent_path):
                     print(f"\n{line}")
+                for line in agents.describe_plugin(
+                    names=args.agent, paths=args.agent_path
+                ):
+                    print(f"\n{line}")
                 return 0
             actions = install(
                 args.directory,
@@ -464,10 +482,16 @@ def run(args: argparse.Namespace) -> int:
             actions += agents.install_step(
                 skills=args.skills, names=args.agent, paths=args.agent_path
             )
+            actions += agents.plugin_step(
+                plugin=args.iit_expert, names=args.agent, paths=args.agent_path
+            )
         else:
             actions = uninstall(args.directory, scope=args.scope, client=args.client)
             actions += agents.remove_step(names=args.agent, paths=args.agent_path)
             actions = actions or ["nothing to remove"]
+            actions += agents.plugin_removal_hint(
+                names=args.agent, paths=args.agent_path
+            )
     except (FileExistsError, RuntimeError, ValueError) as error:
         print(error)
         return 1

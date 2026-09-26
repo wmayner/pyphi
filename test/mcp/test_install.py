@@ -224,6 +224,25 @@ class TestCommandLine:
     def test_skills_is_true(self):
         assert mod.build_parser().parse_args(["install", "--skills"]).skills is True
 
+    def test_iit_expert_defaults_to_asking(self):
+        assert mod.build_parser().parse_args(["install"]).iit_expert is None
+
+    def test_no_iit_expert_is_false(self):
+        args = mod.build_parser().parse_args(["install", "--no-iit-expert"])
+        assert args.iit_expert is False
+
+    def test_iit_expert_is_true(self):
+        args = mod.build_parser().parse_args(["install", "--iit-expert"])
+        assert args.iit_expert is True
+
+    def test_print_shows_the_plugin_commands(self, tmp_path, capsys, isolated_home):
+        (isolated_home / ".codex").mkdir()
+        args = mod.build_parser().parse_args(
+            ["install", "--print", "--directory", str(tmp_path)]
+        )
+        assert mod.run(args) == 0
+        assert "codex plugin add iit-expert@iit-expert" in capsys.readouterr().out
+
     def test_agents_are_repeatable(self):
         args = mod.build_parser().parse_args(
             ["install", "--agent", "codex", "--agent", "cursor"]

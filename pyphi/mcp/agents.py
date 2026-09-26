@@ -3,7 +3,8 @@ machine.
 
 A skill is matched against the task before the model acts. The skills shipped under
 ``pyphi/mcp/skills/`` are copied out of the package into each agent's own skills
-directory.
+directory. The IIT Expert plugin, which covers the theory, is installed through
+each agent's own plugin commands.
 
 Nothing here imports the optional ``mcp`` dependency.
 """
@@ -12,6 +13,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import subprocess
 import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -46,6 +48,40 @@ RETIRED: frozenset[str] = frozenset({"iit"})
 #: Agents whose skills directory Cursor also reads, so writing to Cursor's own
 #: directory as well would load every skill twice there.
 CURSOR_READS: frozenset[str] = frozenset({"claude-code", "codex"})
+
+#: The IIT Expert plugin: the ``iit-expert`` skill and the connector to the
+#: IIT literature at ``mcp.learniit.org``, published for Claude Code, Codex and
+#: Cursor from one repository.
+PLUGIN = "iit-expert@iit-expert"
+PLUGIN_REPOSITORY = "wmayner/iit-expert-plugin"
+INSTALL_PAGE = "https://learniit.org/install"
+
+#: Seconds each plugin command may take; adding the marketplace clones it.
+PLUGIN_TIMEOUT = 120
+
+#: Agent name mapped to the commands that install the plugin, run in order.
+#: Both agents treat a repeat as success, so running ``install`` again is safe.
+PLUGIN_COMMANDS: dict[str, tuple[tuple[str, ...], ...]] = {
+    "claude-code": (
+        ("claude", "plugin", "marketplace", "add", PLUGIN_REPOSITORY),
+        ("claude", "plugin", "install", PLUGIN),
+    ),
+    "codex": (
+        ("codex", "plugin", "marketplace", "add", PLUGIN_REPOSITORY),
+        ("codex", "plugin", "add", PLUGIN),
+    ),
+}
+
+#: Agent name mapped to the command that removes the plugin.
+PLUGIN_REMOVAL: dict[str, tuple[str, ...]] = {
+    "claude-code": ("claude", "plugin", "uninstall", PLUGIN),
+    "codex": ("codex", "plugin", "remove", PLUGIN),
+}
+
+#: Cursor installs plugins from its settings rather than a command line.
+CURSOR_STEPS = (
+    f"in Cursor, open Customize → From GitHub Repository and enter {PLUGIN_REPOSITORY}"
+)
 
 
 @dataclass(frozen=True)
@@ -248,6 +284,41 @@ def confirm(question: str) -> bool:
     return answer in ("", "y", "yes")
 
 
+def _shown(commands: tuple[tuple[str, ...], ...]) -> str:
+    return "; ".join(" ".join(command) for command in commands)
+
+
+def _execute(command: tuple[str, ...]) -> str | None:
+    """Run one plugin command.
+
+    Returns
+    -------
+    str or None
+        None if the command succeeded, otherwise why it did not.
+    """
+    shown = " ".join(command)
+    executable = shutil.which(command[0])
+    if executable is None:
+        return f"`{command[0]}` is not on PATH"
+    try:
+        result = subprocess.run(
+            [executable, *command[1:]],
+            capture_output=True,
+            text=True,
+            timeout=PLUGIN_TIMEOUT,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return f"`{shown}` timed out after {PLUGIN_TIMEOUT} s"
+    except OSError as error:
+        return f"`{shown}` could not start: {error}"
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        last = f": {detail[-1]}" if detail else ""
+        return f"`{shown}` exited with status {result.returncode}{last}"
+    return None
+
+
 def install_step(
     *,
     skills: bool | None,
@@ -326,4 +397,97 @@ def describe(
         for target in _split_cursor(
             resolve(names, paths, home=home), explicit=bool(names or paths)
         )[0]
+    ]
+
+
+def _agents(names: list[str], paths: list[Path], home: Path | None) -> list[Target]:
+    """The known agents among the targets; an explicit directory is not one."""
+    return [
+        target for target in resolve(names, paths, home=home) if target.name in AGENTS
+    ]
+
+
+def plugin_step(
+    *,
+    plugin: bool | None,
+    names: list[str],
+    paths: list[Path],
+    home: Path | None = None,
+) -> list[str]:
+    """Offer the IIT Expert plugin and install it through each agent's commands.
+
+    Parameters
+    ----------
+    plugin : bool or None
+        True installs without asking, False skips, None asks where a person is
+        there to answer and skips otherwise.
+    names : list of str
+        Agents named explicitly, whether or not they were detected.
+    paths : list of Path
+        Skills directories given explicitly; these belong to no known agent
+        and are ignored here.
+    home : Path, optional
+        The directory agents are resolved under. If None, the user's home
+        directory.
+
+    Returns
+    -------
+    list of str
+        One line per agent. A command that is missing or fails is reported
+        with the commands to run by hand; it never fails the install.
+    """
+    targets = _agents(names, paths, home)
+    if not targets or plugin is False:
+        return []
+    if plugin is None:
+        if not interactive():
+            return [
+                "skipped the IIT Expert plugin; run `pyphi-mcp install "
+                f"--iit-expert` to add it, or see {INSTALL_PAGE}"
+            ]
+        displayed = ", ".join(target.display for target in targets)
+        if not confirm(
+            f"Install the IIT Expert plugin (skill + connector) for {displayed}?"
+        ):
+            return []
+    actions = []
+    for target in targets:
+        commands = PLUGIN_COMMANDS.get(target.name)
+        if commands is None:
+            actions.append(f"to add IIT Expert: {CURSOR_STEPS}")
+            continue
+        for command in commands:
+            error = _execute(command)
+            if error is not None:
+                actions.append(
+                    f"could not install the IIT Expert plugin in "
+                    f"{target.display} ({error}); run: {_shown(commands)}"
+                )
+                break
+        else:
+            actions.append(f"installed the IIT Expert plugin in {target.display}")
+    return actions
+
+
+def describe_plugin(
+    *, names: list[str], paths: list[Path], home: Path | None = None
+) -> list[str]:
+    """Return what :func:`plugin_step` would run, running nothing."""
+    lines = []
+    for target in _agents(names, paths, home):
+        commands = PLUGIN_COMMANDS.get(target.name)
+        how = _shown(commands) if commands is not None else CURSOR_STEPS
+        lines.append(f"IIT Expert plugin for {target.display}: {how}")
+    return lines
+
+
+def plugin_removal_hint(
+    *, names: list[str], paths: list[Path], home: Path | None = None
+) -> list[str]:
+    """Say how to remove the plugin, which PyPhi installs but does not own."""
+    return [
+        f"the IIT Expert plugin stays installed in {target.display}; "
+        f"remove it with: {' '.join(PLUGIN_REMOVAL[target.name])}"
+        for target in _agents(names, paths, home)
+        if target.name in PLUGIN_REMOVAL
     ]
