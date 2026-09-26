@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import shutil
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from importlib import metadata
 from importlib import resources
@@ -35,9 +36,12 @@ AGENTS: dict[str, tuple[str, str]] = {
 SENTINEL = ".pyphi-skill"
 
 #: Skills whose ``references/`` is filled from the reference topics at install
-#: time. The gate skill carries none: it sends the reader to the reference
-#: rather than shipping a copy of it.
+#: time.
 REFERENCED: frozenset[str] = frozenset({"pyphi"})
+
+#: Skills earlier versions of PyPhi installed and this one no longer ships.
+#: Installing and uninstalling both delete a copy PyPhi wrote.
+RETIRED: frozenset[str] = frozenset({"iit"})
 
 
 @dataclass(frozen=True)
@@ -145,6 +149,17 @@ def _version() -> str:
         return "unknown"
 
 
+def _remove_marked(path: Path, names: Iterable[str]) -> list[str]:
+    """Delete each named skill under ``path`` that holds the sentinel file."""
+    removed = []
+    for name in names:
+        destination = path / name
+        if (destination / SENTINEL).is_file():
+            shutil.rmtree(destination)
+            removed.append(name)
+    return removed
+
+
 def deliver(target: Target) -> None:
     """Write every shipped skill into ``target``, replacing earlier copies.
 
@@ -157,6 +172,7 @@ def deliver(target: Target) -> None:
     OSError
         If the target directory cannot be written.
     """
+    _remove_marked(target.path, sorted(RETIRED))
     for name in skill_names():
         destination = target.path / name
         with resources.as_file(_source() / name) as source:
@@ -175,7 +191,8 @@ def deliver(target: Target) -> None:
 
 
 def remove(target: Target) -> list[str]:
-    """Delete the skills written by :func:`deliver` from ``target``.
+    """Delete the skills written by :func:`deliver` from ``target``, and any
+    :data:`RETIRED` skill an earlier PyPhi wrote there.
 
     Only directories holding a :data:`SENTINEL` file are removed, so a
     hand-written skill that shares a name survives.
@@ -187,13 +204,7 @@ def remove(target: Target) -> list[str]:
     """
     if not target.path.is_dir():
         return []
-    removed = []
-    for name in skill_names():
-        destination = target.path / name
-        if (destination / SENTINEL).is_file():
-            shutil.rmtree(destination)
-            removed.append(name)
-    return removed
+    return _remove_marked(target.path, [*skill_names(), *sorted(RETIRED)])
 
 
 def interactive() -> bool:

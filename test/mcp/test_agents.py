@@ -65,8 +65,8 @@ class TestExplicitTargets:
 
 
 class TestDelivery:
-    def test_ships_both_skills(self):
-        assert sorted(mod.skill_names()) == ["iit", "pyphi"]
+    def test_ships_the_library_skill(self):
+        assert mod.skill_names() == ["pyphi"]
 
     def test_writes_every_skill(self, tmp_path):
         mod.deliver(mod.Target("x", "X", tmp_path))
@@ -75,7 +75,7 @@ class TestDelivery:
 
     def test_stamps_a_sentinel_holding_the_version(self, tmp_path):
         mod.deliver(mod.Target("x", "X", tmp_path))
-        stamp = (tmp_path / "iit" / mod.SENTINEL).read_text().strip()
+        stamp = (tmp_path / "pyphi" / mod.SENTINEL).read_text().strip()
         assert stamp
 
     def test_fills_references_from_the_content_topics(self, tmp_path):
@@ -91,10 +91,6 @@ class TestDelivery:
         text = (tmp_path / "pyphi" / "references" / "configuration.md").read_text()
         assert "Complete option reference" in text
 
-    def test_the_gate_skill_has_no_references(self, tmp_path):
-        mod.deliver(mod.Target("x", "X", tmp_path))
-        assert not (tmp_path / "iit" / "references").exists()
-
     def test_a_dropped_reference_does_not_survive_a_reinstall(self, tmp_path):
         target = mod.Target("x", "X", tmp_path)
         mod.deliver(target)
@@ -106,25 +102,49 @@ class TestDelivery:
     def test_delivering_twice_refreshes_rather_than_failing(self, tmp_path):
         target = mod.Target("x", "X", tmp_path)
         mod.deliver(target)
-        (tmp_path / "iit" / "SKILL.md").write_text("stale")
+        (tmp_path / "pyphi" / "SKILL.md").write_text("stale")
         mod.deliver(target)
-        assert (tmp_path / "iit" / "SKILL.md").read_text() != "stale"
+        assert (tmp_path / "pyphi" / "SKILL.md").read_text() != "stale"
 
 
 class TestRemoval:
     def test_removes_what_deliver_wrote(self, tmp_path):
         target = mod.Target("x", "X", tmp_path)
         mod.deliver(target)
-        assert sorted(mod.remove(target)) == ["iit", "pyphi"]
-        assert not (tmp_path / "iit").exists()
+        assert mod.remove(target) == ["pyphi"]
         assert not (tmp_path / "pyphi").exists()
 
     def test_leaves_a_hand_written_skill_of_the_same_name(self, tmp_path):
-        mine = tmp_path / "iit"
+        mine = tmp_path / "pyphi"
         mine.mkdir(parents=True)
         (mine / "SKILL.md").write_text("mine")
         assert mod.remove(mod.Target("x", "X", tmp_path)) == []
         assert (mine / "SKILL.md").read_text() == "mine"
+
+    def _retired(self, tmp_path, marked=True):
+        old = tmp_path / "iit"
+        old.mkdir()
+        (old / "SKILL.md").write_text("old", encoding="utf-8")
+        if marked:
+            (old / mod.SENTINEL).write_text("2.0.0rc1\n", encoding="utf-8")
+        return old
+
+    def test_delivery_removes_a_retired_skill(self, tmp_path):
+        old = self._retired(tmp_path)
+        mod.deliver(mod.Target("t", "t", tmp_path))
+        assert not old.exists()
+
+    def test_removal_removes_a_retired_skill(self, tmp_path):
+        old = self._retired(tmp_path)
+        assert "iit" in mod.remove(mod.Target("t", "t", tmp_path))
+        assert not old.exists()
+
+    def test_a_hand_written_skill_with_a_retired_name_survives(self, tmp_path):
+        old = self._retired(tmp_path, marked=False)
+        target = mod.Target("t", "t", tmp_path)
+        mod.deliver(target)
+        mod.remove(target)
+        assert (old / "SKILL.md").read_text(encoding="utf-8") == "old"
 
     def test_is_safe_where_nothing_was_installed(self, tmp_path):
         assert mod.remove(mod.Target("x", "X", tmp_path / "absent")) == []
@@ -155,7 +175,7 @@ class TestFlow:
         home = self._home(tmp_path)
         monkeypatch.setattr(mod, "confirm", lambda _question: pytest.fail("prompted"))
         actions = mod.install_step(skills=True, names=[], paths=[], home=home)
-        assert (home / ".claude" / "skills" / "iit" / "SKILL.md").is_file()
+        assert (home / ".claude" / "skills" / "pyphi" / "SKILL.md").is_file()
         assert any("Claude Code" in line or "skills" in line for line in actions)
 
     def test_non_interactive_skips_and_says_how_to_do_it_later(
@@ -203,7 +223,7 @@ class TestFlow:
 
         monkeypatch.setattr(mod, "deliver", failing)
         actions = mod.install_step(skills=True, names=[], paths=[], home=home)
-        assert (home / ".codex" / "skills" / "iit").is_dir()
+        assert (home / ".codex" / "skills" / "pyphi").is_dir()
         assert any("could not" in line for line in actions)
 
     def test_the_report_gives_full_paths(self, tmp_path):
@@ -215,13 +235,13 @@ class TestFlow:
         home = self._home(tmp_path)
         mod.install_step(skills=True, names=[], paths=[], home=home)
         actions = mod.remove_step(names=[], paths=[], home=home)
-        assert any("iit" in line for line in actions)
+        assert any("pyphi" in line for line in actions)
 
     def test_describe_writes_nothing(self, tmp_path):
         home = self._home(tmp_path)
         lines = mod.describe(names=[], paths=[], home=home)
         assert not (home / ".claude" / "skills").exists()
-        assert any("iit" in line for line in lines)
+        assert any("pyphi" in line for line in lines)
 
 
 class TestConfirm:
@@ -269,10 +289,6 @@ class TestShippedSkills:
             front, _ = self._front_matter(name)
             assert "description:" in front
 
-    def test_the_gate_says_not_to_answer_from_recollection(self):
-        _, text = self._front_matter("iit")
-        assert "recollection" in text
-
     def test_the_library_skill_warns_about_the_swapped_names(self):
         _, text = self._front_matter("pyphi")
         assert "CauseEffectStructure" in text
@@ -311,5 +327,5 @@ def test_the_skills_reach_a_built_wheel(tmp_path):
         for name in zipfile.ZipFile(wheel).namelist()
         if name.startswith("pyphi/mcp/skills/")
     }
-    assert "pyphi/mcp/skills/iit/SKILL.md" in shipped
+    assert not any(name.startswith("pyphi/mcp/skills/iit/") for name in shipped)
     assert "pyphi/mcp/skills/pyphi/SKILL.md" in shipped
