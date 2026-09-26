@@ -1,4 +1,4 @@
-# Use PyPhi with an AI assistant (MCP server)
+# The PyPhi MCP server
 
 PyPhi includes a [Model Context Protocol](https://modelcontextprotocol.io) (MCP)
 server that lets an AI assistant build substrates, run IIT analyses, inspect the
@@ -8,6 +8,11 @@ talking to it in plain language. It runs locally in your own environment.
 It is meant to be useful in two ways: as a calculator and interpreter for
 researchers using AI assistance, and as a tutor for newcomers exploring the
 theory.
+
+```{tip}
+For questions about the theory itself, pair the server with IIT Expert, which
+answers from IIT's primary literature. {doc}`ai-assistants` covers both.
+```
 
 ## Set up a project with Claude Code
 
@@ -58,20 +63,35 @@ removes both, and anything you wrote around them survives.
 
 ### Skills for your coding agent
 
-`install` also offers to write two skills into every AI coding agent it finds:
-`iit`, which stops an assistant answering about the theory from recollection
-and points it at the reference, and `pyphi`, which covers the 2.0 API, state
-ordering, cost estimation, and the conventions for a reproducible script.
+`install` then offers two additions for every AI coding agent it finds. The
+first is the `pyphi` skill, which covers the 2.0 API, state ordering, cost
+estimation, and the conventions for a reproducible script. The second is the
+IIT Expert plugin, which brings the `iit-expert` skill and the connector to
+IIT's primary literature (see {doc}`ai-assistants`).
 
-It probes `~/.claude`, `~/.codex` and `~/.cursor`, and asks before writing:
+It probes `~/.claude`, `~/.codex` and `~/.cursor`, and asks before each:
 
 ```
 Install the PyPhi skills for Claude Code, Codex? [Y/n]
+Install the IIT Expert plugin (skill + connector) for Claude Code, Codex? [Y/n]
 ```
 
-`--skills` and `--no-skills` answer it without a terminal, which is what a
-script or a continuous-integration run needs; with neither flag and no
-terminal, nothing is written. `--agent NAME` reaches an agent that was not
+`--skills` and `--no-skills` answer the first question without a terminal, and
+`--iit-expert` and `--no-iit-expert` answer the second, which is what a script
+or a continuous-integration run needs; with no flag and no terminal, nothing is
+written or run.
+
+For Claude Code and Codex, the plugin is installed by running the agent's own
+plugin commands, so the agent handles its updates from then on. If a command is
+missing or fails, `install` prints the commands for you to run and carries on.
+Cursor has no such command, so `install` prints the steps to follow in its
+settings instead.
+
+Cursor also reads the skills folders of Claude Code and Codex, so `install`
+writes the `pyphi` skill to Cursor's own folder only when neither of those
+agents is present.
+
+`--agent NAME` reaches an agent that was not
 detected, and `--agent-path DIR` reaches one PyPhi does not know about. Both
 are repeatable.
 
@@ -79,7 +99,8 @@ Skills are written under your home directory whatever `--scope` says, because
 they are about IIT and PyPhi rather than about one project, and the report
 prints the full path of each one. `pyphi-mcp uninstall` removes them again; it
 deletes only directories PyPhi wrote, so a skill of your own that shares a name
-is left alone.
+is left alone. It does not remove the IIT Expert plugin, which belongs to the
+agent once installed; it prints the command that does.
 
 Running `install` again refreshes the skills, which is how you update them
 after upgrading PyPhi.

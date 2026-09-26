@@ -98,6 +98,18 @@ for IIT research:
 
 ### For AI assistants
 
+[IIT Expert](https://learniit.org), a work in progress, helps an assistant
+answer questions about the theory from IIT's primary literature, citing where
+each claim comes from. In Claude Code:
+
+```
+claude plugin marketplace add wmayner/iit-expert-plugin
+claude plugin install iit-expert@iit-expert
+```
+
+[Use PyPhi with an AI assistant](https://pyphi.readthedocs.io/en/latest/howto/ai-assistants.html)
+covers Codex, Cursor, claude.ai and Claude Desktop.
+
 PyPhi ships an [MCP server](https://pyphi.readthedocs.io/en/stable/howto/mcp-server.html)
 (`pip install "pyphi[mcp]"`, then `pyphi-mcp install`) that gives an assistant
 tools for building substrates, estimating cost, and running analyses, along with

@@ -466,7 +466,11 @@ cluster campaigns, plus a bundled, citation-checked IIT reference and
 guided prompts — explaining a result in plain language, porting pre-2.0
 code, turning a natural-language description into a valid substrate, and
 planning a cluster campaign step by step. See
-[Use the MCP server](howto/mcp-server.md).
+[The PyPhi MCP server](howto/mcp-server.md).
+
+For questions about the theory, `pyphi-mcp install` also offers the IIT Expert
+plugin, which gives an assistant IIT's primary literature to answer from. See
+[Use PyPhi with an AI assistant](howto/ai-assistants.md).
 
 ## Reproduction and correctness
 

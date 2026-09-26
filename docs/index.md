@@ -62,14 +62,21 @@ Moving to PyPhi 2.0 from earlier versions and related tools.
 :::
 ::::
 
-::::{grid} 1
+::::{grid} 1 1 2 2
 :gutter: 3
 
-:::{grid-item-card} {octicon}`dependabot` AI agents
+:::{grid-item-card} {octicon}`book` Learn IIT with an AI assistant
+:link: howto/ai-assistants
+:link-type: doc
+IIT Expert answers questions about the theory from its primary literature, with
+citations. A work in progress.
+:::
+
+:::{grid-item-card} {octicon}`dependabot` Compute with an AI assistant
 :link: howto/mcp-server
 :link-type: doc
-PyPhi includes an MCP server that lets an AI agent build substrates, size runs,
-and analyze them. This site is also readable by AI agents.
+PyPhi's MCP server lets an assistant build substrates, size runs, and analyze
+them. This site is also readable by AI agents.
 :::
 ::::
 

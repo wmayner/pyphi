@@ -10,7 +10,7 @@ I want to…
 - reproduce a published number: {doc}`../tutorials/worked-example` and
   {doc}`earlier-versions`
 - run on many cores or a cluster: {doc}`parallel`, {doc}`campaigns`
-- work with an AI assistant: {doc}`mcp-server`
+- work with an AI assistant: {doc}`ai-assistants`, {doc}`mcp-server`
 - fix an error: {doc}`faq`
 
 ```{toctree}
@@ -21,6 +21,7 @@ build-substrate
 read-result
 estimate-cost
 configure
+ai-assistants
 mcp-server
 ```
 
