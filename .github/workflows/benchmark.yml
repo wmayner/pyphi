@@ -16,6 +16,9 @@ permissions:
 jobs:
   asv:
     runs-on: ubuntu-latest
+    # One nightly run benchmarks two commits (~7 min each); fail fast rather
+    # than sit out the 6 h default.
+    timeout-minutes: 90
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -35,7 +38,7 @@ jobs:
         run: uv sync --python 3.13 --group dev --all-extras
 
       - name: Restore accumulated ASV results
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: benchmarks/results
           key: asv-results-${{ github.run_id }}
@@ -45,9 +48,19 @@ jobs:
         working-directory: benchmarks
         run: uv run asv machine --yes
 
-      - name: Run benchmarks for new commits
+      # HEAD only: `NEW` means every commit since the newest cached result,
+      # and one failed save turns that into hundreds of commits that can
+      # never finish (and so never save).
+      - name: Benchmark HEAD
         working-directory: benchmarks
-        run: uv run asv run NEW --skip-existing --show-stderr || true
+        run: uv run asv run HEAD^! --skip-existing --show-stderr || true
+
+      - name: Save accumulated ASV results
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: benchmarks/results
+          key: asv-results-${{ github.run_id }}
 
       - name: Detect regression (HEAD vs previous commit, same runner)
         id: detect
