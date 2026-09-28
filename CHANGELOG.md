@@ -5,7 +5,7 @@ Changelog
 
 2.0.0
 -----
-_2026-09-15_
+_2026-09-27_
 
 PyPhi 2.0 is a comprehensive rework of the library around IIT 4.0 (Albantakis et
 al. 2023; Mayner et al. 2026): new core value types, first-class formalism
@@ -21,7 +21,7 @@ and `migrate_code` prompt on the MCP server).
 ### Highlights
 
 - **The intrinsic-units macro framework** of Marshall, Findlay, Albantakis &
-  Tononi (2024) is implemented in `pyphi.macro`: macro units defined by
+  Tononi (2026) is implemented in `pyphi.macro`: macro units defined by
   coarse-graining or blackboxing micro or meso constituents, the four-step
   macro TPM construction, the intrinsic-unit criteria, and the bounded
   cross-grain search — and a `MacroSystem` goes through the standard IIT
@@ -133,7 +133,7 @@ and `migrate_code` prompt on the MCP server).
 **Intrinsic units and macro analysis**
 
 - `pyphi.macro`: the intrinsic-units macro framework of Marshall, Findlay,
-  Albantakis & Tononi (2024). `MacroUnit`, `coarse_grain()`, and
+  Albantakis & Tononi (2026). `MacroUnit`, `coarse_grain()`, and
   `blackbox()` define macro units over micro or meso constituents;
   `macro_tpms()` implements the four-step macro TPM construction (Eqs.
   26–40); and a `MacroSystem` goes through the standard IIT 4.0 pipeline
@@ -428,10 +428,17 @@ and `migrate_code` prompt on the MCP server).
   `pyphi-mcp uninstall` removes both halves. `--from`, `--scope`, `--client`,
   `--print` and `--force` cover the variants; with no subcommand `pyphi-mcp`
   still runs the server.
-- `pyphi-mcp install` offers to install two agent skills, `iit` and `pyphi`, into
-  Claude Code, Codex and Cursor. `--skills` and `--no-skills` answer the prompt
+- `pyphi-mcp install` offers to install the `pyphi` agent skill into Claude
+  Code, Codex and Cursor. `--skills` and `--no-skills` answer the prompt
   without a terminal; `--agent` and `--agent-path` reach agents that were not
-  detected. `pyphi-mcp uninstall` removes them.
+  detected. `pyphi-mcp uninstall` removes it. The skill is not written to
+  Cursor's skills folder when Claude Code or Codex is also present, since
+  Cursor reads theirs.
+- `pyphi-mcp install` also offers the IIT Expert plugin, which brings the
+  `iit-expert` skill and a connector to IIT's primary literature: for Claude
+  Code and Codex it runs the agent's own plugin commands, and for Cursor it
+  prints the steps. `--iit-expert` and `--no-iit-expert` answer the prompt
+  without a terminal. It removes the `iit` skill that 2.0.0rc1 installed.
 - Added `pyphi.numerics.lt()` and `le()`, tolerant order predicates consistent with `eq()`: `lt` requires a difference beyond `config.numerics.precision`, and `le` is `lt` or tolerant equality. The binding-direction selection in `Distinction.explain()` now routes through `le` instead of a hand-rolled composition.
 - `pyphi.campaign.prepare_ces()` accepts a `workloads` mapping, planning
   shards against caller-supplied per-mechanism costs instead of the analytic
@@ -768,6 +775,10 @@ and `migrate_code` prompt on the MCP server).
   the specified cause and effect states ahead of the MIP.
 - Result-card summary headers render as real two-column tables, so converting a
   card to plain text keeps each label paired with its value.
+- The Analysis card shows a `Formalism` row only when the result was computed
+  under an earlier version of IIT (`IIT_4_0_2023` or `IIT_3_0`).
+  `Analysis.formalism` and serialized results record the version for every
+  result.
 
 ### Config
 
@@ -953,9 +964,8 @@ and `migrate_code` prompt on the MCP server).
   wrong results without an error: TPM probabilities are range-checked;
   state-by-state conversions reject non-power-of-two state counts instead
   of truncating; reduced-dimension factors are rejected with a clear error;
-  mismatched mechanism/state lengths raise; unreachable system states are
-  rejected at construction (restoring the pre-2.0 behavior for candidate
-  subsystems); and macro, matching, and estimation entry points validate
+  mismatched mechanism/state lengths raise; substrate states with no possible
+  predecessor are rejected at construction; and macro, matching, and estimation entry points validate
   their preconditions.
 - Fixed `convert.be2le_state_by_state()` / `le2be_state_by_state()` (columns
   were not permuted) and an operator-precedence bug in
@@ -1296,6 +1306,21 @@ and `migrate_code` prompt on the MCP server).
   two, now raises an error that says the 2-D forms describe binary units and
   points at the factored form, instead of failing inside a conversion with
   "expected integer".
+- A system state is no longer rejected as unreachable when it is reachable
+  under IIT 4.0. The subsystem-level reachability check held the background's
+  past at its current state, the pre-4.0 convention; it now runs only under
+  `background_conditioning="CONDITION_CURRENT_STATE"`. Under the default causal
+  marginalization (Albantakis et al. 2023, Eq. 4) a positive substrate-level
+  probability is sufficient. `possible_complexes`, `Substrate.complexes`, and
+  the macro-unit search now evaluate candidate systems they previously skipped.
+- Setting `formalism.iit.version` to `IIT_4_0_2023` without the rest of the
+  preset (in `config.override(...)` or `pyphi_config.yml`) raises a
+  `ConfigurationError`. It was accepted and kept the default system measure, so
+  results were labeled `IIT_4_0_2023` but computed with the
+  intrinsic-information requirement. Select an earlier version with
+  `formalism=` or a preset (`pyphi.iit4_2023`).
+- The `node_labels` argument of `plot_ces` relabels distinction mechanisms as
+  well as purviews.
 
 ### Documentation
 
@@ -1406,6 +1431,32 @@ and `migrate_code` prompt on the MCP server).
   and twelve terms were added (unit, order, cause–effect state, congruent,
   normalized φ, partition scheme, preset, SIA, relation face, degree, unfolding,
   condensation, tie, grain).
+- The documentation, the MCP reference content, the `pyphi` skill, and the
+  package docstring describe the theory PyPhi computes as IIT, citing
+  Albantakis et al. (2023) and Mayner, Marshall & Tononi (2026) together.
+  Earlier versions are covered on one page and in the `configuration` and
+  `migration` references.
+- Statements about IIT in the MCP reference content, docstrings, and theory
+  docs were checked against the published IIT 4.0 paper and its S1 and S2
+  Texts: φₛ = 0 under the default can come from ii(s) = 0 as well as from
+  reducibility; equation citations use the published numbering (Φ is Eq. 59,
+  the Φ-structure Eq. 58, the specified-state search Eqs. 12–13); background
+  conditions are described as causally marginalized conditional on the current
+  state; and the IIT 3.0 preset's background convention is identified as PyPhi
+  1.x's rather than Oizumi et al. (2014)'s.
+- The intrinsic-units paper is cited in its published version (Marshall,
+  Findlay, Albantakis & Tononi 2026, *Neuroscience of Consciousness*
+  2026(1): niag013), with its equation and example numbering, which differs
+  from the preprint's: the unit tuple is Eq. 12, the intrinsic-unit criteria
+  Eqs. 16–17, the disjointness condition Eq. 19, and exclusion across grains
+  Eq. 20; the coarse-graining and black-boxing examples are Examples 2 and 3.
+  The documented mapping count gives the published total of
+  2^(2^(τ'|V|)) − 2 non-constant mappings, alongside the halved count PyPhi
+  enumerates up to complementation of the macro state labels.
+- A how-to page, "Use PyPhi with an AI assistant", introduces IIT Expert for
+  questions about the theory alongside the PyPhi MCP server for computation.
+- The documentation serves its fonts from the site itself and preloads the
+  faces used above the fold; "Open in Colab" links open in a new tab.
 
 ### Refactor
 
