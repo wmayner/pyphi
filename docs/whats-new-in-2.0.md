@@ -7,28 +7,10 @@ serialization, display, and parallel execution. This page tours the
 highlights, most broadly useful first; the complete list of changes is in the
 [changelog](https://github.com/wmayner/pyphi/blob/main/CHANGELOG.md).
 
-## Upgrading from 1.x
-
-Three changes affect existing code and results:
-
-- **The core types follow the IIT 4.0 paper's vocabulary.** `Network` is now
-  `Substrate`, `Subsystem` is now `System`, `Concept` is now `Distinction`,
-  and the partition and cut names follow the paper throughout.
-- **System integrated information includes the system's intrinsic
-  information**, following
-  [the intrinsic-information requirement](theory/intrinsic-information.md)
-  (Mayner, Marshall & Tononi 2026), so **deterministic systems compute
-  $\varphi_s = 0$**. Values published under earlier versions of IIT still
-  reproduce; see
-  [Reproduce results from earlier versions of IIT](howto/earlier-versions.md).
-- **Other breaking changes:** Python 3.13+ is required, configuration is
-  restructured into layered namespaces, and logging is off by default —
-  PyPhi no longer writes a `pyphi.log` file into the working directory; opt
-  in with `pyphi.enable_logging()`.
-
-The [migration guide](migration/migration-2.0.md) covers all of this with
-before-and-after examples for code written against 1.x or the
-`feature/iit-4.0` branch.
+If you are coming from PyPhi 1.x, the
+[migration guide](migration/migration-2.0.md) covers the breaking changes,
+such as `Network` becoming `Substrate` and `Subsystem` becoming `System`, with
+before-and-after examples.
 
 ## The essentials
 
@@ -278,6 +260,92 @@ search. These pre-flights power admission checks in the MCP server and the
 cluster-campaign planner, so an intractable run is refused with numbers
 instead of discovered by timeout.
 
+## An interface for AI assistants
+
+Two tools help an AI assistant work with IIT, and they are meant to be used
+together. **IIT Expert** answers questions about the theory from its primary
+literature: the IIT wiki, the papers, and a glossary of the axioms, postulates
+and measures, citing the paper, section or equation each claim comes from. It
+is hosted, so there is nothing to run locally. **The PyPhi MCP server** does
+the computing: it runs locally, in the Python environment where PyPhi is
+installed.
+
+The server (`pip install pyphi[mcp]`, then `pyphi-mcp`) has tools to build
+substrates, run and inspect analyses, render the built-in visualizations,
+estimate costs, and prepare and collect cluster campaigns. It also bundles a
+citation-checked IIT reference and guided prompts for explaining a result in
+plain language, porting pre-2.0 code, turning a natural-language description
+into a valid substrate, and planning a cluster campaign step by step.
+
+`pyphi-mcp install` connects the server to Claude Code, Codex, or Cursor,
+installs a `pyphi` skill that teaches the assistant the 2.0 API, and offers to
+install the IIT Expert plugin. See
+[Use PyPhi with an AI assistant](howto/ai-assistants.md) and
+[The PyPhi MCP server](howto/mcp-server.md).
+
+## Performance and scale
+
+### Faster across the board
+
+Several changes compound into orders-of-magnitude speedups:
+
+- Every configuration change used to serialize the entire config to disk —
+  including the scoped overrides the compute pipeline makes internally.
+  Removing that overhead made hot paths ~60–300× faster.
+- The repertoire computations were rewritten as a stateless kernel;
+  evaluating a system partition is roughly 18–20× faster than in the
+  pre-2.0 implementation.
+- The cause-side Bayesian inversion evaluates as a sum-product contraction
+  over the factored TPM's dependence structure instead of materializing the
+  joint likelihood over all substrate units, so a small system embedded in
+  a large, sparsely connected substrate is now tractable on the cause side.
+- Caches are keyed on the mathematics rather than object identity:
+  reconstructed systems, relabelings, and same-topology parameter sweeps
+  reuse each other's results.
+- The specified-state computation no longer materializes the full state
+  space — memory drops from 2ⁿ repertoires to one — and parallel dispatch
+  decisions were returned against measured per-item costs.
+
+These are per-partition and per-structure gains; end-to-end wall time also
+depends on how many partitions the configured scheme sweeps, and the
+default system partition scheme changed in 2.0 to the paper-faithful
+`DIRECTED_SET_PARTITION`, which evaluates a larger partition family than
+the 1.x default. So a run under default settings is not directly comparable
+to a 1.x timing, and can even take longer despite the faster kernel.
+
+The [computational complexity](theory/computational-complexity.md) page
+derives where the time goes and measures which
+configuration choices extend the tractable system size.
+
+### Parallelism, overhauled
+
+Parallel execution runs on a single scheduler abstraction with process,
+thread, and Dask backends; on free-threaded Python builds the thread
+backend is selected automatically. Work is packed into cost-balanced
+chunks using cheap per-item cost estimates, dispatch thresholds are tuned
+to measured per-item costs, and workers install the caller's exact
+configuration — so `config.override(...)` scopes apply on every backend,
+and parallel results are identical to sequential ones, including tie
+resolution. See [Parallelize computations](howto/parallel.md).
+
+### From laptop to cluster
+
+`pyphi.campaign` turns a computation into a directory of self-contained
+batch jobs for an HTCondor pool: `prepare()` packs the work into
+cost-balanced tasks and writes a submit file, `status()` and `collect()`
+work purely from output files, and resubmitting failures is just running
+`condor_submit` again. For a single system too large to analyze whole,
+`prepare_ces()` distributes the cause-effect structure computation itself:
+a `CESScope` declares which mechanisms and purviews are feasible, shards
+are planned to a per-job budget, and `collect()` reassembles the exact
+structure — tie sets preserved — with a certified scope report bounding
+what the scope excluded. Within the scope every value is exact: a scope
+narrows the computation, it never approximates it. A Dask backend covers
+the interactive path: connect a `distributed.Client`, set
+`config.parallel_backend = "dask"`, and PyPhi's parallel levels spread over
+the cluster. See [Run campaigns](howto/campaigns.md) and
+[PyPhi on CHTC](howto/chtc.md).
+
 ## Ergonomics and quality of life
 
 ### Results explain themselves
@@ -392,85 +460,6 @@ live with:
   the glossary, and the [Read a result](howto/read-result.md) how-to cover
   the questions that come up first, including the letter-case convention
   for purview states.
-
-## Performance and scale
-
-### Faster across the board
-
-Several changes compound into orders-of-magnitude speedups:
-
-- Every configuration change used to serialize the entire config to disk —
-  including the scoped overrides the compute pipeline makes internally.
-  Removing that overhead made hot paths ~60–300× faster.
-- The repertoire computations were rewritten as a stateless kernel;
-  evaluating a system partition is roughly 18–20× faster than in the
-  pre-2.0 implementation.
-- The cause-side Bayesian inversion evaluates as a sum-product contraction
-  over the factored TPM's dependence structure instead of materializing the
-  joint likelihood over all substrate units, so a small system embedded in
-  a large, sparsely connected substrate is now tractable on the cause side.
-- Caches are keyed on the mathematics rather than object identity:
-  reconstructed systems, relabelings, and same-topology parameter sweeps
-  reuse each other's results.
-- The specified-state computation no longer materializes the full state
-  space — memory drops from 2ⁿ repertoires to one — and parallel dispatch
-  decisions were returned against measured per-item costs.
-
-These are per-partition and per-structure gains; end-to-end wall time also
-depends on how many partitions the configured scheme sweeps, and the
-default system partition scheme changed in 2.0 to the paper-faithful
-`DIRECTED_SET_PARTITION`, which evaluates a larger partition family than
-the 1.x default. So a run under default settings is not directly comparable
-to a 1.x timing, and can even take longer despite the faster kernel.
-
-The [computational complexity](theory/computational-complexity.md) page
-derives where the time goes and measures which
-configuration choices extend the tractable system size.
-
-### Parallelism, overhauled
-
-Parallel execution runs on a single scheduler abstraction with process,
-thread, and Dask backends; on free-threaded Python builds the thread
-backend is selected automatically. Work is packed into cost-balanced
-chunks using cheap per-item cost estimates, dispatch thresholds are tuned
-to measured per-item costs, and workers install the caller's exact
-configuration — so `config.override(...)` scopes apply on every backend,
-and parallel results are identical to sequential ones, including tie
-resolution. See [Parallelize computations](howto/parallel.md).
-
-### From laptop to cluster
-
-`pyphi.campaign` turns a computation into a directory of self-contained
-batch jobs for an HTCondor pool: `prepare()` packs the work into
-cost-balanced tasks and writes a submit file, `status()` and `collect()`
-work purely from output files, and resubmitting failures is just running
-`condor_submit` again. For a single system too large to analyze whole,
-`prepare_ces()` distributes the cause-effect structure computation itself:
-a `CESScope` declares which mechanisms and purviews are feasible, shards
-are planned to a per-job budget, and `collect()` reassembles the exact
-structure — tie sets preserved — with a certified scope report bounding
-what the scope excluded. Within the scope every value is exact: a scope
-narrows the computation, it never approximates it. A Dask backend covers
-the interactive path: connect a `distributed.Client`, set
-`config.parallel_backend = "dask"`, and PyPhi's parallel levels spread over
-the cluster. See [Run campaigns](howto/campaigns.md) and
-[PyPhi on CHTC](howto/chtc.md).
-
-## An interface for AI assistants
-
-PyPhi ships a Model Context Protocol server
-(`pip install pyphi[mcp]`, then `pyphi-mcp`) that lets AI assistants drive
-the library: tools to build substrates, run and inspect analyses, render
-the built-in visualizations, estimate costs, and prepare and collect
-cluster campaigns, plus a bundled, citation-checked IIT reference and
-guided prompts — explaining a result in plain language, porting pre-2.0
-code, turning a natural-language description into a valid substrate, and
-planning a cluster campaign step by step. See
-[The PyPhi MCP server](howto/mcp-server.md).
-
-For questions about the theory, `pyphi-mcp install` also offers the IIT Expert
-plugin, which gives an assistant IIT's primary literature to answer from. See
-[Use PyPhi with an AI assistant](howto/ai-assistants.md).
 
 ## Reproduction and correctness
 
