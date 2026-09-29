@@ -85,11 +85,13 @@ For Claude Code and Codex, the plugin is installed by running the agent's own
 plugin commands, so the agent handles its updates from then on. If a command is
 missing or fails, `install` prints the commands for you to run and carries on.
 Cursor has no such command, so `install` prints the steps to follow in its
-settings instead.
+settings instead, without asking first, since nothing runs.
 
 Cursor also reads the skills folders of Claude Code and Codex, so `install`
 writes the `pyphi` skill to Cursor's own folder only when neither of those
-agents is present.
+agents is present, and removes a copy an earlier `install` left there once the
+skill is written for one of them. Naming Cursor with `--agent cursor` writes to
+its folder regardless.
 
 `--agent NAME` reaches an agent that was not
 detected, and `--agent-path DIR` reaches one PyPhi does not know about. Both

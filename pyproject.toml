@@ -232,6 +232,7 @@ max-statements = 100
 # line, and profiling scripts
 "pyphi/__init__.py" = ["T201"]
 "pyphi/mcp/install.py" = ["T201"]
+"pyphi/mcp/agents.py" = ["T201"]
 "profiling/**/*.py" = ["T201"]
 "benchmarks/**/*.py" = ["T201"]
 "scripts/**/*.py" = ["T201", "E501", "C408"]

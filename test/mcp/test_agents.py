@@ -291,6 +291,29 @@ class TestCursorDeduplication:
         )
         assert (tmp_path / ".cursor" / "skills" / "pyphi" / "SKILL.md").is_file()
 
+    def test_an_old_cursor_copy_survives_when_no_other_write_succeeded(
+        self, tmp_path, monkeypatch
+    ):
+        for probe in (".claude", ".cursor"):
+            (tmp_path / probe).mkdir()
+        cursor = tmp_path / ".cursor" / "skills"
+        mod.deliver(mod.Target("cursor", "Cursor", cursor))
+
+        def failing(target):
+            raise OSError("read-only")
+
+        monkeypatch.setattr(mod, "deliver", failing)
+        mod.install_step(skills=True, names=[], paths=[], home=tmp_path)
+        assert (cursor / "pyphi" / "SKILL.md").is_file()
+
+    def test_naming_only_claude_code_removes_an_old_cursor_copy(self, tmp_path):
+        for probe in (".claude", ".cursor"):
+            (tmp_path / probe).mkdir()
+        cursor = tmp_path / ".cursor" / "skills"
+        mod.deliver(mod.Target("cursor", "Cursor", cursor))
+        mod.install_step(skills=True, names=["claude-code"], paths=[], home=tmp_path)
+        assert not (cursor / "pyphi").exists()
+
     def test_describe_matches_what_install_writes(self, tmp_path):
         for probe in (".codex", ".cursor"):
             (tmp_path / probe).mkdir()
@@ -438,6 +461,50 @@ class TestPluginStep:
         result = mod.plugin_step(plugin=True, names=[], paths=[tmp_path], home=tmp_path)
         assert result == []
         assert ran == []
+
+    def test_a_progress_line_is_printed_before_the_commands_run(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        seen = []
+
+        def execute(command):
+            seen.append(capsys.readouterr().out)
+
+        monkeypatch.setattr(mod, "_execute", execute)
+        home = self._home(tmp_path, ".claude")
+        mod.plugin_step(plugin=True, names=[], paths=[], home=home)
+        assert "installing the IIT Expert plugin in Claude Code" in seen[0]
+
+    def test_cursor_alone_is_not_asked_about(self, tmp_path, monkeypatch):
+        ran = self._record(monkeypatch)
+        monkeypatch.setattr(mod, "interactive", lambda: True)
+        monkeypatch.setattr(mod, "confirm", lambda _q: pytest.fail("prompted"))
+        home = self._home(tmp_path, ".cursor")
+        (line,) = mod.plugin_step(plugin=None, names=[], paths=[], home=home)
+        assert "From GitHub Repository" in line
+        assert ran == []
+
+    def test_cursor_alone_gets_its_steps_without_a_terminal(self, tmp_path, monkeypatch):
+        self._record(monkeypatch)
+        monkeypatch.setattr(mod, "interactive", lambda: False)
+        home = self._home(tmp_path, ".cursor")
+        (line,) = mod.plugin_step(plugin=None, names=[], paths=[], home=home)
+        assert "From GitHub Repository" in line
+
+    def test_the_prompt_names_only_agents_it_can_install_into(
+        self, tmp_path, monkeypatch
+    ):
+        self._record(monkeypatch)
+        monkeypatch.setattr(mod, "interactive", lambda: True)
+        asked = []
+        monkeypatch.setattr(
+            mod, "confirm", lambda question: asked.append(question) or True
+        )
+        home = self._home(tmp_path, ".claude", ".cursor")
+        actions = mod.plugin_step(plugin=None, names=[], paths=[], home=home)
+        assert "Claude Code" in asked[0]
+        assert "Cursor" not in asked[0]
+        assert any("From GitHub Repository" in line for line in actions)
 
     def test_describe_lists_the_commands_and_runs_nothing(self, tmp_path, monkeypatch):
         ran = self._record(monkeypatch)

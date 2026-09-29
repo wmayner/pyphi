@@ -174,18 +174,28 @@ def resolve(
 
 
 def _split_cursor(
-    targets: list[Target], explicit: bool
+    targets: list[Target], explicit: bool, home: Path | None = None
 ) -> tuple[list[Target], Target | None]:
-    """Separate a detected Cursor target that another target already covers.
+    """Separate a Cursor target that another target already covers.
 
-    Returns the targets to write and the Cursor target left out, if any. A
-    target the user named is always written.
+    Returns the targets to write and the Cursor target whose skills Cursor
+    reads elsewhere, if any, so an earlier copy there can be removed. A
+    target the user named is always written; an installed Cursor the user did
+    not name is still returned, so naming only Claude Code or Codex does not
+    leave Cursor with two copies.
     """
     names = {target.name for target in targets}
-    if explicit or "cursor" not in names or not names & CURSOR_READS:
+    if not names & CURSOR_READS:
         return targets, None
-    cursor = next(target for target in targets if target.name == "cursor")
-    return [target for target in targets if target is not cursor], cursor
+    if not explicit and "cursor" in names:
+        cursor = next(target for target in targets if target.name == "cursor")
+        return [target for target in targets if target is not cursor], cursor
+    if explicit and "cursor" not in names:
+        root = Path.home() if home is None else Path(home)
+        probe, display = AGENTS["cursor"]
+        if (root / probe).is_dir():
+            return targets, Target("cursor", display, root / probe / "skills")
+    return targets, None
 
 
 def _source() -> Traversable:
@@ -355,7 +365,7 @@ def install_step(
         for target in resolved
         if (removed := _remove_marked(target.path, sorted(RETIRED)))
     ]
-    targets, covered = _split_cursor(resolved, explicit=bool(names or paths))
+    targets, covered = _split_cursor(resolved, explicit=bool(names or paths), home=home)
     if not targets or skills is False:
         return retired
     if skills is None:
@@ -369,15 +379,17 @@ def install_step(
             return retired
     installed = ", ".join(skill_names())
     actions = retired
+    delivered = False
     for target in targets:
         try:
             deliver(target)
         except OSError as error:
             actions.append(f"could not write skills to {target.path}: {error}")
         else:
+            delivered = True
             actions.append(f"installed the {installed} skills in {target.path}")
-    if covered is not None:
-        remove(covered)
+    # Cursor's own copy goes only once Cursor can read one elsewhere.
+    if covered is not None and delivered and (remove(covered) or covered in resolved):
         actions.append(
             f"left {covered.display} out: it reads the skills written for "
             "the other agents"
@@ -405,7 +417,7 @@ def describe(
     return [
         f"{target.path}: the {installed} skills"
         for target in _split_cursor(
-            resolve(names, paths, home=home), explicit=bool(names or paths)
+            resolve(names, paths, home=home), explicit=bool(names or paths), home=home
         )[0]
     ]
 
@@ -449,23 +461,29 @@ def plugin_step(
     targets = _agents(names, paths, home)
     if not targets or plugin is False:
         return []
-    if plugin is None:
+    # An agent without a plugin command line gets steps to follow, which
+    # need no consent, so only the agents PyPhi runs commands for are asked
+    # about.
+    runnable = [target for target in targets if target.name in PLUGIN_COMMANDS]
+    manual = (
+        [f"to add IIT Expert: {CURSOR_STEPS}"] if len(runnable) < len(targets) else []
+    )
+    if plugin is None and runnable:
         if not interactive():
             return [
                 "skipped the IIT Expert plugin; run `pyphi-mcp install "
-                f"--iit-expert` to add it, or see {INSTALL_PAGE}"
+                f"--iit-expert` to add it, or see {INSTALL_PAGE}",
+                *manual,
             ]
-        displayed = ", ".join(target.display for target in targets)
+        displayed = ", ".join(target.display for target in runnable)
         if not confirm(
             f"Install the IIT Expert plugin (skill + connector) for {displayed}?"
         ):
-            return []
+            return manual
     actions = []
-    for target in targets:
-        commands = PLUGIN_COMMANDS.get(target.name)
-        if commands is None:
-            actions.append(f"to add IIT Expert: {CURSOR_STEPS}")
-            continue
+    for target in runnable:
+        commands = PLUGIN_COMMANDS[target.name]
+        print(f"installing the IIT Expert plugin in {target.display}…", flush=True)
         for command in commands:
             error = _execute(command)
             if error is not None:
@@ -476,7 +494,7 @@ def plugin_step(
                 break
         else:
             actions.append(f"installed the IIT Expert plugin in {target.display}")
-    return actions
+    return actions + manual
 
 
 def describe_plugin(
