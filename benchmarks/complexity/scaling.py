@@ -291,9 +291,8 @@ def save(results: list[Trial], beta: float, trials: int) -> dict[str, Path]:
 PALETTE = ["#0072B2", "#D55C00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9"]
 FORMALISM_LABELS = {
     "IIT_3_0": "IIT 3.0",
-    "IIT_4_0_2023": "IIT 4.0 (2023)",
-    "IIT_4_0_2026": "IIT 4.0 (2026)",
-    "AC_2019": "AC 2019",
+    "IIT_4_0_2026": "IIT 4.0",
+    "AC_2019": "Actual causation",
 }
 STAGE_LABELS = {"sia": "SIA", "ces": "CES", "account": "account"}
 
@@ -342,7 +341,10 @@ def plot(agg_path: Path) -> Path:
     import seaborn as sns
 
     agg = pd.read_csv(agg_path)
-    agg["formalism"] = agg["formalism"].map(FORMALISM_LABELS).fillna(agg["formalism"])
+    # IIT 4.0 as published in 2023 is timed too, but its curves coincide with
+    # the current ones, so the figure leaves them out.
+    agg = agg[agg["formalism"] != "IIT_4_0_2023"]
+    agg["analysis"] = agg["formalism"].map(FORMALISM_LABELS).fillna(agg["formalism"])
     agg["stage"] = agg["stage"].map(STAGE_LABELS).fillna(agg["stage"])
     set_plot_theme()
     fig, ax = plt.subplots(figsize=(7, 4.5))
@@ -350,7 +352,7 @@ def plot(agg_path: Path) -> Path:
         data=agg,
         x="n",
         y="seconds_median",
-        hue="formalism",
+        hue="analysis",
         style="stage",
         markers=True,
         dashes=False,

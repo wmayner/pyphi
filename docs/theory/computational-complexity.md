@@ -201,9 +201,8 @@ timings, aggregates, fitted rates, and figure are written to
 
 Median wall-clock runtime versus system size $n$, one curve per stage, on a
 logarithmic vertical axis. A straight line indicates exponential growth; the
-upward-bending IIT 4.0 cause–effect-structure curves are super-exponential.
-The figure also times IIT 4.0 as published in 2023, whose curves coincide with
-the current ones, and IIT 3.0.
+upward-bending IIT 4.0 cause–effect-structure curve is super-exponential.
+IIT 3.0 is shown for comparison.
 ```
 
 The **IIT 4.0 cause–effect structure** grows fastest of all, and not at a fixed
