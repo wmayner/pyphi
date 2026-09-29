@@ -381,7 +381,9 @@ def optimize(
     subset : Sequence[int], optional
         Candidate system node indices; ``None`` uses the whole substrate.
     formalism : str, optional
-        A formalism preset applied for these evaluations only.
+        Leave unset to compute IIT under the active configuration. Pass an
+        earlier version's name only to reproduce published results; it
+        applies to these evaluations only, as in :func:`pyphi.analyze.analyze`.
     parallel : bool, optional
         Evaluate each generation's population through ``map_reduce``; defaults to
         ``config.infrastructure.parallel``. Requires ``builder`` and a callable

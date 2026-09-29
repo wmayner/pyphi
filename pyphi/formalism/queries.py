@@ -3,7 +3,7 @@
 These are free functions taking a ``System`` as the first argument.
 The kernel (``pyphi.core.repertoire_algebra``) holds pure repertoire math;
 this module holds the operations whose definition is *formalism-policy*
-(IIT 3.0 vs 4.0 vs 4.0-2026 each define MIP, MICE, SIA differently).
+(each version of IIT defines the MIP, MICE, and SIA differently).
 
 The dispatch path is::
 
@@ -319,7 +319,7 @@ def find_mice(
     Over the given ``direction``, searches the candidate purviews for the one
     whose φ (irreducibility) is maximal, resolving ties via
     :mod:`pyphi.resolve_ties`. When ``config.infrastructure.validate_phi_bounds``
-    is set and a purview is found, the winning φ is checked against the IIT 4.0
+    is set and a purview is found, the winning φ is checked against the
     distinction and partition upper bounds.
     """
     purviews_list = _ra.potential_purviews(cs, direction, mechanism, purviews)

@@ -247,13 +247,14 @@ def state_reachable(system: object) -> None:
        *subsystem* must transition to the subsystem's ``proper_state`` with
        nonzero probability.
 
-    Under ``CAUSAL_MARGINALIZATION`` (IIT 4.0), check 1 is sufficient: the
+    Under ``CAUSAL_MARGINALIZATION``, check 1 is sufficient: the
     background's past states are weighted by their probability given the
     current state (Albantakis et al. 2023, Eq. 4), so if some past universe
     state produces the current one, the cause TPM gives the system's state
     positive probability from that past state. Holding the background fixed
-    on the cause side is the convention IIT 4.0 replaced because it makes
-    reachable states unreachable (S2 Text, "Background Conditions").
+    on the cause side is the convention Albantakis et al. (2023) replaced
+    because it makes reachable states unreachable (S2 Text, "Background
+    Conditions").
     """
     factored = system.substrate.factored_tpm  # type: ignore[attr-defined]
     state = system.state  # type: ignore[attr-defined]

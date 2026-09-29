@@ -1,10 +1,10 @@
 # models/distinctions.py
-"""``Distinctions`` — a collection of distinctions (concepts in IIT 3.0).
+"""``Distinctions`` — a collection of distinctions.
 
-In IIT 4.0 paper terminology, the cause-effect structure of any candidate
-system is *distinctions + relations* — that compound object lives in
-:mod:`pyphi.models.ces` as :class:`CauseEffectStructure`. This module
-holds just the bag-of-distinctions side.
+In the terminology of Albantakis et al. (2023), the cause-effect structure of
+any candidate system is *distinctions + relations* — that compound object is
+:class:`~pyphi.models.ces.CauseEffectStructure`. This module holds just the
+bag-of-distinctions side.
 
 The collection comes in two concrete subtypes that encode whether
 ties on the per-distinction specified states have been disambiguated:
@@ -20,10 +20,16 @@ ties on the per-distinction specified states have been disambiguated:
   subtype, so passing unresolved distinctions is a static type error.
 
 The base :class:`Distinctions` class is abstract — instantiation must
-choose a subtype. IIT 3.0 has no per-distinction ties, so its computation
-emits :class:`ResolvedDistinctions` directly (vacuously resolved); IIT
-4.0 emits :class:`UnresolvedDistinctions` and resolves via the SIA's
+choose a subtype. The distinctions computation emits
+:class:`UnresolvedDistinctions` and resolves them via the SIA's
 ``system_state`` later in the pipeline.
+
+Notes
+-----
+For results computed under an earlier version of IIT (see
+:doc:`/howto/earlier-versions`): IIT 3.0 calls distinctions *concepts* and
+has no per-distinction ties, so its computation emits
+:class:`ResolvedDistinctions` directly (vacuously resolved).
 """
 
 from __future__ import annotations

@@ -2,8 +2,8 @@
 
 Macro units are defined by sliding-window state mappings over their
 micro constituents; macro cause and effect TPMs are built by the
-four-step construction (Eqs. 26-40) and analyzed by the IIT 4.0
-pipeline exactly as micro systems are. The intrinsic-unit criteria
+four-step construction (Eqs. 26-40) and analyzed by the same pipeline
+as micro systems. The intrinsic-unit criteria
 (Eqs. 16-17) and the bounded grain search (Eq. 20) decide which units
 and which grain are intrinsic for a substrate in a state.
 """

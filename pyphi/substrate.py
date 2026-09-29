@@ -558,7 +558,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         candidates: Iterable[Any] | None = None,
         **kwargs: Any,
     ) -> list[Any]:
-        """Return SIAs with Φ > 0; see :func:`irreducible_sias`."""
+        """Return SIAs with φₛ > 0; see :func:`irreducible_sias`."""
         return irreducible_sias(self, state, candidates=candidates, **kwargs)
 
     def complexes(
@@ -901,11 +901,11 @@ def all_sias(
 ) -> list[Any]:
     """Return SIAs for every candidate system of the substrate.
 
-    Includes reducible (Φ = 0) candidates. The default candidate
+    Includes reducible (φₛ = 0) candidates. The default candidate
     iterator is :func:`possible_complexes`, which skips subsets containing
     nodes that lack either inputs or outputs in the substrate — a
-    mathematically safe optimization under both formalisms, since such
-    candidates are not strongly connected and have Φ = 0.
+    mathematically safe optimization, since such candidates are not strongly
+    connected and have φₛ = 0.
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
@@ -943,7 +943,7 @@ def irreducible_sias(
     candidates: Iterable[Any] | None = None,
     **kwargs: Any,
 ) -> list[Any]:
-    """Return candidate SIAs with Φ > 0.
+    """Return candidate SIAs with φₛ > 0.
 
     These are *not* complexes — overlapping candidates may both appear in
     the returned list. The complexes (a subset satisfying exclusion) are
@@ -960,18 +960,21 @@ def complexes(
 ) -> tuple[Any, ...]:
     """Return the complexes of the substrate in its current state.
 
-    A complex is a set of units that is a local maximum of Φ (φₛ): no
+    A complex is a set of units that is a local maximum of φₛ: no
     overlapping candidate has higher φₛ. The returned tuple is
     non-overlapping (exclusion), ordered by φₛ descending.
 
-    Both formalisms walk SIAs in descending Φ tiers and group
-    survivors into overlap cliques per tier. Under IIT 4.0, each
-    multi-candidate clique escalates to the Composition cascade (max
-    Φ), and ties at Composition fail the exclusion postulate.
-    Under IIT 3.0, no further escalation exists (IIT 3.0 provides no
-    paper-canonical system-level tie-break); multi-candidate cliques
-    are skipped as indeterminate, and the tier walk continues to the
-    next group.
+    The search walks SIAs in descending φₛ tiers and groups survivors into
+    overlap cliques per tier. Each multi-candidate clique escalates to the
+    Composition cascade (maximum Φ), and ties at Composition fail the
+    exclusion postulate.
+
+    Notes
+    -----
+    For results computed under an earlier version of IIT (see
+    :doc:`/howto/earlier-versions`): IIT 3.0 provides no paper-canonical
+    system-level tie-break, so under it multi-candidate cliques are skipped
+    as indeterminate and the tier walk continues to the next group.
     """
     from pyphi import validate
     from pyphi.models.complex import Complex
@@ -1022,7 +1025,7 @@ def maximal_complex(
     candidates: Iterable[Any] | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Return the complex with maximum Φ over the substrate.
+    """Return the complex with maximum φₛ over the substrate.
 
     Equivalent to the first element of :func:`complexes`. Returns a
     null-object :class:`~pyphi.models.complex.Complex` (falsy, with empty

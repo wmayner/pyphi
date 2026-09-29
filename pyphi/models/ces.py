@@ -1,12 +1,12 @@
 # models/ces.py
 """Cause-effect structure: distinctions + relations (Albantakis et al. 2023).
 
-The IIT 4.0 paper distinguishes two terms:
+Albantakis et al. (2023) distinguish two terms:
 
 - *Cause-effect structure* — the distinctions plus relations specified by
   *any* candidate system (reducible or not).
 - *Φ-structure* — the cause-effect structure of a *complex* (a maximally
-  irreducible substrate). The IIT 4.0 paper (p11) reserves the Greek-Φ
+  irreducible substrate). The paper (p. 11) reserves the Greek-Φ
   spelling for that complex-specific reading.
 
 PyPhi exposes only :class:`CauseEffectStructure` as a runtime type;
@@ -16,10 +16,14 @@ complex). The bag-of-distinctions side (without relations) is
 :class:`pyphi.models.distinctions.Distinctions` — see that module's
 docstring.
 
-The algorithms that compute cause-effect structures live in
-:mod:`pyphi.formalism.iit4` as ``ces()`` (full CES with relations) and
-:mod:`pyphi.formalism.iit3` as ``ces()`` (distinctions only — IIT 3.0
-has no relations).
+The algorithm that computes cause-effect structures is ``ces()`` in
+:mod:`pyphi.formalism.iit4`.
+
+Notes
+-----
+For results computed under an earlier version of IIT (see
+:doc:`/howto/earlier-versions`): IIT 3.0 has no relations, so
+``ces()`` in :mod:`pyphi.formalism.iit3` returns the distinctions only.
 """
 
 from __future__ import annotations

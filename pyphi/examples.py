@@ -1379,7 +1379,7 @@ def differentiation_micro_1_system():
 
 
 # --------------------------------------------------------------------------- #
-# IIT 4.0 (2023) -- Albantakis et al., PLoS Comput Biol 19(10): e1011465
+# Albantakis et al. 2023, PLoS Comput Biol 19(10): e1011465
 # --------------------------------------------------------------------------- #
 # The example architectures of Figures 1A, 6 and 7 are Ising networks: each
 # unit's next state is a logistic (sigmoid) function of its weighted inputs in
@@ -1404,9 +1404,10 @@ def iit4_2023_fig1a_substrate():
         (no C→A)     C→B = −0.8   C→C = +0.2
 
     In the state aBC = (0, 1, 1) the paper reports φₛ = 0.04 for {A}, 0.17 for
-    {A, B} (the complex), and 0.13 for {A, B, C} (Fig 1E), the values under
-    the 2023 formalism. Under IIT 4.0 (2026), {A} and {A, B, C} are unchanged
-    and {A, B} gives 0.04, where the intrinsic-information requirement binds.
+    {A, B} (the complex), and 0.13 for {A, B, C} (Fig 1E) — the values under
+    IIT 4.0 as published in 2023. Under the intrinsic-information requirement,
+    {A} and {A, B, C} are unchanged and {A, B} gives 0.04, where the
+    requirement binds.
     """
     # fmt: off
     weights = np.array([
@@ -1663,7 +1664,7 @@ def iit4_2023_fig7_inactivated_system():
 
 
 # --------------------------------------------------------------------------- #
-# IIT 4.0 (2026) -- Mayner, Marshall & Tononi, Entropy 28(4): 410
+# Mayner, Marshall & Tononi 2026, Entropy 28(4): 410
 # --------------------------------------------------------------------------- #
 
 

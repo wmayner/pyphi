@@ -806,8 +806,8 @@ class Relations(Displayable, ToPandasMixin, Serializable):
 
 
 class NullRelations(Relations):
-    """An empty set of relations specified by a substrate whose formalism
-    does not define relations.
+    """An empty set of relations, for a cause-effect structure computed under
+    a version of IIT that does not define relations (IIT 3.0).
     """
 
     def __init__(self, *args, **kwargs):

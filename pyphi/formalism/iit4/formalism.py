@@ -567,7 +567,8 @@ class IIT4_2026Formalism:
         **kwargs: Any,
     ) -> Any:
         """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
-        2026 variant differs only at the system level (the ``ii(s)`` cap).
+        2026 variant differs only at the system level (the intrinsic-information
+        requirement).
 
         Explicit ``mechanism_measure`` overrides the config-driven fallback.
         """

@@ -48,12 +48,12 @@ def intrinsic_specification_label(config: Any) -> str:
     ----------
     config : ConfigSnapshot or None
         The snapshot carried by the result being displayed. ``None`` falls back
-        to the 2026 label.
+        to ``"Intrinsic specification"``.
 
     Returns
     -------
     str
-        ``"Intrinsic information"`` under IIT 4.0 (2023),
+        ``"Intrinsic information"`` under IIT 4.0 as published in 2023,
         ``"Intrinsic specification"`` otherwise.
     """
     version = getattr(

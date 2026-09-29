@@ -1,8 +1,7 @@
 # models/complex.py
 """The :class:`~pyphi.models.complex.Complex` — an irreducible system selected
-as a local maximum of system irreducibility (φₛ under IIT 4.0, Φ under IIT 3.0)
-under the exclusion postulate — and the lightweight record of a candidate
-excluded in its favor."""
+as a local maximum of system integrated information φₛ under the exclusion
+postulate — and the lightweight record of a candidate excluded in its favor."""
 
 from __future__ import annotations
 
@@ -122,13 +121,13 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
 
 
 class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
-    """An irreducible system selected as a complex: a local maximum of Φ over
+    """An irreducible system selected as a complex: a local maximum of φₛ over
     overlapping candidate systems (the exclusion postulate).
 
-    Wraps the system irreducibility analysis (IIT 3.0 or 4.0) and records
-    whether it is the Φ-maximal complex of its substrate, the candidates
-    excluded in its favor, and the substrate that selected it. Ordered by Φ
-    like the wrapped analysis.
+    Wraps the system irreducibility analysis and records whether it is the
+    φₛ-maximal complex of its substrate, the candidates excluded in its favor,
+    and the substrate that selected it. Ordered by φₛ like the wrapped
+    analysis.
 
     Attributes
     ----------
@@ -137,7 +136,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     substrate : Substrate
         The substrate this complex was selected from.
     is_maximal : bool
-        Whether this is the Φ-maximal complex.
+        Whether this is the φₛ-maximal complex.
     excluded : tuple[ExcludedCandidate, ...]
         Overlapping candidates excluded in this complex's favor.
     """
@@ -175,8 +174,11 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     @property
     def phi(self) -> Any:  # type: ignore[override]
-        """The system irreducibility value of this complex: φₛ under IIT 4.0,
-        Φ under IIT 3.0."""
+        """The system integrated information φₛ of this complex.
+
+        For a complex computed under IIT 3.0 (see
+        :doc:`/howto/earlier-versions`), this is that version's Φ.
+        """
         return self.sia.phi
 
     @property
@@ -227,7 +229,7 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         return self.sia.order_by()
 
     def __bool__(self) -> bool:
-        """``True`` iff Φ > 0 (a null complex is falsy)."""
+        """``True`` iff φₛ > 0 (a null complex is falsy)."""
         return not numerics.eq(self.phi, 0)
 
     def __eq__(self, other: object) -> bool:

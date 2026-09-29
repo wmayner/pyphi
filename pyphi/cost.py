@@ -348,7 +348,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
     Work axes are counted by driving the analysis's own enumeration
     machinery under the active configuration. ``None`` marks an axis
     outside the estimate's scope: excluded by ``compute``, not applicable
-    under the active formalism, or not reached before the work budget
+    under the active configuration, or not reached before the work budget
     (``capped=True``).
 
     Attributes
@@ -363,10 +363,9 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         ``"full"``, ``"sia"``, ``"ces"``, or ``"distinctions"``.
     system_partitions : int or None
         Partitions the system irreducibility analysis sweeps, under the
-        active system partition scheme. Counted for a ``"ces"`` analysis
-        under IIT 4.0, whose cause-effect structure embeds a system
-        irreducibility analysis, but not under IIT 3.0, whose structure is
-        the bare distinctions.
+        active system partition scheme. Counted for a ``"ces"`` analysis,
+        whose cause-effect structure embeds a system irreducibility
+        analysis.
     specified_state_evaluations : int or None
         Forward-repertoire evaluations the specified-state search performs
         (Albantakis et al. 2023, Eqs. 12-13). The search maximizes intrinsic
@@ -374,9 +373,8 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         it evaluates one repertoire per system state per direction: twice
         the state space, each evaluation over an array of that same size.
         Unlike the other axes this one grows with the size of the system
-        rather than of any mechanism. Counted under IIT 4.0 for a ``"sia"``,
-        ``"ces"``, or full analysis; ``None`` under IIT 3.0, which has no
-        specified state. A ``"distinctions"`` analysis performs no search,
+        rather than of any mechanism. Counted for a ``"sia"``, ``"ces"``, or
+        full analysis. A ``"distinctions"`` analysis performs no search,
         though filtering those distinctions for congruence
         (:meth:`~pyphi.system.System.distinctions` with ``congruent=True``)
         performs one.
@@ -395,17 +393,25 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         ``None`` when relations are outside the estimate's scope.
     possible_distinctions : int or None
         Candidate distinctions (2ⁿ − 1) — the size ceiling of the
-        cause-effect structure. Present only under an IIT 4.0 formalism
-        with binary units.
+        cause-effect structure. Present only for binary units.
     possible_relations : int or None
         Candidate relations (2^(2ⁿ−1) − 1) — the size ceiling of the
         relation set, and the enumeration worst case when
-        ``relations_closed_form`` is ``False``. Present only under an
-        IIT 4.0 formalism with binary units.
+        ``relations_closed_form`` is ``False``. Present only for binary
+        units.
     capped : bool
         The counting walk hit its work budget; walked counts are lower
         bounds (rendered with a ``≥`` qualifier) and axes never reached
         are ``None``.
+
+    Notes
+    -----
+    For an estimate made under an earlier version of IIT (see
+    :doc:`/howto/earlier-versions`): IIT 3.0 has no specified state and its
+    cause-effect structure is the bare set of distinctions, so under it
+    ``specified_state_evaluations``, ``relations_closed_form``,
+    ``possible_distinctions``, and ``possible_relations`` are ``None``, and
+    ``system_partitions`` is not counted for a ``"ces"`` analysis.
     """
 
     n_units: int
@@ -533,9 +539,9 @@ def estimate_analysis(
     compute : str or None, optional
         ``None`` estimates the full analysis; ``"sia"`` only the
         system-partition axis; ``"distinctions"`` only the distinction
-        axis; ``"ces"`` the distinction axis, plus the system-partition
-        axis under IIT 4.0, where unfolding a cause-effect structure
-        computes a system irreducibility analysis first.
+        axis; ``"ces"`` the distinction axis plus the system-partition
+        axis, since unfolding a cause-effect structure computes a system
+        irreducibility analysis first.
     limit : int, optional
         Work budget for the counting walk itself: purview evaluations and
         fresh partition enumerations each cost one unit, while memoized

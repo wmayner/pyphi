@@ -141,8 +141,8 @@ def positive_part(x: float) -> float:
     """Return ``max(0, x)``, the positive-part operator ``|·|⁺``.
 
     Rectifies a signed integration value by setting negative values to zero.
-    In IIT 4.0 this operator appears in the definitions of the integrated
-    effect and cause information φ (Albantakis et al., 2023, Eqs. 19 and 20):
+    This operator appears in the definitions of the integrated effect and
+    cause information φ (Albantakis et al., 2023, Eqs. 19 and 20):
     a partition that lowers the probability of the effect or cause state
     yields a negative value, which is clamped to zero so that only genuine
     increases in probability contribute.

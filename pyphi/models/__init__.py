@@ -45,9 +45,9 @@ RepertoireIrreducibilityAnalysis
     Alias for :class:`pyphi.models.ria.RepertoireIrreducibilityAnalysis`.
 IIT3SystemIrreducibilityAnalysis
     Alias for :class:`pyphi.models.sia.IIT3SystemIrreducibilityAnalysis` — the
-    IIT 3.0 result type. The IIT 4.0 result type with the same role lives in
-    :mod:`pyphi.formalism.iit4` and is called ``SystemIrreducibilityAnalysis``
-    there.
+    IIT 3.0 result type, used to reproduce published results. The system
+    irreducibility analysis of IIT is ``SystemIrreducibilityAnalysis`` in
+    :mod:`pyphi.formalism.iit4`.
 """
 
 from .actual_causation import Account

@@ -54,8 +54,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     background when computing repertoires. When ``None`` (the default), it
     resolves in ``__post_init__`` to ``substrate - node_indices``, the
     background units W = U \\ S, which under the default convention are
-    causally marginalized conditional on the current state (IIT 4.0,
-    Albantakis et al. 2023, Eqs. 3-4). An explicit override (used by
+    causally marginalized conditional on the current state (Albantakis et al.
+    2023, Eqs. 3-4). An explicit override (used by
     ``TransitionSystem`` for actual-causation analysis) may overlap with
     ``node_indices``.
 
@@ -385,8 +385,9 @@ class System(Displayable, ToPandasMixin, Serializable):
     @property
     def cause_marginal(self) -> CauseMarginals:
         """Per-system-unit cause factors under the active background
-        convention: IIT 4.0 Eq. 4 marginalization, or the background
-        conditioned at its observed state (``CONDITION_CURRENT_STATE``).
+        convention: the marginalization of Albantakis et al. (2023), Eq. 4, or
+        the background conditioned at its observed state
+        (``CONDITION_CURRENT_STATE``).
         """
         convention = self._resolved_background_conditioning()
         if convention not in self._cause_marginals:
@@ -444,10 +445,10 @@ class System(Displayable, ToPandasMixin, Serializable):
         """Drop a factor's non-system input dims.
 
         Non-system axes that are size 1 — conditioned at the background
-        state, or marginalized under IIT 4.0 Eq. 4 weighting — are
-        squeezed. Non-system axes left free (units neither in the system
-        nor external, as under the noise-background convention) are
-        marginalized uniformly.
+        state, or marginalized under the weighting of Albantakis et al.
+        (2023), Eq. 4 — are squeezed. Non-system axes left free (units
+        neither in the system nor external, as under the noise-background
+        convention) are marginalized uniformly.
         """
         system = set(self.node_indices)
         drop = tuple(j for j in range(self._typed_tpm.n_nodes) if j not in system)
@@ -464,10 +465,11 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         Per system unit ``i`` in ``node_indices``, the returned FactoredTPM
         carries the cause factor of :attr:`cause_marginal` — background
-        handled per the active convention (IIT 4.0 Eq. 4 marginalization,
-        or the external units conditioned at the background reference
-        state) — with all non-system input dims dropped, so the returned
-        shape is ``(*system_alphabet, k_i)`` per system output unit.
+        handled per the active convention (the marginalization of Albantakis
+        et al. (2023), Eq. 4, or the external units conditioned at the
+        background reference state) — with all non-system input dims dropped,
+        so the returned shape is ``(*system_alphabet, k_i)`` per system output
+        unit.
         Substrate units neither in the system nor external are marginalized
         uniformly (the noise-background convention).
         """
@@ -809,7 +811,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     # :mod:`pyphi.formalism` for callers who prefer that grammar.
 
     def sia(self, **kwargs: Any) -> Any:
-        """Return the system irreducibility analysis under the active formalism.
+        """Return the system irreducibility analysis of this system.
 
         Resolves the system- and specification-level measures from config at
         the public boundary and threads them to the active formalism
@@ -851,11 +853,16 @@ class System(Displayable, ToPandasMixin, Serializable):
     def ces(self, **kwargs: Any) -> Any:
         """Return the cause-effect structure of this system (Eq. 57).
 
-        Under IIT 4.0 returns a :class:`CauseEffectStructure` (distinctions
-        plus their relations). Under IIT 3.0 returns a
-        :class:`~pyphi.models.distinctions.ResolvedDistinctions`, the
-        concepts as ``.concepts`` (IIT 3.0 has no relations, so the CES is
-        exactly the set of distinctions).
+        The result is a :class:`CauseEffectStructure`: the distinctions plus
+        their relations.
+
+        Notes
+        -----
+        For results computed under an earlier version of IIT (see
+        :doc:`/howto/earlier-versions`): IIT 3.0 has no relations, so under it
+        the CES is exactly the set of distinctions, returned as a
+        :class:`~pyphi.models.distinctions.ResolvedDistinctions` with the
+        concepts as ``.concepts``.
         """
         from pyphi.cache.disk import maybe_disk_cached
 
@@ -899,15 +906,13 @@ class System(Displayable, ToPandasMixin, Serializable):
         congruent : bool
             Filter to the distinctions congruent with the system's specified
             state, as the cause-effect structure does, but without the
-            system-partition search. Under IIT 4.0 the result is a
+            system-partition search. The result is a
             :class:`~pyphi.models.distinctions.ResolvedDistinctions` equal to
             ``ces().distinctions`` when the specified state is untied, and
             the unfiltered
             :class:`~pyphi.models.distinctions.UnresolvedDistinctions` when it
             ties (see
-            :func:`~pyphi.formalism.iit4.congruent_distinctions`). IIT 3.0
-            has no tied specified states, so its distinctions are congruent
-            as computed.
+            :func:`~pyphi.formalism.iit4.congruent_distinctions`).
 
         Notes
         -----
@@ -915,6 +920,10 @@ class System(Displayable, ToPandasMixin, Serializable):
         mechanisms specify states incongruent with the system's own has a
         nonempty unfiltered set and an empty cause-effect structure. The
         unfiltered count and Σφ_d are therefore upper bounds, not estimates.
+
+        For results computed under an earlier version of IIT (see
+        :doc:`/howto/earlier-versions`): IIT 3.0 has no tied specified states,
+        so its distinctions are congruent as computed.
         """
         from pyphi.conf import config as _config
 

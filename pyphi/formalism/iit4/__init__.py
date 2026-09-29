@@ -1,9 +1,10 @@
 # formalism/iit4/__init__.py
 """IIT 4.0 system-level analysis: SIA, distinctions, relations, Φ-structure.
 
-Implements the algorithms from Albantakis et al. 2023 (and the 2026 extension
-when configured via the ``IIT_4_0_2026`` formalism). Concrete formalism
-classes wrapping these algorithms live in :mod:`pyphi.formalism.iit4.formalism`.
+Implements the algorithms from Albantakis et al. (2023), plus the
+intrinsic-information requirement added by Mayner et al. (2026) and applied
+under the ``IIT_4_0_2026`` formalism. Concrete formalism classes wrapping
+these algorithms live in :mod:`pyphi.formalism.iit4.formalism`.
 """
 
 from __future__ import annotations
@@ -177,12 +178,11 @@ class SystemIrreducibilityAnalysis(
 
     ``partition_margin`` is the gap in (clamped) normalized φ between the
     MIP and the best competing partition, computed at selection (before
-    the IIT 4.0 (2026) intrinsic-information requirement); it is zero when
+    the intrinsic-information requirement is applied); it is zero when
     a competitor ties and ``None`` when there was no competitor or the
-    partition sweep stopped
-    early on a reducible partition (in which case no exact margin exists).
-    Set ``shortcircuit_sia=False`` to evaluate every partition and obtain
-    an exact margin even when φ_s = 0.
+    partition sweep stopped early on a reducible partition (in which case
+    no exact margin exists). Set ``shortcircuit_sia=False`` to evaluate
+    every partition and obtain an exact margin even when φ_s = 0.
     """
 
     phi: float | DistanceResult
@@ -299,10 +299,11 @@ class SystemIrreducibilityAnalysis(
         The minimum over directions of min(i_spec, i_diff), where i_spec
         is the intrinsic information of the specified state and i_diff its
         intrinsic differentiation, each rectified by ``|·|⁺``.
-        Partition-independent given the specified states. Under the
-        IIT 4.0 (2026) formalism, φₛ = min{φ_c, φ_e, ii(s)}, so
-        φₛ ≤ ii(s). ``None`` when no system state is available or the
-        intrinsic differentiation was not computed (e.g. on null SIAs).
+        Partition-independent given the specified states. φₛ = min{φ_c, φ_e,
+        ii(s)}, so φₛ ≤ ii(s); a result computed under IIT 4.0 as published
+        in 2023, which lacks this requirement, can exceed it. ``None`` when no
+        system state is available or the intrinsic differentiation was not
+        computed (e.g. on null SIAs).
         """
         if self.system_state is None or not self.intrinsic_differentiation:
             return None
@@ -339,10 +340,11 @@ class SystemIrreducibilityAnalysis(
     def integrated_fraction(self) -> float | None:
         """The integrated fraction φₛ / ii(s) of the system intrinsic information.
 
-        Lies in [0, 1] under the IIT 4.0 (2026) formalism, where
-        φₛ = min{φ_c, φ_e, ii(s)}; under formalisms without the
-        intrinsic-information requirement it may exceed 1. ``None`` when
-        ii(s) is unavailable or zero (no finite ratio is defined).
+        Lies in [0, 1], since φₛ = min{φ_c, φ_e, ii(s)}; for a result
+        computed under IIT 4.0 as published in 2023, which lacks this
+        requirement, it may exceed 1.
+        ``None`` when ii(s) is unavailable or zero (no finite ratio is
+        defined).
         """
         ii = self.intrinsic_information
         if ii is None or not numerics.is_positive(ii):
@@ -958,7 +960,7 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
 def _apply_ii_cap(
     sia: SystemIrreducibilityAnalysis,
 ) -> SystemIrreducibilityAnalysis:
-    """Apply the IIT 4.0 (2026) intrinsic-information requirement (Eq. 23).
+    """Apply the intrinsic-information requirement (Mayner et al. 2026, Eq. 23).
 
     The MIP is selected on the normalized integrated information without
     the requirement, exactly as in IIT 4.0 (Eqs. 21-22); this applies
@@ -998,9 +1000,9 @@ def sia(
     ``system_measure`` and ``specification_measure`` are Protocol-typed
     measure callables passed explicitly by the active formalism (no
     config fallback). ``system_measure`` drives system-level partition
-    integration (and the ``ii(s)`` cap, if ``INTRINSIC_INFORMATION``);
-    ``specification_measure`` drives the intrinsic-information
-    computation of the system state.
+    integration (and the ``ii(s)`` intrinsic-information requirement, if
+    ``INTRINSIC_INFORMATION``); ``specification_measure`` drives the
+    intrinsic-information computation of the system state.
     """
     partition_scheme = fallback(
         partition_scheme, config.formalism.iit.system_partition_scheme

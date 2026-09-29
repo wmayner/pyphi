@@ -234,8 +234,9 @@ def landscape_section(
         Node indices of the candidate system; ``None`` uses the whole
         substrate.
     formalism : str, optional
-        A formalism preset name applied for these evaluations only, as in
-        :func:`pyphi.analyze.analyze`.
+        Leave unset to compute IIT under the active configuration. Pass an
+        earlier version's name only to reproduce published results; it
+        applies to these evaluations only, as in :func:`pyphi.analyze.analyze`.
     progress : bool, optional
         Show a progress bar; defaults to
         ``config.infrastructure.progress_bars``.
@@ -396,7 +397,9 @@ def perturb(
     subset : Sequence[int], optional
         Node indices of the candidate system.
     formalism : str, optional
-        A formalism preset name applied for these evaluations only.
+        Leave unset to compute IIT under the active configuration. Pass an
+        earlier version's name only to reproduce published results; it
+        applies to these evaluations only, as in :func:`pyphi.analyze.analyze`.
 
     Returns
     -------

@@ -1,12 +1,11 @@
 """Cartesian batch driver: run an IIT computation across substrates, states,
-candidate subsets, and formalisms, and collect the results into one tidy
-DataFrame.
+and candidate subsets, and collect the results into one tidy DataFrame.
 
-``sweep`` takes one or more substrates and up to three further axes (states,
-candidate subsets, formalisms), runs the chosen computation on the cartesian
-product, and returns a :class:`SweepResult` holding a long-format DataFrame
-and the aligned raw result objects. Each result carries its own configuration
-snapshot, so a row is independently reproducible.
+``sweep`` takes one or more substrates and further axes (states, candidate
+subsets, and optionally earlier versions of IIT), runs the chosen computation
+on the cartesian product, and returns a :class:`SweepResult` holding a
+long-format DataFrame and the aligned raw result objects. Each result carries
+its own configuration snapshot, so a row is independently reproducible.
 """
 
 from __future__ import annotations
@@ -372,11 +371,12 @@ def sweep(
         iterable of node-index tuples. Explicit subsets apply to every
         substrate; ``"full"`` and ``"all"`` are resolved per substrate.
     formalisms
-        ``None`` (the active configuration, honored exactly as
-        :func:`pyphi.analyze` honors it — no preset is applied, so runtime
-        customizations survive) or an iterable of version names
-        (``"IIT_3_0"``, ``"IIT_4_0_2023"``, ``"IIT_4_0_2026"``), each of
-        which applies its complete preset.
+        Leave unset to compute IIT under the active configuration, honored
+        exactly as :func:`pyphi.analyze` honors it (no preset is applied, so
+        runtime customizations survive). To reproduce published results,
+        pass an iterable of version names (``"IIT_4_0_2023"``, ``"IIT_3_0"``,
+        or ``"IIT_4_0_2026"`` for the current version), each of which applies
+        its complete preset. See :doc:`/howto/earlier-versions`.
     compute
         ``"sia"`` (default), ``"ces"``, or a callable taking a ``System``.
     parallel : bool or None, optional

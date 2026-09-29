@@ -1,9 +1,10 @@
 # models/sia.py
 """IIT 3.0 ``SystemIrreducibilityAnalysis`` (system-level Φ result).
 
-The IIT 4.0 system-level analysis lives in
-:mod:`pyphi.formalism.iit4` (under the same name); the class here is the
-IIT 3.0 result type that :func:`pyphi.formalism.iit3.sia` produces.
+The system irreducibility analysis of IIT is the class of the same name in
+:mod:`pyphi.formalism.iit4`. The class here is the result type that
+:func:`pyphi.formalism.iit3.sia` produces, used to reproduce results
+published under IIT 3.0 (see :doc:`/howto/earlier-versions`).
 """
 
 from __future__ import annotations

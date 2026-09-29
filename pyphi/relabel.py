@@ -9,7 +9,7 @@ recomputation.
 
 Contract:
 
-- Only complete IIT 4.0 structures are supported. Structure views
+- Only complete structures are supported. Structure views
   (folds, induced substructures) raise — relabel the parent and
   re-derive the view. IIT 3.0 SIAs raise ``NotImplementedError``.
 - Tie back-references are dropped: each relabeled object records only

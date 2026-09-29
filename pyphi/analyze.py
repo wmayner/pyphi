@@ -1,13 +1,11 @@
 """One high-level entry point for IIT analysis.
 
 ``analyze`` takes a substrate and a state, builds the candidate system, runs
-the analysis under the active (or a named) formalism, and returns an
-:class:`Analysis` — a small bundle exposing the system irreducibility analysis,
-the cause-effect structure, and their scalar values uniformly across
-formalisms. A
-``compute`` argument selects a cheaper or custom result instead of the bundle;
-a ``grains`` argument runs the bounded intrinsic-unit search over the whole
-substrate instead, returning its complexes.
+the analysis, and returns an :class:`Analysis` — a small bundle exposing the
+system irreducibility analysis, the cause-effect structure, and their scalar
+values. A ``compute`` argument selects a cheaper or custom result instead of
+the bundle; a ``grains`` argument runs the bounded intrinsic-unit search over
+the whole substrate instead, returning its complexes.
 """
 
 from __future__ import annotations
@@ -37,20 +35,21 @@ from pyphi.system import System
 class Analysis(Displayable, Serializable):
     """A single system's analysis: its SIA, its CES, and their scalar values.
 
-    Uniform across formalisms: under IIT 4.0 the cause-effect structure embeds
-    its own SIA, while under IIT 3.0 the CES is the bare set of distinctions and
-    the SIA is computed separately; either way ``sia`` / ``ces`` / ``phi`` are
-    populated.
+    The cause-effect structure embeds the system irreducibility analysis, and
+    ``sia``, ``ces``, and ``phi`` are always populated.
 
     Notes
     -----
-    ``phi`` and ``big_phi`` are different quantities under IIT 4.0. ``phi`` is
-    φₛ, the system integrated information, which decides whether the system
-    exists as one whole; ``big_phi`` is Φ, the structure integrated
-    information, the sum of φ over the Φ-structure's distinctions and
-    relations. A system can have φₛ = 0 — it is reducible — while its
-    distinctions still sum to a nonzero Φ. Under IIT 3.0 the system-level
-    quantity ``phi`` *is* that formalism's Φ, and ``big_phi`` is not defined.
+    ``phi`` and ``big_phi`` are different quantities. ``phi`` is φₛ, the system
+    integrated information, which decides whether the system exists as one
+    whole; ``big_phi`` is Φ, the structure integrated information, the sum of φ
+    over the Φ-structure's distinctions and relations. A system can have
+    φₛ = 0 — it is reducible — while its distinctions still sum to a nonzero Φ.
+
+    For results computed under an earlier version of IIT (see
+    :doc:`/howto/earlier-versions`): under IIT 3.0 the CES is the bare set of
+    distinctions and the SIA is computed separately, the system-level quantity
+    ``phi`` is that version's Φ, and ``big_phi`` is not defined.
     """
 
     system: System
@@ -59,14 +58,13 @@ class Analysis(Displayable, Serializable):
 
     @property
     def phi(self) -> float:
-        """float: φₛ, the system integrated information (Φ under IIT 3.0)."""
+        """float: φₛ, the system integrated information."""
         return float(self.sia.phi)
 
     @property
     def formalism(self) -> str:
-        """str: The formalism that produced this analysis: ``"IIT_4_0_2026"``,
-        ``"IIT_4_0_2023"``, or ``"IIT_3_0"``, read from the configuration
-        snapshot the system irreducibility analysis carries."""
+        """str: The version of IIT that produced this analysis, read from the
+        configuration snapshot the system irreducibility analysis carries."""
         return self.sia.config.formalism.iit.version
 
     @property
@@ -79,13 +77,14 @@ class Analysis(Displayable, Serializable):
     @property
     def big_phi(self) -> float:
         """float: Φ, the structure integrated information — the sum of φ over
-        the Φ-structure's distinctions and relations. IIT 4.0 only.
+        the Φ-structure's distinctions and relations.
 
         Raises
         ------
         AttributeError
-            Under IIT 3.0, which has no relations and so no structure
-            integrated information. That formalism's Φ is :attr:`phi`.
+            For a result computed under IIT 3.0, which has no relations and so
+            no structure integrated information. That version's Φ is
+            :attr:`phi`.
         """
         if self._phi_label == "Φ":
             raise AttributeError(
@@ -206,16 +205,17 @@ def analyze(
         Node indices of the candidate system; ``None`` uses the whole
         substrate. Incompatible with ``grains``.
     formalism : str or None, optional
-        ``None`` uses the active config formalism; a version name
-        (``"IIT_3_0"`` / ``"IIT_4_0_2023"`` / ``"IIT_4_0_2026"``) applies that
-        formalism for this call only.
+        Leave unset to compute IIT under the active configuration. Pass an
+        earlier version's name (``"IIT_4_0_2023"`` or ``"IIT_3_0"``) only to
+        reproduce published results; it applies to this call only. See
+        :doc:`/howto/earlier-versions`.
     compute : optional
         ``None`` returns an :class:`Analysis` bundle; ``"sia"``, ``"ces"``,
         or ``"distinctions"`` returns the raw result object; a callable
         returns ``compute(system)``. Incompatible with ``grains``.
-        ``"distinctions"`` skips the system-partition search, which under
-        IIT 4.0 is the whole cost of a cause-effect structure over a sparse
-        substrate; see :meth:`~pyphi.system.System.distinctions`.
+        ``"distinctions"`` skips the system-partition search, which is the
+        whole cost of a cause-effect structure over a sparse substrate; see
+        :meth:`~pyphi.system.System.distinctions`.
     grains : optional
         ``None`` analyzes the single candidate system. ``True`` runs the
         bounded intrinsic-unit search with default

@@ -1,12 +1,13 @@
 """Phi formalisms — strategies for computing integrated information.
 
-A *formalism* is the top-level strategy that bundles a partition scheme, a
-compatible distance measure, and the algorithms that combine them into
-mechanism-level RIAs, system-level SIAs, and Φ-structures. The
-:class:`pyphi.formalism.base.PhiFormalism` Protocol declares the contract;
-concrete implementations live in :mod:`pyphi.formalism.iit3` and
-:mod:`pyphi.formalism.iit4`. The active formalism is selected by name via
-``config.formalism.iit.version``.
+A *formalism* is a version of IIT expressed as a strategy object: it bundles
+the version's partition scheme, distance measure, and the algorithms that
+combine them into mechanism-level RIAs, system-level SIAs, and Φ-structures.
+The :class:`pyphi.formalism.base.PhiFormalism` Protocol declares the contract.
+:mod:`pyphi.formalism.iit4` implements IIT; :mod:`pyphi.formalism.iit3`
+implements IIT 3.0, to reproduce published results (see
+:doc:`/howto/earlier-versions`). The configuration field
+``config.formalism.iit.version`` holds the name of the version in use.
 """
 
 from . import actual_causation as actual_causation
