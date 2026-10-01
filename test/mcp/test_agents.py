@@ -306,6 +306,30 @@ class TestCursorDeduplication:
         mod.install_step(skills=True, names=[], paths=[], home=tmp_path)
         assert (cursor / "pyphi" / "SKILL.md").is_file()
 
+    def test_an_old_cursor_copy_survives_a_write_cursor_cannot_read(
+        self, tmp_path, monkeypatch
+    ):
+        for probe in (".claude", ".cursor"):
+            (tmp_path / probe).mkdir()
+        cursor = tmp_path / ".cursor" / "skills"
+        mod.deliver(mod.Target("cursor", "Cursor", cursor))
+        deliver = mod.deliver
+
+        def failing_for_claude(target):
+            if target.name == "claude-code":
+                raise OSError("read-only")
+            deliver(target)
+
+        monkeypatch.setattr(mod, "deliver", failing_for_claude)
+        mod.install_step(
+            skills=True,
+            names=["claude-code"],
+            paths=[tmp_path / "elsewhere"],
+            home=tmp_path,
+        )
+        assert (tmp_path / "elsewhere" / "pyphi" / "SKILL.md").is_file()
+        assert (cursor / "pyphi" / "SKILL.md").is_file()
+
     def test_naming_only_claude_code_removes_an_old_cursor_copy(self, tmp_path):
         for probe in (".claude", ".cursor"):
             (tmp_path / probe).mkdir()
@@ -474,6 +498,17 @@ class TestPluginStep:
         home = self._home(tmp_path, ".claude")
         mod.plugin_step(plugin=True, names=[], paths=[], home=home)
         assert "installing the IIT Expert plugin in Claude Code" in seen[0]
+
+    def test_reported_lines_print_under_any_console_encoding(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        # A redirected stdout on Windows uses the locale code page, which
+        # cannot encode an arrow or an ellipsis character.
+        for probe in (".claude", ".cursor"):
+            (tmp_path / probe).mkdir()
+        monkeypatch.setattr(mod, "_execute", lambda _command: None)
+        lines = mod.plugin_step(plugin=True, names=[], paths=[], home=tmp_path)
+        assert (capsys.readouterr().out + "".join(lines)).isascii()
 
     def test_cursor_alone_is_not_asked_about(self, tmp_path, monkeypatch):
         ran = self._record(monkeypatch)

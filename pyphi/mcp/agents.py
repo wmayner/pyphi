@@ -80,7 +80,7 @@ PLUGIN_REMOVAL: dict[str, tuple[str, ...]] = {
 
 #: Cursor installs plugins from its settings rather than a command line.
 CURSOR_STEPS = (
-    f"in Cursor, open Customize → From GitHub Repository and enter {PLUGIN_REPOSITORY}"
+    f"in Cursor, open Customize > From GitHub Repository and enter {PLUGIN_REPOSITORY}"
 )
 
 
@@ -386,7 +386,7 @@ def install_step(
         except OSError as error:
             actions.append(f"could not write skills to {target.path}: {error}")
         else:
-            delivered = True
+            delivered = delivered or target.name in CURSOR_READS
             actions.append(f"installed the {installed} skills in {target.path}")
     # Cursor's own copy goes only once Cursor can read one elsewhere.
     if covered is not None and delivered and (remove(covered) or covered in resolved):
@@ -483,7 +483,7 @@ def plugin_step(
     actions = []
     for target in runnable:
         commands = PLUGIN_COMMANDS[target.name]
-        print(f"installing the IIT Expert plugin in {target.display}…", flush=True)
+        print(f"installing the IIT Expert plugin in {target.display}...", flush=True)
         for command in commands:
             error = _execute(command)
             if error is not None:
