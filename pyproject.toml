@@ -42,7 +42,7 @@ dependencies = [
     "psutil>=2.1.1",
     "pyyaml>=3.13",
     "scipy>=1.15",
-    "tqdm>=4.20.0",
+    "tqdm>=4.62.0",
 ]
 
 [project.optional-dependencies]

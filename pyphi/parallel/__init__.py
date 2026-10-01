@@ -31,8 +31,7 @@ from collections.abc import Callable
 from collections.abc import Iterable
 from typing import Any
 
-from tqdm.auto import tqdm
-
+from pyphi._progress import tqdm
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.utils import try_len

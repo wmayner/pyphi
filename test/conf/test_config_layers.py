@@ -318,6 +318,8 @@ class TestFieldRouting:
             assert FIELD_TO_LAYER[f.name] == ("infrastructure", None)
 
 
+# Several of these tests exercise the uppercase 1.x spelling on purpose.
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 class TestGlobalConfigFacade:
     def test_layered_reads_work(self):
         assert config.numerics.precision == 13

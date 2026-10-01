@@ -15,8 +15,8 @@ from pyphi import config
 @pytest.mark.parametrize(
     "name,valid,invalid",
     [
-        ("REPR_VERBOSITY", [0, 1, 2, 3, 4], [-1, 5]),
-        ("PARALLEL", [True, False], ["True", "False", "no", 0, 1]),
+        ("repr_verbosity", [0, 1, 2, 3, 4], [-1, 5]),
+        ("parallel", [True, False], ["True", "False", "no", 0, 1]),
     ],
 )
 def test_config_validation(name, valid, invalid):

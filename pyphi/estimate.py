@@ -35,7 +35,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
-from tqdm.auto import tqdm
+
+from pyphi._progress import tqdm
 
 from . import convert
 from . import numerics

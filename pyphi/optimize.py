@@ -420,6 +420,9 @@ def optimize(
             f"unknown objective {objective!r}; expected one of "
             f"{', '.join(sorted(_QUANTITIES))}, or a callable"
         )
+    from pyphi.conf import presets
+
+    formalism = presets.canonical(formalism)
     if direction not in ("maximize", "minimize"):
         raise ValueError(
             f"direction must be 'maximize' or 'minimize', got {direction!r}"

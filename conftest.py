@@ -87,7 +87,7 @@ def disable_progress_bars():
     Without this progress bars are already disabled for unit tests; doctests
     work differently, I think because of output redirection.
     """
-    with pyphi.config.override(PROGRESS_BARS=False):
+    with pyphi.config.override(progress_bars=False):
         yield
 
 

@@ -115,3 +115,71 @@ def test_importing_pyphi_writes_nothing_to_the_working_directory(tmp_path):
         capture_output=True,
     )
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("formalism", ["IIT_3_0", "iit3", "iit_3_0", pyphi.iit3])
+def test_a_formalism_is_selected_by_version_name_preset_name_or_preset(formalism):
+    from pyphi.conf import presets
+
+    assert presets.canonical(formalism) == "IIT_3_0"
+
+
+def test_an_unknown_formalism_lists_the_version_names():
+    with pytest.raises(ValueError, match="IIT_3_0, IIT_4_0_2023, IIT_4_0_2026"):
+        pyphi.analyze(examples.basic_substrate(), (1, 0, 0), formalism="iit5")
+
+
+def test_sweep_records_the_version_name_for_a_preset_name():
+    result = pyphi.sweep(
+        examples.basic_substrate(),
+        states=[(1, 0, 0)],
+        formalisms=["iit4_2023"],
+        compute="sia",
+        progress=False,
+    )
+    assert result.df.reset_index()["formalism"].tolist() == ["IIT_4_0_2023"]
+
+
+def test_uppercase_1x_option_names_work_with_a_warning():
+    with pytest.warns(FutureWarning, match="`precision`"):
+        assert pyphi.config.precision == pyphi.config.PRECISION
+    with (
+        pytest.warns(FutureWarning, match="`precision`"),
+        pyphi.config.override(PRECISION=6),
+    ):
+        assert pyphi.config.precision == 6
+
+
+def test_the_card_says_why_a_deterministic_system_has_zero_system_phi():
+    with pyphi.config.override(**pyphi.iit4_2026):
+        deterministic = pyphi.analyze(examples.basic_substrate(), (1, 0, 0))
+        probabilistic = pyphi.analyze(
+            examples.iit4_2023_fig1a_substrate(), (0, 1, 1), subset=(0, 1)
+        )
+    assert deterministic.phi == 0
+    assert "no repertoire of alternatives" in str(deterministic)
+    assert "Why" not in str(probabilistic)
+
+
+def test_progress_bars_wait_before_drawing():
+    from pyphi._progress import DELAY
+    from pyphi._progress import tqdm
+
+    bar = tqdm(range(3), disable=False)
+    try:
+        assert bar.delay == DELAY > 0
+    finally:
+        bar.close()
+
+
+def test_the_welcome_message_is_short():
+    done = subprocess.run(
+        [sys.executable, "-c", "import pyphi"],
+        env={"PATH": ""},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    lines = done.stderr.strip().splitlines()
+    assert 0 < len(lines) <= 6
+    assert "10.1371/journal.pcbi.1006343" in done.stderr

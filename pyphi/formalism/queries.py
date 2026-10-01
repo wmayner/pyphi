@@ -21,13 +21,13 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 import numpy as np
-from tqdm.auto import tqdm
 
 from pyphi import conf as _conf
 from pyphi import numerics
 from pyphi import resolve_ties
 from pyphi import utils as _utils
 from pyphi import validate as _validate
+from pyphi._progress import tqdm
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.core import repertoire_algebra as _ra

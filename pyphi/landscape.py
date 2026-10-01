@@ -38,9 +38,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
-from tqdm.auto import tqdm
 
 from pyphi import exceptions
+from pyphi._progress import tqdm
 from pyphi.conf import config
 from pyphi.conf import fallback
 

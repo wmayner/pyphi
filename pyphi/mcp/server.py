@@ -667,7 +667,8 @@ def analyze(
     )
     compute_arg = None if compute == "full" else compute
     if not confirm_large:
-        overrides = presets.by_name.get(formalism, {}) if formalism else {}
+        formalism = presets.canonical(formalism)
+        overrides = presets.by_name[formalism] if formalism else {}
         with pyphi.config.override(**overrides):
             estimate = estimate_analysis(
                 substrate,
@@ -748,9 +749,7 @@ def estimate_cost(
         that are lower bounds.
     """
     substrate = _get_substrate(handle)
-    if formalism is not None and formalism not in presets.by_name:
-        valid = ", ".join(sorted(presets.by_name))
-        raise ValueError(f"unknown formalism {formalism!r}; expected one of: {valid}")
+    formalism = presets.canonical(formalism)
     overrides = presets.by_name[formalism] if formalism is not None else {}
     with pyphi.config.override(**overrides):
         estimate = estimate_analysis(

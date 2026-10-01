@@ -26,6 +26,7 @@ the qualified path or replace the sub-namespace as a whole.
 from __future__ import annotations
 
 import contextlib
+import warnings
 from collections.abc import Iterator
 from collections.abc import Mapping
 from dataclasses import asdict
@@ -199,9 +200,8 @@ class _GlobalConfig:
         Returns a :class:`contextlib.ContextDecorator` — usable as
         ``with config.override(...):`` or ``@config.override(...)``.
 
-        Accepts flat layered names (``precision=6``), uppercase names
-        (``PRECISION=6``), and dotted paths via the positional mapping or
-        kwargs (``override({"iit.version": "IIT_3_0"})`` or
+        Accepts flat layered names (``precision=6``) and dotted paths via the
+        positional mapping or kwargs (``override({"iit.version": "IIT_3_0"})`` or
         ``override(**{"iit.version": "IIT_3_0"})``). Dotted paths accept the
         sub-namespace shorthand (``iit.version``) or the full path
         (``formalism.iit.version``). Unknown names raise
@@ -440,6 +440,7 @@ class _GlobalConfig:
         if name.isupper():
             field_name = name.lower()
             if field_name in FIELD_TO_LAYER:
+                _warn_uppercase(name)
                 return _read_via_target(self, FIELD_TO_LAYER[field_name], field_name)
         if name in FIELD_TO_LAYER:
             return _read_via_target(self, FIELD_TO_LAYER[name], name)
@@ -459,6 +460,8 @@ class _GlobalConfig:
             return
 
         field_name = name.lower() if name.isupper() else name
+        if field_name != name and field_name in FIELD_TO_LAYER:
+            _warn_uppercase(name)
 
         # Wholesale layer replacement (e.g. config.numerics = NumericsConfig(...))
         if field_name in _LAYER_NAMES and isinstance(value, _LAYER_TYPES[field_name]):
@@ -539,6 +542,16 @@ class _GlobalConfig:
                         self._fire_field_callback(sub_f.name, sub_old, sub_new)
             else:
                 self._fire_field_callback(f.name, old_val, new_val)
+
+
+def _warn_uppercase(name: str) -> None:
+    """Warn that ``name`` is the uppercase spelling PyPhi 1.x used."""
+    warnings.warn(
+        f"`{name}` is the PyPhi 1.x spelling of this option and will stop "
+        f"working in a future release; use `{name.lower()}`.",
+        FutureWarning,
+        stacklevel=3,
+    )
 
 
 class _OverrideContext(contextlib.ContextDecorator):

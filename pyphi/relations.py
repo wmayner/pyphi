@@ -19,7 +19,8 @@ from typing import Any
 from typing import NoReturn
 
 import pandas as pd
-from tqdm.auto import tqdm
+
+from pyphi._progress import tqdm
 
 from . import combinatorics
 from . import conf

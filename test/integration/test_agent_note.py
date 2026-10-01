@@ -87,4 +87,4 @@ def test_welcome_banner_does_not_reach_stdout():
         text=True,
     )
     assert result.stdout == ""
-    assert "Welcome to PyPhi!" in result.stderr
+    assert "please cite" in result.stderr

@@ -101,7 +101,8 @@ repertoire. Then `binding_direction` gives that side and there is no
 but the system provides itself no repertoire of alternatives (a
 deterministic transition has zero differentiation), so ii(s) is zero and
 with it $\varphi_s$. Then a `requirement_binding` finding gives the term
-(`differentiation` or `specification`) and the direction.
+(`differentiation` or `specification`) and the direction, and the result card
+adds a "Why φ_s = 0" row reading "no repertoire of alternatives".
 
 ```{code-cell} python
 basic = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 1, 0), compute="sia")

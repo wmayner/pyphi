@@ -17,6 +17,7 @@ from typing import Any
 
 import pandas as pd
 
+from pyphi import numerics
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
@@ -138,17 +139,24 @@ class Analysis(Displayable, Serializable):
         ii = getattr(self.sia, "intrinsic_information", None)
         if ii is not None:
             rows.append(Row("ii(s)", ii))
-            binding = next(
-                (
-                    f
-                    for f in self.sia.explain().findings
-                    if f.kind == "requirement_binding"
-                ),
-                None,
-            )
+            findings = {f.kind: f for f in self.sia.explain().findings}
+            binding = findings.get("requirement_binding")
             if binding is not None:
                 direction = dict(binding.detail)["direction"]
                 rows.append(Row("Requirement binds", f"{binding.value} ({direction})"))
+            # An irreducible system whose φₛ is zero only because it has no
+            # intrinsic information: say so, since nothing else on the card does.
+            sides = dict(getattr(findings.get("binding_direction"), "detail", ()))
+            if (
+                binding is not None
+                and binding.value == "differentiation"
+                and numerics.is_zero(ii)
+                and sides
+                and numerics.is_positive(min(sides.values()))
+            ):
+                rows.append(
+                    Row(f"Why {self._phi_label} = 0", "no repertoire of alternatives")
+                )
         return tuple(rows)
 
     def to_pandas(self) -> pd.DataFrame:
@@ -207,7 +215,9 @@ def analyze(
     formalism : str or None, optional
         Leave unset to compute IIT under the active configuration. Pass an
         earlier version's name (``"IIT_4_0_2023"`` or ``"IIT_3_0"``) only to
-        reproduce published results; it applies to this call only. See
+        reproduce published results; it applies to this call only. The name
+        a preset is exported under (``"iit3"``) and the preset itself
+        (``pyphi.iit3``) select the same version. See
         :doc:`/howto/earlier-versions`.
     compute : optional
         ``None`` returns an :class:`Analysis` bundle; ``"sia"``, ``"ces"``,
@@ -243,9 +253,7 @@ def analyze(
         ``None``; if ``grains`` is combined with ``subset`` or ``compute``;
         or if ``parallel_kwargs`` is given without ``grains``.
     """
-    if formalism is not None and formalism not in presets.by_name:
-        valid = ", ".join(sorted(presets.by_name))
-        raise ValueError(f"unknown formalism {formalism!r}; expected one of: {valid}")
+    formalism = presets.canonical(formalism)
 
     bounds: Any = None
     if grains is None:

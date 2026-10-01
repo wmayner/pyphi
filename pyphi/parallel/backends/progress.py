@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from tqdm.auto import tqdm
+from pyphi._progress import tqdm
 
 
 class LocalProgressBar:

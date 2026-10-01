@@ -101,9 +101,9 @@ def _normalize_formalisms(formalisms: Any) -> list[str | None]:
     """
     if formalisms is None:
         return [None]
-    if isinstance(formalisms, str):
-        return [formalisms]
-    return list(formalisms)
+    if isinstance(formalisms, (str, dict)):
+        formalisms = [formalisms]
+    return [presets.canonical(formalism) for formalism in formalisms]
 
 
 _LABEL_RE = re.compile(r"^[A-Za-z0-9_-]+$")

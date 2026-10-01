@@ -71,8 +71,10 @@ registered example.
 
 Every 1.x option and where it went. Names are lowercase and live under a
 layer; set one with `pyphi.config.<layer>.<option>` or a top-level write such
-as `pyphi.config.precision = 6`, which is routed to its layer. Measure values
-are the names in {mod}`pyphi.measures`.
+as `pyphi.config.precision = 6`, which is routed to its layer. An option whose
+name only changed case still works under its uppercase 1.x spelling
+(`pyphi.config.PRECISION`), with a `FutureWarning` giving the new name. Measure
+values are the names in {mod}`pyphi.measures`.
 
 | 1.x option | 2.0 option |
 | --- | --- |

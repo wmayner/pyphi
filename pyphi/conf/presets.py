@@ -140,8 +140,49 @@ by_name: dict[str, dict[str, Any]] = {
     "IIT_4_0_2026": iit4_2026,
 }
 
+# The same presets under the names they are exported by (``pyphi.iit3`` ...).
+_ALIASES: dict[str, str] = {
+    "iit3": "IIT_3_0",
+    "iit4_2023": "IIT_4_0_2023",
+    "iit4_2026": "IIT_4_0_2026",
+}
+
+
+def canonical(formalism: Any) -> str | None:
+    """Return the version name that ``formalism`` selects.
+
+    Parameters
+    ----------
+    formalism : str, dict, or None
+        A version name (``"IIT_3_0"``), the name a preset is exported under
+        (``"iit3"``), or a preset itself (``pyphi.iit3``). Names are matched
+        without regard to case.
+
+    Returns
+    -------
+    str or None
+        The version name, a key of ``by_name``. None if ``formalism`` is None.
+
+    Raises
+    ------
+    ValueError
+        If ``formalism`` selects no known version.
+    """
+    if formalism is None:
+        return None
+    if isinstance(formalism, dict):
+        name = getattr(formalism.get("iit"), "version", None)
+    else:
+        name = _ALIASES.get(str(formalism).lower(), str(formalism).upper())
+    if name not in by_name:
+        valid = ", ".join(sorted(by_name))
+        raise ValueError(f"unknown formalism {formalism!r}; expected one of: {valid}")
+    return name
+
+
 __all__ = [
     "by_name",
+    "canonical",
     "iit3",
     "iit4_2023",
     "iit4_2026",

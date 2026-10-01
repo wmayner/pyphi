@@ -270,30 +270,12 @@ def __dir__() -> list[str]:
 # message.
 if not (config.infrastructure.welcome_off or "PYPHI_WELCOME_OFF" in os.environ):
     print(
-        """
-Welcome to PyPhi!
-
-If you use PyPhi in your research, please cite the paper:
-
-  Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G.
-  (2018). PyPhi: A toolbox for integrated information theory.
-  PLOS Computational Biology 14(7): e1006343.
+        """\
+PyPhi: if you use it in your research, please cite Mayner et al. (2018),
   https://doi.org/10.1371/journal.pcbi.1006343
-
-Documentation is available online (or with the built-in `help()` function):
-  https://pyphi.readthedocs.io
-
-To report issues, please use the issue tracker on the GitHub repository:
-  https://github.com/wmayner/pyphi
-
-For general discussion, you are welcome to join the pyphi-users group:
-  https://groups.google.com/forum/#!forum/pyphi-users
-
-To suppress this message, either:
-  - Set `welcome_off: true` under the `infrastructure:` section of your
-    `pyphi_config.yml` file, or
-  - Set the environment variable PYPHI_WELCOME_OFF to any value in your shell:
-        export PYPHI_WELCOME_OFF='yes'
+Documentation: https://pyphi.readthedocs.io
+Hide this message with PYPHI_WELCOME_OFF=1, or `welcome_off: true` under
+  `infrastructure:` in pyphi_config.yml.
 """,
         file=sys.stderr,
     )
