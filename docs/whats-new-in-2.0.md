@@ -277,9 +277,10 @@ citation-checked IIT reference and guided prompts for explaining a result in
 plain language, porting pre-2.0 code, turning a natural-language description
 into a valid substrate, and planning a cluster campaign step by step.
 
-`pyphi-mcp install` connects the server to Claude Code, Codex, or Cursor,
-installs a `pyphi` skill that teaches the assistant the 2.0 API, and offers to
-install the IIT Expert plugin. See
+`pyphi-mcp install` registers the server with Claude Code or Claude Desktop.
+It also offers a `pyphi` skill, which teaches an assistant the 2.0 API, for
+Claude Code, Codex and Cursor, and offers to install the IIT Expert plugin.
+See
 [Use PyPhi with an AI assistant](howto/ai-assistants.md) and
 [The PyPhi MCP server](howto/mcp-server.md).
 
@@ -304,7 +305,7 @@ Several changes compound into orders-of-magnitude speedups:
   reuse each other's results.
 - The specified-state computation no longer materializes the full state
   space — memory drops from 2ⁿ repertoires to one — and parallel dispatch
-  decisions were returned against measured per-item costs.
+  decisions were retuned against measured per-item costs.
 
 These are per-partition and per-structure gains; end-to-end wall time also
 depends on how many partitions the configured scheme sweeps, and the
