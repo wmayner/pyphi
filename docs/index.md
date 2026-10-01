@@ -4,11 +4,11 @@
 <p class="pp-tagline">The toolbox for Integrated Information Theory</p>
 ```
 
-PyPhi 2.0 is out as a release candidate. Install it with `--pre`; without
-the flag, pip installs the 1.2 release instead.
+PyPhi 2.0 is out as a release candidate. Until the final release, give the
+version when installing; a bare `pip install pyphi` installs 1.2 instead.
 
 ```bash
-pip install --pre pyphi
+pip install "pyphi>=2.0.0rc1"
 ```
 
 ```python

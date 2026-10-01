@@ -13,6 +13,8 @@ import io
 import numpy as np
 import pandas as pd
 
+from pyphi.exceptions import MissingOptionalDependenciesError
+
 from . import schema
 
 
@@ -36,6 +38,7 @@ def dataframe_to_schema(df: pd.DataFrame) -> schema.DataFrameSchema:
         if reset[column].dtype == object
         and any(isinstance(value, tuple) for value in reset[column])
     )
+    require_pyarrow()
     buffer = io.BytesIO()
     reset.to_parquet(buffer, engine="pyarrow", index=False)
     return schema.DataFrameSchema(
@@ -45,6 +48,23 @@ def dataframe_to_schema(df: pd.DataFrame) -> schema.DataFrameSchema:
     )
 
 
+def require_pyarrow():
+    """Return the ``pyarrow`` module, which reads and writes parquet.
+
+    Raises
+    ------
+    MissingOptionalDependenciesError
+        If ``pyarrow`` is not installed.
+    """
+    try:
+        import pyarrow
+    except ModuleNotFoundError as error:
+        raise MissingOptionalDependenciesError(
+            MissingOptionalDependenciesError.MSG.format(dependencies="parquet")
+        ) from error
+    return pyarrow
+
+
 def _as_tuple(value):
     if value is None:
         return None
@@ -52,6 +72,7 @@ def _as_tuple(value):
 
 
 def schema_to_dataframe(struct: schema.DataFrameSchema) -> pd.DataFrame:
+    require_pyarrow()
     df = pd.read_parquet(io.BytesIO(struct.parquet), engine="pyarrow")
     for column in struct.tuple_columns:
         df[column] = [_as_tuple(value) for value in df[column]]

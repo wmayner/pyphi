@@ -1860,3 +1860,12 @@ def ac_2019_three_candidate_election_substrate():
         state_space=tuple(tuple(range(k)) for k in sizes),
         node_labels=(*"ABCDEFG", "W"),
     )
+
+
+def __getattr__(name: str):
+    message = f"module {__name__!r} has no attribute {name!r}"
+    for old, new in (("_network", "_substrate"), ("_subsystem", "_system")):
+        renamed = name.removesuffix(old) + new
+        if name.endswith(old) and renamed in globals():
+            message += f". PyPhi 2.0 renamed it `{renamed}`"
+    raise AttributeError(message)

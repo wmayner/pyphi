@@ -10,6 +10,11 @@ PICKLE_PROTOCOL: int = pickle.HIGHEST_PROTOCOL
 
 DISK_CACHE_LOCATION: Path = Path("__pyphi_cache__")
 
+#: Where the guide to porting pre-2.0 code is published.
+MIGRATION_GUIDE_URL: str = (
+    "https://pyphi.readthedocs.io/en/latest/migration/migration-2.0.html"
+)
+
 #: Node states
 OFF: tuple[int, ...] = (0,)
 ON: tuple[int, ...] = (1,)

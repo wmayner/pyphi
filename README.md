@@ -140,11 +140,11 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 Install the current release. Version 2.0 is out as a release candidate, so
-`--pre` is needed until the final release; without it, pip installs 1.2
-instead.
+until the final release the version has to be given; a bare `pip install pyphi`
+installs 1.2 instead.
 
 ```bash
-uv pip install --pre pyphi
+uv pip install "pyphi>=2.0.0rc1"
 ```
 
 To install the latest development version from GitHub instead:
@@ -155,17 +155,18 @@ uv pip install "git+https://github.com/wmayner/pyphi@main"
 
 Optional features are available as extras: `visualize` (plotting), `caching`
 (Redis-backed caches), `emd` (earth-mover's-distance measures), `xarray`
-(labeled array export), `cluster` (Dask-based cluster execution), and `mcp`
+(labeled array export), `parquet` (parquet files, including saved sweep and
+optimization results), `cluster` (Dask-based cluster execution), and `mcp`
 (the MCP server for AI assistants). Install one or more with, e.g.:
 
 ```bash
-uv pip install --pre "pyphi[visualize,emd]"
+uv pip install "pyphi[visualize,emd]>=2.0.0rc1"
 ```
 
 ### Using pip
 
 ```bash
-python -m pip install --pre pyphi                                 # 2.0 release candidate
+python -m pip install "pyphi>=2.0.0rc1"                           # 2.0 release candidate
 python -m pip install "git+https://github.com/wmayner/pyphi@main" # development version
 ```
 

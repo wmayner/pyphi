@@ -40,7 +40,6 @@ dependencies = [
     "numpy",
     "pandas>=2.0.0",
     "psutil>=2.1.1",
-    "pyarrow>=25.0",
     "pyyaml>=3.13",
     "scipy>=1.15",
     "tqdm>=4.20.0",
@@ -58,13 +57,16 @@ caching = ["redis>=2.10.5"]
 # PyPhi's Hamming-ground-metric EMD (binary and k-ary).
 emd = ["pot>=0.9.5"]
 xarray = ["xarray>=2024.1"]
+# Parquet files: `save_dataframe`, and saving or loading sweep and optimization
+# results, whose tables are stored as parquet.
+parquet = ["pyarrow>=25.0"]
 # Model Context Protocol server exposing PyPhi to AI agents (`pyphi-mcp`).
 # Capped below 2.0, which removes the `mcp.server.fastmcp` module the server
 # is built on.
 mcp = ["mcp>=1.2,<2"]
 
 [project.scripts]
-pyphi-mcp = "pyphi.mcp.server:main"
+pyphi-mcp = "pyphi.mcp:main"
 
 [dependency-groups]
 dev = [

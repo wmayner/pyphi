@@ -27,7 +27,6 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` |
 | `pyphi.utils.eq` / `is_positive` / `is_nonpositive` | `pyphi.numerics.eq` / `is_positive` / `is_nonpositive` |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` |
-| `pyphi.__version__` | `importlib.metadata.version("pyphi")` |
 
 Two traps in that table:
 

@@ -38,32 +38,35 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Then install PyPhi. Version 2.0 is out as a release candidate, so `--pre` is
-needed until the final release; without it, pip installs 1.2 instead.
+Then install PyPhi. Version 2.0 is out as a release candidate, so until the
+final release the version has to be given; a bare `pip install pyphi` installs
+1.2 instead.
 
 ```bash
-uv pip install --pre pyphi
+uv pip install "pyphi>=2.0.0rc1"
 ```
 
 Optional features are available as extras: `visualize` (plotting), `caching`
-(Redis-backed caches), `emd` (earth-mover's-distance measures), and `xarray`
-(labeled array export). Install one or more with, e.g.:
+(Redis-backed caches), `emd` (earth-mover's-distance measures), `xarray`
+(labeled array export), `parquet` (parquet files, including saved sweep and
+optimization results), `cluster` (Dask-based cluster execution), and `mcp`
+(the MCP server for AI assistants). Install one or more with, e.g.:
 
 ```bash
-uv pip install --pre "pyphi[visualize,emd]"
+uv pip install "pyphi[visualize,emd]>=2.0.0rc1"
 ```
 
 To install the latest development version:
 
 ```bash
-uv pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"
+uv pip install "git+https://github.com/wmayner/pyphi@main"
 ```
 
 ### Using pip
 
 ```bash
-pip install --pre pyphi                                            # 2.0 release candidate
-pip install "git+https://github.com/wmayner/pyphi@main#egg=pyphi"  # latest development version
+pip install "pyphi>=2.0.0rc1"                             # 2.0 release candidate
+pip install "git+https://github.com/wmayner/pyphi@main"   # latest development version
 ```
 
 ## Your first computation

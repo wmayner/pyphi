@@ -704,7 +704,9 @@ and `migrate_code` prompt on the MCP server).
   compare equal); and the unused Redis cache.
 - Dependencies: `graphillion` (concrete relations enumeration is now pure
   Python and free-threading safe), `pyemd` (→ POT), `toolz`, `ordered-set`,
-  and `igraph` are dropped; `pyarrow` is now a core dependency.
+  and `igraph` are dropped. `pyarrow` is needed only for parquet files (saved
+  sweep and optimization results, and `save_dataframe`) and comes with the new
+  `parquet` extra.
 - `import pyphi` imports submodules lazily: imports are faster, optional
   dependencies are only loaded when used, and `from pyphi import *` works
   on a base install.

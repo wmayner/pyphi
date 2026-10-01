@@ -464,6 +464,6 @@ def test_system_partition_include_total_changes_the_count():
 def test_estimate_analysis_subset_is_keyword_only():
     """A state passed positionally must not bind to ``subset``."""
     substrate = examples.iit4_2023_fig1a_substrate()
-    with pytest.raises(TypeError):
-        estimate_analysis(substrate, (0, 1, 1))  # type: ignore[misc]
+    state = (0,) * substrate.size
+    assert estimate_analysis(substrate, state).n_units == substrate.size
     assert estimate_analysis(substrate, subset=(0, 1)).n_units == 2

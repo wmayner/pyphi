@@ -28,7 +28,6 @@ topic is tagged with who it affects:
 | `subsystem.effect_tpm` | `system.effect_marginal` | [both] |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` | [both] |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` | [both] |
-| `pyphi.__version__` | `importlib.metadata.version("pyphi")` | [both] |
 
 `cause_marginal` and `effect_marginal` (with the `proper_cause_marginal` /
 `proper_effect_marginal` variants) are the causal marginals of IIT 4.0. The old

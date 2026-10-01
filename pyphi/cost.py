@@ -515,6 +515,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
 
 def estimate_analysis(
     substrate: Substrate,
+    state: Any = None,
     *,
     subset: Any = None,
     compute: str | None = None,
@@ -533,6 +534,10 @@ def estimate_analysis(
     ----------
     substrate : Substrate
         The substrate to analyze.
+    state : optional
+        Accepted so the call can mirror ``analyze(substrate, state)``. The
+        counts do not depend on it; it is only checked to have one entry per
+        unit.
     subset : optional
         Node indices (or labels) of the candidate system; ``None`` uses
         the whole substrate.
@@ -563,7 +568,7 @@ def estimate_analysis(
     ------
     ValueError
         If ``compute`` is not ``"sia"``, ``"ces"``, ``"distinctions"``, or
-        ``None``.
+        ``None``, or if ``state`` does not have one entry per unit.
 
     Examples
     --------
@@ -578,6 +583,12 @@ def estimate_analysis(
         raise ValueError(
             f"unknown compute: {compute!r}; expected 'sia', 'ces', "
             "'distinctions', or None for the full analysis"
+        )
+    if state is not None and len(state) != substrate.size:
+        raise ValueError(
+            f"state {state!r} has {len(state)} entries but the substrate has "
+            f"{substrate.size} units; to estimate a candidate system, pass "
+            "its units as subset="
         )
     from pyphi import utils
     from pyphi.conf import config

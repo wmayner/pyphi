@@ -257,7 +257,7 @@ class OptionalEMD:
                 self._ot = ot
             except ModuleNotFoundError as exc:
                 raise ModuleNotFoundError(
-                    MissingOptionalDependenciesError.MSG.format(dependencies="pot")
+                    MissingOptionalDependenciesError.MSG.format(dependencies="emd")
                 ) from exc
         return self._ot
 

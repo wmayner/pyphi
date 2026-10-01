@@ -173,7 +173,28 @@ def __getattr__(name: str) -> ModuleType:
         module = importlib.import_module(f"{__name__}.{name}")
         globals()[name] = module
         return module
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    if name == "__version__":
+        from importlib.metadata import version
+
+        return version("pyphi")  # type: ignore[return-value]
+    message = f"module {__name__!r} has no attribute {name!r}"
+    if name in _RENAMED:
+        from .constants import MIGRATION_GUIDE_URL
+
+        message += (
+            f". PyPhi 2.0 replaced it with {_RENAMED[name]}; see the migration "
+            f"guide: {MIGRATION_GUIDE_URL}"
+        )
+    raise AttributeError(message)
+
+
+# Names from PyPhi 1.x that 2.0 replaced, and what replaced each.
+_RENAMED = {
+    "Network": "`pyphi.Substrate`",
+    "Subsystem": "`pyphi.System`",
+    "compute": "`pyphi.analyze(substrate, state)`",
+    "jsonify": "`pyphi.serialize`, `pyphi.save` and `pyphi.load`",
+}
 
 
 # Submodules that require optional dependencies at import time; kept out of
@@ -300,9 +321,9 @@ PyPhi — notes for AI assistants
 
   Where the PyPhi MCP server is connected, use its tools for exploration and
   for interpreting results: they refuse runs too large to finish and keep φ_s
-  and Φ distinct. The server
-  holds results only in memory, so anything that has to be reproducible belongs
-  in a script — where these same facts still apply.
+  and Φ distinct. The server holds results only in memory, so anything that
+  has to be reproducible belongs in a script — where these same facts still
+  apply.
 
   φ_s and Φ are different quantities under IIT 4.0. `analyze(...).phi` is φ_s,
   the system integrated information, which decides whether the system exists

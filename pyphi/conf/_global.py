@@ -48,6 +48,7 @@ from pyphi.conf.formalism import IITConfig
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.conf.numerics import NumericsConfig
 from pyphi.conf.snapshot import ConfigSnapshot
+from pyphi.constants import MIGRATION_GUIDE_URL
 
 _LAYER_NAMES = ("formalism", "infrastructure", "numerics")
 _LAYER_TYPES: dict[str, type] = {
@@ -510,7 +511,7 @@ class _GlobalConfig:
         hint = (
             f" It is now {renamed!r}."
             if renamed
-            else " See the 2.0 migration guide (docs/migration/migration-2.0.md) "
+            else f" See the 2.0 migration guide ({MIGRATION_GUIDE_URL}) "
             "for the rename map."
         )
         raise ConfigurationError(f"Unknown config option: {name!r}.{hint}")

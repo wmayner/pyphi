@@ -2071,7 +2071,6 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "psutil" },
-    { name = "pyarrow" },
     { name = "pyyaml" },
     { name = "scipy" },
     { name = "tqdm" },
@@ -2090,6 +2089,9 @@ emd = [
 ]
 mcp = [
     { name = "mcp" },
+]
+parquet = [
+    { name = "pyarrow" },
 ]
 visualize = [
     { name = "matplotlib" },
@@ -2147,7 +2149,7 @@ requires-dist = [
     { name = "plotly", marker = "extra == 'visualize'", specifier = ">=5.8.2" },
     { name = "pot", marker = "extra == 'emd'", specifier = ">=0.9.5" },
     { name = "psutil", specifier = ">=2.1.1" },
-    { name = "pyarrow", specifier = ">=25.0" },
+    { name = "pyarrow", marker = "extra == 'parquet'", specifier = ">=25.0" },
     { name = "pyyaml", specifier = ">=3.13" },
     { name = "redis", marker = "extra == 'caching'", specifier = ">=2.10.5" },
     { name = "scipy", specifier = ">=1.15" },
@@ -2155,7 +2157,7 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.20.0" },
     { name = "xarray", marker = "extra == 'xarray'", specifier = ">=2024.1" },
 ]
-provides-extras = ["caching", "cluster", "emd", "mcp", "visualize", "xarray"]
+provides-extras = ["caching", "cluster", "emd", "mcp", "parquet", "visualize", "xarray"]
 
 [package.metadata.requires-dev]
 dev = [

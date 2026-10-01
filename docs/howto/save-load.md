@@ -110,7 +110,8 @@ Batch-run results round-trip too: a `pyphi.sweep` table with its raw
 results, and an `optimize` outcome including the winning substrate and its
 analysis. Their DataFrames are embedded in the document as
 [parquet](https://parquet.apache.org/), so dtypes and NaN values survive
-exactly.
+exactly. Saving or loading them needs `pyarrow`, which the `parquet` extra
+installs (`pip install "pyphi[parquet]"`).
 
 ```{code-cell} python
 import pandas as pd

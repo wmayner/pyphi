@@ -40,8 +40,34 @@ from .cache_utils import ByteBoundedStore
 from .cache_utils import _CacheInfo
 from .cache_utils import _make_key
 
-# An on-disk cache for distributing pre-computed results with the PyPhi package
-joblib_memory = joblib.Memory(location=constants.DISK_CACHE_LOCATION, verbose=0)
+
+class _DiskMemory:
+    """An on-disk joblib cache whose directory is created on first use.
+
+    ``joblib.Memory`` creates its directory when it is constructed and again
+    when a function is decorated, so building it at import would write to the
+    working directory of every program that imports PyPhi.
+    """
+
+    def cache(self, func):
+        cached = None
+        lock = threading.Lock()
+
+        def wrapper(*args, **kwargs):
+            nonlocal cached
+            if cached is None:
+                with lock:
+                    if cached is None:
+                        memory = joblib.Memory(
+                            location=constants.DISK_CACHE_LOCATION, verbose=0
+                        )
+                        cached = memory.cache(func)
+            return cached(*args, **kwargs)
+
+        return update_wrapper(wrapper, func)
+
+
+joblib_memory = _DiskMemory()
 
 
 def cache(typed: bool = False):

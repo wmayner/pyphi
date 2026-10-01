@@ -117,6 +117,11 @@ class NodeLabels(Sequence[str]):
 
     def labels2indices(self, labels: Sequence[str]) -> tuple[int, ...]:
         """Convert a tuple of node labels to node indices."""
+        unknown = [label for label in labels if label not in self._l2i]
+        if unknown:
+            raise ValueError(
+                f"unknown node labels {unknown}; the labels are {list(self.labels)}"
+            )
         return tuple(self._l2i[label] for label in labels)
 
     def indices2labels(self, indices: Sequence[int]) -> tuple[str, ...]:

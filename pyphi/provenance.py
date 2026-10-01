@@ -339,7 +339,9 @@ def save_dataframe(
 
     Returns the written path.
     """
-    import pyarrow as pa
+    from pyphi.serialize.frames import require_pyarrow
+
+    pa = require_pyarrow()
     import pyarrow.parquet as pq
 
     prov = _capture_metadata(params, seed, note)
@@ -383,6 +385,9 @@ def read_metadata(path: Path | str) -> dict[str, Any]:
             except KeyError:
                 raise missing from None
     if path.suffix == ".parquet":
+        from pyphi.serialize.frames import require_pyarrow
+
+        require_pyarrow()
         import pyarrow.parquet as pq
 
         metadata = pq.read_schema(path).metadata or {}
