@@ -92,7 +92,7 @@ jobs:
         run: |
           uv venv --python 3.14t .venv-ft
           uv pip install --python .venv-ft \
-            -e ".[visualize,caching,emd,xarray]" pytest hypothesis
+            -e ".[visualize,caching,emd,xarray,parquet]" pytest hypothesis
 
       - name: Assert the GIL stays disabled after import
         run: |
