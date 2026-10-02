@@ -24,6 +24,7 @@ This document provides context and guidelines for AI assistants working on PyPhi
    PyPhi: A toolbox for integrated information theory.
    PLOS Computational Biology 14(7): e1006343.
    https://doi.org/10.1371/journal.pcbi.1006343
+   ```
 
 Additional key theoretical papers are in @papers.
 
@@ -99,46 +100,15 @@ investigation and exposed the bug.
 
 ## Development Guidelines
 
-### Before Making Changes
-
-1. **Read the relevant code first**
-   - Use [Read](file:///pyphi) to understand current implementation
-   - Check tests for expected behavior
-   - Consult IIT papers for theoretical grounding
-
-2. **Understand the mathematics**
-   - Don't change computation logic without understanding the theory
-   - If unsure, ask the user or consult documentation
-
-3. **Check configuration**
-   - Many behaviors are configurable
-   - See [pyphi_config.yml](file:///pyphi_config.yml) and [pyphi/conf/](file:///pyphi/conf/)
-
 ### Code Quality Standards
 
-1. **Type Hints**
-   - Add type hints to new code
-   - Gradually add to existing code when touching it
-   - Use `Optional`, `Tuple`, `Iterable` appropriately
-
-2. **Documentation — docstring style (enforced)**
+1. **Documentation — docstring style (enforced)**
 
    All `pyphi/**` docstrings follow one NumPy-style standard, enforced by
    the docs build. See [pyphi/CLAUDE.md](file:///pyphi/CLAUDE.md) for the full
    rules (loads automatically when working in that directory).
 
-3. **Testing**
-   - Write tests for all new functionality
-   - Use property-based testing (Hypothesis) for mathematical properties
-   - Example networks are in `test/example_networks.py`
-
-4. **Performance**
-   - This code is computationally expensive by nature
-   - Profile before optimizing
-   - Consider caching strategies
-   - Parallelization is available via Ray (optional dependency)
-
-5. **Changelog Fragments**
+2. **Changelog Fragments**
    - When making user-facing changes, create a changelog fragment in `changelog.d/`
    - Fragment filename format: `<name>.<type>.md` where:
      - `<name>` is a GitHub issue number (e.g., `123`) or descriptive name (e.g., `fix-cache-bug`)
@@ -190,57 +160,15 @@ in testpaths even though `--doctest-glob=*.rst` would match. Treat
 `docs/*.rst` doctests as documentation that users can copy — verify by
 reading, not by pytest.
 
-### Performance regressions the φ goldens cannot see
+### Performance gates and formalism pinning
 
-Correctness tests are blind to cost, so two other gates carry it, and a change
-that touches caching, hashing, or a full-state sweep should be checked against
-both.
-
-`test/integration/test_perf_counters.py` pins deterministic cProfile call
-counts for the frames in `test/golden/perf.py::FRAMES`, which cover two
-regression classes. *Redundant work* — the same operation performed more often
-than necessary — is counted at PyPhi frames. *Cost per operation* — the same
-operations, each more expensive — is counted at the frames dictionary collision
-handling passes through (`Mapping.__eq__`, `FrozenMap.__getitem__`), because a
-cache-key type whose hash stops separating distinct keys leaves every PyPhi
-count identical while making each cache operation a linear scan. A new
-cache-key type must also be declared in
-`test/data_structures/test_hash_quality.py`, whose companion test instruments
-the cache during real analyses and fails on an undeclared type.
-
-Neither gate sees memory. Cache *occupancy* is asserted directly in
-`test/cache/test_transient_repertoires.py`: a full-state sweep must admit a
-number of entries that scales with the unit count, not the state count.
-
-Fixture size is its own axis. The golden zoo tops out at four units, so costs
-driven by the size of the whole system rather than of a mechanism are invisible
-to it; the `specified_state` grain and the ring fixtures in
-`test/golden/perf_fixtures.py` exist for that range and are perf-only (no φ
-goldens, absent from `ALL_FIXTURES`).
-
-When adding a guard here, verify it fails against the reverted defect. A pin
-that cannot move is not a gate.
-
-### Formalism pinning (tests that assert φ values)
-
-A φ value is only meaningful relative to a formalism. Any test that asserts a
-φ value must **pin its formalism explicitly** — never rely on the ambient
-default. Pin with the complete preset-sourced context managers
-(`IIT_3_CONFIG`, `IIT_4_CONFIG` in `test/conftest.py`, sourced from
-`pyphi.conf.presets`), not a hand-listed subset of `iit.*` fields: setting
-`iit.version` alone leaves the measures on the ambient default — the
-partial-pin trap that silently recomputes under a different formalism when the
-default changes. Tests that compute φ at module-fixture setup must pin inside
-the fixture (a function-scoped autouse pin does not wrap module-fixture setup).
-
-Exactly one test — `test_default_formalism_is_iit4_2026` — asserts the shipping
-default; it is intentionally unpinned. To flip the default formalism: change
-the default in `pyphi/conf/formalism.py`, update that assertion plus the two
-default-dependent facade tests (`TestGlobalConfigFacade.test_layered_reads_work`
-in `test/conf/test_config_layers.py` and `test_2023_omitted_metric_uses_default`
-in `test/formalism/test_formalism_measure_threading.py`), and regenerate only
-the `docs/` tutorial examples that demonstrate default behavior (CI doctests in
-`pyphi/` compute no cap-sensitive φ).
+[test/CLAUDE.md](file:///test/CLAUDE.md) (loads automatically when working in
+`test/`) covers both. Read it before changing caching, hashing, or a full-state
+sweep anywhere in `pyphi/`: correctness tests are blind to cost, and the gates
+that catch cost regressions are described there. Any test that asserts a φ
+value must pin its formalism explicitly with `IIT_3_CONFIG` / `IIT_4_CONFIG`
+from `test/conftest.py`; the details, and the recipe for flipping the default
+formalism, are there too.
 
 ### Running tests in parallel for faster feedback
 
@@ -276,35 +204,6 @@ can never silently skip-and-pass, but only if that error is actually seen.
 ---
 
 ## Configuration System
-
-### How Configuration Works
-
-1. **Default configuration**: Defined as frozen dataclasses in
-   `pyphi/conf/` — `formalism.py` (`IITConfig`, `ActualCausationConfig`),
-   `infrastructure.py` (`InfrastructureConfig`), `numerics.py`
-   (`NumericsConfig`).
-2. **User configuration**: Loaded from `pyphi_config.yml` in working
-   directory (nested format: top-level keys ``formalism`` /
-   ``infrastructure`` / ``numerics``).
-3. **Runtime changes**: `pyphi.config.option_name = value` (top-level
-   write routes to the right layer) or `pyphi.config.numerics.override(...)`.
-4. **Context managers**: `pyphi.config.override(...)` for temporary scopes.
-
-Example:
-```python
-import pyphi
-
-# Check current value
-print(pyphi.config.numerics.precision)  # 13
-
-# Change at runtime
-pyphi.config.precision = 6
-
-# Temporary change
-with pyphi.config.override(precision=10):
-    # Computation with higher precision
-    pass
-```
 
 ### Important Configuration Options
 
@@ -346,38 +245,6 @@ The default is to work on whatever branch the conversation starts on. However, f
 ### Key Files to Know
 
 - [ROADMAP.md](file:///ROADMAP.md) - **Strategic 2.0 roadmap and schedule.** The single source of truth for what has landed and what remains; the Status Dashboard at the top is authoritative. Read it for current priorities, and keep it current (see ["Keeping this file up to date"](#keeping-this-file-up-to-date) below).
-- [pyphi/__init__.py](file:///pyphi/__init__.py) - Main entry point
-- [pyphi/system.py](file:///pyphi/system.py), [pyphi/substrate.py](file:///pyphi/substrate.py) - Core `System` / `Substrate` value types (formerly `Subsystem` / `Network`)
-- [pyphi/formalism/](file:///pyphi/formalism/) - Formalism strategies: `iit3/`, `iit4/`, `actual_causation/`
-- [pyphi/core/](file:///pyphi/core/) - Stateless kernel: repertoire algebra, TPM (`core/tpm/`), units
-- [pyphi/conf/](file:///pyphi/conf/) - Layered configuration (formalism / infrastructure / numerics)
-- [pyphi_config.yml](file:///pyphi_config.yml) - Default configuration
-- [test/example_networks.py](file:///test/example_networks.py) - Test networks
-
-### Common Commands
-
-```bash
-# Development setup
-uv venv                                             # Create virtual environment
-uv pip install -e ".[dev,parallel,visualize]"       # Install with dev dependencies
-
-# Testing
-just test                                            # Run tests (forwards args)
-uv run pytest                                        # All tests
-uv run pytest -k test_name                           # Specific test
-uv run pytest --cov=pyphi                            # With coverage
-
-# Benchmarking
-just bench                                            # Quick local run (current env)
-just bench-dashboard                                 # Build + serve the ASV HTML dashboard
-
-# Documentation
-just docs
-open docs/_build/html/index.html
-
-# Code quality
-pre-commit run --all-files
-```
 
 ---
 
