@@ -467,11 +467,11 @@ class IIT4_2023Formalism:
 class IIT4_2026Formalism:
     """IIT 4.0 (Mayner, Marshall, Tononi 2026) — intrinsic-information requirement.
 
-    Mechanism phi uses GID per Albantakis et al. (2023), Eqs. 41 and 44
-    (same as IIT 4.0 2023). System
-    phi uses ``INTRINSIC_INFORMATION`` with the ``ii(s) = min(i_diff,
-    i_spec)`` cap from Eq. 23, which is where this variant differs from
-    IIT 4.0 (2023).
+    Mechanism phi uses GID per Albantakis et al. (2023), Eqs. 41 and 44.
+    System phi uses ``INTRINSIC_INFORMATION``, which applies the
+    intrinsic-information requirement of Eq. 23 with ``ii(s) = min(i_diff,
+    i_spec)``. The requirement is the one difference from
+    :class:`IIT4_2023Formalism`.
     Scope-explicit overrides ensure each level uses the right measure.
     """
 
@@ -566,9 +566,9 @@ class IIT4_2026Formalism:
         | None = None,
         **kwargs: Any,
     ) -> Any:
-        """Same shape as IIT 4.0 (2023) mechanism-partition integration; the
-        2026 variant differs only at the system level (the intrinsic-information
-        requirement).
+        """Mechanism-partition integration, computed as in
+        :class:`IIT4_2023Formalism`; the two differ only at the system level,
+        where this formalism applies the intrinsic-information requirement.
 
         Explicit ``mechanism_measure`` overrides the config-driven fallback.
         """
@@ -600,8 +600,9 @@ class IIT4_2026Formalism:
         Explicit ``system_measure``/``specification_measure`` override the
         config-driven fallback. When omitted, ``system_measure`` resolves
         from ``config.formalism.iit.system_phi_measure`` (user config is
-        authoritative). The ``ii(s)`` cap (Eq. 23) fires when the
-        resolved measure's ``name`` is ``"INTRINSIC_INFORMATION"``.
+        authoritative). The intrinsic-information requirement (Eq. 23) is
+        applied when the resolved measure's ``name`` is
+        ``"INTRINSIC_INFORMATION"``.
         """
         system_measure, specification_measure = _resolve_system_measures(
             self, system_measure, specification_measure

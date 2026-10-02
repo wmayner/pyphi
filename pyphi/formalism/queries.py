@@ -320,7 +320,9 @@ def find_mice(
     whose φ (irreducibility) is maximal, resolving ties via
     :mod:`pyphi.resolve_ties`. When ``config.infrastructure.validate_phi_bounds``
     is set and a purview is found, the winning φ is checked against the
-    distinction and partition upper bounds.
+    distinction and partition upper bounds. The bounds are certified for
+    binary units under IIT 4.0 with the generalized intrinsic difference;
+    outside that domain the check is skipped.
     """
     purviews_list = _ra.potential_purviews(cs, direction, mechanism, purviews)
 

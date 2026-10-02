@@ -64,8 +64,10 @@ class Analysis(Displayable, Serializable):
 
     @property
     def formalism(self) -> str:
-        """str: The version of IIT that produced this analysis, read from the
-        configuration snapshot the system irreducibility analysis carries."""
+        """str: The version of IIT that produced this analysis:
+        ``"IIT_4_0_2026"`` (the default), ``"IIT_4_0_2023"``, or ``"IIT_3_0"``.
+        Read from the configuration snapshot the system irreducibility analysis
+        carries."""
         return self.sia.config.formalism.iit.version
 
     @property
@@ -217,8 +219,10 @@ def analyze(
         earlier version's name (``"IIT_4_0_2023"`` or ``"IIT_3_0"``) only to
         reproduce published results; it applies to this call only. The name
         a preset is exported under (``"iit3"``) and the preset itself
-        (``pyphi.iit3``) select the same version. See
-        :doc:`/howto/earlier-versions`.
+        (``pyphi.iit3``) select the same version. ``"IIT_4_0_2026"`` names the
+        default; passing it applies that version's complete preset, which
+        differs from leaving ``formalism`` unset only if the active
+        configuration has been customized. See :doc:`/howto/earlier-versions`.
     compute : optional
         ``None`` returns an :class:`Analysis` bundle; ``"sia"``, ``"ces"``,
         or ``"distinctions"`` returns the raw result object; a callable

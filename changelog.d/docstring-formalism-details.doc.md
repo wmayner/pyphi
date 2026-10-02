@@ -1,0 +1,1 @@
+Docstrings: `analyze(formalism=...)` documents `"IIT_4_0_2026"` and how passing it differs from leaving the argument unset; `Analysis.formalism` lists its three values; `find_mice` says the φ upper-bound check runs only where the bounds are certified (binary units, IIT 4.0, generalized intrinsic difference).
