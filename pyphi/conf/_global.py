@@ -39,7 +39,6 @@ from typing import Literal
 
 import yaml
 
-from pyphi.conf._callbacks import warn_distinction_phi_normalization_change
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
 from pyphi.conf._field_routing import colliding_formalism_fields
@@ -180,17 +179,9 @@ class _GlobalConfig:
         # Replace whole layers wholesale rather than streaming via
         # ``as_kwargs``: ``as_kwargs`` excludes colliding formalism field
         # names, so per-key restoration would silently lose those values.
-        old_formalism = self._formalism
         object.__setattr__(self, "_formalism", snapshot.formalism)
-        self._fire_layer_replacement_callbacks(old_formalism, snapshot.formalism)
-
-        old_infra = self._infrastructure
         object.__setattr__(self, "_infrastructure", snapshot.infrastructure)
-        self._fire_layer_replacement_callbacks(old_infra, snapshot.infrastructure)
-
-        old_numerics = self._numerics
         object.__setattr__(self, "_numerics", snapshot.numerics)
-        self._fire_layer_replacement_callbacks(old_numerics, snapshot.numerics)
 
     def override(
         self, _paths: Mapping[str, Any] | None = None, /, **kwargs: Any
@@ -465,23 +456,17 @@ class _GlobalConfig:
 
         # Wholesale layer replacement (e.g. config.numerics = NumericsConfig(...))
         if field_name in _LAYER_NAMES and isinstance(value, _LAYER_TYPES[field_name]):
-            old_layer = getattr(self, "_" + field_name)
             object.__setattr__(self, "_" + field_name, value)
-            self._fire_layer_replacement_callbacks(old_layer, value)
             return
 
         # Wholesale formalism sub-namespace replacement
         if field_name == "iit" and isinstance(value, IITConfig):
-            old_formalism = self._formalism
-            new_formalism = replace(old_formalism, iit=value)
+            new_formalism = replace(self._formalism, iit=value)
             object.__setattr__(self, "_formalism", new_formalism)
-            self._fire_layer_replacement_callbacks(old_formalism, new_formalism)
             return
         if field_name == "actual_causation" and isinstance(value, ActualCausationConfig):
-            old_formalism = self._formalism
-            new_formalism = replace(old_formalism, actual_causation=value)
+            new_formalism = replace(self._formalism, actual_causation=value)
             object.__setattr__(self, "_formalism", new_formalism)
-            self._fire_layer_replacement_callbacks(old_formalism, new_formalism)
             return
 
         if field_name in colliding_formalism_fields():
@@ -497,9 +482,7 @@ class _GlobalConfig:
 
         if field_name in FIELD_TO_LAYER:
             target = FIELD_TO_LAYER[field_name]
-            old_value = _read_via_target(self, target, field_name)
             _write_via_target(self, target, field_name, value)
-            self._fire_field_callback(field_name, old_value, value)
             return
 
         if field_name in _LAYER_NAMES:
@@ -518,30 +501,6 @@ class _GlobalConfig:
             "for the rename map."
         )
         raise ConfigurationError(f"Unknown config option: {name!r}.{hint}")
-
-    def _fire_field_callback(self, field_name: str, old: Any, new: Any) -> None:
-        if field_name == "distinction_phi_normalization":
-            warn_distinction_phi_normalization_change(old, new)
-
-    def _fire_layer_replacement_callbacks(self, old_layer: Any, new_layer: Any) -> None:
-        # Walk leaf fields so a top-level FormalismConfig replacement
-        # still surfaces nested IIT/AC field changes to the per-field
-        # callbacks. Iteration is shallow for non-formalism layers
-        # (whose fields are all leaves) and one level deeper for
-        # formalism (iit + actual_causation).
-        for f in fields(type(new_layer)):
-            old_val = getattr(old_layer, f.name)
-            new_val = getattr(new_layer, f.name)
-            if old_val == new_val:
-                continue
-            if isinstance(new_val, (IITConfig, ActualCausationConfig)):
-                for sub_f in fields(type(new_val)):
-                    sub_old = getattr(old_val, sub_f.name)
-                    sub_new = getattr(new_val, sub_f.name)
-                    if sub_old != sub_new:
-                        self._fire_field_callback(sub_f.name, sub_old, sub_new)
-            else:
-                self._fire_field_callback(f.name, old_val, new_val)
 
 
 def _warn_uppercase(name: str) -> None:

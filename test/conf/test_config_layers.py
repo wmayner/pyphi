@@ -633,30 +633,36 @@ def test_colliding_getattr_error_mentions_dotted_form():
     assert 'config["iit.mechanism_partition_scheme"]' in str(exc.value)
 
 
-def test_distinction_phi_normalization_warning_states_transition():
-    """The cache-staleness warning names the value change, so the enter and
-    exit transitions of an override are distinguishable."""
+def test_changing_distinction_phi_normalization_leaves_no_stale_results():
+    """A System computed before the option changes gives the same results
+    afterwards as a newly built one, on entering an override and on leaving
+    it, so nothing needs clearing and nothing warns."""
     import warnings
 
     import pyphi
-    from pyphi.warnings import PyPhiWarning
+    from pyphi import examples
 
-    old = pyphi.config.formalism.iit.distinction_phi_normalization
-    assert old == "NUM_CONNECTIONS_CUT"
-    new = "NONE"
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        with pyphi.config.override(**{"iit.distinction_phi_normalization": new}):
-            pass
-    messages = [
-        str(w.message)
-        for w in caught
-        if issubclass(w.category, PyPhiWarning)
-        and "distinction_phi_normalization" in str(w.message)
-    ]
-    assert len(messages) == 2
-    assert f"{old!r} -> {new!r}" in messages[0]
-    assert f"{new!r} -> {old!r}" in messages[1]
+    def summary(system):
+        ces = system.ces()
+        return (
+            round(float(ces.sia.phi), 10),
+            tuple(round(float(d.phi), 10) for d in ces.distinctions),
+            round(float(ces.big_phi), 8),
+        )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pyphi.config.override(**pyphi.iit4_2026, progress_bars=False):
+            reused = examples.xor_system()
+            before = summary(reused)
+            with pyphi.config.override(**{"iit.distinction_phi_normalization": "NONE"}):
+                inside = summary(examples.xor_system())
+                assert summary(reused) == inside
+                made_inside = examples.xor_system()
+                summary(made_inside)
+            assert summary(made_inside) == before
+    # The comparison only means something if the option changes the values.
+    assert inside != before
 
 
 def test_default_formalism_is_iit4_2026():

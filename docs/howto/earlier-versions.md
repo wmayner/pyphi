@@ -128,15 +128,9 @@ three ways to apply one, and they give the same results:
   `pyphi.config.formalism = dataclasses.replace(pyphi.config.formalism, **pyphi.iit4_2023)`.
 
 ```{code-cell} python
-import warnings
-
-# Applying a preset emits advisory warnings listing the options it changes;
-# they are silenced here to keep the output readable.
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    with pyphi.config.override(**pyphi.iit3):
-        print("version:  ", pyphi.config.formalism.iit.version)
-        print("precision:", pyphi.config.precision)
+with pyphi.config.override(**pyphi.iit3):
+    print("version:  ", pyphi.config.formalism.iit.version)
+    print("precision:", pyphi.config.precision)
 ```
 
 Apply the whole preset. Setting `formalism.iit.version` on its own raises a

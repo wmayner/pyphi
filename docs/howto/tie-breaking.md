@@ -320,16 +320,12 @@ by PyPhi 1.x, and sets the MIP and system-partition options to break remaining
 ties lexicographically:
 
 ```{code-cell} python
-import warnings
-
 from pyphi import iit3
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    with pyphi.config.override(**iit3):
-        print("purview:", pyphi.config.formalism.iit.purview_tie_resolution)
-        print("mip:    ", pyphi.config.formalism.iit.mip_tie_resolution)
-        print("sia:    ", pyphi.config.formalism.iit.sia_tie_resolution)
+with pyphi.config.override(**iit3):
+    print("purview:", pyphi.config.formalism.iit.purview_tie_resolution)
+    print("mip:    ", pyphi.config.formalism.iit.mip_tie_resolution)
+    print("sia:    ", pyphi.config.formalism.iit.sia_tie_resolution)
 ```
 
 For the full list of configuration options, see the configuration classes in

@@ -28,8 +28,6 @@ $\varphi_s$, so this page pins the version of IIT that paper used (see
 {doc}`earlier-versions`).
 
 ```{code-cell} python
-import warnings
-
 import numpy as np
 
 import pyphi
@@ -41,9 +39,7 @@ from pyphi.substrate import Substrate
 pyphi.config.progress_bars = False
 
 # Reproduce the paper's values under the version of IIT it used.
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")  # advisory config-change notices
-    config.iit = presets.iit4_2023["iit"]
+config.iit = presets.iit4_2023["iit"]
 ```
 
 The demos use a two-unit substrate. Each unit is nearly silent on its own and

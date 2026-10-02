@@ -297,10 +297,8 @@ markers = [
 filterwarnings = [
     "error",
     "ignore::ImportWarning",
-    # PyPhi's own intentional runtime notice, emitted whenever a config or
-    # preset switch changes `distinction_phi_normalization`. Suppressed here so
-    # the many tests that change config do not fail on an informational warning;
-    # tests that assert it fires still catch it via `pytest.warns`.
+    # PyPhi's own informational runtime notices. Tests that assert one fires
+    # still catch it via `pytest.warns`.
     "ignore::pyphi.warnings.PyPhiWarning",
     # loky's ExecutorManagerThread emits this when a worker's idle timeout
     # coincides with pending work. Escalating it to an error kills the manager

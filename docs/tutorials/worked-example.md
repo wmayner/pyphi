@@ -29,16 +29,12 @@ information became part of the definition of $\varphi_s$, so this page pins
 the version of IIT the paper used (see {doc}`../howto/earlier-versions`).
 
 ```{code-cell} python
-import warnings
-
 import pyphi
 from pyphi.conf import presets
 
 pyphi.config.progress_bars = False
 # Reproduce the paper's published values under the version of IIT it used.
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")  # advisory config-change notices
-    pyphi.config.iit = presets.iit4_2023["iit"]
+pyphi.config.iit = presets.iit4_2023["iit"]
 ```
 
 ## The substrate: three logistic units

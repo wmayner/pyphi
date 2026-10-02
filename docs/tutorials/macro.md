@@ -41,17 +41,13 @@ became part of the definition of $\varphi_s$, so this page pins the version of
 IIT the paper used (see {doc}`../howto/earlier-versions`).
 
 ```{code-cell} python
-import warnings
-
 import numpy as np
 
 from pyphi import config
 from pyphi.conf import presets
 
 # Reproduce the paper's values under the version of IIT it used.
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")  # advisory config-change notices
-    config.iit = presets.iit4_2023["iit"]
+config.iit = presets.iit4_2023["iit"]
 ```
 
 ## A minimal example, at the micro grain

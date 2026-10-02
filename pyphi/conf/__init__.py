@@ -19,7 +19,6 @@ from __future__ import annotations
 import contextlib
 from pathlib import Path
 
-from pyphi.conf._callbacks import mark_loaded
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
 from pyphi.conf._global import _GlobalConfig
@@ -42,8 +41,6 @@ config: _GlobalConfig = _GlobalConfig()
 
 with contextlib.suppress(FileNotFoundError):
     config.load_yaml(PYPHI_USER_CONFIG_PATH)
-
-mark_loaded()
 
 
 __all__ = [
