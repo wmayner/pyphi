@@ -1,1 +1,0 @@
-The API reference presents IIT as one theory, matching the rest of the documentation: docstrings no longer label the current theory with a year, and facts about results computed under earlier versions of IIT moved from summary lines into Notes sections that link to "Reproduce results from earlier versions of IIT".

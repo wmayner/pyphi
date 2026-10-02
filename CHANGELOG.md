@@ -5,7 +5,7 @@ Changelog
 
 2.0.0
 -----
-_2026-09-27_
+_2026-10-01_
 
 PyPhi 2.0 is a comprehensive rework of the library around IIT 4.0 (Albantakis et
 al. 2023; Mayner et al. 2026): new core value types, first-class formalism
@@ -110,7 +110,9 @@ and `migrate_code` prompt on the MCP server).
 - `pyphi.analyze(substrate, state, *, subset=…, formalism=…, compute=…)`:
   analyze one candidate system and get an `Analysis` bundle exposing `.sia`,
   `.ces`, and `.phi` uniformly across formalisms. `formalism=` switches
-  formalism per call; `compute="sia"`/`"ces"` returns the raw result;
+  formalism per call, by version name (`"IIT_3_0"`), by the name a preset is
+  exported under (`"iit3"`), or by the preset itself (`pyphi.iit3`);
+  `compute="sia"`/`"ces"` returns the raw result;
   `grains=True` runs the bounded intrinsic-unit grain search instead.
 - `pyphi.sweep(substrates, states=…, subsets=…, formalisms=…, compute=…)`:
   run the same computation over the cartesian product of axes and get a
@@ -122,7 +124,8 @@ and `migrate_code` prompt on the MCP server).
 - `pyphi.estimate_analysis()`: an analytic pre-flight that counts the
   workload of a single-system analysis — system partitions, candidate
   mechanisms, purview evaluations, mechanism-partition sweeps — without
-  computing any φ, optionally restricted to a scope.
+  computing any φ, optionally restricted to a scope. It can be called like
+  `analyze(substrate, state)`; the counts do not depend on the state.
   `SearchBounds.estimate()` is the same pre-flight for the macro grain
   search.
 - A `Complex` result type: `Substrate.complexes()` and `maximal_complex()`
@@ -374,8 +377,8 @@ and `migrate_code` prompt on the MCP server).
   reference (theory topics, gotchas, migration, parallelization,
   visualization, campaigns); and guided prompts for explaining results,
   porting pre-2.0 code, building a substrate from a description, and
-  planning a cluster campaign step by step.
-
+  planning a cluster campaign step by step. Running `pyphi-mcp` without the
+  `mcp` extra says how to install it.
 - PyPhi now prints a short note to stderr when it is imported under an AI coding
   agent, naming the two mistakes that most often go wrong unaided — reporting φₛ
   as Φ, and the little-endian state convention — and pointing at the bundled
@@ -522,7 +525,10 @@ and `migrate_code` prompt on the MCP server).
 **Renames to match the IIT 4.0 paper**
 
 - `pyphi.Network` → `pyphi.Substrate`; `pyphi.Subsystem` → `pyphi.System`;
-  `pyphi.network_generator` → `pyphi.substrate_generator`.
+  `pyphi.network_generator` → `pyphi.substrate_generator`. The old names
+  (`pyphi.Network`, `pyphi.Subsystem`, `pyphi.compute`, `pyphi.jsonify`, and
+  the `examples.*_network` / `*_subsystem` functions) raise an
+  `AttributeError` that gives the replacement.
 - `pyphi.models.Concept` → `pyphi.models.Distinction` (with `Concept` kept
   as an alias for the IIT 3.0 idiom); the canonical query is
   `pyphi.formalism.distinction`; `System` gains `ces()` and
@@ -604,6 +610,10 @@ and `migrate_code` prompt on the MCP server).
   | `PRECISION` | `numerics.precision` |
   | `LOG_FILE` / `LOG_FILE_LEVEL` / `LOG_STDOUT_LEVEL` | removed — use `pyphi.enable_logging()` |
   | other options | same name, lowercase, under `infrastructure` |
+
+  Reading or setting an option on `pyphi.config` by its uppercase 1.x name
+  (`pyphi.config.PRECISION`) still works and raises a `FutureWarning` giving
+  the lowercase name.
 
 - The default formalism is IIT 4.0 (2026): `formalism.iit.version =
   "IIT_4_0_2026"` with `system_phi_measure = "INTRINSIC_INFORMATION"`, which
@@ -709,7 +719,16 @@ and `migrate_code` prompt on the MCP server).
   `parquet` extra.
 - `import pyphi` imports submodules lazily: imports are faster, optional
   dependencies are only loaded when used, and `from pyphi import *` works
-  on a base install.
+  on a base install. Importing PyPhi no longer creates `__pyphi_cache__/` in
+  the working directory; the directory appears when something is first
+  cached to disk.
+- A quieter first run: progress bars appear only once a computation has run
+  for a second, and the welcome message is five lines. Changing
+  `distinction_phi_normalization` no longer warns that `system.clear_caches()`
+  is needed, since results on existing systems follow the configuration they
+  are computed under.
+- Unknown node labels raise a `ValueError` listing the known labels instead
+  of a bare `KeyError`.
 - `Substrate.complexes()` follows the paper's meaning of "complex" (a
   non-overlapping local maximum under exclusion); the previous
   every-irreducible-system semantics is `substrate.irreducible_sias`.
@@ -760,9 +779,10 @@ and `migrate_code` prompt on the MCP server).
   formalism's `requires_ii_cap`) to `applies_intrinsic_information_requirement`,
   matching the project's terminology for Mayner et al. (2026) Eq. 23.
 
-- `pyphi.cost.estimate_analysis` now takes `subset`, `compute`, `limit`, and
-  `scope` by keyword only, so a state passed by mistake raises instead of being
-  read as the candidate subset.
+- `pyphi.cost.estimate_analysis` takes `subset`, `compute`, `limit`, and
+  `scope` by keyword only. Its second positional argument is the state, which
+  it accepts and does not use, so a state is never read as the candidate
+  subset.
 - Under IIT 3.0, `System.ces()` and `analyze().ces` return a
   `ResolvedDistinctions` (its concepts under `.concepts`) rather than the
   internal `UnresolvedDistinctions`.
@@ -781,6 +801,9 @@ and `migrate_code` prompt on the MCP server).
   under an earlier version of IIT (`IIT_4_0_2023` or `IIT_3_0`).
   `Analysis.formalism` and serialized results record the version for every
   result.
+- The Analysis card adds a "Why φ_s = 0" row when both φ_c and φ_e are
+  positive but the system has no intrinsic information, as every
+  deterministic system does.
 
 ### Config
 
@@ -1433,8 +1456,8 @@ and `migrate_code` prompt on the MCP server).
   and twelve terms were added (unit, order, cause–effect state, congruent,
   normalized φ, partition scheme, preset, SIA, relation face, degree, unfolding,
   condensation, tie, grain).
-- The documentation, the MCP reference content, the `pyphi` skill, and the
-  package docstring describe the theory PyPhi computes as IIT, citing
+- The documentation, the API docstrings, the MCP reference content, and the
+  `pyphi` skill describe the theory PyPhi computes as IIT, citing
   Albantakis et al. (2023) and Mayner, Marshall & Tononi (2026) together.
   Earlier versions are covered on one page and in the `configuration` and
   `migration` references.

@@ -1,1 +1,0 @@
-The error for a missing `pot` package names the `emd` extra (it said `pyphi[pot]`, which does not exist), and configuration errors link to the published migration guide instead of a path inside the repository.

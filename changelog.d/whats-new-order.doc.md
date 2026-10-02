@@ -1,1 +1,0 @@
-The "What's new in 2.0" page is reordered (essentials, new capabilities, AI assistants, performance, ergonomics), points to the migration guide instead of repeating it, and describes IIT Expert alongside the PyPhi MCP server.

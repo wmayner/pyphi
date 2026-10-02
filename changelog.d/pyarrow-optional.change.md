@@ -1,1 +1,0 @@
-`pyarrow` is no longer a core dependency. It is needed only for parquet files — saving or loading sweep and optimization results, and `save_dataframe` — and is installed by the new `parquet` extra. Without it those calls raise an error naming the extra.
