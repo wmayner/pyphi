@@ -2,6 +2,7 @@
 missing optional dependencies, and what a bare import leaves on disk."""
 
 import builtins
+import os
 import subprocess
 import sys
 from importlib import metadata
@@ -173,9 +174,18 @@ def test_progress_bars_wait_before_drawing():
 
 
 def test_the_welcome_message_is_short():
+    # Windows cannot start Python from an empty environment, so drop only the
+    # variables that change what is printed.
+    silencers = (
+        "PYPHI_WELCOME_OFF",
+        "PYPHI_AGENT_NOTE_OFF",
+        "CLAUDECODE",
+        "PYPHI_AGENT",
+    )
+    environment = {k: v for k, v in os.environ.items() if k not in silencers}
     done = subprocess.run(
         [sys.executable, "-c", "import pyphi"],
-        env={"PATH": ""},
+        env=environment,
         capture_output=True,
         text=True,
         check=True,
