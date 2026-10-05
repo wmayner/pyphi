@@ -451,7 +451,8 @@ disallow_untyped_defs = true
 ```python
 from typing import Generic, TypeVar, overload
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class Option(Generic[T]):
     default: T
@@ -482,8 +483,9 @@ class Option(Generic[T]):
 ```python
 from typing import ParamSpec, TypeVar, Callable
 
-P = ParamSpec('P')
-T = TypeVar('T')
+P = ParamSpec("P")
+T = TypeVar("T")
+
 
 def cache(func: Callable[P, T]) -> Callable[P, T]: ...
 ```
@@ -607,8 +609,11 @@ warn_unreachable = true       # ✓ Add
 # ✅ DO (Python 3.12+)
 def func(x: int | None) -> tuple[str, ...]: ...
 
+
 # ❌ DON'T (Old syntax)
 from typing import Optional, Tuple
+
+
 def func(x: Optional[int]) -> Tuple[str, ...]: ...
 ```
 
@@ -620,11 +625,14 @@ from numpy.typing import ArrayLike, NDArray
 import numpy as np
 from pyphi.types import Repertoire, TPMArray, ConnectivityMatrix
 
+
 # Input parameters (flexible)
 def process(data: ArrayLike) -> None: ...
 
+
 # Return types (specific)
 def compute() -> NDArray[np.float64]: ...
+
 
 # Domain-specific aliases
 def repertoire_distance(p: Repertoire, q: Repertoire) -> float: ...
@@ -633,6 +641,7 @@ def repertoire_distance(p: Repertoire, q: Repertoire) -> float: ...
 ### 3. Import from `pyphi.types`
 ```python
 from pyphi.types import NodeIndices, State, Mechanism, Purview, Phi
+
 
 def evaluate(mechanism: Mechanism, purview: Purview) -> Phi: ...
 ```
@@ -676,6 +685,7 @@ result = metaclass_method()  # type: ignore[override]  # Metaclass wraps numpy o
    class ExplicitTPM:
        def __init__(self, tpm: ArrayLike, validate: bool = True) -> None: ...
        def __add__(self, other: ArrayLike) -> ExplicitTPM: ...
+
        # ... other operators ...
    ```
 3. **Document**: Add docstring explaining metaclass complexity and typing limitations
@@ -684,7 +694,8 @@ result = metaclass_method()  # type: ignore[override]  # Metaclass wraps numpy o
 **Strategy**: Generic `Option[T]` with overloads.
 
 ```python
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class Option(Generic[T]):
     @overload
@@ -718,8 +729,10 @@ class Subsystem:
 ```python
 from typing import Protocol
 
+
 class DistanceMeasure(Protocol):
     def __call__(self, p: Repertoire, q: Repertoire) -> float: ...
+
 
 class Registry(Generic[T]):
     def register(self, name: str) -> Callable[[T], T]: ...
@@ -755,19 +768,23 @@ Create tests to validate type hints:
 import pytest
 from typing import get_type_hints
 
+
 def test_network_init_signature():
     """Verify Network.__init__ has correct type hints."""
     from pyphi import Network
+
     hints = get_type_hints(Network.__init__)
-    assert 'tpm' in hints
-    assert 'cm' in hints
+    assert "tpm" in hints
+    assert "cm" in hints
+
 
 def test_subsystem_concept_signature():
     """Verify Subsystem.concept has correct type hints."""
     from pyphi import Subsystem
+
     hints = get_type_hints(Subsystem.concept)
-    assert 'mechanism' in hints
-    assert 'return' in hints
+    assert "mechanism" in hints
+    assert "return" in hints
 ```
 
 ### 4. Run Full Test Suite After Each Phase
@@ -856,12 +873,12 @@ Consider adding `sphinx_autodoc_typehints` extension to show type hints in gener
 ```python
 # docs/conf.py
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints',  # Add this
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx_autodoc_typehints",  # Add this
 ]
 
-autodoc_typehints = 'description'
+autodoc_typehints = "description"
 ```
 
 ---

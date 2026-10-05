@@ -138,7 +138,7 @@ most contributor sandboxes. Green locally on bare metal, red in a container.
 The failing test's *other* assertion encodes the intended invariant:
 
 ```python
-assert 0 < budget < task.spec.memory_bytes   # line 75
+assert 0 < budget < task.spec.memory_bytes  # line 75
 ```
 
 i.e. a shard's cache ceiling should stay **inside** the memory it requested. The
@@ -222,12 +222,15 @@ version in the contributor docs.
 Same family as the four bugs that prompted this audit: a silently violated contract.
 
 ```python
-def __eq__(self, other):                      # :232
-    return (self.sia == other.sia
-            and self.is_maximal == other.is_maximal
-            and self.excluded == other.excluded)
+def __eq__(self, other):  # :232
+    return (
+        self.sia == other.sia
+        and self.is_maximal == other.is_maximal
+        and self.excluded == other.excluded
+    )
 
-def __hash__(self):                           # :244
+
+def __hash__(self):  # :244
     return hash((self.node_indices, self.is_maximal))
 ```
 
@@ -321,7 +324,7 @@ test rather than carrying a disabled test into the release.
 ```python
 h.update(repr(ftpm.alphabet_sizes).encode())
 for i in range(ftpm.n_nodes):
-    h.update((ftpm.factor(i) + 0.0).tobytes())     # <- tobytes() is SHAPE-FREE
+    h.update((ftpm.factor(i) + 0.0).tobytes())  # <- tobytes() is SHAPE-FREE
 h.update(self._cm_fingerprint)
 ```
 
@@ -383,7 +386,7 @@ confirmed wrong-Φ bug.
 ```python
 for i in range(ftpm.n_nodes):
     f = ftpm.factor(i)
-    h.update(repr(f.shape).encode())      # <-- add
+    h.update(repr(f.shape).encode())  # <-- add
     h.update((f + 0.0).tobytes())
 ```
 
@@ -561,11 +564,11 @@ Surfaced by a round-3 agent (whose own follow-up run was killed by a container
 restart); I reproduced and instrumented it.
 
 ```python
-if state_ties:                                   # ALWAYS truthy — see below
+if state_ties:  # ALWAYS truthy — see below
     congruent_state = [m for m in state_ties if m.is_congruent(system_state_spec)]
     if congruent_state:
-        return congruent_state[0]                # returns the enumeration-order winner
-if purview_ties:                                 # <-- S1 rule, never reached
+        return congruent_state[0]  # returns the enumeration-order winner
+if purview_ties:  # <-- S1 rule, never reached
     congruent_purview = [m for m in purview_ties if m.is_congruent(system_state_spec)]
     if congruent_purview:
         return max(congruent_purview, key=lambda m: len(m.purview))
@@ -815,7 +818,8 @@ than raising."* The implementation delegates to `np.allclose`, which **broadcast
 
 ```python
 def test_numpy_aware_eq_array_shape_mismatch_returns_false():
-    a_ = np.zeros(3); b_ = np.zeros(4)      # non-broadcastable
+    a_ = np.zeros(3)
+    b_ = np.zeros(4)  # non-broadcastable
     assert not models.cmp.numpy_aware_eq(a_, b_)
 ```
 
