@@ -22,9 +22,13 @@ In theoretical research on IIT, we often use deterministic systems with
 symmetric inputs and outputs. These are especially prone to ties, and different
 tie-resolution rules can change which object is returned — and therefore the
 reported purviews and, in some cases, the composition of the cause-effect
-structure. The scalar $\varphi$ and $\varphi_s$ values are unaffected by
-tie-breaking (all tied candidates share the same value by definition); what
-changes is which representative object is reported.
+structure. They can also change reported values. Candidates tie on the
+quantity being compared, but can differ in others: two system partitions can
+tie on normalized $\varphi$ while one has twice the raw $\varphi$ of the
+other, and IIT 4.0 then reports the larger raw value as $\varphi_s$. Tied
+specified states of a system can give different $\varphi_s$, and tied
+purviews can support different relations and so give different $\Phi$. The
+sections below describe how each kind of tie is resolved.
 
 ```{note}
 In contrast to the examples often used in the literature, realistic systems are often noisy and lack exact symmetry, so ties are less important in empirical practice.
@@ -65,8 +69,9 @@ Each value is a **strategy**: either a single strategy name (a string) or a
 list of names forming a *cascade*. A cascade is applied left to right — the
 first strategy narrows the field, the next breaks any remaining ties among the
 survivors, and so on. The default for `sia_tie_resolution`, for example,
-prefers larger normalized $\varphi$, then smaller raw $\varphi$, then a
-lexicographic ordering of the partition as a final deterministic tiebreak:
+prefers the smallest normalized $\varphi$, then the largest raw $\varphi$ (the
+rule IIT 4.0 states after its Eq. 23), then a lexicographic ordering of the
+partition as a final deterministic tiebreak:
 
 ```{code-cell} python
 pyphi.config.formalism.iit.sia_tie_resolution
@@ -141,8 +146,9 @@ mie_small.purview, round(mie_small.phi, 6)
 ```
 
 The $\varphi$ value is `1.0` in every case; only the selected purview changes.
-This is the sense in which tie-breaking can affect a result: it determines the
-representative object, not its integrated-information value.
+Within a cause–effect structure, the purview a distinction uses can still
+change $\Phi$ through the relations it supports; see the section on
+distinction ties below.
 
 ## System-state ties: the postulate ladder
 
@@ -307,9 +313,22 @@ far a connection weight can move before a selection switches — see
 
 ## Interaction with precision and presets
 
-Whether two candidates count as tied is decided up to `numerics.precision`
-decimal places. Coarser precision produces more ties; finer precision produces
-fewer. The EMD distance measure used by the IIT 3.0 formalism is particularly
+Two candidates count as tied when their values agree within
+$10^{-\text{precision}}$, relatively or absolutely, where `precision` is
+`numerics.precision` (13 by default). Coarser precision produces more ties;
+finer precision produces fewer.
+
+Because the rules choose differently at a tie, reported values can change
+abruptly there. When two system partitions tie on normalized $\varphi$, the
+one with the larger raw $\varphi$ wins; when one of them is lower by any
+amount, it wins instead, even if the other has twice its raw $\varphi$. So
+$\varphi_s$ can change by a large factor under an arbitrarily small change to
+the substrate. A system within the tolerance of such a point gets the tie
+value. A difference smaller than about $10^{-16}$ relative is below the
+spacing of double-precision numbers, so the computed values usually cannot
+separate it, whatever the setting of `precision`. When
+a selection is decided by a tie, `tied_selections` lists it and
+`effectively_tied` is true (see the section on selection margins above). The EMD distance measure used by the IIT 3.0 formalism is particularly
 prone to $\varphi$ ties across purviews and, because of its numerical optimizer,
 runs at a lower default precision than the intrinsic-difference measures.
 
