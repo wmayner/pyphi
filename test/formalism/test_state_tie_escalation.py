@@ -118,3 +118,50 @@ def test_positive_phi_tie_nonisomorphic_is_information_violation(
         sia = noisy_xor_system.sia()
     assert float(sia.phi) == pytest.approx(0.0)
     assert NullResultReason.NONUNIQUE_SYSTEM_STATE in (sia.reasons or [])
+
+
+# Two systems from the randomized differential sweep of Arnaud's Lean 4
+# formalization of IIT 4.0 (github.com/rndmx/Integ, v1.1, test/sweep.py), whose
+# expected φ_s come from its exact-rational transcription.
+EXTERNAL_TIE_CASES = [
+    pytest.param(
+        # Seed 20260904, system 70. Two tied specified-state pairs give
+        # φ_s ∈ {0, 1}; S1 keeps the larger.
+        [[1.0, 0.0], [0.0, 1.0], [0.0, 1.0], [0.0, 0.0]],
+        (0, 1),
+        (0, 1),
+        1.0,
+        id="deterministic-pair-tie",
+    ),
+    pytest.param(
+        # Seed 20260905, system 131. The effect states (0, 0) and (1, 0) tie
+        # exactly when the entries are read as the decimals 1e-9, 1/2 and
+        # 1 - 1e-9. Exact arithmetic on the double-rounded entries separates
+        # them by ~1e-17 and gives φ_s = 0; in floating point their intrinsic
+        # information is identical, so they tie, and keeping the larger φ_s
+        # gives the exact value for the decimal system.
+        [
+            [0.999999999, 1e-09, 0.999999999],
+            [0.999999999, 0.999999999, 0.999999999],
+            [0.5, 0.999999999, 0.5],
+            [1e-09, 0.999999999, 0.5],
+            [0.5, 0.5, 1e-09],
+            [0.5, 1e-09, 1e-09],
+            [0.999999999, 0.5, 0.5],
+            [1e-09, 0.5, 0.999999999],
+        ],
+        (1, 0, 1),
+        (0, 1),
+        0.2029122545967967,
+        id="tie-split-by-input-rounding",
+    ),
+]
+
+
+@pytest.mark.parametrize("tpm, state, nodes, expected", EXTERNAL_TIE_CASES)
+def test_state_tie_matches_external_exact_reference(tpm, state, nodes, expected):
+    """A tied specified-state pair resolves to the maximal φ_s (S1), matching
+    an independent exact-arithmetic implementation of IIT 4.0 (2023)."""
+    with config.override(**presets.iit4_2023):
+        sia = System(Substrate(np.array(tpm)), state, node_indices=nodes).sia()
+    assert float(sia.phi) == pytest.approx(expected, rel=1e-9)
