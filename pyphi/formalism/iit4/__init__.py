@@ -1086,7 +1086,7 @@ def sia(
     )
 
     # Per Albantakis et al. 2023 S1: when cause/effect specified states
-    # tie at maximum intrinsic information, the canonical winner is the
+    # tie at maximal intrinsic specification, the canonical winner is the
     # joint ``(cause_spec, effect_spec)`` pair whose system phi
     # ``φ_s = min(φ_c, φ_e)`` is greatest. The cascade enumerates the
     # Cartesian product of tied specs and selects via
@@ -1660,9 +1660,10 @@ def congruent_distinctions(
 ) -> Distinctions:
     """Return the system's distinctions without the system-partition search.
 
-    The specified state used for congruence filtering is taken from the
-    system's intrinsic information (Eqs. 12-13) rather than from a system
-    irreducibility analysis, so no system partition is evaluated.
+    The specified state used for congruence filtering is the state of
+    maximal intrinsic specification (Mayner et al. 2026, Eq. 12), found
+    without a system irreducibility analysis, so no system partition is
+    evaluated.
 
     Returns
     -------

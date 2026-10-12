@@ -801,6 +801,10 @@ def iit3_2014_fig4_substrate():
 
 @register_example
 def iit3_2014_fig4_system():
+    """The system of all the units of
+    :func:`~pyphi.examples.iit3_2014_fig4_substrate`, in state (1, 0, 1)
+    (A and C on, B off).
+    """
     return System(iit3_2014_fig4_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
 
 
@@ -843,6 +847,10 @@ def iit3_2014_fig5a_substrate():
 
 @register_example
 def iit3_2014_fig5a_system():
+    """The system of all the units of
+    :func:`~pyphi.examples.iit3_2014_fig5a_substrate`, in state (0, 0, 0)
+    (every unit off).
+    """
     return System(iit3_2014_fig5a_substrate(), state=(0, 0, 0), subset=(0, 1, 2))
 
 
@@ -885,6 +893,10 @@ def iit3_2014_fig5b_substrate():
 
 @register_example
 def iit3_2014_fig5b_system():
+    """The system of all the units of
+    :func:`~pyphi.examples.iit3_2014_fig5b_substrate`, in state (1, 0, 1)
+    (A and C on, B off).
+    """
     return System(iit3_2014_fig5b_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
 
 

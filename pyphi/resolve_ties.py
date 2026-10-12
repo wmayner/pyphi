@@ -659,7 +659,7 @@ def resolve_state_tie[K, V: _StateMIP](
     """Resolve a state tie via the per-state max-min cascade.
 
     Per Albantakis et al. 2023 S1 Text + Eq 20 parenthetical: among states
-    tied at maximum intrinsic information ``ii``, the canonical winner is
+    tied at maximal intrinsic specification, the canonical winner is
     the state whose per-state ``φ_s`` (the value of integrated information
     at that state's MIP) is greatest. If ``φ_s`` ties too, the cascade
     escalates to per-state ``Φ`` (the cause-effect structure's integrated

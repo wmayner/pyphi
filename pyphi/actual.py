@@ -262,6 +262,18 @@ class TransitionSystem(Serializable):
         return list(self.partition.all_cut_mechanisms())
 
     def apply_partition(self, partition: DirectedBipartition) -> "TransitionSystem":
+        """Return a copy of this view with ``partition`` applied.
+
+        Parameters
+        ----------
+        partition : DirectedBipartition
+            The partition to apply.
+
+        Returns
+        -------
+        TransitionSystem
+            A new view, equal to this one except for its partition.
+        """
         return replace(self, partition=partition)
 
     def partitioned_repertoire(
@@ -566,6 +578,19 @@ class Transition(Serializable):
         raise AttributeError(message)
 
     def apply_partition(self, partition: DirectedBipartition) -> "Transition":
+        """Return a copy of this transition with ``partition`` applied.
+
+        Parameters
+        ----------
+        partition : DirectedBipartition
+            The partition to apply; its severed connections are removed from
+            both the cause and the effect system.
+
+        Returns
+        -------
+        Transition
+            A new transition, equal to this one except for its partition.
+        """
         return replace(self, partition=partition)
 
     def cause_repertoire(self, mechanism, purview):

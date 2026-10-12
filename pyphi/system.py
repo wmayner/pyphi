@@ -808,6 +808,34 @@ class System(Displayable, ToPandasMixin, Serializable):
         specification_measure: Any,
         **kwargs: Any,
     ) -> Any:
+        """Return the state a mechanism specifies over a purview.
+
+        The specified state is the purview state of maximal intrinsic
+        specification (Mayner et al. 2026, Eq. 12).
+
+        Parameters
+        ----------
+        direction : Direction
+            Cause or effect.
+        mechanism : tuple[int, ...]
+            The mechanism's node indices.
+        purview : tuple[int, ...]
+            The purview's node indices.
+        specification_measure : callable
+            The measure of intrinsic specification maximized over the purview
+            states, such as the active formalism's specification measure.
+        **kwargs
+            Passed to
+            :func:`pyphi.core.repertoire_algebra.intrinsic_specification`;
+            ``states`` restricts the candidate purview states.
+
+        Returns
+        -------
+        StateSpecification
+            The specified state and its intrinsic specification. States that
+            tie with it within ``config.numerics.precision`` are on its
+            ``ties``.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         spec = ra.intrinsic_specification(
@@ -1100,6 +1128,23 @@ class System(Displayable, ToPandasMixin, Serializable):
         return _phi_effect_mip(self, mechanism, purview, **kwargs)
 
     def phi(self, mechanism: Any, purview: Any) -> float:
+        """Return the φ of a mechanism over one purview.
+
+        φ is the smaller of the cause and effect φ at their minimum
+        partitions, both evaluated over ``purview``.
+
+        Parameters
+        ----------
+        mechanism : tuple[int, ...]
+            The mechanism's node indices.
+        purview : tuple[int, ...]
+            The purview's node indices.
+
+        Returns
+        -------
+        float
+            The mechanism's φ over ``purview``.
+        """
         from pyphi.formalism import phi as _phi
 
         return _phi(self, mechanism, purview)
@@ -1110,11 +1155,47 @@ class System(Displayable, ToPandasMixin, Serializable):
         return _find_mice(self, direction, mechanism, **kwargs)
 
     def mic(self, mechanism: Any, *, purviews: Any = None) -> Any:
+        """Return the maximally irreducible cause of a mechanism.
+
+        Parameters
+        ----------
+        mechanism : tuple[int, ...]
+            The mechanism's node indices.
+        purviews : iterable of tuple[int, ...], optional
+            The candidate purviews to search. Candidates outside this system
+            or reducible by its connectivity are skipped. ``None`` searches
+            every purview of the system that the connectivity does not rule
+            out.
+
+        Returns
+        -------
+        MaximallyIrreducibleCause
+            The cause purview of maximal φ, with its minimum partition
+            and specified state.
+        """
         from pyphi.formalism import mic as _mic
 
         return _mic(self, mechanism, purviews=purviews)
 
     def mie(self, mechanism: Any, *, purviews: Any = None) -> Any:
+        """Return the maximally irreducible effect of a mechanism.
+
+        Parameters
+        ----------
+        mechanism : tuple[int, ...]
+            The mechanism's node indices.
+        purviews : iterable of tuple[int, ...], optional
+            The candidate purviews to search. Candidates outside this system
+            or reducible by its connectivity are skipped. ``None`` searches
+            every purview of the system that the connectivity does not rule
+            out.
+
+        Returns
+        -------
+        MaximallyIrreducibleEffect
+            The effect purview of maximal φ, with its minimum partition
+            and specified state.
+        """
         from pyphi.formalism import mie as _mie
 
         return _mie(self, mechanism, purviews=purviews)

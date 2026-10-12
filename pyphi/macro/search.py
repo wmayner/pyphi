@@ -1404,10 +1404,10 @@ def complexes(
     everything; ``None`` (default) selects ``"certified"`` exactly when
     the active system measure applies the requirement.
 
-
     ``parallel`` and ``progress`` govern the evaluation of candidate
     systems; ``None`` defers to
     ``config.infrastructure.parallel_macro_system_evaluation``.
+
     Notes
     -----
     Under the certified prune the identified complexes, ties, and

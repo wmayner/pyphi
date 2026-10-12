@@ -282,7 +282,7 @@ def _find_mip_iit4(
             "parallel_kwargs": parallel_kwargs,
             "mechanism_measure": mechanism_measure,
         },
-        desc="Finding MIP for maximum intrinsic information states",
+        desc="Finding MIP for each specified state",
         **state_parallel_kwargs,
     )
 

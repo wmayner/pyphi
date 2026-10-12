@@ -232,12 +232,30 @@ def test_analyze_parallel_and_progress_do_not_change_the_result():
             assert sia.phi == expected.phi
 
 
-def test_analyze_parallel_reaches_the_grain_search():
+def test_analyze_parallel_reaches_the_grain_search(monkeypatch):
+    from pyphi.macro import search
+
+    seen = []
+    evaluate = search._evaluate_systems
+
+    def recording(systems, memo, parallel_kwargs=None, system_states=None):
+        seen.append((parallel_kwargs or {}).get("parallel"))
+        return evaluate(systems, memo, parallel_kwargs, system_states)
+
+    monkeypatch.setattr(search, "_evaluate_systems", recording)
     s = examples.basic_substrate()
+    results = {}
     with config.override(**pyphi.iit4_2026, progress_bars=False):
-        sequential = pyphi.analyze(s, (1, 0, 0), grains=True, parallel=False)
-        parallel = pyphi.analyze(s, (1, 0, 0), grains=True, parallel=True)
-    assert [c.phi for c in parallel.complexes] == [c.phi for c in sequential.complexes]
+        for parallel in (False, True):
+            seen.clear()
+            results[parallel] = pyphi.analyze(
+                s, (1, 0, 0), grains=True, parallel=parallel
+            )
+            assert seen
+            assert set(seen) == {parallel}
+    assert [c.phi for c in results[True].complexes] == [
+        c.phi for c in results[False].complexes
+    ]
 
 
 def test_optimize_goal_replaces_direction():

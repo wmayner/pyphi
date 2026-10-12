@@ -75,7 +75,7 @@ class IITConfig:
     φₛ = min(φ_c, φ_e), without it. IIT 3.0 does not read this option."""
     specification_measure: str = "GENERALIZED_INTRINSIC_DIFFERENCE"
     """The measure that selects the specified state, the purview or system
-    state with maximal intrinsic information, under IIT 4.0:
+    state with maximal intrinsic specification, under IIT 4.0:
     ``"GENERALIZED_INTRINSIC_DIFFERENCE"`` (default),
     ``"INTRINSIC_INFORMATION"``, or ``"INTRINSIC_SPECIFICATION"``. IIT 3.0
     does not read this option."""
