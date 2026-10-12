@@ -120,10 +120,9 @@ class Analysis(Displayable, Serializable):
     def _system_rows(self) -> tuple[Row, ...]:
         from pyphi.models.partitions import concise_partition
 
-        rows = [
-            Row("Units", self.sia._system_label()),
-            Row("Current state", self.sia.current_state),
-        ]
+        rows = [Row("Units", self.sia._system_label())]
+        if self.sia.current_state is not None:
+            rows.append(Row("Current state", self.sia.current_state))
         state = getattr(self.sia, "system_state", None)
         if state is not None:
             if state.cause is not None:
@@ -131,6 +130,11 @@ class Analysis(Displayable, Serializable):
             if state.effect is not None:
                 rows.append(Row("Specified effect state", state.effect.state))
         rows.append(Row("MIP", concise_partition(self.sia.partition)))
+        # A null result records why φₛ is zero without evaluating partitions.
+        rows.extend(
+            Row(f"Why {self._phi_label} = 0", reason.description)
+            for reason in self.sia.reasons or ()
+        )
         # ii(s) enters φₛ only where the intrinsic-information requirement
         # applies (Mayner et al. 2026, Eq. 23); IIT 4.0 as published in 2023
         # does not use it.

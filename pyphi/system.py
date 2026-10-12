@@ -101,10 +101,19 @@ class System(Displayable, ToPandasMixin, Serializable):
 
     def __post_init__(self, subset: NodeIndices | None) -> None:
         substrate = self.substrate
-        # Coerce label-states to integer indices before length/value validation.
-        coerced = _coerce_state_to_indices(tuple(self.state), substrate.state_space)
+        if not isinstance(substrate, Substrate):
+            hint = (
+                "to analyze a System, pass its parts: pyphi.analyze("
+                "system.substrate, system.state, subset=system.node_indices)"
+                if isinstance(substrate, System)
+                else "build one with pyphi.Substrate(tpm, cm=cm)"
+            )
+            raise TypeError(
+                f"expected a Substrate, got {type(substrate).__name__}; {hint}"
+            )
+        # Coerce label-states to integer indices before value validation.
+        coerced = _coerce_state_to_indices(self.state, substrate.state_space)
         object.__setattr__(self, "state", coerced)
-        validate.state_length(self.state, substrate.size)
         validate.node_states(self.state, substrate.factored_tpm.alphabet_sizes)
         if subset is None:
             object.__setattr__(self, "node_indices", tuple(range(substrate.size)))
@@ -160,9 +169,8 @@ class System(Displayable, ToPandasMixin, Serializable):
             )
         if self.background_state is not None:
             coerced_bg = _coerce_state_to_indices(
-                tuple(self.background_state), substrate.state_space
+                self.background_state, substrate.state_space
             )
-            validate.state_length(coerced_bg, substrate.size)
             validate.node_states(coerced_bg, substrate.factored_tpm.alphabet_sizes)
             object.__setattr__(self, "background_state", coerced_bg)
         from pyphi.conf import config as _config

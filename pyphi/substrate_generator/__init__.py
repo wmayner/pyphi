@@ -114,6 +114,14 @@ def build_tpm(
                 "Number of unit functions must match number of nodes in weight matrix"
             )
 
+    unknown = sorted(
+        {f for f in unit_functions_list if isinstance(f, str)} - UNIT_FUNCTIONS.keys()
+    )
+    if unknown:
+        raise ValueError(
+            f"unknown unit function(s) {unknown}; the names are "
+            f"{sorted(UNIT_FUNCTIONS)}, or pass a callable"
+        )
     tpm = np.zeros([2] * N + [N])
     for state in all_states(N):
         for element, func in enumerate(unit_functions_list):

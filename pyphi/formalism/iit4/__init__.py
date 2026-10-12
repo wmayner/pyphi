@@ -512,7 +512,7 @@ class SystemIrreducibilityAnalysis(
                 mip_rows.append(Row("Effectively tied", self.effectively_tied))
         sections.append(Section(label="MIP", rows=tuple(mip_rows), body=mip_body))
         if self.reasons:
-            reasons = ", ".join(getattr(r, "name", str(r)) for r in self.reasons)
+            reasons = ", ".join(getattr(r, "description", str(r)) for r in self.reasons)
             sections.append(Section(label="Reasons", rows=(Row("", reasons),)))
         if verbosity >= PROVENANCE and self.provenance is not None:
             from pyphi.display.provenance import provenance_section
@@ -1012,6 +1012,7 @@ def sia(
     def _null_sia(**kwargs):
         return NullSystemIrreducibilityAnalysis(
             system_state=system_state,
+            current_state=system.proper_state,
             node_indices=system.node_indices,
             node_labels=system.node_labels,
             **kwargs,
@@ -1227,6 +1228,7 @@ def _resolve_pair_sias(
     if information_violation:
         return NullSystemIrreducibilityAnalysis(
             system_state=system_state,
+            current_state=system.proper_state,
             node_indices=system.node_indices,
             node_labels=system.node_labels,
             reasons=[NullResultReason.NONUNIQUE_SYSTEM_STATE],
@@ -1300,6 +1302,7 @@ def sia_stride_search(
     def _null(**kwargs: Any) -> NullSystemIrreducibilityAnalysis:
         return NullSystemIrreducibilityAnalysis(
             system_state=system_state,
+            current_state=system.proper_state,
             node_indices=system.node_indices,
             node_labels=system.node_labels,
             **kwargs,

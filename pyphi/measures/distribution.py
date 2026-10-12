@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import inspect
 import math
+import warnings
 from collections.abc import Callable
 from collections.abc import Iterable
 from contextlib import ContextDecorator
@@ -252,7 +253,11 @@ class OptionalEMD:
     def ot(self) -> Any:
         if self._ot is None:
             try:
-                import ot
+                with warnings.catch_warnings():
+                    # Some POT releases compile with invalid escape sequences
+                    # the first time they are imported.
+                    warnings.simplefilter("ignore", SyntaxWarning)
+                    import ot
 
                 self._ot = ot
             except ModuleNotFoundError as exc:

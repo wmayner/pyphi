@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 from typing import Any
@@ -112,7 +113,13 @@ def connectivity(cm: np.ndarray, factored_tpm: FactoredTPM) -> bool:
 
 
 def node_labels(node_labels: Sequence[str], node_indices: Sequence[int]) -> None:
-    """Validate that there is a label for each node."""
+    """Validate that there is one unique string label for each node."""
+    not_text = [label for label in node_labels if not isinstance(label, str)]
+    if not_text:
+        raise ValueError(
+            f"node labels must be str; got {not_text!r}. An integer refers to "
+            "a unit by its index, so labels are text, such as ('A', 'B')."
+        )
     if len(node_labels) != len(node_indices):
         raise ValueError(f"Labels {node_labels} must label every node {node_indices}.")
 
@@ -176,12 +183,18 @@ def node_states(state: Sequence[int], alphabet_sizes: Sequence[int]) -> None:
 
 
 def state_length(state: Sequence[int], size: int) -> bool:
-    """Check that the state is the given size."""
-    if len(state) != size:
+    """Check that the state is a sequence with one entry per substrate unit."""
+    if isinstance(state, (str, bytes, Mapping)) or not isinstance(state, Iterable):
+        raise TypeError(
+            "a state is a sequence with one entry per unit of the substrate, "
+            f"such as {(1,) + (0,) * (size - 1)}; got {state!r}"
+        )
+    if len(state) != size:  # type: ignore[arg-type]
         raise ValueError(
-            "Invalid state: there must be one entry per "
-            f"node in the substrate; this state has {len(state)} entries, but "
-            f"there are {size} nodes."
+            f"state {tuple(state)} has {len(state)} entries but the substrate "  # type: ignore[arg-type]
+            f"has {size} units; a state has one entry per unit of the "
+            "substrate, including the background units outside the candidate "
+            "system"
         )
     return True
 

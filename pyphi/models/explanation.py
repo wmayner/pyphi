@@ -54,6 +54,25 @@ class NullResultReason(Enum):
         ``"mechanism"``."""
         return _LEVEL_OF[self]
 
+    @property
+    def description(self) -> str:
+        """The reason in plain words, for a result card."""
+        return _DESCRIPTIONS.get(self, self.name.replace("_", " ").lower())
+
+
+_DESCRIPTIONS: dict[NullResultReason, str] = {
+    NullResultReason.NO_SYSTEM: "the system has no units",
+    NullResultReason.NO_STRONG_CONNECTIVITY: "not strongly connected",
+    NullResultReason.NO_WEAK_CONNECTIVITY: "not connected",
+    NullResultReason.MONAD_WITH_NO_SELFLOOP: "a single unit with no self-loop",
+    NullResultReason.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI: (
+        "a single unit, and single_micro_nodes_with_selfloops_have_phi is off"
+    ),
+    NullResultReason.NONUNIQUE_SYSTEM_STATE: (
+        "its tied specified states give different Φ-structures"
+    ),
+}
+
 
 _MECHANISM_REASONS = frozenset(
     {

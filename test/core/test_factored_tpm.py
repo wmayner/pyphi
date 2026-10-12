@@ -55,7 +55,7 @@ def test_factored_tpm_validation_rejects_nonsumming_factor() -> None:
     )
     good = bad.copy()
     good[0, 0, 0] = 0.5
-    with pytest.raises(InvalidTPM, match="sums to 1"):
+    with pytest.raises(InvalidTPM, match="sum to"):
         FactoredTPM(factors=[bad, good])
 
 
@@ -71,7 +71,7 @@ def test_factored_tpm_row_sum_tolerance_is_absolute() -> None:
     good = np.full((2, 2, 2), 0.5)
     bad = good * (1.0 + 1e-6)
     with config.override(precision=13):
-        with pytest.raises(InvalidTPM, match="sums to 1"):
+        with pytest.raises(InvalidTPM, match="sum to"):
             FactoredTPM(factors=[bad, good.copy()])
         # Exactly normalized factors are accepted.
         FactoredTPM(factors=[good.copy(), good.copy()])
@@ -442,8 +442,8 @@ def test_out_of_range_probabilities_rejected():
     from pyphi.exceptions import InvalidTPM
 
     tpm = np.array([[0.1, 0.1], [0.9, 1.1], [1.1, 0.2], [0.1, 0.9]])
-    with pytest.raises(InvalidTPM, match=r"outside \[0, 1\]"):
+    with pytest.raises(InvalidTPM, match=r"not a probability in \[0, 1\]"):
         Substrate(tpm)
     negative = np.array([[-0.2, 0.5], [0.9, 0.5], [0.5, 0.2], [0.1, 0.9]])
-    with pytest.raises(InvalidTPM, match=r"outside \[0, 1\]"):
+    with pytest.raises(InvalidTPM, match=r"not a probability in \[0, 1\]"):
         Substrate(negative)

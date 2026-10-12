@@ -132,16 +132,29 @@ class NodeLabels(Sequence[str]):
         self,
         nodes: Iterable[int | str | np.integer] | None,
     ) -> tuple[int, ...]:
-        """Return the node indices for ``nodes``, which may be given either as
-        integer indices or as node labels.
+        """Return the sorted node indices for ``nodes``, which may be given
+        either as integer indices or as node labels.
+
+        Raises
+        ------
+        TypeError
+            If ``nodes`` is not iterable.
+        ValueError
+            If ``nodes`` mixes labels with indices, names an unknown label or
+            an out-of-range index, or names a unit more than once.
         """
         if nodes is None:
             return self.node_indices
+        if not isinstance(nodes, Iterable):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                "expected a sequence of node indices or labels, such as (0, 1) "
+                f"or ('A', 'B'); got {nodes!r}"
+            )
 
         nodes_list = list(nodes)  # Materialize to allow multiple iteration
         if all(isinstance(node, str) for node in nodes_list):
             indices = self.labels2indices(tuple(nodes_list))  # type: ignore[arg-type]
-        else:
+        elif all(isinstance(node, (int, np.integer)) for node in nodes_list):
             indices = tuple(int(node) for node in nodes_list)
             out_of_range = [i for i in indices if not 0 <= i < len(self.node_indices)]
             if out_of_range:
@@ -149,6 +162,13 @@ class NodeLabels(Sequence[str]):
                     f"node indices {out_of_range} out of range for "
                     f"{len(self.node_indices)} nodes"
                 )
+        else:
+            raise ValueError(
+                f"nodes {nodes_list!r} must be all labels or all indices "
+                "(integers), not a mix"
+            )
+        if len(set(indices)) != len(indices):
+            raise ValueError(f"nodes {nodes_list!r} name a unit more than once")
         return tuple(sorted(set(indices)))
 
     def coerce_to_labels(

@@ -16,6 +16,7 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | --- | --- |
 | `pyphi.Network` | `pyphi.Substrate` |
 | `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` |
+| `network.tpm` (an array) | `substrate.tpm` (a `FactoredTPM`; `np.asarray(substrate.tpm)` is the state-by-node array for binary units) |
 | `pyphi.network_generator` | `pyphi.substrate_generator` |
 | `pyphi.compute.phi(...)` / `pyphi.compute.ces(...)` | `pyphi.analyze(...)` |
 | `from pyphi import new_big_phi` | `from pyphi.formalism import iit4` |
@@ -220,6 +221,9 @@ ces = pyphi.load("ces.json")     # or CauseEffectStructure.load("ces.json")
 The format is inferred from the extension: `.json`, `.mpk` (msgpack), and a
 transparent `.gz` layer for either. This is a **format break with no converter**
 — data written by the old `jsonify` cannot be loaded and must be recomputed.
+A saved 1.x network holds its TPM and connectivity matrix as plain lists, so it
+can be rebuilt from the parsed JSON with
+`pyphi.Substrate(data["tpm"], cm=data["cm"])`.
 
 ## 6. Comparing φ tolerantly
 

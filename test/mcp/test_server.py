@@ -675,6 +675,15 @@ def test_analyze_summary_carries_mip_and_requirement_terms(basic_handle):
     assert "ii(s)" not in out_2023["card"]
 
 
+def test_analyze_says_why_a_system_that_is_not_strongly_connected_has_zero_phi(
+    basic_handle,
+):
+    out = srv.analyze(basic_handle, BASIC_STATE, subset=["A", "B"], compute="sia")
+    assert out["summary"]["null_reason"] == "not strongly connected"
+    assert "not strongly connected" in out["card"]
+    assert "None" not in out["card"]
+
+
 def test_estimate_cost_states_what_the_seconds_cover(basic_handle):
     full = srv.estimate_cost(basic_handle, compute="full")
     sia = srv.estimate_cost(basic_handle, compute="sia")

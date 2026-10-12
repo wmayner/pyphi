@@ -1489,7 +1489,7 @@ class TestACMechanismPartitionScheme:
 
 def test_transition_validates_states_at_construction():
     substrate = examples.actual_causation_substrate()
-    with pytest.raises(ValueError, match="one entry per"):
+    with pytest.raises(ValueError, match="has 3 entries but the substrate has 2"):
         actual.Transition(substrate, (0, 1, 0), (1, 1), (0,), (1,))
     with pytest.raises(ValueError, match="Invalid state"):
         actual.Transition(substrate, (0, 5), (1, 1), (0,), (1,))

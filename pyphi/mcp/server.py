@@ -292,6 +292,9 @@ def _result_summary(result: Any, formalism: str | None = None) -> dict[str, Any]
         from pyphi.models.partitions import concise_partition
 
         summary["mip"] = concise_partition(sia.partition)
+    reasons = getattr(sia, "reasons", None)
+    if reasons:
+        summary["null_reason"] = "; ".join(reason.description for reason in reasons)
     binding = _requirement_binding(sia)
     if binding is not None:
         summary["intrinsic_information"], summary["requirement_binding"] = binding

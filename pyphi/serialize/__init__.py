@@ -39,12 +39,42 @@ def _encoder(fmt: str):
     raise ValueError(f"Unknown format: {fmt!r}")
 
 
+_DECODERS = {"json": msgspec.json.decode, "msgpack": msgspec.msgpack.decode}
+
+
 def _decode(data: bytes, fmt: str) -> _Document:
-    if fmt == "json":
-        return msgspec.json.decode(data, type=_Document)
-    if fmt == "msgpack":
-        return msgspec.msgpack.decode(data, type=_Document)
-    raise ValueError(f"Unknown format: {fmt!r}")
+    if fmt not in _DECODERS:
+        raise ValueError(f"Unknown format: {fmt!r}")
+    try:
+        return _DECODERS[fmt](data, type=_Document)
+    except msgspec.MsgspecError as error:
+        raise ValueError(_unreadable(data, fmt, error)) from error
+
+
+def _unreadable(data: bytes, fmt: str, error: Exception) -> str:
+    """Say why ``data`` is not a document this version of PyPhi can read."""
+    try:
+        content = _DECODERS[fmt](data)
+    except msgspec.MsgspecError:
+        hint = (
+            " If it was saved as msgpack, pass format='msgpack'."
+            if fmt == "json"
+            else ""
+        )
+        return f"the data is not valid {fmt} ({error}).{hint}"
+    if isinstance(content, dict) and {"__class__", "__version__"} & content.keys():
+        return (
+            "this file was written by the jsonify module of PyPhi 1.x "
+            f"(version {content.get('__version__', 'unknown')}), which PyPhi 2 "
+            "cannot read; recompute the result. A saved 1.x network can be "
+            "rebuilt from its JSON as pyphi.Substrate(data['tpm'], cm=data['cm'])."
+        )
+    if not isinstance(content, dict) or "format_version" not in content:
+        return "not a file saved by pyphi.save: it has no format_version."
+    return (
+        f"the file does not match this version's format ({error}); it may have "
+        "been saved by a newer version of PyPhi."
+    )
 
 
 def dumps(obj: Any, *, format: str = "json") -> bytes:
@@ -66,6 +96,12 @@ def loads(data: bytes, *, format: str = "json", node_labels: Any = None) -> Any:
         Replacement label frame. If given, it is used in place of the
         document's stored frame; objects carrying their own per-object
         labels keep them.
+
+    Raises
+    ------
+    ValueError
+        If ``data`` is not a document produced by :func:`dumps` in a format
+        this version reads; the message says what the data appears to be.
     """
     doc = _decode(data, format)
     if doc.format_version > FORMAT_VERSION:
@@ -142,6 +178,12 @@ def load(target: Any, *, format: str | None = None) -> Any:
     Any
         The reconstructed PyPhi domain object.
 
+    Raises
+    ------
+    ValueError
+        If the data is not a document saved by :func:`save`, for example a
+        PyPhi 1.x ``jsonify`` file. The error's notes give the path.
+
     Notes
     -----
     A path ending in ``.gz`` is transparently decompressed.
@@ -153,4 +195,9 @@ def load(target: Any, *, format: str | None = None) -> Any:
             data = f.read()
     else:
         data = target.read()
-    return loads(data, format=fmt)
+    try:
+        return loads(data, format=fmt)
+    except ValueError as error:
+        if isinstance(target, (str, os.PathLike)):
+            error.add_note(f"while loading {os.fspath(target)}")
+        raise

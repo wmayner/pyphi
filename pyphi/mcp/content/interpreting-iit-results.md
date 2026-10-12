@@ -12,6 +12,9 @@ How to read an analysis result and explain it in plain language.
   are the integration on the cause and effect sides; φₛ is the smallest of
   those two and ii(s).
 - `summary.mip` — the minimum partition, the system's weakest link.
+- `summary.null_reason` — present when φₛ is 0 for a structural reason found
+  before any partition was evaluated, in plain words: most often "not
+  strongly connected", which every feed-forward system is.
 - `summary.big_phi` — **Φ**, the total structure integrated information (the sum
   over distinctions and relations). It is a different quantity
   from `system_phi`; do not report one for the other. If you find yourself

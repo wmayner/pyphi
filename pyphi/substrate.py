@@ -33,6 +33,8 @@ from .condensation import iit3_exclusion_cascade
 from .core.tpm import _display
 from .core.tpm.factored import FactoredTPM
 from .core.tpm.factored import StateSpace
+from .core.tpm.factored import first_improbable_entry
+from .core.tpm.factored import probability_tolerance
 from .core.tpm.joint import JointTPM
 from .direction import Direction
 from .display import HIGH
@@ -56,7 +58,7 @@ _PURVIEW_CACHE = ContentCache("substrate.potential_purviews")
 
 
 def _coerce_state_to_indices(
-    state: tuple[Any, ...],
+    state: Sequence[Any],
     state_space: tuple[tuple[Any, ...], ...],
 ) -> tuple[int, ...]:
     """Convert a state tuple to integer indices via ``state_space`` lookup.
@@ -67,7 +69,7 @@ def _coerce_state_to_indices(
 
     Parameters
     ----------
-    state : tuple
+    state : sequence
         The state to coerce — may mix integer indices and labels.
     state_space : tuple[tuple, ...]
         Per-node label tuples from :attr:`Substrate.state_space`.
@@ -79,14 +81,13 @@ def _coerce_state_to_indices(
 
     Raises
     ------
+    TypeError
+        If ``state`` is not a sequence.
     ValueError
         If ``len(state) != len(state_space)`` or any element is neither a
         valid label nor a valid index.
     """
-    if len(state) != len(state_space):
-        raise ValueError(
-            f"state length {len(state)} != state_space length {len(state_space)}"
-        )
+    validate.state_length(state, len(state_space))
     indices: list[int] = []
     for i, (s, labels) in enumerate(zip(state, state_space, strict=True)):
         if s in labels:
@@ -160,10 +161,10 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         (labels_1, ...), ...)``, or a single flat tuple of labels applied
         uniformly to every node. When ``None``, defaults to binary ``(0, 1)``
         per node.
-    alphabet : int, optional
-        Shortcut for a uniform integer alphabet of the given size — equivalent
-        to ``state_space=tuple(range(alphabet))``. Mutually exclusive with
-        ``state_space``.
+    alphabet : int or sequence of int, optional
+        Shortcut for integer state labels. An integer gives every unit that
+        many states, ``state_space=tuple(range(alphabet))``; a sequence gives
+        one size per unit. Mutually exclusive with ``state_space``.
 
     See Also
     --------
@@ -187,7 +188,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         *,
         marginals: Sequence[ArrayLike] | None = None,
         state_space: StateSpace = None,
-        alphabet: int | None = None,
+        alphabet: int | Sequence[int] | None = None,
     ) -> None:
         if tpm is not None and marginals is not None:
             raise ValueError("Pass tpm= or marginals=, not both")
@@ -202,11 +203,20 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
                 "Substrate.from_factored(...), not tpm="
             )
 
-        # Translate alphabet= shortcut to a uniform integer state_space.
+        # Translate the alphabet= shortcut to an integer state_space.
         if alphabet is not None:
-            if alphabet < 2:
-                raise ValueError(f"alphabet must be >= 2; got {alphabet}")
-            state_space = tuple(range(alphabet))  # type: ignore[assignment]
+            per_unit = isinstance(alphabet, Sequence)
+            sizes = alphabet if per_unit else (alphabet,)
+            if not all(isinstance(k, (int, np.integer)) and k >= 2 for k in sizes):
+                raise ValueError(
+                    "alphabet must be an integer >= 2, or one such integer per "
+                    f"unit; got {alphabet!r}"
+                )
+            state_space = (  # type: ignore[assignment]
+                tuple(tuple(range(k)) for k in sizes)
+                if per_unit
+                else tuple(range(alphabet))  # type: ignore[arg-type]
+            )
 
         if marginals is not None:
             self._factored_tpm = FactoredTPM(factors=marginals, state_space=state_space)
@@ -303,16 +313,43 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
                     "with one array per unit of shape (*alphabet_sizes, k_i), "
                     "together with state_space= or alphabet=."
                 )
+            n_units = n_states.bit_length() - 1
+
+            def row_label(row: int) -> str:
+                state = convert.le_index2state(row, n_units)
+                return f"row {row} (input state {state})"
+
+            tol = probability_tolerance()
+            bad = first_improbable_entry(arr, tol)
+            if bad is not None:
+                row, column = bad
+                raise exceptions.InvalidTPM(
+                    f"state-by-state TPM {row_label(row)}: the entry for next "
+                    f"state {convert.le_index2state(column, n_units)} is "
+                    f"{float(arr[bad])}, which is not a probability in [0, 1]"
+                )
+            sums = arr.sum(axis=1)
+            off = np.flatnonzero(np.abs(sums - 1.0) > tol)
+            if off.size:
+                row = int(off[0])
+                raise exceptions.InvalidTPM(
+                    f"state-by-state TPM {row_label(row)} sums to "
+                    f"{float(sums[row]):.6g}, not 1; each row is the distribution "
+                    "of next states given that input state"
+                )
             sbn = convert.state_by_state2state_by_node(arr)
             check_independence = _config.infrastructure.validate_conditional_independence
-            tol = max(10 ** (-_config.numerics.precision), 1e-15)
             if check_independence and not np.allclose(
                 arr - convert.state_by_node2state_by_state(sbn), 0.0, atol=tol, rtol=0
             ):
                 raise exceptions.ConditionallyDependentError(
-                    "TPM is not conditionally independent.\n"
-                    "See the conditional independence example in the "
-                    "documentation for more info."
+                    "the state-by-state TPM is not conditionally independent: "
+                    "the units' next states depend on one another given the "
+                    "input state, so the TPM is not the product of one "
+                    "distribution per unit. This indicates a common cause "
+                    "missing from the substrate; add it as a unit. See "
+                    "https://pyphi.readthedocs.io/en/latest/theory/"
+                    "conditional-independence.html"
                 )
             return sbn.astype(np.float64)
         try:

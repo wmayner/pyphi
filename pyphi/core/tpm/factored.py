@@ -42,6 +42,24 @@ _FACTORED_TPM_DEFAULT_BACKEND: Literal["ndarray", "xarray"] = "ndarray"
 StateSpace = Sequence[Any] | Sequence[Sequence[Any]] | None
 
 
+def probability_tolerance() -> float:
+    """The tolerance within which a TPM entry or row sum counts as valid."""
+    return max(10 ** (-config.numerics.precision), 1e-15)
+
+
+def first_improbable_entry(array: NDArray[Any], tol: float) -> tuple[int, ...] | None:
+    """The index of the first entry of ``array`` that is not a probability.
+
+    An entry is a probability when it is finite and lies in ``[0, 1]`` up to
+    ``tol``. Returns ``None`` when every entry is one.
+    """
+    # NaN propagates through min and max, so this test also rejects NaN.
+    if array.size == 0 or (array.min() >= -tol and array.max() <= 1 + tol):
+        return None
+    valid = (array >= -tol) & (array <= 1 + tol)
+    return tuple(int(k) for k in np.argwhere(~valid)[0])
+
+
 def _own_factor(f: ArrayLike) -> NDArray[np.float64]:
     """Return a read-only float64 array of ``f`` sharing no memory with the
     caller's input.
@@ -267,6 +285,15 @@ class FactoredTPM(Displayable, ToPandasMixin):
                 f"alphabet_sizes={alphabet_sizes} requires explicit-form joint."
             )
 
+        bad = first_improbable_entry(joint_arr, probability_tolerance())
+        if bad is not None:
+            *state, unit = bad
+            row = sum(s << k for k, s in enumerate(state))
+            raise exceptions.InvalidTPM(
+                f"unit {unit} at input state {tuple(state)} (row {row} in "
+                f"state-by-node form): P(unit {unit} = 1) = "
+                f"{float(joint_arr[bad])}, which is not a probability in [0, 1]"
+            )
         factors_list: list[NDArray[np.float64]] = []
         for i in range(n):
             p_on = joint_arr[..., i]
@@ -294,6 +321,30 @@ class FactoredTPM(Displayable, ToPandasMixin):
 
     def to_array(self) -> NDArray[np.float64]:
         return self.to_joint()
+
+    def __array__(self, dtype: Any = None, copy: bool | None = None) -> NDArray[Any]:
+        """The state-by-node array: one row per input state in little-endian
+        order, one column per unit, each entry the probability that the unit
+        is in state 1 next.
+
+        Raises
+        ------
+        TypeError
+            If a unit has more than two states, where one probability per
+            unit does not describe its next state.
+        """
+        if any(size != 2 for size in self.alphabet_sizes):
+            raise TypeError(
+                "a TPM with multi-valued units has no state-by-node array; use "
+                ".to_pandas() for a table of next-state probabilities or "
+                ".to_joint() for the joint array"
+            )
+        on = [
+            np.broadcast_to(self.factor(i)[..., 1], self.alphabet_sizes)
+            for i in range(self.n_nodes)
+        ]
+        array = np.stack(on, axis=-1).reshape((-1, self.n_nodes), order="F")
+        return array.astype(dtype) if dtype is not None else array
 
     def to_joint(self) -> NDArray[np.float64]:
         """Materialize the joint conditional ``P(s_{t+1} | s_t)`` from the factors.
@@ -629,7 +680,7 @@ def _validate(factored: FactoredTPM) -> None:
     nl = factored.node_labels
     if nl is not None and len(nl) != n:
         raise exceptions.InvalidTPM(f"node_labels has {len(nl)} entries; n_nodes={n}")
-    tol = max(10 ** (-config.numerics.precision), 1e-15)
+    tol = probability_tolerance()
     for i in range(n):
         f = factored.factor(i)
         if f.ndim != n + 1:
@@ -649,19 +700,18 @@ def _validate(factored: FactoredTPM) -> None:
                     f"factor {i} input dim {j} has size {dim_size}; "
                     f"expected 1 (non-input) or {a[j]} (input)"
                 )
-        if f.min() < -tol or f.max() > 1.0 + tol:
+        bad = first_improbable_entry(f, tol)
+        if bad is not None:
+            *state, value = bad
             raise exceptions.InvalidTPM(
-                f"factor {i} has probabilities outside [0, 1]: "
-                f"min {f.min()}, max {f.max()}, tolerance {tol}"
+                f"unit {i} at input state {tuple(state)}: P(unit {i} = {value}) = "
+                f"{float(f[bad])}, which is not a probability in [0, 1]"
             )
         sums = f.sum(axis=-1)
         if not np.allclose(sums, 1.0, rtol=0, atol=tol):
-            if sums.ndim == 0:
-                raise exceptions.InvalidTPM(
-                    f"factor {i} sums to 1 violated: got {sums.item()}, tolerance {tol}"
-                )
             worst = np.unravel_index(np.abs(sums - 1.0).argmax(), sums.shape)
             raise exceptions.InvalidTPM(
-                f"factor {i} sums to 1 violated at input state {worst}: "
-                f"got {sums[worst]}, tolerance {tol}"
+                f"unit {i} at input state {tuple(int(k) for k in worst)}: the "
+                f"probabilities of its next states sum to {float(sums[worst]):.6g}, "
+                "not 1"
             )

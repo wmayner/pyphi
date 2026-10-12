@@ -85,12 +85,14 @@ def test_conceptual_info(s):
 def test_sia_empty_system(s_empty):
     assert s_empty.sia() == new_big_phi.NullSystemIrreducibilityAnalysis(
         node_indices=s_empty.node_indices,
+        current_state=s_empty.proper_state,
     )
 
 
 def test_sia_disconnected_substrate(reducible):
     assert reducible.sia() == new_big_phi.NullSystemIrreducibilityAnalysis(
         node_indices=reducible.node_indices,
+        current_state=reducible.proper_state,
     )
 
 

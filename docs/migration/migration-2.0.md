@@ -23,6 +23,7 @@ topic is tagged with who it affects:
 | --- | --- | --- |
 | `pyphi.Network` | `pyphi.Substrate` | [1.x] |
 | `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` | [1.x] |
+| `network.tpm` (an array) | `substrate.tpm` (a `FactoredTPM`; `np.asarray(substrate.tpm)` gives the state-by-node array when every unit is binary) | [1.x] |
 | `pyphi.compute.*` | `pyphi.analyze(...)` | [1.x] |
 | `subsystem.cause_tpm` | `system.cause_marginal` | [both] |
 | `subsystem.effect_tpm` | `system.effect_marginal` | [both] |
@@ -37,6 +38,11 @@ topic is tagged with who it affects:
 | `pyphi.convert.b2l_sbs`, `l2b_sbs` | `be2le_state_by_state`, `le2be_state_by_state` | [1.x] |
 | `pyphi.convert.to_md`, `to_2d` | `to_multidimensional`, `to_2dimensional` | [1.x] |
 | `pyphi.convert.sbn2sbs`, `sbs2sbn` | `state_by_node2state_by_state`, `state_by_state2state_by_node` | [1.x] |
+
+Using a removed name as an attribute, as in `pyphi.Network`, raises an error
+that gives its replacement. Importing it, as in `from pyphi import Network`,
+raises a plain `ImportError` instead, because Python's import statement drops
+that message; look the name up in the table above.
 
 The name `CauseEffectStructure` now means a different object. In 1.x it was
 the list of concepts, which 2.0 calls `Distinctions`; in 2.0 it is the
@@ -282,7 +288,10 @@ serializable result type, including the top-level `Analysis` wrapper — see
 the extension:
 `.json`, `.mpk` (msgpack), and a transparent `.gz` layer for any of them. This
 is a **format break with no standalone converter**: results saved in the old
-`jsonify` format cannot be loaded and must be recomputed.
+`jsonify` format cannot be loaded and must be recomputed. `pyphi.load` tells
+you when a file came from 1.x. A saved 1.x network holds its TPM and
+connectivity matrix as plain lists, so it can be rebuilt from the parsed JSON
+with `pyphi.Substrate(data["tpm"], cm=data["cm"])`.
 
 ## Precision and φ comparison
 

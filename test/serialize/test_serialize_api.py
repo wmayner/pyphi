@@ -16,5 +16,6 @@ def test_unknown_type_tag_raises():
     bad = serialize.dumps(Direction.CAUSE, format="json").replace(
         b'"direction"', b'"nonsense"'
     )
-    with pytest.raises(msgspec.ValidationError):
+    with pytest.raises(ValueError, match="newer version of PyPhi") as raised:
         serialize.loads(bad, format="json")
+    assert isinstance(raised.value.__cause__, msgspec.ValidationError)
