@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from dataclasses import field
 
 from pyphi.labels import NodeLabels
+from pyphi.models.fmt import fmt_nodes
 
 DEFAULT_MAX_ANALYTICAL_RELATIONS = 1000
 """Relations rendered when ``max_relations`` is None and the relation set is
@@ -63,7 +64,7 @@ class EndpointNode:
     distinction_id: int
     direction: str
     purview: tuple[int, ...]
-    purview_state: tuple[int, ...]
+    specified_state: tuple[int, ...] | None
     phi: float
     label: str
 
@@ -179,13 +180,6 @@ def _unit_indices(units) -> tuple[int, ...]:
     return tuple(sorted(getattr(u, "index", u) for u in units))
 
 
-def _state_cased_label(purview, purview_state, node_labels) -> str:
-    """Purview label with case set by state (upper = ON, lower = OFF)."""
-    return "".join(
-        node_labels.set_case_by_state(node_labels.indices2labels(purview), purview_state)
-    )
-
-
 def _endpoints(distinctions, node_labels) -> tuple[EndpointNode, ...]:
     endpoints = []
     for i, d in enumerate(distinctions):
@@ -193,16 +187,23 @@ def _endpoints(distinctions, node_labels) -> tuple[EndpointNode, ...]:
             (("cause", d.cause), ("effect", d.effect))
         ):
             purview = tuple(mice.purview)
-            state = tuple(mice.purview_state)
+            spec = mice.specified_state
+            state = None if spec is None else tuple(spec.state)
             endpoints.append(
                 EndpointNode(
                     id=2 * i + j,
                     distinction_id=i,
                     direction=direction,
                     purview=purview,
-                    purview_state=state,
+                    specified_state=state,
                     phi=float(mice.phi),
-                    label=_state_cased_label(purview, state, node_labels),
+                    # Cased by the specified state, as RIA.purview_label is,
+                    # but under the projection's own node labels.
+                    label=(
+                        fmt_nodes(purview, node_labels=node_labels)
+                        if state is None
+                        else node_labels.label_string(purview, state)
+                    ),
                 )
             )
     return tuple(endpoints)

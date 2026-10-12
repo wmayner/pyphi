@@ -67,7 +67,7 @@ order
 
 cause–effect state
 specified state
-  The cause state and effect state that maximize intrinsic information:
+  The cause state and effect state that maximize intrinsic specification:
   what a mechanism selects over a purview, or a system selects over itself.
   Only distinctions whose specified states are {term}`congruent` with the
   system's cause–effect state belong to its Φ-structure.
@@ -81,15 +81,16 @@ congruent
   {doc}`../theory/distinctions-and-relations`.
 
 intrinsic information
-  For a mechanism or a system: how selectively and informatively it picks
-  out its specified state. The *system's* intrinsic information ii(s) is the smaller of its {term}`intrinsic specification`
-  and {term}`intrinsic differentiation` over both directions.
+  The system's intrinsic information ii(s): the smaller of its
+  {term}`intrinsic specification` and {term}`intrinsic differentiation`,
+  taken over both directions (Mayner et al. 2026, Eq. 13).
   {doc}`../theory/intrinsic-information`.
 
 intrinsic specification
-  The selectivity times informativeness of the specified state (Mayner et
-  al. 2026, Eqs. 7 and 9); Albantakis et al. (2023) call the same quantity
-  intrinsic information.
+  The selectivity times informativeness of a state (Mayner et al. 2026,
+  Eqs. 7 and 9). The {term}`specified state` is the one that maximizes it
+  (Eq. 12). Albantakis et al. (2023) call the same quantity intrinsic
+  information.
   {doc}`../theory/intrinsic-information`.
 
 intrinsic differentiation

@@ -34,7 +34,7 @@ def test_ii_is_min_over_state_level_terms(fig1a_sia_2026):
     idiff = fig1a_sia_2026.intrinsic_differentiation
     expected = min(
         min(
-            positive_part(float(state[direction].intrinsic_information)),
+            positive_part(float(state[direction].intrinsic_specification)),
             positive_part(float(idiff[direction])),
         )
         for direction in idiff
@@ -88,23 +88,13 @@ def test_to_pandas_includes_ii_and_fraction(fig1a_sia_2026):
     )
 
 
-def test_state_specification_intrinsic_specification_is_the_2023_intrinsic_information(
-    fig1a_sia_2026,
-):
-    """Mayner et al. (2026) rename the 2023 per-state intrinsic information
-    (Albantakis et al. 2023 Eqs. 5/7) to intrinsic specification (2026 Eqs. 7/9)."""
-    for direction in Direction.both():
-        spec = fig1a_sia_2026.system_state[direction]
-        assert float(spec.intrinsic_specification) == float(spec.intrinsic_information)
-
-
 def test_sia_intrinsic_specification_is_per_direction(fig1a_sia_2026):
     sia = fig1a_sia_2026
     spec = sia.intrinsic_specification
     assert set(spec) == set(Direction.both())
     for direction in Direction.both():
         assert spec[direction] == float(
-            sia.system_state[direction].intrinsic_information
+            sia.system_state[direction].intrinsic_specification
         )
     # Shape-parallel to the differentiation dict, and ii(s) is their joint minimum.
     assert set(sia.intrinsic_differentiation) == set(spec)

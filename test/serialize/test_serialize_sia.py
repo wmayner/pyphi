@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -161,8 +162,8 @@ def test_iit4_sia_margins_round_trip(fmt):
     assert float(restored.partition_margin) == pytest.approx(float(sia.partition_margin))
     spec = restored.system_state.cause
     assert spec.runner_up_state == sia.system_state.cause.runner_up_state
-    assert float(spec.runner_up_intrinsic_information) == pytest.approx(
-        float(sia.system_state.cause.runner_up_intrinsic_information)
+    assert float(spec.runner_up_intrinsic_specification) == pytest.approx(
+        float(sia.system_state.cause.runner_up_intrinsic_specification)
     )
     assert restored.effectively_tied == sia.effectively_tied
 
@@ -185,7 +186,7 @@ def test_iit4_sia_loads_without_margin_fields():
             for key in (
                 "partition_margin",
                 "runner_up_state",
-                "runner_up_intrinsic_information",
+                "runner_up_intrinsic_specification",
             ):
                 obj.pop(key, None)
             for value in obj.values():
@@ -197,7 +198,7 @@ def test_iit4_sia_loads_without_margin_fields():
     strip(data)
     restored = serialize.loads(json.dumps(data).encode(), format="json")
     assert restored.partition_margin is None
-    assert restored.system_state.cause.runner_up_intrinsic_information is None
+    assert restored.system_state.cause.runner_up_intrinsic_specification is None
     assert restored.system_state.cause.state_margin is None
     assert not restored.effectively_tied
     # All pre-existing fields are untouched by the additions.
@@ -272,3 +273,62 @@ def test_iit3_sia_loads_without_new_fields():
     # Nothing stored: the constructor still snapshots load-time context.
     assert restored.config is not None
     assert restored.provenance is not None
+
+
+RC3_FIXTURE = (
+    Path(__file__).parents[1] / "data" / "serialize" / "rc3_fig1a_ab_analysis.json"
+)
+
+
+def test_rc3_saved_state_specification_still_loads(tmp_path):
+    """An analysis saved by 2.0.0rc3, whose state specifications carry
+    ``intrinsic_information`` / ``runner_up_intrinsic_information`` and whose
+    distinctions carry ``purview_state``, loads under the current names and
+    saves under them."""
+    import pyphi
+    from pyphi import examples
+
+    old = RC3_FIXTURE.read_text()
+    assert '"runner_up_intrinsic_information"' in old
+    assert '"purview_state"' in old
+
+    loaded = serialize.load(RC3_FIXTURE)
+    with pyphi.config.override(**pyphi.iit4_2026):
+        fresh = pyphi.analyze(
+            examples.iit4_2023_fig1a_substrate(), (0, 1, 1), subset=(0, 1)
+        )
+
+    assert loaded.phi == pytest.approx(fresh.phi)
+    assert loaded.big_phi == pytest.approx(fresh.big_phi)
+    for direction in Direction.both():
+        spec = loaded.sia.system_state[direction]
+        expected = fresh.sia.system_state[direction]
+        assert spec.intrinsic_specification == pytest.approx(
+            expected.intrinsic_specification
+        )
+        assert spec.runner_up_intrinsic_specification == pytest.approx(
+            expected.runner_up_intrinsic_specification
+        )
+    assert loaded.sia.system_state.cause.intrinsic_specification == pytest.approx(
+        0.843228, abs=1e-6
+    )
+    for old_d, new_d in zip(
+        loaded.ces.distinctions, fresh.ces.distinctions, strict=True
+    ):
+        for direction in Direction.both():
+            old_mice, new_mice = old_d.mice(direction), new_d.mice(direction)
+            assert old_mice.current_state == new_mice.current_state
+            assert old_mice.specified_state.state == new_mice.specified_state.state
+            assert old_mice.specified_state.intrinsic_specification == pytest.approx(
+                new_mice.specified_state.intrinsic_specification
+            )
+        assert old_d.cause_purview_label == new_d.cause_purview_label
+        assert old_d.effect_purview_label == new_d.effect_purview_label
+
+    resaved = tmp_path / "resaved.json"
+    serialize.save(loaded, resaved)
+    text = resaved.read_text()
+    assert '"intrinsic_information"' not in text
+    assert '"runner_up_intrinsic_information"' not in text
+    assert '"purview_state"' not in text
+    assert '"intrinsic_specification"' in text

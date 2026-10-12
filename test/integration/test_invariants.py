@@ -380,11 +380,11 @@ class TestPermutationSymmetry:
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
         ss_ax = new_big_phi.system_intrinsic_information(sub_ax, **_spec_kwargs())
         ss_xa = new_big_phi.system_intrinsic_information(sub_xa, **_spec_kwargs())
-        assert float(ss_ax.cause.intrinsic_information) == pytest.approx(
-            float(ss_xa.cause.intrinsic_information)
+        assert float(ss_ax.cause.intrinsic_specification) == pytest.approx(
+            float(ss_xa.cause.intrinsic_specification)
         )
-        assert float(ss_ax.effect.intrinsic_information) == pytest.approx(
-            float(ss_xa.effect.intrinsic_information)
+        assert float(ss_ax.effect.intrinsic_specification) == pytest.approx(
+            float(ss_xa.effect.intrinsic_specification)
         )
 
     def test_sia_phi_symmetric(self):

@@ -1327,8 +1327,8 @@ class TestCertifiedGateSoundnessGuard:
             system = System(substrate, (0, 1))
             sia = system.sia()
             ii_min = min(
-                float(sia.system_state.cause.intrinsic_information),
-                float(sia.system_state.effect.intrinsic_information),
+                float(sia.system_state.cause.intrinsic_specification),
+                float(sia.system_state.effect.intrinsic_specification),
             )
             phi = float(sia.phi)
             assert phi > ii_min

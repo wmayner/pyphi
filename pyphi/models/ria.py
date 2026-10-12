@@ -67,7 +67,7 @@ _ria_dict_attrs = [
     "mechanism_state",
     "purview",
     "purview_label",
-    "purview_state",
+    "current_state",
     "partition",
     "repertoire",
     "partitioned_repertoire",
@@ -118,7 +118,7 @@ class RepertoireIrreducibilityAnalysis(
     _purview: tuple[int, ...]
     _partition: JointPartition
     _mechanism_state: tuple[int, ...] | None
-    _purview_state: tuple[int, ...] | None
+    _current_state: tuple[int, ...] | None
     _repertoire: NDArray[np.float64] | None
     _partitioned_repertoire: NDArray[np.float64] | None
     _specified_state: StateSpecification | None
@@ -142,7 +142,7 @@ class RepertoireIrreducibilityAnalysis(
         partitioned_repertoire: ArrayLike | None,
         specified_state: StateSpecification | None = None,
         mechanism_state: tuple[int, ...] | None = None,
-        purview_state: tuple[int, ...] | None = None,
+        current_state: tuple[int, ...] | None = None,
         node_labels: NodeLabels | None = None,
         selectivity: float | None = None,
         reasons: list[NullResultReason] | None = None,
@@ -170,7 +170,7 @@ class RepertoireIrreducibilityAnalysis(
         self._purview = purview
         self._partition = partition
         self._mechanism_state = mechanism_state
-        self._purview_state = purview_state
+        self._current_state = current_state
 
         def _repertoire(repertoire: ArrayLike | None) -> NDArray[np.float64] | None:
             if repertoire is None:
@@ -271,20 +271,20 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def purview_label(self):
-        """tuple[str]: The labels of the purview nodes."""
+        """str: The purview node labels, cased by the specified state (see
+        :meth:`pyphi.labels.NodeLabels.label_string`). Uncased when the
+        analysis specifies no state: null analyses, and IIT 3.0, which has
+        no specified states."""
         assert self.node_labels is not None
-        if self.purview_state is None:
-            # Null analyses specify no purview state; leave the labels uncased.
+        if self.specified_state is None:
             return fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
-        return self.node_labels.label_string(
-            self.purview,
-            self.purview_state,  # type: ignore[arg-type]
-        )
+        return self.node_labels.label_string(self.purview, self.specified_state.state)
 
     @property
-    def purview_state(self):
-        """tuple[int]: The current state of the purview."""
-        return self._purview_state
+    def current_state(self):
+        """tuple[int]: The current state of the purview units. The state the
+        mechanism specifies over them is ``specified_state.state``."""
+        return self._current_state
 
     @property
     def partition(self):
@@ -379,7 +379,7 @@ class RepertoireIrreducibilityAnalysis(
             findings.append(
                 Finding(
                     kind="state_margin",
-                    label="Specified-state margin (ii)",
+                    label="Specified-state margin (i_spec)",
                     value=self.state_margin,
                     tone=tone_of(self.direction),
                 )
@@ -554,7 +554,7 @@ class RepertoireIrreducibilityAnalysis(
         if self.specified_state is not None:
             ss = self.specified_state
             summary.append(Row("Specified state", ss.state))
-            summary.append(Row("Intrinsic information", ss.intrinsic_information))
+            summary.append(Row("Intrinsic specification", ss.intrinsic_specification))
             if verbosity >= FULL and ss.state_margin is not None:
                 summary.append(Row("State margin", ss.state_margin))
         if self.selectivity is not None:
@@ -636,8 +636,8 @@ class RepertoireIrreducibilityAnalysis(
             "mechanism_state": (
                 None if self.mechanism_state is None else tuple(self.mechanism_state)
             ),
-            "purview_state": (
-                None if self.purview_state is None else tuple(self.purview_state)
+            "current_state": (
+                None if self.current_state is None else tuple(self.current_state)
             ),
             "specified_state": self.specified_state,
             "partition_margin": (

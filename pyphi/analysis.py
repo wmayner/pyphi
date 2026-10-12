@@ -136,8 +136,11 @@ class Analysis(Displayable, Serializable):
             if state.effect is not None:
                 rows.append(Row("Specified effect state", state.effect.state))
         rows.append(Row("MIP", concise_partition(self.sia.partition)))
+        # ii(s) enters φₛ only where the intrinsic-information requirement
+        # applies (Mayner et al. 2026, Eq. 23); IIT 4.0 as published in 2023
+        # does not use it.
         ii = getattr(self.sia, "intrinsic_information", None)
-        if ii is not None:
+        if ii is not None and self.sia._applies_requirement():
             rows.append(Row("ii(s)", ii))
             findings = {f.kind: f for f in self.sia.explain().findings}
             binding = findings.get("requirement_binding")

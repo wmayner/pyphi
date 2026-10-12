@@ -29,7 +29,7 @@ def make_labeled_ria(node_labels: NodeLabels | None = LABELS, phi=0.3):
         repertoire=np.array([0.4, 0.6]),
         partitioned_repertoire=np.array([0.5, 0.5]),
         mechanism_state=(1,),
-        purview_state=(0,),
+        current_state=(0,),
         node_labels=node_labels,
     )
 

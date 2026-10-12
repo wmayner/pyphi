@@ -73,8 +73,11 @@ fig1a = pyphi.examples.iit4_2023_fig1a_substrate()
 ```
 
 The quantity the 2023 paper calls "intrinsic information" is the one PyPhi
-calls intrinsic specification. A result computed under the 2023 version uses
-the paper's name for it on its analysis card.
+calls intrinsic specification, under every version:
+`sia.intrinsic_specification`, and the "Intrinsic specification" row of the
+result cards. PyPhi keeps the name intrinsic information for ii(s), which the
+2023 version does not use, so the analysis card of a 2023 result has no ii(s)
+row.
 
 ### IIT 3.0
 

@@ -280,7 +280,7 @@ def antipodal_projection():
             distinction_id=i,
             direction=direction,
             purview=(i,),
-            purview_state=(0,),
+            specified_state=(0,),
             phi=1.0,
             label="abcd"[i],
         )

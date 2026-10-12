@@ -60,7 +60,8 @@ Tononi (2026) to the code that implements them, using the worked example (`analy
 | $U$ | substrate (units and their interactions) | {class}`~pyphi.substrate.Substrate`, e.g. {func}`~pyphi.examples.iit4_2023_fig1a_substrate` |
 | $\mathcal{T}_U$ | transition probability matrix (Eq. 1) | `substrate.tpm`, {attr}`substrate.factored_tpm <pyphi.substrate.Substrate.factored_tpm>` |
 | $S$ | candidate system in a state | {class}`~pyphi.system.System`; analyzed via {func}`pyphi.analyze` |
-| $\mathit{ii}$ | intrinsic information (maximal cause–effect state) | `analysis.sia.system_state` (per-direction `intrinsic_information`) |
+| $i_{\mathrm{spec}}$ | intrinsic specification, maximized by the specified cause–effect state (2026, Eqs. 7, 9, 12) | `analysis.sia.intrinsic_specification` (per direction); the states are `analysis.sia.system_state` |
+| $\mathit{ii}(s)$ | intrinsic information, the minimum of intrinsic differentiation and intrinsic specification (2026, Eq. 13) | `analysis.sia.intrinsic_information` |
 | $\varphi_c,\ \varphi_e$ | cause- and effect-side integrated information | `analysis.sia.cause.phi`, `analysis.sia.effect.phi` |
 | MIP | minimum partition | `analysis.sia.partition` |
 | $\varphi_s$ | system integrated information, $\min(\varphi_c, \varphi_e, \mathit{ii}(s))$ (see {doc}`intrinsic-information`) | `analysis.phi` (`analysis.sia.phi`) |

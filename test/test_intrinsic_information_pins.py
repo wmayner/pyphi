@@ -61,10 +61,10 @@ def test_tolerance_tied_winner_precedes_raw_argmax():
         specification_measure=_crafted_measure(dist),  # pyright: ignore[reportArgumentType]
     )
     assert spec.state == (1, 0)
-    assert spec.intrinsic_information == 1.0 - 1e-15
+    assert spec.intrinsic_specification == 1.0 - 1e-15
     assert [t.state for t in spec.ties] == [(1, 0), (0, 1)]
     assert spec.runner_up_state == (0, 1)
-    assert spec.runner_up_intrinsic_information == 1.0
+    assert spec.runner_up_intrinsic_specification == 1.0
 
 
 def test_exact_ties_keep_enumeration_order():
@@ -83,7 +83,7 @@ def test_exact_ties_keep_enumeration_order():
     assert spec.state == (1, 0)
     assert [t.state for t in spec.ties] == [(1, 0), (0, 1)]
     assert spec.runner_up_state == (0, 1)
-    assert spec.runner_up_intrinsic_information == 1.0
+    assert spec.runner_up_intrinsic_specification == 1.0
 
 
 def test_no_ties_yields_singleton_family():
@@ -102,7 +102,7 @@ def test_no_ties_yields_singleton_family():
     assert spec.state == (0, 1)
     assert [t.state for t in spec.ties] == [(0, 1)]
     assert spec.runner_up_state == (1, 1)
-    assert spec.runner_up_intrinsic_information == 0.3
+    assert spec.runner_up_intrinsic_specification == 0.3
 
 
 def _reference(cs, direction, mechanism, purview, measure):
@@ -143,12 +143,12 @@ def test_matches_reference_on_real_measure(direction, mechanism, purview):
     winner, tied, runner_up = _reference(system, direction, mechanism, purview, measure)
     assert spec.state == winner
     assert [t.state for t in spec.ties] == [s for s, _ in tied]
-    assert [t.intrinsic_information for t in spec.ties] == [v for _, v in tied]
+    assert [t.intrinsic_specification for t in spec.ties] == [v for _, v in tied]
     if runner_up is None:
         assert spec.runner_up_state is None
     else:
         assert spec.runner_up_state == runner_up[0]
-        assert spec.runner_up_intrinsic_information == runner_up[1]
+        assert spec.runner_up_intrinsic_specification == runner_up[1]
 
 
 def test_uniform_system_ties_every_state():

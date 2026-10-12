@@ -153,7 +153,8 @@ distinction ties below.
 ## System-state ties: the postulate ladder
 
 The specified cause and effect states of a *system* are selected by maximal
-intrinsic information (Eq. 12), and symmetric substrates routinely tie. These
+intrinsic specification (Mayner et al. 2026, Eq. 12), and symmetric
+substrates routinely tie. These
 ties are not resolved by a configurable cascade: they follow the postulate
 ladder of the S1 tie-resolution supplement (Albantakis et al. 2023, S1),
 applied to $\varphi_s$ including its intrinsic-information term.
@@ -254,7 +255,7 @@ in the substrate.
 
 At the system level, the SIA reports the margin of the system-partition
 selection (in normalized $\varphi$) and of the specified cause and effect
-states (in intrinsic information), along with which selections are
+states (in intrinsic specification), along with which selections are
 effectively tied at the configured `precision`:
 
 ```{code-cell} python

@@ -106,15 +106,6 @@ def test_projection_inclusion_accessor(xor_projection):
         proj.inclusion("bogus")
 
 
-def test_state_cased_label():
-    from pyphi.labels import NodeLabels
-    from pyphi.visualize.projection import _state_cased_label
-
-    nl = NodeLabels(("A", "B", "C"), (0, 1, 2))
-    assert _state_cased_label((0, 2), (1, 0), nl) == "Ac"
-    assert _state_cased_label((0, 1, 2), (0, 0, 0), nl) == "abc"
-
-
 def test_project_xor_endpoints_exact(xor_projection):
     eps = xor_projection.endpoints
     assert len(eps) == 8
@@ -124,7 +115,7 @@ def test_project_xor_endpoints_exact(xor_projection):
     assert [e.distinction_id for e in eps] == [0, 0, 1, 1, 2, 2, 3, 3]
     # d0 = ab: cause over the whole substrate, effect on c.
     assert eps[0].purview == (0, 1, 2)
-    assert eps[0].purview_state == (0, 0, 0)
+    assert eps[0].specified_state == (0, 0, 0)
     assert eps[0].phi == pytest.approx(0.5)
     assert eps[0].label == "abc"
     assert eps[1].purview == (2,)

@@ -36,7 +36,14 @@ IIT 4.0 is stated in two papers, cited together:
   weights are in general neither uniform nor deterministic. This is the
   `CAUSAL_MARGINALIZATION` background scheme.
 
-**Intrinsic information (informativeness × selectivity)**
+**Intrinsic specification (informativeness × selectivity)**
+
+The 2023 paper calls this per-direction quantity intrinsic information (ii).
+Mayner et al. (2026) rename it intrinsic specification and keep intrinsic
+information for ii(s), its minimum with the intrinsic differentiation. PyPhi
+uses the 2026 names under every version: `intrinsic_specification` on a
+specified state, `sia.intrinsic_information` for ii(s).
+
 - Eq. 5 — intrinsic effect information: `ii_e(s, s̄) = p_e(s̄ | s) · log(p_e(s̄ | s) / p_e(s̄))`.
 - Eq. 6 — the unconstrained (chance) effect probability `p_e(s̄)`.
 - Eq. 7 — intrinsic cause information `ii_c(s, s̄)` (uses a backward,
@@ -44,8 +51,9 @@ IIT 4.0 is stated in two papers, cited together:
 - Eqs. 8–9 — the unconstrained cause probability and the Bayes inversion.
 - Eqs. 10–11 — informativeness is the log term; a system has cause–effect power
   when it raises a state's probability above chance.
-- Eqs. 12–13 — the **maximal cause–effect state** is `argmax` of ii over
-  candidate states, and the system's intrinsic information is ii at that state.
+- Eqs. 12–13 — the **maximal cause–effect state** is the `argmax` of this
+  quantity over candidate states, and its value at that state is what PyPhi
+  reports as the intrinsic specification.
 
 **Integration: φₛ over the minimum partition**
 - Eqs. 14–16 — **directional system partitions** Θ(S): each part has its

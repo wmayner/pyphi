@@ -31,11 +31,12 @@ analysis = pyphi.analyze(substrate, (0, 1, 1), subset=(0, 1))
 By the **information** postulate, a system must be *specific*: in its current
 state it selects a particular cause–effect state — the past it constrains and the
 future it points to. Among the candidates, IIT selects the one with maximal
-**intrinsic information** $\mathit{ii}$, which is the product of two competing
-quantities (Albantakis et al., 2023, Fig 1C): *informativeness*, how much the
-state deviates from chance, and *selectivity*, how concentrated that cause–effect
-power is on a specific state. Their product is what the system's cause–effect
-power is *about*.
+**intrinsic specification** $i_{\mathrm{spec}}$ (Mayner, Marshall & Tononi,
+2026, Eq. 12). Intrinsic specification is the product of two competing
+quantities (Eqs. 7 and 9): *informativeness*, how much the state deviates from
+chance, and *selectivity*, how concentrated that cause–effect power is on a
+specific state. The state it selects is what the system's cause–effect power is
+*about*.
 
 ## Integration: irreducibility over the minimum partition
 
@@ -43,16 +44,18 @@ By the **integration** postulate, having cause–effect power and selecting a st
 is not enough: the system must specify its cause–effect state *irreducibly*,
 as one set of units rather than as independent parts. Irreducibility is tested by
 **partitioning** the system and measuring how much the partition reduces the
-intrinsic information. The reduction is evaluated over the partition that makes
+system's cause–effect power over its specified state. The reduction is evaluated over the partition that makes
 the *least* difference — the **minimum partition** (MIP) — so that the
 result reflects the system's weakest link (Albantakis et al., 2023).
 
 Integrated information is computed separately on the cause side and the effect
 side, $\varphi_c$ and $\varphi_e$, and a system is only as integrated as its
 weaker direction. A system must also provide itself with alternatives and
-specify one of them, which its *intrinsic information* $\mathit{ii}(s)$
-measures. The system integrated information is the smallest of the three
-(Mayner, Marshall & Tononi, 2026, Eq. 23):
+specify one of them. Its *intrinsic information* $\mathit{ii}(s)$ measures
+both: in each direction it is the smaller of the intrinsic differentiation and
+the intrinsic specification, and $\mathit{ii}(s)$ is the smaller of the two
+directions (Mayner, Marshall & Tononi, 2026, Eq. 13). The system integrated
+information is the smallest of the three terms (Eq. 23):
 
 $$ \varphi_s = \min(\varphi_c, \varphi_e, \mathit{ii}(s)). $$
 
@@ -82,9 +85,9 @@ systems have $\varphi_s = 0$) have {doc}`their own page <intrinsic-information>`
 ## Selection margins
 
 The definitions above make two kinds of discrete choice. The specified
-cause and effect states are chosen by *maximizing* intrinsic information
-over candidate states — the principle of maximal existence (Albantakis et
-al., 2023, Eq. 12). The MIP is chosen by *minimizing* integrated
+cause and effect states are chosen by *maximizing* intrinsic specification
+over candidate states — the principle of maximal existence (Mayner, Marshall
+& Tononi, 2026, Eq. 12). The MIP is chosen by *minimizing* integrated
 information over partitions; the minimization compares partitions on a
 **normalized** value (each partition's $\varphi_s$ divided by the maximum
 number of connections it could sever), while the reported $\varphi_s$ is
@@ -96,7 +99,7 @@ identified, is an absolute one.
 Each such choice has a **margin**: the gap between the winner and the best
 competitor, in the units of the comparison. PyPhi reports these on the
 analysis — `partition_margin` (in normalized $\varphi$), the per-direction
-specified-state margins (in intrinsic information), and {attr}`~pyphi.formalism.iit4.SystemIrreducibilityAnalysis.tied_selections`
+specified-state margins (in intrinsic specification), and {attr}`~pyphi.formalism.iit4.SystemIrreducibilityAnalysis.tied_selections`
 listing any selection whose margin is within the configured numerical
 precision of zero.
 

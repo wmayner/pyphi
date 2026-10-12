@@ -30,7 +30,6 @@ from pyphi.measures.distribution import DistanceResult
 from pyphi.registry import Registry
 
 from . import cmp
-from . import fmt
 from .pandas import ToDictMixin
 from .pandas import ToPandasMixin
 
@@ -77,8 +76,8 @@ class UnitState(Displayable, ToPandasMixin):
 
 @dataclass(repr=False)
 class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
-    """The state of a purview that a mechanism maximally specifies in one
-    direction, together with the intrinsic information of that specification.
+    """The state of a purview that a mechanism or system maximally specifies
+    in one direction, together with its intrinsic specification.
 
     Attributes
     ----------
@@ -89,11 +88,15 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         The purview node indices whose state is specified.
     state : tuple[int, ...]
         The specified purview state: the state that maximizes the intrinsic
-        information over ``purview``.
-    intrinsic_information : float or DistanceResult
-        The intrinsic information of the specified state.
+        specification over ``purview``.
     intrinsic_specification : float or DistanceResult
-        The same value under the name Mayner et al. (2026) give it.
+        The intrinsic specification of the specified state: the product of
+        its selectivity and informativeness (Mayner et al. 2026, Eqs. 7 and
+        9). Albantakis et al. (2023, Eqs. 5 and 7) call the same quantity
+        intrinsic information; Mayner et al. (2026, Eq. 13) reserve that
+        name for the minimum of intrinsic specification and intrinsic
+        differentiation, which a system analysis exposes as
+        ``sia.intrinsic_information``.
     repertoire : ArrayLike
         The constrained cause or effect repertoire over ``purview``.
     unconstrained_repertoire : ArrayLike
@@ -101,33 +104,33 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         maximum uncertainty about the mechanism).
     runner_up_state : tuple[int, ...] or None
         The best competing purview state, if any.
-    runner_up_intrinsic_information : float or DistanceResult or None
-        The intrinsic information of ``runner_up_state``; ``None`` when there
-        was no competing state.
+    runner_up_intrinsic_specification : float or DistanceResult or None
+        The intrinsic specification of ``runner_up_state``; ``None`` when
+        there was no competing state.
     """
 
     direction: Direction
     purview: tuple[int, ...]
     state: tuple[int, ...]
-    intrinsic_information: float | DistanceResult
+    intrinsic_specification: float | DistanceResult
     repertoire: ArrayLike
     unconstrained_repertoire: ArrayLike
     _ties: tuple[StateSpecification, ...] = ()
     runner_up_state: tuple[int, ...] | None = None
-    runner_up_intrinsic_information: float | DistanceResult | None = None
+    runner_up_intrinsic_specification: float | DistanceResult | None = None
     # Display-only node labels, stamped by the substrate/system layer (the
     # kernel that builds this value stays label-free). Excluded from equality,
     # hashing, to_dict, and serialization by the leading-underscore convention.
     _node_labels: Any = None
 
     def __post_init__(self):
-        if not isinstance(self.intrinsic_information, DistanceResult):
-            self.intrinsic_information = float(self.intrinsic_information)
-        if self.runner_up_intrinsic_information is not None and not isinstance(
-            self.runner_up_intrinsic_information, DistanceResult
+        if not isinstance(self.intrinsic_specification, DistanceResult):
+            self.intrinsic_specification = float(self.intrinsic_specification)
+        if self.runner_up_intrinsic_specification is not None and not isinstance(
+            self.runner_up_intrinsic_specification, DistanceResult
         ):
-            self.runner_up_intrinsic_information = float(
-                self.runner_up_intrinsic_information
+            self.runner_up_intrinsic_specification = float(
+                self.runner_up_intrinsic_specification
             )
 
     def set_ties(self, ties: Iterable[StateSpecification]) -> None:
@@ -154,29 +157,16 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     @property
     def ties(self) -> tuple[StateSpecification, ...]:
-        """The full family of states tied at maximum intrinsic information,
+        """The full family of states tied at maximum intrinsic specification,
         including this one — even those a later escalation (per-state φₛ, Φ) separated.
         The whole family is retained: congruence checks accept a match against any
-        ii-tied state."""
+        of the tied states."""
         return self._ties
 
     @property
-    def intrinsic_specification(self) -> float | DistanceResult:
-        """The intrinsic specification of the specified state.
-
-        The same value as :attr:`intrinsic_information`: the product of
-        selectivity and informativeness for the specified state. Albantakis
-        et al. (2023, Eqs. 5 and 7) call this quantity intrinsic
-        information; Mayner et al. (2026, Eqs. 7 and 9) rename it intrinsic
-        specification and reserve *intrinsic information* for its minimum
-        with the intrinsic differentiation (2026, Eq. 13).
-        """
-        return self.intrinsic_information
-
-    @property
     def state_margin(self) -> float | None:
-        """The intrinsic-information gap between this specified state and the
-        best competing state over the same purview.
+        """The intrinsic-specification gap between this specified state and
+        the best competing state over the same purview.
 
         Zero when another state ties exactly; ``None`` when there was no
         competing state. A margin within ``config.numerics.precision`` of
@@ -188,15 +178,15 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
         analyses surface it as
         ``RepertoireIrreducibilityAnalysis.state_margin``.
         """
-        if self.runner_up_intrinsic_information is None:
+        if self.runner_up_intrinsic_specification is None:
             return None
-        # Clamps the reported ii gap to non-negative; the winning state was
+        # Clamps the reported gap to non-negative; the winning state was
         # already selected upstream.
         # numerics: exact — reported margin, not a selection.
         return max(
             0.0,
-            float(self.intrinsic_information)
-            - float(self.runner_up_intrinsic_information),
+            float(self.intrinsic_specification)
+            - float(self.runner_up_intrinsic_specification),
         )
 
     def __getitem__(self, i: int) -> int:
@@ -211,7 +201,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
             return False
         if self.state != other.state:
             return False
-        if not numerics.eq(self.intrinsic_information, other.intrinsic_information):
+        if not numerics.eq(self.intrinsic_specification, other.intrinsic_specification):
             return False
         if not cmp.numpy_aware_eq(self.repertoire, other.repertoire):
             return False
@@ -221,16 +211,6 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
 
     def __hash__(self) -> int:
         return hash((self.direction, self.purview, self.state))
-
-    def _repr_columns(self, prefix: str = "") -> list[tuple[str, Any]]:
-        # TODO(fmt) include purview
-        return [
-            (f"{prefix}{self.direction}", fmt.state(self.state)),
-            (
-                f"{prefix}II_{str(self.direction)[:1].lower()}",
-                self.intrinsic_information,
-            ),
-        ]
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         direction_label = str(self.direction)
@@ -244,7 +224,7 @@ class StateSpecification(Displayable, ToDictMixin, ToPandasMixin):
                         Row("Direction", direction_label, tone=tone),
                         Row("Purview", self.purview_label),
                         Row("Specified state", self.state),
-                        Row("Intrinsic information", self.intrinsic_information),
+                        Row("Intrinsic specification", self.intrinsic_specification),
                     ),
                 ),
             ),
@@ -321,19 +301,6 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
             return self.effect
         raise KeyError("Invalid direction")
 
-    def _repr_columns(self, prefix: str = "") -> list[tuple[str, Any]]:
-        cols = []
-        # TODO: create NullStateSpecification and use that instead of None
-        if self.cause is not None:
-            cols.extend(self.cause._repr_columns(prefix))
-        else:
-            cols.append((f"{prefix}{Direction.CAUSE}", None))
-        if self.effect is not None:
-            cols.extend(self.effect._repr_columns(prefix))
-        else:
-            cols.append((f"{prefix}{Direction.EFFECT}", None))
-        return cols
-
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         sections = []
         for direction, spec in (("Cause", self.cause), ("Effect", self.effect)):
@@ -346,7 +313,10 @@ class SystemStateSpecification(Displayable, ToDictMixin, ToPandasMixin):
                         rows=(
                             Row("Purview", spec.purview_label),
                             Row("Specified state", spec.state),
-                            Row("Intrinsic information", spec.intrinsic_information),
+                            Row(
+                                "Intrinsic specification",
+                                spec.intrinsic_specification,
+                            ),
                         ),
                     )
                 )

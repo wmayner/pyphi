@@ -51,15 +51,20 @@ class StateSpecificationSchema(msgspec.Struct, frozen=True, tag="state_specifica
     direction: DirectionSchema
     purview: tuple[int, ...]
     state: tuple[int, ...]
-    intrinsic_information: PhiSchema
     repertoire: bytes
     unconstrained_repertoire: bytes
     # Tri-state: None = ties never computed; () = computed, no peers (the
     # tie family is just this specification); otherwise the peer tuple.
     tie_peers: tuple["StateSpecificationSchema", ...] | None = ()
     runner_up_state: tuple[int, ...] | None = None
-    runner_up_intrinsic_information: PhiSchema | None = None
     node_labels: NodeLabelsField = None
+    # Always written; absent only from files saved by 2.0.0rc1 to rc3, which
+    # use the field names below instead.
+    intrinsic_specification: PhiSchema | msgspec.UnsetType = msgspec.UNSET
+    runner_up_intrinsic_specification: PhiSchema | None = None
+    # Field names written by 2.0.0rc1 to rc3; read on decode, never written.
+    intrinsic_information: PhiSchema | msgspec.UnsetType = msgspec.UNSET
+    runner_up_intrinsic_information: PhiSchema | None | msgspec.UnsetType = msgspec.UNSET
 
 
 class SystemStateSpecificationSchema(
@@ -165,7 +170,6 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     mechanism: tuple[int, ...]
     mechanism_state: tuple[int, ...] | None
     purview: tuple[int, ...]
-    purview_state: tuple[int, ...] | None
     partition: PartitionSchema
     repertoire: bytes | None
     partitioned_repertoire: bytes | None
@@ -178,6 +182,9 @@ class RIASchema(msgspec.Struct, frozen=True, tag="ria"):
     selectivity: float | None = None
     reasons: tuple[str, ...] | None = None
     signed_normalized_phi: float | None = None
+    current_state: tuple[int, ...] | None = None
+    # Field name written by 2.0.0rc1 to rc3; read on decode, never written.
+    purview_state: tuple[int, ...] | None | msgspec.UnsetType = msgspec.UNSET
 
 
 class MICESchema(msgspec.Struct, frozen=True, tag="mice"):

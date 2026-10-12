@@ -6,7 +6,6 @@ from pyphi.display.description import Nested
 from pyphi.display.description import Row
 from pyphi.display.description import Section
 from pyphi.display.description import Table
-from pyphi.display.description import intrinsic_specification_label
 from pyphi.display.description import system_phi_label
 from pyphi.display.mixin import FULL
 from pyphi.display.mixin import HIGH
@@ -29,7 +28,6 @@ __all__ = [
     "Row",
     "Section",
     "Table",
-    "intrinsic_specification_label",
     "system_phi_label",
     "tone_of",
 ]

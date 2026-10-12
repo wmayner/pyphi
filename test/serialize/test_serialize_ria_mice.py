@@ -29,7 +29,7 @@ def make_ria(direction=Direction.CAUSE, phi=0.3):
         repertoire=np.array([0.4, 0.6]),
         partitioned_repertoire=np.array([0.5, 0.5]),
         mechanism_state=(1,),
-        purview_state=(0,),
+        current_state=(0,),
     )
 
 
@@ -106,7 +106,7 @@ def test_ria_preserves_selectivity_and_reasons(fmt):
         repertoire=np.array([0.4, 0.6]),
         partitioned_repertoire=np.array([0.5, 0.5]),
         mechanism_state=(1,),
-        purview_state=(0,),
+        current_state=(0,),
         selectivity=0.5,
         reasons=[NullResultReason.NO_PURVIEWS],
     )
@@ -266,7 +266,7 @@ def test_ria_normalized_phi_survives_cross_formalism_reload(fmt):
             repertoire=np.ones((1, 2, 2)) / 4,
             partitioned_repertoire=np.ones((1, 2, 2)) / 4,
             mechanism_state=(1, 0),
-            purview_state=(0, 1),
+            current_state=(0, 1),
         )
 
     with config.override(**presets.iit3):

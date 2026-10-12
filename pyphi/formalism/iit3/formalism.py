@@ -192,7 +192,7 @@ class IIT3Formalism:
             repertoire=repertoire,
             partitioned_repertoire=partitioned_repertoire,
             mechanism_state=state_of(mechanism, system.state),
-            purview_state=state_of(purview, system.state),
+            current_state=state_of(purview, system.state),
             specified_state=kwargs.get("state"),
             node_labels=system.node_labels,
             selectivity=None,

@@ -88,13 +88,13 @@ def relabel_state_specification(spec, mapping):
         direction=spec.direction,
         purview=purview,
         state=_reorder(spec.state, order),  # pyright: ignore[reportArgumentType]  # None only if input state is None
-        intrinsic_information=spec.intrinsic_information,
+        intrinsic_specification=spec.intrinsic_specification,
         repertoire=_transpose(spec.repertoire, order, mapping),  # pyright: ignore[reportArgumentType]  # None only if input is None
         unconstrained_repertoire=_transpose(  # pyright: ignore[reportArgumentType]  # None only if input is None
             spec.unconstrained_repertoire, order, mapping
         ),
         runner_up_state=_reorder(spec.runner_up_state, order),
-        runner_up_intrinsic_information=spec.runner_up_intrinsic_information,
+        runner_up_intrinsic_specification=spec.runner_up_intrinsic_specification,
     )
 
 
@@ -151,7 +151,7 @@ def relabel_ria(ria, mapping, node_labels=None):
             else relabel_state_specification(specified_state, mapping)
         ),
         mechanism_state=_reorder(ria.mechanism_state, mechanism_order),
-        purview_state=_reorder(ria.purview_state, purview_order),
+        current_state=_reorder(ria.current_state, purview_order),
         node_labels=node_labels,
         selectivity=ria.selectivity,
         reasons=ria.reasons,

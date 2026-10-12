@@ -721,13 +721,15 @@ def intrinsic_information(
     ),
     states: Any | None = None,
 ) -> Any:
-    """Compute intrinsic information and the maximally specified state.
+    """Find the specified state: the purview state that maximizes
+    ``specification_measure``, the intrinsic specification under IIT 4.0
+    (Mayner et al. 2026, Eq. 12).
 
     Composite measures take the multi-argument path (forward, partitioned,
     selectivity repertoires evaluated at a state); other measure shapes
     fall through to :func:`repertoire_distance`.
 
-    States whose intrinsic information ties the maximum within
+    States whose intrinsic specification ties the maximum within
     ``config.numerics.precision`` form the tie family (available via the
     returned specification's ``ties``); the returned specification is the
     first tied state in enumeration order.
@@ -854,11 +856,11 @@ def _build_state_specification(
             direction=direction,
             purview=purview,
             state=state,
-            intrinsic_information=float(information),
+            intrinsic_specification=float(information),
             repertoire=rep,
             unconstrained_repertoire=unconstrained_rep,
             runner_up_state=runner_up_state,
-            runner_up_intrinsic_information=runner_up_information,
+            runner_up_intrinsic_specification=runner_up_information,
         )
         for state, information in tied_states
     ]

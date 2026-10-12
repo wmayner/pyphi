@@ -33,7 +33,8 @@ property of experience:
   at their current state for effects, and weighted by their probability given
   the current state for causes.
 - **Information** — the system in its state must select a specific cause–effect
-  state, the one with maximal **intrinsic information** (ii).
+  state, the one with maximal **intrinsic specification** (i_spec; Mayner et
+  al. 2026, Eq. 12).
 - **Integration** — the system must specify that state *irreducibly*, as one
   whole. Irreducibility is measured over the **minimum partition**
   (MIP) — the partition that minimizes the normalized φ (Eq. 23).

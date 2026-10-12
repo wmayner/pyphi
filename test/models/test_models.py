@@ -1264,7 +1264,7 @@ def test_state_specification_eq_within_tolerance():
         direction=Direction.CAUSE,
         purview=(0,),
         state=(0,),
-        intrinsic_information=1.0,
+        intrinsic_specification=1.0,
         repertoire=np.array([0.5, 0.5]),
         unconstrained_repertoire=np.array([0.5, 0.5]),
     )
@@ -1272,7 +1272,7 @@ def test_state_specification_eq_within_tolerance():
         direction=Direction.CAUSE,
         purview=(0,),
         state=(0,),
-        intrinsic_information=1.0 + 1e-15,
+        intrinsic_specification=1.0 + 1e-15,
         repertoire=np.array([0.5, 0.5]),
         unconstrained_repertoire=np.array([0.5, 0.5]),
     )
@@ -1289,7 +1289,7 @@ def test_state_specification_eq_outside_tolerance():
         direction=Direction.CAUSE,
         purview=(0,),
         state=(0,),
-        intrinsic_information=1.0,
+        intrinsic_specification=1.0,
         repertoire=np.array([0.5, 0.5]),
         unconstrained_repertoire=np.array([0.5, 0.5]),
     )
@@ -1297,7 +1297,7 @@ def test_state_specification_eq_outside_tolerance():
         direction=Direction.CAUSE,
         purview=(0,),
         state=(0,),
-        intrinsic_information=1.001,
+        intrinsic_specification=1.001,
         repertoire=np.array([0.5, 0.5]),
         unconstrained_repertoire=np.array([0.5, 0.5]),
     )

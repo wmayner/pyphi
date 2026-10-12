@@ -269,7 +269,7 @@ class TestIntrinsicInformationTies:
                 config.formalism.iit.specification_measure
             ),
         )
-        ii_values = {float(t.intrinsic_information) for t in spec.ties}
+        ii_values = {float(t.intrinsic_specification) for t in spec.ties}
         assert len(ii_values) == 1, f"Tied states have different II: {ii_values}"
 
     def test_no_ties_when_unique_max(self):

@@ -389,8 +389,8 @@ def _strictly_below(x: float, y: float) -> bool:
 def _ii_ceiling(system):
     """``(ceiling, system_state)``: the certified φₛ upper bound.
 
-    The ceiling is the minimum over directions of the state-maximal
-    intrinsic information — the quantity Eq. 23 bounds φₛ by.
+    The ceiling is the minimum over directions of the specified state's
+    intrinsic specification. It bounds ii(s), and through Eq. 23 also φₛ.
     The returned state specification is the same object ``sia`` computes
     before its partition sweep, so callers can pass it back to ``sia``
     to avoid recomputation. A missing direction contributes 0.0 (no
@@ -406,8 +406,8 @@ def _ii_ceiling(system):
             _config.formalism.iit.specification_measure
         ),
     )
-    cause = 0.0 if state.cause is None else float(state.cause.intrinsic_information)
-    effect = 0.0 if state.effect is None else float(state.effect.intrinsic_information)
+    cause = 0.0 if state.cause is None else float(state.cause.intrinsic_specification)
+    effect = 0.0 if state.effect is None else float(state.effect.intrinsic_specification)
     return min(cause, effect), state
 
 

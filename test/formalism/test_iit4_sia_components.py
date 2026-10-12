@@ -461,11 +461,11 @@ class TestEq23IntrinsicInformationCap:
 
             # Compute ii(s) from components
             ii_cause = min(
-                float(sys_state.cause.intrinsic_information),
+                float(sys_state.cause.intrinsic_specification),
                 float(result.intrinsic_differentiation[Direction.CAUSE]),
             )
             ii_effect = min(
-                float(sys_state.effect.intrinsic_information),
+                float(sys_state.effect.intrinsic_specification),
                 float(result.intrinsic_differentiation[Direction.EFFECT]),
             )
             ii_s = min(ii_cause, ii_effect)
@@ -584,7 +584,7 @@ class TestPaperExamples:
             )
             # system_intrinsic_information uses INTRINSIC_SPECIFICATION,
             # so it returns i_spec
-            i_spec_pyphi = float(sys_state.effect.intrinsic_information)
+            i_spec_pyphi = float(sys_state.effect.intrinsic_specification)
             assert i_spec_pyphi == pytest.approx(i_spec_expected, abs=1e-6)
             # Verify the analytical ii value matches the paper
             assert ii_expected == pytest.approx(0.427, abs=0.001)
@@ -615,7 +615,7 @@ class TestPaperExamples:
                     config.formalism.iit.specification_measure
                 ),
             )
-            i_spec = float(sys_state.effect.intrinsic_information)
+            i_spec = float(sys_state.effect.intrinsic_specification)
             assert i_spec == pytest.approx(i_spec_expected, abs=1e-5)
 
             # Compute i_diff from forward repertoire
@@ -634,7 +634,8 @@ class TestPaperExamples:
 
 
 class TestNoCauseOrEffectShortCircuit:
-    """The ii(s) short-circuit treats noise-level values as zero."""
+    """The no-cause/no-effect short-circuit treats a noise-level intrinsic
+    specification as zero."""
 
     @staticmethod
     def _system_state(cause_ii, effect_ii):
@@ -643,8 +644,8 @@ class TestNoCauseOrEffectShortCircuit:
         from pyphi.direction import Direction
 
         return {
-            Direction.CAUSE: SimpleNamespace(intrinsic_information=cause_ii),
-            Direction.EFFECT: SimpleNamespace(intrinsic_information=effect_ii),
+            Direction.CAUSE: SimpleNamespace(intrinsic_specification=cause_ii),
+            Direction.EFFECT: SimpleNamespace(intrinsic_specification=effect_ii),
         }
 
     def test_noise_level_ii_is_no_cause(self):

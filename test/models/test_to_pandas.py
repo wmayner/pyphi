@@ -165,7 +165,7 @@ def _make_state_spec(direction, purview):
         direction=direction,
         purview=purview,
         state=(0, 0),
-        intrinsic_information=0.5,
+        intrinsic_specification=0.5,
         repertoire=repertoire,
         unconstrained_repertoire=unconstrained,
     )

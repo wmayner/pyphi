@@ -18,7 +18,7 @@ def test_intrinsic_information():
         )
         assert result.state == (1, 1)
         # Exact computed value (bitwise).
-        assert result.intrinsic_information == 1.8857840667050532
+        assert result.intrinsic_specification == 1.8857840667050532
 
 
 def test_composite_intrinsic_information_state_none_is_per_state():
@@ -132,7 +132,7 @@ def test_public_intrinsic_information_purview_rank_and_value():
             np.asarray(posterior, dtype=float)
         ).squeeze()
         expected = float(np.minimum(spec, diff).max())
-        assert float(result.intrinsic_information) == expected
+        assert float(result.intrinsic_specification) == expected
 
         # Effect side: the repertoire equals the forward repertoire (Z = 1),
         # so the operand switch is a no-op there (positive control).

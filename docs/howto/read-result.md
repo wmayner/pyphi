@@ -47,7 +47,9 @@ analysis
   distinction specifies. An uppercase letter is a unit ON, lowercase is OFF,
   and a unit with more than two states carries its state as a subscript
   (`A₂`). A cause purview `a` means the mechanism specifies unit A being OFF
-  in the past.
+  in the past. In code, a distinction's specified cause state is
+  `distinction.cause.specified_state.state`, and
+  `distinction.cause.current_state` is the current state of the same units.
 - **System**: the units and current state analyzed, the cause and effect
   states the system specifies, the minimum partition (the cut
   that makes the least difference: the system's weakest link), the system's
@@ -65,9 +67,9 @@ sia
 - **Normalized $\varphi_s$**: $\varphi_s$ divided by the partition's normalization; the
   minimum partition is chosen on this value.
 - **Specified state** (cause and effect): the past and future states the
-  system specifies with maximal intrinsic information.
+  system specifies with maximal intrinsic specification.
 - **Intrinsic specification**: how selectively and informatively the
-  specified state is picked out.
+  specified state is picked out (`sia.intrinsic_specification`).
 - **Intrinsic differentiation**: the surprisal of the specified state: how
   much of a repertoire of alternatives the system provides itself. Zero for
   a deterministic transition.

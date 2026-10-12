@@ -105,11 +105,11 @@ class MaximallyIrreducibleCauseOrEffect(
     def purview_units(self):
         return self.ria.purview_units
 
-    # TODO: remove or rename to "purview_current_state"
     @property
-    def purview_state(self):
-        """tuple[int]: The current state of the purview."""
-        return self._ria.purview_state
+    def current_state(self):
+        """tuple[int]: The current state of the purview units. The state this
+        mechanism specifies over them is ``specified_state.state``."""
+        return self._ria.current_state
 
     @property
     def mip(self):

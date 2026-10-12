@@ -136,7 +136,7 @@ def test_cap_composition_identity(name: str) -> None:
     phi_2023 = float(sia23.phi)
     terms = [phi_2023]
     for direction in (Direction.CAUSE, Direction.EFFECT):
-        terms.append(float(sia26.system_state[direction].intrinsic_information))
+        terms.append(float(sia26.system_state[direction].intrinsic_specification))
         terms.append(float(sia26.intrinsic_differentiation[direction]))
     recomposed = utils.positive_part(min(terms))
     assert numerics.eq(recomposed, float(sia26.phi)), (
@@ -268,7 +268,7 @@ def test_cap_applies_to_runner_up_phi():
     for direction in sia.intrinsic_differentiation:
         spec = sia.system_state[direction]
         if spec is not None:
-            cap_terms.append(max(0.0, float(spec.intrinsic_information)))
+            cap_terms.append(max(0.0, float(spec.intrinsic_specification)))
         cap_terms.append(max(0.0, float(sia.intrinsic_differentiation[direction])))
     ii_cap = min(cap_terms)
     assert float(sia.phi) <= ii_cap + 1e-12

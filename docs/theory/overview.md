@@ -64,8 +64,8 @@ physical counterpart of a property of experience (Albantakis et al., 2023):
 - **Intrinsicality** — that power must be *intrinsic*: the units must take and
   make a difference *within themselves*, from their own perspective.
 - **Information** — the power must be *specific*: the system in its state selects
-  a particular cause–effect state, the one with maximal *intrinsic information*
-  ($\mathit{ii}$).
+  a particular cause–effect state, the one with maximal *intrinsic
+  specification* ($i_{\mathrm{spec}}$).
 - **Integration** — the power must be *unitary*: the cause–effect state must be
   irreducible to independent parts, measured by *integrated information* over the
   system's minimum partition ($\varphi_s$).

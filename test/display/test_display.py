@@ -922,11 +922,11 @@ _GOLDEN_IIT4_SIA = """\
 │ Current state               (1, 0, 0)       │
 ├─ Cause ─────────────────────────────────────┤
 │ Specified state             (1, 1, 0)       │
-│ Intrinsic information       3.0             │
+│ Intrinsic specification     3.0             │
 │ Intrinsic differentiation   0.0             │
 ├─ Effect ────────────────────────────────────┤
 │ Specified state             (0, 0, 1)       │
-│ Intrinsic information       3.0             │
+│ Intrinsic specification     3.0             │
 │ Intrinsic differentiation   0.0             │
 ├─ MIP ───────────────────────────────────────┤
 │ Partition                   2 parts: {A,BC} │
@@ -1322,19 +1322,17 @@ def test_ces_embeds_sia_card_at_full_verbosity():
     assert h.count('class="pyphi-card"') == 1  # single card, no nesting
 
 
-def test_specification_row_label_follows_formalism():
-    """The per-direction row is "Intrinsic specification" under IIT 4.0 (2026)
-    and "Intrinsic information" under IIT 4.0 (2023), the papers' own names."""
+def test_specification_row_label_is_the_same_under_every_version():
+    """The per-direction row is "Intrinsic specification" under IIT 4.0 as
+    published in 2023 too, where the paper calls the quantity intrinsic
+    information: PyPhi uses one name per quantity."""
     from pyphi.conf import presets
 
-    with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
-        card_2026 = repr(pyphi.examples.basic_system().sia())
-    with pyphi.config.override(**presets.iit4_2023, progress_bars=False):
-        card_2023 = repr(pyphi.examples.basic_system().sia())
-    assert "Intrinsic specification" in card_2026
-    assert "Intrinsic information" not in card_2026
-    assert "Intrinsic information" in card_2023
-    assert "Intrinsic specification" not in card_2023
+    for preset in (presets.iit4_2026, presets.iit4_2023):
+        with pyphi.config.override(**preset, progress_bars=False):
+            card = repr(pyphi.examples.basic_system().sia())
+        assert "Intrinsic specification" in card
+        assert "Intrinsic information" not in card
 
 
 def test_ascii_card_shares_one_label_column_across_sections():

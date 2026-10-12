@@ -32,7 +32,6 @@ from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
-from pyphi.display import intrinsic_specification_label
 from pyphi.display.numbers import format_value
 from pyphi.formalism import iit3
 from pyphi.formalism.queries import _never_shortcircuit
@@ -96,7 +95,7 @@ def system_intrinsic_information(
     """Return the cause/effect states specified by the system.
 
     ``specification_measure`` is a Protocol-typed measure callable used to
-    compute intrinsic information; passed explicitly by the active
+    compute the intrinsic specification; passed explicitly by the active
     formalism rather than read from config.
 
     NOTE: State ties are arbitrarily broken.
@@ -254,7 +253,7 @@ class SystemIrreducibilityAnalysis(
 
     @property
     def state_margins(self) -> dict[Direction, float | None]:
-        """Per-direction intrinsic-information gap between the specified
+        """Per-direction intrinsic-specification gap between the specified
         system state and the best competing state
         (:attr:`StateSpecification.state_margin`)."""
         margins: dict[Direction, float | None] = {}
@@ -297,7 +296,7 @@ class SystemIrreducibilityAnalysis(
         """The system intrinsic information ii(s) (Mayner et al. 2026, Eq. 13).
 
         The minimum over directions of min(i_spec, i_diff), where i_spec
-        is the intrinsic information of the specified state and i_diff its
+        is the intrinsic specification of the specified state and i_diff its
         intrinsic differentiation, each rectified by ``|·|⁺``.
         Partition-independent given the specified states. φₛ = min{φ_c, φ_e,
         ii(s)}, so φₛ ≤ ii(s); a result computed under IIT 4.0 as published
@@ -311,7 +310,7 @@ class SystemIrreducibilityAnalysis(
         for direction, differentiation in self.intrinsic_differentiation.items():
             spec = self.system_state[direction]
             if spec is not None:
-                terms.append(float(utils.positive_part(spec.intrinsic_information)))
+                terms.append(float(utils.positive_part(spec.intrinsic_specification)))
             terms.append(float(utils.positive_part(differentiation)))
         return min(terms)
 
@@ -461,7 +460,6 @@ class SystemIrreducibilityAnalysis(
         cls = type(self).__name__
         idiff = self.intrinsic_differentiation
         state = self.system_state
-        spec_label = intrinsic_specification_label(self.config)
         sections = [
             Section(
                 rows=(
@@ -475,7 +473,7 @@ class SystemIrreducibilityAnalysis(
         if state is not None and state.cause is not None:
             cause_rows = [
                 Row("Specified state", state.cause.state),
-                Row(spec_label, state.cause.intrinsic_information),
+                Row("Intrinsic specification", state.cause.intrinsic_specification),
                 Row(
                     "Intrinsic differentiation",
                     idiff[Direction.CAUSE] if idiff else None,
@@ -487,7 +485,7 @@ class SystemIrreducibilityAnalysis(
         if state is not None and state.effect is not None:
             effect_rows = [
                 Row("Specified state", state.effect.state),
-                Row(spec_label, state.effect.intrinsic_information),
+                Row("Intrinsic specification", state.effect.intrinsic_specification),
                 Row(
                     "Intrinsic differentiation",
                     idiff[Direction.EFFECT] if idiff else None,
@@ -573,7 +571,7 @@ class SystemIrreducibilityAnalysis(
                 findings.append(
                     Finding(
                         kind="state_margin",
-                        label=f"Specified-{tone}-state margin (ii)",
+                        label=f"Specified-{tone}-state margin (i_spec)",
                         value=margin,
                         tone=tone,
                     )
@@ -908,12 +906,12 @@ def _has_no_cause_or_effect(system_state):
         strict=False,
     ):
         # Short-circuit for a direction with no cause/effect. Intrinsic
-        # information that is zero up to ``config.numerics.precision`` —
+        # specification that is zero up to ``config.numerics.precision`` —
         # including a floating-point residue of a mathematically-zero
-        # ii(s) — specifies nothing, and forces φ_s = min over directions
+        # value — specifies nothing, and forces φ_s = min over directions
         # to zero.
         spec = system_state[direction]
-        if spec is not None and not numerics.is_positive(spec.intrinsic_information):
+        if spec is not None and not numerics.is_positive(spec.intrinsic_specification):
             reasons.append(reason)
     return reasons
 

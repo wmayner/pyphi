@@ -46,8 +46,8 @@ def _phi_and_ii(preset) -> tuple[float, float, float]:
     with pyphi.config.override(progress_bars=False, **preset):
         sia = _witness_system().sia()
         phi = float(sia.phi)
-        ii_cause = float(sia.system_state.cause.intrinsic_information)
-        ii_effect = float(sia.system_state.effect.intrinsic_information)
+        ii_cause = float(sia.system_state.cause.intrinsic_specification)
+        ii_effect = float(sia.system_state.effect.intrinsic_specification)
     return phi, ii_cause, ii_effect
 
 

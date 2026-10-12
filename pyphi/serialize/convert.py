@@ -172,15 +172,15 @@ def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
         direction=schema.DirectionSchema(name=spec.direction.name),
         purview=tuple(spec.purview),
         state=tuple(spec.state),
-        intrinsic_information=to_schema(spec.intrinsic_information),
+        intrinsic_specification=to_schema(spec.intrinsic_specification),
         repertoire=arrays.array_to_bytes(np.asarray(spec.repertoire)),
         unconstrained_repertoire=arrays.array_to_bytes(
             np.asarray(spec.unconstrained_repertoire)
         ),
         tie_peers=peers,
         runner_up_state=_opt_tuple(spec.runner_up_state),
-        runner_up_intrinsic_information=_enc_optional(
-            spec.runner_up_intrinsic_information
+        runner_up_intrinsic_specification=_enc_optional(
+            spec.runner_up_intrinsic_specification
         ),
         node_labels=_enc_labels(spec.node_labels),
     )
@@ -193,12 +193,17 @@ def _decode_state_spec(struct: Any) -> Any:
         direction=from_schema(struct.direction),
         purview=tuple(struct.purview),
         state=tuple(struct.state),
-        intrinsic_information=from_schema(struct.intrinsic_information),
+        intrinsic_specification=from_schema(
+            _renamed(struct.intrinsic_specification, struct.intrinsic_information)
+        ),
         repertoire=arrays.bytes_to_array(struct.repertoire),
         unconstrained_repertoire=arrays.bytes_to_array(struct.unconstrained_repertoire),
         runner_up_state=_opt_tuple(struct.runner_up_state),
-        runner_up_intrinsic_information=_dec_optional(
-            struct.runner_up_intrinsic_information
+        runner_up_intrinsic_specification=_dec_optional(
+            _renamed(
+                struct.runner_up_intrinsic_specification,
+                struct.runner_up_intrinsic_information,
+            )
         ),
     )
     instance.node_labels = _dec_labels(struct.node_labels)
@@ -390,6 +395,12 @@ def _opt_tuple(values: Any) -> Any:
     return tuple(values) if values is not None else None
 
 
+def _renamed(value: Any, rc_value: Any) -> Any:
+    """The value of a renamed field: ``rc_value``, stored under the name
+    2.0.0rc1 to rc3 wrote, when present, else ``value``."""
+    return value if rc_value is msgspec.UNSET else rc_value
+
+
 def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
     partition_peers = (
         tuple(t for t in ria._partition_ties if t is not ria) if include_peers else ()
@@ -403,7 +414,7 @@ def _encode_ria(ria: Any, *, include_peers: bool) -> Any:
         mechanism=tuple(ria.mechanism),
         mechanism_state=_opt_tuple(ria.mechanism_state),
         purview=tuple(ria.purview),
-        purview_state=_opt_tuple(ria.purview_state),
+        current_state=_opt_tuple(ria.current_state),
         partition=to_schema(ria.partition),
         repertoire=_enc_array(ria.repertoire),
         partitioned_repertoire=_enc_array(ria.partitioned_repertoire),
@@ -434,7 +445,7 @@ def _decode_ria(struct: Any) -> Any:
         partitioned_repertoire=_dec_array(struct.partitioned_repertoire),
         specified_state=_dec_optional(struct.specified_state),
         mechanism_state=_opt_tuple(struct.mechanism_state),
-        purview_state=_opt_tuple(struct.purview_state),
+        current_state=_opt_tuple(_renamed(struct.current_state, struct.purview_state)),
         node_labels=_dec_labels(struct.node_labels),
         partition_margin=_dec_optional(struct.partition_margin),
         signed_phi=_dec_optional(struct.signed_phi),

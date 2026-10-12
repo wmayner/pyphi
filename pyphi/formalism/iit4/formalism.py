@@ -66,15 +66,17 @@ def _evaluate_partition_iit4(
 
     assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
 
-    purview_state = kwargs["state"].state
-    selectivity = float(repertoire.squeeze()[purview_state])
-    forward_pr = system.forward_probability(direction, mechanism, purview, purview_state)
+    specified_state = kwargs["state"].state
+    selectivity = float(repertoire.squeeze()[specified_state])
+    forward_pr = system.forward_probability(
+        direction, mechanism, purview, specified_state
+    )
     if partitioned_repertoire is None:
         partitioned_pr = system.partitioned_repertoire(
             direction,
             partition,
             mechanism_measure=mechanism_measure,
-            state=purview_state,
+            state=specified_state,
         )
     else:
         partitioned_pr = partitioned_repertoire
@@ -94,7 +96,7 @@ def _evaluate_partition_iit4(
         repertoire=forward_pr,
         partitioned_repertoire=partitioned_pr,
         mechanism_state=state_of(mechanism, system.state),
-        purview_state=state_of(purview, system.state),
+        current_state=state_of(purview, system.state),
         specified_state=kwargs.get("state"),
         node_labels=system.node_labels,
         selectivity=selectivity,
@@ -243,7 +245,7 @@ def _find_mip_iit4(
 
     ``mechanism_measure`` and ``specification_measure`` are Protocol-typed
     measure callables provided by the active formalism.
-    ``specification_measure`` drives the intrinsic-information search
+    ``specification_measure`` drives the intrinsic-specification search
     over candidate purview states; ``mechanism_measure`` drives the
     per-partition phi.
     """
