@@ -14,27 +14,27 @@ s_state = pyphi.examples.basic_state()
 
 def s_empty():
     net = standard()
-    return System(net, s_state, ())
+    return System(net, s_state, subset=())
 
 
 def s_single():
     net = standard()
-    return System(net, s_state, (1,))
+    return System(net, s_state, subset=(1,))
 
 
 def subsys_n0n2():
     net = standard()
-    return System(net, s_state, (0, 2))
+    return System(net, s_state, subset=(0, 2))
 
 
 def subsys_n1n2():
     net = standard()
-    return System(net, s_state, (1, 2))
+    return System(net, s_state, subset=(1, 2))
 
 
 def s_complete():
     net = standard(cm=None)
-    return System(net, s_state, range(net.size))
+    return System(net, s_state, subset=range(net.size))
 
 
 def noised():
@@ -61,13 +61,13 @@ def noised():
 def s_noised():
     n = noised()
     state = (1, 0, 0)
-    return System(n, state, range(n.size))
+    return System(n, state, subset=range(n.size))
 
 
 def noisy_selfloop_single():
     net = pyphi.examples.basic_noisy_selfloop_substrate()
     state = (1, 0, 0)
-    return System(net, state, (1,))
+    return System(net, state, subset=(1,))
 
 
 s_about_to_be_on = (0, 1, 1)
@@ -127,13 +127,13 @@ def simple(cm=False):
 
 def simple_subsys_all_off():
     net = simple()
-    return System(net, s_all_off, range(net.size))
+    return System(net, s_all_off, subset=range(net.size))
 
 
 def simple_subsys_all_a_just_on():
     net = simple()
     a_just_turned_on = (1, 0, 0)
-    return System(net, a_just_turned_on, range(net.size))
+    return System(net, a_just_turned_on, subset=range(net.size))
 
 
 def big(cm=None):
@@ -181,7 +181,7 @@ def big_subsys_all():
     """Return the system associated with ``big``."""
     net = big()
     state = (1,) * 5
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 big_subsys_all_complete = big_subsys_all
@@ -191,7 +191,7 @@ def big_subsys_0_thru_3():
     """Return a system consisting of the first 4 nodes of ``big``."""
     net = big()
     state = (1,) * 5
-    return System(net, state, range(net.size)[:-1])
+    return System(net, state, subset=range(net.size)[:-1])
 
 
 def reducible(cm=False):
@@ -201,7 +201,7 @@ def reducible(cm=False):
     r = Substrate(tpm, cm=cm)
     state = (0, 0)
     # Return the full system
-    return System(r, state, range(r.size))
+    return System(r, state, subset=range(r.size))
 
 
 def rule30(cm=False):
@@ -251,7 +251,7 @@ def rule30(cm=False):
     # fmt: on
     rule30 = Substrate(tpm, cm=cm)
     all_off = (0, 0, 0, 0, 0)
-    return System(rule30, all_off, range(rule30.size))
+    return System(rule30, all_off, subset=range(rule30.size))
 
 
 def trivial():
@@ -260,7 +260,7 @@ def trivial():
     cm = np.array([[1]])
     net = Substrate(tpm, cm=cm)
     state = (1,)
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def eight_node(cm=False):
@@ -542,13 +542,13 @@ def eight_node(cm=False):
 def eights():
     net = eight_node()
     state = [0] * 8
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def eights_complete():
     net = eight_node(cm=None)
     state = [0] * 8
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def eight_node_sbs(cm=False):
@@ -620,13 +620,13 @@ def rule152(cm=False):
 def rule152_s():
     net = rule152()
     state = [0] * 5
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def rule152_s_complete():
     net = rule152(cm=None)
     state = [0] * 5
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def macro(cm=False):
@@ -649,7 +649,7 @@ def macro(cm=False):
 def macro_s():
     net = macro()
     state = [0] * 2
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def micro(cm=False):
@@ -686,13 +686,13 @@ def micro(cm=False):
 def micro_s():
     net = micro()
     state = [1] * 4
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 def micro_s_all_off():
     net = micro()
     state = [0] * 4
-    return System(net, state, range(net.size))
+    return System(net, state, subset=range(net.size))
 
 
 # Permutation-equivalent pair for symmetry tests
@@ -825,7 +825,7 @@ def permuted_system(system, perm):
     arr2 = np.transpose(arr, axes=(*perm, n, n + 1))[..., list(perm), :]
     cm2 = np.asarray(system.substrate.cm)[np.ix_(perm, perm)]
     state2 = tuple(system.state[p] for p in perm)
-    return System(Substrate(arr2, cm=cm2), state=state2, node_indices=tuple(range(n)))
+    return System(Substrate(arr2, cm=cm2), state=state2, subset=tuple(range(n)))
 
 
 def noisy_or_background_substrate():

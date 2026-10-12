@@ -352,7 +352,7 @@ class TestMicroReductionWithBackground:
         state = (1, 0, 1, 0)
         units = tuple(micro_unit(i) for i in subset)
         cause, effect = macro_tpms(substrate, units, (state,))
-        system = System(substrate, state, subset)
+        system = System(substrate, state, subset=subset)
         for built, reference in (
             (cause, system.proper_cause_marginal),
             (effect, system.proper_effect_marginal),

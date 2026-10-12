@@ -10,7 +10,6 @@ the whole substrate instead, returning its complexes.
 
 from __future__ import annotations
 
-from contextlib import nullcontext
 from dataclasses import dataclass
 from dataclasses import replace
 from typing import Any
@@ -18,7 +17,6 @@ from typing import Any
 import pandas as pd
 
 from pyphi import numerics
-from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
 from pyphi.display import FULL
@@ -287,13 +285,8 @@ def analyze(
                 f"grains must be True or a SearchBounds instance; got {grains!r}"
             )
 
-    ctx = (
-        config.override(**presets.by_name[formalism])
-        if formalism is not None
-        else nullcontext()
-    )
     result: Any = None
-    with ctx:
+    with presets.use(formalism):
         if bounds is not None:
             from pyphi.macro.search import complexes as grain_complexes
 
@@ -301,8 +294,7 @@ def analyze(
                 substrate, state, bounds, parallel_kwargs=parallel_kwargs
             )
         else:
-            indices = substrate.node_indices if subset is None else subset
-            system = System.from_substrate(substrate, state, indices)
+            system = System(substrate, state, subset=subset)
             if callable(compute):
                 result = compute(system)
             elif compute == "sia":

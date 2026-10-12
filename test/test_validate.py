@@ -60,7 +60,7 @@ def test_validate_state_no_error_1(s):
 def test_validate_state_error(s):
     with pytest.raises(exceptions.StateUnreachableError):
         state = (0, 1, 0)
-        System(s.substrate, state, s.node_indices)
+        System(s.substrate, state, subset=s.node_indices)
 
 
 FIXED = "CONDITION_CURRENT_STATE"
@@ -79,11 +79,11 @@ def test_validate_state_subsystem_unreachable(s):
     ``{B}`` passes because conditioned B_next = COPY(C=0) = 0 matches B=0.
     """
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(s.substrate, s.state, (0,), background_conditioning=FIXED)
+        System(s.substrate, s.state, subset=(0,), background_conditioning=FIXED)
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(s.substrate, s.state, (2,), background_conditioning=FIXED)
+        System(s.substrate, s.state, subset=(2,), background_conditioning=FIXED)
     # No raise for B:
-    System(s.substrate, s.state, (1,), background_conditioning=FIXED)
+    System(s.substrate, s.state, subset=(1,), background_conditioning=FIXED)
 
 
 def test_validate_state_subsystem_reachable_under_causal_marginalization(s):
@@ -94,7 +94,9 @@ def test_validate_state_subsystem_reachable_under_causal_marginalization(s):
     so ``{A}`` and ``{C}`` in ``(1, 0, 0)`` have causes.
     """
     for indices in [(0,), (1,), (2,)]:
-        System(s.substrate, s.state, indices, background_conditioning=MARGINALIZED)
+        System(
+            s.substrate, s.state, subset=indices, background_conditioning=MARGINALIZED
+        )
 
 
 def test_validate_state_background_past_differs_from_present():
@@ -109,12 +111,12 @@ def test_validate_state_background_past_differs_from_present():
     tpm = np.array([[0, 1], [0, 1], [1, 0], [1, 0]], dtype=float)
     sub = Substrate(tpm)
     state = (1, 0)
-    system = System(sub, state, (0,), background_conditioning=MARGINALIZED)
+    system = System(sub, state, subset=(0,), background_conditioning=MARGINALIZED)
     np.testing.assert_array_equal(
         system.cause_marginal.factor(0).squeeze(), [[0.0, 1.0], [0.0, 1.0]]
     )
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(sub, state, (0,), background_conditioning=FIXED)
+        System(sub, state, subset=(0,), background_conditioning=FIXED)
 
 
 def _k3_copy_substrate() -> Substrate:
@@ -142,13 +144,13 @@ def test_validate_state_subsystem_unreachable_kary():
     """
     sub = _k3_copy_substrate()
     # Full substrate: reachable, no raise.
-    System(sub, (1, 0), (0, 1))
+    System(sub, (1, 0), subset=(0, 1))
     # Subsystem {0}: node-0 conditioned dynamics cannot produce 1.
     with pytest.raises(exceptions.StateUnreachableForwardsError):
-        System(sub, (1, 0), (0,), background_conditioning=FIXED)
-    System(sub, (1, 0), (0,), background_conditioning=MARGINALIZED)
+        System(sub, (1, 0), subset=(0,), background_conditioning=FIXED)
+    System(sub, (1, 0), subset=(0,), background_conditioning=MARGINALIZED)
     # Subsystem {1}: node 1 is constant 0, so {1}=0 is reachable.
-    System(sub, (1, 0), (1,), background_conditioning=FIXED)
+    System(sub, (1, 0), subset=(1,), background_conditioning=FIXED)
 
 
 @pytest.mark.skip(
@@ -165,7 +167,7 @@ def test_validate_state_no_error_2():
     # fails due to zero normalization. We expect StateUnreachableBackwardsError,
     # NOT StateUnreachableForwardsError.
     with pytest.raises(exceptions.StateUnreachableBackwardsError):
-        System(net, state, (0, 1))
+        System(net, state, subset=(0, 1))
 
 
 def test_validate_node_labels():

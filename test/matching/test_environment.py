@@ -233,7 +233,7 @@ def test_matching_analysis_runs_on_generated_world_distribution():
         full[sensory[0]] = stimulus[0]
         for j, idx in enumerate(system):
             full[idx] = y[j]
-        ces = substrate.ces(state=tuple(full), indices=system)
+        ces = substrate.ces(state=tuple(full), subset=system)
         perceptions[stimulus] = Perception(
             ces=ces, triggered_tpm=ttpm, stimulus=stimulus
         )

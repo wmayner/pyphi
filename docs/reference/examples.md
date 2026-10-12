@@ -51,11 +51,7 @@ for name, func in EXAMPLES["substrate"].items():
     try:
         substrate = func()
         display(substrate)
-        system = pyphi.System(
-            substrate,
-            state=(0,) * substrate.size,
-            node_indices=tuple(range(substrate.size)),
-        )
+        system = pyphi.System(substrate, (0,) * substrate.size)
         plt.figure(figsize=(4, 4))
         plot_system(system)
         plt.show()

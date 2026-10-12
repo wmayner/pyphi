@@ -94,4 +94,17 @@ def parallel_kwargs(
     return kwargs
 
 
-__all__ = ["PARALLEL_KWARGS", "fallback", "parallel_kwargs"]
+def reject_unknown_kwargs(caller: str, kwargs: Mapping[str, Any]) -> None:
+    """Raise ``TypeError`` if ``kwargs`` holds a name outside :data:`PARALLEL_KWARGS`.
+
+    For functions whose ``**kwargs`` reach only :func:`parallel_kwargs`,
+    which drops unknown names: a misspelt or misplaced option then fails
+    instead of being ignored.
+    """
+    unknown = sorted(set(kwargs) - set(PARALLEL_KWARGS))
+    if unknown:
+        names = ", ".join(repr(name) for name in unknown)
+        raise TypeError(f"{caller}() got unexpected keyword argument(s): {names}")
+
+
+__all__ = ["PARALLEL_KWARGS", "fallback", "parallel_kwargs", "reject_unknown_kwargs"]

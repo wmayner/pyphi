@@ -47,7 +47,7 @@ def test_node_neq_by_index(s):
 
 
 def test_node_neq_by_state(s):
-    other_s = System(s.substrate, (1, 1, 1), s.node_indices)
+    other_s = System(s.substrate, (1, 1, 1), subset=s.node_indices)
     assert other_s.nodes[1] != Node(s.cause_marginal, s.effect_marginal, s.cm, 1, 0, "B")
 
 

@@ -167,7 +167,7 @@ def _iit4_2026():
 @pytest.mark.parametrize(("candidate", "expected"), list(_FIG1_PUBLISHED_PHI_S.items()))
 def test_iit4_2023_fig1_system_phi(_iit4_2023, candidate, expected):
     """Reproduce the Fig 1E published phi_s for each candidate system."""
-    system = System(_fig1_substrate(), _FIG1_STATE, node_indices=candidate)
+    system = System(_fig1_substrate(), _FIG1_STATE, subset=candidate)
     phi_s = float(system.sia().phi)
     assert round(phi_s, 2) == expected, (
         f"candidate {candidate}: phi_s={phi_s:.4f} rounds to {round(phi_s, 2)}, "
@@ -187,13 +187,13 @@ def test_iit4_2023_fig1_aB_is_a_complex(_iit4_2023):
     """
     substrate = _fig1_substrate()
     aB = (0, 1)
-    phi_aB = float(System(substrate, _FIG1_STATE, node_indices=aB).sia().phi)
+    phi_aB = float(System(substrate, _FIG1_STATE, subset=aB).sia().phi)
     assert round(phi_aB, 2) == 0.17
     for size in range(1, 4):
         for candidate in itertools.combinations(range(3), size):
             if candidate == aB or set(candidate).isdisjoint(aB):
                 continue  # skip aB itself and non-overlapping systems
-            phi = float(System(substrate, _FIG1_STATE, node_indices=candidate).sia().phi)
+            phi = float(System(substrate, _FIG1_STATE, subset=candidate).sia().phi)
             assert phi < phi_aB, (
                 f"overlapping system {candidate} has phi_s={phi:.4f} >= aB's "
                 f"{phi_aB:.4f}; aB would not be a complex"
@@ -203,7 +203,7 @@ def test_iit4_2023_fig1_aB_is_a_complex(_iit4_2023):
 def test_iit4_2023_fig1D_aB_cause_effect_phi(_iit4_2023):
     """Fig 1D ("Integration"): aB's phi_s = min(phi_c, phi_e), with the published
     cause/effect split phi_c = 0.24 and phi_e = 0.17."""
-    sia = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).sia()
+    sia = System(_fig1_substrate(), _FIG1_STATE, subset=(0, 1)).sia()
     assert round(float(sia.cause.phi), 2) == 0.24
     assert round(float(sia.effect.phi), 2) == 0.17
     assert round(float(sia.phi), 2) == 0.17  # phi_s = min(phi_c, phi_e)
@@ -212,7 +212,7 @@ def test_iit4_2023_fig1D_aB_cause_effect_phi(_iit4_2023):
 def test_iit4_2023_fig2_distinctions(_iit4_2023):
     """Fig 2: the irreducible distinctions D(aB) and their published phi_d and
     cause/effect purviews."""
-    ces = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).ces()
+    ces = System(_fig1_substrate(), _FIG1_STATE, subset=(0, 1)).ces()
     by_mechanism = {tuple(d.mechanism): d for d in ces.distinctions}
     assert set(by_mechanism) == set(_FIG2_DISTINCTIONS)
     for mechanism, (phi_d, cause_pv, effect_pv) in _FIG2_DISTINCTIONS.items():
@@ -234,7 +234,7 @@ def test_iit4_2023_fig4_relation_a_aB(_iit4_2023):
     # This test locates one specific relation by its mechanisms: the concrete
     # backend, since the analytical backend does not enumerate relations.
     with config.override(relation_computation="CONCRETE"):
-        ces = System(_fig1_substrate(), _FIG1_STATE, node_indices=(0, 1)).ces()
+        ces = System(_fig1_substrate(), _FIG1_STATE, subset=(0, 1)).ces()
     relation = next(
         r for r in ces.relations if {tuple(m) for m in r.mechanisms} == {(0,), (0, 1)}
     )
@@ -262,7 +262,7 @@ def test_iit4_2023_fig6C_copy_ring(_iit4_2023):
     system = System(
         examples.iit4_2023_fig6c_substrate(),
         (1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
     sia = system.sia()
     assert float(sia.phi) == pytest.approx(1.74, abs=0.01)  # phi_s = 1.7467
@@ -319,7 +319,7 @@ def test_iit3_2014_fig12_system_phi(_iit3):
     PyPhi computes 23/12 = 1.91666..., which rounds to the paper's 1.92 and
     matches the 1.917 reported by the Mayner et al. 2018 practical guide.
     """
-    sia = System(examples.fig4_substrate(), _FIG12_STATE, node_indices=(0, 1, 2)).sia()
+    sia = System(examples.fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)).sia()
     assert round(float(sia.phi), 2) == 1.92
     assert float(sia.phi) == pytest.approx(23 / 12, abs=1e-4)
 
@@ -331,7 +331,7 @@ def test_iit3_2014_fig12_constellation(_iit3):
     and the per-mechanism assignment (concepts are labeled by mechanism in the
     paper's Figs 9-11).
     """
-    ces = System(examples.fig4_substrate(), _FIG12_STATE, node_indices=(0, 1, 2)).ces()
+    ces = System(examples.fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)).ces()
     concepts = list(ces)
     assert len(concepts) == 6
     assert sorted(round(float(c.phi), 2) for c in concepts) == sorted(
@@ -437,9 +437,7 @@ def test_gomez_2020_p53_mdm2_phi(_iit3_nonbinary):
     PyPhi computes Phi = 0.4387, which rounds to the paper's 0.44, with three
     irreducible mechanisms -- {P}, {Mc}, {Mn} (the three single units).
     """
-    system = System(
-        examples.gomez_p53_mdm2_substrate(), _P53_STATE, node_indices=(0, 1, 2)
-    )
+    system = System(examples.gomez_p53_mdm2_substrate(), _P53_STATE, subset=(0, 1, 2))
     phi = float(system.sia().phi)
     assert round(phi, 2) == 0.44
     assert phi == pytest.approx(0.4387, abs=1e-3)
@@ -484,13 +482,13 @@ def test_iit4_2023_fig6a_bottleneck(_iit4_2023):
     """
     substrate = examples.iit4_2023_fig6a_substrate()
     state = (1, 0, 0, 0, 0, 0)
-    ab = System(substrate, state, node_indices=(0, 1)).ces()
+    ab = System(substrate, state, subset=(0, 1)).ces()
     assert float(ab.sia.phi) == pytest.approx(0.05, abs=0.01)  # shown as 0.05
     assert float(ab.big_phi) == pytest.approx(0.48, abs=0.01)
     assert len(ab.distinctions) == 2
     assert ab.relations.num_relations() == 2
 
-    c = System(substrate, state, node_indices=(2,)).ces()
+    c = System(substrate, state, subset=(2,)).ces()
     assert float(c.sia.phi) == pytest.approx(0.008, abs=0.005)
     assert float(c.big_phi) == pytest.approx(0.02, abs=0.01)
     assert len(c.distinctions) == 1
@@ -506,14 +504,14 @@ def test_iit4_2023_fig6b_modular(_iit4_2023):
     """
     substrate = examples.iit4_2023_fig6b_substrate()
     state = (1, 0, 0, 0, 0, 0)
-    ab = System(substrate, state, node_indices=(0, 1)).ces()
+    ab = System(substrate, state, subset=(0, 1)).ces()
     assert float(ab.sia.phi) == pytest.approx(0.53, abs=0.01)
     assert float(ab.big_phi) == pytest.approx(2.74, abs=0.02)
     assert len(ab.distinctions) == 2
     assert ab.relations.num_relations() == 2
 
     for module in [(2, 3), (4, 5)]:  # cd and ef are symmetric
-        ces = System(substrate, state, node_indices=module).ces()
+        ces = System(substrate, state, subset=module).ces()
         assert float(ces.sia.phi) == pytest.approx(0.45, abs=0.01)
         assert float(ces.big_phi) == pytest.approx(3.18, abs=0.01)
         assert len(ces.distinctions) == 3
@@ -531,20 +529,20 @@ def test_iit4_2023_fig6e_near_maximal(_iit4_2023):
     """
     substrate = examples.iit4_2023_fig6e_substrate()
     state = (1, 0, 0, 0, 0, 0)
-    abef = System(substrate, state, node_indices=(0, 1, 4, 5)).ces()
+    abef = System(substrate, state, subset=(0, 1, 4, 5)).ces()
     assert float(abef.sia.phi) == pytest.approx(0.27, abs=0.01)
     assert float(abef.big_phi) == pytest.approx(3.24, abs=0.02)
     assert len(abef.distinctions) == 8
     assert abef.relations.num_relations() == 67
 
-    cd = System(substrate, state, node_indices=(2, 3)).ces()
+    cd = System(substrate, state, subset=(2, 3)).ces()
     assert float(cd.sia.phi) == pytest.approx(0.08, abs=0.01)
     assert float(cd.big_phi) == pytest.approx(1.32, abs=0.02)
     assert len(cd.distinctions) == 3
     assert cd.relations.num_relations() == 7
 
     # Exclusion: the full system is less irreducible than its Abef subset.
-    full_phi = float(System(substrate, state, node_indices=tuple(range(6))).sia().phi)
+    full_phi = float(System(substrate, state, subset=tuple(range(6))).sia().phi)
     assert full_phi == pytest.approx(0.15, abs=0.02)
     assert full_phi < float(abef.sia.phi)
 
@@ -568,7 +566,7 @@ def test_iit4_2023_fig6d_specialized(_iit4_2023):
     system = System(
         examples.iit4_2023_fig6d_substrate(),
         (1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
     sia = system.sia()
     assert float(sia.phi) == pytest.approx(1.05, abs=0.02)
@@ -608,9 +606,7 @@ def test_iit4_2023_fig7_state_dependence(_iit4_2023, state, phi_s, n_d, n_r, big
     Panel B's relation count and Phi deviate from the published figure -- see the
     note on ``_FIG7_PANELS``.
     """
-    system = System(
-        examples.iit4_2023_fig7_substrate(), state, node_indices=(0, 1, 2, 3, 4)
-    )
+    system = System(examples.iit4_2023_fig7_substrate(), state, subset=(0, 1, 2, 3, 4))
     sia = system.sia()
     assert float(sia.phi) == pytest.approx(phi_s, abs=0.01)
 
@@ -639,7 +635,7 @@ def test_iit4_2023_fig7C_inactivated(_iit4_2023):
     system = System(
         examples.iit4_2023_fig7_inactivated_substrate(),
         (1, 1, 0, 0, 0),
-        node_indices=(0, 1, 2, 3),
+        subset=(0, 1, 2, 3),
     )
     sia = system.sia()
     assert float(sia.phi) == pytest.approx(0.11, abs=0.01)
@@ -715,7 +711,7 @@ def test_ac_2019_fig8b_background_conditions(_iit3):
 
 
 def _monad_sia(p):
-    return System(examples.mayner_2026_monad_substrate(p), (1,), node_indices=(0,)).sia()
+    return System(examples.mayner_2026_monad_substrate(p), (1,), subset=(0,)).sia()
 
 
 def test_mayner_2026_fig2_monad_peak(_iit4_2026):
@@ -780,7 +776,7 @@ def _fig3_full_system_sia(k):
     return System(
         examples.iit4_2023_fig6d_substrate(k=k),
         _FIG3_STATE,
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     ).sia()
 
 
@@ -831,12 +827,12 @@ def test_mayner_2026_fig3g_interior_maximum(_iit4_2026):
 
 def _fig4_micro_phi(p):
     substrate = Substrate(examples.differentiation_micro_tpm(p, 0.01))
-    return float(System(substrate, (0, 0), node_indices=(0, 1)).sia().phi)
+    return float(System(substrate, (0, 0), subset=(0, 1)).sia().phi)
 
 
 def _fig4_macro_sia(p):
     substrate = Substrate(examples.differentiation_macro_tpm(p, 0.01))
-    return System(substrate, (0,), node_indices=(0,)).sia()
+    return System(substrate, (0,), subset=(0,)).sia()
 
 
 @pytest.mark.parametrize(("p", "macro_wins"), [(0.060, True), (0.055, False)])
@@ -862,9 +858,9 @@ def test_mayner_2026_fig4_micro_pair_is_maximally_irreducible_within(_iit4_2026,
     """Section 3.3: {a, b} satisfies the maximally-irreducible-within
     criterion for all p in (0, 0.5) -- its phi_s exceeds each unit alone."""
     substrate = Substrate(examples.differentiation_micro_tpm(p, 0.01))
-    pair = float(System(substrate, (0, 0), node_indices=(0, 1)).sia().phi)
+    pair = float(System(substrate, (0, 0), subset=(0, 1)).sia().phi)
     for unit in (0, 1):
-        alone = float(System(substrate, (0, 0), node_indices=(unit,)).sia().phi)
+        alone = float(System(substrate, (0, 0), subset=(unit,)).sia().phi)
         assert pair > alone
 
 
@@ -908,7 +904,7 @@ def test_marshall_2023_fig1_information(
     sia = System(
         examples.marshall_2023_fig1_substrate(variant),
         _MARSHALL_FIG1_STATE,
-        node_indices=(0, 1, 2, 3),
+        subset=(0, 1, 2, 3),
     ).sia()
     spec = sia.intrinsic_specification
     assert spec[Direction.CAUSE] == pytest.approx(ii_c, abs=0.01)
@@ -942,7 +938,7 @@ def test_marshall_2023_fig2_fault_lines(
     sia = System(
         examples.marshall_2023_fig2_substrate(panel),
         (0, 0, 0, 0),
-        node_indices=(0, 1, 2, 3),
+        subset=(0, 1, 2, 3),
     ).sia()
     assert float(sia.phi) == pytest.approx(phi_s, abs=0.0005)
     ratio = float(sia.cause.phi) / sia.intrinsic_specification[Direction.CAUSE]
@@ -959,7 +955,7 @@ def test_marshall_2023_fig2a_two_equivalent_mips(_iit4_2023_current_state_backgr
     system = System(
         examples.marshall_2023_fig2_substrate("A"),
         (0, 0, 0, 0),
-        node_indices=(0, 1, 2, 3),
+        subset=(0, 1, 2, 3),
     )
     sia = system.sia()
     assert sia.partition_margin == 0.0
@@ -1004,9 +1000,7 @@ def test_marshall_2023_fig3_nested_sequence(_iit4_2023_current_state_background)
     five-unit system exceeds every proper prefix."""
     substrate = examples.marshall_2023_fig3_substrate()
     prefixes = [tuple(range(k)) for k in range(1, 6)]
-    sias = [
-        System(substrate, _MARSHALL_FIG3_STATE, node_indices=p).sia() for p in prefixes
-    ]
+    sias = [System(substrate, _MARSHALL_FIG3_STATE, subset=p).sia() for p in prefixes]
     for direction in Direction.both():
         values = [s.intrinsic_specification[direction] for s in sias]
         assert values == sorted(values)

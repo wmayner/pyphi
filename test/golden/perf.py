@@ -99,7 +99,7 @@ def _is_iit3(fixture) -> bool:
 def build_system(fixture) -> System:
     substrate = fixture.build_substrate()
     nodes = fixture.node_indices or substrate.node_indices
-    return System(substrate, fixture.state, nodes)
+    return System(substrate, fixture.state, subset=nodes)
 
 
 def applies(fixture, grain: str) -> bool:

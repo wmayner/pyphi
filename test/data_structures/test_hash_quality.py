@@ -100,7 +100,7 @@ def _iit4_structure() -> None:
         System(
             substrate=examples.basic_substrate(),
             state=(1, 0, 0),
-            node_indices=(0, 1, 2),
+            subset=(0, 1, 2),
         ).ces()
 
 
@@ -109,7 +109,7 @@ def _iit3_structure() -> None:
         System(
             substrate=examples.basic_substrate(),
             state=(1, 0, 0),
-            node_indices=(0, 1, 2),
+            subset=(0, 1, 2),
         ).ces()
 
 

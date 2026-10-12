@@ -9,6 +9,8 @@ applied. Immutable, hashable. The partition is a constructor argument
 from __future__ import annotations
 
 import hashlib
+from dataclasses import KW_ONLY
+from dataclasses import InitVar
 from dataclasses import dataclass
 from dataclasses import field
 from functools import cached_property
@@ -46,9 +48,18 @@ if TYPE_CHECKING:
     from pyphi.types import State
 
 
+def _given(**options: Any) -> dict[str, Any]:
+    """Return the options a caller set, dropping those left at ``None``."""
+    return {name: value for name, value in options.items() if value is not None}
+
+
 @dataclass(frozen=True, eq=False, repr=False)
 class System(Displayable, ToPandasMixin, Serializable):
     """A substrate evaluated in a specific state over a node subset, with partition.
+
+    The keyword-only ``subset`` argument gives the units of the candidate
+    system, by index or label; ``None`` uses every unit of the substrate.
+    The resolved units are the ``node_indices`` attribute.
 
     The ``external_indices`` field specifies which substrate units are the
     background when computing repertoires. When ``None`` (the default), it
@@ -73,26 +84,28 @@ class System(Displayable, ToPandasMixin, Serializable):
 
     substrate: Substrate
     state: State
-    node_indices: NodeIndices = field(default=None)  # type: ignore[assignment]
+    _: KW_ONLY
+    subset: InitVar[NodeIndices | None] = None
     partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     external_indices: tuple[int, ...] = field(default=None)  # type: ignore[assignment]
     background_conditioning: str | None = field(default=None)
     background_state: tuple[int, ...] | None = field(default=None)
+    node_indices: NodeIndices = field(init=False)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, subset: NodeIndices | None) -> None:
         substrate = self.substrate
         # Coerce label-states to integer indices before length/value validation.
         coerced = _coerce_state_to_indices(tuple(self.state), substrate.state_space)
         object.__setattr__(self, "state", coerced)
         validate.state_length(self.state, substrate.size)
         validate.node_states(self.state, substrate.factored_tpm.alphabet_sizes)
-        if self.node_indices is None:
+        if subset is None:
             object.__setattr__(self, "node_indices", tuple(range(substrate.size)))
         else:
             object.__setattr__(
                 self,
                 "node_indices",
-                substrate.node_labels.coerce_to_indices(self.node_indices),
+                substrate.node_labels.coerce_to_indices(subset),
             )
         if self.partition is None:
             object.__setattr__(
@@ -305,7 +318,7 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         _ = self.cause_marginal
         _ = self.effect_marginal
-        new = replace(self, partition=partition)
+        new = replace(self, subset=self.node_indices, partition=partition)
         for name in (
             "_typed_tpm",
             "_cause_marginals",
@@ -315,26 +328,6 @@ class System(Displayable, ToPandasMixin, Serializable):
             if name in self.__dict__:
                 new.__dict__[name] = self.__dict__[name]
         return new
-
-    @classmethod
-    def from_substrate(
-        cls,
-        substrate: Substrate,
-        state: Any,
-        nodes: Any | None = None,
-        partition: DirectedBipartition | None = None,
-        **kwargs: Any,
-    ) -> System:
-        """Construct a System from a substrate, state, and optional node subset."""
-        if nodes is None:
-            nodes = tuple(range(substrate.size))
-        return cls(
-            substrate=substrate,
-            state=tuple(state),
-            node_indices=tuple(nodes),
-            partition=partition,  # type: ignore[arg-type]
-            **kwargs,
-        )
 
     # ---- cached cheap derived properties ----
 
@@ -810,23 +803,76 @@ class System(Displayable, ToPandasMixin, Serializable):
     # formalism. The same operations live as free functions in
     # :mod:`pyphi.formalism` for callers who prefer that grammar.
 
-    def sia(self, **kwargs: Any) -> Any:
+    def sia(
+        self,
+        *,
+        formalism: Any = None,
+        system_state: Any = None,
+        partitions: Any = None,
+        partition_scheme: str | None = None,
+        directions: Any = None,
+        system_measure: Any = None,
+        specification_measure: Any = None,
+        parallel: bool | None = None,
+        progress: bool | None = None,
+    ) -> Any:
         """Return the system irreducibility analysis of this system.
 
-        Resolves the system- and specification-level measures from config at
-        the public boundary and threads them to the active formalism
-        explicitly, so formalism methods are never called without explicit
-        measures in normal flow.
+        Parameters
+        ----------
+        formalism : str, dict, or None, optional
+            The version of IIT, selected as by :func:`pyphi.analyze`, for
+            this call only. ``None`` uses the active configuration.
+        system_state : SystemStateSpecification, optional
+            The system's specified state, when already computed. It must be
+            the specification the analysis would itself compute, since
+            nothing checks it. A call that supplies it bypasses the disk
+            result cache, so a non-canonical state can never be stored as,
+            or served for, the plain ``sia()`` result.
+        partitions : iterable, optional
+            The system partitions to evaluate, in place of those the
+            partition scheme generates.
+        partition_scheme : str, optional
+            The system partition scheme. ``None`` uses
+            ``config.formalism.iit.system_partition_scheme``.
+        directions : iterable of Direction, optional
+            The directions whose specified states are computed. ``None``
+            computes both.
+        system_measure, specification_measure : callable, optional
+            Measures that replace the ones the configuration names
+            (``config.formalism.iit.system_phi_measure`` and
+            ``specification_measure``).
+        parallel : bool or None, optional
+            Evaluate the partitions in parallel. ``None`` defers to
+            ``config.infrastructure.parallel_partition_evaluation``.
+        progress : bool or None, optional
+            Show a progress bar. ``None`` defers to the configuration.
 
-        A ``system_state`` keyword, when given, must be the state
-        specification the analysis would itself compute (it is derived
-        deterministically from the system and configuration). Calls with
-        a caller-supplied ``system_state`` bypass the disk result cache:
-        nothing verifies the supplied state is the canonical one, so
-        sharing the cache entry would let a non-canonical state poison
-        (and be served by) the plain ``sia()`` result.
+        Returns
+        -------
+        SystemIrreducibilityAnalysis
+            The analysis under the selected formalism.
+
+        Raises
+        ------
+        TypeError
+            Under IIT 3.0, if any option other than ``parallel`` or
+            ``progress`` is given: that version has no specified states,
+            partition schemes or system measures to set.
         """
         from pyphi.cache.disk import maybe_disk_cached
+        from pyphi.conf import presets
+
+        options = _given(
+            system_state=system_state,
+            partitions=partitions,
+            partition_scheme=partition_scheme,
+            directions=directions,
+            system_measure=system_measure,
+            specification_measure=specification_measure,
+            parallel=parallel,
+            progress=progress,
+        )
 
         def _compute() -> Any:
             from pyphi.conf import config as _config
@@ -834,7 +880,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             from pyphi.measures.distribution import resolve_mechanism_measure
             from pyphi.measures.distribution import resolve_system_measure
 
-            call_kwargs = dict(kwargs)
+            call_kwargs = dict(options)
             if _config.formalism.iit.version != "IIT_3_0":
                 call_kwargs.setdefault(
                     "system_measure",
@@ -848,13 +894,36 @@ class System(Displayable, ToPandasMixin, Serializable):
                 )
             return _sia(self, **call_kwargs)
 
-        return maybe_disk_cached(self, "sia", dict(kwargs), _compute)
+        with presets.use(formalism):
+            return maybe_disk_cached(self, "sia", options, _compute)
 
-    def ces(self, **kwargs: Any) -> Any:
+    def ces(
+        self,
+        *,
+        formalism: Any = None,
+        sia: Any = None,
+        distinctions: Any = None,
+    ) -> Any:
         """Return the cause-effect structure of this system (Eq. 57).
 
         The result is a :class:`CauseEffectStructure`: the distinctions plus
         their relations.
+
+        Parameters
+        ----------
+        formalism : str, dict, or None, optional
+            The version of IIT, selected as by :func:`pyphi.analyze`, for
+            this call only. ``None`` uses the active configuration.
+        sia : SystemIrreducibilityAnalysis, optional
+            The system's analysis, when already computed. Its specified
+            state resolves the distinctions' congruence.
+        distinctions : Distinctions, optional
+            The system's distinctions, when already computed.
+
+        Returns
+        -------
+        CauseEffectStructure
+            The cause-effect structure under the selected formalism.
 
         Notes
         -----
@@ -862,40 +931,47 @@ class System(Displayable, ToPandasMixin, Serializable):
         :doc:`/howto/earlier-versions`): IIT 3.0 has no relations, so under it
         the CES is exactly the set of distinctions, returned as a
         :class:`~pyphi.models.distinctions.ResolvedDistinctions` with the
-        concepts as ``.concepts``.
+        concepts as ``.concepts``, and ``sia`` is not used.
         """
         from pyphi.cache.disk import maybe_disk_cached
+        from pyphi.conf import presets
+
+        options = _given(sia=sia, distinctions=distinctions)
 
         def _compute() -> Any:
             from pyphi.conf import config as _config
 
-            call_kwargs = dict(kwargs)
-            formalism_name = _config.formalism.iit.version
-            if formalism_name == "IIT_3_0":
+            if _config.formalism.iit.version == "IIT_3_0":
                 from pyphi.formalism.iit3 import (
-                    _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
+                    _compute_distinctions,  # pyright: ignore[reportPrivateUsage]
                 )
                 from pyphi.models.distinctions import ResolvedDistinctions
 
                 # IIT 3.0 has no tied specified states to resolve.
-                return ResolvedDistinctions(_ces(self, **call_kwargs))
+                if distinctions is None:
+                    return ResolvedDistinctions(_compute_distinctions(self))
+                if isinstance(distinctions, ResolvedDistinctions):
+                    return distinctions
+                return ResolvedDistinctions(distinctions)
             from pyphi.formalism.iit4 import ces as _ces
             from pyphi.measures.distribution import resolve_mechanism_measure
             from pyphi.measures.distribution import resolve_system_measure
 
-            call_kwargs.setdefault(
-                "system_measure",
-                resolve_system_measure(_config.formalism.iit.system_phi_measure),
+            return _ces(
+                self,
+                system_measure=resolve_system_measure(
+                    _config.formalism.iit.system_phi_measure
+                ),
+                specification_measure=resolve_mechanism_measure(
+                    _config.formalism.iit.specification_measure
+                ),
+                **options,
             )
-            call_kwargs.setdefault(
-                "specification_measure",
-                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
-            )
-            return _ces(self, **call_kwargs)
 
-        return maybe_disk_cached(self, "ces", kwargs, _compute)
+        with presets.use(formalism):
+            return maybe_disk_cached(self, "ces", options, _compute)
 
-    def distinctions(self, congruent: bool = False, **kwargs: Any) -> Any:
+    def distinctions(self, *, congruent: bool = False) -> Any:
         """Return the :class:`Distinctions` of this system.
 
         The set of irreducible cause-effect distinctions specified by
@@ -934,20 +1010,21 @@ class System(Displayable, ToPandasMixin, Serializable):
             )
             from pyphi.models.distinctions import ResolvedDistinctions
 
-            distinctions = _distinctions(self, **kwargs)
+            distinctions = _distinctions(self)
             return ResolvedDistinctions(distinctions) if congruent else distinctions
         if congruent:
             from pyphi.formalism.iit4 import congruent_distinctions
             from pyphi.measures.distribution import resolve_mechanism_measure
 
-            kwargs.setdefault(
-                "specification_measure",
-                resolve_mechanism_measure(_config.formalism.iit.specification_measure),
+            return congruent_distinctions(
+                self,
+                specification_measure=resolve_mechanism_measure(
+                    _config.formalism.iit.specification_measure
+                ),
             )
-            return congruent_distinctions(self, **kwargs)
         from pyphi.formalism import all_distinctions as _all_distinctions
 
-        return _all_distinctions(self, **kwargs)
+        return _all_distinctions(self)
 
     def find_mip(
         self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
@@ -997,25 +1074,25 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         return _phi_effect_mip(self, mechanism, purview, **kwargs)
 
-    def phi(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+    def phi(self, mechanism: Any, purview: Any) -> float:
         from pyphi.formalism import phi as _phi
 
-        return _phi(self, mechanism, purview, **kwargs)
+        return _phi(self, mechanism, purview)
 
     def find_mice(self, direction: Any, mechanism: Any, **kwargs: Any) -> Any:
         from pyphi.formalism import find_mice as _find_mice
 
         return _find_mice(self, direction, mechanism, **kwargs)
 
-    def mic(self, mechanism: Any, **kwargs: Any) -> Any:
+    def mic(self, mechanism: Any, *, purviews: Any = None) -> Any:
         from pyphi.formalism import mic as _mic
 
-        return _mic(self, mechanism, **kwargs)
+        return _mic(self, mechanism, purviews=purviews)
 
-    def mie(self, mechanism: Any, **kwargs: Any) -> Any:
+    def mie(self, mechanism: Any, *, purviews: Any = None) -> Any:
         from pyphi.formalism import mie as _mie
 
-        return _mie(self, mechanism, **kwargs)
+        return _mie(self, mechanism, purviews=purviews)
 
     def phi_max(self, mechanism: Any) -> float:
         from pyphi.formalism import phi_max as _phi_max
@@ -1067,3 +1144,9 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.core import repertoire_algebra as ra
 
         ra.clear_caches(self)
+
+
+# ``subset`` is only the constructor's spelling; the resolved units are
+# ``node_indices``. The dataclass leaves the InitVar's default behind as a
+# class attribute, which would otherwise read as ``system.subset is None``.
+delattr(System, "subset")

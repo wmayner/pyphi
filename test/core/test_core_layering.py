@@ -63,7 +63,7 @@ def test_system_satisfies_system_public_interface() -> None:
     cs = System(
         substrate=examples.basic_substrate(),
         state=(1, 0, 0),
-        node_indices=(0, 1, 2),
+        subset=(0, 1, 2),
     )
     declared = {a for a in PUBLIC_SYSTEM_ATTRS if not a.startswith("_")}
     discovered = {a for a in dir(cs) if not a.startswith("_")}

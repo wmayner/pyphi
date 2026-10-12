@@ -140,7 +140,7 @@ class TestFastMicroSweeps:
         substrate = MICRO_SUBSTRATES[name]()
         state = (0,) * substrate.size
         with config.override(**presets.iit4_2023):
-            phi = System(substrate, state, indices_of(name, label)).sia().phi
+            phi = System(substrate, state, subset=indices_of(name, label)).sia().phi
         assert phi == pytest.approx(value, abs=1e-13)
 
 
@@ -163,11 +163,11 @@ class TestBuDocumentedDeviation:
         substrate = bu_substrate()
         state = (0, 0, 0)
         with config.override(**presets.iit4_2023):
-            assert System(substrate, state, (0,)).sia().phi == 1.0
-            assert System(substrate, state, (1,)).sia().phi == 1.0
-            assert System(substrate, state, (2,)).sia().phi == 0.0
+            assert System(substrate, state, subset=(0,)).sia().phi == 1.0
+            assert System(substrate, state, subset=(1,)).sia().phi == 1.0
+            assert System(substrate, state, subset=(2,)).sia().phi == 0.0
             for pair in [(0, 1), (0, 2), (1, 2)]:
-                assert System(substrate, state, pair).sia().phi == pytest.approx(
+                assert System(substrate, state, subset=pair).sia().phi == pytest.approx(
                     0.0, abs=1e-13
                 )
             # The full-system value is uncontested and matches the file.
@@ -192,7 +192,7 @@ def _assert_bbx_value(label, value):
     substrate = _bbx_substrate()
     ones = (1,) * 8
     with config.override(**presets.iit4_2023):
-        phi = System(substrate, ones, indices_of("bbx_micro", label)).sia().phi
+        phi = System(substrate, ones, subset=indices_of("bbx_micro", label)).sia().phi
     assert phi == pytest.approx(value, abs=1e-13)
 
 
@@ -286,7 +286,7 @@ class TestMacroNetworkGoldens:
                 System(
                     _authors_cg_macro_substrate(),
                     (0, 0),
-                    indices_of("cg_macro", label),
+                    subset=indices_of("cg_macro", label),
                 )
                 .sia()
                 .phi
@@ -304,7 +304,9 @@ class TestMacroNetworkGoldens:
         value = load_summary("bbx_macro")[label]
         with config.override(**presets.iit4_2023):
             phi = (
-                System(_bbx_macro_substrate(), (1, 1), indices_of("bbx_macro", label))
+                System(
+                    _bbx_macro_substrate(), (1, 1), subset=indices_of("bbx_macro", label)
+                )
                 .sia()
                 .phi
             )
@@ -360,9 +362,9 @@ class TestFormalismCandidateGoldens:
         with config.override(**presets.iit4_2023):
             _, effect = macro_tpms(substrate, CG_UNITS, (state,))
             exact = Substrate.from_factored(effect, node_labels=("a", "b"))
-            assert System(exact, (0, 0), (0,)).sia().phi == pytest.approx(
+            assert System(exact, (0, 0), subset=(0,)).sia().phi == pytest.approx(
                 0.013601643567390003, abs=1e-13
             )
-            assert System(exact, (0, 0), (1,)).sia().phi == pytest.approx(
+            assert System(exact, (0, 0), subset=(1,)).sia().phi == pytest.approx(
                 0.013601643567389368, abs=1e-13
             )

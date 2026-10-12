@@ -377,9 +377,7 @@ class TestRequirementBindingFinding:
         # The aB system of the Fig 1A logistic network: the requirement lowers
         # its φ_s from the published 0.17 to about 0.04
         # (docs/theory/intrinsic-information.md).
-        system = System(
-            examples.iit4_2023_fig1a_substrate(), (0, 1, 1), node_indices=(0, 1)
-        )
+        system = System(examples.iit4_2023_fig1a_substrate(), (0, 1, 1), subset=(0, 1))
         with config.override(
             **presets.by_name[preset_name],
             validate_system_states=False,

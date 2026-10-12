@@ -679,7 +679,7 @@ def prepare_ces(
         label, formalism_, subset, state = cell
         with config.override(**_formalism_preset(formalism_), progress_bars=False):
             try:
-                System.from_substrate(substrate_map[label], tuple(state), subset)
+                System(substrate_map[label], tuple(state), subset=subset)
             except _UNREACHABLE:
                 if not skip_uncomputable:
                     raise
@@ -711,7 +711,7 @@ def prepare_ces(
         with config.override(**presets.by_name[formalism_], progress_bars=False):
             # The plan is state-independent; the group's first cell state
             # stands in for construction (and is validated here).
-            system = System.from_substrate(substrate_map[label], tuple(state), subset)
+            system = System(substrate_map[label], tuple(state), subset=subset)
             resolved = resolve_scope(scope, system.node_labels)
             group_workloads = (
                 workloads
@@ -1517,7 +1517,7 @@ def _collect_ces(
         with config.override(
             **_formalism_preset(formalism_), parallel=False, progress_bars=False
         ):
-            system = System(substrate, tuple(state), node_indices=tuple(subset))
+            system = System(substrate, tuple(state), subset=tuple(subset))
             scope = resolve_scope(user_scope, system.node_labels)
             structure, report = _merge_cell(
                 directory,

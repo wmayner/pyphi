@@ -22,7 +22,7 @@ topic is tagged with who it affects:
 | Old | New | Affects |
 | --- | --- | --- |
 | `pyphi.Network` | `pyphi.Substrate` | [1.x] |
-| `pyphi.Subsystem` | `pyphi.System` | [1.x] |
+| `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` | [1.x] |
 | `pyphi.compute.*` | `pyphi.analyze(...)` | [1.x] |
 | `subsystem.cause_tpm` | `system.cause_marginal` | [both] |
 | `subsystem.effect_tpm` | `system.effect_marginal` | [both] |
@@ -121,7 +121,7 @@ values are the names in {mod}`pyphi.measures`.
 | `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
 | `compute.ces(subsystem)`, the concepts | `analyze(..., formalism="IIT_3_0").ces`, a `ResolvedDistinctions`; the concepts are `.concepts` |
 | `concept.phi`, `concept.mechanism` | unchanged on each concept |
-| `compute.major_complex(network, state)` | `substrate.complexes(state)`, recursive exclusion over every subset; the first entry is the strongest |
+| `compute.major_complex(network, state)` | `substrate.complexes(state, formalism="IIT_3_0")`, recursive exclusion over every subset; the first entry is the strongest |
 
 ## Building and analyzing
 
@@ -157,7 +157,7 @@ the given units — the whole substrate by default, or the `subset` argument —
 and does not search for the complex. To find complexes, use
 `substrate.complexes()` or `substrate.maximal_complex()`; to analyze a
 specific subset, pass `subset=` or construct a `System` directly:
-`pyphi.System(substrate, state, node_indices=(0, 1, 2))`.
+`pyphi.System(substrate, state, subset=(0, 1, 2))`.
 
 ## Choosing a formalism
 

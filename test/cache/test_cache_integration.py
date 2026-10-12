@@ -24,7 +24,7 @@ def test_sia_run_populates_kernel_and_combinatorial_caches():
     cs = System(
         substrate=substrate,
         state=(1, 0, 0),
-        node_indices=(0, 1, 2),
+        subset=(0, 1, 2),
     )
     _ = sia(cs)
 
@@ -52,7 +52,7 @@ def test_clear_all_empties_every_registered_cache():
     cs = System(
         substrate=substrate,
         state=(1, 0, 0),
-        node_indices=(0, 1, 2),
+        subset=(0, 1, 2),
     )
     _ = sia(cs)
     assert any(v.currsize > 0 for v in cache.info().values())

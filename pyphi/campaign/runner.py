@@ -258,9 +258,7 @@ def _run_ces_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
     failed = False
     spec = task.spec
     with config.override(**_shard_config(task)):
-        system = System(
-            substrates[task.substrate_label], task.state, node_indices=task.subset
-        )
+        system = System(substrates[task.substrate_label], task.state, subset=task.subset)
         scheme = config.formalism.iit.mechanism_partition_scheme  # pyright: ignore[reportAttributeAccessIssue]
         try:
             if spec.payload_kind == "mechanisms":
@@ -399,9 +397,7 @@ def _run_sia_shard(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]
     from pyphi.system import System
 
     with config.override(**_shard_config(task)):
-        system = System(
-            substrates[task.substrate_label], task.state, node_indices=task.subset
-        )
+        system = System(substrates[task.substrate_label], task.state, subset=task.subset)
         scheme = config.formalism.iit.system_partition_scheme  # pyright: ignore[reportAttributeAccessIssue]
         i, k = task.stride
         parts, indices = _shards.enumerate_system_partition_stride(system, scheme, i, k)

@@ -727,7 +727,7 @@ class TestMeasuredBounds:
             marginals.append(f / f.sum(axis=-1, keepdims=True))
         substrate = Substrate(marginals=marginals, state_space=("LOW", "MID", "HIGH"))
         with config.override(**DOMAIN_CONFIGS["iit4_2023"]):
-            system = System(substrate, (0, 0), substrate.node_indices)
+            system = System(substrate, (0, 0), subset=substrate.node_indices)
             distinctions, sum_phi_r = self._concrete(system)
             measured = bounds.sum_phi_relations_measured_bound(distinctions)
         assert distinctions, "fixture must yield distinctions; adjust seed/state"
@@ -807,7 +807,7 @@ class TestConjectureProbes:
         for state in all_states(n):
             try:
                 with config.override(validate_system_states=False):
-                    system = System(substrate, state=state, node_indices=(0, 1, 2))
+                    system = System(substrate, state=state, subset=(0, 1, 2))
                     return sum(float(d.phi) for d in system.distinctions())
             except StateUnreachableError:
                 continue
@@ -856,7 +856,7 @@ class TestConstructionParity:
     def _construction_system(n, k):
         tpm = bounds._construction_tpm(n, k)
         substrate = Substrate(tpm, cm=np.ones((n, n)))
-        return System(substrate, state=(0,) * n, node_indices=tuple(range(n)))
+        return System(substrate, state=(0,) * n, subset=tuple(range(n)))
 
     @pytest.mark.parametrize("n,k", [(n, k) for n in (2, 3, 4) for k in range(1, n + 1)])
     def test_phi_e_star_matches_pipeline_on_candidates(self, n, k):

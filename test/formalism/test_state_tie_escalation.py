@@ -163,5 +163,5 @@ def test_state_tie_matches_external_exact_reference(tpm, state, nodes, expected)
     """A tied specified-state pair resolves to the maximal φ_s (S1), matching
     an independent exact-arithmetic implementation of IIT 4.0 (2023)."""
     with config.override(**presets.iit4_2023):
-        sia = System(Substrate(np.array(tpm)), state, node_indices=nodes).sia()
+        sia = System(Substrate(np.array(tpm)), state, subset=nodes).sia()
     assert float(sia.phi) == pytest.approx(expected, rel=1e-9)

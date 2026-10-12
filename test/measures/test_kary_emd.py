@@ -110,9 +110,7 @@ def test_kary_emd_runs_as_iit3_mechanism_measure():
         validate_system_states=False,
         progress_bars=False,
     ):
-        system = System(
-            examples.gomez_p53_mdm2_substrate(), (0, 0, 1), node_indices=(0, 1, 2)
-        )
+        system = System(examples.gomez_p53_mdm2_substrate(), (0, 0, 1), subset=(0, 1, 2))
         assert float(system.sia().phi) == pytest.approx(0.5, abs=1e-3)
 
 

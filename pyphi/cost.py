@@ -595,7 +595,7 @@ def estimate_analysis(
     from pyphi.direction import Direction
     from pyphi.system import System
 
-    cs = System.from_substrate(substrate, (0,) * substrate.size, subset)
+    cs = System(substrate, (0,) * substrate.size, subset=subset)
     indices = cs.node_indices
     m = len(indices)
     alphabet = substrate.factored_tpm.alphabet_sizes
@@ -742,7 +742,7 @@ def mechanism_workloads(
     from pyphi.direction import Direction
     from pyphi.system import System
 
-    cs = System.from_substrate(substrate, (0,) * substrate.size, subset)
+    cs = System(substrate, (0,) * substrate.size, subset=subset)
     alphabet = substrate.factored_tpm.alphabet_sizes
     counter = _Counter(limit)
     workloads: dict[tuple[int, ...], MechanismWorkload] = {}

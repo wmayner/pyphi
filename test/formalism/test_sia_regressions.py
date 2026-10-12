@@ -37,7 +37,7 @@ def test_monad_sia_under_cut_one_scheme_is_zero():
         pyphi.config.override(**presets.iit4_2026),
         pyphi.config.override(system_partition_scheme="DIRECTED_BIPARTITION_CUT_ONE"),
     ):
-        sia = pyphi.formalism.sia(pyphi.System(substrate, (1,), (0,)))
+        sia = pyphi.formalism.sia(pyphi.System(substrate, (1,), subset=(0,)))
     assert float(sia.phi) == 0.0
 
 
@@ -91,14 +91,14 @@ def test_single_direction_sia_resolves_ties_within_that_direction(preset_name, e
     raising on the empty effect-candidate set."""
     preset = getattr(presets, preset_name)
     with pyphi.config.override(**preset):
-        system = pyphi.System(examples.xor_substrate(), (0, 0, 0), (0, 1, 2))
+        system = pyphi.System(examples.xor_substrate(), (0, 0, 0), subset=(0, 1, 2))
         sia = system.sia(directions=[Direction.CAUSE])
     assert float(sia.phi) == pytest.approx(expected)
 
 
 def test_single_direction_sia_is_deterministic():
     with pyphi.config.override(**presets.iit4_2026):
-        system = pyphi.System(examples.xor_substrate(), (0, 0, 0), (0, 1, 2))
+        system = pyphi.System(examples.xor_substrate(), (0, 0, 0), subset=(0, 1, 2))
         first = system.sia(directions=[Direction.CAUSE])
         system.clear_caches()
         second = system.sia(directions=[Direction.CAUSE])

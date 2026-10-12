@@ -37,7 +37,7 @@ def system():
     return System(
         example_substrates.noisy_or_background_substrate(),
         (1, 0, 0),
-        node_indices=(0, 1),
+        subset=(0, 1),
     )
 
 
@@ -93,7 +93,7 @@ class TestEndToEnd:
         with config.override(**presets.iit3, progress_bars=False):
             for key, expected in oracle["basic_network_subsets"].items():
                 nodes = tuple(int(x) for x in key.strip("()").split(",") if x.strip())
-                system = System(basic, (1, 0, 0), node_indices=nodes)
+                system = System(basic, (1, 0, 0), subset=nodes)
                 phi = float(iit3.sia(system).phi)
                 # rel, not abs: the (0, 1, 2) full-substrate EMD sum carries
                 # the same ~1e-6 floating-point residual as the 2.3125

@@ -101,9 +101,10 @@ class TestConstruction:
         with pytest.raises(ValueError, match="substrate"):
             MacroSystem.from_micro(substrate, units, ((1, 0, 1, 0),))
 
-    def test_from_substrate_directs_to_from_micro(self):
+    def test_direct_construction_directs_to_from_micro(self):
+        substrate = _asymmetric_substrate()
         with pytest.raises(TypeError, match="from_micro"):
-            MacroSystem.from_substrate(None, None)
+            MacroSystem(substrate, (0,) * substrate.size)
 
 
 class TestProtocolSurface:
@@ -234,7 +235,7 @@ class TestMicroReduction:
             state = (1, 0, 0)
             subset = (0, 1)
             macro = _identity_macro(substrate, state, subset, ["A", "B"])
-            micro = System(substrate, state, subset)
+            micro = System(substrate, state, subset=subset)
             assert macro.sia().phi == micro.sia().phi
 
 
@@ -254,7 +255,7 @@ class TestPaperExample1:
                 (0, 1, 2, 3): 0.02015654077792439,
             }
             for nodes, expected in panel.items():
-                phi = System(substrate, state, nodes).sia().phi
+                phi = System(substrate, state, subset=nodes).sia().phi
                 assert phi == pytest.approx(expected, abs=1e-13)
 
     def test_macro_phi_s(self):
@@ -328,7 +329,7 @@ class TestPaperExample2:
                 (0, 1, 2, 3): 0.02998866492258486,
             }
             for nodes, expected in panel.items():
-                phi = System(substrate, ones, nodes).sia().phi
+                phi = System(substrate, ones, subset=nodes).sia().phi
                 assert phi == pytest.approx(expected, abs=1e-13)
 
     def test_macro_beats_micro(self):

@@ -198,7 +198,7 @@ def test_weakly_connected_subset_collects(tmp_path):
     _run_all(directory)
     result = collect(directory)
     with pyphi.config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
-        local = pyphi.System(substrate, BASIC_STATE, node_indices=(0, 1)).ces()
+        local = pyphi.System(substrate, BASIC_STATE, subset=(0, 1)).ces()
     assert float(result.sia.phi) == float(local.sia.phi)
     assert sorted(
         (tuple(d.mechanism), round(float(d.phi), 10)) for d in result.distinctions
@@ -227,7 +227,7 @@ def test_multi_subset_sweep_collects_each_cell(tmp_path):
     assert isinstance(result, SweepResult)
     for subset, structure in zip(subsets, result.results, strict=True):
         with pyphi.config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
-            local = pyphi.System(substrate, BASIC_STATE, node_indices=subset).ces()
+            local = pyphi.System(substrate, BASIC_STATE, subset=subset).ces()
         assert sorted(
             (tuple(d.mechanism), round(float(d.phi), 10)) for d in structure.distinctions
         ) == sorted(

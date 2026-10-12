@@ -87,9 +87,9 @@ def test_under_specified_cm_undercounts_phi():
         true_cm = _mutual_copy(cm=np.array([[0, 1], [1, 0]]))
         under = _mutual_copy(cm=np.array([[0, 0], [1, 0]]))
 
-        phi_all_ones = System(all_ones, state, all_ones.node_indices).sia().phi
-        phi_true = System(true_cm, state, true_cm.node_indices).sia().phi
-        phi_under = System(under, state, under.node_indices).sia().phi
+        phi_all_ones = System(all_ones, state, subset=all_ones.node_indices).sia().phi
+        phi_true = System(true_cm, state, subset=true_cm.node_indices).sia().phi
+        phi_under = System(under, state, subset=under.node_indices).sia().phi
 
         # Over-specification does not change φ: all-ones == true CM.
         assert numerics.eq(phi_all_ones, phi_true)

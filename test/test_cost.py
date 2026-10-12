@@ -429,7 +429,7 @@ class TestSpecifiedStateAxis:
         )
 
         substrate = noisy_ring(n, seed=11)
-        system = System(substrate, (0,) * n, substrate.node_indices)
+        system = System(substrate, (0,) * n, subset=substrate.node_indices)
         system_intrinsic_information(
             system,
             specification_measure=resolve_mechanism_measure(

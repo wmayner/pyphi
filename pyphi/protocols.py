@@ -164,7 +164,6 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "external_indices",
         "background_conditioning",
         "background_state",
-        "from_substrate",
         "substrate",
         "node_indices",
         "node_labels",
@@ -277,7 +276,6 @@ class SystemPublicInterface(Protocol):
     proper_cm: Any
     proper_effect_marginal: Any
     state: Any
-    from_substrate: Callable[..., Any]
     # Properties
     connectivity_matrix: Any
     partition_indices: Any

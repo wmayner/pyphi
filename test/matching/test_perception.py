@@ -35,7 +35,7 @@ def perception():
         pyphi.config.override(relation_computation="CONCRETE"),
     ):
         ces = substrate.ces(
-            state=_full_state(sensory, system, stimulus, y), indices=system
+            state=_full_state(sensory, system, stimulus, y), subset=system
         )
     return Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
 
@@ -87,7 +87,7 @@ def test_consistency_guard_rejects_wrong_state():
     wrong = tuple(1 - v for v in y)
     with pyphi.config.override(**presets.iit4_2026):
         ces = substrate.ces(
-            state=_full_state(sensory, system, stimulus, wrong), indices=system
+            state=_full_state(sensory, system, stimulus, wrong), subset=system
         )
     with pytest.raises(ValueError, match="triggered"):
         Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
@@ -109,7 +109,7 @@ def analytical_perception():
         pyphi.config.override(relation_computation="ANALYTICAL"),
     ):
         ces = substrate.ces(
-            state=_full_state(sensory, system, stimulus, y), indices=system
+            state=_full_state(sensory, system, stimulus, y), subset=system
         )
         assert isinstance(ces.relations, AnalyticalRelations)  # precondition
     return Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)

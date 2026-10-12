@@ -48,7 +48,7 @@ def compute_all_layers(
     """
     substrate = fixture.build_substrate()
     nodes = fixture.node_indices or substrate.node_indices
-    system = System(substrate, fixture.state, nodes)
+    system = System(substrate, fixture.state, subset=nodes)
 
     # Hash the canonical explicit-alphabet joint, uniform for binary and k-ary
     # substrates.

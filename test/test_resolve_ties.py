@@ -370,7 +370,7 @@ def test_iit3_sia_map_reduce_consults_sia_tie_resolution():
     bad = {**presets.iit3}
     bad["iit"] = replace(bad["iit"], sia_tie_resolution=["DEFINITELY_NOT_A_STRATEGY"])
     with config.override(validate_config=False), config.override(**bad):
-        sys = System.from_substrate(substrate, state, substrate.node_indices)
+        sys = System(substrate, state, subset=substrate.node_indices)
         with pytest.raises(ConfigurationError, match="sia_tie_resolution"):
             sys.sia()
 
@@ -418,10 +418,10 @@ def test_iit3_find_mip_consults_mip_tie_resolution():
         probed = {**presets.iit3}
         probed["iit"] = replace(probed["iit"], mip_tie_resolution=["___MIP_PROBE"])
         with config.override(**probed):
-            sys = System.from_substrate(
+            sys = System(
                 substrate := examples.basic_substrate(),
                 (1, 0, 0),
-                substrate.node_indices,
+                subset=substrate.node_indices,
             )
             with pytest.raises(ProbeConsulted):
                 sys.find_mip(Direction.CAUSE, (0,), (1, 2))

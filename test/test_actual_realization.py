@@ -150,16 +150,16 @@ def test_causal_nexus_valid_pair_still_works(swap_substrate):
 
 def test_events_rejects_impossible_first_pair(swap_substrate):
     with pytest.raises(exceptions.TransitionUnreachableError):
-        actual.events(swap_substrate, (0, 0), (1, 0), (0, 1), (0, 1))
+        actual.events(swap_substrate, (0, 0), (1, 0), (0, 1), subset=(0, 1))
 
 
 def test_events_rejects_impossible_second_pair(swap_substrate):
     with pytest.raises(exceptions.TransitionUnreachableError):
-        actual.events(swap_substrate, (0, 0), (0, 0), (1, 0), (0, 1))
+        actual.events(swap_substrate, (0, 0), (0, 0), (1, 0), subset=(0, 1))
 
 
 def test_events_valid_triplet_still_works(swap_substrate):
-    result = actual.events(swap_substrate, (1, 0), (0, 1), (1, 0), (0, 1))
+    result = actual.events(swap_substrate, (1, 0), (0, 1), (1, 0), subset=(0, 1))
     assert isinstance(result, tuple)
 
 

@@ -114,7 +114,7 @@ def test_resulting_substrate_runs_through_sia():
             2: {"mechanism": "xor", "inputs": (0, 1)},
         }
     )
-    system = pyphi.System.from_substrate(sub, state=(1, 0, 0))
+    system = pyphi.System(sub, state=(1, 0, 0))
     assert system.sia().phi >= 0
 
 

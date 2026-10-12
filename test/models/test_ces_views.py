@@ -166,7 +166,7 @@ def test_meet_requires_same_frame(xor_ces):
     from pyphi.system import System
 
     xor = examples.xor_system()
-    sub_ces = System(xor.substrate, state=xor.state, node_indices=(0, 1)).ces()
+    sub_ces = System(xor.substrate, state=xor.state, subset=(0, 1)).ces()
     with pytest.raises(ValueError, match="not in the same frame"):
         xor_ces.meet(sub_ces)
 

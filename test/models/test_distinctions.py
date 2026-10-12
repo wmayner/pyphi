@@ -83,7 +83,7 @@ def test_macro_system_never_equals_plain_system():
         plain = System(
             macro.substrate,
             macro.state,
-            node_indices=macro.node_indices,
+            subset=macro.node_indices,
             external_indices=macro.external_indices,
         )
         assert macro != plain

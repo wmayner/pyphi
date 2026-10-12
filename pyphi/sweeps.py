@@ -177,7 +177,7 @@ def _run_cell(
     """
     label, subset, state = cell
     try:
-        system = System(substrates[label], state, node_indices=subset)
+        system = System(substrates[label], state, subset=subset)
         return _dispatch_compute(system, compute)
     except _UNREACHABLE:
         if skip:

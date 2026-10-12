@@ -523,7 +523,7 @@ def test_system_compact_matches_expected_label_subset():
 
     sub = pyphi.examples.basic_substrate()
     sub2 = Substrate(sub.joint_tpm(), node_labels=("A", "B", "C"))
-    sys = System(sub2, (0, 0, 0), ("B", "C"))
+    sys = System(sub2, (0, 0, 0), subset=("B", "C"))
     with pyphi.config.override(repr_verbosity=0):
         assert str(sys) == "System(B, C)"
 
@@ -1211,7 +1211,9 @@ def test_system_card_embeds_conditioned_tpms():
 
     pyphi.config.progress_bars = False
     sub = pyphi.examples.basic_system().substrate
-    sys = System(sub, (1, 0, 0), (1, 2))  # subset {B,C}; A is background, fixed at 1
+    sys = System(
+        sub, (1, 0, 0), subset=(1, 2)
+    )  # subset {B,C}; A is background, fixed at 1
     out = repr(sys)
     assert "Background" in out and "A=1" in out  # conditioning surfaced
     assert "Connectivity" in out
@@ -1230,7 +1232,7 @@ def test_system_marginals_gated_to_high_verbosity():
 
     pyphi.config.progress_bars = False
     sub = pyphi.examples.basic_system().substrate
-    sysm = System(sub, (1, 0, 0), (1, 2))
+    sysm = System(sub, (1, 0, 0), subset=(1, 2))
     with pyphi.config.override(repr_verbosity=1):  # MEDIUM
         out = repr(sysm)
     assert "Connectivity" in out

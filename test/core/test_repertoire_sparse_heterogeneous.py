@@ -32,7 +32,7 @@ def _sparse_het_substrate():
 
 def test_sparse_het_cause_repertoire_shape():
     sub = _sparse_het_substrate()
-    s = System(substrate=sub, state=(0, 0, 0), node_indices=(0, 1, 2))
+    s = System(substrate=sub, state=(0, 0, 0), subset=(0, 1, 2))
     r = s.repertoire(Direction.CAUSE, (2,), (0,))  # mechanism k=4, purview k=3
     expected = repertoire_shape(
         s.node_indices, (0,), alphabet_sizes=sub.factored_tpm.alphabet_sizes
@@ -43,7 +43,7 @@ def test_sparse_het_cause_repertoire_shape():
 
 def test_sparse_het_effect_repertoire_shape():
     sub = _sparse_het_substrate()
-    s = System(substrate=sub, state=(0, 0, 0), node_indices=(0, 1, 2))
+    s = System(substrate=sub, state=(0, 0, 0), subset=(0, 1, 2))
     r = s.repertoire(Direction.EFFECT, (0,), (2,))  # mechanism k=3, purview k=4
     expected = repertoire_shape(
         s.node_indices, (2,), alphabet_sizes=sub.factored_tpm.alphabet_sizes
@@ -75,6 +75,6 @@ def test_background_conditioning_on_size1_axis_matches_dense():
     # units' factors. The sparse and dense forms are the same TPM, so the
     # analysis must agree.
     state = (0, 0, 1)
-    phi_sparse = System(sparse_sub, state, (0, 1)).sia().phi
-    phi_dense = System(dense_sub, state, (0, 1)).sia().phi
+    phi_sparse = System(sparse_sub, state, subset=(0, 1)).sia().phi
+    phi_dense = System(dense_sub, state, subset=(0, 1)).sia().phi
     assert phi_sparse == pytest.approx(phi_dense, abs=1e-12)

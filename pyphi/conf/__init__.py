@@ -24,6 +24,7 @@ from pyphi.conf._field_routing import ConfigurationError
 from pyphi.conf._global import _GlobalConfig
 from pyphi.conf._helpers import fallback
 from pyphi.conf._helpers import parallel_kwargs
+from pyphi.conf._helpers import reject_unknown_kwargs
 from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.conf.formalism import IITConfig
@@ -59,4 +60,5 @@ __all__ = [
     "iit4_2023",
     "iit4_2026",
     "parallel_kwargs",
+    "reject_unknown_kwargs",
 ]

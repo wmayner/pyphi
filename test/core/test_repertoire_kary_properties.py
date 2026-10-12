@@ -53,7 +53,7 @@ def test_repertoire_matches_reference(seed, alphabets, dense, direction):
     # marginalization against the reference, so opt out of the check.
     with config.override(validate_connectivity=False):
         sub = Substrate(marginals=marginals, state_space=state_space, cm=cm)
-    s = System(substrate=sub, state=state, node_indices=tuple(range(n)))
+    s = System(substrate=sub, state=state, subset=tuple(range(n)))
     mechanism, purview = (0,), (n - 1,)
     got = np.asarray(s.repertoire(direction, mechanism, purview))
     reffn = ref_cause if direction == Direction.CAUSE else ref_effect

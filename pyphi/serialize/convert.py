@@ -1112,7 +1112,7 @@ def _register_system() -> None:
     _DECODERS[schema.SystemSchema] = lambda s: System(
         substrate=from_schema(s.substrate),
         state=tuple(s.state),
-        node_indices=tuple(s.node_indices),
+        subset=tuple(s.node_indices),
         partition=from_schema(s.partition),
         external_indices=tuple(s.external_indices),
         background_conditioning=s.background_conditioning,
@@ -1401,7 +1401,7 @@ def _register_macro_system() -> None:
         return MacroSystem(
             substrate=from_schema(s.substrate),
             state=tuple(s.state),
-            node_indices=tuple(s.node_indices),
+            subset=tuple(s.node_indices),
             partition=from_schema(s.partition),
             external_indices=tuple(s.external_indices),
             background_conditioning=s.background_conditioning,

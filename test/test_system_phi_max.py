@@ -78,7 +78,7 @@ def computed():
     with _pin():
         s = example_substrates.s()
         system = {
-            cut: System(s.substrate, s.state, s.node_indices, partition=cut)
+            cut: System(s.substrate, s.state, subset=s.node_indices, partition=cut)
             for cut in cuts
         }
         mips = {

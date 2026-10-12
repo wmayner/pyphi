@@ -437,6 +437,10 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
     ----------
     system : System
         The candidate set of nodes.
+    **kwargs
+        Options of the partition evaluation's
+        :func:`~pyphi.parallel.map_reduce` (``parallel``, ``progress``, ...).
+        Any other name raises ``TypeError``.
 
     Returns
     -------
@@ -445,7 +449,7 @@ def _sia(system: System, **kwargs: Any) -> IIT3SystemIrreducibilityAnalysis:
         calculations. The top level contains the basic irreducibility
         information for the given system.
     """
-    # pylint: disable=unused-argument
+    conf.reject_unknown_kwargs("sia", kwargs)
     _check_active_version()
 
     log.info("Calculating big-phi data for %s...", system)

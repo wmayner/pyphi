@@ -80,7 +80,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            full,
+            subset=full,
             partition=DirectedBipartition(Direction.EFFECT, (2,), (0, 1)),
         ),
         [0],
@@ -95,7 +95,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            (1, 2),
+            subset=(1, 2),
             partition=DirectedBipartition(Direction.EFFECT, (1,), (2,)),
         ),
         [2],
@@ -107,7 +107,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            (1, 2),
+            subset=(1, 2),
             partition=DirectedBipartition(Direction.EFFECT, (1,), (2,)),
         ),
         [2],
@@ -119,7 +119,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            (0, 2),
+            subset=(0, 2),
             partition=DirectedBipartition(Direction.EFFECT, (0,), (2,)),
         ),
         [2],
@@ -247,7 +247,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            full,
+            subset=full,
             partition=DirectedBipartition(Direction.EFFECT, (0, 2), (1,)),
         ),
         [0],
@@ -259,7 +259,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            full,
+            subset=full,
             partition=DirectedBipartition(Direction.EFFECT, (0, 2), (1,)),
         ),
         [0, 1, 2],
@@ -274,7 +274,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            (1, 2),
+            subset=(1, 2),
             partition=DirectedBipartition(Direction.EFFECT, (1,), (2,)),
         ),
         [1],
@@ -286,7 +286,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            (1, 2),
+            subset=(1, 2),
             partition=DirectedBipartition(Direction.EFFECT, (1,), (2,)),
         ),
         [],
@@ -298,7 +298,7 @@ scenarios = [
         System(
             standard,
             standard_system.state,
-            (1, 2),
+            subset=(1, 2),
             partition=DirectedBipartition(Direction.EFFECT, (1,), (2,)),
         ),
         [1],

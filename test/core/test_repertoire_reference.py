@@ -122,7 +122,7 @@ def test_repertoires_match_reference_sweep(n, alph, connectivity):
             state_space=state_space,
             cm=cut_cm,
         )
-        sys = System(substrate=sub, state=state, node_indices=tuple(range(n)))
+        sys = System(substrate=sub, state=state, subset=tuple(range(n)))
         for direction, reffn in (
             (Direction.CAUSE, ref_cause),
             (Direction.EFFECT, ref_effect),
@@ -153,7 +153,7 @@ def test_partition_repertoire_matches_cut_cm_substrate():
     base = Substrate(
         marginals=[f.copy() for f in factors], state_space=state_space, cm=base_cm
     )
-    s = System(substrate=base, state=state, node_indices=(0, 1, 2))
+    s = System(substrate=base, state=state, subset=(0, 1, 2))
     part = DirectedBipartition(
         Direction.EFFECT, from_nodes=(0,), to_nodes=(1, 2), node_labels=s.node_labels
     )
@@ -162,7 +162,7 @@ def test_partition_repertoire_matches_cut_cm_substrate():
     ref_sub = _permissive_substrate(
         marginals=[f.copy() for f in factors], state_space=state_space, cm=cut_cm
     )
-    s_ref = System(substrate=ref_sub, state=state, node_indices=(0, 1, 2))
+    s_ref = System(substrate=ref_sub, state=state, subset=(0, 1, 2))
     for direction in (Direction.CAUSE, Direction.EFFECT):
         a = np.asarray(s_cut.repertoire(direction, (0,), (2,)))
         b = np.asarray(s_ref.repertoire(direction, (0,), (2,)))

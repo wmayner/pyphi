@@ -168,7 +168,7 @@ def test_system_level_proper_cause_marginal_on_large_substrate():
     sub = Substrate(marginals=factors)
     state = tuple(int(bit) for bit in rng.integers(0, 2, size=N_LARGE))
     with config.override(validate_system_states=False):
-        sys_ = System(sub, state=state, node_indices=(18, 19, 20, 21))
+        sys_ = System(sub, state=state, subset=(18, 19, 20, 21))
         proper = sys_.proper_cause_marginal
     assert proper.n_nodes == 4
     for slot in range(4):

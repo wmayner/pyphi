@@ -19,7 +19,7 @@ def test_possible_complexes(s):
     # candidate: the background's past is weighted by its probability given
     # the current state (Eq. 4), so no subset's state is unreachable.
     assert list(possible_complexes(s.substrate, s.state)) == [
-        System.from_substrate(s.substrate, s.state, indices)
+        System(s.substrate, s.state, subset=indices)
         for indices in [(0, 1, 2), (1, 2), (0, 2), (0, 1), (2,), (1,), (0,)]
     ]
 
@@ -182,7 +182,7 @@ class TestSiaCesConsistencyIIT30:
         """iit3.sia and iit3.ces produce the same SIA phi for the same system."""
         with config.override(**presets.iit3, progress_bars=False):
             substrate = substrate_factory()
-            system = System.from_substrate(substrate, state, substrate.node_indices)
+            system = System(substrate, state, subset=substrate.node_indices)
             ces_sia_phi = iit3.ces(system).sia.phi
             direct_sia_phi = iit3.sia(system).phi
         assert ces_sia_phi == direct_sia_phi, (
@@ -582,9 +582,9 @@ class TestS1TerminalTieBranch:
         substrate = _mirror_symmetric_substrate()
         state = (0, 0, 0)
         with config.override(**presets.iit4_2023, validate_system_states=False):
-            ab = System(substrate, state, node_indices=(0, 1)).sia()
-            bc = System(substrate, state, node_indices=(1, 2)).sia()
-            abc = System(substrate, state, node_indices=(0, 1, 2)).sia()
+            ab = System(substrate, state, subset=(0, 1)).sia()
+            bc = System(substrate, state, subset=(1, 2)).sia()
+            abc = System(substrate, state, subset=(0, 1, 2)).sia()
             # The construction really does tie, at the top phi_s tier.
             assert float(ab.phi) == pytest.approx(float(bc.phi), abs=1e-12)
             assert float(ab.phi) > float(abc.phi) > 0

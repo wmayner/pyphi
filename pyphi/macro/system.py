@@ -57,10 +57,10 @@ class MacroSystem(System):
     micro_history: tuple[tuple[int, ...], ...] = ()
     macro_cause_marginal: FactoredTPM | None = field(default=None, repr=False)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, subset: Any) -> None:
         if self.micro_substrate is None or not self.units:
             raise TypeError("MacroSystem must be constructed via MacroSystem.from_micro")
-        super().__post_init__()
+        super().__post_init__(subset)
 
     @classmethod
     def from_micro(
@@ -99,13 +99,6 @@ class MacroSystem(System):
             micro_substrate=substrate,
             micro_history=history,
             macro_cause_marginal=cause_marginal,
-        )
-
-    @classmethod
-    def from_substrate(cls, *args: Any, **kwargs: Any) -> MacroSystem:  # noqa: ARG003
-        raise TypeError(
-            "MacroSystem cannot be built from a substrate alone; use "
-            "MacroSystem.from_micro(substrate, units, micro_history)"
         )
 
     @property

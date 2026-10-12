@@ -30,7 +30,7 @@ def _system() -> System:
     return System(
         substrate=examples.basic_substrate(),
         state=(1, 0, 0),
-        node_indices=(0, 1, 2),
+        subset=(0, 1, 2),
     )
 
 
@@ -126,7 +126,7 @@ def test_ten_unit_sweep_holds_cache_occupancy_flat(direction):
     from test.golden.perf_fixtures import noisy_ring
 
     substrate = noisy_ring(10, seed=2026)
-    cs = System(substrate, (0,) * 10, substrate.node_indices)
+    cs = System(substrate, (0,) * 10, subset=substrate.node_indices)
     idx = cs.node_indices
 
     before = _kernel_size()

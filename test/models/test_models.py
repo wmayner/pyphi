@@ -562,7 +562,7 @@ def test_relevant_connections(s, subsys_n1n2):
 def test_damaged(s):
     # Build cut system from s
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))
-    cut_s = System(s.substrate, s.state, s.node_indices, partition=cut)
+    cut_s = System(s.substrate, s.state, subset=s.node_indices, partition=cut)
 
     # Cut splits mechanism:
     m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.EFFECT)

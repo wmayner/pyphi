@@ -289,7 +289,7 @@ def test_cause_repertoire_clamps_background_at_before_state():
     before_clamped = System(
         substrate=substrate,
         state=after_state,
-        node_indices=node_indices,
+        subset=node_indices,
         external_indices=external,
         background_conditioning="CONDITION_CURRENT_STATE",
         background_state=before_state,
@@ -297,7 +297,7 @@ def test_cause_repertoire_clamps_background_at_before_state():
     after_clamped = System(
         substrate=substrate,
         state=after_state,
-        node_indices=node_indices,
+        subset=node_indices,
         external_indices=external,
         background_conditioning="CONDITION_CURRENT_STATE",
     ).repertoire(Direction.CAUSE, effect_indices, cause_indices)
@@ -1084,7 +1084,7 @@ class TestActualCausationIIT30:
         event detection on it directly.
         """
         states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # previous, current, next
-        events = actual.true_events(standard, *states, indices=(1, 2))
+        events = actual.true_events(standard, *states, subset=(1, 2))
 
         assert len(events) == 2
 
@@ -1121,7 +1121,7 @@ class TestActualCausationIIT30:
         previous_state = (1, 0, 0)
         current_state = (0, 0, 1)
         next_state = (1, 1, 0)
-        system = System(standard, current_state, standard.node_indices)
+        system = System(standard, current_state, subset=standard.node_indices)
 
         ces = actual.true_ces(system, previous_state, next_state)
 

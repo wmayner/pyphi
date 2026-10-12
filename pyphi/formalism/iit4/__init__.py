@@ -1002,8 +1002,12 @@ def sia(
     config fallback). ``system_measure`` drives system-level partition
     integration (and the ``ii(s)`` intrinsic-information requirement, if
     ``INTRINSIC_INFORMATION``); ``specification_measure`` drives the
-    intrinsic-information computation of the system state.
+    intrinsic-information computation of the system state. Other keyword
+    arguments must be options of the partition evaluation's
+    :func:`~pyphi.parallel.map_reduce` (``parallel``, ``progress``, ...);
+    any other name raises ``TypeError``.
     """
+    conf.reject_unknown_kwargs("sia", kwargs)
     partition_scheme = fallback(
         partition_scheme, config.formalism.iit.system_partition_scheme
     )

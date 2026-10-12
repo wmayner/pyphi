@@ -15,7 +15,7 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | Old (pre-2.0) | New (2.0) |
 | --- | --- |
 | `pyphi.Network` | `pyphi.Substrate` |
-| `pyphi.Subsystem` | `pyphi.System` |
+| `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` |
 | `pyphi.network_generator` | `pyphi.substrate_generator` |
 | `pyphi.compute.phi(...)` / `pyphi.compute.ces(...)` | `pyphi.analyze(...)` |
 | `from pyphi import new_big_phi` | `from pyphi.formalism import iit4` |
@@ -85,7 +85,7 @@ and the other `iit4_2023_*` functions.
 | `compute.phi(subsystem)`, IIT 3.0's Φ | `analyze(substrate, state, formalism="IIT_3_0").phi`; `.big_phi` is IIT 4.0's Φ and raises under IIT 3.0 |
 | `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
 | `compute.ces(subsystem)` | `analyze(..., formalism="IIT_3_0").ces`, a `ResolvedDistinctions` with the concepts under `.concepts` |
-| `compute.major_complex(network, state)` | `substrate.complexes(state)`; the first entry is the strongest |
+| `compute.major_complex(network, state)` | `substrate.complexes(state, formalism="IIT_3_0")`; the first entry is the strongest |
 
 ## 2. Building and analyzing
 
@@ -121,7 +121,7 @@ the given units — the whole substrate by default, or the `subset` argument —
 and does not search for the complex; use `substrate.complexes()` or
 `substrate.maximal_complex()` for that. To analyze a specific subset,
 pass `subset=` or construct a `System` directly:
-`pyphi.System(substrate, state, node_indices=(0, 1, 2))`. Code that imported the
+`pyphi.System(substrate, state, subset=(0, 1, 2))`. Code that imported the
 low-level IIT 4.0 functions from `new_big_phi` now imports `sia` and `ces` from
 `pyphi.formalism.iit4`.
 

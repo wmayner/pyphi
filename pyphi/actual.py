@@ -238,7 +238,7 @@ class TransitionSystem(Serializable):
             return System(
                 substrate=self.substrate,
                 state=self.state,
-                node_indices=self.node_indices,
+                subset=self.node_indices,
                 partition=self.partition,
                 external_indices=external,
                 background_conditioning="CONDITION_CURRENT_STATE",
@@ -402,29 +402,6 @@ class TransitionSystem(Serializable):
         **kw: Any,
     ) -> Any:
         raise NotImplementedError("Use Transition.find_mip / Transition.repertoire.")
-
-    @classmethod
-    def from_substrate(
-        cls,
-        substrate: Substrate,
-        before_state: Any,
-        after_state: Any,
-        cause_indices: Any,
-        effect_indices: Any,
-        direction: Direction,
-        partition: DirectedBipartition | None = None,
-        **kwargs: Any,
-    ) -> "TransitionSystem":
-        return cls(
-            substrate=substrate,
-            before_state=tuple(before_state),
-            after_state=tuple(after_state),
-            cause_indices=tuple(cause_indices),
-            effect_indices=tuple(effect_indices),
-            direction=direction,
-            partition=partition,  # type: ignore[arg-type]
-            **kwargs,
-        )
 
 
 @dataclass(frozen=True, eq=False)
@@ -1072,8 +1049,34 @@ def _actual_effects(substrate, current_state, next_state, nodes, mechanisms=None
     return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
-def events(substrate, previous_state, current_state, next_state, nodes, mechanisms=None):
+def events(
+    substrate,
+    previous_state,
+    current_state,
+    next_state,
+    *,
+    subset=None,
+    mechanisms=None,
+):
     """Find all events (mechanisms with actual causes and actual effects).
+
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate to analyze.
+    previous_state, current_state, next_state : tuple[int]
+        The states of the substrate at ``t - 1``, ``t`` and ``t + 1``.
+    subset : optional
+        The units, by index or label, whose transitions are analyzed.
+        ``None`` uses the whole substrate.
+    mechanisms : iterable, optional
+        The mechanisms to consider. ``None`` considers every mechanism over
+        ``subset``.
+
+    Returns
+    -------
+    tuple[Event]
+        The events, ordered by mechanism.
 
     Raises
     ------
@@ -1082,6 +1085,7 @@ def events(substrate, previous_state, current_state, next_state, nodes, mechanis
         (``previous_state`` → ``current_state`` or ``current_state`` →
         ``next_state``) is impossible under the substrate dynamics.
     """
+    nodes = substrate.node_indices if subset is None else subset
     validate.transition_states(substrate, previous_state, current_state)
     validate.transition_states(substrate, current_state, next_state)
     actual_causes = _actual_causes(
@@ -1129,7 +1133,7 @@ def true_ces(system, previous_state, next_state):
     nodes = system.node_indices
     state = system.state
 
-    _events = events(substrate, previous_state, state, next_state, nodes)
+    _events = events(substrate, previous_state, state, next_state, subset=nodes)
 
     if not _events:
         log.info("Finished calculating, no echo events.")
@@ -1145,12 +1149,24 @@ def true_ces(system, previous_state, next_state):
     return result
 
 
+def _complex_units(substrate, current_state, subset, major_complex):
+    """The units of the major complex: given directly, or found."""
+    if subset is not None and major_complex is not None:
+        raise ValueError("give at most one of subset and major_complex")
+    if subset is not None:
+        return substrate.node_labels.coerce_to_indices(subset)
+    if major_complex is None:
+        major_complex = substrate.maximal_complex(current_state)
+    return major_complex.node_indices
+
+
 def true_events(
     substrate,
     previous_state,
     current_state,
     next_state,
-    indices=None,
+    *,
+    subset=None,
     major_complex=None,
 ):
     """Return all mechanisms that have true causes and true effects within the
@@ -1166,11 +1182,12 @@ def true_events(
         The state of the substrate at ``t``.
     next_state : tuple[int]
         The state of the substrate at ``t + 1``.
-    indices : tuple[int], optional
-        The indices of the major complex.
+    subset : optional
+        The units of the major complex, by index or label. ``None`` finds
+        the major complex with :meth:`~pyphi.substrate.Substrate.maximal_complex`.
     major_complex : Complex, optional
-        The major complex. If ``major_complex`` is given then ``indices``
-        is ignored.
+        The major complex. Give at most one of ``subset`` and
+        ``major_complex``.
 
     Returns
     -------
@@ -1179,19 +1196,14 @@ def true_events(
 
     Raises
     ------
+    ValueError
+        If both ``subset`` and ``major_complex`` are given.
     TransitionUnreachableError
         If either observed pair of the state triplet is impossible under
         the substrate dynamics.
     """
-    if major_complex is not None:
-        nodes = major_complex.node_indices
-    elif indices is not None:
-        nodes = indices
-    else:
-        major_complex = substrate.maximal_complex(current_state)
-        nodes = major_complex.node_indices  # pyright: ignore[reportOptionalMemberAccess]
-
-    return events(substrate, previous_state, current_state, next_state, nodes)
+    nodes = _complex_units(substrate, current_state, subset, major_complex)
+    return events(substrate, previous_state, current_state, next_state, subset=nodes)
 
 
 def extrinsic_events(
@@ -1199,7 +1211,8 @@ def extrinsic_events(
     previous_state,
     current_state,
     next_state,
-    indices=None,
+    *,
+    subset=None,
     major_complex=None,
 ):
     """Set of all mechanisms that are in the major complex but which have true
@@ -1215,33 +1228,25 @@ def extrinsic_events(
         The state of the substrate at ``t``.
     next_state : tuple[int]
         The state of the substrate at ``t + 1``.
-    indices : tuple[int], optional
-        The indices of the major complex.
+    subset : optional
+        The units of the major complex, by index or label. ``None`` finds
+        the major complex with :meth:`~pyphi.substrate.Substrate.maximal_complex`.
     major_complex : Complex, optional
-        The major complex. If ``major_complex`` is given then ``indices``
-        is ignored.
+        The major complex. Give at most one of ``subset`` and
+        ``major_complex``.
 
     Returns
     -------
     tuple[Event]
         The extrinsic events in the major complex.
+
+    Raises
+    ------
+    ValueError
+        If both ``subset`` and ``major_complex`` are given.
     """
-    if major_complex is not None:
-        mc_nodes = major_complex.node_indices
-    elif indices is not None:
-        mc_nodes = indices
-    else:
-        major_complex = substrate.maximal_complex(current_state)
-        mc_nodes = major_complex.node_indices  # pyright: ignore[reportOptionalMemberAccess]
-
+    mc_nodes = _complex_units(substrate, current_state, subset, major_complex)
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
-    all_nodes = substrate.node_indices
-
     return events(
-        substrate,
-        previous_state,
-        current_state,
-        next_state,
-        all_nodes,
-        mechanisms=mechanisms,
+        substrate, previous_state, current_state, next_state, mechanisms=mechanisms
     )

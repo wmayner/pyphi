@@ -92,7 +92,7 @@ def measure(
         with config.override(
             **presets.by_name["IIT_4_0_2026"], progress_bars=False, parallel=False
         ):
-            system = System.from_substrate(substrate, (0,) * units)
+            system = System(substrate, (0,) * units)
             specification_measure = resolve_mechanism_measure(
                 config.formalism.iit.specification_measure
             )

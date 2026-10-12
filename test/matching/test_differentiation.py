@@ -112,7 +112,7 @@ def perceptions():
         for stimulus in [(0,), (1,)]:
             y = ttpm.argmax_state(stimulus)
             ces = substrate.ces(
-                state=_full_state(sensory, system, stimulus, y), indices=system
+                state=_full_state(sensory, system, stimulus, y), subset=system
             )
             result[stimulus] = Perception(ces=ces, triggered_tpm=ttpm, stimulus=stimulus)
     return result

@@ -28,7 +28,7 @@ def _build_cs() -> System:
     return System(
         substrate=examples.basic_substrate(),
         state=(1, 0, 0),
-        node_indices=(0, 1, 2),
+        subset=(0, 1, 2),
     )
 
 

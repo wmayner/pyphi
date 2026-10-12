@@ -73,7 +73,7 @@ def _embedded_system(core: np.ndarray, substrate_n: int, seed: int):
     np.fill_diagonal(weights, COUPLING_MEAN)
     weights[:CORE_N, :CORE_N] = core
     substrate = build_substrate("ising", weights, temperature=TEMPERATURE)
-    return System(substrate, (0,) * substrate_n, node_indices=tuple(range(CORE_N)))
+    return System(substrate, (0,) * substrate_n, subset=tuple(range(CORE_N)))
 
 
 def _profile_sia(system) -> dict:

@@ -39,7 +39,7 @@ WITNESS_STATE = (0, 1)
 
 def _witness_system():
     substrate = Substrate(WITNESS_TPM, cm=np.ones((2, 2)), node_labels=["n0", "n1"])
-    return System(substrate, state=WITNESS_STATE, node_indices=(0, 1))
+    return System(substrate, state=WITNESS_STATE, subset=(0, 1))
 
 
 def _phi_and_ii(preset) -> tuple[float, float, float]:

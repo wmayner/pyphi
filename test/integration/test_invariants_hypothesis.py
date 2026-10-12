@@ -529,7 +529,7 @@ class TestStateSpace:
         net = data.draw(small_substrate())
         state = data.draw(binary_state(net.size))
         try:
-            sub = System(net, state, net.node_indices)
+            sub = System(net, state, subset=net.node_indices)
         except StateUnreachableBackwardsError:
             assume(False)
             return

@@ -79,15 +79,15 @@ A {class}`~pyphi.system.System` is a candidate subset of a substrate in a defini
 example's candidate is the pair $\{A, B\}$, so unit $C$ is background:
 
 ```{code-cell} python
-system = pyphi.System(substrate, (0, 1, 1), node_indices=(0, 1))
+system = pyphi.System(substrate, (0, 1, 1), subset=(0, 1))
 system
 ```
 
-Here `node_indices` selects the subset $S = \{A, B\}$; the remaining unit $C$
-is causally marginalized, so the analysis sees $A$ and $B$ from their own
-intrinsic perspective: $C$ is held at its current state for effects, and its
-past states are weighted by their probability given the current state for
-causes.
+Here `subset` selects the units $S = \{A, B\}$, which the system records as
+`system.node_indices`; the remaining unit $C$ is causally marginalized, so the
+analysis sees $A$ and $B$ from their own intrinsic perspective: $C$ is held at
+its current state for effects, and its past states are weighted by their
+probability given the current state for causes.
 
 From the system's intrinsic point of view, IIT derives a **cause marginal**
 and an **effect marginal** by marginalizing the background — and, on the

@@ -73,7 +73,7 @@ substrate = create_substrate(
     labels=("A", "B", "C"),
 )
 
-system = pyphi.System.from_substrate(substrate, state=(1, 0, 0))
+system = pyphi.System(substrate, (1, 0, 0))
 ```
 
 The translation from `substrate_modeler` is mechanical:
@@ -237,9 +237,9 @@ removed** — those operations are now methods on `System` and `Substrate`.
 | old `substrate_modeler` / old PyPhi | current PyPhi |
 |---|---|
 | `pyphi.network.Network(tpm, cm)` | `pyphi.Substrate(tpm, cm, node_labels)` |
-| `pyphi.subsystem.Subsystem(net, state, nodes)` | `pyphi.System.from_substrate(sub, state, nodes)` (or `System(sub, state, node_indices=nodes)`) |
+| `pyphi.subsystem.Subsystem(net, state, nodes)` | `pyphi.System(sub, state, subset=nodes)` |
 | `substrate.get_network(state)` | the `Substrate` is stateless — build it once; state goes to the `System` |
-| `substrate.get_subsystem(state, nodes)` | `System.from_substrate(sub, state, nodes)` |
+| `substrate.get_subsystem(state, nodes)` | `System(sub, state, subset=nodes)` |
 | `substrate.dynamic_tpm` | `sub.tpm` (a `FactoredTPM`; `np.asarray(sub.tpm.to_joint())[..., 1]` for the state-by-node ON-probabilities) |
 | `compute.big_phi(subsystem)` | `system.sia().phi` |
 | `compute.ces(subsystem)` | `system.ces()` |
@@ -320,7 +320,7 @@ substrate = build_substrate(
     node_labels=("A", "B", "C"),
 )
 
-system = pyphi.System.from_substrate(substrate, state=(1, 0, 0))
+system = pyphi.System(substrate, (1, 0, 0))
 with pyphi.config.override(**pyphi.iit4_2023):  # deterministic, so φ_s = 0
     print("phi:", float(system.sia().phi))      # without this 2023 pin
 print("distinctions:", len(system.ces().distinctions))
@@ -341,7 +341,7 @@ substrate, use `create_substrate` with `resonator` / composite specs (§2, §4).
    `mechanism_combination`), `inputs`, `params`, and `label`.
 2. Build a `node_params` dict: one entry per node, keyed by index.
 3. `substrate = create_substrate(node_params, labels=...)`.
-4. `system = pyphi.System.from_substrate(substrate, state, nodes)`.
+4. `system = pyphi.System(substrate, state, subset=nodes)`.
 5. Replace every old `compute.*` / `Subsystem` / `Network` call using §6.
 6. If reproducing pre-4.0 numbers, wrap analysis in
    `pyphi.config.override(**pyphi.iit3)` (the complete preset, not
@@ -362,7 +362,7 @@ substrate, use `create_substrate` with `resonator` / composite specs (§2, §4).
 - `pyphi/substrate_generator/ising.py`, `unit_functions.py`, `weights.py` —
   earlier built-in unit functions and weight-matrix helpers.
 - `pyphi/substrate.py` — `Substrate`, `complexes`, `maximal_complex`, `all_sias`.
-- `pyphi/system.py` — `System`, `from_substrate`, `sia`, `ces`, `distinction`.
+- `pyphi/system.py` — `System`, `sia`, `ces`, `distinction`.
 - `pyphi/matching/` — `PerceptualSystem`, `TriggeredTPM`, `MatchingAnalysis`.
 - `pyphi/examples.py` — `*_substrate` / `*_system` factories to use as anchors.
 

@@ -230,7 +230,7 @@ def small_system(
     )
     state = draw(binary_state(substrate.size))
     try:
-        system = System(substrate, state, substrate.node_indices)
+        system = System(substrate, state, subset=substrate.node_indices)
         # Probe both directions up front so degenerate dynamics are filtered
         # at construction rather than raising mid-test from any repertoire call.
         all_indices = substrate.node_indices

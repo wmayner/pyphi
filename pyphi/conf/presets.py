@@ -25,6 +25,8 @@ paper's behavior depends on them.
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
+from contextlib import nullcontext
 from typing import Any
 
 from pyphi.conf.formalism import ActualCausationConfig
@@ -180,10 +182,38 @@ def canonical(formalism: Any) -> str | None:
     return name
 
 
+def use(formalism: Any) -> AbstractContextManager[Any]:
+    """Return a context manager that applies the preset ``formalism`` selects.
+
+    Parameters
+    ----------
+    formalism : str, dict, or None
+        Anything :func:`canonical` accepts.
+
+    Returns
+    -------
+    contextlib.AbstractContextManager
+        ``config.override`` with the selected preset, or a context manager
+        that changes nothing when ``formalism`` is None.
+
+    Raises
+    ------
+    ValueError
+        If ``formalism`` selects no known version.
+    """
+    name = canonical(formalism)
+    if name is None:
+        return nullcontext()
+    from pyphi.conf import config
+
+    return config.override(**by_name[name])
+
+
 __all__ = [
     "by_name",
     "canonical",
     "iit3",
     "iit4_2023",
     "iit4_2026",
+    "use",
 ]

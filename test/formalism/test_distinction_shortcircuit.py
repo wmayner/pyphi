@@ -189,7 +189,7 @@ class TestNullMiceCarrySystemContext:
 
         with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
             substrate = examples.basic_substrate()
-            system = System(substrate, (1, 0, 0), substrate.node_indices)
+            system = System(substrate, (1, 0, 0), subset=substrate.node_indices)
             distinction = system.distinction((0, 1))
         assert float(distinction.phi) == 0.0
         assert distinction.cause.node_labels == distinction.effect.node_labels
@@ -200,7 +200,7 @@ class TestNullMiceCarrySystemContext:
 
         with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
             substrate = examples.basic_substrate()
-            system = System(substrate, (0, 0, 0), substrate.node_indices)
+            system = System(substrate, (0, 0, 0), subset=substrate.node_indices)
             distinction = system.distinction((0, 2))
         assert float(distinction.phi) == 0.0
         self._assert_displayable(distinction)
@@ -211,7 +211,7 @@ class TestNullMiceCarrySystemContext:
 
         with pyphi.config.override(**presets.iit4_2026, progress_bars=False):
             substrate = examples.basic_substrate()
-            system = System(substrate, (1, 0, 0), substrate.node_indices)
+            system = System(substrate, (1, 0, 0), subset=substrate.node_indices)
             distinction = system.distinction((0, 1))
         expected = state_of((0, 1), system.state)
         assert distinction.mechanism_state == expected

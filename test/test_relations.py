@@ -188,7 +188,7 @@ def test_analytical_relations_have_no_len():
     with pyphi.config.override(
         **presets.by_name["IIT_4_0_2026"], progress_bars=False, parallel=False
     ):
-        s = System.from_substrate(examples.basic_substrate(), (1, 0, 0), None)
+        s = System(examples.basic_substrate(), (1, 0, 0), subset=None)
         ar = AnalyticalRelations(s.distinctions())
     assert isinstance(ar.num_relations(), int)
     with pytest.raises(TypeError, match="len"):
@@ -267,8 +267,8 @@ def test_iit3_ces_equality_and_save_load_round_trip(tmp_path):
 
     substrate = examples.basic_substrate()
     with IIT_3_CONFIG:
-        ces1 = iit3.ces(System(substrate, (1, 0, 0), substrate.node_indices))
-        ces2 = iit3.ces(System(substrate, (1, 0, 0), substrate.node_indices))
+        ces1 = iit3.ces(System(substrate, (1, 0, 0), subset=substrate.node_indices))
+        ces2 = iit3.ces(System(substrate, (1, 0, 0), subset=substrate.node_indices))
         assert ces1 == ces2
         assert hash(ces1) == hash(ces2)
 

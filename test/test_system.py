@@ -20,35 +20,35 @@ from . import example_substrates
 def test_system_validation(s):
     # Wrong state length.
     with pytest.raises(ValueError):
-        s = System(s.substrate, (0, 0), s.node_indices)
+        s = System(s.substrate, (0, 0), subset=s.node_indices)
     # Wrong state values.
     with pytest.raises(ValueError):
-        s = System(s.substrate, (2, 0, 0), s.node_indices)
+        s = System(s.substrate, (2, 0, 0), subset=s.node_indices)
     # Disallow impossible states at system level (we don't want to return a
     # phi-value associated with an impossible state).
     net = example_substrates.simple()
     with pytest.raises(exceptions.StateUnreachableError):
-        s = System(net, (0, 1, 0), s.node_indices)
+        s = System(net, (0, 1, 0), subset=s.node_indices)
 
 
 def test_validate_partition_nodes_equal_system_nodes(s):
     assert s.node_indices == (0, 1, 2)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # A-ok
-    System(s.substrate, s.state, s.node_indices, partition=cut)
+    System(s.substrate, s.state, subset=s.node_indices, partition=cut)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1,))  # missing node 2 in cut
     with pytest.raises(ValueError):
-        System(s.substrate, s.state, s.node_indices, partition=cut)
+        System(s.substrate, s.state, subset=s.node_indices, partition=cut)
 
     cut = DirectedBipartition(Direction.EFFECT, (0,), (1, 2))  # missing node 2 in system
     with pytest.raises(ValueError):
-        System(s.substrate, s.state, (0, 1), partition=cut)
+        System(s.substrate, s.state, subset=(0, 1), partition=cut)
 
 
 def test_empty_init(s):
     # Empty mechanism
-    s = System(s.substrate, s.state, ())
+    s = System(s.substrate, s.state, subset=())
     assert s.nodes == ()
 
 
@@ -110,7 +110,7 @@ def test_is_partitioned(s):
     s = System(
         s.substrate,
         s.state,
-        s.node_indices,
+        subset=s.node_indices,
         partition=DirectedBipartition(Direction.EFFECT, (0,), (1, 2)),
     )
     assert s.is_partitioned is True
@@ -189,7 +189,7 @@ def test_partition_node_labels(s):
 
 def test_specify_elements_with_labels(standard):
     substrate = Substrate(standard.joint_tpm(), node_labels=("A", "B", "C"))
-    system = System(substrate, (0, 0, 0), ("B", "C"))
+    system = System(substrate, (0, 0, 0), subset=("B", "C"))
     assert system.node_indices == (1, 2)
     assert tuple(node.label for node in system.nodes) == ("B", "C")
     with config.override(repr_verbosity=0):
@@ -388,7 +388,7 @@ def test_proper_marginals_condition_on_external_indices_overlap() -> None:
         sys_ = System(
             substrate,
             state,
-            node_indices=(0, 1),
+            subset=(0, 1),
             external_indices=(1, 2),
             background_conditioning="CONDITION_CURRENT_STATE",
             background_state=state,
@@ -425,7 +425,7 @@ def test_proper_marginals_empty_external_no_crash() -> None:
         sys_ = System(
             substrate,
             state,
-            node_indices=(0, 1),
+            subset=(0, 1),
             external_indices=(),
             background_conditioning="CONDITION_CURRENT_STATE",
         )
@@ -481,7 +481,7 @@ def test_system_external_indices_explicit_override_accepted(s) -> None:
     overridden = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(1, 2),
+        subset=(1, 2),
         external_indices=(),
     )
     assert overridden.external_indices == ()
@@ -493,7 +493,7 @@ def test_system_external_indices_rejects_out_of_range(s) -> None:
         System(
             substrate=s.substrate,
             state=s.state,
-            node_indices=(0, 1),
+            subset=(0, 1),
             external_indices=(99,),
         )
 
@@ -504,7 +504,7 @@ def test_system_external_indices_rejects_negative(s) -> None:
         System(
             substrate=s.substrate,
             state=s.state,
-            node_indices=(0, 1),
+            subset=(0, 1),
             external_indices=(-1,),
         )
 
@@ -515,7 +515,7 @@ def test_system_external_indices_rejects_unsorted(s) -> None:
         System(
             substrate=s.substrate,
             state=s.state,
-            node_indices=(0,),
+            subset=(0,),
             external_indices=(2, 1),
         )
 
@@ -526,7 +526,7 @@ def test_system_external_indices_rejects_duplicates(s) -> None:
         System(
             substrate=s.substrate,
             state=s.state,
-            node_indices=(0,),
+            subset=(0,),
             external_indices=(1, 1),
         )
 
@@ -536,12 +536,12 @@ def test_system_external_indices_included_in_eq(s) -> None:
     s_default = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
     )
     s_override = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
         external_indices=(),
     )
     # default resolves to (2,), override is (), so they differ.
@@ -556,12 +556,12 @@ def test_system_external_indices_default_equal_to_explicit_same_value(s) -> None
     s_implicit = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
     )
     s_explicit = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
         external_indices=(2,),
     )
     assert s_implicit == s_explicit
@@ -573,12 +573,12 @@ def test_system_external_indices_included_in_hash(s) -> None:
     s1 = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
     )
     s2 = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
         external_indices=(),
     )
     assert hash(s1) != hash(s2)
@@ -591,7 +591,7 @@ def test_system_external_indices_apply_cut_propagates(s) -> None:
     base = System(
         substrate=s.substrate,
         state=s.state,
-        node_indices=(0, 1),
+        subset=(0, 1),
         external_indices=(),
     )
     new_cut = _DBP(Direction.EFFECT, (0,), (1,), s.substrate.node_labels)
@@ -610,7 +610,7 @@ def test_system_external_indices_overlap_with_node_indices_allowed(s) -> None:
         overlapping = System(
             substrate=s.substrate,
             state=s.state,
-            node_indices=(0, 1, 2),
+            subset=(0, 1, 2),
             external_indices=(1,),
         )
     assert overlapping.external_indices == (1,)

@@ -74,7 +74,7 @@ def grid3_substrate():
 
 @register_example
 def grid3_system():
-    return System(grid3_substrate(), state=(0, 0, 0), node_indices=(0, 1, 2))
+    return System(grid3_substrate(), state=(0, 0, 0), subset=(0, 1, 2))
 
 
 @register_example
@@ -556,7 +556,7 @@ def rule110_substrate():
 
 @register_example
 def rule110_system():
-    return System(rule110_substrate(), (0, 0, 0), node_indices=(0, 1, 2))
+    return System(rule110_substrate(), (0, 0, 0), subset=(0, 1, 2))
 
 
 @register_example
@@ -801,7 +801,7 @@ def fig4_substrate():
 
 @register_example
 def fig4_system():
-    return System(fig4_substrate(), state=(1, 0, 1), node_indices=(0, 1, 2))
+    return System(fig4_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
 
 
 @register_example
@@ -843,7 +843,7 @@ def fig5a_substrate():
 
 @register_example
 def fig5a_system():
-    return System(fig5a_substrate(), state=(0, 0, 0), node_indices=(0, 1, 2))
+    return System(fig5a_substrate(), state=(0, 0, 0), subset=(0, 1, 2))
 
 
 @register_example
@@ -885,7 +885,7 @@ def fig5b_substrate():
 
 @register_example
 def fig5b_system():
-    return System(fig5b_substrate(), state=(1, 0, 1), node_indices=(0, 1, 2))
+    return System(fig5b_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
 
 
 # The substrates in figures 4, 6 and 8 are the same.
@@ -1374,7 +1374,7 @@ def differentiation_micro_1_system():
     return System(
         substrate=Substrate(differentiation_micro_tpm(0.9, 0.01)),
         state=(0, 0),
-        node_indices=(0, 1),
+        subset=(0, 1),
     )
 
 
@@ -1424,7 +1424,7 @@ def iit4_2023_fig1a_system():
     return System(
         iit4_2023_fig1a_substrate(),
         state=(0, 1, 1),
-        node_indices=(0, 1, 2),
+        subset=(0, 1, 2),
     )
 
 
@@ -1460,7 +1460,7 @@ def iit4_2023_fig6a_system():
     return System(
         iit4_2023_fig6a_substrate(),
         state=(1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
 
 
@@ -1493,7 +1493,7 @@ def iit4_2023_fig6b_system():
     return System(
         iit4_2023_fig6b_substrate(),
         state=(1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
 
 
@@ -1526,7 +1526,7 @@ def iit4_2023_fig6c_system():
     return System(
         iit4_2023_fig6c_substrate(),
         state=(1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
 
 
@@ -1564,7 +1564,7 @@ def iit4_2023_fig6d_system():
     return System(
         iit4_2023_fig6d_substrate(),
         state=(1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
 
 
@@ -1599,7 +1599,7 @@ def iit4_2023_fig6e_system():
     return System(
         iit4_2023_fig6e_substrate(),
         state=(1, 0, 0, 0, 0, 0),
-        node_indices=tuple(range(6)),
+        subset=tuple(range(6)),
     )
 
 
@@ -1634,7 +1634,7 @@ def iit4_2023_fig7_substrate():
 @register_example
 def iit4_2023_fig7_system():
     return System(
-        iit4_2023_fig7_substrate(), state=(1, 1, 0, 0, 1), node_indices=tuple(range(5))
+        iit4_2023_fig7_substrate(), state=(1, 1, 0, 0, 1), subset=tuple(range(5))
     )
 
 
@@ -1659,7 +1659,7 @@ def iit4_2023_fig7_inactivated_system():
     return System(
         iit4_2023_fig7_inactivated_substrate(),
         state=(1, 1, 0, 0, 0),
-        node_indices=(0, 1, 2, 3),
+        subset=(0, 1, 2, 3),
     )
 
 

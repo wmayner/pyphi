@@ -560,7 +560,7 @@ def main() -> None:
     with config.override(
         **presets.by_name[args.formalism], progress_bars=False, parallel=False
     ):
-        system = System.from_substrate(substrate, (0,) * args.units)
+        system = System(substrate, (0,) * args.units)
         if args.arm == "plan":
             rows = arm_plan(
                 system,

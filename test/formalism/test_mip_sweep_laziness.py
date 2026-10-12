@@ -42,7 +42,7 @@ def _counting_partitions(monkeypatch):
 
 
 def _system():
-    return System(examples.basic_substrate(), (1, 0, 0), node_indices=(0, 1, 2))
+    return System(examples.basic_substrate(), (1, 0, 0), subset=(0, 1, 2))
 
 
 def test_a_truncated_sweep_builds_only_what_it_evaluates(_iit4, monkeypatch):

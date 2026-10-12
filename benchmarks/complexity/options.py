@@ -99,7 +99,7 @@ def _override(preset_name: str, changes: dict[str, Any]) -> dict[str, Any]:
 def _time_once(substrate: Any, state: tuple[int, ...], stage: str, over: dict[str, Any]) -> float:
     start = time.perf_counter()
     with pyphi.config.override(**over):
-        system = pyphi.System.from_substrate(substrate, state, substrate.node_indices)
+        system = pyphi.System(substrate, state, subset=substrate.node_indices)
         getattr(system, stage)()
     return time.perf_counter() - start
 
