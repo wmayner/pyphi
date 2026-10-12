@@ -19,6 +19,11 @@ docs:
     PYPHI_WELCOME_OFF=1 PYPHI_AGENT_NOTE_OFF=1 uv run --all-extras --group docs python scripts/prune_autosummary.py
     uv run --all-extras --group docs sphinx-build -W --keep-going -b html docs docs/_build/html
 
+# Open the built docs in a browser, building them first if there is no build
+open-docs:
+    @test -f docs/_build/html/index.html || just docs
+    uv run python -m webbrowser -t "file://{{ justfile_directory() }}/docs/_build/html/index.html"
+
 # Serve documentation locally
 serve-docs port="1337": docs
     cd docs/_build/html && uv run python -m http.server {{ port }}
