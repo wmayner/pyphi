@@ -12,6 +12,10 @@ available to lower-φ candidates in later tiers.
 Overlap is assessed in micro units: each candidate carries a ``footprint``
 of micro indices, so candidate systems of micro units and of macro units
 compete in the same cascade.
+
+A complex requires φₛ > 0. Every cascade drops candidates whose φₛ is not
+positive at ``config.numerics.precision`` before the walk: a reducible
+candidate is neither a complex nor a rival that excludes or is excluded.
 """
 
 from __future__ import annotations
@@ -94,19 +98,23 @@ def _config_iit_version() -> str:
 
 
 def _phi_tiers(candidates: Sequence[Candidate]):
-    """Yield φₛ tiers in descending order.
+    """Yield φₛ tiers of the irreducible candidates in descending order.
 
-    Tier membership is tolerant: a candidate joins the tier when its φₛ
-    equals the tier head's up to ``config.numerics.precision``. Within a
-    tier, candidates keep their input order, so the caller's dispatch
-    order — not floating-point noise — breaks presentation ties.
+    Candidates whose φₛ is not positive at ``config.numerics.precision``
+    are dropped. Tier membership is tolerant: a candidate joins the tier
+    when its φₛ equals the tier head's up to ``config.numerics.precision``.
+    Within a tier, candidates keep their input order, so the caller's
+    dispatch order — not floating-point noise — breaks presentation ties.
     """
     from pyphi import numerics as _numerics
 
     # The sort only orders candidates; tolerant tier membership is decided by
     # numerics.eq in the loop below.
     # numerics: exact — ordering only; tier ties resolved by numerics.eq.
-    indexed = sorted(enumerate(candidates), key=lambda pair: -pair[1].phi)
+    indexed = sorted(
+        (pair for pair in enumerate(candidates) if _numerics.is_positive(pair[1].phi)),
+        key=lambda pair: -pair[1].phi,
+    )
     i = 0
     while i < len(indexed):
         tier_phi = indexed[i][1].phi
@@ -231,8 +239,9 @@ def _resolve_phi_tied_group(
 def exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutcome:
     """Condense candidates into complexes by the recursive exclusion cascade.
 
-    ``candidates`` may arrive in any order; they are grouped into φₛ tiers
-    (descending) with tolerant membership. Within each tier, candidates
+    ``candidates`` may arrive in any order. Those with φₛ > 0 are grouped
+    into φₛ tiers (descending) with tolerant membership; the rest are
+    reducible and dropped. Within each tier, candidates
     overlapping an accepted complex are dropped, and the φₛ-tied survivors
     are resolved recursively (see :func:`_resolve_phi_tied_group`): tied
     candidates with no overlap conflict are complexes; overlap conflicts
@@ -285,7 +294,8 @@ def gated_exclusion_cascade(
     Candidates are forced to exact φₛ — via ``evaluate_batch``, which must
     return one :class:`Candidate` per pending item, in order — only when
     their ceiling reaches the tier currently being resolved at
-    ``config.numerics.precision``. Each tier then resolves exactly as in
+    ``config.numerics.precision``. A forced candidate whose φₛ is not
+    positive is reducible and dropped. Each tier then resolves exactly as in
     :func:`exclusion_cascade`. A pending candidate that comes to overlap
     an accepted complex is a certified exclusion: its ceiling, hence its
     φₛ, is strictly below that complex's φₛ at precision, so it is never
@@ -354,7 +364,11 @@ def gated_exclusion_cascade(
                         f"φₛ = {candidate.phi} exceeds the "
                         f"intrinsic-information ceiling {p.ceiling}"
                     )
-                evaluated.append((order[id(p)], candidate))
+                if _numerics.is_positive(candidate.phi):
+                    evaluated.append((order[id(p)], candidate))
+        if not evaluated:
+            # Every candidate was forced and found reducible.
+            break
         # Resolve one tier, exactly as the eager cascade would.
         # numerics: exact — tier-head selection; membership decided by numerics.eq.
         level = max(c.phi for _, c in evaluated)
@@ -412,8 +426,9 @@ def iit3_exclusion_cascade(candidates: Sequence[Candidate]) -> CondensationOutco
     """Condense candidates under IIT 3.0: the recursive tier walk with no
     Composition escalation.
 
-    ``candidates`` may arrive in any order; they are grouped into φₛ tiers
-    (descending) with tolerant membership. Within a tier, candidates
+    ``candidates`` may arrive in any order. Those with φₛ > 0 are grouped
+    into φₛ tiers (descending) with tolerant membership; the rest are
+    reducible and dropped. Within a tier, candidates
     overlapping an accepted complex are dropped and survivors group into
     overlap cliques; a clique with one member is accepted directly, and a
     multi-member clique is indeterminate (IIT 3.0 has no paper-canonical
@@ -441,8 +456,8 @@ def exclusion_records(
     accepted: Sequence[Candidate], candidates: Sequence[Candidate]
 ) -> dict[tuple[int, ...], tuple[Any, ...]]:
     """Map each accepted complex (by sorted footprint) to the
-    ExcludedCandidate records it excluded: every candidate that overlaps it
-    and was not itself accepted.
+    ExcludedCandidate records it excluded: every candidate with φₛ > 0 that
+    overlaps it and was not itself accepted.
 
     A candidate that overlaps several accepted complexes appears in each of
     their exclusion sets. An excluded candidate may carry higher φₛ than a
@@ -452,6 +467,7 @@ def exclusion_records(
     accepted complex's exact footprint — a rival grain over the same micro
     units — is recorded. Reads only values the cascade already computed.
     """
+    from pyphi import numerics as _numerics
     from pyphi.models.complex import ExcludedCandidate
 
     accepted_ids = {id(c) for c in accepted}
@@ -460,7 +476,9 @@ def exclusion_records(
         recs = tuple(
             ExcludedCandidate(tuple(sorted(cand.footprint)), cand.phi, units=cand.units)
             for cand in candidates
-            if id(cand) not in accepted_ids and acc.footprint & cand.footprint
+            if id(cand) not in accepted_ids
+            and acc.footprint & cand.footprint
+            and _numerics.is_positive(cand.phi)
         )
         records[tuple(sorted(acc.footprint))] = recs
     return records

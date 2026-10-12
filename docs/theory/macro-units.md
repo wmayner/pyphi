@@ -126,7 +126,9 @@ on what remains until the substrate is exhausted. The papers state this over
 one substrate at one grain; across grains they state the criterion, that two
 candidates overlap when they share micro units (Marshall et al., 2026, Eq. 20).
 PyPhi puts the two together as one cascade over micro footprints, so
-candidates at every grain compete on the same basis. Each candidate's footprint
+candidates at every grain compete on the same basis. Only candidates with
+$\varphi_s > 0$ enter the cascade: a reducible candidate is not a complex, and
+it neither excludes nor is excluded by anything. Each candidate's footprint
 is the set of micro units it ultimately covers; the cascade walks candidates in
 descending $\varphi_s$, accepts the maximal one, drops every remaining candidate
 whose footprint overlaps it, and continues on what is left. Because an excluded

@@ -323,3 +323,46 @@ class TestGatedExclusionCascade:
         assert outcome.accepted == ()
         assert outcome.failed_cliques == ()
         assert gated == ()
+
+
+class TestReducibleCandidates:
+    """A complex requires φₛ > 0: reducible candidates never enter a cascade."""
+
+    def test_eager_cascades_drop_reducible_candidates(self):
+        from pyphi.condensation import iit3_exclusion_cascade
+
+        candidates = [_candidate({0, 1}, 0.0), _candidate({2}, 1e-16)]
+        assert exclusion_cascade(candidates).accepted == ()
+        assert exclusion_cascade(candidates).failed_cliques == ()
+        assert iit3_exclusion_cascade(candidates).accepted == ()
+
+    def test_reducible_candidate_is_not_an_excluded_rival(self):
+        winner = _candidate({0, 1}, 1.0)
+        rival = _candidate({1, 2}, 0.5)
+        reducible = _candidate({0}, 0.0)
+        outcome = exclusion_cascade([winner, rival, reducible])
+        assert outcome.accepted == (winner,)
+        records = exclusion_records(outcome.accepted, [winner, rival, reducible])
+        assert [r.node_indices for r in records[(0, 1)]] == [(1, 2)]
+
+    def test_gated_cascade_drops_reducible_candidates(self):
+        # Every candidate is forced and found reducible: no complex, and
+        # the walk ends instead of resolving an empty tier.
+        candidates = [_candidate({0, 1}, 0.0), _candidate({2}, 0.0)]
+        pending, evaluate_batch, calls = _lazy(candidates, [0.5, 0.25])
+        outcome, gated = gated_exclusion_cascade(pending, evaluate_batch)
+        assert outcome.accepted == ()
+        assert outcome.failed_cliques == ()
+        assert gated == ()
+        assert len(calls) == 2
+
+    def test_gated_cascade_matches_eager_with_reducible_candidates(self):
+        candidates = [
+            _candidate({0, 1}, 0.0),
+            _candidate({1, 2}, 0.5),
+            _candidate({3}, 0.0),
+        ]
+        eager = exclusion_cascade(candidates)
+        pending, evaluate_batch, _ = _lazy(candidates, [1.0, 1.0, 1.0])
+        outcome, _ = gated_exclusion_cascade(pending, evaluate_batch)
+        assert outcome.accepted == eager.accepted == (candidates[1],)

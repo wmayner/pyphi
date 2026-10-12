@@ -38,6 +38,12 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 from pyphi import exceptions
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
+from pyphi.display.tables import capped_table
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import UnitVerdict
 from pyphi.macro.criteria import _as_unit
@@ -49,6 +55,8 @@ from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
 from pyphi.macro.units import coarse_grain
 from pyphi.macro.units import micro_unit
+from pyphi.models.pandas import ToPandasMixin
+from pyphi.models.pandas import records_to_frame
 from pyphi.substrate import Substrate
 
 if TYPE_CHECKING:
@@ -1169,8 +1177,8 @@ class EvaluationRecord:
     gated: bool = False
 
 
-@dataclass(frozen=True)
-class ComplexesResult:
+@dataclass(frozen=True, repr=False)
+class ComplexesResult(Displayable, ToPandasMixin):
     """The complexes of the bounded candidate space (Eq. 20, applied
     recursively).
 
@@ -1178,9 +1186,10 @@ class ComplexesResult:
     ----------
     complexes : tuple[Complex, ...]
         The complexes identified by the recursive exclusion cascade over
-        ``P(u)``, in descending-φₛ order, each carrying its macro unit
-        structure and exclusion records. Mutually disjoint in micro
-        footprint by construction.
+        the candidates in ``P(u)`` with φₛ > 0, in descending-φₛ order,
+        each carrying its macro unit structure and exclusion records.
+        Mutually disjoint in micro footprint by construction; empty when
+        every candidate is reducible.
     records : tuple[EvaluationRecord, ...]
         One entry per candidate the run considered (criteria checks
         included): evaluated systems first, in evaluation order, with
@@ -1217,6 +1226,86 @@ class ComplexesResult:
             node_indices=(),
         )
 
+    def _to_pandas(self):
+        """One row per complex: its micro footprint, each unit's micro
+        constituents and micro grain, and the complex's own record."""
+        rows = []
+        for complex_ in self.complexes:
+            units, grains = _complex_units(complex_)
+            rows.append(
+                {
+                    "node_indices": complex_.node_indices,
+                    "units": units,
+                    "grains": grains,
+                    **complex_._pandas_record(),
+                }
+            )
+        return records_to_frame(rows)
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        from pyphi.conf.formalism import IITConfig
+
+        cls = type(self).__name__
+        n_gated = sum(record.gated for record in self.records)
+        rows = [
+            Row("Complexes", len(self.complexes)),
+            Row("Candidate systems", len(self.records)),
+        ]
+        if n_gated:
+            rows.append(Row("Gated", n_gated))
+        rows.append(Row("Tied cliques", len(self.ties)))
+        # As on an Analysis card, the version of IIT is shown only when it is
+        # not the default. It is read from the complexes' analyses, so a
+        # result with no complex has none to show.
+        if self.complexes:
+            formalism = self.complexes[0].sia.config.formalism.iit.version
+            if formalism != IITConfig.version:
+                rows.append(Row("Formalism", formalism))
+        sections = [Section(rows=tuple(rows))]
+        if self.complexes:
+            sections.append(
+                Section(
+                    label="Complexes",
+                    body=(
+                        capped_table(
+                            ("φ_s", "Nodes", "Units", "Grains"),
+                            self.complexes,
+                            _complex_row,
+                            total=len(self.complexes),
+                        ),
+                    ),
+                )
+            )
+        return Description(
+            title=cls,
+            sections=tuple(sections),
+            compact=(
+                f"{cls}({len(self.complexes)} complexes,"
+                f" {len(self.records)} candidate systems)"
+            ),
+        )
+
+
+def _complex_units(complex_) -> tuple[tuple[tuple[int, ...], ...], tuple[int, ...]]:
+    """Each unit's micro constituents and each unit's micro grain."""
+    units = complex_.units or ()
+    return (
+        tuple(unit.micro_constituents for unit in units),
+        tuple(unit.micro_grain for unit in units),
+    )
+
+
+def _complex_row(complex_) -> tuple[str, str, str, str]:
+    """One table row of a :class:`ComplexesResult` card: φₛ, the micro
+    footprint, each unit's micro constituents, and each unit's micro grain."""
+    units, grains = _complex_units(complex_)
+    return (
+        format_value(complex_.phi),
+        str(complex_.node_indices),
+        " ".join("{" + ",".join(map(str, unit)) + "}" for unit in units),
+        " ".join(map(str, grains)),
+    )
+
 
 def complexes(
     substrate: Substrate,
@@ -1230,8 +1319,10 @@ def complexes(
 
     Every admissible system of intrinsic units (Eq. 19) is evaluated over
     the full universe, then condensed by the recursive exclusion cascade:
-    Eq. 20's comparison is applied tier by tier, so a candidate excluded
-    by an accepted complex has no standing to exclude other candidates.
+    candidates with φₛ = 0 are reducible and dropped, and Eq. 20's
+    comparison is applied to the rest tier by tier, so a candidate
+    excluded by an accepted complex has no standing to exclude other
+    candidates.
     φₛ ties between overlapping candidates escalate to Composition (Φ);
     cliques that still tie fail exclusion and are reported in ``ties``.
 

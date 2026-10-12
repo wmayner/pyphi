@@ -545,9 +545,10 @@ class TestMinDriver:
             result = complexes(min_substrate(), (0, 0), bounds)
         winner = result.complexes[0]
         # The seven losing candidates on the winner's own footprint
-        # {0,1} (six rival mappings and the micro pair) plus the two
-        # singletons. Golden recorded at implementation time.
-        assert len(winner.excluded) == 9
+        # {0,1}: six rival mappings and the micro pair. The two
+        # singletons have φ_s = 0, so they are reducible and not rivals.
+        assert len(winner.excluded) == 7
+        assert all(e.phi > 0 for e in winner.excluded)
         assert any(
             e.node_indices == (0, 1)
             and e.units == (micro_unit(0), micro_unit(1))
@@ -586,10 +587,10 @@ class TestBuDriver:
         )
         assert result.ties == ()
 
-    def test_empty_complexes_is_a_result_not_an_error(self):
-        # max_depth=0 restricts P(u) to micro systems; the micro pair
-        # (phi 0.0051) beats the overlapping singletons (phi 0), so it
-        # is the only complex at depth 0.
+    def test_depth_zero_complex_is_the_micro_pair(self):
+        # max_depth=0 restricts P(u) to micro systems; the singletons
+        # are reducible (phi 0), so the micro pair (phi 0.0051) is the
+        # only complex at depth 0.
         bounds = SearchBounds(max_depth=0)
         with config.override(**presets.iit4_2023):
             result = complexes(min_substrate(), (0, 0), bounds)
