@@ -50,6 +50,13 @@ def test_shared_arguments_are_keyword_only_and_named_alike():
     assert "seed" not in inspect.signature(pyphi.sweep).parameters
 
 
+def test_campaigns_take_no_provenance_only_seed():
+    from pyphi import campaign
+
+    for f in (campaign.prepare, campaign.prepare_ces):
+        assert "seed" not in inspect.signature(f).parameters, f
+
+
 @pytest.mark.parametrize(
     "f",
     [

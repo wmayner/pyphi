@@ -40,7 +40,6 @@ status = campaign.prepare(
     compute="sia",
     directory="my-campaign",
     units_per_job=1e6,
-    seed=42,
 )
 print(status)
 ```
@@ -51,7 +50,7 @@ contains everything a job needs:
 
 ```
 my-campaign/
-  manifest.json     axes, per-cell estimates, packing, seed
+  manifest.json     axes, per-cell estimates, packing
   substrates/       each substrate serialized once
   tasks/            one task file per condor job
   outputs/          filled in by the jobs
@@ -114,8 +113,7 @@ result.df
 identical `SweepResult` a local sweep over the same axes would produce —
 same DataFrame, same raw result objects, same skip list. With missing or
 failed tasks it raises with a per-task summary; pass `partial=True` to get
-the completed subset (with a warning). The `seed` given at prepare time is
-stamped into each result's provenance.
+the completed subset (with a warning).
 
 ## Running tasks without condor
 
@@ -207,7 +205,6 @@ status = campaign.prepare_ces(
     scope=scope,
     directory="ces-campaign",
     units_per_job=1e6,
-    seed=42,
 )
 ```
 
@@ -221,7 +218,6 @@ status = campaign.prepare_ces(
     scope=scope,
     directory="ces-sweep-campaign",
     units_per_job=1e6,
-    seed=42,
 )
 ```
 
@@ -236,7 +232,7 @@ list into ranges; a single (mechanism, purview) pair over budget splits its
 partition sweep into interleaved strides. System-partition strides for the
 SIA are planned the same way — unless you pass a precomputed `sia=`
 (single-cell campaigns only) or a `resolution_state=`, in which case no
-SIA shards are planned, the collected structures carry no Φₛ, and each
+SIA shards are planned, the collected structures carry no φₛ, and each
 cell's congruence resolves against its own given state. A single-cell
 campaign takes one specification (the result of
 {func}`~pyphi.formalism.iit4.system_intrinsic_specification`); a multi-cell

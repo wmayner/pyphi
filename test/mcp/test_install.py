@@ -266,3 +266,44 @@ class TestCommandLine:
         )
         assert mod.run(args) == 1
         assert "unknown agent" in capsys.readouterr().out
+
+
+class TestReporting:
+    def test_print_respects_no_iit_expert_and_lists_the_claude_import(
+        self, tmp_path, capsys, isolated_home
+    ):
+        (isolated_home / ".claude").mkdir()
+        args = mod.build_parser().parse_args(
+            ["install", "--print", "--no-iit-expert", "--directory", str(tmp_path)]
+        )
+        assert mod.run(args) == 0
+        out = capsys.readouterr().out
+        assert "IIT Expert" not in out
+        assert f"{tmp_path / mod.CLAUDE_FILE}" in out
+        assert mod.CLAUDE_IMPORT in out
+        assert list(tmp_path.iterdir()) == []
+
+    def test_print_omits_an_import_that_is_already_there(self, tmp_path, capsys):
+        (tmp_path / mod.CLAUDE_FILE).write_text(
+            f"{mod.CLAUDE_IMPORT}\n", encoding="utf-8"
+        )
+        args = mod.build_parser().parse_args(
+            ["install", "--print", "--no-iit-expert", "--directory", str(tmp_path)]
+        )
+        assert mod.run(args) == 0
+        assert f"{tmp_path / mod.CLAUDE_FILE}" not in capsys.readouterr().out
+
+    def test_uninstall_after_no_iit_expert_gives_no_plugin_hint(
+        self, tmp_path, capsys, isolated_home
+    ):
+        (isolated_home / ".claude").mkdir()
+        parser = mod.build_parser()
+        install = ["install", "--no-iit-expert", "--skills"]
+        assert mod.run(parser.parse_args([*install, "--directory", str(tmp_path)])) == 0
+        assert "the pyphi skill in" in capsys.readouterr().out
+        assert (
+            mod.run(parser.parse_args(["uninstall", "--directory", str(tmp_path)])) == 0
+        )
+        out = capsys.readouterr().out
+        assert "IIT Expert" not in out
+        assert "the pyphi skill from" in out

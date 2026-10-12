@@ -4,6 +4,7 @@ These exercise :mod:`pyphi.mcp.agents`, which does not import the optional
 ``mcp`` dependency, so they run on a base install.
 """
 
+import json
 import subprocess
 import sys
 
@@ -548,10 +549,23 @@ class TestPluginStep:
         assert "codex plugin add iit-expert@iit-expert" in text
         assert ran == []
 
-    def test_uninstall_says_how_to_remove_the_plugin(self, tmp_path):
-        home = self._home(tmp_path, ".claude")
-        (line,) = mod.plugin_removal_hint(names=[], paths=[], home=home)
-        assert "claude plugin uninstall iit-expert@iit-expert" in line
+    def test_uninstall_says_how_to_remove_an_installed_plugin(self, tmp_path):
+        home = self._home(tmp_path, ".claude", ".codex")
+        registry = home / ".claude" / "plugins" / "installed_plugins.json"
+        registry.parent.mkdir()
+        registry.write_text(
+            json.dumps({"version": 2, "plugins": {mod.PLUGIN: []}}), encoding="utf-8"
+        )
+        (home / ".codex" / "config.toml").write_text(
+            f'[plugins."{mod.PLUGIN}"]\nenabled = true\n', encoding="utf-8"
+        )
+        lines = mod.plugin_removal_hint(names=[], paths=[], home=home)
+        assert any("claude plugin uninstall iit-expert@iit-expert" in x for x in lines)
+        assert any("codex plugin remove iit-expert@iit-expert" in x for x in lines)
+
+    def test_uninstall_is_silent_about_a_plugin_that_is_not_installed(self, tmp_path):
+        home = self._home(tmp_path, ".claude", ".codex")
+        assert mod.plugin_removal_hint(names=[], paths=[], home=home) == []
 
 
 class TestConfirm:

@@ -70,9 +70,9 @@ its φ values cannot be compared with values computed under IIT.
   e1003588):
   - It computes *concepts*. There are no relations, and so no structure
     integrated information: its Φ is the system-level value on `.phi`, and
-    `.big_phi` raises. `plot_ces` cannot draw its structure. The `analyze`
-    tool's summary has no `big_phi`, no `intrinsic_information`, and no
-    `congruence` key, because IIT 3.0 has no congruence filter.
+    `.big_phi` raises. `plot_ces` draws its concepts with no relations. The
+    `analyze` tool's summary has no `big_phi`, no `intrinsic_information`,
+    and no `congruence` key, because IIT 3.0 has no congruence filter.
   - It measures differences with the **earth mover's distance** (a sum that
     weights distant states more) rather than the intrinsic difference (a max
     over a single state). Eq. 3 is cause–effect information

@@ -41,15 +41,24 @@ reference.
   system (indices or labels); the rest of the substrate is background.
   `parallel=true` runs that call on multiple cores; see
   `get_iit_reference("parallelization")`.
+- `estimate_cost(handle, subset?, compute?, formalism?, scope?)` — count the
+  work an `analyze` call would do, without computing any φ. `analyze` refuses
+  a run whose count is too large unless you pass `confirm_large=true`.
 - `configure_parallel(enable?, levels?, workers?, reset?)` — read or
   persistently set the server's parallelization configuration.
-- `inspect(result_ref, path)` — drill into one part of a result.
+- `inspect(result_ref, path?)` — with no path, the result's summary and the
+  paths that can be inspected; with a path, that part of the result.
 - `plot(target, kind)` — render PyPhi's built-in visualizations (needs
   `pip install pyphi[visualize]`): `kind="ces"` the Φ-structure,
   `"repertoires"` the cause/effect repertoires, `"connectivity"` the causal
-  graph, `"tpm"` the transition probability matrix. For a particular view of the
+  graph, `"tpm"` the transition probability matrix. Each figure is written to a
+  file under the system's temporary directory. For a particular view of the
   Φ-structure, an analytically-computed structure, or plotting one you built
   yourself, read `get_iit_reference("visualization")`.
+- `prepare_campaign`, `prepare_ces_campaign`, `campaign_status`,
+  `collect_campaign` — split a sweep, or one large cause-effect structure,
+  into jobs for an HTCondor cluster, written to a directory you name; see
+  `get_iit_reference("campaigns")`.
 - `get_iit_reference(topic)` — the grounded theory reference. Porting code
   written against an older PyPhi? Read `get_iit_reference("migration")` first:
   2.0 renamed the core objects and has no compatibility shims.

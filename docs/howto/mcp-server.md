@@ -35,10 +35,8 @@ status if you want to check before starting.
 
 `uv init` creates the project and `uv add` installs PyPhi into its environment.
 The `mcp` extra brings in the server and its `pyphi-mcp` command. Add
-`visualize` as well — `"pyphi[mcp,visualize] @ …"` — if you want the `plot` tool,
-which needs the visualization stack.
-
-
+`visualize` as well, with `uv add "pyphi[mcp,visualize]"`, if you want the
+`plot` tool, which needs the visualization stack.
 
 `uv run` finds `pyphi-mcp` because PyPhi is now a dependency of the project you
 are standing in, so the command needs no activated environment and no absolute
@@ -72,7 +70,7 @@ IIT's primary literature (see {doc}`ai-assistants`).
 It probes `~/.claude`, `~/.codex` and `~/.cursor`, and asks before each:
 
 ```
-Install the PyPhi skills for Claude Code, Codex? [Y/n]
+Install the pyphi skill for Claude Code, Codex? [Y/n]
 Install the IIT Expert plugin (skill + connector) for Claude Code, Codex? [Y/n]
 ```
 
@@ -102,7 +100,8 @@ they are about IIT and PyPhi rather than about one project, and the report
 prints the full path of each one. `pyphi-mcp uninstall` removes them again; it
 deletes only directories PyPhi wrote, so a skill of your own that shares a name
 is left alone. It does not remove the IIT Expert plugin, which belongs to the
-agent once installed; it prints the command that does.
+agent once installed; where it finds the plugin installed, it prints the
+command that removes it.
 
 Running `install` again refreshes the skills, which is how you update them
 after upgrading PyPhi.
@@ -130,9 +129,10 @@ move the project or rebuild its environment somewhere else.
 
 Use `--scope user` to register for every project rather than this one,
 `--client claude-desktop` for Claude Desktop, and `--print` to see what would be
-written without writing it. `--from` registers a `uvx` launch command instead,
-which resolves the given package specification each time the server starts
-rather than using a fixed environment:
+written, and which plugin commands would run, without writing or running
+anything. `--from` registers a `uvx` launch command instead, which resolves the
+given package specification each time the server starts rather than using a
+fixed environment:
 
 ```bash
 pyphi-mcp install --from "pyphi[mcp] @ git+https://github.com/wmayner/pyphi.git@main"
@@ -208,7 +208,8 @@ existing as a whole, the other about how much structure is specified — the ser
 
 **You:** *Which mechanism contributes the most, and why?*
 
-The assistant calls `inspect` on the result to read a specific distinction in
+The assistant calls `inspect` on the result, which with no path returns the
+summary and the parts it can read, and then on one distinction to read it in
 full — its mechanism, its cause and effect purviews, and its φ value — without
 dragging the entire (potentially very large) structure back into the
 conversation.
@@ -216,9 +217,12 @@ conversation.
 **You:** *Show me the cause-effect structure.*
 
 The assistant calls `plot`. The Φ-structure is an interactive 3-D figure, so the
-tool returns a path to a self-contained HTML file to open in a browser — it is not shown inline. The connectivity graph, transition probability
-matrix, and repertoire plots are static, so those *are* returned as an inline
-image.
+tool returns a path to a self-contained HTML file to open in a browser — it is
+not shown inline. The connectivity graph, transition probability matrix, and
+repertoire plots are static, so those *are* returned as an inline image. Every
+figure is written to a `pyphi-mcp` folder in the system's temporary directory;
+these files and the campaign directories below are the only files the server
+writes.
 
 ## What it exposes
 
@@ -235,9 +239,13 @@ image.
   (`parallel`, `workers`). `compute` narrows the work to φₛ alone (`"sia"`),
   the cause-effect structure (`"ces"`), or the distinctions alone
   (`"distinctions"`, the only one that skips the system-partition search).
+- `estimate_cost` — count the work an `analyze` call would do, for the whole
+  substrate or a `subset`, without computing any φ.
 - `configure_parallel` — read or persistently set the server's parallelization
   configuration; a per-call `analyze` setting takes precedence.
-- `inspect` — drill into one part of a result (a distinction, a repertoire).
+- `inspect` — with no path, a result's summary and the parts that can be
+  inspected; with a path, one part (a distinction, the system irreducibility
+  analysis) in full.
 - `plot` — render PyPhi's built-in visualizations (needs the `visualize`
   extra): the cause-effect structure (`kind="ces"`), the cause and effect
   repertoires (`"repertoires"`), the causal connectivity graph
@@ -245,13 +253,18 @@ image.
 - `get_iit_reference` — read the bundled, citation-checked reference on the
   theory, the equations, and the common pitfalls; its `documentation` topic
   tells the assistant how to read this site directly (see below).
+- `prepare_campaign`, `prepare_ces_campaign`, `campaign_status` and
+  `collect_campaign` — split a sweep, or the cause-effect structure of one
+  large system, into jobs for an HTCondor cluster, then follow and collect
+  them (see {doc}`campaigns`).
 
 **Resources** — the same reference documents, at `pyphi://theory/{topic}`.
 
 **Prompts** — `explain_result` (narrate an analysis in plain language),
 `build_system_walkthrough` (turn a description of some units into a valid
-transition probability matrix), and `migrate_code` (rewrite pre-2.0 PyPhi
-code for 2.0).
+transition probability matrix), `migrate_code` (rewrite pre-2.0 PyPhi
+code for 2.0), and `campaign_walkthrough` (plan a cluster campaign for a large
+system, step by step).
 
 ## Good to know
 
@@ -260,18 +273,19 @@ code for 2.0).
   ships with the server as `pyphi://theory/*` resources and through
   `get_iit_reference`. The orientation primer and the gotchas load as the
   server's startup instructions, so the mistakes that produce wrong results —
-  reading φₛ = 0 as "no structure" when it means *reducible*, confusing φₛ
-  with Φ — are in front of the assistant before its first tool call rather than
-  waiting behind one. If you are new to IIT, asking it to read
-  `get_iit_reference("theory")` as well is worthwhile.
+  reading φₛ = 0 as "no structure" when it means the system does not exist
+  as one whole, confusing φₛ with Φ — are in front of the assistant before its
+  first tool call rather than waiting behind one. If you are new to IIT,
+  asking it to read `get_iit_reference("theory")` as well is worthwhile.
 - **Big analyses are guarded.** Φ is combinatorially expensive (the practical
-  ceiling for an exact analysis is about 10–12 units), so `analyze` refuses a
-  full analysis of a large substrate unless you confirm it. A full Φ-structure
-  can serialize to megabytes, so `analyze` returns a compact summary by default
-  and `inspect` reads a specific part in full on request. Parallelism divides
-  the constants, not the exponents, so the guard applies regardless of the
-  `parallel` setting; the assistant knows when multiple cores help from the
-  bundled `parallelization` reference.
+  ceiling for an exact analysis is about 10–12 units), so `analyze` counts the
+  work first, with the same count `estimate_cost` reports, and refuses a large
+  run unless you confirm it. A full Φ-structure can serialize to megabytes, so
+  `analyze` returns a compact summary by default and `inspect` reads a
+  specific part in full on request. Parallelism divides the constants, not
+  the exponents, so the guard applies regardless of the `parallel` setting;
+  the assistant knows when multiple cores help from the bundled
+  `parallelization` reference.
 
 ## Connect the MCP server to an arbitrary client
 

@@ -60,10 +60,11 @@ Read `summary.congruence` first:
 
 ## How to narrate it
 
-1. **Lead with the two headline numbers, and keep them distinct.** "This
-   system has φₛ ≈ 0.21, so it is irreducible: it exists as one integrated
-   whole. Its cause–effect structure has structure integrated information
-   Φ ≈ 1.86." The system is a complex, and its cause–effect structure a
+1. **Lead with the two headline numbers, and keep them distinct.** For
+   units A and B of the `marshall_2023_fig3` example with every unit off:
+   "This system has φₛ ≈ 0.064, so it is irreducible: it exists as one
+   integrated whole. Its cause–effect structure has structure integrated
+   information Φ ≈ 0.43." The system is a complex, and its cause–effect structure a
    Φ-structure, only if its φₛ is also maximal among the overlapping candidate
    systems. `analyze` does not check this; in Python, `substrate.complexes(state)`
    does. Do not call Φ "the phi value" without saying which one.

@@ -45,7 +45,7 @@ def _run_all_tasks(directory, check=True):
 def executed_campaign(tmp_path_factory):
     directory = tmp_path_factory.mktemp("campaign") / "camp"
     substrates = {"basic": examples.basic_substrate(), "xor": examples.xor_substrate()}
-    prepare(substrates, **AXES, directory=directory, units_per_job=100.0, seed=7)
+    prepare(substrates, **AXES, directory=directory, units_per_job=100.0)
     _run_all_tasks(directory)
     return directory, substrates
 

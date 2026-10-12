@@ -392,7 +392,6 @@ def prepare(
     container_image: str = "pyphi.sif",
     request_memory: str = "4GB",
     request_disk: str = "4GB",
-    seed: int | None = None,
 ) -> CampaignStatus:
     """Materialize a sweep as a self-contained HTCondor campaign directory.
 
@@ -431,9 +430,6 @@ def prepare(
         Escalate admission-control warnings to errors.
     container_image, request_memory, request_disk : str, optional
         Substituted into the generated submit file.
-    seed : int, optional
-        Recorded in the manifest; stamped into result provenance by
-        :func:`collect`.
 
     Returns
     -------
@@ -495,7 +491,6 @@ def prepare(
         "kind": "sweep_cells",
         "pyphi_version": importlib.metadata.version("pyphi"),
         "created": datetime.now(UTC).isoformat(),
-        "seed": seed,
         "compute": compute_name,
         "compute_ref": compute_ref,
         "axes": {
@@ -578,7 +573,6 @@ def prepare_ces(
     container_image: str = "pyphi.sif",
     request_memory: str = "4GB",
     request_disk: str = "4GB",
-    seed: int | None = None,
 ) -> CampaignStatus:
     """Materialize a scoped CES sweep as a campaign.
 
@@ -626,7 +620,7 @@ def prepare_ces(
         shards and is used at collection. Single-cell campaigns only.
     resolution_state : optional
         Explicit congruence-resolution states; suppresses SIA shards, and
-        the collected structures then carry no Φₛ. One specification (the
+        the collected structures then carry no φₛ. One specification (the
         result of
         :func:`pyphi.formalism.iit4.system_intrinsic_specification`) for a
         single-cell campaign; for multi-cell campaigns, a mapping keyed by
@@ -649,9 +643,6 @@ def prepare_ces(
         Minimum per-shard memory request (the floor). Every shard requests
         the greater of this and its estimated peak, so a large floor
         disables memory stratification.
-    seed : int, optional
-        Recorded in the manifest; stamped into result provenance by
-        :func:`collect`.
 
     Returns
     -------
@@ -859,7 +850,6 @@ def prepare_ces(
         "pyphi_version": importlib.metadata.version("pyphi"),
         "created": datetime.now(UTC).isoformat(),
         "active_version": config.formalism.iit.version,
-        "seed": seed,
         "sia_mode": sia_mode,
         "ordering": ordering,
         "cells": [
@@ -1152,12 +1142,6 @@ def _collect_sweep(directory: Path, manifest: dict, partial: bool) -> SweepResul
             keys.append(cell)
             raw.append(result)
 
-    if manifest["seed"] is not None:
-        for result in raw:
-            with_provenance = getattr(result, "with_provenance", None)
-            if with_provenance is not None:
-                with_provenance(seed=manifest["seed"])
-
     rows = [_extract_row(result, compute) for result in raw]
     df = _build_df(_label_formalism(keys, manifest), rows)
     return SweepResult(df=df, results=raw, skipped=_label_formalism(skipped, manifest))
@@ -1267,7 +1251,7 @@ hours beyond ~12 units and raising as infeasible beyond ~16."""
 
 
 def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any):
-    """Assemble a structure whose congruence state comes without any Φₛ."""
+    """Assemble a structure whose congruence state comes without any φₛ."""
     from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
     from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
@@ -1558,7 +1542,7 @@ def _collect_ces(
                     "scope_report": dataclasses.asdict(report),
                 }
             )
-            with_provenance(note=note, seed=manifest["seed"])
+            with_provenance(note=note)
 
     if not multi:
         (directory / "scope_report.json").write_text(

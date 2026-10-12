@@ -80,7 +80,9 @@ must hold for a result to be cached:
 - The working tree must be clean when running from a git checkout of PyPhi
   (the key uses the commit hash; an installed release uses the package version
   and always caches).
-- No result-affecting keyword arguments are passed to `sia()` or `ces()`.
+- No argument other than `formalism` is passed to `System.sia()` or
+  `System.ces()`; even `parallel` or `progress` turns the disk cache off for
+  that call.
 
 These files are durable results rather than reclaimable memory, so
 `pyphi.cache.clear_all()` leaves them alone. Remove them with

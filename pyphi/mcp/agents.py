@@ -78,6 +78,13 @@ PLUGIN_REMOVAL: dict[str, tuple[str, ...]] = {
     "codex": ("codex", "plugin", "remove", PLUGIN),
 }
 
+#: Agent name mapped to the file, under its probe directory, in which the agent
+#: records the plugins it has installed.
+PLUGIN_REGISTRY: dict[str, str] = {
+    "claude-code": "plugins/installed_plugins.json",
+    "codex": "config.toml",
+}
+
 #: Cursor installs plugins from its settings rather than a command line.
 CURSOR_STEPS = (
     f"in Cursor, open Customize > From GitHub Repository and enter {PLUGIN_REPOSITORY}"
@@ -205,6 +212,11 @@ def _source() -> Traversable:
 def skill_names() -> list[str]:
     """Return the names of the skills shipped with this PyPhi."""
     return sorted(entry.name for entry in _source().iterdir() if entry.is_dir())
+
+
+def _skills(names: list[str]) -> str:
+    """``"the pyphi skill"``, or ``"the a, b skills"`` for several."""
+    return f"the {', '.join(names)} skill{'s' if len(names) > 1 else ''}"
 
 
 def _version() -> str:
@@ -375,9 +387,9 @@ def install_step(
                 "skipped the skills; run `pyphi-mcp install --skills` to add them",
             ]
         displayed = ", ".join(target.display for target in targets)
-        if not confirm(f"Install the PyPhi skills for {displayed}?"):
+        if not confirm(f"Install {_skills(skill_names())} for {displayed}?"):
             return retired
-    installed = ", ".join(skill_names())
+    installed = _skills(skill_names())
     actions = retired
     delivered = False
     for target in targets:
@@ -387,7 +399,7 @@ def install_step(
             actions.append(f"could not write skills to {target.path}: {error}")
         else:
             delivered = delivered or target.name in CURSOR_READS
-            actions.append(f"installed the {installed} skills in {target.path}")
+            actions.append(f"installed {installed} in {target.path}")
     # Cursor's own copy goes only once Cursor can read one elsewhere.
     if covered is not None and delivered and (remove(covered) or covered in resolved):
         actions.append(
@@ -405,7 +417,7 @@ def remove_step(
     for target in resolve(names, paths, home=home):
         removed = remove(target)
         if removed:
-            actions.append(f"removed the {', '.join(removed)} skills from {target.path}")
+            actions.append(f"removed {_skills(removed)} from {target.path}")
     return actions
 
 
@@ -413,9 +425,9 @@ def describe(
     *, names: list[str], paths: list[Path], home: Path | None = None
 ) -> list[str]:
     """Return what :func:`install_step` would write, writing nothing."""
-    installed = ", ".join(skill_names())
+    installed = _skills(skill_names())
     return [
-        f"{target.path}: the {installed} skills"
+        f"{target.path}: {installed}"
         for target in _split_cursor(
             resolve(names, paths, home=home), explicit=bool(names or paths), home=home
         )[0]
@@ -509,13 +521,25 @@ def describe_plugin(
     return lines
 
 
+def _has_plugin(target: Target) -> bool:
+    """Whether the agent's plugin registry names the IIT Expert plugin."""
+    # ponytail: a substring check on each agent's own registry file; read the
+    # format properly if an agent ever records the name in another form.
+    registry = target.path.parent / PLUGIN_REGISTRY[target.name]
+    try:
+        return PLUGIN in registry.read_text(encoding="utf-8")
+    except OSError:
+        return False
+
+
 def plugin_removal_hint(
     *, names: list[str], paths: list[Path], home: Path | None = None
 ) -> list[str]:
-    """Say how to remove the plugin, which PyPhi installs but does not own."""
+    """Say how to remove the plugin, which PyPhi installs but does not own,
+    from each agent whose plugin registry lists it."""
     return [
         f"the IIT Expert plugin stays installed in {target.display}; "
         f"remove it with: {' '.join(PLUGIN_REMOVAL[target.name])}"
         for target in _agents(names, paths, home)
-        if target.name in PLUGIN_REMOVAL
+        if target.name in PLUGIN_REMOVAL and _has_plugin(target)
     ]

@@ -23,9 +23,11 @@ writing a script. They refuse runs too large to finish and keep φₛ and Φ
 apart. Where it is not connected,
 `pyphi-mcp install` registers it.
 
-The server holds results in memory only, and none of its tools writes to disk.
-Anything that has to be reproducible belongs in a script — see Reproducible
-work below.
+The server holds results in memory, and they are gone when the session ends.
+Its only files are the figures `plot` writes under the system's temporary
+directory and the campaign directories the campaign tools write where they are
+told. Anything that has to be reproducible belongs in a script — see
+Reproducible work below.
 
 ## The 2.0 API
 
@@ -78,11 +80,12 @@ on and the rest off. Reversing this produces a well-formed, wrong answer.
 
 ## Estimate before running
 
-Analyses are superexponential in substrate size. `pyphi.cost.estimate_analysis`
-is free — call it before any run over more than a handful of units.
+Analyses are superexponential in substrate size. `pyphi.estimate_analysis`
+counts the work in seconds, without computing any φ — call it before any run
+over more than a handful of units.
 
 ```python
-print(pyphi.cost.estimate_analysis(substrate))
+print(pyphi.estimate_analysis(substrate))
 ```
 
 ## Building a substrate

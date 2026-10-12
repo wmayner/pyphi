@@ -17,6 +17,7 @@ import itertools
 import tempfile
 import uuid
 from dataclasses import asdict
+from dataclasses import fields
 from importlib import metadata
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,7 @@ from pyphi.conf._helpers import parallel_overrides
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.cost import estimate_analysis
 from pyphi.cost import runtime_seconds
+from pyphi.models.ces import CauseEffectStructure
 from pyphi.models.distinctions import Distinctions
 from pyphi.relations import NullRelations
 
@@ -53,10 +55,13 @@ from . import content
 # refuses the 7-unit one (1,450,456,298 sweeps).
 #
 # _GUARD_COUNT_BUDGET bounds the guard's own counting work (purview
-# evaluations plus fresh partition enumerations; memoized counts are free),
-# keeping the pre-flight to a few seconds. A walk that exceeds it is
-# refused conservatively: a workload too large to count cheaply is treated
-# as too large to run unconfirmed.
+# evaluations plus fresh partition enumerations; memoized counts are free).
+# A walk that exceeds it is refused conservatively: a workload too large to
+# count cheaply is treated as too large to run unconfirmed. The memoized
+# 9-unit system-partition count already exceeds it, so a larger system's
+# system-partition axis is refused without enumerating; the distinction walk
+# over a fully connected system of 10 to 12 units still takes about 15 to
+# 25 seconds to reach it.
 # _SPECIFIED_STATE_LIMIT admits a 16-unit binary system — two forward
 # repertoire evaluations per system state, measured at about a minute and
 # under 0.2 GiB — and refuses larger ones, where the axis grows fourfold per
@@ -125,6 +130,9 @@ mcp = FastMCP("pyphi", instructions=_INSTRUCTIONS)
 
 _substrates: dict[str, Any] = {}
 _results: dict[str, Any] = {}
+# The summary each result was reported with, for ``inspect``: a bare
+# distinctions result does not record the formalism that computed it.
+_summaries: dict[str, dict[str, Any]] = {}
 _substrate_counter = itertools.count(1)
 _result_counter = itertools.count(1)
 
@@ -408,21 +416,27 @@ def build_substrate(
     Parameters
     ----------
     tpm : list
-        The transition probability matrix, as nested lists. State-by-node form
-        (one row per system state, one column per node, giving each node's
-        probability of turning on) is the usual input. States are ordered
-        little-endian: the FIRST node is the least-significant bit, so state
-        (0, 0, 1) is row index 4 in a 3-node system, not row 1.
+        The transition probability matrix, as nested lists. For binary units,
+        state-by-node form (one row per system state, one column per node,
+        giving each node's probability of turning on) is the usual input.
+        States are ordered little-endian: the FIRST node is the
+        least-significant bit, so state (0, 0, 1) is row index 4 in a 3-node
+        system, not row 1. For multi-valued units, pass the joint array of
+        shape ``(*alphabet, n_units, max_alphabet)``: entry
+        ``[s_1, ..., s_n, i, k]`` is the probability that unit i is in state
+        k at the next step given current state (s_1, ..., s_n), with zeros
+        past a unit's own alphabet size.
     cm : list, optional
         The connectivity matrix (``cm[i][j] == 1`` means node i is an input to
         node j). If omitted, full connectivity is assumed — always correct, but
         slower. A *wrong* connectivity matrix produces a wrong Φ, so omit it
         when unsure rather than guessing.
     node_labels : list of str, optional
-        Labels for the nodes; defaults to A, B, C, ….
+        Labels for the nodes; defaults to n0, n1, n2, ….
     alphabet : list of int, optional
-        The number of states per node, for multi-valued (k-ary) units. Defaults
-        to binary. Note that more states does not necessarily mean more Φ.
+        The number of states per node, for multi-valued (k-ary) units, with
+        ``tpm`` in the joint form above. Defaults to binary. Note that more
+        states does not necessarily mean more Φ.
 
     Returns
     -------
@@ -434,9 +448,17 @@ def build_substrate(
         kwargs["cm"] = np.asarray(cm)
     if node_labels is not None:
         kwargs["node_labels"] = node_labels
+    array = np.asarray(tpm, dtype=float)
     if alphabet is not None:
+        if array.ndim == 2 and any(k > 2 for k in alphabet):
+            raise ValueError(
+                "a 2-D TPM describes binary units, but alphabet gives a unit "
+                "more than two states. For multi-valued units pass the joint "
+                "array of shape (*alphabet, n_units, max_alphabet); see the "
+                "tpm parameter."
+            )
         kwargs["state_space"] = tuple(tuple(range(k)) for k in alphabet)
-    substrate = pyphi.Substrate(np.asarray(tpm, dtype=float), **kwargs)
+    substrate = pyphi.Substrate(array, **kwargs)
     handle = _register_substrate(substrate)
     return {"handle": handle, **_substrate_summary(substrate)}
 
@@ -459,16 +481,41 @@ def describe_substrate(handle: str) -> dict[str, Any]:
         state-index convention.
     """
     substrate = _get_substrate(handle)
+    labels = list(map(str, substrate.node_labels))
+    example = (1,) + (0,) * (len(labels) - 1)
+    binary = all(int(k) == 2 for k in substrate.factored_tpm.alphabet_sizes)
+    reading = ", ".join(
+        f"{label} {('off', 'on')[value]}" if binary else f"{label} = {value}"
+        for label, value in zip(labels, example, strict=True)
+    )
     return {
         "handle": handle,
         "pyphi_version": metadata.version("pyphi"),
         **_substrate_summary(substrate),
         "state_convention": (
             "States are little-endian: the first node is the "
-            "least-significant bit. A state is a tuple of node states, e.g. "
-            "(1, 1, 0) means node A on, B on, C off."
+            "least-significant bit. A state is a tuple of node states in node "
+            f"order, e.g. {example} means {reading}."
         ),
     }
+
+
+def _compute_arg(compute: str) -> str | None:
+    """The ``compute`` argument of ``pyphi.analyze`` for a tool's ``compute``
+    value: ``"full"`` is the full analysis, which the library calls ``None``."""
+    if compute not in ("full", "sia", "ces", "distinctions"):
+        raise ValueError(
+            f"unknown compute: {compute!r}; expected 'full', 'sia', 'ces' or "
+            "'distinctions'"
+        )
+    return None if compute == "full" else compute
+
+
+def _subset_indices(substrate: Any, subset: list[int | str] | None) -> Any:
+    """Node indices for a tool's ``subset`` (indices or labels), or ``None``."""
+    if subset is None:
+        return None
+    return tuple(substrate.node_labels.coerce_to_indices(subset))
 
 
 def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
@@ -519,7 +566,11 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
         blames_sia = axis in system_level
     elif estimate.capped:
         estimated = "more work than the guard's own counting budget could measure"
-        blames_sia = estimate.system_partitions is None
+        # The walk counts system partitions first, so a cap that left the
+        # distinction axis uncounted was reached on the system-level axis.
+        blames_sia = estimate.mechanism_partition_sweeps is None
+        if blames_sia and estimate.system_partitions is not None:
+            estimated += f" (at least {estimate.system_partitions:,} system partitions)"
     else:
         return
 
@@ -536,9 +587,8 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
     raise ValueError(
         f"A '{compute}' analysis of this {n_nodes}-node substrate is "
         f"estimated to require {estimated}; it may run for a very long time. "
-        f"Pass "
-        f"confirm_large=true to proceed anyway, use the estimate_cost tool "
-        f"to inspect the workload{cheaper}."
+        f"Pass confirm_large=true to proceed anyway, or use the estimate_cost "
+        f"tool to inspect the workload{cheaper}."
     )
 
 
@@ -619,15 +669,13 @@ def analyze(
         system provides itself no repertoire of alternatives (ii(s) = 0; see
         ``requirement_binding``).
     """
+    if detail not in ("summary", "full"):
+        raise ValueError(f"unknown detail: {detail!r}; expected 'summary' or 'full'")
+    compute_arg = _compute_arg(compute)
     substrate = _get_substrate(handle)
-    indices = (
-        None
-        if subset is None
-        else tuple(substrate.node_labels.coerce_to_indices(subset))
-    )
-    compute_arg = None if compute == "full" else compute
+    indices = _subset_indices(substrate, subset)
+    formalism = presets.canonical(formalism)
     if not confirm_large:
-        formalism = presets.canonical(formalism)
         overrides = presets.by_name[formalism] if formalism else {}
         with pyphi.config.override(**overrides):
             estimate = estimate_analysis(
@@ -658,6 +706,7 @@ def analyze(
         ),
     }
     out["summary"]["subset"] = None if subset is None else list(subset)
+    _summaries[ref] = out["summary"]
     if detail == "full":
         target = getattr(result, "ces", result)
         out["serialized"] = serialize.dumps(target).decode("utf-8")
@@ -667,6 +716,7 @@ def analyze(
 @mcp.tool()
 def estimate_cost(
     handle: str,
+    subset: list[int | str] | None = None,
     compute: str = "full",
     formalism: str | None = None,
     scope: dict[str, Any] | None = None,
@@ -690,6 +740,9 @@ def estimate_cost(
     ----------
     handle : str
         A substrate handle from ``load_example`` or ``build_substrate``.
+    subset : list of int or str, optional
+        The candidate system, as in ``analyze``. Default prices the whole
+        substrate.
     compute : str
         ``"full"`` (default), ``"sia"``, ``"ces"``, or ``"distinctions"`` —
         the analysis whose workload to estimate, as in ``analyze``. Under
@@ -698,6 +751,19 @@ def estimate_cost(
         irreducibility analysis first.
     formalism : str, optional
         As in ``analyze``.
+    scope : dict, optional
+        Restricts the counted mechanisms and purviews, as a scoped campaign
+        does; it affects only the distinction axis. Keys: ``"mechanisms"``,
+        ``"cause_purviews"`` and ``"effect_purviews"``, each a mapping with
+        any of ``"explicit"`` (a list of unit lists, which cannot combine
+        with the other keys), ``"min_order"``, ``"max_order"``,
+        ``"containing"`` (units every admitted set contains) and
+        ``"within"`` (units every admitted set lies within); and
+        ``"max_purview_order_by_mechanism_order"``, a list of
+        ``[mechanism order, max purview order]`` pairs applied to both
+        purview directions. Units may be labels or indices. An unknown key
+        raises an error. Example: ``{"mechanisms": {"max_order": 2,
+        "containing": ["A"]}, "cause_purviews": {"within": ["A", "B"]}}``.
 
     Returns
     -------
@@ -706,15 +772,18 @@ def estimate_cost(
         counts, and ``estimated_cpu_seconds`` with a note on what it covers:
         the distinction axis only, so a ``"sia"`` estimate has no seconds and
         a ``"full"`` estimate is a lower bound. ``capped=true`` marks counts
-        that are lower bounds.
+        that are lower bounds: the count stops at a fixed work budget,
+        which it reaches within seconds.
     """
+    compute_arg = _compute_arg(compute)
     substrate = _get_substrate(handle)
     formalism = presets.canonical(formalism)
     overrides = presets.by_name[formalism] if formalism is not None else {}
     with pyphi.config.override(**overrides):
         estimate = estimate_analysis(
             substrate,
-            compute=None if compute == "full" else compute,
+            subset=_subset_indices(substrate, subset),
+            compute=compute_arg,
             scope=_scope_from_json(scope, substrate),
         )
     units = estimate.distinction_units
@@ -734,11 +803,15 @@ def estimate_cost(
 def _scope_from_json(scope: dict[str, Any] | None, substrate: Any) -> Any:
     """Build a resolved CESScope from the tools' JSON scope shape.
 
-    The shape mirrors the scope objects:
-    ``{"mechanisms": {"max_order": 2, "containing": [0]},
-    "cause_purviews": {...}, "effect_purviews": {...}}`` — each axis with
-    any of ``explicit`` (list of unit lists), ``min_order``, ``max_order``,
-    ``containing``, ``within``. Units may be labels or indices.
+    The keys are the fields of :class:`~pyphi.campaign.scope.CESScope`, and
+    each axis's keys are the fields of
+    :class:`~pyphi.campaign.scope.AxisScope`; ``estimate_cost`` documents the
+    shape. Units may be labels or indices.
+
+    Raises
+    ------
+    ValueError
+        If a key, at either level, is not one of those fields.
     """
     if scope is None:
         return None
@@ -746,9 +819,17 @@ def _scope_from_json(scope: dict[str, Any] | None, substrate: Any) -> Any:
     from pyphi.campaign.scope import CESScope
     from pyphi.campaign.scope import resolve_scope
 
-    def axis(d: dict[str, Any] | None) -> AxisScope:
-        if not d:
-            return AxisScope()
+    def check(d: dict[str, Any], cls: type, where: str) -> None:
+        known = [f.name for f in fields(cls)]
+        unknown = sorted(set(d) - set(known))
+        if unknown:
+            raise ValueError(
+                f"unknown {where} key(s) {unknown}; expected any of {known}"
+            )
+
+    def axis(name: str) -> AxisScope:
+        d = scope.get(name) or {}
+        check(d, AxisScope, f"scope[{name!r}]")
         return AxisScope(
             explicit=None
             if d.get("explicit") is None
@@ -759,10 +840,15 @@ def _scope_from_json(scope: dict[str, Any] | None, substrate: Any) -> Any:
             within=None if d.get("within") is None else tuple(d["within"]),
         )
 
+    check(scope, CESScope, "scope")
+    table = scope.get("max_purview_order_by_mechanism_order")
     built = CESScope(
-        mechanisms=axis(scope.get("mechanisms")),
-        cause_purviews=axis(scope.get("cause_purviews")),
-        effect_purviews=axis(scope.get("effect_purviews")),
+        mechanisms=axis("mechanisms"),
+        cause_purviews=axis("cause_purviews"),
+        effect_purviews=axis("effect_purviews"),
+        max_purview_order_by_mechanism_order=None
+        if table is None
+        else tuple((int(m), int(p)) for m, p in table),
     )
     return resolve_scope(built, substrate.node_labels)
 
@@ -773,13 +859,12 @@ def prepare_ces_campaign(
     state: list[int],
     directory: str,
     units_per_job: float,
-    subset: list[int] | None = None,
+    subset: list[int | str] | None = None,
     scope: dict[str, Any] | None = None,
     formalism: str | None = None,
     sia_ref: str | None = None,
     ordering: str | None = None,
     limit: int | None = None,
-    seed: int | None = None,
 ) -> dict[str, Any]:
     """Materialize one system's scoped CES analysis as an HTCondor campaign.
 
@@ -803,8 +888,9 @@ def prepare_ces_campaign(
         Target campaign directory; must not already exist.
     units_per_job : float
         Target work units per shard.
-    subset : list of int, optional
-        Candidate-system node indices; the whole substrate when omitted.
+    subset : list of int or str, optional
+        The candidate system, as in ``analyze``; the whole substrate when
+        omitted.
     scope : dict, optional
         The feasibility surface: per-axis constraint objects as documented
         on ``estimate_cost``.
@@ -819,8 +905,6 @@ def prepare_ces_campaign(
     limit : int, optional
         Work budget for the planning walk; raise it for large scoped
         systems whose walk exceeds the default.
-    seed : int, optional
-        Recorded in the manifest and stamped into provenance at collection.
 
     Returns
     -------
@@ -833,17 +917,17 @@ def prepare_ces_campaign(
     kwargs: dict[str, Any] = {}
     if limit is not None:
         kwargs["limit"] = limit
+    indices = _subset_indices(substrate, subset)
     result = campaign.prepare_ces(
         substrate,
         states=tuple(state),
-        subsets="full" if subset is None else [tuple(subset)],
+        subsets="full" if indices is None else [indices],
         scope=_scope_from_json(scope, substrate),
         directory=directory,
         units_per_job=units_per_job,
         formalisms=formalism,
         sia=None if sia_ref is None else _get_result(sia_ref),
         ordering=ordering,
-        seed=seed,
         **kwargs,
     )
     return {"card": str(result), "status": asdict(result)}
@@ -859,7 +943,6 @@ def prepare_campaign(
     compute: str = "sia",
     jobs: int | None = None,
     units_per_job: float | None = None,
-    seed: int | None = None,
 ) -> dict[str, Any]:
     """Materialize a sweep as an HTCondor campaign directory.
 
@@ -877,14 +960,15 @@ def prepare_campaign(
         handle strings become the substrate labels in the result.
     directory : str
         Target campaign directory; must not already exist.
-    states, subsets, formalisms, compute
+    states, subsets, formalisms
         Sweep axes: explicit lists, or ``"all"`` / ``"full"``.
+    compute : str
+        ``"sia"`` (default), ``"full"``, ``"ces"`` or ``"distinctions"``,
+        as in ``analyze``.
     jobs : int, optional
         Pack into exactly this many cost-balanced tasks.
     units_per_job : float, optional
         Target work units per task (mutually exclusive with ``jobs``).
-    seed : int, optional
-        Recorded in the manifest and stamped into provenance at collection.
 
     Returns
     -------
@@ -902,11 +986,10 @@ def prepare_campaign(
         states=states_,
         subsets=subsets_,
         formalisms=formalisms,
-        compute=compute,
+        compute=_compute_arg(compute),
         directory=directory,
         jobs=jobs,
         units_per_job=units_per_job,
-        seed=seed,
     )
     return {"card": str(result), "status": asdict(result)}
 
@@ -1037,51 +1120,108 @@ def configure_parallel(
     return _parallel_state()
 
 
+#: Paths ``inspect`` lists for a result, where the result has them.
+_INSPECT_PATHS = (
+    "sia",
+    "sia.cause",
+    "sia.effect",
+    "sia.partition",
+    "ces",
+    "ces.relations",
+    "cause",
+    "effect",
+    "partition",
+    "relations",
+)
+
+#: Sequences ``inspect`` lists with their lengths, to be indexed as ``path[i]``.
+_INSPECT_SEQUENCES = ("ces.distinctions", "distinctions", "results")
+
+#: Serializations longer than this many characters are left out of an
+#: ``inspect`` reply.
+_INSPECT_MAX_CHARS = 50_000
+
+
 @mcp.tool()
 def inspect(result_ref: str, path: str = "") -> dict[str, Any]:
-    """Inspect one part of a stored analysis result in full detail.
+    """Inspect a stored result, or one part of it.
 
     Parameters
     ----------
     result_ref : str
         A ``result_ref`` returned by ``analyze``.
     path : str
-        Which slice to inspect. Empty returns the top-level summary. Otherwise
-        a dotted/indexed path into the result, e.g. ``"sia"``, ``"ces"``,
+        Which part to inspect. Empty (the default) returns the result's
+        summary and the paths that can be inspected. Otherwise a dotted,
+        optionally indexed path into the result, e.g. ``"sia"``, ``"ces"``,
         ``"ces.distinctions[0]"``, ``"ces.relations"``.
 
     Returns
     -------
     dict
-        The compact repr of the selected object and, when the object supports
-        it, its full serialization. Relation aggregates (counts, Σφ_r) come
-        from PyPhi's analytical path, which does not enumerate every relation.
+        With no path: the result's type, compact repr and ``summary`` (as
+        ``analyze`` returns it), the inspectable ``paths``, and ``indexed``,
+        mapping each sequence's path to its length (inspect
+        ``"<path>[i]"``; an empty path is the result itself). With a path:
+        the compact repr of the selected object and, when it supports it,
+        its serialization, unless that is longer than 50,000 characters.
+        Relation aggregates (counts, Σφ_r) come from PyPhi's analytical
+        path, which does not enumerate every relation.
     """
-    try:
-        result = _results[result_ref]
-    except KeyError:
-        known = ", ".join(_results) or "none"
-        raise KeyError(
-            f"Unknown result_ref {result_ref!r}. Run analyze first. Known refs: {known}."
-        ) from None
-
+    result = _get_result(result_ref)
     obj = _resolve_path(result, path) if path else result
     out: dict[str, Any] = {"path": path or "(root)", "type": type(obj).__name__}
     compact = getattr(obj, "_compact_repr", None)
     out["repr"] = compact() if callable(compact) else repr(obj)
+    if not path:
+        out["summary"] = _summaries.get(result_ref) or _result_summary(result)
+        out["paths"], out["indexed"] = _inspectable(result)
+        return out
     try:
-        out["serialized"] = serialize.dumps(obj).decode("utf-8")
+        serialized = serialize.dumps(obj).decode("utf-8")
     except TypeError:
         out["serialized"] = None
         out["note"] = "This object has no full serialization; see 'repr'."
+        return out
+    if len(serialized) > _INSPECT_MAX_CHARS:
+        out["serialized"] = None
+        out["note"] = (
+            f"The serialization is {len(serialized):,} characters, too large "
+            "to return. Inspect a narrower path, or call analyze with "
+            "detail='full' for the whole result."
+        )
+    else:
+        out["serialized"] = serialized
     return out
+
+
+def _inspectable(result: Any) -> tuple[list[str], dict[str, int]]:
+    """The paths of ``result`` that ``inspect`` can read, and its sequences
+    with their lengths."""
+
+    def resolves(path: str) -> bool:
+        try:
+            return _resolve_path(result, path) is not None
+        except AttributeError:
+            return False
+
+    paths = [path for path in _INSPECT_PATHS if resolves(path)]
+    indexed = {
+        path: len(_resolve_path(result, path))
+        for path in _INSPECT_SEQUENCES
+        if resolves(path)
+    }
+    if isinstance(result, Distinctions):
+        indexed[""] = len(result)
+    return paths, indexed
 
 
 def _resolve_path(obj: Any, path: str) -> Any:
     """Resolve a dotted, optionally indexed path into a result object."""
     for part in path.split("."):
         name, _, index = part.partition("[")
-        obj = getattr(obj, name)
+        if name:
+            obj = getattr(obj, name)
         if index:
             obj = obj[int(index.rstrip("]"))]
     return obj
@@ -1138,10 +1278,12 @@ def plot(
 ) -> Any:
     """Render one of PyPhi's built-in visualizations.
 
-    Requires the ``visualize`` extra (``pip install pyphi[visualize]``). The
-    interactive ``"ces"`` plot is returned as a
-    path to a self-contained HTML file to open in a browser (it cannot be shown
-    inline); the static figures are returned as an inline PNG.
+    Requires the ``visualize`` extra (``pip install pyphi[visualize]``). Each
+    figure is written to a file under the system's temporary directory, in a
+    ``pyphi-mcp`` folder. The interactive ``"ces"`` plot is returned as the
+    path to a self-contained HTML file to open in a browser (it cannot be
+    shown inline); the static figures are returned as a PNG path and an
+    inline preview.
 
     Parameters
     ----------
@@ -1149,8 +1291,10 @@ def plot(
         A ``result_ref`` from ``analyze`` for ``"ces"`` and ``"repertoires"``,
         or a substrate handle for ``"connectivity"`` and ``"tpm"``.
     kind : str
-        ``"ces"`` — the cause-effect structure (Φ-structure), interactive.
-        ``"repertoires"`` — the cause and effect repertoires of the analysis.
+        ``"ces"`` — the cause-effect structure (Φ-structure), interactive;
+        needs a result from ``compute="full"`` or ``"ces"``.
+        ``"repertoires"`` — the cause and effect repertoires of the system,
+        unpartitioned and partitioned; needs a ``compute="full"`` result.
         ``"connectivity"`` — the substrate's causal connectivity graph.
         ``"tpm"`` — the state-by-state transition probability matrix.
     view : str
@@ -1193,11 +1337,21 @@ def plot(
             views = ", ".join(_CES_VIEWS)
             raise ValueError(f"Unknown view {view!r}; use one of: {views}.")
         result = _get_result(target)
-        fig = visualize.plot_ces(
-            getattr(result, "ces", result), view=view, max_relations=max_relations
-        )
+        ces = getattr(result, "ces", result)
+        if not isinstance(ces, CauseEffectStructure):
+            raise ValueError(
+                f"kind='ces' needs a cause-effect structure, but {target} is a "
+                f"{type(result).__name__}; rerun analyze with compute='full' "
+                "or compute='ces'."
+            )
+        fig = visualize.plot_ces(ces, view=view, max_relations=max_relations)
     elif kind == "repertoires":
         result = _get_result(target)
+        if not isinstance(result, pyphi.Analysis):
+            raise ValueError(
+                f"kind='repertoires' needs a full analysis, but {target} is a "
+                f"{type(result).__name__}; rerun analyze with compute='full'."
+            )
         fig = visualize.plot_repertoires(result.system, result.sia)[0]
     elif kind == "connectivity":
         substrate = _get_substrate(target)

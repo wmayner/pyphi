@@ -97,7 +97,7 @@ Substrate  →  System (a candidate subset in a state)  →  Φ-structure
 `pyphi.analyze(substrate, state)` analyzes the given units — the whole
 substrate by default, or a `subset` — computing φₛ and unfolding the
 Φ-structure. It does **not** search for the complex; use
-`substrate.complexes()` or `substrate.maximal_complex()` for that. The MCP
+`substrate.complexes(state)` or `substrate.maximal_complex(state)` for that. The MCP
 `analyze` tool wraps `pyphi.analyze`.
 
 ## Actual causation

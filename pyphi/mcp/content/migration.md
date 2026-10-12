@@ -132,8 +132,8 @@ ces = analysis.ces   # the Φ-structure
 `pyphi.analyze` returns an `Analysis` with `.phi`, `.ces`, `.sia` (the system
 irreducibility analysis), and `.system` (the analyzed system). It analyzes
 the given units — the whole substrate by default, or the `subset` argument —
-and does not search for the complex; use `substrate.complexes()` or
-`substrate.maximal_complex()` for that. To analyze a specific subset,
+and does not search for the complex; use `substrate.complexes(state)` or
+`substrate.maximal_complex(state)` for that. To analyze a specific subset,
 pass `subset=` or construct a `System` directly:
 `pyphi.System(substrate, state, subset=(0, 1, 2))`. Code that imported the
 low-level IIT 4.0 functions from `new_big_phi` now imports `sia` and `ces` from

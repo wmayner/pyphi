@@ -15,7 +15,7 @@ purely from the campaign directory, from any machine, at any time.
    Python): enumerates the sweep cells — substrates × subsets × states — estimates each cell's workload, packs cells into cost-balanced
    tasks, and writes the campaign directory:
 
-   - `manifest.json` — axes, per-cell estimates, packing, seed
+   - `manifest.json` — axes, per-cell estimates, packing
    - `substrates/` — each substrate serialized once
    - `tasks/task-NNNN.json.gz` — one file per condor job
    - `pyphi.sub`, `run_task.sh`, `remaining.txt` — the condor interface
@@ -78,7 +78,8 @@ For one system too large to analyze whole, `prepare_ces_campaign`
 distributes the cause-effect structure computation itself. Declare the
 combinatorially feasible surface as a **scope** — per-axis constraint
 objects such as `{"mechanisms": {"max_order": 3, "containing": ["A"]},
-"cause_purviews": {"within": ["A", "B", "C"]}}` — and the planner shards
+"cause_purviews": {"within": ["A", "B", "C"]}}`, with the keys the
+`estimate_cost` tool documents; an unknown key raises — and the planner shards
 the scoped work to a per-job budget, descending mechanism → purview-range →
 partition-stride only where needed. A scope can also bound purview order
 per mechanism order (`max_purview_order_by_mechanism_order`), expressing

@@ -48,8 +48,9 @@ system integrated information — whether the system exists as one whole.
 
 States are little-endian: the first node is the least-significant bit.
 
-Analyses are superexponential in substrate size. `pyphi.cost.estimate_analysis`
-is free; call it before any run over more than a handful of units.
+Analyses are superexponential in substrate size. `pyphi.estimate_analysis`
+counts the work in seconds, without computing any φ; call it before any run
+over more than a handful of units.
 
 These three are the ones that go wrong unaided; the rest of the reference is
 `get_iit_reference("theory")` and `("equations")` where the MCP server is
@@ -256,6 +257,15 @@ def remove_block(path: Path) -> bool:
     return True
 
 
+def needs_claude_import(path: Path) -> bool:
+    """Whether :func:`ensure_claude_import` would write to ``path``."""
+    if path.is_symlink():
+        # Already bridged, by the other documented mechanism.
+        return False
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    return not any(line.strip() == CLAUDE_IMPORT for line in text.splitlines())
+
+
 def ensure_claude_import(path: Path) -> bool:
     """Make sure Claude Code loads the instruction file.
 
@@ -268,12 +278,9 @@ def ensure_claude_import(path: Path) -> bool:
     ----------
     https://code.claude.com/docs/en/memory
     """
-    if path.is_symlink():
-        # Already bridged, by the other documented mechanism.
+    if not needs_claude_import(path):
         return False
     text = path.read_text(encoding="utf-8") if path.exists() else ""
-    if any(line.strip() == CLAUDE_IMPORT for line in text.splitlines()):
-        return False
     body = (
         f"{CLAUDE_IMPORT}\n\n{text.lstrip()}" if text.strip() else f"{CLAUDE_IMPORT}\n"
     )
@@ -465,11 +472,17 @@ def run(args: argparse.Namespace) -> int:
                 print(json.dumps(config, indent=2))
                 print(f"\n{args.directory / INSTRUCTIONS_FILE}:")
                 print(block())
-                for line in agents.describe(names=args.agent, paths=args.agent_path):
-                    print(f"\n{line}")
-                for line in agents.describe_plugin(
-                    names=args.agent, paths=args.agent_path
-                ):
+                claude = args.directory / CLAUDE_FILE
+                if needs_claude_import(claude):
+                    print(f"\n{claude}: the line `{CLAUDE_IMPORT}`, for Claude Code")
+                lines = []
+                if args.skills is not False:
+                    lines += agents.describe(names=args.agent, paths=args.agent_path)
+                if args.iit_expert is not False:
+                    lines += agents.describe_plugin(
+                        names=args.agent, paths=args.agent_path
+                    )
+                for line in lines:
                     print(f"\n{line}")
                 return 0
             actions = install(

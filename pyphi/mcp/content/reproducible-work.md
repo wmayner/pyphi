@@ -1,8 +1,11 @@
 # Reproducible work
 
-The MCP server holds results in memory only, and none of its tools writes to
-disk. Anything that has to survive the session, be rerun, or be cited belongs
-in a script. These are the conventions that make such a script reproducible.
+The MCP server holds its substrates and results in memory, and they are gone
+when the session ends. Only two kinds of tool write files: `plot` writes each
+figure under the system's temporary directory, in a `pyphi-mcp` folder, and the
+campaign tools write the campaign directory they are given. Anything that has
+to survive the session, be rerun, or be cited belongs in a script. These are
+the conventions that make such a script reproducible.
 
 ## Seeding
 
@@ -86,6 +89,7 @@ was computed under an earlier one (see `get_iit_reference("configuration")`).
 
 ## Long runs
 
-`pyphi.cost.estimate_analysis` is free; call it before committing to a run. The
+`pyphi.estimate_analysis` counts the work of an analysis in seconds, without
+computing any φ; call it before committing to a run. The
 `performance` topic covers the disk cache and checkpointing, and the
 `campaigns` topic covers distributing a sweep across a cluster.

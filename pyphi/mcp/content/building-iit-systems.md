@@ -40,15 +40,26 @@ Then build it:
 build_substrate(tpm=[[...], ...], node_labels=["A", "B", "C"])
 ```
 
+Without `node_labels`, the nodes are labeled `n0`, `n1`, `n2`, ….
+
 Pass a **connectivity matrix** only if you are sure of the wiring
 (`cm[i][j] = 1` means node i is an input to node j) — a wrong one gives a wrong
 Φ. Omitting it is always correct, just slower.
 
 ## Multi-valued units
 
-For units with more than two states, pass `alphabet=[k_A, k_B, ...]`. Remember
-that more states does not necessarily raise Φ, and that a binary approximation
-of a multi-valued system generally does not preserve its causal structure.
+For units with more than two states, pass `alphabet=[k_A, k_B, ...]` and give
+the TPM as a joint array of shape `(*alphabet, n_units, max_alphabet)`. (A
+state-by-node table gives each unit's probability of being on, so it describes
+only binary units.) Entry `[s_A, s_B, ..., i, k]` is the
+probability that unit i is in state k at the next step, given the current
+state `(s_A, s_B, ...)`. A unit with fewer than `max_alphabet` states has zeros
+past its own states. For two units with three and two states, the array has
+shape `(3, 2, 2, 3)`.
+
+Remember that more states does not necessarily raise Φ, and that a binary
+approximation of a multi-valued system generally does not preserve its causal
+structure.
 
 ## Check your work
 

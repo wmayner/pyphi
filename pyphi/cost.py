@@ -175,7 +175,15 @@ def units_for_runtime(seconds: float) -> float:
 
 
 class _LimitReached(Exception):
-    pass
+    """The counting walk exceeded its work budget.
+
+    ``lower_bound`` is a known lower bound on the count being taken when the
+    budget ran out, or ``None``.
+    """
+
+    def __init__(self, lower_bound: int | None = None) -> None:
+        super().__init__(lower_bound)
+        self.lower_bound = lower_bound
 
 
 class _Counter:
@@ -294,7 +302,10 @@ def _system_partition_count(m: int, counter: _Counter) -> int:
 
     A memoized count is free; a fresh enumeration charges the counter one
     unit per partition, so an unmemoized (scheme, size) pair cannot exceed
-    the walk's work budget.
+    the walk's work budget. Partition counts grow with the number of units,
+    so when the memoized count for fewer units already exceeds the remaining
+    budget, the walk stops before enumerating, with that count as a lower
+    bound.
     """
     from pyphi.conf import config
     from pyphi.partition import system_partitions
@@ -304,6 +315,16 @@ def _system_partition_count(m: int, counter: _Counter) -> int:
     key = (scheme, m, include_total)
     count = _PARTITION_COUNT_MEMO.get(key)
     if count is None:
+        smaller = max(
+            (
+                known
+                for (s, size, total), known in _PARTITION_COUNT_MEMO.items()
+                if s == scheme and total == include_total and size < m
+            ),
+            default=0,
+        )
+        if counter.spent + smaller > counter.limit:
+            raise _LimitReached(lower_bound=smaller)
         count = 0
         for _ in system_partitions(tuple(range(m))):
             counter.charge(1)
@@ -657,8 +678,10 @@ def estimate_analysis(
                         sweeps += _mechanism_partition_count(
                             len(mechanism), len(purview), counter
                         )
-    except _LimitReached:
+    except _LimitReached as reached:
         capped = True
+        if counts_system_partitions and system_partition_count is None:
+            system_partition_count = reached.lower_bound
 
     relations_closed_form = None
     possible_distinctions = None

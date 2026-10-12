@@ -725,3 +725,139 @@ def test_describe_substrate_reports_the_pyphi_version(basic_handle):
     from importlib.metadata import version
 
     assert srv.describe_substrate(basic_handle)["pyphi_version"] == version("pyphi")
+
+
+def test_guard_refuses_a_fully_connected_10_unit_substrate_quickly():
+    """The 9-unit partition count already exceeds the guard's counting budget,
+    so the 10-unit count is refused without enumerating any partition."""
+    import time
+
+    handle = srv.build_substrate(np.zeros((2**10, 10)).tolist())["handle"]
+    start = time.perf_counter()
+    for compute in ("sia", "full"):
+        with pytest.raises(ValueError, match="at least 4,419,572 system partitions"):
+            srv.analyze(handle, [0] * 10, compute=compute)
+    assert time.perf_counter() - start < 10
+
+
+def test_estimate_cost_prices_the_subset(basic_handle):
+    whole = srv.estimate_cost(basic_handle)["estimate"]
+    pair = srv.estimate_cost(basic_handle, subset=["A", "B"])["estimate"]
+    assert (whole["n_units"], pair["n_units"]) == (3, 2)
+    assert pair["mechanisms"] == 3
+
+
+@pytest.mark.parametrize(
+    ("scope", "named"),
+    [
+        ({"mechanisms": {"max_ordr": 1}}, "max_ordr"),
+        ({"mechanism": {"max_order": 1}}, "mechanism"),
+    ],
+)
+def test_an_unknown_scope_key_is_rejected(basic_handle, scope, named):
+    with pytest.raises(ValueError, match=named):
+        srv.estimate_cost(basic_handle, compute="distinctions", scope=scope)
+
+
+def test_scope_bounds_purview_order_by_mechanism_order(basic_handle):
+    full = srv.estimate_cost(basic_handle, compute="distinctions")["estimate"]
+    table = [[1, 1], [2, 1], [3, 1]]
+    capped = srv.estimate_cost(
+        basic_handle,
+        compute="distinctions",
+        scope={"max_purview_order_by_mechanism_order": table},
+    )["estimate"]
+    assert capped["purview_evaluations"] < full["purview_evaluations"]
+
+
+def test_inspect_without_a_path_returns_the_summary_and_the_paths(basic_handle):
+    import json
+
+    ref = srv.analyze(basic_handle, BASIC_STATE)["result_ref"]
+    out = srv.inspect(ref)
+    assert len(json.dumps(out)) < 5000
+    assert "serialized" not in out
+    assert (
+        out["summary"]["system_phi"]
+        == srv.analyze(basic_handle, BASIC_STATE)["summary"]["system_phi"]
+    )
+    assert {"sia", "ces", "ces.relations"} <= set(out["paths"])
+    for path in out["paths"]:
+        srv.inspect(ref, path)
+    for path, count in out["indexed"].items():
+        assert count > 0
+        srv.inspect(ref, f"{path}[{count - 1}]")
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_repertoires_of_a_sia_result_names_compute(basic_handle):
+    ref = srv.analyze(basic_handle, BASIC_STATE, compute="sia")["result_ref"]
+    with pytest.raises(ValueError, match="compute"):
+        srv.plot(ref, kind="repertoires")
+
+
+@pytest.mark.skipif(not HAS_VIZ, reason="plotting needs the visualize extra")
+def test_plot_ces_of_bare_distinctions_names_compute(basic_handle):
+    ref = srv.analyze(basic_handle, [1, 0, 0], compute="distinctions")["result_ref"]
+    with pytest.raises(ValueError, match="compute"):
+        srv.plot(ref, kind="ces")
+
+
+@pytest.mark.skipif(not (HAS_VIZ and HAS_EMD), reason="needs visualize and emd")
+def test_plot_ces_draws_an_iit3_structure(basic_handle):
+    ref = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0")["result_ref"]
+    assert ".html" in srv.plot(ref, kind="ces")
+
+
+@pytest.mark.skipif(not HAS_EMD, reason="IIT 3.0 needs the emd extra")
+def test_confirm_large_still_canonicalizes_the_formalism(basic_handle):
+    out = srv.analyze(
+        basic_handle,
+        [1, 0, 0],
+        formalism="iit3",
+        compute="distinctions",
+        confirm_large=True,
+    )
+    assert out["summary"]["formalism"] == "IIT_3_0"
+    assert "congruence" not in out["summary"]
+
+
+def test_an_unknown_detail_is_rejected(basic_handle):
+    with pytest.raises(ValueError, match="detail"):
+        srv.analyze(basic_handle, BASIC_STATE, detail="bogus")
+
+
+def test_an_unknown_compute_names_the_tools_vocabulary(basic_handle):
+    with pytest.raises(ValueError, match="'full'"):
+        srv.analyze(basic_handle, BASIC_STATE, compute="bogus")
+
+
+def test_default_labels_and_state_convention_follow_the_substrate():
+    out = srv.build_substrate(tpm=[[0, 0], [1, 0], [0, 1], [1, 1]])
+    assert out["node_labels"] == ["n0", "n1"]
+    convention = srv.describe_substrate(out["handle"])["state_convention"]
+    assert "(1, 0) means n0 on, n1 off" in convention
+
+
+def test_a_kary_alphabet_with_a_two_dimensional_tpm_names_the_joint_form():
+    with pytest.raises(ValueError, match="n_units, max_alphabet") as error:
+        srv.build_substrate(tpm=np.full((6, 2), 0.5).tolist(), alphabet=[3, 2])
+    assert "marginals" not in str(error.value)
+
+
+def test_campaign_tools_take_no_seed():
+    import inspect
+
+    for tool in (srv.prepare_campaign, srv.prepare_ces_campaign):
+        assert "seed" not in inspect.signature(tool).parameters, tool
+
+
+def test_prepare_campaign_accepts_the_full_analysis(tmp_path):
+    handle = srv.load_example("basic")["handle"]
+    prepared = srv.prepare_campaign(
+        handles=[handle],
+        states=[[1, 1, 0]],
+        directory=str(tmp_path / "camp"),
+        compute="full",
+    )
+    assert prepared["status"]["n_tasks"] == 1

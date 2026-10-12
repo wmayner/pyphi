@@ -218,6 +218,23 @@ class TestBudget:
         assert est.purview_evaluations < 98
         assert est.mechanism_partition_sweeps < 1102
 
+    def test_a_smaller_count_over_budget_caps_without_enumerating(self, monkeypatch):
+        # Partition counts grow with the number of units, so the seeded
+        # 9-unit count, already over this budget, bounds the 10-unit count.
+        import pyphi.partition
+
+        def refuse(*args, **kwargs):
+            raise AssertionError("enumerated system partitions")
+
+        monkeypatch.setattr(pyphi.partition, "system_partitions", refuse)
+        substrate = pyphi.Substrate(np.zeros((2**10, 10)))
+        est = estimate_analysis(substrate, compute="sia", limit=1_000_000)
+        assert est.capped is True
+        assert (
+            est.system_partitions
+            == _PARTITION_COUNT_MEMO[("DIRECTED_SET_PARTITION", 9, False)]
+        )
+
     def test_memoized_counts_do_not_consume_budget(self):
         # Seeded system-partition counts resolve even under a unit budget.
         est = estimate_analysis(_dense3(), compute="sia", limit=1)

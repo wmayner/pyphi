@@ -295,8 +295,9 @@ system integrated information — whether the system exists as one whole.
 
 States are little-endian: the first node is the least-significant bit.
 
-Analyses are superexponential in substrate size. `pyphi.cost.estimate_analysis`
-is free; call it before any run over more than a handful of units.
+Analyses are superexponential in substrate size. `pyphi.estimate_analysis`
+counts the work in seconds, without computing any φ; call it before any run
+over more than a handful of units.
 
 These three are the ones that go wrong unaided; the rest of the reference is
 `get_iit_reference("theory")` and `("equations")` where the MCP server is
