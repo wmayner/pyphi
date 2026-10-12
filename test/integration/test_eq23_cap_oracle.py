@@ -257,19 +257,13 @@ def test_cap_applies_to_all_tie_members():
         )
 
 
-def test_cap_applies_to_runner_up_phi():
-    """When the ii(s) cap binds, the recorded runner-up φ is capped with the
-    same state-level terms, so the reported φ-gap compares capped to capped."""
-    system = System(_substrate("logistic3_k8"), _STATES["logistic3_k8"])
-    with config.override(**presets.iit4_2026):
-        sia = system.sia()
+def test_cap_leaves_runner_up_at_selection_values():
+    """The MIP is chosen on normalized φ before the ii(s) requirement applies
+    (Mayner et al. 2026, Eqs. 21-23), so where the requirement binds, the
+    runner-up and its gap are exactly those found without the requirement."""
+    uncapped, sia = _sia_pair(_substrate("logistic3_k8"), _STATES["logistic3_k8"])
+    assert float(sia.phi) < float(uncapped.phi)
+    assert sia.partition == uncapped.partition
     assert sia.runner_up is not None
-    cap_terms = []
-    for direction in sia.intrinsic_differentiation:
-        spec = sia.system_state[direction]
-        if spec is not None:
-            cap_terms.append(max(0.0, float(spec.intrinsic_specification)))
-        cap_terms.append(max(0.0, float(sia.intrinsic_differentiation[direction])))
-    ii_cap = min(cap_terms)
-    assert float(sia.phi) <= ii_cap + 1e-12
-    assert float(sia.runner_up.phi) <= ii_cap + 1e-12
+    assert sia.runner_up == uncapped.runner_up
+    assert sia.runner_up.gap > 0

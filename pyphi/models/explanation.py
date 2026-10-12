@@ -78,14 +78,19 @@ class RunnerUp:
     """The second-best partition at MIP selection.
 
     The candidate ranked next after the MIP by the same quantity that
-    selected the MIP. ``partition`` is the cut; ``phi`` is its (clamped)
-    integrated information. ``normalized_phi`` is set only when the
-    ranking quantity was normalized φ.
+    selected the MIP, with the values it was ranked on: under the
+    intrinsic-information requirement these are the values before the
+    requirement applies, as at selection. ``partition`` is the cut; ``phi``
+    is its (clamped) integrated information. ``normalized_phi`` is set only
+    when the ranking quantity was normalized φ. ``gap`` is how far the
+    runner-up's ranking value exceeds the MIP's, or ``None`` when the
+    result does not record it.
     """
 
     partition: Any
     phi: Any
     normalized_phi: Any = None
+    gap: float | None = None
 
 
 _NORMALIZED_STRATEGIES = frozenset({"NORMALIZED_PHI", "NEGATIVE_NORMALIZED_PHI"})
@@ -126,10 +131,12 @@ def runner_up_from_candidates(
     match a configured tie-resolution strategy). ``mip_value`` is the
     MIP's own key value. Candidates that tie the MIP (within
     :func:`pyphi.numerics.eq`) are tied peers, not runners-up, so they are
-    excluded. Returns ``None`` when the MIP's value is unique. Candidates
+    excluded. Returns ``None`` when no candidate exceeds the MIP. Candidates
     tied for next-best are ordered by ``partition.lex_key()`` so the choice
     does not depend on iteration order. Each candidate must expose
-    ``.partition`` and whatever ``key`` reads (``.phi`` by default).
+    ``.partition`` and whatever ``key`` reads (``.phi`` by default). The
+    returned record's ``gap`` is the runner-up's key value minus
+    ``mip_value``.
     """
     if key is None:
         key = lambda c: c.phi  # noqa: E731
@@ -154,6 +161,7 @@ def runner_up_from_candidates(
         partition=best.partition,
         phi=best.phi,
         normalized_phi=getattr(best, "normalized_phi", None) if normalized else None,
+        gap=float(key(best)) - mip,
     )
 
 

@@ -74,9 +74,10 @@ analysis.sia.partition
 ```
 
 `analysis.phi` is $\varphi_s$; `analysis.sia` is the full **system irreducibility
-analysis** that produced it, including the MIP, the cause and effect sides, and a
-size-normalized value (`analysis.sia.normalized_phi`) used when comparing systems
-of different sizes.
+analysis** that produced it, including the MIP, the cause and effect sides, and
+`analysis.sia.normalized_phi`, which is $\varphi_s$ divided by the number of
+connections the MIP severs. Candidate systems are compared on $\varphi_s$
+itself, not on the normalized value.
 
 The intrinsic-information requirement — a system must both furnish itself
 alternatives and specify one state — and its consequences (deterministic
@@ -88,13 +89,15 @@ The definitions above make two kinds of discrete choice. The specified
 cause and effect states are chosen by *maximizing* intrinsic specification
 over candidate states — the principle of maximal existence (Mayner, Marshall
 & Tononi, 2026, Eq. 12). The MIP is chosen by *minimizing* integrated
-information over partitions; the minimization compares partitions on a
-**normalized** value (each partition's $\varphi_s$ divided by the maximum
-number of connections it could sever), while the reported $\varphi_s$ is
-the **unnormalized** value at the winning partition (Albantakis et al.,
-2023, Eqs. 22–23). Normalization ensures the comparison is fair across
-partitions of different sizes; the reported quantity, once the MIP is
-identified, is an absolute one.
+information over partitions. The minimization compares partitions on a
+**normalized** value: each partition's $\min(\varphi_c, \varphi_e)$ divided
+by the number of connections it severs, which is the largest integrated
+information that partition could have (Mayner, Marshall & Tononi, 2026,
+Eq. 21). The intrinsic information does not enter this comparison. At the
+winning partition, $\varphi_s = \min(\varphi_c, \varphi_e, \mathit{ii}(s))$
+is reported **unnormalized** (Eqs. 22–23 of the same paper). Normalization makes the comparison
+fair across partitions of different sizes; the reported quantity, once the
+MIP is identified, is an absolute one.
 
 Each such choice has a **margin**: the gap between the winner and the best
 competitor, in the units of the comparison. PyPhi reports these on the

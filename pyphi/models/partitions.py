@@ -545,8 +545,18 @@ class EdgeCut(Displayable, _PartitionBase):
         # hash must not distinguish dtypes either.
         return hash((self.node_indices, utils.np_hash(self._cut_matrix.astype(bool))))
 
+    def _severed(self) -> str:
+        """The severed connections, as ``A→B, B→A`` in index order."""
+
+        def label(i: int) -> str:
+            return fmt.fmt_nodes((i,), self.node_labels)
+
+        return ", ".join(
+            f"{label(a)}→{label(b)}" for a, b in sorted(self.removed_edges())
+        )
+
     def _concise(self) -> str:
-        return f"EdgeCut ({self.num_connections_cut()} cut)"
+        return f"EdgeCut ({self._severed()})"
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         return _partition_description(self, self._concise())
@@ -615,11 +625,14 @@ class DirectedSetPartition(EdgeCut):
             parts = map(self.node_labels.coerce_to_labels, self.parts)
         else:
             parts = map(str, self.parts)  # type: ignore[arg-type]
+        # The blocks alone do not identify a directed partition: the parts'
+        # directions decide which connections between them are severed.
         return (
             f"{self.num_parts} parts: "
             + "{"
             + ",".join("".join(str(x) for x in part) for part in parts)
-            + "}"
+            + "}; cut "
+            + self._severed()
         )
 
     def relabel(

@@ -915,27 +915,27 @@ def test_every_displayable_type_overrides_describe():
 
 
 _GOLDEN_IIT4_SIA = """\
-╭─ SystemIrreducibilityAnalysis ──────────────╮
-│ φ_s                         0.415037        │
-│ Normalized φ_s              0.207519        │
-│ System                      A,B,C           │
-│ Current state               (1, 0, 0)       │
-├─ Cause ─────────────────────────────────────┤
-│ Specified state             (1, 1, 0)       │
-│ Intrinsic specification     3.0             │
-│ Intrinsic differentiation   0.0             │
-├─ Effect ────────────────────────────────────┤
-│ Specified state             (0, 0, 1)       │
-│ Intrinsic specification     3.0             │
-│ Intrinsic differentiation   0.0             │
-├─ MIP ───────────────────────────────────────┤
-│ Partition                   2 parts: {A,BC} │
-│ Tied MIPs                   0               │
-│     A   B   C                               │
-│ A   ·   ·   ·                               │
-│ B   ✕   ·   ·                               │
-│ C   ✕   ·   ·                               │
-╰─────────────────────────────────────────────╯"""
+╭─ SystemIrreducibilityAnalysis ────────────────────────────╮
+│ φ_s                         0.415037                      │
+│ Normalized φ_s              0.207519                      │
+│ System                      A,B,C                         │
+│ Current state               (1, 0, 0)                     │
+├─ Cause ───────────────────────────────────────────────────┤
+│ Specified state             (1, 1, 0)                     │
+│ Intrinsic specification     3.0                           │
+│ Intrinsic differentiation   0.0                           │
+├─ Effect ──────────────────────────────────────────────────┤
+│ Specified state             (0, 0, 1)                     │
+│ Intrinsic specification     3.0                           │
+│ Intrinsic differentiation   0.0                           │
+├─ MIP ─────────────────────────────────────────────────────┤
+│ Partition                   2 parts: {A,BC}; cut B→A, C→A │
+│ Tied MIPs                   0                             │
+│     A   B   C                                             │
+│ A   ·   ·   ·                                             │
+│ B   ✕   ·   ·                                             │
+│ C   ✕   ·   ·                                             │
+╰───────────────────────────────────────────────────────────╯"""
 
 
 def test_iit4_sia_ascii_golden():

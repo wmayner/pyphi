@@ -115,9 +115,9 @@ minimum partition (MIP)
   {doc}`../theory/system-integration`.
 
 normalized φ
-  A partition's φ divided by the maximum number of connections it could
-  sever. The minimum partition is chosen on this value; the reported φ is
-  the unnormalized value at the winning partition.
+  A partition's φ divided by the number of connections it severs. The
+  minimum partition is chosen on this value; the reported φ is the
+  unnormalized value at the winning partition.
   {doc}`../theory/system-integration`.
 
 partition scheme

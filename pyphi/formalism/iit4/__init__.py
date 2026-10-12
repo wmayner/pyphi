@@ -546,15 +546,18 @@ class SystemIrreducibilityAnalysis(
                     value=concise_partition(self.runner_up.partition),
                 )
             )
-            if self.runner_up.normalized_phi is not None:
-                # The runner-up was ranked by normalized φ, so the gap is
-                # reported in the same quantity.
-                gap_label = "normalized φ-gap to runner-up"
-                gap = float(self.runner_up.normalized_phi) - float(self.normalized_phi)
-            else:
-                gap_label = "φ-gap to runner-up"
-                gap = float(self.runner_up.phi) - float(self.phi)
-            findings.append(Finding(kind="gap", label=gap_label, value=gap))
+            # The gap is measured at selection, in the quantity that ranked
+            # the partitions (normalized φ under the default strategy) and
+            # before the intrinsic-information requirement applies.
+            if self.runner_up.gap is not None:
+                gap_label = (
+                    "normalized φ-gap to runner-up"
+                    if self.runner_up.normalized_phi is not None
+                    else "φ-gap to runner-up"
+                )
+                findings.append(
+                    Finding(kind="gap", label=gap_label, value=self.runner_up.gap)
+                )
         if self.partition_margin is not None:
             findings.append(
                 Finding(
@@ -937,22 +940,8 @@ def _cap_one(sia: SystemIrreducibilityAnalysis) -> None:
     sia.phi = float(utils.positive_part(capped_signed))
     sia.signed_normalized_phi = float(capped_norm)
     sia.normalized_phi = float(utils.positive_part(capped_norm))
-    # ii(s) is partition-independent given the specified states, so the same
-    # state-level terms bound the runner-up partition's φ; the reported φ-gap
-    # then compares like with like.
-    # numerics: exact — Eq. 23; φ_s is a minimum, not a tie decision.
-    if sia.runner_up is not None and float(sia.runner_up.phi) > ii:
-        runner_up_norm = normalization_factor(sia.runner_up.partition)
-        capped_runner_up_normalized = (
-            float(ii) * runner_up_norm
-            if sia.runner_up.normalized_phi is not None and runner_up_norm is not None
-            else sia.runner_up.normalized_phi
-        )
-        sia.runner_up = replace(
-            sia.runner_up,
-            phi=float(ii),
-            normalized_phi=capped_runner_up_normalized,
-        )
+    # ``runner_up`` and ``partition_margin`` keep their selection values: the
+    # MIP is chosen before the requirement applies.
 
 
 def _apply_ii_cap(

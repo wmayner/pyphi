@@ -777,6 +777,7 @@ def _enc_runner_up(runner_up: Any) -> Any:
             if runner_up.normalized_phi is None
             else to_schema(runner_up.normalized_phi)
         ),
+        gap=runner_up.gap,
     )
 
 
@@ -791,6 +792,7 @@ def _dec_runner_up(struct: Any) -> Any:
         normalized_phi=(
             None if struct.normalized_phi is None else from_schema(struct.normalized_phi)
         ),
+        gap=struct.gap,
     )
 
 

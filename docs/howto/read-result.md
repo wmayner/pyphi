@@ -64,8 +64,13 @@ sia = analysis.sia
 sia
 ```
 
-- **Normalized $\varphi_s$**: $\varphi_s$ divided by the partition's normalization; the
-  minimum partition is chosen on this value.
+- **Normalized $\varphi_s$**: $\varphi_s$ divided by the number of connections
+  the minimum partition severs. The minimum partition itself is chosen on a
+  different value: for each partition, $\min(\varphi_c, \varphi_e)$ divided by
+  the number of connections that partition severs. The intrinsic information
+  ii(s) enters only after that choice, so when the intrinsic-information
+  requirement sets $\varphi_s$, the value shown here is smaller than the one
+  the partition was chosen on.
 - **Specified state** (cause and effect): the past and future states the
   system specifies with maximal intrinsic specification.
 - **Intrinsic specification**: how selectively and informatively the
@@ -73,8 +78,9 @@ sia
 - **Intrinsic differentiation**: the surprisal of the specified state: how
   much of a repertoire of alternatives the system provides itself. Zero for
   a deterministic transition.
-- **MIP**: the partition and, in the grid, the connections it severs; "Tied
-  MIPs" counts partitions tied with it.
+- **MIP**: the partition, written as its parts followed by the connections
+  it severs (the grid shows the same connections); "Tied MIPs" counts
+  partitions tied with it.
 
 $\varphi_s$ is the smallest of three terms: the cause-side integration
 $\varphi_c$, the effect-side integration $\varphi_e$, and the intrinsic
@@ -89,6 +95,9 @@ for finding in sia.explain().findings:
 ```
 
 Here the effect-side differentiation is the smallest term, so it is $\varphi_s$.
+The `runner_up` and `gap` findings compare the minimum partition with the
+next-best partition using the normalized value that decided the choice,
+before ii(s) enters; `gap` is how much larger the runner-up's value is.
 
 ## When φₛ is zero
 

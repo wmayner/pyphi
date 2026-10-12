@@ -286,6 +286,7 @@ class RunnerUpSchema(msgspec.Struct, frozen=True, tag="runner_up"):
     partition: PartitionSchema
     phi: PhiSchema
     normalized_phi: PhiSchema | None = None
+    gap: float | None = None
 
 
 class IIT3SIASchema(msgspec.Struct, frozen=True, tag="iit3_sia"):
