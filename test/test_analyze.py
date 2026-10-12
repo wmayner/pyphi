@@ -80,9 +80,8 @@ def test_analyze_iit3_bundle_pairs_distinctions_and_sia():
     state = examples.basic_state()
     result = analyze(substrate, state, formalism="IIT_3_0")
     assert isinstance(result, Analysis)
-    # Under 3.0 the CES is bare Distinctions (no embedded SIA); the bundle
-    # still exposes a SIA and a usable phi.
-    assert getattr(result.ces, "sia", None) is None
+    # Under 3.0, as under 4.0, the CES embeds the SIA the bundle exposes.
+    assert result.ces.sia is result.sia
     assert isinstance(result.phi, float)
 
 
@@ -276,14 +275,14 @@ def test_analyze_compute_distinctions_leaves_a_tied_state_unresolved():
 
 def test_analyze_compute_distinctions_is_resolved_under_iit3():
     """IIT 3.0 has no tied specified states and no congruence filter, so its
-    distinctions are the cause-effect structure as computed."""
+    distinctions are the cause-effect structure's as computed."""
     substrate = examples.basic_substrate()
     state = examples.basic_state()
     with config.override(**presets.iit3):
         result = analyze(substrate, state, compute="distinctions")
         ces = analyze(substrate, state, compute="ces")
     assert isinstance(result, ResolvedDistinctions)
-    assert result == ces
+    assert result == ces.distinctions
 
 
 def test_analyze_compute_distinctions_enumerates_no_system_partition(monkeypatch):

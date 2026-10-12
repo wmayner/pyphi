@@ -332,7 +332,7 @@ def test_iit3_2014_fig12_constellation(_iit3):
     paper's Figs 9-11).
     """
     ces = System(examples.fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)).ces()
-    concepts = list(ces)
+    concepts = list(ces.distinctions)
     assert len(concepts) == 6
     assert sorted(round(float(c.phi), 2) for c in concepts) == sorted(
         _FIG12_CONCEPT_PHI.values()
@@ -441,7 +441,7 @@ def test_gomez_2020_p53_mdm2_phi(_iit3_nonbinary):
     phi = float(system.sia().phi)
     assert round(phi, 2) == 0.44
     assert phi == pytest.approx(0.4387, abs=1e-3)
-    concepts = list(system.ces())
+    concepts = list(system.ces().distinctions)
     assert len(concepts) == 3
     assert {tuple(c.mechanism) for c in concepts} == {(0,), (1,), (2,)}
 

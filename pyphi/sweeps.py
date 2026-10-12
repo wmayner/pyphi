@@ -209,16 +209,17 @@ def _row_sia(result: Any) -> dict[str, Any]:
 
 
 def _row_ces(result: Any) -> dict[str, Any]:
-    # IIT 4.0: CauseEffectStructure (.sia / .distinctions / .relations).
-    # IIT 3.0: Distinctions (tuple-like; no .sia, no relations).
-    sia = getattr(result, "sia", None)
-    relations = getattr(result, "relations", None)
-    distinctions = getattr(result, "distinctions", result)
+    from pyphi.relations import NullRelations
+
+    relations = result.relations
     return {
-        "phi": float(sia.phi) if sia is not None else float("nan"),
-        "n_distinctions": len(distinctions),
+        "phi": float(result.sia.phi),
+        "n_distinctions": len(result.distinctions),
+        # IIT 3.0 defines no relations, so Σφ_r is undefined rather than zero.
         "sum_phi_r": (
-            float(relations.sum_phi()) if relations is not None else float("nan")
+            float("nan")
+            if isinstance(relations, NullRelations)
+            else float(relations.sum_phi())
         ),
     }
 

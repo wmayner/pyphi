@@ -6,8 +6,8 @@ from pyphi import Substrate
 from pyphi import config
 from pyphi import exceptions
 from pyphi.measures.distribution import resolve_mechanism_measure
-from pyphi.models import Concept
 from pyphi.models import DirectedBipartition
+from pyphi.models import Distinction
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import RepertoireIrreducibilityAnalysis
@@ -122,9 +122,9 @@ def test_proper_state(subsys_n0n2, subsys_n1n2):
     assert subsys_n1n2.proper_state == (0, 0)
 
 
-def test_apply_cut(s):
+def test_apply_partition(s):
     cut = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
-    cut_s = s.apply_cut(cut)
+    cut_s = s.apply_partition(cut)
     assert s.substrate == cut_s.substrate
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
@@ -133,33 +133,33 @@ def test_apply_cut(s):
     assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
-def test_apply_cut_shares_partition_independent_caches(s):
+def test_apply_partition_shares_partition_independent_caches(s):
     cut = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
     # Populate the parent's caches first.
     _ = s.cause_marginal
     _ = s.effect_marginal
-    cut_s = s.apply_cut(cut)
+    cut_s = s.apply_partition(cut)
     assert cut_s.cause_marginal is s.cause_marginal
     assert cut_s.effect_marginal is s.effect_marginal
 
 
-def test_apply_cut_shares_caches_even_when_parent_is_cold(s):
+def test_apply_partition_shares_caches_even_when_parent_is_cold(s):
     """Sharing must not depend on access order: a cut created before the
     parent's marginals were ever computed still shares them (otherwise
     every cut in a partition search recomputes its own inversion whenever
     the unpartitioned repertoires happen to come from a cross-system
     cache)."""
     cut = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
-    cut_s = s.apply_cut(cut)  # no prior marginal access on s
+    cut_s = s.apply_partition(cut)  # no prior marginal access on s
     assert cut_s.cause_marginal is s.cause_marginal
     assert cut_s.effect_marginal is s.effect_marginal
 
 
-def test_apply_cut_partition_dependent_state_still_differs(s):
+def test_apply_partition_partition_dependent_state_still_differs(s):
     cut_a = DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
     cut_b = DirectedBipartition(Direction.EFFECT, (0, 2), (1,))
-    sys_a = s.apply_cut(cut_a)
-    sys_b = s.apply_cut(cut_b)
+    sys_a = s.apply_partition(cut_a)
+    sys_b = s.apply_partition(cut_b)
     # Genuine difference: the two cuts sever different edges.
     assert not np.array_equal(sys_a.cm, sys_b.cm)
     assert sys_a.nodes != sys_b.nodes
@@ -173,7 +173,7 @@ def test_partition_indices(s, subsys_n1n2):
 def test_partitioned_mechanisms(s):
     assert list(s.partitioned_mechanisms) == []
     assert list(
-        s.apply_cut(
+        s.apply_partition(
             DirectedBipartition(Direction.EFFECT, (0, 1), (2,))
         ).partitioned_mechanisms
     ) == [
@@ -219,7 +219,7 @@ def test_null_concept(s):
             partitioned_repertoire=None,
         )
     )
-    assert s.null_concept == Concept(
+    assert s.null_distinction == Distinction(
         mechanism=(),
         cause=cause,
         effect=effect,
@@ -227,7 +227,7 @@ def test_null_concept(s):
 
 
 def test_distinction_no_mechanism(s):
-    assert s.distinction(()) == s.null_concept
+    assert s.distinction(()) == s.null_distinction
 
 
 def test_distinction_nonexistent(s):
@@ -584,8 +584,8 @@ def test_system_external_indices_included_in_hash(s) -> None:
     assert hash(s1) != hash(s2)
 
 
-def test_system_external_indices_apply_cut_propagates(s) -> None:
-    """apply_cut returns new System with external_indices preserved."""
+def test_system_external_indices_apply_partition_propagates(s) -> None:
+    """apply_partition returns new System with external_indices preserved."""
     from pyphi.models.partitions import DirectedBipartition as _DBP
 
     base = System(
@@ -595,7 +595,7 @@ def test_system_external_indices_apply_cut_propagates(s) -> None:
         external_indices=(),
     )
     new_cut = _DBP(Direction.EFFECT, (0,), (1,), s.substrate.node_labels)
-    cut = base.apply_cut(new_cut)
+    cut = base.apply_partition(new_cut)
     assert cut.external_indices == ()
 
 
@@ -616,16 +616,19 @@ def test_system_external_indices_overlap_with_node_indices_allowed(s) -> None:
     assert overlapping.external_indices == (1,)
 
 
-def test_iit3_ces_is_a_resolved_distinctions():
-    """Under IIT 3.0 the structure has no tied states to resolve, so the public
-    type is ResolvedDistinctions, not the internal UnresolvedDistinctions."""
+def test_iit3_ces_holds_resolved_distinctions():
+    """Under IIT 3.0 the structure has no tied states to resolve, so its
+    distinctions are ResolvedDistinctions, not the internal
+    UnresolvedDistinctions."""
     import pyphi
     from pyphi.conf import presets
+    from pyphi.models import CauseEffectStructure
     from pyphi.models import ResolvedDistinctions
 
     with config.override(**presets.iit3, progress_bars=False):
         ces = System(pyphi.examples.basic_substrate(), (1, 0, 0)).ces()
         analysis = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 0, 0))
-    assert isinstance(ces, ResolvedDistinctions)
-    assert isinstance(analysis.ces, ResolvedDistinctions)
-    assert len(ces.concepts) == 4
+    assert isinstance(ces, CauseEffectStructure)
+    assert isinstance(ces.distinctions, ResolvedDistinctions)
+    assert analysis.ces == ces
+    assert len(ces.distinctions) == 4

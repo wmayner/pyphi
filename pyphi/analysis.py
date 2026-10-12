@@ -26,6 +26,8 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
+from pyphi.models.ces import CauseEffectStructure
+from pyphi.relations import NullRelations
 from pyphi.serializable import Serializable
 from pyphi.system import System
 
@@ -46,14 +48,14 @@ class Analysis(Displayable, Serializable):
     φₛ = 0 — it is reducible — while its distinctions still sum to a nonzero Φ.
 
     For results computed under an earlier version of IIT (see
-    :doc:`/howto/earlier-versions`): under IIT 3.0 the CES is the bare set of
-    distinctions and the SIA is computed separately, the system-level quantity
-    ``phi`` is that version's Φ, and ``big_phi`` is not defined.
+    :doc:`/howto/earlier-versions`): under IIT 3.0 the CES has no relations,
+    the system-level quantity ``phi`` is that version's Φ, and ``big_phi`` is
+    not defined.
     """
 
     system: System
     sia: Any
-    ces: Any
+    ces: CauseEffectStructure
 
     @property
     def phi(self) -> float:
@@ -70,10 +72,7 @@ class Analysis(Displayable, Serializable):
 
     @property
     def _phi_label(self) -> str:
-        # Under IIT 3.0 the CES is a bare distinction sequence carrying no
-        # config snapshot; the SIA always carries one.
-        config = getattr(self.ces, "config", None) or getattr(self.sia, "config", None)
-        return system_phi_label(config)
+        return system_phi_label(self.ces.config)
 
     @property
     def big_phi(self) -> float:
@@ -95,10 +94,8 @@ class Analysis(Displayable, Serializable):
         return float(self.ces.big_phi)
 
     def _describe(self, verbosity: int) -> Description:
-        # Reuse the cause-effect structure's flat rich card. Under IIT 4.0 it
-        # already folds in the embedded SIA; under IIT 3.0 the CES is bare
-        # Distinctions, so append the separately-computed SIA's sections flat
-        # (capped at FULL) so the card still leads with the system-level value.
+        # Reuse the cause-effect structure's flat rich card, which folds in
+        # the embedded SIA at FULL verbosity.
         desc = self.ces._describe(verbosity)
         sections = list(desc.sections)
         # A result computed under an earlier version of IIT closes its summary
@@ -109,9 +106,7 @@ class Analysis(Displayable, Serializable):
             sections[0] = replace(
                 first, rows=(*first.rows, Row("Formalism", self.formalism))
             )
-        if getattr(self.ces, "sia", None) is None:
-            sections.extend(self.sia._describe(min(verbosity, FULL)).sections)
-        elif verbosity < FULL and getattr(self.sia, "partition", None) is not None:
+        if verbosity < FULL and getattr(self.sia, "partition", None) is not None:
             # Below FULL the structure card does not embed the SIA; show the
             # system-level facts a reader needs to interpret φₛ.
             sections.append(Section(label="System", rows=self._system_rows()))
@@ -163,11 +158,14 @@ class Analysis(Displayable, Serializable):
         return tuple(rows)
 
     def to_pandas(self) -> pd.DataFrame:
-        # IIT 4.0: ces carries .distinctions and .relations.
-        # IIT 3.0: ces is the Distinctions sequence itself (no relations).
-        distinctions = getattr(self.ces, "distinctions", self.ces)
-        relations = getattr(self.ces, "relations", None)
-        sum_phi_r = float(relations.sum_phi()) if relations is not None else float("nan")
+        distinctions = self.ces.distinctions
+        relations = self.ces.relations
+        # IIT 3.0 defines no relations, so Σφ_r is undefined rather than zero.
+        sum_phi_r = (
+            float("nan")
+            if isinstance(relations, NullRelations)
+            else float(relations.sum_phi())
+        )
         sum_phi_d = float(distinctions.sum_phi())
         # ``phi`` is φₛ; ``big_phi`` is Φ. See the class Notes.
         try:
@@ -314,8 +312,5 @@ def analyze(
                 )
             else:
                 ces = system.ces()
-                sia = getattr(ces, "sia", None)
-                if sia is None:
-                    sia = system.sia()
-                result = Analysis(system=system, sia=sia, ces=ces)
+                result = Analysis(system=system, sia=ces.sia, ces=ces)
     return result

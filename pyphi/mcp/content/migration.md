@@ -22,7 +22,9 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.new_big_phi.phi_structure` | `pyphi.formalism.iit4.ces` |
 | `pyphi.new_big_phi.sia` | `pyphi.formalism.iit4.sia` |
 | `pyphi.metrics` | `pyphi.measures` |
-| `pyphi.models.Concept` | `pyphi.models.Distinction` (`Concept` still works as an alias) |
+| `pyphi.models.Concept` | `pyphi.models.Distinction` |
+| `subsystem.null_concept` / `subsystem.apply_cut(cut)` | `system.null_distinction` / `system.apply_partition(partition)` |
+| `pyphi.convert.b2l`, `sbn2sbs`, and the other short names | the long names (`be2le`, `state_by_node2state_by_state`, ...) |
 | `subsystem.cause_tpm` / `effect_tpm` | `system.cause_marginal` / `effect_marginal` (plus `proper_*` variants) |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` |
 | `pyphi.utils.eq` / `is_positive` / `is_nonpositive` | `pyphi.numerics.eq` / `is_positive` / `is_nonpositive` |
@@ -84,7 +86,8 @@ and the other `iit4_2023_*` functions.
 | --- | --- |
 | `compute.phi(subsystem)`, IIT 3.0's Φ | `analyze(substrate, state, formalism="IIT_3_0").phi`; `.big_phi` is IIT 4.0's Φ and raises under IIT 3.0 |
 | `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
-| `compute.ces(subsystem)` | `analyze(..., formalism="IIT_3_0").ces`, a `ResolvedDistinctions` with the concepts under `.concepts` |
+| `compute.ces(subsystem)` | `analyze(..., formalism="IIT_3_0").ces.distinctions`; `.ces` is a `CauseEffectStructure` under every version, with empty `.relations` under IIT 3.0 |
+| `ces.phis`, `ces.mechanisms` | `ces.distinctions.phis`, `ces.distinctions.mechanisms` (tuples) |
 | `compute.major_complex(network, state)` | `substrate.complexes(state, formalism="IIT_3_0")`; the first entry is the strongest |
 
 ## 2. Building and analyzing

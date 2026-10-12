@@ -26,9 +26,6 @@ CauseEffectStructure
 Distinctions
     Alias for :class:`pyphi.models.distinctions.Distinctions` — the bag of
     distinctions, no relations.
-Concept
-    Alias for :class:`pyphi.models.distinction.Distinction` — IIT 3.0 paper
-    terminology for the same object.
 Distinction
     Alias for :class:`pyphi.models.distinction.Distinction`.
 DirectedAccount
@@ -63,7 +60,6 @@ from .complex import Complex
 from .complex import ExcludedCandidate
 from .diff import Change
 from .diff import ResultDiff
-from .distinction import Concept
 from .distinction import Distinction
 from .distinctions import Distinctions
 from .distinctions import ResolvedDistinctions
@@ -111,7 +107,6 @@ __all__ = [
     "CauseEffectStructureInterface",
     "Change",
     "Complex",
-    "Concept",
     "DirectedAccount",
     "DirectedBipartition",
     "DirectedJointPartition",
@@ -145,3 +140,10 @@ __all__ = [
     "distinction_phi_normalizations",
     "normalization_factor",
 ]
+
+
+def __getattr__(name: str):
+    message = f"module {__name__!r} has no attribute {name!r}"
+    if name == "Concept":
+        message += ". PyPhi 2.0 renamed it `Distinction`"
+    raise AttributeError(message)

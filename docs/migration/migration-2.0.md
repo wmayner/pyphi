@@ -28,6 +28,21 @@ topic is tagged with who it affects:
 | `subsystem.effect_tpm` | `system.effect_marginal` | [both] |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` | [both] |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` | [both] |
+| `pyphi.models.Concept` | `pyphi.models.Distinction` | [1.x] |
+| `pyphi.models.CauseEffectStructure`, the concepts | `pyphi.models.Distinctions` | [1.x] |
+| `PhiStructure` | `pyphi.models.CauseEffectStructure` | [4.0-branch] |
+| `subsystem.null_concept` | `system.null_distinction` | [1.x] |
+| `subsystem.apply_cut(cut)` | `system.apply_partition(partition)` | [1.x] |
+| `pyphi.convert.b2l`, `l2b`, `l2s`, `b2s`, `s2l`, `s2b` | `be2le`, `le2be`, `le_index2state`, `be_index2state`, `state2le_index`, `state2be_index` | [1.x] |
+| `pyphi.convert.b2l_sbs`, `l2b_sbs` | `be2le_state_by_state`, `le2be_state_by_state` | [1.x] |
+| `pyphi.convert.to_md`, `to_2d` | `to_multidimensional`, `to_2dimensional` | [1.x] |
+| `pyphi.convert.sbn2sbs`, `sbs2sbn` | `state_by_node2state_by_state`, `state_by_state2state_by_node` | [1.x] |
+
+The name `CauseEffectStructure` now means a different object. In 1.x it was
+the list of concepts, which 2.0 calls `Distinctions`; in 2.0 it is the
+distinctions together with their relations and the system irreducibility
+analysis. An unported import of `CauseEffectStructure` therefore still
+succeeds, but gives the newer object.
 
 `cause_marginal` and `effect_marginal` (with the `proper_cause_marginal` /
 `proper_effect_marginal` variants) are the causal marginals of IIT 4.0. The old
@@ -125,8 +140,9 @@ values are the names in {mod}`pyphi.measures`.
 | --- | --- |
 | `compute.phi(subsystem)`, IIT 3.0's Φ | `analyze(substrate, state, formalism="IIT_3_0").phi`: the same quantity. `.big_phi` is IIT 4.0's structure integrated information and raises under IIT 3.0 |
 | `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
-| `compute.ces(subsystem)`, the concepts | `analyze(..., formalism="IIT_3_0").ces`, a `ResolvedDistinctions`; the concepts are `.concepts` |
-| `concept.phi`, `concept.mechanism` | unchanged on each concept |
+| `compute.ces(subsystem)`, the concepts | `analyze(..., formalism="IIT_3_0").ces.distinctions`. Under every version `.ces` is a `CauseEffectStructure`; under IIT 3.0 its `.relations` are empty |
+| `ces.phis`, `ces.mechanisms` | `ces.distinctions.phis`, `ces.distinctions.mechanisms`, tuples |
+| `concept.phi`, `concept.mechanism` | unchanged on each distinction |
 | `compute.major_complex(network, state)` | `substrate.complexes(state, formalism="IIT_3_0")`, recursive exclusion over every subset; the first entry is the strongest |
 
 ## Building and analyzing

@@ -248,13 +248,22 @@ class Relation(Displayable, ToPandasMixin, cmp.OrderableByPhi, frozenset):
         return len(self.faces)
 
     @cached_property
-    def purview(self):
-        # Special case for self-relations
+    def purview(self) -> frozenset:
+        """frozenset: The relation purview, the union of the face purviews
+        (Albantakis et al. 2023, Eq. 54).
+
+        Its elements are units tagged with their specified states: the units
+        that every relatum's cause or effect specifies in a common state. For
+        a self-relation, the units its cause and effect specify in a common
+        state."""
         if self.is_self_relation:
             distinction = next(iter(self))
-            return distinction.cause.purview_units & distinction.effect.purview_units
-
-        return set.intersection(*(distinction.purview_union for distinction in self))
+            return frozenset(
+                distinction.cause.purview_units & distinction.effect.purview_units
+            )
+        return frozenset.intersection(
+            *(frozenset(distinction.purview_union) for distinction in self)
+        )
 
     @cached_property
     def phi(self) -> float:  # type: ignore[override]  # Overrides OrderableByPhi.phi with cached_property
@@ -1138,6 +1147,16 @@ class AnalyticalRelations(Relations):
             if count:
                 spectrum[degree] = (count, self.sum_phi_of_degree(degree))
         return spectrum
+
+    def _to_pandas(self) -> pd.DataFrame:
+        """The degree spectrum as a table: one row per relation degree, with
+        the number of relations of that degree and their Σφ_r, in closed
+        form. The columns sum to :meth:`num_relations` and :meth:`sum_phi`."""
+        rows = [
+            {"degree": degree, "num_relations": count, "sum_phi": sum_phi}
+            for degree, (count, sum_phi) in self.degree_spectrum().items()
+        ]
+        return records_to_frame(rows, columns=["degree", "num_relations", "sum_phi"])
 
     def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
         """Return each distinction's incident Σφ_r in closed form.

@@ -60,10 +60,10 @@ def mie(**kwargs):
 def concept(
     mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0, system=None
 ):
-    """Build a ``Concept``."""
+    """Build a ``Distinction``."""
     # Extract node_labels from system if available
     node_labels = system.node_labels if system is not None else None
-    return models.Concept(
+    return models.Distinction(
         mechanism=mechanism,
         cause=mic(
             mechanism=mechanism,
@@ -628,12 +628,12 @@ def test_concept_equality_repertoires(s):
         phi=phi, repertoire=np.array([1, 2]), partitioned_repertoire=np.array([2, 3])
     )
     mice2 = mice(phi=phi, repertoire=np.array([0, 0]), partitioned_repertoire=None)
-    concept = models.Concept(
+    concept = models.Distinction(
         mechanism=(),
         cause=mice1,
         effect=mice2,
     )
-    another = models.Concept(
+    another = models.Distinction(
         mechanism=(),
         cause=mice2,
         effect=mice1,

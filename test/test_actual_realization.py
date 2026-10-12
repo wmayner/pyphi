@@ -89,7 +89,7 @@ def test_null_transition_constructs(swap_substrate):
 
 
 def test_explicit_partition_bypasses_check(swap_substrate):
-    # An explicit partition marks a derived copy (apply_cut path); the
+    # An explicit partition marks a derived copy (apply_partition path); the
     # unpartitioned parent is where validation happens.
     t = actual.Transition(
         swap_substrate,
@@ -102,10 +102,10 @@ def test_explicit_partition_bypasses_check(swap_substrate):
     assert t.effect_indices == (0,)
 
 
-def test_apply_cut_does_not_recheck(swap_substrate):
+def test_apply_partition_does_not_recheck(swap_substrate):
     t = actual.Transition(swap_substrate, (1, 0), (0, 1), (0,), (1,))
     cut = NullCut((0, 1), swap_substrate.node_labels)
-    assert t.apply_cut(cut).partition is cut
+    assert t.apply_partition(cut).partition is cut
 
 
 def test_noised_background_can_realize(swap_substrate):

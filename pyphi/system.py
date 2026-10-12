@@ -53,6 +53,13 @@ def _given(**options: Any) -> dict[str, Any]:
     return {name: value for name, value in options.items() if value is not None}
 
 
+# PyPhi 1.x attributes of ``Subsystem`` that 2.0 renamed on ``System``.
+_RENAMED_ATTRIBUTES = {
+    "null_concept": "null_distinction",
+    "apply_cut": "apply_partition",
+}
+
+
 @dataclass(frozen=True, eq=False, repr=False)
 class System(Displayable, ToPandasMixin, Serializable):
     """A substrate evaluated in a specific state over a node subset, with partition.
@@ -280,7 +287,7 @@ class System(Displayable, ToPandasMixin, Serializable):
                 )
             )
         if not isinstance(self.partition, NullCut):
-            rows.append(Row("Cut", concise_partition(self.partition)))
+            rows.append(Row("Partition", concise_partition(self.partition)))
 
         subset_cm = self.substrate.cm[np.ix_(self.node_indices, self.node_indices)]
         sections = [
@@ -304,7 +311,14 @@ class System(Displayable, ToPandasMixin, Serializable):
             compact=compact,
         )
 
-    def apply_cut(self, partition: DirectedBipartition) -> System:
+    def __getattr__(self, name: str) -> Any:
+        # Called only when normal attribute lookup fails.
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if name in _RENAMED_ATTRIBUTES:
+            message += f". PyPhi 2.0 renamed it `{_RENAMED_ATTRIBUTES[name]}`"
+        raise AttributeError(message)
+
+    def apply_partition(self, partition: DirectedBipartition) -> System:
         """Return a new System with the given partition applied.
 
         ``substrate``, ``state``, and ``node_indices`` are unchanged. The
@@ -554,11 +568,6 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.core import repertoire_algebra as ra
 
         return ra.null_distinction(self)
-
-    @cached_property
-    def null_concept(self) -> Any:
-        """IIT 3.0 alias for :attr:`null_distinction`."""
-        return self.null_distinction
 
     # ---- repertoire algebra proxies ----
 
@@ -929,9 +938,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         -----
         For results computed under an earlier version of IIT (see
         :doc:`/howto/earlier-versions`): IIT 3.0 has no relations, so under it
-        the CES is exactly the set of distinctions, returned as a
-        :class:`~pyphi.models.distinctions.ResolvedDistinctions` with the
-        concepts as ``.concepts``, and ``sia`` is not used.
+        the CES holds the distinctions and an empty
+        :class:`~pyphi.relations.NullRelations`.
         """
         from pyphi.cache.disk import maybe_disk_cached
         from pyphi.conf import presets
@@ -942,17 +950,9 @@ class System(Displayable, ToPandasMixin, Serializable):
             from pyphi.conf import config as _config
 
             if _config.formalism.iit.version == "IIT_3_0":
-                from pyphi.formalism.iit3 import (
-                    _compute_distinctions,  # pyright: ignore[reportPrivateUsage]
-                )
-                from pyphi.models.distinctions import ResolvedDistinctions
+                from pyphi.formalism.iit3 import ces as _iit3_ces
 
-                # IIT 3.0 has no tied specified states to resolve.
-                if distinctions is None:
-                    return ResolvedDistinctions(_compute_distinctions(self))
-                if isinstance(distinctions, ResolvedDistinctions):
-                    return distinctions
-                return ResolvedDistinctions(distinctions)
+                return _iit3_ces(self, **options)
             from pyphi.formalism.iit4 import ces as _ces
             from pyphi.measures.distribution import resolve_mechanism_measure
             from pyphi.measures.distribution import resolve_system_measure

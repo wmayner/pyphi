@@ -158,7 +158,7 @@ def test_partition_repertoire_matches_cut_cm_substrate():
         Direction.EFFECT, from_nodes=(0,), to_nodes=(1, 2), node_labels=s.node_labels
     )
     cut_cm = part.apply_cut(base.cm)
-    s_cut = s.apply_cut(part)
+    s_cut = s.apply_partition(part)
     ref_sub = _permissive_substrate(
         marginals=[f.copy() for f in factors], state_space=state_space, cm=cut_cm
     )

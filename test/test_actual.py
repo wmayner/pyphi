@@ -175,7 +175,7 @@ def test_transition_system_apply_partition_returns_new_instance():
         direction=Direction.CAUSE,
     )
     new_cut = DirectedBipartition(Direction.CAUSE, (0, 1), (2,), substrate.node_labels)
-    ts2 = ts.apply_cut(new_cut)
+    ts2 = ts.apply_partition(new_cut)
     assert ts2 is not ts
     assert ts2.partition == new_cut
     assert isinstance(ts.partition, NullCut)
@@ -436,7 +436,7 @@ def test_transition_equal(transition, empty_transition):
 
 def test_transition_apply_partition(transition):
     cut = ac_cut(Direction.CAUSE, Part((1,), (2,)), Part((), (0,)))
-    cut_transition = transition.apply_cut(cut)
+    cut_transition = transition.apply_partition(cut)
     assert cut_transition.before_state == transition.before_state
     assert cut_transition.after_state == transition.after_state
     assert cut_transition.cause_indices == transition.cause_indices

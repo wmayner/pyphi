@@ -431,17 +431,25 @@ def state_by_node2state_by_state(sbn):
     return sbs
 
 
-# Short aliases
+# The short names PyPhi 1.x defined for these functions.
+_SHORT_NAMES = {
+    "b2l": "be2le",
+    "l2b": "le2be",
+    "l2s": "le_index2state",
+    "b2s": "be_index2state",
+    "s2l": "state2le_index",
+    "s2b": "state2be_index",
+    "b2l_sbs": "be2le_state_by_state",
+    "l2b_sbs": "le2be_state_by_state",
+    "to_md": "to_multidimensional",
+    "to_2d": "to_2dimensional",
+    "sbn2sbs": "state_by_node2state_by_state",
+    "sbs2sbn": "state_by_state2state_by_node",
+}
 
-b2l = be2le
-l2b = le2be
-l2s = le_index2state
-b2s = be_index2state
-s2l = state2le_index
-s2b = state2be_index
-b2l_sbs = be2le_state_by_state
-l2b_sbs = le2be_state_by_state
-to_md = to_multidimensional
-to_2d = to_2dimensional
-sbn2sbs = state_by_node2state_by_state
-sbs2sbn = state_by_state2state_by_node
+
+def __getattr__(name: str):
+    message = f"module {__name__!r} has no attribute {name!r}"
+    if name in _SHORT_NAMES:
+        message += f". PyPhi 2.0 replaced it with `{_SHORT_NAMES[name]}`"
+    raise AttributeError(message)

@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 
 from .direction import Direction
-from .models.distinction import Distinction as Concept
+from .models.distinction import Distinction
 from .models.distinctions import Distinctions
 
 DIRECTIONS = [
@@ -86,8 +86,8 @@ class CompositionalState(UserDict):
         )
 
     def _update(self, distinction):
-        if not isinstance(distinction, Concept):
-            raise ValueError("distinction must be a Concept")
+        if not isinstance(distinction, Distinction):
+            raise ValueError("distinction must be a Distinction")
         for direction in DIRECTIONS:
             purview = distinction.purview(direction)
             if purview not in self.data:

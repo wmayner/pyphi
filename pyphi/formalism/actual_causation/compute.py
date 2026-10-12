@@ -553,7 +553,7 @@ def _evaluate_partition(
     Returns the :class:`~pyphi.models.AcSystemIrreducibilityAnalysis` for the
     transition under ``partition``.
     """
-    partitioned_transition = transition.apply_cut(partition)
+    partitioned_transition = transition.apply_partition(partition)
     partitioned_account = _account(
         partitioned_transition,
         direction,

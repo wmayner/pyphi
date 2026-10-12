@@ -928,11 +928,6 @@ def null_distinction(cs: Any) -> Any:
     return Distinction(mechanism=(), cause=cause, effect=effect)
 
 
-# IIT 3.0 paper terminology calls a distinction a "concept"; the alias
-# preserves that vocabulary for IIT 3.0-native callers.
-null_concept = null_distinction
-
-
 def indices2nodes(cs: Any, indices: tuple[int, ...]) -> Any:
     """Return the ``Node`` objects for these indices.
 

@@ -23,7 +23,9 @@ Notes
 -----
 For results computed under an earlier version of IIT (see
 :doc:`/howto/earlier-versions`): IIT 3.0 has no relations, so
-``ces()`` in :mod:`pyphi.formalism.iit3` returns the distinctions only.
+``ces()`` in :mod:`pyphi.formalism.iit3` returns a
+:class:`CauseEffectStructure` whose relations are an empty
+:class:`~pyphi.relations.NullRelations`.
 """
 
 from __future__ import annotations
@@ -72,7 +74,7 @@ class CauseEffectStructure(
     state via ``ps.sia.system_state``.
     """
 
-    sia: Any  # SystemIrreducibilityAnalysis from formalism.iit4
+    sia: Any  # SystemIrreducibilityAnalysis of the formalism that computed it
     distinctions: ResolvedDistinctions
     relations: Relations
     config: Any = None  # ConfigSnapshot from pyphi.conf.snapshot
@@ -131,17 +133,11 @@ class CauseEffectStructure(
         return self.distinctions.to_pandas()
 
     def _describe(self, verbosity: int) -> Description:
+        from pyphi.relations import NullRelations
+
         cls = type(self).__name__
         num_d = len(self.distinctions)
         sum_phi_d = self.sum_phi_distinctions
-        num_r = (
-            self.relations.num_relations()
-            if hasattr(self.relations, "num_relations")
-            else None
-        )
-        sum_phi_r = (
-            self.relations.sum_phi() if hasattr(self.relations, "sum_phi") else None
-        )
         sia_phi = getattr(self.sia, "phi", None)
         phi_label = system_phi_label(self.config)
 
@@ -149,13 +145,17 @@ class CauseEffectStructure(
             Row(phi_label, sia_phi),
             Row("Distinctions", num_d),
             Row("Σφ_d", sum_phi_d),
-            Row("Relations", num_r),
-            Row("Σφ_r", sum_phi_r),
         ]
-        if phi_label != "Φ" and sum_phi_r is not None:
-            # Under IIT 4.0, Φ is the structure integrated information — the
-            # sum of the two rows above it — and is distinct from φₛ.
-            summary_rows.insert(0, Row("Φ", sum_phi_d + sum_phi_r))
+        # IIT 3.0 defines no relations, so its card has no relation rows.
+        num_r = None
+        if not isinstance(self.relations, NullRelations):
+            num_r = self.relations.num_relations()
+            sum_phi_r = self.relations.sum_phi()
+            summary_rows += [Row("Relations", num_r), Row("Σφ_r", sum_phi_r)]
+            if phi_label != "Φ":
+                # Under IIT 4.0, Φ is the structure integrated information —
+                # the sum of the two rows above it — and is distinct from φₛ.
+                summary_rows.insert(0, Row("Φ", sum_phi_d + sum_phi_r))
 
         distinctions_body = (
             capped_table(

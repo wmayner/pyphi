@@ -178,7 +178,6 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "partitioned_mechanisms",
         "partition_node_labels",
         "is_partitioned",
-        "null_concept",
         "null_distinction",
         "proper_state",
         "size",
@@ -226,7 +225,7 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "all_distinctions",
         "evaluate_partition",
         # Utilities
-        "apply_cut",
+        "apply_partition",
         "potential_purviews",
         "indices2nodes",
         "cache_info",
@@ -282,7 +281,6 @@ class SystemPublicInterface(Protocol):
     partitioned_mechanisms: Any
     partition_node_labels: Any
     is_partitioned: Any
-    null_concept: Any
     null_distinction: Any
     proper_state: Any
     size: Any
@@ -330,7 +328,7 @@ class SystemPublicInterface(Protocol):
     all_distinctions: Callable[..., Any]
     evaluate_partition: Callable[..., Any]
     # Utilities
-    apply_cut: Callable[..., Any]
+    apply_partition: Callable[..., Any]
     potential_purviews: Callable[..., Any]
     indices2nodes: Callable[..., Any]
     cache_info: Callable[..., Any]

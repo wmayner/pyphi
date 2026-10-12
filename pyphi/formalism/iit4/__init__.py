@@ -756,7 +756,7 @@ def integration_value(
     and pass it in to avoid rebuilding it per direction.
     """
     if cut_system is None:
-        cut_system = system.apply_cut(partition)
+        cut_system = system.apply_partition(partition)
     specified = system_state[direction]
     return _integration_value_for_state(
         direction,
@@ -841,7 +841,7 @@ def evaluate_partition(
 
     # The induced cut depends only on the partition, not the direction, so
     # build the cut System once and reuse it across directions.
-    cut_system = system.apply_cut(partition)
+    cut_system = system.apply_partition(partition)
     integration = {
         direction: integration_value(
             direction,
@@ -1053,7 +1053,9 @@ def sia(
             def is_disconnecting_partition(partition):
                 # Special case for length 1 systems so complete partition is included
                 return (
-                    not connectivity.is_strong(system.apply_cut(partition).proper_cm)
+                    not connectivity.is_strong(
+                        system.apply_partition(partition).proper_cm
+                    )
                 ) or len(system) == 1
 
             filter_func = is_disconnecting_partition

@@ -76,13 +76,13 @@ class TestCacheFreshness:
         assert inside == pytest.approx(CAUSE_REP_CONDITIONED)
         assert after == pytest.approx(CAUSE_REP_MARGINALIZED)
 
-    def test_apply_cut_shares_marginals_across_conventions(self, substrate):
+    def test_apply_partition_shares_marginals_across_conventions(self, substrate):
         from pyphi.direction import Direction
         from pyphi.models.partitions import DirectedBipartition
 
         s = _system(substrate)
         _ = s.cause_repertoire((0,), (1,))
-        cut = s.apply_cut(
+        cut = s.apply_partition(
             DirectedBipartition(Direction.CAUSE, (0,), (1,), node_labels=s.node_labels)
         )
         with config.override(background_conditioning="CONDITION_CURRENT_STATE"):

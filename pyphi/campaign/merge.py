@@ -122,9 +122,9 @@ def merge_purview_rias(
 
 def build_distinction(mechanism: Any, mic: Any, mie: Any) -> Any:
     """Assemble a distinction from a merged MIC and MIE."""
-    from pyphi.models import Concept
+    from pyphi.models import Distinction
 
-    return Concept(mechanism=tuple(mechanism), cause=mic, effect=mie)
+    return Distinction(mechanism=tuple(mechanism), cause=mic, effect=mie)
 
 
 def _merge_sia_partition_candidates(entries: list[tuple[Any, dict]]) -> Any:

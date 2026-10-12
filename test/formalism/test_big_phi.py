@@ -127,7 +127,7 @@ def test_sia_edge_cut_all_filters_non_disconnecting_partitions(s, monkeypatch):
 
     assert seen, "system_partitions was not invoked"
     for partition in seen:
-        cut_system = s.apply_cut(partition)
+        cut_system = s.apply_partition(partition)
         assert not connectivity.is_strong(cut_system.proper_cm) or len(s) == 1, (
             f"Non-disconnecting partition leaked into MIP search: {partition!r}"
         )

@@ -209,28 +209,31 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
         return self._sum_phi
 
     @property
-    def phis(self):
-        """The φ values of each concept."""
-        for concept in self:
-            yield concept.phi
+    def phis(self) -> tuple[float, ...]:
+        """tuple[float, ...]: The φ of each distinction, in order."""
+        return tuple(distinction.phi for distinction in self)
 
     @property
-    def mechanisms(self):
-        """The mechanism of each concept."""
-        for concept in self:
-            yield concept.mechanism
+    def mechanisms(self) -> tuple:
+        """tuple: The mechanism of each distinction, in order."""
+        return tuple(distinction.mechanism for distinction in self)
 
-    def _purviews(self, direction):
-        for concept in self:
-            yield concept.purview(direction)
+    def purviews(self, direction) -> tuple:
+        """Return the purview of each distinction in the given direction.
 
-    def purviews(self, direction):
-        """Return the purview of each concept in the given direction."""
-        if isinstance(direction, Iterable):
-            for _direction in direction:
-                yield from self._purviews(_direction)
-        else:
-            yield from self._purviews(direction)
+        Parameters
+        ----------
+        direction : Direction or Iterable[Direction]
+            The direction, or several directions, whose purviews to collect.
+
+        Returns
+        -------
+        tuple
+            The purviews in distinction order; for several directions, all
+            purviews of the first direction, then all of the next.
+        """
+        directions = direction if isinstance(direction, Iterable) else (direction,)
+        return tuple(distinction.purview(d) for d in directions for distinction in self)
 
     @property
     def labeled_mechanisms(self):

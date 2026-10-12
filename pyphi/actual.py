@@ -93,7 +93,6 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "size",
         "tpm_size",
         "null_distinction",
-        "null_concept",
         # Repertoire algebra:
         "cause_repertoire",
         "effect_repertoire",
@@ -261,7 +260,7 @@ class TransitionSystem(Serializable):
     def partitioned_mechanisms(self) -> Any:
         return list(self.partition.all_cut_mechanisms())
 
-    def apply_cut(self, partition: DirectedBipartition) -> "TransitionSystem":
+    def apply_partition(self, partition: DirectedBipartition) -> "TransitionSystem":
         return replace(self, partition=partition)
 
     def partitioned_repertoire(
@@ -557,7 +556,7 @@ class Transition(Serializable):
             }
         )
 
-    def apply_cut(self, partition: DirectedBipartition) -> "Transition":
+    def apply_partition(self, partition: DirectedBipartition) -> "Transition":
         return replace(self, partition=partition)
 
     def cause_repertoire(self, mechanism, purview):

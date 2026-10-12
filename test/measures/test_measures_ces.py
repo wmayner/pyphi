@@ -82,7 +82,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
             )
         )
 
-    lone_concept = models.Concept(
+    lone_concept = models.Distinction(
         cause=make_mice(),
         effect=make_mice(),
         mechanism=(0, 1),
@@ -94,7 +94,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
         assert mock_simple_distance.called is True
         mock_simple_distance.reset_mock()
 
-        other_concept = models.Concept(
+        other_concept = models.Distinction(
             cause=make_mice(),
             effect=make_mice(),
             mechanism=(0, 1, 2),

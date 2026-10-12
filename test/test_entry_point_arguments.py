@@ -102,7 +102,7 @@ def test_system_keeps_its_subset_through_a_cut():
     cut = pyphi.models.partitions.DirectedBipartition(
         pyphi.Direction.EFFECT, (0,), (1,), system.node_labels
     )
-    assert system.apply_cut(cut).node_indices == (0, 1)
+    assert system.apply_partition(cut).node_indices == (0, 1)
 
 
 def test_actual_events_take_subset():

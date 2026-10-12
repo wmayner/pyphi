@@ -166,7 +166,7 @@ def _selection_identity(row: dict[str, Any]) -> tuple[Any, ...]:
     return (row["partition"], row["cause_state"], row["effect_state"])
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class LandscapeSection:
     """A 1-D section of the φ landscape along one parameter axis.
 
@@ -192,6 +192,20 @@ class LandscapeSection:
     df: pd.DataFrame
     sias: list[Any]
     skipped: list[float]
+
+    # A DataFrame and lists are mutable, so a section has no hash.
+    __hash__ = None  # type: ignore[assignment]
+
+    def __eq__(self, other: object) -> bool:
+        # ``==`` on DataFrames is elementwise, so compare ``df`` with
+        # ``equals``.
+        if not isinstance(other, LandscapeSection):
+            return NotImplemented
+        return (
+            self.df.equals(other.df)
+            and self.sias == other.sias
+            and self.skipped == other.skipped
+        )
 
     def to_pandas(self) -> pd.DataFrame:
         return self.df
@@ -340,6 +354,9 @@ class Perturbation:
     margin_derivatives: dict[str, float]
     same_regime: bool
     sias: tuple[Any, Any, Any]
+
+    # The margin dictionaries are mutable, so a perturbation has no hash.
+    __hash__ = None  # type: ignore[assignment]
 
     @property
     def switch_distances(self) -> dict[str, float]:

@@ -544,13 +544,13 @@ def test_analyze_distinctions_under_iit3_reports_the_structure(basic_handle):
 
 
 def test_iit3_full_analysis_reports_its_distinction_counts(basic_handle):
-    # Under IIT 3.0 the cause-effect structure is the bare distinctions, which
-    # carry the counts on themselves rather than on a structure object.
     summary = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0")["summary"]
     assert summary["num_distinctions"] > 0
     assert summary["sum_phi_distinctions"] > 0
     # IIT 3.0 has no relations, so no structure integrated information.
     assert "big_phi" not in summary
+    assert "num_relations" not in summary
+    assert "sum_phi_relations" not in summary
 
 
 def test_guard_charges_a_ces_analysis_the_system_partition_axis(
@@ -570,12 +570,14 @@ def test_guard_charges_a_ces_analysis_the_system_partition_axis(
     assert "result_ref" in srv.analyze(basic_handle, BASIC_STATE, compute="distinctions")
 
 
-def test_guard_leaves_iit3_ces_off_the_system_partition_axis(basic_handle, monkeypatch):
-    # IIT 3.0's cause-effect structure is the bare distinctions; no system
-    # partition is swept, so that limit does not apply.
+def test_guard_charges_an_iit3_ces_analysis_the_system_partition_axis(
+    basic_handle, monkeypatch
+):
+    # The IIT 3.0 cause-effect structure embeds its system irreducibility
+    # analysis too.
     monkeypatch.setattr(srv, "_SIA_PARTITION_LIMIT", 1)
-    out = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0", compute="ces")
-    assert "result_ref" in out
+    with pytest.raises(ValueError, match="system partitions"):
+        srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_3_0", compute="ces")
 
 
 def test_estimate_cost_distinctions_scope(basic_handle):

@@ -107,10 +107,10 @@ analysis = pyphi.analyze(pyphi.examples.basic_substrate(), (1, 1, 0), formalism=
 analysis.phi
 ```
 
-The result's `analysis.sia` is an `IIT3SystemIrreducibilityAnalysis`, and its
-cause–effect structure is a set of concepts rather than the distinctions and
-relations of a $\Phi$-structure. For the full IIT 3.0 formalism, see Oizumi,
-Albantakis & Tononi (2014).
+The result's `analysis.sia` is an `IIT3SystemIrreducibilityAnalysis`.
+`analysis.ces` is a `CauseEffectStructure`, as under IIT 4.0: its
+`.distinctions` are the concepts, and its `.relations` are empty. For the full
+IIT 3.0 formalism, see Oizumi, Albantakis & Tononi (2014).
 
 (formalism-selection)=
 ## Compute under an earlier version

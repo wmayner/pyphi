@@ -27,8 +27,8 @@ from pyphi import utils
 from pyphi.conf import config
 from pyphi.direction import Direction
 from pyphi.measures.ces import ces_distance
-from pyphi.models import Concept
 from pyphi.models import DirectedBipartition
+from pyphi.models import Distinction
 from pyphi.models import Distinctions
 from pyphi.models import IIT3SystemIrreducibilityAnalysis
 from pyphi.models import NullResultReason
@@ -77,7 +77,7 @@ def concept(
     cause_purviews: Iterable[Purview] | None = None,
     effect_purviews: Iterable[Purview] | None = None,
     **kwargs: Any,
-) -> Concept:
+) -> Distinction:
     """Return the IIT 3.0 concept specified by a mechanism.
 
     A concept pairs the mechanism's maximally irreducible cause (its MIC) with
@@ -99,7 +99,7 @@ def concept(
 
     Returns
     -------
-    Concept
+    Distinction
         The concept of the given mechanism.
     """
     from pyphi.formalism.queries import distinction
@@ -248,11 +248,11 @@ def ces(
     return stamp_wall_time(result, time.perf_counter() - start)
 
 
-def _only_positive_phi(concepts: Iterable[Any]) -> list[Concept]:
+def _only_positive_phi(concepts: Iterable[Any]) -> list[Distinction]:
     return list(filter(None, collapse(concepts)))
 
 
-def _any_phi(concepts: Iterable[Any]) -> list[Concept]:
+def _any_phi(concepts: Iterable[Any]) -> list[Distinction]:
     return list(collapse(concepts))
 
 
@@ -298,7 +298,7 @@ def evaluate_partition(
     """
     log.debug("Evaluating %s...", partition)
 
-    partitioned_system = unpartitioned_system.apply_cut(partition)
+    partitioned_system = unpartitioned_system.apply_partition(partition)
 
     if config.formalism.iit.assume_partitions_cannot_create_new_concepts:
         mechanisms = list(unpartitioned_ces.mechanisms)

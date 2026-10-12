@@ -32,7 +32,7 @@ from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.core import repertoire_algebra as _ra
 from pyphi.direction import Direction
-from pyphi.models import Concept
+from pyphi.models import Distinction
 from pyphi.models import MaximallyIrreducibleCause
 from pyphi.models import MaximallyIrreducibleEffect
 from pyphi.models import UnresolvedDistinctions
@@ -455,7 +455,7 @@ def distinction(
 
     Returns
     -------
-    Concept
+    Distinction
         The distinction specified by the mechanism.
 
     Notes
@@ -470,7 +470,7 @@ def distinction(
     unaffected.
     """
     if not mechanism:
-        return _ra.null_concept(cs)
+        return _ra.null_distinction(cs)
     cause_purviews = cause_purviews if cause_purviews is not None else purviews
     effect_purviews = effect_purviews if effect_purviews is not None else purviews
     shortcircuit = config.formalism.iit.shortcircuit_distinctions  # pyright: ignore[reportAttributeAccessIssue]
@@ -493,7 +493,7 @@ def distinction(
                 mechanism_state=_utils.state_of(mechanism, cs.state),
             )
         )
-        return Concept(mechanism=mechanism, cause=cause, effect=effect)
+        return Distinction(mechanism=mechanism, cause=cause, effect=effect)
 
     cause = find_mice(cs, Direction.CAUSE, mechanism, purviews=cause_purviews, **kwargs)
     if shortcircuit and not numerics.is_positive(float(cause.phi)):
@@ -507,12 +507,12 @@ def distinction(
                 mechanism_state=_utils.state_of(mechanism, cs.state),
             )
         )
-        return Concept(mechanism=mechanism, cause=cause, effect=effect)
+        return Distinction(mechanism=mechanism, cause=cause, effect=effect)
 
     effect = find_mice(
         cs, Direction.EFFECT, mechanism, purviews=effect_purviews, **kwargs
     )
-    return Concept(mechanism=mechanism, cause=cause, effect=effect)
+    return Distinction(mechanism=mechanism, cause=cause, effect=effect)
 
 
 def all_distinctions(cs: System, **kwargs: Any) -> Any:  # noqa: ARG001

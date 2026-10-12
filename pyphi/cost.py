@@ -407,11 +407,10 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
     Notes
     -----
     For an estimate made under an earlier version of IIT (see
-    :doc:`/howto/earlier-versions`): IIT 3.0 has no specified state and its
-    cause-effect structure is the bare set of distinctions, so under it
-    ``specified_state_evaluations``, ``relations_closed_form``,
-    ``possible_distinctions``, and ``possible_relations`` are ``None``, and
-    ``system_partitions`` is not counted for a ``"ces"`` analysis.
+    :doc:`/howto/earlier-versions`): IIT 3.0 has no specified state and no
+    relations, so under it ``specified_state_evaluations``,
+    ``relations_closed_form``, ``possible_distinctions``, and
+    ``possible_relations`` are ``None``.
     """
 
     n_units: int
@@ -606,13 +605,10 @@ def estimate_analysis(
     scope = "full" if compute is None else compute
     version = config.formalism.iit.version
 
-    # Under IIT 4.0 a cause-effect structure embeds its own system
-    # irreducibility analysis (Eq. 58), so it pays the system-partition axis
-    # too; under IIT 3.0 the structure is the bare distinctions. Only
-    # ``"distinctions"`` skips that axis under every formalism.
-    counts_system_partitions = scope in ("full", "sia") or (
-        scope == "ces" and version.startswith("IIT_4_0")
-    )
+    # A cause-effect structure embeds its own system irreducibility analysis
+    # (Eq. 58), so it pays the system-partition axis too. Only
+    # ``"distinctions"`` skips that axis.
+    counts_system_partitions = scope in ("full", "sia", "ces")
     counts_distinctions = scope in ("full", "ces", "distinctions")
 
     # The specified-state search runs wherever a system irreducibility

@@ -517,8 +517,9 @@ class AcSIASchema(msgspec.Struct, frozen=True, tag="ac_sia"):
 class AnalysisSchema(msgspec.Struct, frozen=True, tag="analysis"):
     system: "SystemSchema | MacroSystemSchema"
     sia: SIASchema
-    # IIT 4.0 wraps the distinctions in a Φ-structure; IIT 3.0's cause-effect
-    # structure is the bare distinction sequence.
+    # Files written by the 2.0.0 release candidates store an IIT 3.0
+    # cause-effect structure as the bare distinction sequence; the decoder
+    # wraps it.
     ces: "CESSchema | NullCESSchema | DistinctionsAnySchema"
 
 

@@ -203,7 +203,7 @@ def _repertoire_comparison(system, sia):
         )
     systems = {
         "unpartitioned": system,
-        "partitioned": system.apply_cut(sia.partition),
+        "partitioned": system.apply_partition(sia.partition),
     }
     return {
         direction: {

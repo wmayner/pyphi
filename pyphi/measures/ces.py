@@ -18,7 +18,7 @@ from pyphi.types import Repertoire
 from . import distribution
 
 if TYPE_CHECKING:
-    from pyphi.models.distinction import Distinction as Concept
+    from pyphi.models.distinction import Distinction
     from pyphi.models.distinctions import Distinctions
     from pyphi.system import System
 
@@ -130,7 +130,7 @@ def emd_ground_distance(r1: Repertoire, r2: Repertoire) -> float:
     )
 
 
-def emd_concept_distance(c1: Concept, c2: Concept, system: System) -> float:
+def emd_concept_distance(c1: Distinction, c2: Distinction, system: System) -> float:
     """Return the EMD distance between two concepts in concept space.
 
     The distance is the sum of the cause-side and effect-side ground
@@ -140,9 +140,9 @@ def emd_concept_distance(c1: Concept, c2: Concept, system: System) -> float:
 
     Parameters
     ----------
-    c1 : Concept
+    c1 : Distinction
         The first concept.
-    c2 : Concept
+    c2 : Distinction
         The second concept.
     system : System
         The system whose repertoire algebra expands each concept's cause
@@ -176,7 +176,9 @@ def emd_concept_distance(c1: Concept, c2: Concept, system: System) -> float:
     )
 
 
-def _emd_simple(C1: Sequence[Concept], C2: Sequence[Concept], system: System) -> float:
+def _emd_simple(
+    C1: Sequence[Distinction], C2: Sequence[Distinction], system: System
+) -> float:
     """Return the distance between two cause-effect structures.
 
     Assumes the only difference between them is that some concepts have
@@ -186,12 +188,14 @@ def _emd_simple(C1: Sequence[Concept], C2: Sequence[Concept], system: System) ->
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    null_concept = system.null_concept
-    return sum(c.phi * emd_concept_distance(c, null_concept, system) for c in destroyed)
+    null_distinction = system.null_distinction
+    return sum(
+        c.phi * emd_concept_distance(c, null_distinction, system) for c in destroyed
+    )
 
 
 def _emd(
-    unique_C1: Sequence[Concept], unique_C2: Sequence[Concept], system: System
+    unique_C1: Sequence[Distinction], unique_C2: Sequence[Distinction], system: System
 ) -> float:
     """Return the distance between two cause-effect structures.
 
@@ -209,10 +213,10 @@ def _emd(
     # - in certain cases, the partitioned system will have *greater* sum of
     #   small-phi, even though it has less big-phi, which means that some
     #   partitioned-CES concepts will be moved to the null concept.
-    null_concept = system.null_concept
+    null_distinction = system.null_distinction
     distances_to_null = np.array(
         [
-            emd_concept_distance(c, null_concept, system)
+            emd_concept_distance(c, null_distinction, system)
             for ces in (unique_C1, unique_C2)
             for c in ces
         ]

@@ -308,8 +308,9 @@ def test_ces_describe_structure():
     assert "Φ" in top_row_labels
     assert "Distinctions" in top_row_labels
     assert "Σφ_d" in top_row_labels
-    assert "Relations" in top_row_labels
-    assert "Σφ_r" in top_row_labels
+    # IIT 3.0 defines no relations, so the card has no relation rows.
+    assert "Relations" not in top_row_labels
+    assert "Σφ_r" not in top_row_labels
     out = repr(ces)
     assert out.startswith("╭")
     assert "pyphi-card" in ces._repr_html_()

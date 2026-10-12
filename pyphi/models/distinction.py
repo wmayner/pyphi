@@ -1,8 +1,7 @@
 # models/distinction.py
 """Distinction: the maximally irreducible cause and effect specified by a
-mechanism (Albantakis et al. 2023). The IIT 3.0 paper terminology calls
-the same object a *concept*; the alias :data:`Concept` below preserves
-that vocabulary for callers using the IIT 3.0 idiom."""
+mechanism (Albantakis et al. 2023). The IIT 3.0 paper calls the same object
+a *concept*."""
 
 from __future__ import annotations
 
@@ -436,9 +435,3 @@ class Distinction(
         assert self.effect is not None
         self.cause.parent = self
         self.effect.parent = self
-
-
-# IIT 3.0 paper terminology calls a distinction a "concept". The alias
-# preserves that vocabulary for callers using the IIT 3.0 idiom; the
-# runtime class is identical.
-Concept = Distinction

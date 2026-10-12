@@ -32,6 +32,7 @@ from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.cost import estimate_analysis
 from pyphi.cost import runtime_seconds
 from pyphi.models.distinctions import Distinctions
+from pyphi.relations import NullRelations
 
 from . import content
 
@@ -334,27 +335,14 @@ def _result_summary(result: Any, formalism: str | None = None) -> dict[str, Any]
     if ces is None and hasattr(result, "big_phi"):
         ces = result
     if ces is not None:
+        add_float("sum_phi_distinctions", ces, "sum_phi_distinctions")
+        summary["num_distinctions"] = len(ces.distinctions)
         # IIT 3.0 has no relations, so its structure has no Φ; the sum of
         # distinction φ is not that formalism's big phi.
-        if summary.get("formalism") != "IIT_3_0":
+        if not isinstance(ces.relations, NullRelations):
             add_float("big_phi", ces, "big_phi")
-        # Under IIT 3.0 the cause-effect structure *is* the distinctions.
-        if isinstance(ces, Distinctions):
-            summary.update(
-                _distinctions_summary(ces, summary.get("formalism", formalism))
-            )
-            return summary
-        add_float("sum_phi_distinctions", ces, "sum_phi_distinctions")
-        add_float("sum_phi_relations", ces, "sum_phi_relations")
-        if hasattr(ces, "distinctions"):
-            summary["num_distinctions"] = len(ces.distinctions)
-        if hasattr(ces, "relations"):
-            relations = ces.relations
-            summary["num_relations"] = (
-                relations.num_relations()
-                if hasattr(relations, "num_relations")
-                else len(relations)
-            )
+            add_float("sum_phi_relations", ces, "sum_phi_relations")
+            summary["num_relations"] = ces.relations.num_relations()
     return summary
 
 

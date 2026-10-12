@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from pyphi import exceptions
-from pyphi.convert import sbn2sbs
+from pyphi.convert import state_by_node2state_by_state
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.macro.tpm import _background_weights_cause
 from pyphi.macro.tpm import _discounted_on_probabilities
@@ -322,7 +322,7 @@ class TestPaperExampleTPMs:
         ones = (1,) * 8
         cause, effect = macro_tpms(substrate, units, (ones, ones))
 
-        sbs = sbn2sbs(micro)
+        sbs = state_by_node2state_by_state(micro)
         tpm2 = sbs @ sbs
         idx = np.arange(2**8)
         c_bit = (idx >> 2) & 1

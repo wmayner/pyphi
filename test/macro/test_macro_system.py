@@ -131,14 +131,14 @@ class TestProtocolSurface:
         system = _cg_macro_system()
         assert len(system.nodes) == 2
 
-    def test_apply_cut_preserves_type_and_fields(self):
+    def test_apply_partition_preserves_type_and_fields(self):
         from pyphi.partition import system_partitions
 
         system = _cg_macro_system()
         partition = next(
             iter(system_partitions(system.node_indices, system.node_labels))
         )
-        cut = system.apply_cut(partition)
+        cut = system.apply_partition(partition)
         assert isinstance(cut, MacroSystem)
         assert cut.units == system.units
         assert cut.micro_history == system.micro_history

@@ -146,10 +146,12 @@ class TestScope:
         assert est.system_partitions == 22
         assert est.mechanism_partition_sweeps == 890
 
-    def test_ces_scope_omits_the_axis_under_iit3(self):
+    def test_ces_scope_charges_the_axis_under_iit3(self):
+        # The IIT 3.0 cause-effect structure embeds its system irreducibility
+        # analysis too.
         with IIT_3_CONFIG:
             est = estimate_analysis(_dense3(), compute="ces")
-        assert est.system_partitions is None
+        assert est.system_partitions is not None
         assert est.mechanism_partition_sweeps is not None
 
     def test_distinctions_scope(self):

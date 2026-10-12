@@ -63,7 +63,9 @@ def test_edge_cut_bidirectional_mip_disconnects_the_system():
     ):
         system = examples.grid3_system()
         sia = system.sia()
-        assert not connectivity.is_strong(system.apply_cut(sia.partition).proper_cm)
+        assert not connectivity.is_strong(
+            system.apply_partition(sia.partition).proper_cm
+        )
     assert float(sia.phi) == pytest.approx(0.063699, abs=1e-5)
 
 
@@ -74,7 +76,9 @@ def test_edge_cut_all_filter_still_applies():
     ):
         system = examples.grid3_system()
         sia = system.sia()
-        assert not connectivity.is_strong(system.apply_cut(sia.partition).proper_cm)
+        assert not connectivity.is_strong(
+            system.apply_partition(sia.partition).proper_cm
+        )
     assert float(sia.phi) == pytest.approx(0.024666, abs=1e-5)
 
 

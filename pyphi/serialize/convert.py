@@ -1467,11 +1467,28 @@ def _register_analysis() -> None:
         sia=to_schema(a.sia),
         ces=to_schema(a.ces),
     )
-    _DECODERS[schema.AnalysisSchema] = lambda s: Analysis(
-        system=from_schema(s.system),
-        sia=from_schema(s.sia),
-        ces=from_schema(s.ces),
-    )
+    _DECODERS[schema.AnalysisSchema] = _decode_analysis
+
+
+def _decode_analysis(struct: Any) -> Any:
+    from pyphi.analysis import Analysis
+    from pyphi.models.ces import CauseEffectStructure
+    from pyphi.models.distinctions import ResolvedDistinctions
+    from pyphi.relations import NullRelations
+
+    sia = from_schema(struct.sia)
+    ces = from_schema(struct.ces)
+    if not isinstance(ces, CauseEffectStructure):
+        # The 2.0.0 release candidates stored an IIT 3.0 analysis's CES as
+        # the bare distinctions.
+        ces = CauseEffectStructure(
+            sia=sia,
+            distinctions=ResolvedDistinctions(ces),
+            relations=NullRelations(),
+            config=sia.config,
+            provenance=sia.provenance,
+        )
+    return Analysis(system=from_schema(struct.system), sia=sia, ces=ces)
 
 
 def _register_coverage_report() -> None:

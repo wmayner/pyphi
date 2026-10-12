@@ -36,7 +36,7 @@ from .pandas import ToPandasMixin
 from .ria import _ria_dict_attrs
 
 if TYPE_CHECKING:
-    from .concept import Concept
+    from .distinction import Distinction
 
 from . import cmp
 
@@ -51,7 +51,7 @@ class MaximallyIrreducibleCauseOrEffect(
     ``>``, etc.). Comparison is by φ value (:meth:`order_by`).
     """
 
-    parent: Concept  # Set by Concept.__init__
+    parent: Distinction  # Set by Distinction.__init__
 
     def __init__(self, ria):
         self._ria = ria
