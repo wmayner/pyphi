@@ -1,6 +1,7 @@
 """Round-trip serialization of SweepResult and OptimizationResult."""
 
 import math
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -185,7 +186,7 @@ def _assert_optimization_equal(a, b):
     pd.testing.assert_frame_equal(a.trajectory, b.trajectory)
     assert a.bounds == b.bounds
     assert a.seed == b.seed
-    assert a.direction == b.direction
+    assert a.goal == b.goal
     assert a.objective_name == b.objective_name
     assert a.settings == b.settings
     assert a.config_snapshot == b.config_snapshot
@@ -235,7 +236,7 @@ class TestOptimizationResultRoundTrip:
             trajectory=trajectory,
             bounds=[(0.0, 1.0)],
             seed=1,
-            direction="maximize",
+            goal="maximize",
             objective_name="signed_normalized_phi",
             settings={
                 "backend": "scipy.differential_evolution",
@@ -252,3 +253,46 @@ class TestOptimizationResultRoundTrip:
             assert math.isnan(back.best_objective)
             assert back.best_sia is None
             _assert_optimization_equal(result, back)
+
+
+# Written by PyPhi 2.0.0rc3 (``SweepResult.save`` / ``OptimizationResult.save``
+# on the Fig. 1A substrate under the IIT_4_0_2026 preset), before sweep tables
+# became long-format and before ``optimize`` renamed ``direction`` to ``goal``.
+RC3_DATA = Path(__file__).parents[1] / "data" / "serialize"
+
+
+class TestRC3Files:
+    def _fresh(self, compute, subsets):
+        with config.override(**presets.iit4_2026, progress_bars=False):
+            return sweep(
+                examples.iit4_2023_fig1a_substrate(),
+                states=[(0, 1, 1), (1, 0, 0)],
+                subsets=subsets,
+                formalisms=["IIT_4_0_2026"],
+                compute=compute,
+                parallel=False,
+            )
+
+    def test_multi_index_ces_sweep_loads_long_format(self):
+        # rc3 indexed this table by (subset, state) and its rows had no
+        # big_phi or sum_phi_d.
+        loaded = SweepResult.load(RC3_DATA / "rc3_fig1a_ces_sweep.json.gz")
+        fresh = self._fresh("ces", [(0, 1, 2), (0, 1)])
+        assert isinstance(loaded.df.index, pd.RangeIndex)
+        assert {"subset", "state", "big_phi", "sum_phi_d"} <= set(loaded.df.columns)
+        pd.testing.assert_frame_equal(loaded.df, fresh.df)
+        assert loaded.skipped == fresh.skipped
+
+    def test_single_index_sia_sweep_loads_long_format(self):
+        # rc3 indexed this table by state alone.
+        loaded = SweepResult.load(RC3_DATA / "rc3_fig1a_sia_sweep.json.gz")
+        fresh = self._fresh("sia", "full")
+        assert isinstance(loaded.df.index, pd.RangeIndex)
+        pd.testing.assert_frame_equal(loaded.df, fresh.df)
+        assert [r.phi for r in loaded.results] == [r.phi for r in fresh.results]
+
+    def test_optimization_direction_loads_as_goal(self):
+        loaded = OptimizationResult.load(RC3_DATA / "rc3_fig1a_optimization.json.gz")
+        assert loaded.goal == "minimize"
+        back = serialize.loads(serialize.dumps(loaded))
+        _assert_optimization_equal(loaded, back)

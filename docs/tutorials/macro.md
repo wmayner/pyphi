@@ -183,7 +183,7 @@ full evaluation record:
 ```{code-cell} python
 from pyphi.macro import SearchBounds, complexes
 
-result = complexes(substrate, state, SearchBounds(mappings="EXHAUSTIVE"))
+result = complexes(substrate, state, bounds=SearchBounds(mappings="EXHAUSTIVE"))
 
 len(result.complexes)
 ```
@@ -411,9 +411,8 @@ does not bound $\varphi_s$ this way, so here every candidate is evaluated.)
 ## Parallelism
 
 A search reduces to many independent `MacroSystem.sia()` evaluations, which
-can run across processes. Enable it by turning on the global switch and the
-search's own per-site option, or pass `parallel_kwargs` to a driver for a
-one-off:
+can run across processes. Pass `parallel=True` to a driver for a one-off, or
+turn on the global switch and the search's own per-level option:
 
 ```python
 with config.override(

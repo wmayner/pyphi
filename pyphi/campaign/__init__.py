@@ -27,6 +27,7 @@ from typing import Any
 import msgspec
 
 from pyphi import serialize
+from pyphi.analysis import _check_compute
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.cost import estimate_analysis
@@ -40,6 +41,8 @@ from pyphi.sweeps import _UNREACHABLE
 from pyphi.sweeps import SweepResult
 from pyphi.sweeps import _build_df
 from pyphi.sweeps import _enumerate_cells
+from pyphi.sweeps import _enumerates
+from pyphi.sweeps import _explicit_axis
 from pyphi.sweeps import _extract_row
 from pyphi.sweeps import _formalism_preset
 from pyphi.sweeps import _normalize_formalisms
@@ -68,8 +71,9 @@ class CampaignTask:
 
     ``config_overrides`` is the preparing session's configuration in override
     form (JSON-compatible); the runner installs it beneath each cell's
-    formalism preset. ``compute_ref`` is a ``"module:qualname"`` reference
-    used when the computation is a callable rather than ``"sia"``/``"ces"``.
+    formalism preset. ``compute`` names the computation (``"full"`` for the
+    full analysis); ``compute_ref`` is a ``"module:qualname"`` reference used
+    instead when the computation is a callable.
     """
 
     task_id: int
@@ -207,13 +211,17 @@ def _resolve_compute_ref(ref: str) -> Any:
     return obj
 
 
+# The name a task file and manifest give the full analysis (``compute=None``),
+# since a None name there means a callable given by reference.
+_FULL = "full"
+
+
 def _compute_spec(compute: Any) -> tuple[str | None, str | None]:
     """Split a compute argument into (name, importable reference)."""
+    _check_compute(compute)
+    if compute is None:
+        return _FULL, None
     if isinstance(compute, str):
-        if compute not in ("sia", "ces"):
-            raise ValueError(
-                f"unknown compute: {compute!r}; expected 'sia', 'ces', or a callable"
-            )
         return compute, None
     ref = f"{compute.__module__}:{compute.__qualname__}"
     try:
@@ -229,13 +237,16 @@ def _compute_spec(compute: Any) -> tuple[str | None, str | None]:
     return None, ref
 
 
-def _axis_as_json(axis: Any) -> Any:
+def _compute_arg(name: str | None) -> Any:
+    """The ``compute`` argument a task's compute name stands for."""
+    return None if name == _FULL else name
+
+
+def _axis_as_json(axis: Any, name: str) -> Any:
     """An axis argument in JSON form: a mode string, or a list of lists."""
     if isinstance(axis, str):
         return axis
-    if isinstance(axis, tuple) and all(isinstance(x, int) for x in axis):
-        return [list(axis)]
-    return [list(x) for x in axis]
+    return [list(entry) for entry in _explicit_axis(axis, name)]
 
 
 def _cell_weights(
@@ -259,7 +270,9 @@ def _cell_weights(
                     **_formalism_preset(formalism), progress_bars=False
                 ):
                     est = estimate_analysis(
-                        substrate_map[label], subset=subset, compute=compute_name
+                        substrate_map[label],
+                        subset=subset,
+                        compute=_compute_arg(compute_name),
                     )
                 axes = (
                     est.system_partitions,
@@ -440,7 +453,7 @@ def prepare(
     cells = _enumerate_cells(labeled, states, subsets, formalisms_)
     if not cells:
         raise ValueError("the given axes enumerate no cells")
-    skip_uncomputable = states == "all" or subsets == "all"
+    skip_uncomputable = _enumerates(states) or _enumerates(subsets)
 
     weights, capped = _cell_weights(cells, substrate_map, compute_name)
     for cell, weight in zip(cells, weights, strict=True):
@@ -486,8 +499,8 @@ def prepare(
         "compute": compute_name,
         "compute_ref": compute_ref,
         "axes": {
-            "states": _axis_as_json(states),
-            "subsets": _axis_as_json(subsets),
+            "states": _axis_as_json(states, "states"),
+            "subsets": _axis_as_json(subsets, "subsets"),
             "formalisms": list(formalisms_),
         },
         # Labels the ambient-config sentinel (formalism None) in collected
@@ -672,7 +685,7 @@ def prepare_ces(
         raise ValueError("the given axes enumerate no cells")
     # As in the sweep: cells enumerated via "all" skip dynamically
     # unreachable states; explicit cells fail loud.
-    skip_uncomputable = states == "all" or subsets == "all"
+    skip_uncomputable = _enumerates(states) or _enumerates(subsets)
     computable: list = []
     skipped_cells: list = []
     for cell in cells:
@@ -1116,7 +1129,11 @@ def _collect_sweep(directory: Path, manifest: dict, partial: bool) -> SweepResul
     incomplete_set = set(incomplete)
 
     cells = _manifest_cells(manifest)
-    compute = manifest["compute"] if manifest["compute"] is not None else "callable"
+    compute = (
+        _compute_arg(manifest["compute"])
+        if manifest["compute"] is not None
+        else "callable"
+    )
     by_index: dict[int, tuple[str, Any]] = {}
     for task_id, cell_indices in enumerate(manifest["tasks"]):
         if task_id in incomplete_set:
@@ -1142,9 +1159,7 @@ def _collect_sweep(directory: Path, manifest: dict, partial: bool) -> SweepResul
                 with_provenance(seed=manifest["seed"])
 
     rows = [_extract_row(result, compute) for result in raw]
-    df = _build_df(
-        _label_formalism(keys, manifest), rows, _label_formalism(cells, manifest)
-    )
+    df = _build_df(_label_formalism(keys, manifest), rows)
     return SweepResult(df=df, results=raw, skipped=_label_formalism(skipped, manifest))
 
 
@@ -1566,7 +1581,7 @@ def _collect_ces(
     )
     rows = [_extract_row(s, "ces") for s in structures]
     labeled_cells = _label_formalism(cells, manifest)
-    df = _build_df(labeled_cells, rows, labeled_cells)
+    df = _build_df(labeled_cells, rows)
     skipped = _label_formalism(
         [
             (label, formalism_, tuple(subset), tuple(state))

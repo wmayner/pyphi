@@ -59,7 +59,7 @@ def test_macro_system_save_load_preserves_type(tmp_path, fmt):
 def test_complexes_result_round_trips(fmt):
     sub = Substrate(MIN_TPM, node_labels=("A", "B"))
     with IIT_4_CONFIG:
-        result = complexes(sub, (0, 0), SearchBounds())
+        result = complexes(sub, (0, 0), bounds=SearchBounds())
         restored = round_trip(result, fmt)
         assert type(restored) is ComplexesResult
         assert len(restored.complexes) == len(result.complexes)

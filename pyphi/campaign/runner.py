@@ -23,6 +23,7 @@ from pyphi import serialize
 from pyphi.cache import cache_utils
 from pyphi.campaign import CampaignTaskOutput
 from pyphi.campaign import CellOutput
+from pyphi.campaign import _compute_arg
 from pyphi.campaign import _parse_memory
 from pyphi.campaign import _resolve_compute_ref
 from pyphi.conf import config
@@ -65,7 +66,7 @@ def _write_output(output: CampaignTaskOutput, outputs_dir: Path) -> None:
 
 def _run_sweep_task(task: Any, substrates: dict) -> tuple[list[CellOutput], bool]:
     compute = (
-        task.compute
+        _compute_arg(task.compute)
         if task.compute is not None
         else _resolve_compute_ref(task.compute_ref)
     )

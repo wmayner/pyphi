@@ -11,6 +11,7 @@ respecting the global parallel + progress switches.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from collections.abc import Mapping
 from copy import copy
 from dataclasses import asdict
@@ -112,6 +113,66 @@ def parallel_kwargs(
     return kwargs
 
 
+# Level names mapped to the per-level parallelization options. A single
+# analysis pays off at the analysis levels; relations and mechanism partitions
+# are excluded because parallelizing them was measured not to pay (see
+# docs/howto/parallel.md).
+PARALLEL_LEVELS = {
+    "partitions": "parallel_partition_evaluation",
+    "purviews": "parallel_purview_evaluation",
+    "distinctions": "parallel_distinction_evaluation",
+    "complexes": "parallel_complex_evaluation",
+    "mechanism_partitions": "parallel_mechanism_partition_evaluation",
+    "relations": "parallel_relation_evaluation",
+    "macro_systems": "parallel_macro_system_evaluation",
+}
+ANALYSIS_PARALLEL_LEVELS = ("partitions", "purviews", "distinctions")
+
+
+def parallel_overrides(parallel: bool | Iterable[str] | None) -> dict[str, Any]:
+    """Build ``config.override`` values that run one analysis in parallel.
+
+    Parameters
+    ----------
+    parallel : bool, iterable of str, or None
+        ``None`` changes nothing. ``False`` closes the global gate, so every
+        level runs sequentially. ``True`` opens the gate and switches on the
+        levels a single analysis uses (:data:`ANALYSIS_PARALLEL_LEVELS`); an
+        iterable of names from :data:`PARALLEL_LEVELS` switches on those
+        levels instead. Either way every other level is switched off.
+
+    Returns
+    -------
+    dict
+        Option values for :meth:`pyphi.conf.config.override`.
+
+    Raises
+    ------
+    ValueError
+        If a level name is not in :data:`PARALLEL_LEVELS`.
+    """
+    from pyphi.conf import config
+
+    if parallel is None:
+        return {}
+    if parallel is False:
+        return {"parallel": False}
+    enabled = ANALYSIS_PARALLEL_LEVELS if parallel is True else tuple(parallel)
+    unknown = [name for name in enabled if name not in PARALLEL_LEVELS]
+    if unknown:
+        raise ValueError(
+            f"Unknown parallel level(s) {', '.join(map(repr, unknown))}. "
+            f"Available levels: {', '.join(PARALLEL_LEVELS)}."
+        )
+    overrides: dict[str, Any] = {"parallel": True}
+    for name, option in PARALLEL_LEVELS.items():
+        overrides[option] = {
+            **dict(getattr(config.infrastructure, option)),
+            "parallel": name in enabled,
+        }
+    return overrides
+
+
 def reject_unknown_kwargs(caller: str, kwargs: Mapping[str, Any]) -> None:
     """Raise ``TypeError`` if ``kwargs`` holds a name outside :data:`PARALLEL_KWARGS`.
 
@@ -125,4 +186,12 @@ def reject_unknown_kwargs(caller: str, kwargs: Mapping[str, Any]) -> None:
         raise TypeError(f"{caller}() got unexpected keyword argument(s): {names}")
 
 
-__all__ = ["PARALLEL_KWARGS", "fallback", "parallel_kwargs", "reject_unknown_kwargs"]
+__all__ = [
+    "ANALYSIS_PARALLEL_LEVELS",
+    "PARALLEL_KWARGS",
+    "PARALLEL_LEVELS",
+    "fallback",
+    "parallel_kwargs",
+    "parallel_overrides",
+    "reject_unknown_kwargs",
+]

@@ -73,6 +73,17 @@ gated by the global `progress_bars` option).
 
 ## Recipes
 
+One analysis, at the recommended levels (`partitions`, `purviews`,
+`distinctions`; every other level off) for that call only:
+
+```python
+analysis = pyphi.analyze(substrate, state, parallel=True)
+```
+
+With `grains=`, `parallel=True` parallelizes the grain search over its
+candidate systems instead. `parallel=False` forces the call sequential, and
+`None` (the default) follows the configuration.
+
 Scoped, for one run (the safe default — settings are restored on exit).
 A partial per-level dict merges over that level's tuned defaults (omitted
 keys keep their values; unknown keys are rejected):

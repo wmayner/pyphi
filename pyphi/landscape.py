@@ -43,6 +43,13 @@ from pyphi import exceptions
 from pyphi._progress import tqdm
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display import system_phi_label
+from pyphi.display.numbers import format_value
+from pyphi.display.tables import capped_table
 
 _UNREACHABLE = (
     exceptions.StateUnreachableForwardsError,
@@ -166,8 +173,8 @@ def _selection_identity(row: dict[str, Any]) -> tuple[Any, ...]:
     return (row["partition"], row["cause_state"], row["effect_state"])
 
 
-@dataclass(frozen=True, eq=False)
-class LandscapeSection:
+@dataclass(frozen=True, eq=False, repr=False)
+class LandscapeSection(Displayable):
     """A 1-D section of the φ landscape along one parameter axis.
 
     Attributes
@@ -209,6 +216,37 @@ class LandscapeSection:
 
     def to_pandas(self) -> pd.DataFrame:
         return self.df
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        df = self.df
+        n_regimes = df["regime"].nunique()
+        rows = [Row("Points", len(df))]
+        if len(df):
+            thetas = df.index.to_numpy(dtype=float)
+            low, high = format_value(thetas.min()), format_value(thetas.max())
+            rows.append(Row("θ", f"{low} to {high}"))
+        rows += [Row("Regimes", n_regimes), Row("Skipped", len(self.skipped))]
+        sections = [Section(rows=tuple(rows))]
+        if len(df):
+            phi = system_phi_label(getattr(self.sias[0], "config", None))
+            sections.append(
+                Section(
+                    label="Points",
+                    body=(
+                        capped_table(
+                            ("θ", phi, f"Normalized {phi}", "Regime"),
+                            df.itertuples(),
+                            lambda r: (r.Index, r.phi, r.normalized_phi, r.regime),
+                            total=len(df),
+                        ),
+                    ),
+                )
+            )
+        return Description(
+            title="LandscapeSection",
+            sections=tuple(sections),
+            compact=f"LandscapeSection({len(df)} points, {n_regimes} regimes)",
+        )
 
     @property
     def boundaries(self) -> list[tuple[float, float]]:
@@ -305,8 +343,8 @@ def landscape_section(
     return LandscapeSection(df=df, sias=sias, skipped=skipped)
 
 
-@dataclass(frozen=True)
-class Perturbation:
+@dataclass(frozen=True, repr=False)
+class Perturbation(Displayable):
     """Local finite-difference behavior of one quantity at one point.
 
     Built from exactly three analyses, at θ − h, θ, and θ + h.
@@ -357,6 +395,47 @@ class Perturbation:
 
     # The margin dictionaries are mutable, so a perturbation has no hash.
     __hash__ = None  # type: ignore[assignment]
+
+    def to_pandas(self) -> pd.Series:
+        """The scalar fields as a Series; each margin ``m`` appears as
+        ``m_margin`` and its derivative as ``m_margin_derivative``."""
+        return pd.Series(
+            {
+                "theta": self.theta,
+                "h": self.h,
+                "quantity": self.quantity,
+                "value": self.value,
+                "derivative": self.derivative,
+                "left_derivative": self.left_derivative,
+                "right_derivative": self.right_derivative,
+                "same_regime": self.same_regime,
+                **{f"{name}_margin": self.margins[name] for name in _MARGIN_NAMES},
+                **{
+                    f"{name}_margin_derivative": self.margin_derivatives[name]
+                    for name in _MARGIN_NAMES
+                },
+            }
+        )
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        rows = (
+            Row("θ", self.theta),
+            Row("h", self.h),
+            Row("Quantity", self.quantity),
+            Row("Value", self.value),
+            Row("Derivative", self.derivative),
+            Row("Left derivative", self.left_derivative),
+            Row("Right derivative", self.right_derivative),
+            Row("Same regime", self.same_regime),
+        )
+        return Description(
+            title="Perturbation",
+            sections=(Section(rows=rows),),
+            compact=(
+                f"Perturbation(d{self.quantity}/dθ={self.derivative:.6g}"
+                f" at θ={self.theta:g})"
+            ),
+        )
 
     @property
     def switch_distances(self) -> dict[str, float]:

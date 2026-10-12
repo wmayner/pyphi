@@ -42,6 +42,7 @@ from . import convert
 from . import numerics
 from .analysis import analyze
 from .conf import config
+from .conf import fallback
 from .provenance import Provenance
 from .serializable import Serializable
 from .substrate import Substrate
@@ -390,6 +391,7 @@ def phi_posterior(
     seed: int,
     subset: Sequence[int] | None = None,
     screen_margin: float | None = None,
+    progress: bool | None = None,
 ) -> PhiPosterior:
     """Propagate a substrate posterior through the SIA by Monte Carlo.
 
@@ -427,6 +429,9 @@ def phi_posterior(
         within the winner does not contest which units win. The per-draw
         SIA (and hence every Φ sample) is always computed in full, and
         the draw stream is identical to the unscreened run.
+    progress
+        Show a progress bar over the draws; ``None`` (default) follows
+        ``config.infrastructure.progress_bars``.
 
     Returns
     -------
@@ -480,7 +485,7 @@ def phi_posterior(
 
     rng = np.random.default_rng(seed)
     draws = range(n_samples)
-    if config.infrastructure.progress_bars:
+    if fallback(progress, config.infrastructure.progress_bars):
         draws = tqdm(draws, desc="Sampling Φ posterior")
     phis = []
     complexes = []

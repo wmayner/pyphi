@@ -249,7 +249,9 @@ class TestGrainRaisedSingleton:
         bounds = SearchBounds(max_update_grain=2)
         history = ((1, 0, 1, 0), (1, 0, 1, 0))
         with config.override(**presets.iit4_2023):
-            verdict = is_intrinsic_unit(_asymmetric_substrate(), unit, history, bounds)
+            verdict = is_intrinsic_unit(
+                _asymmetric_substrate(), unit, history, bounds=bounds
+            )
         assert verdict.num_competitors == 0
         assert verdict.valid == numerics.is_positive(verdict.phi)
         assert verdict.reason in (Reason.VALID, Reason.NOT_INTEGRATED)
@@ -351,7 +353,9 @@ class TestWrappingExcludedFromF:
         unit = MacroUnit((0, 1, 2), 1, coarse_grain(3, on_counts={3}))
         bounds = SearchBounds(max_depth=2, max_constituents=3)
         with config.override(**presets.iit4_2023):
-            systems = competing_systems(dancing_couples(0.25), unit, SF_STATE, bounds)
+            systems = competing_systems(
+                dancing_couples(0.25), unit, SF_STATE, bounds=bounds
+            )
         footprint = (0, 1, 2)
         same_union_multi = [
             s
@@ -386,7 +390,7 @@ class TestVerdictMappingIndependence:
 class TestIntrinsicUnits:
     def test_min_pool_and_verdicts(self):
         with config.override(**presets.iit4_2023):
-            result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
+            result = intrinsic_units(min_substrate(), (0, 0), bounds=SearchBounds())
         # 2 micro units + 5 canonical FAMILIES variants of (0, 1).
         assert len(result.units) == 7
         grouped = result.units_by_footprint()
@@ -405,7 +409,7 @@ class TestIntrinsicUnits:
 
     def test_micro_units_axiomatically_valid(self):
         with config.override(**presets.iit4_2023):
-            result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
+            result = intrinsic_units(min_substrate(), (0, 0), bounds=SearchBounds())
         micro = [v for v in result.verdicts if len(v.constituents) == 1]
         assert len(micro) == 2
         for verdict in micro:
@@ -415,7 +419,7 @@ class TestIntrinsicUnits:
     def test_tie_substrate_excludes_unintegrated_footprint(self):
         bounds = SearchBounds(max_constituents=2)
         with config.override(**presets.iit4_2023):
-            result = intrinsic_units(tie_substrate(), (0, 0, 0), bounds)
+            result = intrinsic_units(tie_substrate(), (0, 0, 0), bounds=bounds)
         grouped = result.units_by_footprint()
         # (0, 2) is causally disconnected: NOT_INTEGRATED, no variants.
         assert (0, 2) not in grouped
@@ -427,7 +431,7 @@ class TestIntrinsicUnits:
 
     def test_bu_micro_only_pool(self):
         with config.override(**presets.iit4_2023):
-            result = intrinsic_units(bu_substrate(), (0, 0, 0), SearchBounds())
+            result = intrinsic_units(bu_substrate(), (0, 0, 0), bounds=SearchBounds())
         # Pairs are unintegrated; ABC is beaten by the singleton {A}
         # system at phi 1.0; pool stays micro.
         assert len(result.units) == 3
@@ -443,13 +447,15 @@ class TestIntrinsicUnits:
 
     def test_history_length_validated(self):
         with pytest.raises(ValueError, match="1 entries"):
-            intrinsic_units(min_substrate(), ((0, 0), (0, 0)), SearchBounds())
+            intrinsic_units(min_substrate(), ((0, 0), (0, 0)), bounds=SearchBounds())
         with pytest.raises(ValueError, match="bare state"):
-            intrinsic_units(min_substrate(), (0, 0), SearchBounds(max_update_grain=2))
+            intrinsic_units(
+                min_substrate(), (0, 0), bounds=SearchBounds(max_update_grain=2)
+            )
 
     def test_result_is_frozen(self):
         with config.override(**presets.iit4_2023):
-            result = intrinsic_units(min_substrate(), (0, 0), SearchBounds())
+            result = intrinsic_units(min_substrate(), (0, 0), bounds=SearchBounds())
         with pytest.raises(AttributeError):
             result.units = ()
 
@@ -466,7 +472,7 @@ def assert_eq18(system):
 class TestValidSystems:
     def test_min_count_and_eq18(self):
         with config.override(**presets.iit4_2023):
-            systems = valid_systems(min_substrate(), (0, 0), SearchBounds())
+            systems = valid_systems(min_substrate(), (0, 0), bounds=SearchBounds())
         # {A}, {B}, {A,B} plus the 5 one-unit mapped variants.
         assert len(systems) == 8
         for system in systems:
@@ -474,7 +480,7 @@ class TestValidSystems:
 
     def test_bu_drops_unreachable_singleton(self):
         with config.override(**presets.iit4_2023):
-            systems = valid_systems(bu_substrate(), (0, 0, 0), SearchBounds())
+            systems = valid_systems(bu_substrate(), (0, 0, 0), bounds=SearchBounds())
         # 7 micro combinations minus the unconstructable {C}.
         assert len(systems) == 6
         assert all(
@@ -484,7 +490,7 @@ class TestValidSystems:
     def test_tie_substrate_count(self):
         bounds = SearchBounds(max_constituents=2)
         with config.override(**presets.iit4_2023):
-            systems = valid_systems(tie_substrate(), (0, 0, 0), bounds)
+            systems = valid_systems(tie_substrate(), (0, 0, 0), bounds=bounds)
         # 7 micro combos + 5 [alpha_AB] + 5 [alpha_AB, C] + 5 [alpha_BC]
         # + 5 [alpha_BC, A].
         assert len(systems) == 27
@@ -499,7 +505,7 @@ class TestMinDriver:
     def test_macro_complex_found(self):
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         with config.override(**presets.iit4_2023):
-            result = complexes(min_substrate(), (0, 0), bounds)
+            result = complexes(min_substrate(), (0, 0), bounds=bounds)
         assert len(result.complexes) == 1
         winner = result.complexes[0]
         # The argmax mapping is the authors' both-on coarse-graining,
@@ -513,7 +519,7 @@ class TestMinDriver:
     def test_records_contain_micro_pair_anchor(self):
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         with config.override(**presets.iit4_2023):
-            result = complexes(min_substrate(), (0, 0), bounds)
+            result = complexes(min_substrate(), (0, 0), bounds=bounds)
         by_units = {r.system.units: r.phi for r in result.records}
         assert by_units[(micro_unit(0), micro_unit(1))] == pytest.approx(
             0.005106576483955726, abs=1e-13
@@ -523,7 +529,7 @@ class TestMinDriver:
         # Battery 4: memoized phi equals a fresh evaluation.
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         with config.override(**presets.iit4_2023):
-            result = complexes(min_substrate(), (0, 0), bounds)
+            result = complexes(min_substrate(), (0, 0), bounds=bounds)
             for record in result.records[:3]:
                 fresh = MacroSystem.from_micro(
                     record.system.micro_substrate,
@@ -535,14 +541,14 @@ class TestMinDriver:
     def test_every_record_satisfies_eq18(self):
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         with config.override(**presets.iit4_2023):
-            result = complexes(min_substrate(), (0, 0), bounds)
+            result = complexes(min_substrate(), (0, 0), bounds=bounds)
         for record in result.records:
             assert_eq18(record.system)
 
     def test_excluded_records_and_margin_cover_same_footprint_rivals(self):
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         with config.override(**presets.iit4_2023):
-            result = complexes(min_substrate(), (0, 0), bounds)
+            result = complexes(min_substrate(), (0, 0), bounds=bounds)
         winner = result.complexes[0]
         # The seven losing candidates on the winner's own footprint
         # {0,1}: six rival mappings and the micro pair. The two
@@ -570,14 +576,14 @@ class TestBuDriver:
 
     def test_micro_system_admissible_and_anchored(self):
         with config.override(**presets.iit4_2023):
-            result = complexes(bu_substrate(), (0, 0, 0), SearchBounds())
+            result = complexes(bu_substrate(), (0, 0, 0), bounds=SearchBounds())
         by_units = {r.system.units: r.phi for r in result.records}
         full = tuple(micro_unit(i) for i in range(3))
         assert by_units[full] == pytest.approx(0.8300749985576875, abs=1e-13)
 
     def test_complexes_are_the_strong_singletons(self):
         with config.override(**presets.iit4_2023):
-            result = complexes(bu_substrate(), (0, 0, 0), SearchBounds())
+            result = complexes(bu_substrate(), (0, 0, 0), bounds=SearchBounds())
         footprints = {
             tuple(u.micro_constituents for u in s.units) for s in result.complexes
         }
@@ -593,7 +599,7 @@ class TestBuDriver:
         # only complex at depth 0.
         bounds = SearchBounds(max_depth=0)
         with config.override(**presets.iit4_2023):
-            result = complexes(min_substrate(), (0, 0), bounds)
+            result = complexes(min_substrate(), (0, 0), bounds=bounds)
         assert isinstance(result, ComplexesResult)
         assert len(result.complexes) == 1
 
@@ -611,7 +617,7 @@ class TestTiePath:
     def test_tied_twins_fail_and_symmetric_complex_is_accepted(self):
         bounds = SearchBounds(max_constituents=2)
         with config.override(**presets.iit4_2023):
-            result = complexes(tie_substrate(), (0, 0, 0), bounds)
+            result = complexes(tie_substrate(), (0, 0, 0), bounds=bounds)
         # The top clique is the (0,1,1,1)-mapped mirror pair.
         top = result.ties[0]
         assert {tuple(u.micro_constituents for u in s.units) for s in top} == {
@@ -804,22 +810,22 @@ class TestParallelEquivalenceSweep:
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
         with config.override(**presets.iit4_2023):
-            sequential = complexes(min_substrate(), (0, 0), bounds)
-            with config.override(parallel=True):
-                parallel = complexes(
-                    min_substrate(), (0, 0), bounds, parallel_kwargs=enabled
-                )
+            sequential = complexes(min_substrate(), (0, 0), bounds=bounds)
+            with config.override(
+                parallel=True, parallel_macro_system_evaluation=enabled
+            ):
+                parallel = complexes(min_substrate(), (0, 0), bounds=bounds)
         _results_equal(sequential, parallel)
 
     def test_tie_path_driver(self):
         bounds = SearchBounds(max_constituents=2)
         enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
         with config.override(**presets.iit4_2023):
-            sequential = complexes(tie_substrate(), (0, 0, 0), bounds)
-            with config.override(parallel=True):
-                parallel = complexes(
-                    tie_substrate(), (0, 0, 0), bounds, parallel_kwargs=enabled
-                )
+            sequential = complexes(tie_substrate(), (0, 0, 0), bounds=bounds)
+            with config.override(
+                parallel=True, parallel_macro_system_evaluation=enabled
+            ):
+                parallel = complexes(tie_substrate(), (0, 0, 0), bounds=bounds)
         _results_equal(sequential, parallel)
         assert len(parallel.complexes) == 1
         assert parallel.complexes[0].node_indices == (0, 1, 2)
@@ -834,22 +840,23 @@ class TestParallelEquivalenceRecursion:
         enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
         with config.override(**presets.iit4_2023):
             sequential = complexes(dancing_couples(0.25), SF_STATE)
-            with config.override(parallel=True):
-                parallel = complexes(
-                    dancing_couples(0.25), SF_STATE, parallel_kwargs=enabled
-                )
+            with config.override(
+                parallel=True, parallel_macro_system_evaluation=enabled
+            ):
+                parallel = complexes(dancing_couples(0.25), SF_STATE)
         _results_equal(sequential, parallel)
 
     def test_intrinsic_units_pool_identical(self):
         enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
         with config.override(**presets.iit4_2023):
-            seq = intrinsic_units(dancing_couples(0.25), SF_STATE, SearchBounds())
-            with config.override(parallel=True):
+            seq = intrinsic_units(dancing_couples(0.25), SF_STATE, bounds=SearchBounds())
+            with config.override(
+                parallel=True, parallel_macro_system_evaluation=enabled
+            ):
                 par = intrinsic_units(
                     dancing_couples(0.25),
                     SF_STATE,
-                    SearchBounds(),
-                    parallel_kwargs=enabled,
+                    bounds=SearchBounds(),
                 )
         assert seq.units == par.units
         assert [v.constituents for v in seq.verdicts] == [
@@ -873,7 +880,7 @@ class TestParallelGating:
         monkeypatch.setattr(pyphi.parallel, "map_reduce", _boom)
         with config.override(**presets.iit4_2023):
             result = complexes(
-                min_substrate(), (0, 0), SearchBounds(mappings="EXHAUSTIVE")
+                min_substrate(), (0, 0), bounds=SearchBounds(mappings="EXHAUSTIVE")
             )
         assert len(result.complexes) == 1
 
@@ -888,8 +895,10 @@ class TestParallelCostGuard:
         with config.override(**presets.iit4_2023):
             substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
             sequential = complexes(substrate, (0, 0, 0, 0))
-            with config.override(parallel=True):
-                parallel = complexes(substrate, (0, 0, 0, 0), parallel_kwargs=enabled)
+            with config.override(
+                parallel=True, parallel_macro_system_evaluation=enabled
+            ):
+                parallel = complexes(substrate, (0, 0, 0, 0))
         _results_equal(sequential, parallel)
         assert len(parallel.complexes) == 1
         winner = parallel.complexes[0]
@@ -926,14 +935,14 @@ class TestRecursiveCondensation:
     def test_chain_yields_both_disjoint_complexes(self):
         substrate = decaying_chain_substrate()
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+            result = complexes(substrate, (0, 0, 0, 0), bounds=SearchBounds(max_depth=0))
         footprints = {c.node_indices for c in result.complexes}
         assert footprints == {(0, 1), (2, 3)}
 
     def test_winners_are_complex_objects_with_units_and_records(self):
         substrate = decaying_chain_substrate()
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+            result = complexes(substrate, (0, 0, 0, 0), bounds=SearchBounds(max_depth=0))
         from pyphi.models.complex import Complex
 
         top = result.complexes[0]
@@ -949,7 +958,7 @@ class TestRecursiveCondensation:
 
         substrate = decaying_chain_substrate()
         with config.override(**presets.iit4_2023):
-            macro = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+            macro = complexes(substrate, (0, 0, 0, 0), bounds=SearchBounds(max_depth=0))
             micro = micro_complexes(substrate, (0, 0, 0, 0))
         assert {c.node_indices for c in macro.complexes} == {
             c.node_indices for c in micro
@@ -960,11 +969,11 @@ class TestRecursiveCondensation:
         state = (0, 0, 0, 0)
         with config.override(**presets.iit3):
             with pytest.raises(ValueError, match="IIT_3_0"):
-                complexes(substrate, state, SearchBounds(max_depth=0))
+                complexes(substrate, state, bounds=SearchBounds(max_depth=0))
             with pytest.raises(ValueError, match="IIT_3_0"):
-                intrinsic_units(substrate, state, SearchBounds())
+                intrinsic_units(substrate, state, bounds=SearchBounds())
             with pytest.raises(ValueError, match="IIT_3_0"):
-                valid_systems(substrate, state, SearchBounds())
+                valid_systems(substrate, state, bounds=SearchBounds())
             with pytest.raises(ValueError, match="IIT_3_0"):
                 is_intrinsic_unit(substrate, micro_unit(0), state)
             with pytest.raises(ValueError, match="IIT_3_0"):
@@ -1006,7 +1015,7 @@ class TestCrossDoorEquivalence:
         state = tuple(int(v) for v in rng.integers(0, 2, size=n))
         with config.override(**presets.iit4_2023):
             micro = micro_complexes(substrate, state)
-            macro = complexes(substrate, state, SearchBounds(max_depth=0))
+            macro = complexes(substrate, state, bounds=SearchBounds(max_depth=0))
         assert {c.node_indices for c in macro.complexes} == {
             c.node_indices for c in micro
         }
@@ -1024,13 +1033,13 @@ class TestCrossDoorEquivalence:
         state = (0, 0, 0)
         bounds = SearchBounds(max_constituents=2)
         with config.override(**presets.iit4_2023):
-            with_skip = complexes(substrate, state, bounds)
+            with_skip = complexes(substrate, state, bounds=bounds)
 
         from pyphi import condensation
 
         monkeypatch.setattr(condensation, "_fingerprint_key", lambda _system: object())
         with config.override(**presets.iit4_2023):
-            without_skip = complexes(substrate, state, bounds)
+            without_skip = complexes(substrate, state, bounds=bounds)
 
         assert {c.node_indices for c in with_skip.complexes} == {
             c.node_indices for c in without_skip.complexes
@@ -1044,13 +1053,14 @@ class TestCrossDoorEquivalence:
         state = (0, 0, 0, 0)
         enabled = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
         with config.override(**presets.iit4_2023):
-            sequential = complexes(substrate, state, SearchBounds(max_depth=0))
-            with config.override(parallel=True):
+            sequential = complexes(substrate, state, bounds=SearchBounds(max_depth=0))
+            with config.override(
+                parallel=True, parallel_macro_system_evaluation=enabled
+            ):
                 parallel = complexes(
                     substrate,
                     state,
-                    SearchBounds(max_depth=0),
-                    parallel_kwargs=enabled,
+                    bounds=SearchBounds(max_depth=0),
                 )
         assert [c.node_indices for c in sequential.complexes] == [
             c.node_indices for c in parallel.complexes
@@ -1064,7 +1074,7 @@ class TestCrossDoorEquivalence:
         overlapping, non-accepted candidate."""
         substrate = decaying_chain_substrate()
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0, 0, 0), SearchBounds(max_depth=0))
+            result = complexes(substrate, (0, 0, 0, 0), bounds=SearchBounds(max_depth=0))
 
         footprints = [set(c.node_indices) for c in result.complexes]
         for i, a in enumerate(footprints):
@@ -1180,8 +1190,10 @@ class TestEq16Gate:
         with config.override(**presets.iit4_2026):
             substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
             bounds = SearchBounds()
-            off = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off")
-            on = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="certified")
+            off = intrinsic_units(substrate, (0, 0, 0, 0), bounds=bounds, prune="off")
+            on = intrinsic_units(
+                substrate, (0, 0, 0, 0), bounds=bounds, prune="certified"
+            )
             assert off.units == on.units
             _verdicts_equal(off.verdicts, on.verdicts)
 
@@ -1189,14 +1201,18 @@ class TestEq16Gate:
         with config.override(**presets.iit4_2026):
             substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
             bounds = SearchBounds()
-            pool = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off").units
+            pool = intrinsic_units(
+                substrate, (0, 0, 0, 0), bounds=bounds, prune="off"
+            ).units
             macro = [u for u in pool if not _is_micro(u)]
             if not macro:
                 pytest.skip("no macro units derived for this substrate")
             unit = macro[0]
-            off = competing_systems(substrate, unit, (0, 0, 0, 0), bounds, prune="off")
+            off = competing_systems(
+                substrate, unit, (0, 0, 0, 0), bounds=bounds, prune="off"
+            )
             on = competing_systems(
-                substrate, unit, (0, 0, 0, 0), bounds, prune="certified"
+                substrate, unit, (0, 0, 0, 0), bounds=bounds, prune="certified"
             )
             assert off == on
 
@@ -1204,14 +1220,18 @@ class TestEq16Gate:
         with config.override(**presets.iit4_2026):
             substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
             bounds = SearchBounds()
-            pool = intrinsic_units(substrate, (0, 0, 0, 0), bounds, prune="off").units
+            pool = intrinsic_units(
+                substrate, (0, 0, 0, 0), bounds=bounds, prune="off"
+            ).units
             macro = [u for u in pool if not _is_micro(u)]
             if not macro:
                 pytest.skip("no macro units derived for this substrate")
             unit = macro[0]
-            off = is_intrinsic_unit(substrate, unit, (0, 0, 0, 0), bounds, prune="off")
+            off = is_intrinsic_unit(
+                substrate, unit, (0, 0, 0, 0), bounds=bounds, prune="off"
+            )
             on = is_intrinsic_unit(
-                substrate, unit, (0, 0, 0, 0), bounds, prune="certified"
+                substrate, unit, (0, 0, 0, 0), bounds=bounds, prune="certified"
             )
             assert off.valid == on.valid
             assert off.reason == on.reason
@@ -1231,8 +1251,8 @@ def _complexes_equal(off, on):
 class TestCertifiedComplexes:
     def _run(self, substrate, state, bounds=None):
         bounds = bounds or SearchBounds()
-        off = complexes(substrate, state, bounds, prune="off")
-        on = complexes(substrate, state, bounds, prune="certified")
+        off = complexes(substrate, state, bounds=bounds, prune="off")
+        on = complexes(substrate, state, bounds=bounds, prune="certified")
         return off, on
 
     def test_equivalent_on_example_1(self):
@@ -1301,7 +1321,7 @@ class TestCertifiedComplexes:
     def test_off_matches_prior_shape(self):
         with config.override(**presets.iit4_2026):
             substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
-            off = complexes(substrate, (0, 0, 0, 0), SearchBounds(), prune="off")
+            off = complexes(substrate, (0, 0, 0, 0), bounds=SearchBounds(), prune="off")
             for record in off.records:
                 assert record.phi is not None
                 assert not record.gated
@@ -1339,12 +1359,12 @@ class TestCertifiedGateSoundnessGuard:
         with config.override(**presets.iit4_2023):
             substrate = Substrate(GID_WITNESS_TPM)
             with pytest.raises(ConfigurationError):
-                complexes(substrate, (0, 1), SearchBounds(), prune="certified")
+                complexes(substrate, (0, 1), bounds=SearchBounds(), prune="certified")
 
     def test_auto_resolves_off_under_gid(self):
         with config.override(**presets.iit4_2023):
             substrate = Substrate(GID_WITNESS_TPM)
-            result = complexes(substrate, (0, 1), SearchBounds())
+            result = complexes(substrate, (0, 1), bounds=SearchBounds())
             for record in result.records:
                 assert record.phi is not None
                 assert not record.gated
@@ -1357,15 +1377,15 @@ class TestCertifiedParallelEquivalence:
             seq = complexes(
                 substrate,
                 (0, 0, 0, 0),
-                SearchBounds(),
-                parallel_kwargs={"parallel": False},
+                bounds=SearchBounds(),
+                parallel=False,
                 prune="certified",
             )
             par = complexes(
                 substrate,
                 (0, 0, 0, 0),
-                SearchBounds(),
-                parallel_kwargs={"parallel": True},
+                bounds=SearchBounds(),
+                parallel=True,
                 prune="certified",
             )
             assert seq.records == par.records
@@ -1386,6 +1406,6 @@ def test_certified_equals_off_on_random_substrates(data):
     with config.override(**presets.iit4_2026):
         substrate = Substrate(tpm)
         bounds = SearchBounds(max_constituents=2, max_update_grain=1)
-        off = complexes(substrate, (0, 0, 0), bounds, prune="off")
-        on = complexes(substrate, (0, 0, 0), bounds, prune="certified")
+        off = complexes(substrate, (0, 0, 0), bounds=bounds, prune="off")
+        on = complexes(substrate, (0, 0, 0), bounds=bounds, prune="certified")
         _complexes_equal(off, on)

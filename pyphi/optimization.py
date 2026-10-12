@@ -14,6 +14,7 @@ substrate, varying a chosen set of weight-matrix entries.
 
 from __future__ import annotations
 
+import contextlib
 import math
 from collections.abc import Callable
 from collections.abc import Sequence
@@ -192,7 +193,7 @@ class OptimizationResult(Serializable):
     best_params : NDArray
         The winning parameter vector.
     best_objective : float
-        Its objective value, in the chosen-``direction`` convention.
+        Its objective value.
     best_substrate : Substrate
         ``builder(best_params)``.
     best_sia : SystemIrreducibilityAnalysis
@@ -200,15 +201,15 @@ class OptimizationResult(Serializable):
         how robust the winning substrate is.
     trajectory : pd.DataFrame
         One row per evaluation: ``eval``, ``generation``, one column per
-        parameter dimension (``p0``, ``p1``, …), ``objective`` (chosen-direction
-        convention), ``reachable``, the selection identity (``partition``,
+        parameter dimension (``p0``, ``p1``, …), ``objective``,
+        ``reachable``, the selection identity (``partition``,
         ``cause_state``, ``effect_state``) and the selection margins
         (``partition_margin``, ``cause_state_margin``, ``effect_state_margin``).
     bounds : list[tuple[float, float]]
         The search box.
     seed : int
         The seed driving the run.
-    direction : str
+    goal : str
         ``"maximize"`` or ``"minimize"``.
     objective_name : str
         The quantity name, or ``"<callable>"``.
@@ -229,7 +230,7 @@ class OptimizationResult(Serializable):
     trajectory: pd.DataFrame
     bounds: list[tuple[float, float]]
     seed: int
-    direction: str
+    goal: str
     objective_name: str
     settings: dict[str, Any]
     config_snapshot: dict[str, Any]
@@ -250,7 +251,7 @@ class OptimizationResult(Serializable):
             and self.best_sia == other.best_sia
             and self.bounds == other.bounds
             and self.seed == other.seed
-            and self.direction == other.direction
+            and self.goal == other.goal
             and self.objective_name == other.objective_name
             and self.settings == other.settings
             and self.config_snapshot == other.config_snapshot
@@ -324,6 +325,35 @@ def _eval_batch(
     return results
 
 
+def _check_inputs(
+    builder: Callable[[NDArray[Any]], Any],
+    box: list[tuple[float, float]],
+    state: tuple[int, ...],
+    subset: Sequence[int] | None,
+    formalism: str | None,
+) -> None:
+    """Build the substrate at the midpoint of ``box`` and the candidate system
+    on it, so a wrong bounds length, state or subset raises its own error
+    before the search starts rather than inside the optimizer.
+
+    An unreachable state at the midpoint is not an input error: the search
+    penalizes unreachable candidates.
+    """
+    from pyphi.conf import presets
+    from pyphi.system import System
+
+    midpoint = np.array([(lo + hi) / 2 for lo, hi in box])
+    try:
+        substrate = builder(midpoint)
+    except (ValueError, TypeError, IndexError) as error:
+        raise ValueError(
+            f"builder could not build a substrate from the midpoint of bounds "
+            f"({len(box)} parameters): {error}"
+        ) from error
+    with presets.use(formalism), contextlib.suppress(*_UNREACHABLE):
+        System(substrate, state, subset=None if subset is None else tuple(subset))
+
+
 def optimize(
     builder: Callable[[NDArray[Any]], Any],
     state: tuple[int, ...],
@@ -331,7 +361,7 @@ def optimize(
     *,
     seed: int,
     objective: Any = "signed_normalized_phi",
-    direction: str = "maximize",
+    goal: str = "maximize",
     x0: NDArray[Any] | None = None,
     popsize: int = 15,
     maxiter: int = 100,
@@ -367,7 +397,7 @@ def optimize(
         ``"signed_normalized_phi"`` (default), ``"phi"``, ``"signed_phi"``, or
         ``"normalized_phi"`` by name, or a callable ``SIA → float`` for any
         other objective.
-    direction : str
+    goal : str
         ``"maximize"`` (default) or ``"minimize"``.
     x0 : NDArray, optional
         Seeds one member of the initial population, e.g. a known-good
@@ -399,8 +429,11 @@ def optimize(
     Raises
     ------
     ValueError
-        If ``objective`` is a name that is not one of the four φₛ variants, or
-        ``direction`` is neither ``"maximize"`` nor ``"minimize"``.
+        If ``objective`` is a name that is not one of the four φₛ variants;
+        if ``goal`` is neither ``"maximize"`` nor ``"minimize"``; or if
+        ``builder`` cannot build a substrate from ``len(bounds)`` parameters,
+        or ``state`` or ``subset`` does not fit that substrate. These are
+        checked once, at the midpoint of ``bounds``, before the search.
 
     Notes
     -----
@@ -423,13 +456,12 @@ def optimize(
     from pyphi.conf import presets
 
     formalism = presets.canonical(formalism)
-    if direction not in ("maximize", "minimize"):
-        raise ValueError(
-            f"direction must be 'maximize' or 'minimize', got {direction!r}"
-        )
+    if goal not in ("maximize", "minimize"):
+        raise ValueError(f"goal must be 'maximize' or 'minimize', got {goal!r}")
 
     box = [(float(lo), float(hi)) for lo, hi in bounds]
-    sign = -1.0 if direction == "maximize" else 1.0  # DE minimizes sign*objective
+    _check_inputs(builder, box, state, subset, formalism)
+    sign = -1.0 if goal == "maximize" else 1.0  # DE minimizes sign*objective
     show = fallback(progress, config.infrastructure.progress_bars)
     use_parallel = fallback(parallel, config.infrastructure.parallel)
     objective_name = objective if isinstance(objective, str) else "<callable>"
@@ -469,7 +501,7 @@ def optimize(
             if value is not None and not math.isnan(float(value)):
                 improved = (
                     float(value) > best_value
-                    if direction == "maximize"
+                    if goal == "maximize"
                     else float(value) < best_value
                 )
                 if best_index is None or improved:
@@ -524,7 +556,7 @@ def optimize(
         trajectory=trajectory,
         bounds=box,
         seed=int(seed),
-        direction=direction,
+        goal=goal,
         objective_name=objective_name,
         settings={
             "backend": "scipy.differential_evolution",

@@ -716,12 +716,16 @@ class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_re
     trajectory: DataFrameSchema
     bounds: tuple[tuple[float, float], ...]
     seed: int
-    direction: str
     objective_name: str
     settings: dict[str, Any]
     config_snapshot: dict[str, Any]
     n_evaluations: int
     n_unreachable: int
+    # Always written; absent only from files saved by 2.0.0rc1 to rc3, which
+    # use the field name below instead.
+    goal: str | msgspec.UnsetType = msgspec.UNSET
+    # Field name written by 2.0.0rc1 to rc3; read on decode, never written.
+    direction: str | msgspec.UnsetType = msgspec.UNSET
 
 
 # The tagged union grows one member per serializable type.

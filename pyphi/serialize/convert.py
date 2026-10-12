@@ -1564,6 +1564,7 @@ def _register_phi_posterior() -> None:
 
 def _register_sweep_result() -> None:
     from pyphi.sweeps import SweepResult
+    from pyphi.sweeps import _long_format
 
     _ENCODERS[SweepResult] = lambda r: schema.SweepResultSchema(
         df=frames.dataframe_to_schema(r.df),
@@ -1577,11 +1578,12 @@ def _register_sweep_result() -> None:
     )
 
     def _decode_sweep_result(s: schema.SweepResultSchema) -> Any:
+        results = [
+            obj if isinstance(obj, float) else from_schema(obj) for obj in s.results
+        ]
         return SweepResult(
-            df=frames.schema_to_dataframe(s.df),
-            results=[
-                obj if isinstance(obj, float) else from_schema(obj) for obj in s.results
-            ],
+            df=_long_format(frames.schema_to_dataframe(s.df), results),
+            results=results,
             skipped=[
                 (label, formalism, tuple(subset), tuple(state))
                 for label, formalism, subset, state in s.skipped
@@ -1801,7 +1803,7 @@ def _register_optimization_result() -> None:
             trajectory=frames.dataframe_to_schema(r.trajectory),
             bounds=tuple((float(lo), float(hi)) for lo, hi in r.bounds),
             seed=int(r.seed),
-            direction=r.direction,
+            goal=r.goal,
             objective_name=r.objective_name,
             settings=dict(r.settings),
             config_snapshot=dict(r.config_snapshot),
@@ -1820,7 +1822,7 @@ def _register_optimization_result() -> None:
             trajectory=frames.schema_to_dataframe(s.trajectory),
             bounds=[(lo, hi) for lo, hi in s.bounds],
             seed=s.seed,
-            direction=s.direction,
+            goal=_renamed(s.goal, s.direction),
             objective_name=s.objective_name,
             settings=s.settings,
             config_snapshot=s.config_snapshot,

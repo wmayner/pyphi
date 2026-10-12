@@ -26,13 +26,16 @@ result = pyphi.sweep(                         # batch across axes
     states="all",
     compute="sia",
 )
-result.df                                     # tidy long-format DataFrame
+result.df                                     # long-format DataFrame
 ```
 
 `sweep()` enumerates the cartesian product of substrates, states, and
 candidate subsystems, runs cells in parallel, records
-dynamically-unreachable states instead of aborting, and returns both a tidy
-DataFrame and the aligned raw result objects. See
+dynamically-unreachable states instead of aborting, and returns both a
+long-format DataFrame, with one column per axis, and the aligned raw result
+objects. `analyze`, `sweep`, `optimize` and the other entry points share
+their argument names: `subset`, `formalism`, `compute`, `parallel` and
+`progress` mean the same thing wherever they appear. See
 [Sweep states and subsystems](howto/sweep.md).
 
 ### System integrated information requires intrinsic information

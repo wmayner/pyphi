@@ -1,5 +1,5 @@
 """Cartesian batch driver: run an IIT computation across substrates, states,
-and candidate subsets, and collect the results into one tidy DataFrame.
+and candidate subsets, and collect the results into one long-format DataFrame.
 
 ``sweep`` takes one or more substrates and further axes (states, candidate
 subsets, and optionally earlier versions of IIT), runs the chosen computation
@@ -14,6 +14,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import product
+from numbers import Integral
 from typing import Any
 
 import pandas as pd
@@ -21,9 +22,18 @@ import pandas as pd
 from pyphi import exceptions
 from pyphi import numerics
 from pyphi import utils
+from pyphi.analysis import _check_compute
+from pyphi.analysis import _run_compute
+from pyphi.analysis import _structure_record
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.tables import capped_table
+from pyphi.models.ces import CauseEffectStructure
 from pyphi.serializable import Serializable
 from pyphi.substrate import Substrate
 from pyphi.system import System
@@ -43,15 +53,21 @@ class _Skipped:
     cell: tuple[Any, Any, Any]
 
 
-@dataclass(frozen=True, eq=False)
-class SweepResult(Serializable):
-    """A sweep's tidy table plus the raw results behind it.
+_AXIS_NAMES = ("substrate", "formalism", "subset", "state")
 
-    ``df`` has one row per computed cell, indexed by the axes that vary.
-    ``results`` holds the raw result objects aligned 1:1 with ``df`` rows.
-    ``skipped`` lists the ``(substrate, formalism, subset, state)`` cells
-    dropped because their state is dynamically unreachable (only when an axis
-    is enumerated via ``"all"``; explicit cells fail loud instead).
+
+@dataclass(frozen=True, eq=False, repr=False)
+class SweepResult(Displayable, Serializable):
+    """A sweep's long-format table plus the raw results behind it.
+
+    ``df`` has one row per computed cell and a default ``RangeIndex``. Its
+    first four columns are the axes, ``substrate``, ``formalism``,
+    ``subset`` and ``state``, whatever the number of values on each; the
+    computed quantities follow. ``results`` holds the raw result objects
+    aligned 1:1 with ``df`` rows. ``skipped`` lists the ``(substrate,
+    formalism, subset, state)`` cells dropped because their state is
+    dynamically unreachable (only when an axis is enumerated via ``"all"``;
+    explicit cells fail loud instead).
     """
 
     df: pd.DataFrame
@@ -72,25 +88,96 @@ class SweepResult(Serializable):
     def to_pandas(self) -> pd.DataFrame:
         return self.df
 
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        df = self.df
+        present = [name for name in _AXIS_NAMES if name in df.columns]
+        counts = {name: df[name].nunique() for name in present}
+        rows = [Row("Rows", len(df)), Row("Skipped", len(self.skipped))]
+        if "formalism" in df.columns:
+            rows.append(Row("Formalisms", ", ".join(map(str, df.formalism.unique()))))
+        rows += [
+            Row(f"{name.capitalize()}s", counts[name])
+            for name in present
+            if name != "formalism"
+        ]
+        quantities = [c for c in df.columns if c not in _AXIS_NAMES]
+        sections = [Section(rows=tuple(rows))]
+        if len(df):
+            varying = [name for name in present if counts[name] > 1] or present[-1:]
+            shown = [
+                c for c in ("phi", "big_phi", "n_distinctions", "sum_phi_d") if c in df
+            ][:2] or quantities[:2]
+            columns = varying + shown
+            sections.append(
+                Section(
+                    label="Table",
+                    body=(
+                        capped_table(
+                            tuple(columns),
+                            df[columns].itertuples(index=False),
+                            tuple,
+                            total=len(df),
+                        ),
+                    ),
+                )
+            )
+        return Description(
+            title="SweepResult",
+            sections=tuple(sections),
+            compact=f"SweepResult({len(df)} rows, {len(self.skipped)} skipped)",
+        )
+
 
 # ---- axis normalization ----
 
 
+def _check_mode(axis: str, value: str, modes: tuple[str, ...]) -> None:
+    if value not in modes:
+        expected = " or ".join(repr(mode) for mode in modes)
+        raise ValueError(
+            f"unknown {axis} {value!r}; expected {expected}, one tuple of node "
+            "indices, or an iterable of them"
+        )
+
+
+def _explicit_axis(values: Any, axis: str) -> list[tuple[Any, ...]]:
+    """An explicit states or subsets axis as a list of tuples.
+
+    A flat sequence of integers (numpy integers included) is one entry;
+    anything else is an iterable of entries, such as the rows of a 2-D array.
+    """
+    values = list(values)
+    if values and all(isinstance(x, Integral) for x in values):
+        values = [values]
+    entries = [
+        tuple(int(x) if isinstance(x, Integral) else x for x in entry)
+        for entry in values
+    ]
+    if not entries:
+        raise ValueError(f"{axis} is empty")
+    return entries
+
+
 def _normalize_states(substrate: Any, states: Any) -> list[tuple[int, ...]]:
-    if states == "all":
+    if isinstance(states, str):
+        _check_mode("states", states, ("all",))
         return list(utils.all_states(substrate.factored_tpm.alphabet_sizes))
-    if isinstance(states, tuple) and all(isinstance(x, int) for x in states):
-        return [states]
-    return [tuple(s) for s in states]
+    return _explicit_axis(states, "states")
 
 
 def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
     nodes = range(len(substrate))
-    if subsets == "full":
-        return [tuple(nodes)]
-    if subsets == "all":
+    if isinstance(subsets, str):
+        _check_mode("subsets", subsets, ("full", "all"))
+        if subsets == "full":
+            return [tuple(nodes)]
         return list(utils.powerset(nodes, nonempty=True))
-    return [tuple(s) for s in subsets]
+    return _explicit_axis(subsets, "subsets")
+
+
+def _enumerates(axis: Any) -> bool:
+    """Whether an axis argument is enumerated by PyPhi rather than given."""
+    return isinstance(axis, str) and axis == "all"
 
 
 def _normalize_formalisms(formalisms: Any) -> list[str | None]:
@@ -103,7 +190,10 @@ def _normalize_formalisms(formalisms: Any) -> list[str | None]:
         return [None]
     if isinstance(formalisms, (str, dict)):
         formalisms = [formalisms]
-    return [presets.canonical(formalism) for formalism in formalisms]
+    names = [presets.canonical(formalism) for formalism in formalisms]
+    if not names:
+        raise ValueError("formalisms is empty; pass None for the active version")
+    return names
 
 
 _LABEL_RE = re.compile(r"^[A-Za-z0-9_-]+$")
@@ -122,10 +212,14 @@ def _normalize_substrates(substrates: Any) -> list[tuple[Any, Any]]:
                     f"substrate label {label!r} must match [A-Za-z0-9_-]+ "
                     "(labels are used in filenames)"
                 )
-        return list(substrates.items())
-    if isinstance(substrates, Substrate):
-        return [(0, substrates)]
-    return list(enumerate(substrates))
+        labeled = list(substrates.items())
+    elif isinstance(substrates, Substrate):
+        labeled = [(0, substrates)]
+    else:
+        labeled = list(enumerate(substrates))
+    if not labeled:
+        raise ValueError("substrates is empty")
+    return labeled
 
 
 def _enumerate_cells(
@@ -153,18 +247,6 @@ def _enumerate_cells(
 # ---- per-cell compute + row extraction ----
 
 
-def _dispatch_compute(system: System, compute: Any) -> Any:
-    if compute == "sia":
-        return system.sia()
-    if compute == "ces":
-        return system.ces()
-    if callable(compute):
-        return compute(system)
-    raise ValueError(
-        f"unknown compute: {compute!r}; expected 'sia', 'ces', or a callable"
-    )
-
-
 def _run_cell(
     cell: tuple[Any, Any, Any], *, substrates: dict, compute: Any, skip: bool
 ) -> Any:
@@ -178,7 +260,7 @@ def _run_cell(
     label, subset, state = cell
     try:
         system = System(substrates[label], state, subset=subset)
-        return _dispatch_compute(system, compute)
+        return _run_compute(system, compute)
     except _UNREACHABLE:
         if skip:
             return _Skipped(cell)
@@ -208,18 +290,22 @@ def _row_sia(result: Any) -> dict[str, Any]:
     }
 
 
-def _row_ces(result: Any) -> dict[str, Any]:
-    from pyphi.relations import NullRelations
+def _row_structure(result: Any) -> dict[str, Any]:
+    # An Analysis carries its cause-effect structure, which embeds the SIA.
+    ces = getattr(result, "ces", result)
+    return _structure_record(ces.sia, ces)
 
-    relations = result.relations
+
+def _row_distinctions(result: Any) -> dict[str, Any]:
+    from pyphi.models.distinctions import UnresolvedDistinctions
+
+    # Unresolved distinctions were not filtered for congruence, so their
+    # count and Σφ_d are upper bounds on the structure's.
     return {
-        "phi": float(result.sia.phi),
-        "n_distinctions": len(result.distinctions),
-        # IIT 3.0 defines no relations, so Σφ_r is undefined rather than zero.
-        "sum_phi_r": (
-            float("nan")
-            if isinstance(relations, NullRelations)
-            else float(relations.sum_phi())
+        "n_distinctions": len(result),
+        "sum_phi_d": float(result.sum_phi()),
+        "congruence": (
+            "unresolved" if isinstance(result, UnresolvedDistinctions) else "resolved"
         ),
     }
 
@@ -227,14 +313,42 @@ def _row_ces(result: Any) -> dict[str, Any]:
 def _extract_row(result: Any, compute: Any) -> dict[str, Any]:
     if compute == "sia":
         return _row_sia(result)
-    if compute == "ces":
-        return _row_ces(result)
+    if compute is None or compute == "ces":
+        return _row_structure(result)
+    if compute == "distinctions":
+        return _row_distinctions(result)
     to_pandas = getattr(result, "to_pandas", None)
     if to_pandas is not None:
         record = to_pandas()
         if isinstance(record, pd.Series):
             return record.to_dict()
+        if isinstance(record, pd.DataFrame) and len(record) == 1:
+            return record.iloc[0].to_dict()
     return {"phi": getattr(result, "phi", None)}
+
+
+def _long_format(df: pd.DataFrame, results: list[Any]) -> pd.DataFrame:
+    """Bring a loaded sweep table to the current layout.
+
+    Files saved by 2.0.0rc1 to rc3 indexed the axes that varied and kept the
+    others as trailing columns, and their ``compute="ces"`` rows had only
+    ``phi``, ``n_distinctions`` and ``sum_phi_r``; tables in the current
+    layout pass through unchanged.
+    """
+    if not isinstance(df.index, pd.RangeIndex):
+        df = df.reset_index()
+    if (
+        results
+        and "big_phi" not in df.columns
+        and {"n_distinctions", "sum_phi_r"} <= set(df.columns)
+        and all(isinstance(r, CauseEffectStructure) for r in results)
+    ):
+        rows = pd.DataFrame([_row_structure(r) for r in results])
+        df = pd.concat(
+            [df.drop(columns=list(rows.columns), errors="ignore"), rows], axis=1
+        )
+    axes = [name for name in _AXIS_NAMES if name in df.columns]
+    return df.reindex(columns=axes + [c for c in df.columns if c not in _AXIS_NAMES])
 
 
 # ---- execution ----
@@ -312,38 +426,15 @@ def _run_cells_parallel(
     return results
 
 
-_AXIS_NAMES = ("substrate", "formalism", "subset", "state")
-
-
 def _build_df(
-    keys: list[tuple[Any, str, tuple, tuple]],
-    rows: list[dict[str, Any]],
-    enumerated: list[tuple[Any, str, tuple, tuple]],
+    keys: list[tuple[Any, str, tuple, tuple]], rows: list[dict[str, Any]]
 ) -> pd.DataFrame:
-    """Build the tidy table; an axis is an index level iff it varies.
-
-    ``enumerated`` is the full cell enumeration (before unreachable-state
-    skips), so whether an axis varies is a property of what was asked for,
-    not of which cells happened to compute.
-    """
-    df = pd.DataFrame(rows)
-    levels: dict[str, list[Any]] = {}
-    for pos, name in enumerate(_AXIS_NAMES):
-        distinct = {cell[pos] for cell in enumerated}
-        if len(distinct) > 1:
-            levels[name] = [k[pos] for k in keys]
-        else:
-            df[name] = [next(iter(distinct))] * len(df)
-    if len(levels) == 1:
-        name, values = next(iter(levels.items()))
-        # tupleize_cols=False keeps tuple state/subset values as scalar index
-        # entries instead of expanding them into a MultiIndex.
-        df.index = pd.Index(values, name=name, tupleize_cols=False)
-    elif len(levels) > 1:
-        df.index = pd.MultiIndex.from_arrays(
-            list(levels.values()), names=list(levels.keys())
-        )
-    return df
+    """The long-format table: one column per axis, then the computed
+    quantities, with a default ``RangeIndex``."""
+    axes = pd.DataFrame(
+        {name: [key[i] for key in keys] for i, name in enumerate(_AXIS_NAMES)}
+    )
+    return pd.concat([axes, pd.DataFrame(rows)], axis=1)
 
 
 def sweep(
@@ -355,9 +446,9 @@ def sweep(
     compute: Any = "sia",
     parallel: bool | None = None,
     progress: bool | None = None,
-    seed: int | None = None,
 ) -> SweepResult:
-    """Run a computation across the cartesian product of axes into a tidy table.
+    """Run a computation across the cartesian product of axes into a
+    long-format table.
 
     Parameters
     ----------
@@ -365,11 +456,12 @@ def sweep(
         A single substrate, a sequence of substrates (labeled by position),
         or a mapping of label to substrate.
     states
-        A state tuple, an iterable of states, or ``"all"``. Explicit states
-        apply to every substrate; ``"all"`` enumerates per substrate.
+        A state tuple, an iterable of states (such as the rows of a 2-D
+        array), or ``"all"``. Explicit states apply to every substrate;
+        ``"all"`` enumerates per substrate.
     subsets
-        ``"full"`` (whole system), ``"all"`` (non-empty powerset), or an
-        iterable of node-index tuples. Explicit subsets apply to every
+        ``"full"`` (whole system), ``"all"`` (non-empty powerset), a tuple of
+        node indices, or an iterable of them. Explicit subsets apply to every
         substrate; ``"full"`` and ``"all"`` are resolved per substrate.
     formalisms
         Leave unset to compute IIT under the active configuration, honored
@@ -379,30 +471,51 @@ def sweep(
         or ``"IIT_4_0_2026"`` for the current version), each of which applies
         its complete preset. See :doc:`/howto/earlier-versions`.
     compute
-        ``"sia"`` (default), ``"ces"``, or a callable taking a ``System``.
+        What to compute in each cell, as in :func:`pyphi.analyze`:
+        ``"sia"`` (the default), ``"ces"``, ``"distinctions"``, ``None``
+        for the full :class:`~pyphi.analysis.Analysis`, or a callable taking
+        a ``System``. The default differs from ``analyze``'s because a sweep
+        multiplies the cost of one analysis by the number of cells, and the
+        system irreducibility analysis is the cheapest.
     parallel : bool or None, optional
         ``None`` follows ``config.infrastructure.parallel``; ``True`` or
         ``False`` forces.
     progress : bool or None, optional
         ``None`` follows config; ``True`` or ``False`` forces.
-    seed : int or None, optional
-        Stamped into each result's provenance (a bookkeeping label).
 
     Returns
     -------
     SweepResult
-        The tidy long-format table, the aligned raw result objects, and the
+        The long-format table, the aligned raw result objects, and the
         list of cells skipped because their state is dynamically unreachable.
+
+    Raises
+    ------
+    ValueError
+        Before any computation, if an axis is empty, a string axis is not one
+        of its modes, a formalism is unknown, or ``compute`` is not one of
+        the values above.
 
     Notes
     -----
     Cells are skipped (rather than raising) only when an axis is enumerated via
     ``"all"``; when every axis is given explicitly, an uncomputable cell raises.
+
+    The table's columns after the axes depend on ``compute``. ``"sia"``
+    rows hold φₛ (``phi``), ``normalized_phi``, ``is_irreducible`` and the
+    selection margins. ``"ces"`` and ``None`` rows hold the columns of
+    :meth:`Analysis.to_pandas <pyphi.analysis.Analysis.to_pandas>`: φₛ
+    (``phi``), ``normalized_phi``, Φ (``big_phi``), ``n_distinctions``,
+    ``sum_phi_d`` and ``sum_phi_r``. ``"distinctions"`` rows hold
+    ``n_distinctions``, ``sum_phi_d`` and ``congruence``; where
+    ``congruence`` is ``"unresolved"`` the system's specified state is tied,
+    so the count and the sum are upper bounds on the structure's.
     """
     # Auto-enumerated axes ("all") may produce dynamically-unreachable
     # (uncomputable) cells; skip and record those. When every axis is given
     # explicitly, an uncomputable cell fails loud.
-    skip_uncomputable = states == "all" or subsets == "all"
+    _check_compute(compute)
+    skip_uncomputable = _enumerates(states) or _enumerates(subsets)
     labeled = _normalize_substrates(substrates)
     substrate_map = dict(labeled)
     formalisms_ = _normalize_formalisms(formalisms)
@@ -436,21 +549,5 @@ def sweep(
                 keys.append((label, reported, subset, state))
                 raw.append(result)
 
-    if seed is not None:
-        for result in raw:
-            with_provenance = getattr(result, "with_provenance", None)
-            if with_provenance is not None:
-                with_provenance(seed=seed)
-
     rows = [_extract_row(result, compute) for result in raw]
-    labeled_enumeration = [
-        (
-            label,
-            config.formalism.iit.version if f is None else f,
-            subset,
-            state,
-        )
-        for label, f, subset, state in enumerated
-    ]
-    df = _build_df(keys, rows, labeled_enumeration)
-    return SweepResult(df=df, results=raw, skipped=skipped)
+    return SweepResult(df=_build_df(keys, rows), results=raw, skipped=skipped)

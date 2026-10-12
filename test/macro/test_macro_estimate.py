@@ -82,7 +82,7 @@ class TestAgainstRealSweeps:
 
         substrate = min_substrate()
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0), SearchBounds())
+            result = complexes(substrate, (0, 0), bounds=SearchBounds())
         est = SearchBounds().estimate(substrate)
         # Worst case achieved: min's only candidate decomposition passes.
         assert est.distinct_systems_upper_bound == len(result.records) == 8
@@ -94,7 +94,7 @@ class TestAgainstRealSweeps:
         substrate = min_substrate()
         bounds = SearchBounds(mappings="EXHAUSTIVE")
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0), bounds)
+            result = complexes(substrate, (0, 0), bounds=bounds)
         est = bounds.estimate(substrate)
         assert est.distinct_systems_upper_bound == len(result.records) == 10
 
@@ -105,7 +105,7 @@ class TestAgainstRealSweeps:
         substrate = bu_substrate()
         bounds = SearchBounds(max_depth=0)
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0, 0), bounds)
+            result = complexes(substrate, (0, 0, 0), bounds=bounds)
         est = bounds.estimate(substrate)
         # One candidate's state is unreachable under its own TPM and is
         # discarded at run time; the enumeration cannot predict that.
@@ -118,7 +118,7 @@ class TestAgainstRealSweeps:
 
         substrate = bu_substrate()
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0, 0), SearchBounds())
+            result = complexes(substrate, (0, 0, 0), bounds=SearchBounds())
         est = SearchBounds().estimate(substrate)
         assert est.distinct_systems_upper_bound >= len(result.records)
 
@@ -129,7 +129,7 @@ class TestAgainstRealSweeps:
         substrate = min_substrate()
         bounds = SearchBounds(max_depth=0)
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0), bounds)
+            result = complexes(substrate, (0, 0), bounds=bounds)
         est = bounds.estimate(substrate)
         assert est.is_exact is True
         assert est.distinct_systems_upper_bound == len(result.records) == 3
@@ -141,7 +141,7 @@ class TestAgainstRealSweeps:
         substrate = decaying_chain_substrate()
         bounds = SearchBounds(max_depth=0)
         with config.override(**presets.iit4_2023):
-            result = complexes(substrate, (0, 0, 0, 0), bounds)
+            result = complexes(substrate, (0, 0, 0, 0), bounds=bounds)
         est = bounds.estimate(substrate)
         # 15 nonempty subsets enumerated; unreachable-state candidates
         # (if any) are discarded at run time, so records may be fewer.

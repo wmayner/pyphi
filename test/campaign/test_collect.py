@@ -52,7 +52,7 @@ def executed_campaign(tmp_path_factory):
 
 def test_campaign_equals_local_sweep(executed_campaign):
     directory, substrates = executed_campaign
-    local = sweep(substrates, **AXES, parallel=False, progress=False, seed=7)
+    local = sweep(substrates, **AXES, parallel=False, progress=False)
     result = collect(directory)
     pd.testing.assert_frame_equal(result.df, local.df)
     assert [float(r.phi) for r in result.results] == [

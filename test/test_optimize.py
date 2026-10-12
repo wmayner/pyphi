@@ -128,7 +128,7 @@ def test_optimize_concentrates_above_random_mean():
         ]
     )
     assert result.best_objective >= baseline_mean
-    assert result.direction == "maximize"
+    assert result.goal == "maximize"
     assert result.seed == 20260711
     assert len(result.trajectory) == result.n_evaluations
     # The best row's objective matches best_objective.
@@ -192,13 +192,13 @@ def test_optimize_callable_objective_and_minimize():
         [(0.2, 1.2)],
         seed=3,
         objective=lambda sia: float(sia.phi),
-        direction="minimize",
+        goal="minimize",
         popsize=5,
         maxiter=5,
         parallel=False,
     )
     assert result.objective_name == "<callable>"
-    assert result.direction == "minimize"
+    assert result.goal == "minimize"
     # Minimizing φ: the best is the smallest logged objective.
     assert result.best_objective == pytest.approx(result.trajectory["objective"].min())
 
@@ -270,7 +270,7 @@ def test_optimization_result_equality_does_not_raise():
             trajectory=pd.DataFrame({"eval": [0], "objective": [objective]}),
             bounds=[(0.0, 1.0)],
             seed=1,
-            direction="maximize",
+            goal="maximize",
             objective_name="phi",
             settings={},
             config_snapshot={},

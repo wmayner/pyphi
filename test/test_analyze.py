@@ -172,7 +172,7 @@ def test_analyze_grains_matches_macro_complexes():
     substrate = min_substrate()
     with config.override(**presets.iit4_2023):
         via_analyze = analyze(substrate, (0, 0), grains=True)
-        direct = complexes(substrate, (0, 0), SearchBounds())
+        direct = complexes(substrate, (0, 0), bounds=SearchBounds())
     assert isinstance(via_analyze, ComplexesResult)
     assert via_analyze.maximal_complex.units == direct.maximal_complex.units
     assert float(via_analyze.maximal_complex.phi) == pytest.approx(
@@ -208,18 +208,13 @@ def test_analyze_grains_mutual_exclusions():
         analyze(substrate, state, grains=True, subset=(0,))
     with pytest.raises(ValueError, match="compute"):
         analyze(substrate, state, grains=True, compute="sia")
-    with pytest.raises(ValueError, match="parallel_kwargs"):
-        analyze(substrate, state, parallel_kwargs={})
 
 
 def test_analyze_grains_rejects_non_bounds():
     substrate = examples.basic_substrate()
     state = examples.basic_state()
-    with pytest.raises(ValueError, match="must be True or a SearchBounds"):
+    with pytest.raises(ValueError, match="must be True, False, or a SearchBounds"):
         analyze(substrate, state, grains=0.5)
-    # False is a confusion signal, not "no search".
-    with pytest.raises(ValueError, match="must be True or a SearchBounds"):
-        analyze(substrate, state, grains=False)
 
 
 def test_analyze_card_distinguishes_phi_s_from_big_phi():

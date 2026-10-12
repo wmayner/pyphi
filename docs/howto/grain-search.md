@@ -195,19 +195,16 @@ result.ties
 ## Parallelize
 
 The search evaluates candidate systems independently, so it parallelizes over
-them. Forward a `parallel_kwargs` dictionary through `analyze` and it reaches
-the candidate sweep:
+them. Pass `parallel=True` to `analyze` and the candidate systems are
+evaluated across worker processes:
 
 ```python
-result = pyphi.analyze(
-    substrate,
-    (0, 0),
-    grains=True,
-    parallel_kwargs={"parallel": True, "chunksize": 4},
-)
+result = pyphi.analyze(substrate, (0, 0), grains=True, parallel=True)
 ```
 
-For the parallel backend and its options, see {doc}`parallel`.
+To tune that level, such as its chunk size, set the
+`parallel_macro_system_evaluation` option with `pyphi.config.override`. For
+the parallel backend and its options, see {doc}`parallel`.
 
 ## Bound the search
 

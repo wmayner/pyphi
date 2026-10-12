@@ -158,34 +158,62 @@ class Analysis(Displayable, Serializable):
         return tuple(rows)
 
     def to_pandas(self) -> pd.DataFrame:
-        distinctions = self.ces.distinctions
-        relations = self.ces.relations
-        # IIT 3.0 defines no relations, so Σφ_r is undefined rather than zero.
-        sum_phi_r = (
+        """A one-row DataFrame: φₛ (``phi``), ``normalized_phi``, Φ
+        (``big_phi``), ``n_distinctions``, ``sum_phi_d`` and ``sum_phi_r``.
+        The same columns as a sweep's rows for ``compute="ces"`` or
+        ``compute=None``."""
+        return pd.DataFrame([_structure_record(self.sia, self.ces)])
+
+
+def _structure_record(sia: Any, ces: CauseEffectStructure) -> dict[str, Any]:
+    """The scalar summary of one system's analysis, keyed by column name.
+
+    IIT 3.0 defines no relations and no structure integrated information, so
+    there ``sum_phi_r`` and ``big_phi`` are NaN rather than zero.
+    """
+    relations = ces.relations
+    iit3 = system_phi_label(ces.config) == "Φ"
+    return {
+        "phi": float(sia.phi),
+        "normalized_phi": float(getattr(sia, "normalized_phi", float("nan"))),
+        "big_phi": float("nan") if iit3 else float(ces.big_phi),
+        "n_distinctions": len(ces.distinctions),
+        "sum_phi_d": float(ces.distinctions.sum_phi()),
+        "sum_phi_r": (
             float("nan")
             if isinstance(relations, NullRelations)
             else float(relations.sum_phi())
-        )
-        sum_phi_d = float(distinctions.sum_phi())
-        # ``phi`` is φₛ; ``big_phi`` is Φ. See the class Notes.
-        try:
-            big_phi = self.big_phi
-        except AttributeError:
-            big_phi = float("nan")
-        return pd.DataFrame(
-            [
-                {
-                    "phi": float(self.sia.phi),
-                    "normalized_phi": float(
-                        getattr(self.sia, "normalized_phi", float("nan"))
-                    ),
-                    "big_phi": big_phi,
-                    "n_distinctions": len(distinctions),
-                    "sum_phi_d": sum_phi_d,
-                    "sum_phi_r": sum_phi_r,
-                }
-            ]
-        )
+        ),
+    }
+
+
+_COMPUTE_NAMES = ("sia", "ces", "distinctions")
+
+
+def _check_compute(compute: Any) -> None:
+    """Raise ``ValueError`` unless ``compute`` is in the shared vocabulary:
+    ``None``, a name in ``_COMPUTE_NAMES``, or a callable."""
+    if compute is None or callable(compute) or compute in _COMPUTE_NAMES:
+        return
+    raise ValueError(
+        f"unknown compute: {compute!r}; expected 'sia', 'ces', 'distinctions', "
+        "a callable, or None for the full Analysis bundle"
+    )
+
+
+def _run_compute(system: System, compute: Any) -> Any:
+    """Compute what ``compute`` selects for ``system``; see :func:`analyze`."""
+    _check_compute(compute)
+    if callable(compute):
+        return compute(system)
+    if compute == "sia":
+        return system.sia()
+    if compute == "ces":
+        return system.ces()
+    if compute == "distinctions":
+        return system.distinctions(congruent=True)
+    ces = system.ces()
+    return Analysis(system=system, sia=ces.sia, ces=ces)
 
 
 def analyze(
@@ -196,7 +224,8 @@ def analyze(
     formalism: str | None = None,
     compute: Any = None,
     grains: Any = None,
-    parallel_kwargs: dict | None = None,
+    parallel: bool | None = None,
+    progress: bool | None = None,
 ) -> Analysis | Any:
     """Analyze one candidate system over ``substrate`` in ``state``, or run
     a grain search over the whole substrate.
@@ -230,15 +259,22 @@ def analyze(
         whole cost of a cause-effect structure over a sparse substrate; see
         :meth:`~pyphi.system.System.distinctions`.
     grains : optional
-        ``None`` analyzes the single candidate system. ``True`` runs the
-        bounded intrinsic-unit search with default
+        ``None`` or ``False`` analyzes the single candidate system. ``True``
+        runs the bounded intrinsic-unit search with default
         :class:`~pyphi.macro.SearchBounds`; a
         :class:`~pyphi.macro.SearchBounds` instance runs it with those
         bounds. The search returns its
         :class:`~pyphi.macro.ComplexesResult`.
-    parallel_kwargs : dict or None, optional
-        Forwarded to :func:`pyphi.macro.complexes`; meaningful only with
-        ``grains``.
+    parallel : bool or None, optional
+        ``None`` follows the configuration. ``True`` runs this call in
+        parallel: a single system at the system-partition, purview and
+        distinction levels, a grain search over its candidate systems.
+        ``False`` runs it sequentially. Finer control is through the
+        per-level options in ``config.infrastructure``; see
+        :doc:`/howto/parallel`.
+    progress : bool or None, optional
+        Show progress bars; ``None`` follows
+        ``config.infrastructure.progress_bars``.
 
     Returns
     -------
@@ -252,19 +288,18 @@ def analyze(
     ValueError
         If ``formalism`` is not a known version name; if ``compute`` is not
         ``"sia"``, ``"ces"``, ``"distinctions"``, a callable, or ``None``; if
-        ``grains`` is not ``True``, a :class:`~pyphi.macro.SearchBounds`, or
-        ``None``; if ``grains`` is combined with ``subset`` or ``compute``;
-        or if ``parallel_kwargs`` is given without ``grains``.
+        ``grains`` is not a bool, a :class:`~pyphi.macro.SearchBounds`, or
+        ``None``; or if ``grains`` is combined with ``subset`` or
+        ``compute``.
     """
+    from pyphi.conf import config
+    from pyphi.conf._helpers import parallel_overrides
+
     formalism = presets.canonical(formalism)
+    _check_compute(compute)
 
     bounds: Any = None
-    if grains is None:
-        if parallel_kwargs is not None:
-            raise ValueError(
-                "parallel_kwargs applies only to a grain search; pass grains="
-            )
-    else:
+    if grains is not None and grains is not False:
         from pyphi.macro.search import SearchBounds
 
         if subset is not None:
@@ -283,34 +318,16 @@ def analyze(
             bounds = grains
         else:
             raise ValueError(
-                f"grains must be True or a SearchBounds instance; got {grains!r}"
+                f"grains must be True, False, or a SearchBounds instance; got {grains!r}"
             )
 
-    result: Any = None
-    with presets.use(formalism):
+    progress_override = {} if progress is None else {"progress_bars": progress}
+    with presets.use(formalism), config.override(**progress_override):
         if bounds is not None:
             from pyphi.macro.search import complexes as grain_complexes
 
-            result = grain_complexes(
-                substrate, state, bounds, parallel_kwargs=parallel_kwargs
+            return grain_complexes(
+                substrate, state, bounds=bounds, parallel=parallel, progress=progress
             )
-        else:
-            system = System(substrate, state, subset=subset)
-            if callable(compute):
-                result = compute(system)
-            elif compute == "sia":
-                result = system.sia()
-            elif compute == "ces":
-                result = system.ces()
-            elif compute == "distinctions":
-                result = system.distinctions(congruent=True)
-            elif compute is not None:
-                raise ValueError(
-                    f"unknown compute: {compute!r}; expected 'sia', 'ces', "
-                    "'distinctions', a callable, or None for the full "
-                    "Analysis bundle"
-                )
-            else:
-                ces = system.ces()
-                result = Analysis(system=system, sia=ces.sia, ces=ces)
-    return result
+        with config.override(**parallel_overrides(parallel)):
+            return _run_compute(System(substrate, state, subset=subset), compute)

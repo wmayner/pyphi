@@ -73,16 +73,30 @@ pyphi.config.parallel_workers = -1  # back to the default
 
 ## Enabling parallelism for a single computation
 
-The best way to run one computation in parallel, without leaving the
-global configuration changed, is the `override` context manager. Everything
-inside the `with` block sees the overridden settings; outside, the previous
-values are restored. Two things must be switched on: the global gate, and
-the specific level (here, the system-partition search):
+`analyze` takes a `parallel` argument. `parallel=True` runs that one call
+in parallel at the levels a single analysis benefits from (the
+system-partition search, each mechanism's purview search, and the
+distinctions), and switches every other level off; `parallel=False` runs
+it sequentially; `None`, the default, follows the configuration. `sweep`,
+`optimize` and `Substrate.complexes` take the same argument and parallelize
+over their cells, candidate substrates and candidate systems.
 
 ```{code-cell} python
 substrate = pyphi.examples.iit4_2023_fig1a_substrate()
 state = (0, 1, 1)
 
+analysis = pyphi.analyze(substrate, state, parallel=True)
+round(float(analysis.sia.phi), 6)
+```
+
+For finer control, such as one level only or a different chunk size, use
+the `override` context manager. It runs one computation in parallel without
+leaving the global configuration changed. Everything
+inside the `with` block sees the overridden settings; outside, the previous
+values are restored. Two things must be switched on: the global gate, and
+the specific level (here, the system-partition search):
+
+```{code-cell} python
 opts = dict(pyphi.config.infrastructure.parallel_partition_evaluation)
 opts["parallel"] = True
 

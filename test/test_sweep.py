@@ -20,13 +20,13 @@ def test_sweep_over_states_shape_and_parity():
     assert isinstance(result, SweepResult)
     assert len(result.df) == 6  # one row per reachable state
     assert len(result.skipped) == 2  # 2 unreachable, recorded
-    assert result.df.index.name == "state"  # only states vary -> single index
-    assert "formalism" in result.df.columns  # constant axis -> column
+    # Long format: every axis is a column, whether or not it varies.
+    assert list(result.df.columns[:4]) == ["substrate", "formalism", "subset", "state"]
     assert len(result.results) == 6
     # parity: each row's phi == a direct recompute
     with config.override(**presets.iit4_2023):
-        for state, row in result.df.iterrows():
-            direct = System(substrate, state).sia().phi
+        for _, row in result.df.iterrows():
+            direct = System(substrate, row["state"]).sia().phi
             assert math.isclose(row["phi"], float(direct))
 
 
@@ -41,14 +41,13 @@ def test_sweep_explicit_unreachable_state_fails_loud():
             sweep(substrate, states=[(0, 1, 0)])
 
 
-def test_sweep_over_formalisms_multiindex():
+def test_sweep_over_formalisms():
     substrate = examples.basic_substrate()
     result = sweep(substrate, states=[(1, 0, 0)], formalisms=["IIT_4_0_2023", "IIT_3_0"])
-    assert list(result.df.index.names) == ["formalism"]  # only formalism varies
-    assert set(result.df.index) == {"IIT_4_0_2023", "IIT_3_0"}
+    assert list(result.df["formalism"]) == ["IIT_4_0_2023", "IIT_3_0"]
     # Genuine-difference guard: the axis must change the computed value, not
-    # just the index labels (the two formalisms disagree on this substrate).
-    phi_by_formalism = result.df["phi"]
+    # just the formalism labels (the two formalisms disagree on this substrate).
+    phi_by_formalism = result.df.set_index("formalism")["phi"]
     assert phi_by_formalism["IIT_4_0_2023"] != phi_by_formalism["IIT_3_0"]
 
 
@@ -60,6 +59,8 @@ def test_sweep_compute_ces_columns():
     row = result.df.iloc[0]
     assert row["n_distinctions"] == len(direct.distinctions)
     assert math.isclose(row["sum_phi_r"], float(direct.relations.sum_phi()))
+    assert math.isclose(row["sum_phi_d"], float(direct.distinctions.sum_phi()))
+    assert math.isclose(row["big_phi"], float(direct.big_phi))
     assert math.isclose(row["phi"], float(direct.sia.phi))
 
 
@@ -70,8 +71,7 @@ def test_sweep_over_subsets_enumerates_powerset():
     # subsets="all" auto-enumerates, so cells unreachable for a sub-subsystem
     # are skipped and recorded rather than raising.
     assert len(result.df) + len(result.skipped) == 7
-    if len(result.df):
-        assert result.df.index.name == "subset"
+    assert "subset" in result.df.columns
 
 
 def test_sweep_custom_callable():
@@ -82,13 +82,6 @@ def test_sweep_custom_callable():
     assert len(result.results) == 1
 
 
-def test_sweep_seed_stamped_on_results():
-    substrate = examples.basic_substrate()
-    with config.override(**presets.iit4_2023):
-        result = sweep(substrate, states=[(1, 0, 0)], seed=1234)
-    assert result.results[0].provenance.seed == 1234
-
-
 def test_parallel_equals_sequential():
     import pandas as pd
 
@@ -96,9 +89,7 @@ def test_parallel_equals_sequential():
     with config.override(**presets.iit4_2023):
         seq = sweep(substrate, states="all", parallel=False)
         par = sweep(substrate, states="all", parallel=True)
-    pd.testing.assert_frame_equal(
-        seq.df.sort_index(), par.df.sort_index(), check_like=True
-    )
+    pd.testing.assert_frame_equal(seq.df, par.df)
     assert len(par.results) == len(seq.results) == 6
     assert len(par.skipped) == len(seq.skipped) == 2
 
@@ -173,7 +164,7 @@ class TestSubstratesAxis:
         )
         assert list(result.df["substrate"]) == [0]
 
-    def test_dict_labels_become_index_level(self):
+    def test_dict_labels_become_substrate_values(self):
         subs = {"basic": examples.basic_substrate(), "xor": examples.xor_substrate()}
         result = sweep(
             subs,
@@ -182,8 +173,7 @@ class TestSubstratesAxis:
             parallel=False,
             progress=False,
         )
-        assert result.df.index.name == "substrate"
-        assert set(result.df.index) == {"basic", "xor"}
+        assert list(result.df["substrate"]) == ["basic", "xor"]
 
     def test_sequence_labels_are_positions(self):
         subs = [examples.basic_substrate(), examples.xor_substrate()]
@@ -194,7 +184,7 @@ class TestSubstratesAxis:
             parallel=False,
             progress=False,
         )
-        assert set(result.df.index) == {0, 1}
+        assert list(result.df["substrate"]) == [0, 1]
 
     def test_all_states_enumerated_per_substrate(self):
         # Substrates of different sizes coexist under states="all".

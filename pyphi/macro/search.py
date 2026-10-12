@@ -958,13 +958,25 @@ def _f_for_unit(
     )
 
 
+def _parallel_options(parallel: bool | None, progress: bool | None) -> dict:
+    """The candidate-evaluation overrides a public search function forwards:
+    ``parallel`` and ``progress``, where given."""
+    return {
+        name: value
+        for name, value in (("parallel", parallel), ("progress", progress))
+        if value is not None
+    }
+
+
 def competing_systems(
     substrate: Substrate,
     unit: MacroUnit,
     micro_history,
+    *,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
-    parallel_kwargs: dict | None = None,
+    parallel: bool | None = None,
     prune: str | None = None,
+    progress: bool | None = None,
 ) -> tuple[MacroSystem, ...]:
     """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 17).
 
@@ -973,7 +985,12 @@ def competing_systems(
     everything; ``None`` (default) selects ``"certified"`` exactly when
     the active system measure applies the requirement. The returned systems are
     identical under every mode.
+
+    ``parallel`` and ``progress`` govern the evaluation of candidate
+    systems; ``None`` defers to
+    ``config.infrastructure.parallel_macro_system_evaluation``.
     """
+    parallel_kwargs = _parallel_options(parallel, progress)
     _require_iit4()
     mode = _resolve_prune(prune)
     history = _normalized_history(
@@ -1008,9 +1025,11 @@ def is_intrinsic_unit(
     substrate: Substrate,
     unit: MacroUnit,
     micro_history,
+    *,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
-    parallel_kwargs: dict | None = None,
+    parallel: bool | None = None,
     prune: str | None = None,
+    progress: bool | None = None,
 ) -> UnitVerdict:
     """Eqs. 16-17 for one candidate; micro units return VALID trivially.
 
@@ -1021,7 +1040,12 @@ def is_intrinsic_unit(
     intrinsic-information requirement; ``"off"`` evaluates everything; ``None``
     (default) selects ``"certified"`` exactly when the active system
     measure applies the requirement. The verdict is identical under every mode.
+
+    ``parallel`` and ``progress`` govern the evaluation of candidate
+    systems; ``None`` defers to
+    ``config.infrastructure.parallel_macro_system_evaluation``.
     """
+    parallel_kwargs = _parallel_options(parallel, progress)
     _require_iit4()
     mode = _resolve_prune(prune)
     history = _normalized_history(
@@ -1082,9 +1106,11 @@ class IntrinsicUnitsResult:
 def intrinsic_units(
     substrate: Substrate,
     micro_history,
+    *,
     bounds: SearchBounds,
-    parallel_kwargs: dict | None = None,
+    parallel: bool | None = None,
     prune: str | None = None,
+    progress: bool | None = None,
 ) -> IntrinsicUnitsResult:
     """The recursion's fixed point: the valid-unit pool plus all verdicts.
 
@@ -1093,7 +1119,12 @@ def intrinsic_units(
     everything; ``None`` (default) selects ``"certified"`` exactly when
     the active system measure applies the requirement. Units and verdicts are
     identical under every mode.
+
+    ``parallel`` and ``progress`` govern the evaluation of candidate
+    systems; ``None`` defers to
+    ``config.infrastructure.parallel_macro_system_evaluation``.
     """
+    parallel_kwargs = _parallel_options(parallel, progress)
     _require_iit4()
     mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
@@ -1118,16 +1149,24 @@ def intrinsic_units(
 def valid_systems(
     substrate: Substrate,
     micro_history,
+    *,
     bounds: SearchBounds,
-    parallel_kwargs: dict | None = None,
+    parallel: bool | None = None,
     prune: str | None = None,
+    progress: bool | None = None,
 ) -> tuple[MacroSystem, ...]:
     """The bounded ``P(u)``: every Eq-19-compatible system of intrinsic
     units, evaluated over the full universe with everything else as
     background. Systems whose state is unreachable are dropped.
     ``prune`` gates the unit derivation's competitor sweeps as in
     :func:`intrinsic_units`; the returned systems are identical under
-    every mode."""
+    every mode.
+
+    ``parallel`` and ``progress`` govern the evaluation of candidate
+    systems; ``None`` defers to
+    ``config.infrastructure.parallel_macro_system_evaluation``.
+    """
+    parallel_kwargs = _parallel_options(parallel, progress)
     _require_iit4()
     mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
@@ -1310,9 +1349,11 @@ def _complex_row(complex_) -> tuple[str, str, str, str]:
 def complexes(
     substrate: Substrate,
     micro_history,
+    *,
     bounds: SearchBounds = _DEFAULT_BOUNDS,
-    parallel_kwargs: dict | None = None,
+    parallel: bool | None = None,
     prune: str | None = None,
+    progress: bool | None = None,
 ) -> ComplexesResult:
     """Identify the complexes of the bounded candidate space -- the
     one-call driver.
@@ -1331,12 +1372,17 @@ def complexes(
     everything; ``None`` (default) selects ``"certified"`` exactly when
     the active system measure applies the requirement.
 
+
+    ``parallel`` and ``progress`` govern the evaluation of candidate
+    systems; ``None`` defers to
+    ``config.infrastructure.parallel_macro_system_evaluation``.
     Notes
     -----
     Under the certified prune the identified complexes, ties, and
     verdicts are identical to a full evaluation; only ``records``
     distinguishes gated candidates from evaluated ones.
     """
+    parallel_kwargs = _parallel_options(parallel, progress)
     _require_iit4()
     from pyphi import validate
     from pyphi.condensation import Candidate

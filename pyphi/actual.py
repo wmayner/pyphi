@@ -19,6 +19,7 @@ If you use this module, please cite the following papers:
 import contextlib
 import logging
 from collections.abc import Mapping
+from dataclasses import KW_ONLY
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import replace
@@ -448,6 +449,7 @@ class Transition(Serializable):
     after_state: tuple[int, ...]
     cause_indices: tuple[int, ...]
     effect_indices: tuple[int, ...]
+    _: KW_ONLY
     partition: DirectedBipartition = field(default=None)  # type: ignore[assignment]
     noise_background: bool = False
 

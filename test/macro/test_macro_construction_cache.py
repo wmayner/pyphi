@@ -113,11 +113,13 @@ class TestSweepReuse:
         monkeypatch.setattr(macro_tpm_module, "_discounted_on_probabilities", counting)
         with config.override(**presets.iit4_2023, progress_bars=False):
             with config.override(cache_macro_construction=False):
-                result_off = complexes(Substrate(CG_TPM), CG_STATE, SearchBounds())
+                result_off = complexes(
+                    Substrate(CG_TPM), CG_STATE, bounds=SearchBounds()
+                )
             off_calls = calls["n"]
             calls["n"] = 0
             macro_tpm_module._CONSTRUCTION_CACHE.clear()
-            result_on = complexes(Substrate(CG_TPM), CG_STATE, SearchBounds())
+            result_on = complexes(Substrate(CG_TPM), CG_STATE, bounds=SearchBounds())
             on_calls = calls["n"]
         # Step 1 runs once per distinct key instead of once per construction.
         assert 0 < on_calls < off_calls

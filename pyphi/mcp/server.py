@@ -28,6 +28,8 @@ import pyphi
 from pyphi import examples
 from pyphi import serialize
 from pyphi.conf import presets
+from pyphi.conf._helpers import PARALLEL_LEVELS
+from pyphi.conf._helpers import parallel_overrides
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.cost import estimate_analysis
 from pyphi.cost import runtime_seconds
@@ -68,22 +70,6 @@ _CES_SWEEP_LIMIT = 100_000_000
 _SPECIFIED_STATE_LIMIT = 131_072
 _GUARD_COUNT_BUDGET = 3_000_000
 
-# Friendly level names mapped to the per-level parallelization options. The
-# recommended default set covers the levels that pay off for a single-system
-# analysis; relations and mechanism partitions are excluded because
-# parallelizing them was measured not to pay (see the "parallelization"
-# reference topic).
-_PARALLEL_LEVELS = {
-    "partitions": "parallel_partition_evaluation",
-    "purviews": "parallel_purview_evaluation",
-    "distinctions": "parallel_distinction_evaluation",
-    "complexes": "parallel_complex_evaluation",
-    "mechanism_partitions": "parallel_mechanism_partition_evaluation",
-    "relations": "parallel_relation_evaluation",
-    "macro_systems": "parallel_macro_system_evaluation",
-}
-_DEFAULT_PARALLEL_LEVELS = ("partitions", "purviews", "distinctions")
-
 
 def _parallel_overrides(
     parallel: bool | list[str] | None, workers: int | None = None
@@ -96,28 +82,9 @@ def _parallel_overrides(
     ``workers`` is given); ``False`` closes the global gate, which forces
     every level sequential.
     """
-    overrides: dict[str, Any] = {}
+    overrides = parallel_overrides(parallel)
     if workers is not None:
         overrides["parallel_workers"] = workers
-    if parallel is None:
-        return overrides
-    if parallel is False:
-        overrides["parallel"] = False
-        return overrides
-    enabled = _DEFAULT_PARALLEL_LEVELS if parallel is True else parallel
-    unknown = [name for name in enabled if name not in _PARALLEL_LEVELS]
-    if unknown:
-        known = ", ".join(_PARALLEL_LEVELS)
-        raise ValueError(
-            f"Unknown parallel level(s) {', '.join(map(repr, unknown))}. "
-            f"Available levels: {known}."
-        )
-    overrides["parallel"] = True
-    for name, option in _PARALLEL_LEVELS.items():
-        overrides[option] = {
-            **dict(getattr(pyphi.config.infrastructure, option)),
-            "parallel": name in enabled,
-        }
     return overrides
 
 
@@ -135,7 +102,7 @@ def _parallel_state() -> dict[str, Any]:
                     "sequential_threshold"
                 ],
             }
-            for name, option in _PARALLEL_LEVELS.items()
+            for name, option in PARALLEL_LEVELS.items()
         },
         "note": (
             "A level runs in parallel only when the global 'parallel' gate "
@@ -1052,7 +1019,7 @@ def configure_parallel(
         pyphi.config.parallel = defaults.parallel
         pyphi.config.parallel_workers = defaults.parallel_workers
         pyphi.config.parallel_backend = defaults.parallel_backend
-        for option in _PARALLEL_LEVELS.values():
+        for option in PARALLEL_LEVELS.values():
             setattr(pyphi.config, option, dict(getattr(defaults, option)))
     else:
         spec: bool | list[str] | None

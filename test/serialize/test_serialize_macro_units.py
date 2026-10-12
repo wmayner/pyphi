@@ -31,7 +31,7 @@ def test_macro_complex_roundtrip():
     tpm = np.array([[0.05, 0.05], [0.05, 0.06], [0.06, 0.05], [0.95, 0.95]])
     substrate = Substrate(tpm, node_labels=("A", "B"))
     with config.override(**presets.iit4_2023):
-        result = complexes(substrate, (0, 0), SearchBounds())
+        result = complexes(substrate, (0, 0), bounds=SearchBounds())
     top = result.complexes[0]
     restored = serialize.loads(serialize.dumps(top))
     assert restored.node_indices == top.node_indices

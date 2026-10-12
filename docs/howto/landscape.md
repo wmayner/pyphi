@@ -133,7 +133,11 @@ substrate — `weight_axes` builds one, the vector analogue of `weight_axis` —
 a box of bounds, and a seed. The optimizer is population-based and
 gradient-free, so it is unaffected by the selection switches that make the
 landscape piecewise-smooth; it maximizes signed normalized $\varphi_s$ by
-default, the quantity that stays continuous across those switches.
+default, the quantity that stays continuous across those switches. Pass
+`goal="minimize"` to search for a minimum instead. Before the search starts,
+`optimize` builds the substrate at the midpoint of the bounds and the
+candidate system on it, so a wrong number of bounds, a state of the wrong
+length or an out-of-range `subset` raises its own error immediately.
 
 ```{code-cell} python
 box_axis = pyphi.weight_axes(
