@@ -16,6 +16,7 @@ coverage:
 # Serial like the Read the Docs build: sphinx-tippy writes every page's hover
 # tooltips from the whole site's data, which parallel writing loses.
 docs:
+    PYPHI_WELCOME_OFF=1 PYPHI_AGENT_NOTE_OFF=1 uv run --all-extras --group docs python scripts/prune_autosummary.py
     uv run --all-extras --group docs sphinx-build -W --keep-going -b html docs docs/_build/html
 
 # Serve documentation locally
@@ -24,6 +25,7 @@ serve-docs port="1337": docs
 
 # Serve docs with live reload: rebuilds on save (serial, like `docs`; executed pages come from the cache)
 watch-docs port="1337":
+    PYPHI_WELCOME_OFF=1 PYPHI_AGENT_NOTE_OFF=1 uv run --all-extras --group docs python scripts/prune_autosummary.py
     uv run --all-extras --group docs sphinx-autobuild -W --keep-going -b html --port {{ port }} docs docs/_build/html
 
 # Run the benchmark suite once locally (current env, quick mode)
