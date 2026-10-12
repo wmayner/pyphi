@@ -318,14 +318,15 @@ count.
 - *Assemblies.* Valid units combine into a candidate system only when their micro
   footprints and backgrounds are disjoint (Marshall et al., 2026, Eq. 19).
 
-One structural fact keeps this short of the full product of the four axes. The
-intrinsic-unit criteria (Marshall et al., 2026, Eqs. 16–17) are properties of a
-decomposition and its background alone — a candidate's mapping and update grain
-enter neither inequality — so the search judges each decomposition *once*, and that
-single verdict covers all of its variants, whatever their mappings and update
-grains. Building a unit on meso constituents rather than directly on the micro
-units narrows the mapping axis further, because the meso units' own mappings
-are already fixed (Marshall et al., 2026, Fig. 3E).
+One structural fact keeps this short of the full product of the four axes. A
+candidate's mapping enters neither intrinsic-unit criterion (Marshall et al.,
+2026, Eqs. 16–17), so the search judges each decomposition once per update grain,
+and that verdict covers all of its mapped variants at that grain. The update
+grain does enter, because Eq. 17 compares a candidate only with systems whose
+units have an update grain of at most its own. Building a unit on meso
+constituents rather than directly on the micro units narrows the mapping axis
+further, because the meso units' own mappings are already fixed (Marshall et
+al., 2026, Fig. 3E).
 
 **What one candidate costs.** Each candidate has two separate costs.
 Constructing its macro transition-probability matrix is $\Theta(\tau\,4^{n})$ work,

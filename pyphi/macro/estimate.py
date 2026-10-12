@@ -32,7 +32,9 @@ from pyphi.display import Section
 from pyphi.macro.search import SearchBounds
 from pyphi.macro.search import _apportionments
 from pyphi.macro.search import _assemble_systems
+from pyphi.macro.search import _competitor_members
 from pyphi.macro.search import _decompositions
+from pyphi.macro.search import _max_tau
 from pyphi.macro.search import _require_iit4
 from pyphi.macro.search import candidate_mappings
 from pyphi.models.pandas import ToPandasMixin
@@ -301,14 +303,9 @@ def estimate_search(
                             counter.charge(delta)
                             judged_this_level += delta
                             record_combo(V)
-                            fp = set(footprint)
-                            allowed = set(W)
-                            members = [
-                                u
-                                for u in pool_at_class_start
-                                if set(u.micro_constituents) < fp
-                                and set(u.background_apportionment) <= allowed
-                            ]
+                            members = _competitor_members(
+                                pool_at_class_start, footprint, W, _max_tau(V, bounds)
+                            )
                             for combo in _assemble_systems(
                                 members, bounds.max_background
                             ):

@@ -4,18 +4,20 @@
 The recursion starts from the micro units, which are axiomatically
 valid (Eqs. 16-17 gate macroing only). Each level derives candidate
 decompositions ``V`` from the previous level's pool of valid units and
-judges each ``(V, W)`` pair once -- validity is a property of the
-decomposition, independent of the candidate's own mapping and update
-grain. Valid decompositions emit their mapped and grained variants
-into the pool. Footprints are processed smallest-first, so the
-competitor set ``f(U^J, W^J)`` always draws on every unit already
-validated at strictly finer footprints.
+judges each ``(V, W)`` pair once per update grain τ_J the candidate can
+take, counted in micro updates. The candidate's mapping does not enter
+the criteria, but τ_J bounds its competitor set. Each update grain at
+which a decomposition is valid emits that grain's mapped variants into
+the pool. Footprints are processed smallest-first, so the competitor
+set ``f(U^J, W^J, τ_J)`` always draws on every unit already validated
+at strictly finer footprints.
 
-``f(U^J, W^J)`` is the set of valid systems whose total micro
-constituents are a subset (not necessarily strict) of ``U^J`` and whose
-background apportionments are non-overlapping subsets of ``W^J``,
-excluding the candidate ``v^J`` itself (the comparison in Eq. 17 is
-over ``v' != v^J``). Members are assembled from units validated at
+``f(U^J, W^J, τ_J)`` is the set of valid systems whose total micro
+constituents are a subset (not necessarily strict) of ``U^J``, whose
+background apportionments are non-overlapping subsets of ``W^J``, and
+whose units all have a micro grain of at most τ_J, excluding the
+candidate ``v^J`` itself (the comparison in Eq. 17 is over
+``v' != v^J``). Members are assembled from units validated at
 strictly finer footprints, so a system whose constituents equal ``U^J``
 competes only when it splits them into several smaller meso/micro units
 (a same-union reorganization), while a single unit spanning all of
@@ -543,11 +545,27 @@ def _apportionments(n, footprint, inherited, bounds: SearchBounds):
     )
 
 
+def _competitor_members(pool, footprint, W, tau):
+    """The pool units that can belong to a system in ``f(U^J, W^J, τ_J)``
+    (Eq. 17): units over a strict subset of the footprint, with
+    apportionments inside ``W^J`` and micro grain at most ``τ_J``."""
+    fp = set(footprint)
+    allowed = set(W)
+    return [
+        unit
+        for unit in pool
+        if set(unit.micro_constituents) < fp
+        and set(unit.background_apportionment) <= allowed
+        and unit.micro_grain <= tau
+    ]
+
+
 def _f(
     substrate,
     V,
     W,
     footprint,
+    tau,
     pool,
     micro_history,
     bounds,
@@ -557,7 +575,7 @@ def _f(
     gates,
     mode,
 ):
-    """``f(U^J, W^J)``: competitor entries ``(system, φₛ)`` (Eq. 17).
+    """``f(U^J, W^J, τ_J)``: competitor entries ``(system, φₛ)`` (Eq. 17).
 
     Under the certified prune, a competitor whose intrinsic-information
     ceiling is strictly below the candidate's φₛ at precision carries
@@ -566,14 +584,7 @@ def _f(
     """
     from pyphi import numerics as _numerics
 
-    fp = set(footprint)
-    allowed = set(W)
-    members = [
-        unit
-        for unit in pool
-        if set(unit.micro_constituents) < fp
-        and set(unit.background_apportionment) <= allowed
-    ]
+    members = _competitor_members(pool, footprint, W, tau)
     own = canonical_units(V)
     phi_V = None
     if mode == "certified":
@@ -603,20 +614,28 @@ def _f(
     return entries
 
 
-def _variants(V, W, bounds: SearchBounds):
-    """Mapped and grained unit variants of a valid decomposition.
+def _update_grains(V, bounds: SearchBounds) -> range:
+    """The update grains a decomposition's variants take.
 
     A single-constituent decomposition is pure grain raising, so its
     variants start at update grain 2 (a grain-1 wrap is the constituent
     relabeled).
     """
+    return range(2 if len(V) == 1 else 1, bounds.max_update_grain + 1)
+
+
+def _variants(V, W, bounds: SearchBounds, update_grain: int) -> list[MacroUnit]:
+    """The mapped unit variants of a valid decomposition at one update grain."""
     constituents = tuple(_as_constituent(u) for u in canonical_units(V))
-    min_grain = 2 if len(V) == 1 else 1
     return [
         MacroUnit(constituents, update_grain, mapping, W)
-        for update_grain in range(min_grain, bounds.max_update_grain + 1)
         for mapping in candidate_mappings(len(V), update_grain, bounds)
     ]
+
+
+def _max_tau(V, bounds: SearchBounds) -> int:
+    """The largest micro grain τ_J among a decomposition's variants."""
+    return bounds.max_update_grain * V[0].micro_grain
 
 
 def _judge(
@@ -624,6 +643,7 @@ def _judge(
     V,
     W,
     footprint,
+    tau,
     micro_history,
     bounds,
     pool,
@@ -639,6 +659,7 @@ def _judge(
         V,
         W,
         footprint,
+        tau,
         pool,
         micro_history,
         bounds,
@@ -678,10 +699,24 @@ def _unit_history_requirement(unit: MacroUnit, bounds: SearchBounds) -> int:
 
 @dataclass(frozen=True)
 class DecompositionVerdict:
-    """A judged candidate decomposition ``(V^J, W^J)``."""
+    """A judged candidate decomposition ``(V^J, W^J)`` at update grain τ_J.
+
+    Attributes
+    ----------
+    constituents : tuple[MacroUnit | int, ...]
+        The direct constituents ``V^J``.
+    background_apportionment : tuple[int, ...]
+        The background apportionment ``W^J``.
+    micro_grain : int
+        τ_J, the candidate's update grain in micro updates. Competitors
+        are built only from units whose micro grain is at most τ_J.
+    verdict : UnitVerdict
+        The outcome of Eqs. 16-17.
+    """
 
     constituents: tuple[MacroUnit | int, ...]
     background_apportionment: tuple[int, ...]
+    micro_grain: int
     verdict: UnitVerdict
 
 
@@ -689,21 +724,17 @@ def _class_combos(candidates, pool_at_class_start, bounds):
     """Unit-combos a size class needs, in sequential-first-need order.
 
     For each candidate ``(footprint, V, W)``: the constituent units
-    ``V``, then each competitor combo in ``_assemble_systems`` order.
-    This mirrors the order in which the judge phase requests systems
-    lazily, so batch evaluation warms the memo identically to a
-    sequential run.
+    ``V``, then each competitor combo at the candidate's largest update
+    grain in ``_assemble_systems`` order. The competitor sets of smaller
+    grains are subsets of that one. This mirrors the order in which the
+    judge phase requests systems lazily, so batch evaluation warms the
+    memo identically to a sequential run.
     """
     for footprint, V, W in candidates:
         yield V
-        fp = set(footprint)
-        allowed = set(W)
-        members = [
-            u
-            for u in pool_at_class_start
-            if set(u.micro_constituents) < fp
-            and set(u.background_apportionment) <= allowed
-        ]
+        members = _competitor_members(
+            pool_at_class_start, footprint, W, _max_tau(V, bounds)
+        )
         own = canonical_units(V)
         for combo in _assemble_systems(members, bounds.max_background):
             if canonical_units(combo) == own:
@@ -729,7 +760,7 @@ def _derive_units(
 
     Level 0 is the micro units. Each level derives candidate
     decompositions from the previous level's pool, processed in
-    footprint-size classes (smallest first). Because ``f(U^J, W^J)``
+    footprint-size classes (smallest first). Because ``f(U^J, W^J, τ_J)``
     admits only strict-subset footprints, every candidate in a size
     class is independent of the others, so the class's φₛ evaluations
     are batched (and optionally parallelized) before the judgments run
@@ -758,6 +789,7 @@ def _derive_units(
             DecompositionVerdict(
                 constituents=(unit.constituents[0],),
                 background_apportionment=(),
+                micro_grain=1,
                 verdict=_trivial_verdict(phi),
             )
         )
@@ -797,14 +829,9 @@ def _derive_units(
                     candidates, v_systems, strict=True
                 ):
                     phi_V = None if v_system is None else memo.get(v_system)
-                    fp = set(footprint)
-                    allowed = set(W)
-                    members = [
-                        u
-                        for u in pool_at_class_start
-                        if set(u.micro_constituents) < fp
-                        and set(u.background_apportionment) <= allowed
-                    ]
+                    members = _competitor_members(
+                        pool_at_class_start, footprint, W, _max_tau(V, bounds)
+                    )
                     own = canonical_units(V)
                     for combo in _assemble_systems(members, bounds.max_background):
                         if canonical_units(combo) == own:
@@ -849,31 +876,35 @@ def _derive_units(
                 )
             new_units: list[MacroUnit] = []
             for footprint, V, W in candidates:
-                verdict = _judge(
-                    substrate,
-                    V,
-                    W,
-                    footprint,
-                    micro_history,
-                    bounds,
-                    pool_at_class_start,
-                    memo,
-                    system_cache,
-                    ceilings,
-                    gates,
-                    mode,
-                )
-                verdicts.append(
-                    DecompositionVerdict(
-                        constituents=tuple(
-                            _as_constituent(u) for u in canonical_units(V)
-                        ),
-                        background_apportionment=W,
-                        verdict=verdict,
+                for update_grain in _update_grains(V, bounds):
+                    tau = update_grain * V[0].micro_grain
+                    verdict = _judge(
+                        substrate,
+                        V,
+                        W,
+                        footprint,
+                        tau,
+                        micro_history,
+                        bounds,
+                        pool_at_class_start,
+                        memo,
+                        system_cache,
+                        ceilings,
+                        gates,
+                        mode,
                     )
-                )
-                if verdict.valid:
-                    new_units.extend(_variants(V, W, bounds))
+                    verdicts.append(
+                        DecompositionVerdict(
+                            constituents=tuple(
+                                _as_constituent(u) for u in canonical_units(V)
+                            ),
+                            background_apportionment=W,
+                            micro_grain=tau,
+                            verdict=verdict,
+                        )
+                    )
+                    if verdict.valid:
+                        new_units.extend(_variants(V, W, bounds, update_grain))
             pool.extend(new_units)
             emitted_any = emitted_any or bool(new_units)
         if not emitted_any:
@@ -907,13 +938,9 @@ def _f_for_unit(
         gates=gates,
         mode=mode,
     )
-    fp = set(unit.micro_constituents)
-    allowed = set(unit.background_apportionment)
-    members = [
-        u
-        for u in pool
-        if set(u.micro_constituents) < fp and set(u.background_apportionment) <= allowed
-    ]
+    members = _competitor_members(
+        pool, unit.micro_constituents, unit.background_apportionment, unit.micro_grain
+    )
     own = canonical_units(V)
     v_system = _system_of_cached(substrate, V, micro_history, system_cache)
     combos = []
@@ -947,6 +974,7 @@ def _f_for_unit(
         V,
         unit.background_apportionment,
         unit.micro_constituents,
+        unit.micro_grain,
         pool,
         micro_history,
         bounds,
@@ -978,7 +1006,10 @@ def competing_systems(
     prune: str | None = None,
     progress: bool | None = None,
 ) -> tuple[MacroSystem, ...]:
-    """``f(U^J, W^J)`` materialized within the unit's footprint (Eq. 17).
+    """``f(U^J, W^J, τ_J)`` materialized within the unit's footprint (Eq. 17).
+
+    τ_J is the unit's micro grain: every unit of a returned system has a
+    micro grain of at most τ_J.
 
     ``prune="certified"`` skips partition sweeps whose outcome is
     certified by the intrinsic-information requirement; ``"off"`` evaluates
@@ -1033,9 +1064,10 @@ def is_intrinsic_unit(
 ) -> UnitVerdict:
     """Eqs. 16-17 for one candidate; micro units return VALID trivially.
 
-    The unit's own mapping and update grain are ignored (Eq. 16 is
-    mapping-independent); the recursion is run restricted to the unit's
-    footprint to build ``f(U^J, W^J)``. ``prune="certified"`` skips
+    The unit's own mapping is ignored (Eqs. 16-17 do not depend on it);
+    its micro grain τ_J bounds the grains of its competitors. The
+    recursion is run restricted to the unit's footprint to build
+    ``f(U^J, W^J, τ_J)``. ``prune="certified"`` skips
     competitor partition sweeps whose outcome is certified by the
     intrinsic-information requirement; ``"off"`` evaluates everything; ``None``
     (default) selects ``"certified"`` exactly when the active system
@@ -1089,7 +1121,7 @@ class IntrinsicUnitsResult:
         order (footprints smallest-first per level).
     verdicts : tuple[DecompositionVerdict, ...]
         One :class:`DecompositionVerdict` per judged ``(V^J, W^J)``
-        candidate, micro units included.
+        candidate and update grain τ_J, micro units included.
     """
 
     units: tuple[MacroUnit, ...]

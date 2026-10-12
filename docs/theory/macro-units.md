@@ -88,17 +88,21 @@ is positive,
 $$ \varphi_s(v^{J}) > 0 \qquad \text{(Eq. 16).} $$
 
 Second, it must be **maximally irreducible within** its footprint: no competing
-system that could be built from the same micro units and background may match or
-beat it,
+system that could be built from the same micro units and background, out of units
+whose update grain is no longer than the candidate's, may match or beat it,
 
 $$ \varphi_s(v^{J}) > \varphi_s(v') \quad \text{for every competitor } v'
 \qquad \text{(Eq. 17).} $$
 
-Both criteria are properties of the pair (constituents, background) alone. A
-candidate's mapping and update grain do not enter either inequality, so all
-variants of one decomposition — whatever their mappings and update grains —
-share a single verdict. The grain is chosen later, by the exclusion
-competition, not here.
+The update grains in this comparison are counted in micro updates: the
+candidate's is $\tau_J$, its own update grain multiplied by those of the meso
+units below it. The competitors are the systems whose units all have an update
+grain of at most $\tau_J$, the set Marshall et al. write $f(U^J, W^J, \tau_J)$.
+The candidate's mapping enters neither inequality, so all mapped variants of one
+decomposition at one update grain share a verdict. Its update grain does enter:
+a decomposition can be valid at a fine update grain and invalid at a coarser
+one, where units with longer update grains join the competitors. Which of the
+valid grains a complex uses is decided later, by the exclusion competition.
 
 {func}`~pyphi.macro.judge_candidate` applies both inequalities to a candidate's
 $\varphi_s$ and its evaluated competitor set and returns a

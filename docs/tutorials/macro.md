@@ -396,8 +396,8 @@ search is explicitly bounded by {class}`pyphi.macro.SearchBounds`:
 Every $\varphi_s$ evaluation in a driver run is memoized, and
 `result.records` exposes all of them, so the derivation is fully inspectable:
 {func}`pyphi.macro.intrinsic_units` returns the unit pool with one verdict
-per judged decomposition, and {func}`pyphi.macro.valid_systems` the
-admissible-system set.
+per judged decomposition and update grain, and {func}`pyphi.macro.valid_systems`
+the admissible-system set.
 
 Because a system's $\varphi_s$ is at most its intrinsic information, the
 drivers skip partition sweeps whose outcome is already certified: a candidate

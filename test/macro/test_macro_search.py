@@ -368,8 +368,8 @@ class TestWrappingExcludedFromF:
 
 
 class TestVerdictMappingIndependence:
-    """Battery 4: Eq 16 mapping-independence -- mapped and grained
-    variants of one decomposition share the verdict."""
+    """Battery 4: Eq 16 mapping-independence -- mapped variants of one
+    decomposition at one update grain share the verdict."""
 
     def test_variants_share_verdict(self):
         variant_a = MacroUnit((0, 2), 1, coarse_grain(2, on_counts={1, 2}))

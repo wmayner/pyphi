@@ -4,13 +4,14 @@ A candidate macro unit J with direct constituents ``V^J`` exists as one
 unit only if its constituent system -- the system of the elements of
 ``V^J`` over the full universe, with everything else as background --
 is integrated (Eq. 16) and strictly more irreducible than every
-competing system that can be built within the unit's footprint
-(Eq. 17). Both criteria are properties of the pair ``(V^J, W^J)``: the
-candidate's own mapping and update grain do not enter, so mapped and
-grained variants of one decomposition share a verdict.
+competing system that can be built within the unit's footprint from
+units whose update grain, in micro updates, is at most the candidate's
+own τ_J (Eq. 17). The candidate's mapping enters neither criterion, so
+mapped variants of one decomposition at one update grain share a
+verdict.
 
 This module holds the pure criteria logic. The competitor set
-``f(U^J, W^J)`` is materialized by :mod:`pyphi.macro.search`.
+``f(U^J, W^J, τ_J)`` is materialized by :mod:`pyphi.macro.search`.
 """
 
 from __future__ import annotations
@@ -54,7 +55,7 @@ class UnitVerdict:
     witness_phi : float or None
         The witness's φₛ.
     num_competitors : int
-        Size of the competitor set ``f(U^J, W^J)``.
+        Size of the competitor set ``f(U^J, W^J, τ_J)``.
     """
 
     valid: bool
@@ -82,7 +83,7 @@ def judge_candidate(
     phi : float
         The candidate's φₛ(v^J).
     competitors : Iterable[tuple[MacroSystem, float]]
-        ``(system, φₛ)`` pairs for ``f(U^J, W^J)``.
+        ``(system, φₛ)`` pairs for ``f(U^J, W^J, τ_J)``.
     num_gated : int
         Competitors certified — by an intrinsic-information ceiling
         strictly below ``phi`` — unable to beat or tie the candidate;

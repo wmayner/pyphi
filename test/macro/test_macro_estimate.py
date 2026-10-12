@@ -208,13 +208,17 @@ class TestPrimitiveAgreement:
     def test_variant_multiplicity_matches_variants(self, size, max_grain):
         from pyphi.macro.estimate import _StandIn
         from pyphi.macro.estimate import _variant_standins
+        from pyphi.macro.search import _update_grains
         from pyphi.macro.search import _variants
         from pyphi.macro.units import micro_unit
 
         bounds = SearchBounds(max_update_grain=max_grain)
         V_real = tuple(micro_unit(i) for i in range(size))
         V_standin = tuple(_StandIn((i,), 1, ()) for i in range(size))
-        real = len(_variants(V_real, (), bounds))
+        real = sum(
+            len(_variants(V_real, (), bounds, update_grain))
+            for update_grain in _update_grains(V_real, bounds)
+        )
         standins = _variant_standins(V_standin, (), bounds, base=1)
         assert sum(s.multiplicity for s in standins) == real
 
