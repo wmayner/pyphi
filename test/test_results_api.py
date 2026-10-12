@@ -58,6 +58,7 @@ def test_iit3_ces_has_no_big_phi_like_the_analysis():
     """IIT 3.0 has no structure integrated information, so the structure's
     big_phi raises the same error as the analysis's; display, the table and
     the MCP summary still work."""
+    pytest.importorskip("mcp")
     from pyphi.mcp.server import _result_summary
 
     analysis = pyphi.analyze(examples.xor_substrate(), (0, 0, 0), formalism="IIT_3_0")

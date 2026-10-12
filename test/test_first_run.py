@@ -416,8 +416,10 @@ def test_importing_pyphi_in_jupyter_without_ipywidgets_does_not_warn():
             check=True,
         ).stderr
 
-    # Control: the simulated notebook without ipywidgets does make tqdm warn.
-    assert "TqdmWarning" in stderr("tqdm.auto")
+    # Control: the simulated notebook without ipywidgets makes this tqdm warn.
+    # Environments whose tqdm does not warn there have nothing to suppress.
+    if "TqdmWarning" not in stderr("tqdm.auto"):
+        pytest.skip("this tqdm does not warn in a notebook without ipywidgets")
     assert "TqdmWarning" not in stderr("pyphi")
 
 

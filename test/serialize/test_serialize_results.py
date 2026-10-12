@@ -289,7 +289,11 @@ class TestRC3Files:
         fresh = self._fresh("sia", "full")
         assert isinstance(loaded.df.index, pd.RangeIndex)
         pd.testing.assert_frame_equal(loaded.df, fresh.df)
-        assert [r.phi for r in loaded.results] == [r.phi for r in fresh.results]
+        # Recomputed φ can differ from the stored value in the last bits
+        # across platforms.
+        assert [r.phi for r in loaded.results] == pytest.approx(
+            [r.phi for r in fresh.results], abs=1e-12
+        )
 
     def test_optimization_direction_loads_as_goal(self):
         loaded = OptimizationResult.load(RC3_DATA / "rc3_fig1a_optimization.json.gz")
