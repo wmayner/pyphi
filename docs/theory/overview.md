@@ -31,8 +31,8 @@ Given a **substrate** (a set of interacting units, defined by how they influence
 one another) and a **state** of that substrate, PyPhi answers two questions:
 
 1. **Is a set of units a subject of experience, and how much?** IIT identifies
-   the units that form a {term}`complex` — a set whose cause–effect power is maximally
-   irreducible — and measures its irreducibility as the **system integrated
+   the units that form a {term}`complex`, found by recursive exclusion over
+   the candidate sets, and measures its irreducibility as the **system integrated
    information**, $\varphi_s$.
 2. **What is the structure of that experience?** From the complex, PyPhi unfolds
    the **$\Phi$-structure**: the **{term}`distinctions <distinction>`** the units specify and the
@@ -69,8 +69,9 @@ physical counterpart of a property of experience (Albantakis et al., 2023):
 - **Integration** — the power must be *unitary*: the cause–effect state must be
   irreducible to independent parts, measured by *integrated information* over the
   system's minimum partition ($\varphi_s$).
-- **Exclusion** — the power must be *definite*: exactly one set of units, the one
-  with maximal integrated information, is the complex.
+- **Exclusion** — the power must be *definite*: among overlapping sets of units,
+  only one counts. Accept the set with the highest integrated information as a
+  complex, exclude every set that overlaps it, and repeat on the rest.
 - **Composition** — the power must be *structured*: subsets of the units
   ({term}`mechanisms <mechanism>`) specify cause–effect states over subsets of units ({term}`purviews <purview>`) —
   the **distinctions** — which overlap in **relations**, together forming the

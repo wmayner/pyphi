@@ -33,6 +33,13 @@ actual-causation tools; for an introduction to those tools on a smaller
 network, see {doc}`actual-causation`.
 
 ```{code-cell} python
+:tags: [remove-cell, skip-execution]
+
+# Colab: install PyPhi first. Skip this cell in a local environment that has it.
+!python -m pip install -U git+https://github.com/wmayner/pyphi.git@main
+```
+
+```{code-cell} python
 import pyphi
 from dataclasses import replace
 from pyphi import actual

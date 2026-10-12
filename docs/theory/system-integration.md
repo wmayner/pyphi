@@ -130,8 +130,12 @@ converting them into distances in parameter space.
 
 Many overlapping subsets of a substrate may each have positive $\varphi_s$. The
 **exclusion** postulate requires a *definite* subject: exactly one set of units
-counts. IIT resolves this by keeping the sets whose integrated information is maximal
-among everything they overlap — the **complexes** (Albantakis et al., 2023).
+counts. IIT resolves this recursively (Albantakis et al., 2023; Marshall et al.,
+2023). Accept the candidate with the highest $\varphi_s$ as a **complex**, exclude
+every candidate that overlaps it, and repeat on the candidates that remain.
+A candidate that an accepted complex has excluded takes no further part: it
+cannot exclude anything else, so a complex can overlap a candidate with higher
+$\varphi_s$ when that candidate was excluded by another complex.
 {meth}`~pyphi.substrate.Substrate.complexes` runs this competition over the
 whole substrate:
 

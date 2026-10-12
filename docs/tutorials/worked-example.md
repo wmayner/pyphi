@@ -29,6 +29,13 @@ information became part of the definition of $\varphi_s$, so this page pins
 the version of IIT the paper used (see {doc}`../howto/earlier-versions`).
 
 ```{code-cell} python
+:tags: [remove-cell, skip-execution]
+
+# Colab: install PyPhi first. Skip this cell in a local environment that has it.
+!python -m pip install -U git+https://github.com/wmayner/pyphi.git@main
+```
+
+```{code-cell} python
 import pyphi
 from pyphi.conf import presets
 
@@ -42,7 +49,7 @@ pyphi.config.iit = presets.iit4_2023["iit"]
 Fig 1A defines three units $A$, $B$, $C$. Each unit's probability of turning
 ON is a logistic function (slope $k = 4$) of its weighted inputs, with the
 inputs read as $\pm 1$ (paper Eq. 60). $A$ and $B$ excite each other strongly
-($\pm 0.7$), $C$ inhibits $B$ ($-0.8$), and each unit weakly affects itself.
+($+0.7$ each way), $C$ inhibits $B$ ($-0.8$), and each unit weakly affects itself.
 
 ```{code-cell} python
 substrate = pyphi.examples.iit4_2023_fig1a_substrate()
@@ -78,9 +85,10 @@ for complex_ in substrate.complexes(state):
     print(complex_.node_indices, round(float(complex_.phi), 4))
 ```
 
-The single unit $\{C\}$ has the globally maximal $\varphi_s$ here; since it
-does not overlap aB, both exist. The paper presents aB as *a* complex: maximal among the candidates that
-share its units.
+The single unit $\{C\}$ has the globally maximal $\varphi_s$ here, so recursive
+exclusion accepts it first and excludes the candidates that overlap it. It does
+not overlap aB, so aB is accepted next and both exist. The paper presents aB as
+*a* complex: the strongest of the candidates that share its units.
 
 Where does aB's $\varphi_s$ come from? Fig 1D splits it by temporal
 direction. Integration is measured separately over the system's causes and

@@ -132,6 +132,7 @@ def test_perturbation_is_unhashable():
         ("fig4_subsystem", "iit3_2014_fig4_system"),
         ("actual_causation", "actual_causation_substrate"),
         ("prevention", "prevention_transition"),
+        ("frog_example", "frog_substrate"),
         ("xor_network", "xor_substrate"),
     ],
 )

@@ -65,9 +65,11 @@ Read `summary.congruence` first:
    "This system has φₛ ≈ 0.064, so it is irreducible: it exists as one
    integrated whole. Its cause–effect structure has structure integrated
    information Φ ≈ 0.43." The system is a complex, and its cause–effect structure a
-   Φ-structure, only if its φₛ is also maximal among the overlapping candidate
-   systems. `analyze` does not check this; in Python, `substrate.complexes(state)`
-   does. Do not call Φ "the phi value" without saying which one.
+   Φ-structure, only if recursive exclusion accepts it: accept the candidate
+   system with the highest φₛ, exclude every candidate that overlaps it, and
+   repeat on the rest. A complex can therefore overlap a candidate with higher
+   φₛ, if another complex excluded that candidate first. `analyze` does not
+   run this competition; in Python, `substrate.complexes(state)` does. Do not call Φ "the phi value" without saying which one.
 2. **Say what the weakest link is.** The minimum partition is where
    the system is closest to falling apart into independent parts. Name it.
 3. **Describe the structure concretely.** Use `inspect(result_ref, "ces.distinctions[0]")`

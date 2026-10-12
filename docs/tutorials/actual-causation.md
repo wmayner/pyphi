@@ -31,6 +31,13 @@ The tools are in {mod}`pyphi.actual`. Turning off the progress bars keeps the
 output readable here; leave them on for real computations.
 
 ```{code-cell} python
+:tags: [remove-cell, skip-execution]
+
+# Colab: install PyPhi first. Skip this cell in a local environment that has it.
+!python -m pip install -U git+https://github.com/wmayner/pyphi.git@main
+```
+
+```{code-cell} python
 import pyphi
 
 pyphi.config.progress_bars = False

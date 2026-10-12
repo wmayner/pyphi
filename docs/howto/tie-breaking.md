@@ -79,16 +79,22 @@ pyphi.config.formalism.iit.sia_tie_resolution
 
 ## Available strategies
 
-The following strategy names can appear in any of the four options:
+The following strategy names can appear in any of the four options. A name
+stands for a comparison key, not for a direction: the option applies its own
+operation (the maximum or the minimum, from the table above) to that key. The
+`NEGATIVE_` keys are the negatives of the plain ones, so they reverse the
+preference. For `mip_tie_resolution` and `sia_tie_resolution`, which select the
+minimum, `PHI` prefers the smallest raw $\varphi$ and `NEGATIVE_PHI` the
+largest; for the two options that select the maximum, the reverse holds.
 
 | Name | Comparison key |
 | --- | --- |
 | `PHI` | raw $\varphi$ |
-| `NEGATIVE_PHI` | raw $\varphi$, preferring the smaller value |
+| `NEGATIVE_PHI` | raw $\varphi$ with its sign reversed |
 | `NORMALIZED_PHI` | $\varphi$ normalized by the number of cut connections |
-| `NEGATIVE_NORMALIZED_PHI` | normalized $\varphi$, preferring the smaller value |
-| `PURVIEW_SIZE` | number of units in the purview (prefer larger) |
-| `NEGATIVE_PURVIEW_SIZE` | number of units in the purview (prefer smaller) |
+| `NEGATIVE_NORMALIZED_PHI` | normalized $\varphi$ with its sign reversed |
+| `PURVIEW_SIZE` | number of units in the purview |
+| `NEGATIVE_PURVIEW_SIZE` | number of units in the purview, with its sign reversed |
 | `PARTITION_LEX` | lexicographic ordering of the partition |
 | `NONE` | leave ties unresolved (no preference applied) |
 

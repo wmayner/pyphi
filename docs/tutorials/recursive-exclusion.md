@@ -34,6 +34,13 @@ reads the exclusion records and selection margins that document who beat
 whom.
 
 ```{code-cell} python
+:tags: [remove-cell, skip-execution]
+
+# Colab: install PyPhi first. Skip this cell in a local environment that has it.
+!python -m pip install -U git+https://github.com/wmayner/pyphi.git@main
+```
+
+```{code-cell} python
 import numpy as np
 
 import pyphi

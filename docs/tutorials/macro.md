@@ -31,6 +31,13 @@ paper), then lets the
 search rediscover the coarse-graining example from the paper.
 
 ```{code-cell} python
+:tags: [remove-cell, skip-execution]
+
+# Colab: install PyPhi first. Skip this cell in a local environment that has it.
+!python -m pip install -U git+https://github.com/wmayner/pyphi.git@main
+```
+
+```{code-cell} python
 import pyphi
 
 pyphi.config.progress_bars = False

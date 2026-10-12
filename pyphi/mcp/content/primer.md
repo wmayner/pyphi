@@ -16,8 +16,10 @@ probability matrix) and a **state** of that substrate, IIT answers two
 questions:
 
 1. **Does a set of units exist as one integrated whole, and how much?** This is
-   the **system integrated information**, written φₛ ("small phi, system"). The
-   set of units with maximal φₛ is a **complex**.
+   the **system integrated information**, written φₛ ("small phi, system").
+   The sets of units that exist are the **complexes**, found by recursive
+   exclusion: accept the candidate with the highest φₛ, exclude every candidate
+   that overlaps it, and repeat on the rest.
 2. **What structure does it specify?** Unfolding the complex gives its
    **Φ-structure**: the **distinctions** its subsets specify and the
    **relations** among them. The total is the **structure integrated

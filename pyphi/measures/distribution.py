@@ -515,7 +515,9 @@ class ActualCausationMeasureRegistry(Registry):
         ... def always_zero(a, b):
         ...    return 0
 
-    And use them by setting, *e.g.*, ``config.repertoire_distance = 'ALWAYS_ZERO'``.
+    And use them by setting, *e.g.*,
+    ``config.formalism.actual_causation.alpha_measure = 'ALWAYS_ZERO'``
+    (or ``config.alpha_measure = 'ALWAYS_ZERO'``).
     """
 
     # pylint: disable=arguments-differ

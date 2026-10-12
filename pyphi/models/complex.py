@@ -1,7 +1,7 @@
 # models/complex.py
-"""The :class:`~pyphi.models.complex.Complex` — an irreducible system selected
-as a local maximum of system integrated information φₛ under the exclusion
-postulate — and the lightweight record of a candidate excluded in its favor."""
+"""The :class:`~pyphi.models.complex.Complex` — an irreducible system accepted
+by recursive exclusion (the exclusion postulate) — and the lightweight record
+of a candidate excluded in its favor."""
 
 from __future__ import annotations
 
@@ -121,8 +121,9 @@ class ExcludedCandidate(Displayable, ToPandasMixin):
 
 
 class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
-    """An irreducible system selected as a complex: a local maximum of φₛ over
-    overlapping candidate systems (the exclusion postulate).
+    """An irreducible system accepted as a complex by recursive exclusion (the
+    exclusion postulate): the candidate with the highest φₛ is accepted, every
+    candidate that overlaps it is excluded, and the rule repeats on the rest.
 
     Wraps the system irreducibility analysis and records whether it is the
     φₛ-maximal complex of its substrate, the candidates excluded in its favor,

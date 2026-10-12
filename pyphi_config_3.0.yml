@@ -1,7 +1,7 @@
 # PyPhi configuration: IIT 3.0 reference
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Reflects the published IIT 3.0 formalism (Oizumi, Albantakis, Tononi 2014).
-# Mirrors the ``IIT_3_0`` preset (``pyphi.presets.by_name["IIT_3_0"]``) exactly;
+# Mirrors the ``IIT_3_0`` preset (``pyphi.conf.presets.by_name["IIT_3_0"]``) exactly;
 # a test asserts the two stay in sync. Load with
 # ``pyphi.config.load_yaml('pyphi_config_3.0.yml')``.
 ---

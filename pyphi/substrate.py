@@ -1104,9 +1104,12 @@ def complexes(
 ) -> tuple[Any, ...]:
     """Return the complexes of the substrate in its current state.
 
-    A complex is a set of units that is a local maximum of φₛ: no
-    overlapping candidate has higher φₛ. The returned tuple is
-    non-overlapping (exclusion), ordered by φₛ descending.
+    Complexes are found by recursive exclusion: accept the candidate with the
+    highest φₛ, exclude every candidate that overlaps it, and repeat on the
+    candidates that remain. A candidate that an accepted complex has excluded
+    takes no further part, so a complex can overlap a candidate with higher
+    φₛ when another complex excluded that candidate. The returned tuple is
+    non-overlapping, ordered by φₛ descending.
 
     The search walks SIAs in descending φₛ tiers and groups survivors into
     overlap cliques per tier. Each multi-candidate clique escalates to the

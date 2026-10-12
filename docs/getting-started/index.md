@@ -75,6 +75,13 @@ Start by importing the package. Turning off the progress bars keeps the output
 readable here; leave them on for real computations, where they are helpful.
 
 ```{code-cell} python
+:tags: [remove-cell, skip-execution]
+
+# Colab: install PyPhi first. Skip this cell in a local environment that has it.
+!python -m pip install -U git+https://github.com/wmayner/pyphi.git@main
+```
+
+```{code-cell} python
 import pyphi
 
 pyphi.config.progress_bars = False
@@ -129,9 +136,10 @@ reproduces the value published in the paper's Fig 1E for this system, 0.13.)
 
 ### Find the complexes
 
-Not every subset of units exists as a whole of its own. Subsets *compete*: among
-overlapping candidates, only the one with maximal $\varphi_s$ exists. Such a
-subset is called a **{term}`complex`**.
+Not every subset of units exists as a whole of its own. Subsets *compete*:
+accept the candidate with the highest $\varphi_s$, exclude every candidate that
+overlaps it, and repeat on the candidates that remain. The accepted subsets are
+the **{term}`complexes <complex>`**.
 {meth}`~pyphi.substrate.Substrate.complexes` runs that competition over every
 subset:
 

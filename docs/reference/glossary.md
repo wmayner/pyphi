@@ -177,8 +177,11 @@ unfolding
   relations among them. {doc}`../theory/phi-structure`.
 
 complex
-  A set of units whose φₛ is maximal among all sets overlapping it; the
-  exclusion postulate's answer to which units exist as one whole.
+  A set of units accepted by the recursive exclusion rule, which is the
+  exclusion postulate's answer to which units exist as one whole. Accept the
+  candidate with the highest φₛ, exclude every candidate that overlaps it,
+  and repeat on the candidates that remain. A complex can therefore overlap
+  a candidate with higher φₛ if another complex excluded that candidate.
   {meth}`~pyphi.substrate.Substrate.complexes`; {doc}`../tutorials/recursive-exclusion`.
 
 condensation

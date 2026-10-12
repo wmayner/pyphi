@@ -54,7 +54,11 @@ every accepted form and the row order in full.
 
 Pass a connectivity matrix (`cm=`; `cm[i, j] = 1` when unit `i` is an input
 to unit `j`) only when you know the wiring. Without one PyPhi assumes every
-unit may influence every other, which is always correct and only slower. A connectivity matrix that omits a real input changes the result.
+unit may influence every other, which is always correct and only slower. A
+connectivity matrix that omits an input the TPM depends on is rejected with a
+`ValueError` that names the missing edge. Passing `validate_connectivity=False`
+allows it, and the omitted input is then marginalized out of the unit's
+transition probabilities.
 
 Check one transition you know before trusting anything computed from the
 matrix. The card above prints the matrix with its row states, and the

@@ -87,12 +87,12 @@ result
 type(result.results[0]).__name__
 ```
 
-## Sweeping over subsystems
+## Sweeping over subsets
 
 The `subsets` argument chooses which subsets of nodes to treat as the
 candidate system. Pass `"all"` for the non-empty powerset, `"full"` (the
 default) for the whole substrate, one tuple of node indices, or a list of
-them. Here we hold the state fixed and vary the subsystem:
+them. Here we hold the state fixed and vary the subset:
 
 ```{code-cell} python
 pyphi.sweep(substrate, states=(0, 1, 1), subsets="all").df.round(6)

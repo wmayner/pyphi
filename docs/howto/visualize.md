@@ -155,7 +155,7 @@ viz.highlight_phi_fold(fold)
 ## Substrate connectivity
 
 `plot_system` draws a substrate's connectivity graph, coloring each node by
-whether it belongs to the subsystem and by its current state:
+whether it belongs to the candidate system and by its current state:
 
 ```{code-cell} python
 system = examples.xor_system()

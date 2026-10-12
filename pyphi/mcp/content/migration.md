@@ -75,21 +75,32 @@ paper's networks are new: `iit4_2023_fig1a_substrate()` and the other
 | 1.x option | 2.0 option |
 | --- | --- |
 | `IIT_VERSION` | `formalism.iit.version`; select it with `analyze(..., formalism=)` or a preset (setting it alone raises) |
-| `MEASURE` (before 1.2), `REPERTOIRE_DISTANCE` | `formalism.iit.mechanism_phi_measure` and `formalism.iit.system_phi_measure` |
+| `MEASURE` (1.x), `REPERTOIRE_DISTANCE` (4.0 branch) | `formalism.iit.mechanism_phi_measure` and `formalism.iit.system_phi_measure` |
 | `REPERTOIRE_DISTANCE_SPECIFICATION` | `formalism.iit.specification_measure` |
 | `REPERTOIRE_DISTANCE_DIFFERENTIATION` | removed: differentiation is the surprisal of the specified state |
 | `CES_DISTANCE` | `formalism.iit.ces_measure` |
 | `ACTUAL_CAUSATION_MEASURE` | `formalism.actual_causation.alpha_measure` |
-| `PARTITION_TYPE` / `SYSTEM_PARTITION_TYPE` | `formalism.iit.mechanism_partition_scheme` / `system_partition_scheme` |
+| `PARTITION_TYPE` / `SYSTEM_PARTITION_TYPE` | `formalism.iit.mechanism_partition_scheme` / `system_partition_scheme`; actual causation reads its own `formalism.actual_causation.mechanism_partition_scheme`, and a bare `config.mechanism_partition_scheme = ...` is ambiguous and raises |
 | `SYSTEM_PARTITION_INCLUDE_COMPLETE` | `formalism.iit.system_partition_include_total` |
 | `SYSTEM_CUTS` | removed; the `iit3` preset sets `system_partition_scheme="DIRECTED_BIPARTITION"` |
-| `PICK_SMALLEST_PURVIEW` (before 1.2), `*_TIE_RESOLUTION` | `formalism.iit.purview_tie_resolution`, `state_tie_resolution`, `mip_tie_resolution`, `sia_tie_resolution` |
+| `PICK_SMALLEST_PURVIEW` (1.x), `*_TIE_RESOLUTION` (4.0 branch) | `formalism.iit.purview_tie_resolution`, `state_tie_resolution`, `mip_tie_resolution`, `sia_tie_resolution` |
 | `DISTINCTION_PHI_NORMALIZATION`, `RELATION_COMPUTATION`, `SHORTCIRCUIT_SIA`, `ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`, `SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI` | the same names, lowercase, under `formalism.iit` (`assume_partitions_cannot_create_new_concepts`) |
 | `PRECISION` | `numerics.precision` |
 | `PARALLEL*`, `CACHE_*`, `PROGRESS_BARS`, `WELCOME_OFF`, `REPR_VERBOSITY`, `PRINT_FRACTIONS`, `LABEL_SEPARATOR`, `VALIDATE_*` | the same names, lowercase, under `infrastructure` (`PARALLEL_CUT_EVALUATION` → `parallel_partition_evaluation`, `PARALLEL_CONCEPT_EVALUATION` → `parallel_distinction_evaluation`, `VALIDATE_SUBSYSTEM_STATES` → `validate_system_states`, `CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA` → `clear_system_caches_after_computing_sia`) |
 | `MAXIMUM_CACHE_MEMORY_PERCENTAGE` | `infrastructure.memory_ceiling_percentage` |
 | `REDIS_*`, `RAY_CONFIG`, `VALIDATE_JSON_VERSION` | removed; results persist through `infrastructure.disk_cache_results` |
 | `LOG_*` | `pyphi.enable_logging(level, file)` |
+
+Some option values changed with the names. Write the new value: a 1.x value
+such as `"TRI"` is accepted when written and fails when the computation looks
+the scheme up.
+
+| 1.x setting | 2.0 setting |
+| --- | --- |
+| `PARTITION_TYPE = "BI"` / `"TRI"` / `"ALL"` | `mechanism_partition_scheme = "JOINT_BIPARTITION"` / `"WEDGE_TRIPARTITION"` / `"JOINT_PARTITION_ALL"` |
+| `PICK_SMALLEST_PURVIEW = False` (the 1.x default) | `purview_tie_resolution = ["PHI", "PURVIEW_SIZE"]`, which keeps the largest tied purview |
+| `PICK_SMALLEST_PURVIEW = True` | `purview_tie_resolution = ["PHI", "NEGATIVE_PURVIEW_SIZE"]`, which keeps the smallest |
+| `PARALLEL_*_EVALUATION = True` (a boolean) | `parallel_*_evaluation = {"parallel": True}`; the other keys keep their defaults |
 
 ### The quantities
 
@@ -99,7 +110,33 @@ paper's networks are new: `iit4_2023_fig1a_substrate()` and the other
 | `compute.sia(subsystem).phi` | `analyze(...).sia.phi` |
 | `compute.ces(subsystem)` | `analyze(..., formalism="IIT_3_0").ces.distinctions`; `.ces` is a `CauseEffectStructure` under every version, with empty `.relations` under IIT 3.0 |
 | `ces.phis`, `ces.mechanisms` | `ces.distinctions.phis`, `ces.distinctions.mechanisms` (tuples) |
-| `compute.major_complex(network, state)` | `substrate.complexes(state, formalism="IIT_3_0")`; the first entry is the strongest |
+| `compute.major_complex(network, state)` | `substrate.maximal_complex(state, formalism="IIT_3_0")`: a `Complex` whose `.sia` is the analysis, or a falsy null complex when no candidate is irreducible |
+| `compute.complexes(network, state)` (every irreducible subsystem, overlapping included) | `substrate.irreducible_sias(state, formalism="IIT_3_0")` |
+| `compute.condensed(network, state)` (the non-overlapping complexes) | `substrate.complexes(state, formalism="IIT_3_0")`, strongest first. It can be empty, as it is under the default formalism for a deterministic network, so check before indexing |
+| `compute.all_complexes(network, state)` (every subsystem, reducible included) | `substrate.all_sias(state, formalism="IIT_3_0")` |
+
+The 1.x name `complexes` now belongs to a different set: renaming
+`compute.complexes` to `substrate.complexes` gives the smaller non-overlapping
+set with no error.
+
+IIT 3.0 values from PyPhi 1.x agree with 2.0's to about 1e-5, not to the
+preset's precision of 6 (for example a cause information of 0.214284 in 1.x and
+0.214286 in 2.0). Compare ported results with that tolerance, not with
+`pyphi.numerics.eq` at the preset's precision.
+
+### Result and system attributes
+
+| 1.x | 2.0 |
+| --- | --- |
+| `subsystem.concept(mechanism)` | `system.distinction(mechanism)` |
+| `sia.cut` (IIT 3.0 and actual-causation results) | `sia.partition` |
+| `sia.ces`, `sia.partitioned_ces` | `sia.distinctions`, `sia.partitioned_distinctions` |
+| `major_complex.subsystem`, `.subsystem.nodes` | `complex.sia`, `complex.node_indices` |
+| `causal_nexus(...).transition` | `cause_indices` and `effect_indices` on the result |
+| `pyphi.models.Cut(from_nodes, to_nodes)` with `Subsystem(..., cut=)` | `pyphi.models.DirectedBipartition(direction, from_nodes, to_nodes)` with `System(..., partition=)` |
+| `pyphi.compute.conceptual_info` | `pyphi.formalism.iit3.conceptual_info` |
+| `pyphi.distance.hamming_emd` | `pyphi.measures.distribution.hamming_emd` |
+| `pyphi.tpm.marginalize_out`, `node.tpm_on` | removed with the `pyphi.tpm` module; a substrate's TPM is a `FactoredTPM` |
 
 ## 2. Building and analyzing
 
@@ -138,6 +175,31 @@ pass `subset=` or construct a `System` directly:
 `pyphi.System(substrate, state, subset=(0, 1, 2))`. Code that imported the
 low-level IIT 4.0 functions from `new_big_phi` now imports `sia` and `ces` from
 `pyphi.formalism.iit4`.
+
+### Macro systems
+
+The 1.x macro module (`MacroSubsystem`, `CoarseGrain`, `Blackbox`,
+`MacroNetwork`, `all_coarse_grains`, `all_blackboxes`, `all_macro_systems`,
+`emergence`, `phi_by_grain`, `effective_info`) is gone, with no replacement
+named in the error. Its successor is `pyphi.macro`, built on the intrinsic
+units of Marshall et al. (2026): a `MacroUnit(constituents, update_grain,
+mapping)` per group, and `MacroSystem.from_micro(substrate, units, state)`.
+
+- A 1.x `CoarseGrain` is one `MacroUnit(constituents=group, update_grain=1,
+  mapping=coarse_grain(len(group), on_counts={...}))` per group.
+- A 1.x `Blackbox` with `time_scale=t` is one `MacroUnit(constituents=box,
+  update_grain=t, mapping=blackbox(len(box), t, output_constituents))` per box,
+  with `output_constituents` positions within the box, and a micro history of
+  `t` states in place of the single state.
+- The search over grains is `pyphi.analyze(substrate, state, grains=True)` or
+  `pyphi.macro.complexes`.
+
+**1.x macro values do not reproduce.** The 1.x emergence example (the
+`macro_network()` units grouped into the pairs (0, 1) and (2, 3), each ON when
+both are ON) printed a macro Φ of 0.597212. The same grouping in 2.0 builds the
+same macro TPM but gives 0.86905 under the IIT 3.0 preset; the micro value,
+0.113889, is the same in both. Tell the user that macro results computed with
+1.x have to be recomputed.
 
 ## 3. Choosing a formalism
 

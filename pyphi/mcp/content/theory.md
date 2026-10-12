@@ -38,8 +38,9 @@ property of experience:
 - **Integration** — the system must specify that state *irreducibly*, as one
   whole. Irreducibility is measured over the **minimum partition**
   (MIP) — the partition that minimizes the normalized φ (Eq. 23).
-- **Exclusion** — exactly one set of units counts: the one with maximal φₛ,
-  called the **complex**.
+- **Exclusion** — among overlapping sets of units, exactly one counts. Accept
+  the candidate with the highest φₛ as a **complex**, exclude every candidate
+  that overlaps it, and repeat on the rest.
 - **Composition** — subsets of the units (**mechanisms**) specify their own
   cause–effect states over subsets of units (**purviews**); these are the
   **distinctions**, and their congruent overlaps are the **relations**.
@@ -57,7 +58,9 @@ the system's **intrinsic information**, which is positive only if the system
 both specifies a cause–effect state and provides itself a repertoire of
 alternatives to it (Mayner, Marshall & Tononi 2026). A fully deterministic
 system provides no alternatives, so its φₛ is 0. φₛ is **not**
-compositional. The set of units that maximizes φₛ over itself is the complex.
+compositional. Complexes are found by recursive exclusion over the candidate
+sets of units: accept the candidate with the highest φₛ, exclude everything
+that overlaps it, and repeat on the rest.
 φₛ = 0 means the system does not exist as one whole: either some partition
 makes no difference (the system is reducible), or the system provides itself
 no repertoire of alternatives (ii(s) = 0). The `requirement_binding` key of the

@@ -50,8 +50,11 @@ its cgroup allowance when one is set (a container or a scheduler-managed
 job), and the machine's total RAM otherwise. For an allowance that no cgroup
 reports, set
 `memory_ceiling_bytes` to what the process is actually allowed, and the
-caches stop storing at that figure instead. Campaign shards do this for
-themselves, using the memory each shard requested.
+caches hold their occupancy steady (evicting least recently used entries) at
+that figure instead. The byte ceiling is compared against the whole process's
+resident memory, of which the caches are usually a small part, so size it from
+what the process may use rather than from what you want the caches to hold.
+Campaign shards set it for themselves, using the memory each shard requested.
 
 ```{code-cell} python
 with pyphi.config.override(memory_ceiling_bytes=2 * 1024**3):
@@ -154,8 +157,8 @@ pyphi.config.disk_cache_results = False
 | --- | --- | --- |
 | `cache_repertoires` | `True` | Memoize cause/effect repertoire computations. |
 | `cache_potential_purviews` | `True` | Memoize potential-purview enumeration. |
-| `memory_ceiling_percentage` | `50` | Upper bound on in-memory cache size, as a percentage of RAM. |
-| `memory_ceiling_bytes` | `None` | Upper bound in bytes, for a process confined to less than the whole machine. Replaces the percentage when set. |
+| `memory_ceiling_percentage` | `50` | The share of the memory the process may use (its cgroup allowance, else total RAM) that the in-memory caches may occupy. Above it they evict least recently used entries. |
+| `memory_ceiling_bytes` | `None` | A ceiling in bytes on the process's resident memory, for a process confined to less than the whole machine. Replaces the percentage when set. |
 | `clear_system_caches_after_computing_sia` | `False` | Clear per-system caches after each SIA. |
 | `disk_cache_results` | `False` | Persist SIA and CES results to `__pyphi_cache__/`. |
 

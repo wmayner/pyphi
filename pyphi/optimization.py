@@ -437,10 +437,11 @@ def optimize(
 
     Notes
     -----
-    The driver reads only the scalar objective to choose a move; it never
-    branches on a selection identity, which flips between near-tied selections
-    at single-grid-point frequency even where the objective is smooth (the gate
-    caveat). Selection identities and margins are logged for inspection only.
+    The driver reads only the scalar objective to choose a move. It never
+    branches on a selection identity (the chosen partition or state), because
+    that identity flips between near-tied candidates from one grid point to the
+    next even where the objective is smooth. Selection identities and margins
+    are logged for inspection only.
 
     With ``parallel=True`` the ``builder`` and ``objective`` are sent to worker
     processes, so both must be picklable. A closure builder or a lambda

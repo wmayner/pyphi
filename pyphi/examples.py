@@ -1875,6 +1875,7 @@ _RENAMED = {
     **{f"fig{n}_system": f"iit3_2014_fig{n}_system" for n in ("4", "5a", "5b")},
     "actual_causation": "actual_causation_substrate",
     "prevention": "prevention_transition",
+    "frog_example": "frog_substrate",
 }
 
 

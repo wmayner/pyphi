@@ -127,8 +127,14 @@ three ways to apply one, and they give the same results:
   `with pyphi.config.override(**pyphi.iit4_2023): ...`. The presets are
   `pyphi.iit4_2023` and `pyphi.iit3`, also available from
   {mod}`pyphi.conf.presets`.
-- Replacing the formalism layer for a whole session:
-  `pyphi.config.formalism = dataclasses.replace(pyphi.config.formalism, **pyphi.iit4_2023)`.
+- Writing each entry of a preset to the configuration, for a whole session:
+  `for name, value in pyphi.iit3.items(): setattr(pyphi.config, name, value)`.
+  A preset maps names to values: the `iit` and `actual_causation` option
+  groups, and for `iit3` also `precision`. Writing through `pyphi.config` sends
+  each entry to the layer that owns it, so the loop works for every preset. A
+  preset overwrites only the entries it lists, so applying `iit4_2023` after
+  `iit3` leaves `precision` at 6; set `pyphi.config.precision = 13` to restore
+  the default.
 
 ```{code-cell} python
 with pyphi.config.override(**pyphi.iit3):
@@ -141,7 +147,7 @@ Apply the whole preset. Setting `formalism.iit.version` on its own raises a
 values and the result would match no published version. The same holds in a
 `pyphi_config.yml` file: to select a version there, write out every field the
 preset sets. The repository ships
-[`pyphi_config_3.0.yml`](https://github.com/wmayner/pyphi/blob/develop/pyphi_config_3.0.yml)
+[`pyphi_config_3.0.yml`](https://github.com/wmayner/pyphi/blob/main/pyphi_config_3.0.yml)
 as a complete example for IIT 3.0.
 
 A result computed under an earlier version records it: `analysis.formalism`
@@ -151,9 +157,11 @@ gives the version, and the analysis card shows it in a **Formalism** row.
 
 Compare $\varphi_s$ values only when they were computed under the same
 version. Compare them with a tolerance: `pyphi.numerics.eq(a, b)` respects
-the configured precision, and `==` does not. When a number does not match a
-paper, first check which version the paper used, then check the substrate,
-the state, and the candidate system.
+the configured precision, and `==` does not. Values that PyPhi 1.x printed for
+IIT 3.0 agree with 2.0's to about 1e-5, not to the preset's precision of 6
+decimal places, so compare them with that tolerance. When a number does not
+match a paper, first check which version the paper used, then check the
+substrate, the state, and the candidate system.
 
 {func}`pyphi.sweep` can compute the same cells under several versions in one
 call through its `formalisms=` argument, which indexes the resulting table by
