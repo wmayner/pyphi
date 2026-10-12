@@ -199,6 +199,11 @@ class TransitionSystem(Serializable):
     def node_indices(self) -> tuple[int, ...]:
         return tuple(sorted(set(self.cause_indices) | set(self.effect_indices)))
 
+    @property
+    def subset(self) -> tuple[int, ...]:
+        """The units of the system: the same as :attr:`node_indices`."""
+        return self.node_indices
+
     @cached_property
     def state(self) -> tuple[int, ...]:
         return (
