@@ -13,6 +13,7 @@ from dataclasses import field
 from dataclasses import fields
 from typing import Any
 
+from pyphi.conf._helpers import read_only
 from pyphi.conf._helpers import yaml_repr
 
 _VALID_REPR_VERBOSITY = frozenset({0, 1, 2, 3, 4})
@@ -55,6 +56,7 @@ def _check_int(name: str, value: Any) -> None:
         raise ValueError(f"{name} must be int; got {type(value).__name__}")
 
 
+@read_only
 @dataclass(frozen=True)
 class InfrastructureConfig:
     """Infrastructure-scoped configuration.

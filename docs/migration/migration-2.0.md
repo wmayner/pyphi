@@ -69,16 +69,22 @@ registered example.
 
 ### Configuration options
 
-Every 1.x option and where it went. Names are lowercase and live under a
-layer; set one with `pyphi.config.<layer>.<option>` or a top-level write such
-as `pyphi.config.precision = 6`, which is routed to its layer. An option whose
-name only changed case still works under its uppercase 1.x spelling
-(`pyphi.config.PRECISION`), with a `FutureWarning` giving the new name. Measure
+Every 1.x option and where it went. Names are lowercase and belong to a layer.
+Read one with `pyphi.config.<layer>.<option>`. Set one with a top-level write
+such as `pyphi.config.precision = 6`, which is routed to its layer, with a
+dotted path such as `pyphi.config["iit.mechanism_partition_scheme"] = ...`,
+or for a block of code with `pyphi.config.override(...)`. The layer objects
+are read-only, so `pyphi.config.numerics.precision = 6` raises an error that
+shows these forms. Every write is checked against the other options, and a
+combination that matches no version of IIT raises a `ConfigurationError`.
+An option whose name only changed case still works under its uppercase 1.x
+spelling (`pyphi.config.PRECISION`), with a `FutureWarning` giving the new
+name; any other 1.x name raises an error that gives its replacement. Measure
 values are the names in {mod}`pyphi.measures`.
 
 | 1.x option | 2.0 option |
 | --- | --- |
-| `IIT_VERSION` | `formalism.iit.version` (`"IIT_3_0"`, `"IIT_4_0_2023"`, `"IIT_4_0_2026"`); prefer `analyze(..., formalism=)` or a preset, which also set the measures |
+| `IIT_VERSION` | `formalism.iit.version` (`"IIT_3_0"`, `"IIT_4_0_2023"`, `"IIT_4_0_2026"`); select it with `analyze(..., formalism=)` or a preset, which also set the measures. Setting it alone raises a `ConfigurationError` |
 | `MEASURE` (before 1.2), `REPERTOIRE_DISTANCE` | `formalism.iit.mechanism_phi_measure` (mechanism level) and `formalism.iit.system_phi_measure` (system level) |
 | `REPERTOIRE_DISTANCE_SPECIFICATION` | `formalism.iit.specification_measure` |
 | `REPERTOIRE_DISTANCE_DIFFERENTIATION` | removed: intrinsic differentiation is the surprisal of the specified state and has no measure option |
@@ -177,7 +183,10 @@ After:
 # per call — the reliable way; sets the compatible measures for you
 analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
 
-# or via configuration
+# for a block of code, apply the version's complete preset
+with pyphi.config.override(**pyphi.iit3):
+    analysis = pyphi.analyze(substrate, state)
+
 pyphi.config.formalism.iit.version   # "IIT_4_0_2026" by default
 ```
 
@@ -216,6 +225,7 @@ The three top-level layers are `formalism` (with the sub-namespaces `iit` and
 `numerics` (precision). At runtime, read a value from its layer
 (`pyphi.config.numerics.precision`); a top-level write such as
 `pyphi.config.precision = 6` is routed to the correct layer automatically.
+The layer objects themselves are read-only.
 
 ## Saving and loading results
 

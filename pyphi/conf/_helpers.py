@@ -46,6 +46,24 @@ def yaml_repr(self: Any) -> str:
     ).rstrip()
 
 
+def read_only[T: type](cls: T) -> T:
+    """Make assigning to an attribute of the frozen layer ``cls`` raise a
+    :class:`~pyphi.conf.ConfigurationError` that shows how to set the option
+    on ``pyphi.config``.
+
+    Applied over ``@dataclass(frozen=True)``, which constructs instances with
+    ``object.__setattr__`` and so is unaffected.
+    """
+
+    def __setattr__(self: Any, name: str, value: Any) -> None:
+        from pyphi.conf._field_routing import layer_write_error
+
+        raise layer_write_error(self, name, value)
+
+    cls.__setattr__ = __setattr__  # type: ignore[method-assign,assignment]
+    return cls
+
+
 def fallback(*args: Any) -> Any:
     """Return the first argument that is not ``None``."""
     for arg in args:

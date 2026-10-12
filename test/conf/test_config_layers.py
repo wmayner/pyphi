@@ -32,7 +32,7 @@ class TestNumericsConfig:
 
     def test_is_frozen(self):
         cfg = NumericsConfig()
-        with pytest.raises(FrozenInstanceError):
+        with pytest.raises(ConfigurationError, match="read-only"):
             cfg.precision = 6  # type: ignore[misc]
 
     def test_equality_by_value(self):
@@ -55,7 +55,7 @@ class TestIITConfig:
 
     def test_is_frozen(self):
         cfg = IITConfig()
-        with pytest.raises(FrozenInstanceError):
+        with pytest.raises(ConfigurationError, match="read-only"):
             cfg.version = "IIT_3_0"  # type: ignore[misc]
 
     def test_replace_returns_new_instance(self):
@@ -86,7 +86,7 @@ class TestActualCausationConfig:
 
     def test_is_frozen(self):
         cfg = ActualCausationConfig()
-        with pytest.raises(FrozenInstanceError):
+        with pytest.raises(ConfigurationError, match="read-only"):
             cfg.alpha_measure = "KLD"  # type: ignore[misc]
 
     def test_invalid_partitioned_repertoire_scheme_raises(self):
@@ -119,7 +119,7 @@ class TestFormalismConfig:
 
     def test_is_frozen(self):
         cfg = FormalismConfig()
-        with pytest.raises(FrozenInstanceError):
+        with pytest.raises(ConfigurationError, match="read-only"):
             cfg.iit = IITConfig()  # type: ignore[misc]
 
     def test_replace_swaps_iit(self):
@@ -214,7 +214,7 @@ class TestInfrastructureConfig:
 
     def test_is_frozen(self):
         cfg = InfrastructureConfig()
-        with pytest.raises(FrozenInstanceError):
+        with pytest.raises(ConfigurationError, match="read-only"):
             cfg.parallel = True  # type: ignore[misc]
 
 
@@ -371,8 +371,8 @@ class TestGlobalConfigFacade:
     def test_replacing_iit_subnamespace_works(self):
         original = config.formalism.iit
         try:
-            config.iit = IITConfig(mechanism_phi_measure="EMD")
-            assert config.formalism.iit.mechanism_phi_measure == "EMD"
+            config.iit = IITConfig(mechanism_phi_measure="INTRINSIC_INFORMATION")
+            assert config.formalism.iit.mechanism_phi_measure == "INTRINSIC_INFORMATION"
             assert config.formalism.actual_causation.alpha_measure == "PMI"
         finally:
             config.iit = original
@@ -388,8 +388,8 @@ class TestGlobalConfigFacade:
     def test_flat_write_to_unique_iit_field_routes_to_iit(self):
         original = config.formalism.iit.mechanism_phi_measure
         try:
-            config.mechanism_phi_measure = "EMD"
-            assert config.formalism.iit.mechanism_phi_measure == "EMD"
+            config.mechanism_phi_measure = "INTRINSIC_INFORMATION"
+            assert config.formalism.iit.mechanism_phi_measure == "INTRINSIC_INFORMATION"
         finally:
             config.mechanism_phi_measure = original
 
@@ -441,8 +441,8 @@ class TestDottedPathAccessor:
     def test_write_nested_formalism_field(self):
         original = config.formalism.iit.mechanism_phi_measure
         try:
-            config["formalism.iit.mechanism_phi_measure"] = "EMD"
-            assert config.formalism.iit.mechanism_phi_measure == "EMD"
+            config["formalism.iit.mechanism_phi_measure"] = "INTRINSIC_INFORMATION"
+            assert config.formalism.iit.mechanism_phi_measure == "INTRINSIC_INFORMATION"
         finally:
             config["formalism.iit.mechanism_phi_measure"] = original
 
@@ -585,8 +585,8 @@ def test_dotted_subscript_subnamespace_shorthand_read():
 def test_dotted_subscript_subnamespace_shorthand_write():
     original = config["formalism.iit.mechanism_phi_measure"]
     try:
-        config["iit.mechanism_phi_measure"] = "EMD"
-        assert config["formalism.iit.mechanism_phi_measure"] == "EMD"
+        config["iit.mechanism_phi_measure"] = "INTRINSIC_INFORMATION"
+        assert config["formalism.iit.mechanism_phi_measure"] == "INTRINSIC_INFORMATION"
     finally:
         config["formalism.iit.mechanism_phi_measure"] = original
 

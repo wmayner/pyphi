@@ -8,11 +8,20 @@ each layer remains immutable.
 
 Both flat (``config.precision``) and layered
 (``config.numerics.precision``, ``config.formalism.iit.mechanism_phi_measure``)
-forms work for reads. Writes use the flat form (``config.precision = 6``)
-or :meth:`override` for scoped changes; wholesale layer replacement
+forms work for reads. Writes use the flat form (``config.precision = 6``),
+a dotted path (``config["iit.mechanism_phi_measure"] = ...``), or
+:meth:`override` for scoped changes; wholesale layer replacement
 (``config.numerics = NumericsConfig(precision=6)``) and sub-namespace
-replacement (``config.iit = IITConfig(mechanism_phi_measure="EMD")``) are
-also supported.
+replacement (``config.iit = pyphi.iit3["iit"]``) are also supported. The
+layer objects themselves are read-only.
+
+Every write runs the cross-field checks of :mod:`pyphi.conf.constraints`
+(unless ``validate_config`` is off) and leaves the configuration unchanged
+when they fail. :meth:`override` and :meth:`load_yaml` apply all their
+values first and check the result once, so options that must agree can
+change together. ``install_snapshot``, which parallel
+workers call with the parent's already-checked configuration, installs a
+snapshot without checking it.
 
 Uppercase access (``config.PRECISION``) is accepted as syntax sugar —
 names are case-folded and routed to the appropriate layer.
@@ -42,13 +51,14 @@ import yaml
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
 from pyphi.conf._field_routing import colliding_formalism_fields
+from pyphi.conf._field_routing import unknown_option_hint
+from pyphi.conf._field_routing import version_advice
 from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import FormalismConfig
 from pyphi.conf.formalism import IITConfig
 from pyphi.conf.infrastructure import InfrastructureConfig
 from pyphi.conf.numerics import NumericsConfig
 from pyphi.conf.snapshot import ConfigSnapshot
-from pyphi.constants import MIGRATION_GUIDE_URL
 
 _LAYER_NAMES = ("formalism", "infrastructure", "numerics")
 _LAYER_TYPES: dict[str, type] = {
@@ -174,7 +184,8 @@ class _GlobalConfig:
         Worker processes call this at the start of each parallel chunk to
         seed their global config from a snapshot captured by the parent
         scheduler. Distinct from :meth:`override`, which is a scoped
-        context manager.
+        context manager. The snapshot is installed as given, without the
+        cross-field checks that every other write runs.
         """
         # Replace whole layers wholesale rather than streaming via
         # ``as_kwargs``: ``as_kwargs`` excludes colliding formalism field
@@ -233,9 +244,6 @@ class _GlobalConfig:
         ``mechanism_partition_scheme``) route to the sub-namespace the YAML
         nests them under.
         """
-        from pyphi.conf._field_routing import FIELD_TO_LAYER
-        from pyphi.conf._field_routing import RENAMED_FIELDS
-        from pyphi.conf._field_routing import ConfigurationError
         from pyphi.conf._io import load_yaml as _load
 
         data = _load(path)
@@ -250,20 +258,21 @@ class _GlobalConfig:
             for section_name, fields_dict in data.items():
                 for field_name, value in fields_dict.items():
                     layer, _ = FIELD_TO_LAYER.get(field_name, (None, None))
+                    if layer is None:
+                        raise ConfigurationError(
+                            f"Unknown config option {field_name!r} under "
+                            f"{section_name!r}. {unknown_option_hint(field_name)}"
+                        )
                     if layer != section_name:
-                        renamed = RENAMED_FIELDS.get(field_name)
-                        hint = f"; it is now {renamed!r}" if renamed else ""
                         raise ConfigurationError(
                             f"config field {field_name!r} is nested under "
-                            f"{section_name!r} but belongs to "
-                            f"{layer if layer is not None else 'no known layer'!r}"
-                            f"{hint}"
+                            f"{section_name!r} but belongs to {layer!r}"
                         )
-                    setattr(self, field_name, value)
+                    self._assign(field_name, value)
             for sub_name in ("iit", "actual_causation"):
                 sub_data = formalism_data.pop(sub_name, {}) or {}
                 for field_name, value in sub_data.items():
-                    self[f"{sub_name}.{field_name}"] = value
+                    self._assign_path(f"{sub_name}.{field_name}", value)
             if formalism_data:
                 raise ConfigurationError(
                     f"unrecognized keys under 'formalism': "
@@ -337,10 +346,17 @@ class _GlobalConfig:
         """Write a config field by dotted path.
 
         ``config["numerics.precision"] = 6``,
-        ``config["formalism.iit.mechanism_phi_measure"] = "EMD"``.
-        Sub-namespace-rooted paths (``config["iit.version"] = ...``) are
-        accepted as shorthand for the full path.
+        ``config["formalism.iit.mechanism_partition_scheme"] = "JOINT_BIPARTITION"``.
+        Sub-namespace-rooted paths (``config["iit.shortcircuit_sia"] = ...``)
+        are accepted as shorthand for the full path. The write is checked
+        like an attribute write.
         """
+        before = self.snapshot()
+        self._assign_path(path, value)
+        self._check(before)
+
+    def _assign_path(self, path: str, value: Any) -> None:
+        """Write a config field by dotted path without the cross-field check."""
         path = _normalize_config_path(path)
         parts = path.split(".")
         if len(parts) < 2 or not all(parts):
@@ -356,7 +372,32 @@ class _GlobalConfig:
         new_layer = _rebuild_nested(
             getattr(self, "_" + layer_name), parts[1:], value, path
         )
-        setattr(self, layer_name, new_layer)
+        object.__setattr__(self, "_" + layer_name, new_layer)
+
+    def _check(self, before: ConfigSnapshot) -> None:
+        """Run the cross-field checks after one write; undo it if they fail.
+
+        The error adds how to change options that must agree, since one
+        assignment cannot.
+        """
+        if not self._infrastructure.validate_config:
+            return
+        from pyphi.conf.constraints import check_config_constraints
+
+        try:
+            check_config_constraints(self)
+        except ConfigurationError as exc:
+            attempted = self._formalism.iit.version
+            self.install_snapshot(before)
+            if attempted != before.formalism.iit.version:
+                advice = version_advice(attempted)
+            else:
+                advice = (
+                    "Options that must agree cannot change one assignment at "
+                    "a time; pass them together to one pyphi.config.override(...) "
+                    "call."
+                )
+            raise ConfigurationError(f"{exc} {advice}") from None
 
     def __iter__(self) -> Iterator[str]:
         """Yield every leaf field as a dotted path in dataclass declaration order.
@@ -443,16 +484,24 @@ class _GlobalConfig:
                 f'config["iit.{name}"], or '
                 f'config["actual_causation.{name}"].'
             )
-        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if not name.startswith("_"):
+            message += f". {unknown_option_hint(name)}"
+        raise AttributeError(message)
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name.startswith("_"):
             object.__setattr__(self, name, value)
             return
+        before = self.snapshot()
+        self._assign(name, value)
+        self._check(before)
 
+    def _assign(self, name: str, value: Any) -> None:
+        """Write the option or layer ``name`` without the cross-field check."""
         field_name = name.lower() if name.isupper() else name
         if field_name != name and field_name in FIELD_TO_LAYER:
-            _warn_uppercase(name)
+            _warn_uppercase(name, stacklevel=4)
 
         # Wholesale layer replacement (e.g. config.numerics = NumericsConfig(...))
         if field_name in _LAYER_NAMES and isinstance(value, _LAYER_TYPES[field_name]):
@@ -469,6 +518,11 @@ class _GlobalConfig:
             object.__setattr__(self, "_formalism", new_formalism)
             return
 
+        if field_name == "version":
+            raise ConfigurationError(
+                "Field 'version' is ambiguous (exists in both formalism.iit and "
+                f"formalism.actual_causation). {version_advice(value)}"
+            )
         if field_name in colliding_formalism_fields():
             raise ConfigurationError(
                 f"Field {field_name!r} is ambiguous (exists in both "
@@ -491,25 +545,18 @@ class _GlobalConfig:
                 f"Cannot replace layer {field_name!r} with "
                 f"{type(value).__name__}; expected {expected.__name__}."
             )
-        from pyphi.conf._field_routing import RENAMED_FIELDS
-
-        renamed = RENAMED_FIELDS.get(field_name)
-        hint = (
-            f" It is now {renamed!r}."
-            if renamed
-            else f" See the 2.0 migration guide ({MIGRATION_GUIDE_URL}) "
-            "for the rename map."
+        raise ConfigurationError(
+            f"Unknown config option: {name!r}. {unknown_option_hint(name)}"
         )
-        raise ConfigurationError(f"Unknown config option: {name!r}.{hint}")
 
 
-def _warn_uppercase(name: str) -> None:
+def _warn_uppercase(name: str, stacklevel: int = 3) -> None:
     """Warn that ``name`` is the uppercase spelling PyPhi 1.x used."""
     warnings.warn(
         f"`{name}` is the PyPhi 1.x spelling of this option and will stop "
         f"working in a future release; use `{name.lower()}`.",
         FutureWarning,
-        stacklevel=3,
+        stacklevel=stacklevel,
     )
 
 
@@ -534,9 +581,9 @@ class _OverrideContext(contextlib.ContextDecorator):
         try:
             for name, value in self._new_values.items():
                 if "." in name:
-                    self._config[name] = value
+                    self._config._assign_path(name, value)
                 else:
-                    setattr(self._config, name, value)
+                    self._config._assign(name, value)
             if self._config.infrastructure.validate_config:
                 from pyphi.conf.constraints import check_config_constraints
 

@@ -41,6 +41,18 @@ _VERSION_PRESETS = {
 }
 
 
+def _install_unchecked(**iit_fields: object) -> None:
+    """Install the live config with ``iit_fields`` changed, skipping the
+    cross-field checks, as a worker installs a snapshot. Every other write
+    is checked, so this is how a mixed config reaches the dispatch checks."""
+    import dataclasses
+
+    snap = config.snapshot()
+    iit = dataclasses.replace(snap.formalism.iit, **iit_fields)
+    formalism = dataclasses.replace(snap.formalism, iit=iit)
+    config.install_snapshot(dataclasses.replace(snap, formalism=formalism))
+
+
 class TestPresetsPass:
     @pytest.mark.parametrize("preset_name", ["iit3", "iit4_2023", "iit4_2026"])
     def test_canonical_preset_validates(self, preset_name: str) -> None:
@@ -371,15 +383,22 @@ class TestSpecificationMeasureCompatibility:
         with config.override(**presets.iit3, **{"iit.specification_measure": "EMD"}):
             assert config.formalism.iit.specification_measure == "EMD"
 
-    def test_assignment_path_fails_at_dispatch(self) -> None:
-        """A config assembled by per-field assignment (which skips cross-field
-        validation by design) must fail at the IIT 4.0 dispatch boundary, not
-        silently compute a different Φ (1.125 -> 1.75 on basic)."""
+    def test_assignment_is_checked(self) -> None:
+        with (
+            config.override(**presets.iit4_2026),
+            pytest.raises(ConfigurationError, match="specification_measure"),
+        ):
+            config["iit.specification_measure"] = "EMD"
+
+    def test_unchecked_config_fails_at_dispatch(self) -> None:
+        """A mixed config that skipped the eager check must fail at the IIT
+        4.0 dispatch boundary, not silently compute a different Φ (1.125 ->
+        1.75 on basic)."""
         from pyphi import examples
         from pyphi.formalism.base import MeasureNotCompatibleError
 
         with config.override(**presets.iit4_2026):
-            config["iit.specification_measure"] = "EMD"  # skips validation
+            _install_unchecked(specification_measure="EMD")
             with pytest.raises(MeasureNotCompatibleError, match="specification measure"):
                 examples.basic_system().sia()
 
@@ -435,23 +454,23 @@ class TestBackgroundConditioningConstraint:
         with config.override(**preset, **{"iit.background_conditioning": convention}):
             assert config.formalism.iit.background_conditioning == convention
 
-    def test_assignment_path_fails_at_dispatch(self) -> None:
+    def test_unchecked_config_fails_at_dispatch(self) -> None:
         from pyphi import examples
 
         with config.override(**presets.iit3):
-            config["iit.background_conditioning"] = "CAUSAL_MARGINALIZATION"
+            _install_unchecked(background_conditioning="CAUSAL_MARGINALIZATION")
             with pytest.raises(ConfigurationError, match="background_conditioning"):
                 examples.basic_system().sia()
 
     def test_system_pin_takes_precedence_at_dispatch(self) -> None:
         """A System pinned to the IIT 3.0 convention computes even when the
-        ambient config field carries the 4.0 default (assignment path): the
-        dispatch check reads the convention in effect for the system."""
+        ambient config field carries the 4.0 default: the dispatch check reads
+        the convention in effect for the system."""
         from pyphi import System
         from pyphi import examples
 
         with config.override(**presets.iit3):
-            config["iit.background_conditioning"] = "CAUSAL_MARGINALIZATION"
+            _install_unchecked(background_conditioning="CAUSAL_MARGINALIZATION")
             system = System(
                 examples.basic_substrate(),
                 (1, 0, 0),
@@ -528,26 +547,25 @@ class TestMechanismPartitionSchemeConstraint:
         with config.override(**{"iit.mechanism_partition_scheme": "JOINT_BIPARTITION"}):
             assert config.formalism.iit.mechanism_partition_scheme == "JOINT_BIPARTITION"
 
-    def test_assignment_path_sia_fails_at_dispatch(self) -> None:
-        """A partial IIT 3.0 config assembled by per-field assignment (which
-        skips cross-field validation by design) with the IIT 4.0 mechanism
-        partition family must fail at the dispatch boundary, not silently
-        compute a different phi (2.3125 -> 2.5208 on basic)."""
+    def test_unchecked_config_sia_fails_at_dispatch(self) -> None:
+        """An IIT 3.0 config that skipped the eager check and carries the IIT
+        4.0 mechanism partition family must fail at the dispatch boundary,
+        not silently compute a different phi (2.3125 -> 2.5208 on basic)."""
         from pyphi import examples
 
         with config.override(**presets.iit3):
-            config["iit.mechanism_partition_scheme"] = "JOINT_PARTITION_ALL"
+            _install_unchecked(mechanism_partition_scheme="JOINT_PARTITION_ALL")
             with pytest.raises(ConfigurationError, match="mechanism_partition_scheme"):
                 examples.basic_system().sia()
 
-    def test_assignment_path_ces_fails_at_mechanism_dispatch(self) -> None:
+    def test_unchecked_config_ces_fails_at_mechanism_dispatch(self) -> None:
         """The CES path reaches mechanisms without evaluate_system, so the
         mechanism-MIP funnel must carry its own check."""
         from pyphi import examples
         from pyphi.formalism import iit3 as iit3_module
 
         with config.override(**presets.iit3):
-            config["iit.mechanism_partition_scheme"] = "JOINT_PARTITION_ALL"
+            _install_unchecked(mechanism_partition_scheme="JOINT_PARTITION_ALL")
             with pytest.raises(ConfigurationError, match="mechanism_partition_scheme"):
                 iit3_module.ces(examples.basic_system())
 
@@ -611,10 +629,11 @@ class TestSiaTieStrategyCompatibility:
         with config.override(**{"iit.sia_tie_resolution": ["NORMALIZED_PHI"]}):
             pass
 
-    def test_assignment_path_fails_at_dispatch_not_inside_tie_resolution(self) -> None:
-        """A partial IIT 3.0 config assembled by per-field assignment (which
-        skips cross-field validation) leaves the ambient IIT 4.0
-        ``sia_tie_resolution`` in place; ``sia()`` must fail at the dispatch
+    def test_unchecked_config_fails_at_dispatch_not_inside_tie_resolution(
+        self,
+    ) -> None:
+        """An IIT 3.0 config that skipped the eager check and keeps the IIT
+        4.0 ``sia_tie_resolution``: ``sia()`` must fail at the dispatch
         boundary with a ``ConfigurationError`` naming the field, not with an
         ``AttributeError`` from inside tie resolution."""
         import dataclasses

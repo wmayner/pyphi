@@ -61,7 +61,7 @@ and the other `iit4_2023_*` functions.
 
 | 1.x option | 2.0 option |
 | --- | --- |
-| `IIT_VERSION` | `formalism.iit.version`; prefer `analyze(..., formalism=)` or a preset |
+| `IIT_VERSION` | `formalism.iit.version`; select it with `analyze(..., formalism=)` or a preset (setting it alone raises) |
 | `MEASURE` (before 1.2), `REPERTOIRE_DISTANCE` | `formalism.iit.mechanism_phi_measure` and `formalism.iit.system_phi_measure` |
 | `REPERTOIRE_DISTANCE_SPECIFICATION` | `formalism.iit.specification_measure` |
 | `REPERTOIRE_DISTANCE_DIFFERENTIATION` | removed: differentiation is the surprisal of the specified state |
@@ -143,7 +143,10 @@ After:
 # per call — the reliable way; it sets the compatible measures for you
 analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
 
-# or via configuration
+# for a block of code, apply the version's complete preset
+with pyphi.config.override(**pyphi.iit3):
+    analysis = pyphi.analyze(substrate, state)
+
 pyphi.config.formalism.iit.version   # "IIT_4_0_2026" by default
 ```
 
@@ -177,6 +180,7 @@ The three top-level layers are `formalism` (with the sub-namespaces `iit` and
 `numerics` (precision). At runtime, read a value from its layer
 (`pyphi.config.numerics.precision`); a top-level write such as
 `pyphi.config.precision = 6` is routed to the correct layer automatically.
+The layer objects themselves are read-only.
 
 ## 5. Saving and loading results
 

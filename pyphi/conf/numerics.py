@@ -9,9 +9,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pyphi.conf._helpers import read_only
 from pyphi.conf._helpers import yaml_repr
 
 
+@read_only
 @dataclass(frozen=True)
 class NumericsConfig:
     """Numerical-comparison settings."""

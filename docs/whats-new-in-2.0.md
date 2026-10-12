@@ -429,12 +429,14 @@ live with:
 - **Cheaper partial computations.** `pyphi.analyze(..., compute="sia")` or
   `compute="distinctions"` computes only what you asked for; the latter
   skips the system-partition search, which dominates on sparse substrates.
-- **Configuration mistakes fail early and say why.** A 1.x uppercase option
-  raises a `ConfigurationError` with a table of the new names, an unknown
-  option points at the migration guide, and an incompatible combination
-  names both fields and a fix. Flat writes like `pyphi.config.precision = 6`
-  are routed to the right layer. Logging is off unless you call
-  `pyphi.enable_logging()`.
+- **Configuration mistakes fail early and say why.** An option whose name
+  only changed case still works under its 1.x uppercase spelling, with a
+  `FutureWarning` giving the new name. Any other 1.x name raises a
+  `ConfigurationError` that gives its replacement, a misspelt option gets the
+  closest real one, and an incompatible combination names both fields and a
+  fix, whether it comes from an assignment, an `override` or a configuration
+  file. Flat writes like `pyphi.config.precision = 6` are routed to the right
+  layer. Logging is off unless you call `pyphi.enable_logging()`.
 - **The examples are a registry.** `pyphi.examples.EXAMPLES` maps each
   category to its builders, the
   [example networks](reference/examples.md) page renders every substrate's

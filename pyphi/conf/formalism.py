@@ -23,6 +23,7 @@ from dataclasses import field
 from dataclasses import fields
 from typing import Any
 
+from pyphi.conf._helpers import read_only
 from pyphi.conf._helpers import yaml_repr
 
 _VALID_DISTINCTION_PHI_NORMALIZATION = frozenset({"NONE", "NUM_CONNECTIONS_CUT"})
@@ -36,6 +37,7 @@ _VALID_BACKGROUND_STRATEGIES = frozenset({"UNIFORM"})
 _VALID_ALPHA_AGGREGATIONS = frozenset({"SUBTRACTIVE"})
 
 
+@read_only
 @dataclass(frozen=True)
 class IITConfig:
     """IIT-formalism configuration sub-namespace.
@@ -234,6 +236,7 @@ class IITConfig:
             )
 
 
+@read_only
 @dataclass(frozen=True)
 class ActualCausationConfig:
     """Actual-causation configuration sub-namespace.
@@ -294,6 +297,7 @@ class ActualCausationConfig:
             )
 
 
+@read_only
 @dataclass(frozen=True)
 class FormalismConfig:
     """Formalism-scoped configuration.

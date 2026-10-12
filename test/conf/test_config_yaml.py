@@ -98,7 +98,7 @@ class TestNestedYAMLLoader:
         for old, new in RENAMED_FIELDS.items():
             path = tmp_path / f"config_{old}.yml"
             path.write_text(f"infrastructure:\n  {old}: 1\n")
-            with pytest.raises(ConfigurationError, match=f"it is now '{new}'"):
+            with pytest.raises(ConfigurationError, match=f"It is now '{new[0]}'"):
                 config.load_yaml(str(path))
 
     def test_every_renamed_field_points_at_a_real_one(self):
@@ -106,9 +106,68 @@ class TestNestedYAMLLoader:
         from pyphi.conf._field_routing import FIELD_TO_LAYER
         from pyphi.conf._field_routing import RENAMED_FIELDS
 
-        for old, new in RENAMED_FIELDS.items():
-            assert new in FIELD_TO_LAYER, f"{old!r} points at unknown field {new!r}"
+        for old, paths in RENAMED_FIELDS.items():
+            for new in paths:
+                assert new in config, f"{old!r} points at unknown option {new!r}"
             assert old not in FIELD_TO_LAYER, f"{old!r} is still a live field"
+
+    def test_every_1x_option_in_the_migration_table_is_known(self):
+        """Each 1.x option in the migration guide's table is a live option
+        (spelled in uppercase), renamed, or removed, so its error names it."""
+        from pyphi.conf._field_routing import former_option_location
+
+        table = [
+            "IIT_VERSION",
+            "MEASURE",
+            "REPERTOIRE_DISTANCE",
+            "REPERTOIRE_DISTANCE_SPECIFICATION",
+            "REPERTOIRE_DISTANCE_DIFFERENTIATION",
+            "CES_DISTANCE",
+            "ACTUAL_CAUSATION_MEASURE",
+            "PARTITION_TYPE",
+            "SYSTEM_PARTITION_TYPE",
+            "SYSTEM_PARTITION_INCLUDE_COMPLETE",
+            "SYSTEM_CUTS",
+            "DISTINCTION_PHI_NORMALIZATION",
+            "RELATION_COMPUTATION",
+            "STATE_TIE_RESOLUTION",
+            "MIP_TIE_RESOLUTION",
+            "PURVIEW_TIE_RESOLUTION",
+            "PICK_SMALLEST_PURVIEW",
+            "ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS",
+            "SHORTCIRCUIT_SIA",
+            "SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI",
+            "PRECISION",
+            "PARALLEL",
+            "PARALLEL_WORKERS",
+            "PARALLEL_BACKEND",
+            "PARALLEL_COMPLEX_EVALUATION",
+            "PARALLEL_PURVIEW_EVALUATION",
+            "PARALLEL_MECHANISM_PARTITION_EVALUATION",
+            "PARALLEL_RELATION_EVALUATION",
+            "PARALLEL_CUT_EVALUATION",
+            "PARALLEL_CONCEPT_EVALUATION",
+            "MAXIMUM_CACHE_MEMORY_PERCENTAGE",
+            "CACHE_REPERTOIRES",
+            "CACHE_POTENTIAL_PURVIEWS",
+            "CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA",
+            "REDIS_CACHE",
+            "REDIS_CONFIG",
+            "RAY_CONFIG",
+            "LOG_FILE",
+            "LOG_FILE_LEVEL",
+            "LOG_STDOUT_LEVEL",
+            "PROGRESS_BARS",
+            "WELCOME_OFF",
+            "REPR_VERBOSITY",
+            "PRINT_FRACTIONS",
+            "LABEL_SEPARATOR",
+            "VALIDATE_SUBSYSTEM_STATES",
+            "VALIDATE_CONDITIONAL_INDEPENDENCE",
+            "VALIDATE_JSON_VERSION",
+        ]
+        unknown = [name for name in table if former_option_location(name) is None]
+        assert unknown == []
 
     def test_unknown_top_level_key_raises(self, tmp_path):
         path = tmp_path / "config.yml"

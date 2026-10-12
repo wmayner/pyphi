@@ -2,8 +2,8 @@
 
 The nested format groups options under three top-level keys
 (``formalism``, ``infrastructure``, ``numerics``). A flat format with
-uppercase top-level keys is detected and rejected with a pointer to the
-rename map.
+uppercase top-level keys is detected and rejected with the 2.0 location of
+each of its options.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from typing import Any
 import yaml
 
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._field_routing import former_option_location
 from pyphi.constants import MIGRATION_GUIDE_URL
 
 KNOWN_LAYERS = frozenset({"formalism", "infrastructure", "numerics"})
@@ -40,12 +41,17 @@ def load_yaml(path: str | Path) -> dict[str, dict[str, Any]]:
         raise ConfigurationError(f"Config file {path!r} doesn't parse to a dict.")
     upper_keys = [k for k in data if isinstance(k, str) and k.isupper()]
     if upper_keys:
+        lines = [
+            f"  {key}: {former_option_location(key) or 'no 2.0 option'}"
+            for key in upper_keys
+        ]
         raise ConfigurationError(
-            f"Config file {path!r} uses the 1.x flat format "
-            f"(e.g., {upper_keys[0]!r}). In 2.0, options are grouped by "
-            f"layer (formalism / infrastructure / numerics). See "
-            f"the 2.0 migration guide ({MIGRATION_GUIDE_URL}) "
-            f"for the rename map."
+            f"Config file {str(path)!r} uses the PyPhi 1.x flat format. In 2.0, "
+            "options are grouped by layer (formalism / infrastructure / "
+            "numerics); its options are now:\n"
+            + "\n".join(lines)
+            + f"\nSee the 2.0 migration guide ({MIGRATION_GUIDE_URL}) for the "
+            "rename map and the nested file format."
         )
     unknown = set(data) - KNOWN_LAYERS
     if unknown:

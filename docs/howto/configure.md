@@ -81,6 +81,14 @@ A change made this way is global and persists until you change it again.
 Use `precision` to trade speed for accuracy: lower precision makes $\varphi$
 comparisons coarser and computations faster; higher precision is stricter.
 
+Each write is checked against the other options. A combination that matches
+no version of IIT, such as a version with measures it does not define, raises
+a `ConfigurationError` and leaves the configuration as it was. Options that
+must agree are changed together, in one `override` call (below) or with a
+preset (see {doc}`earlier-versions`). The layer objects are read-only, so
+write `pyphi.config.precision = 6` rather than
+`pyphi.config.numerics.precision = 6`.
+
 ## Temporary changes with `override`
 
 To change one or more options for the duration of a block and have them

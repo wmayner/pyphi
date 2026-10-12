@@ -35,6 +35,17 @@ global and persists until changed:
 pyphi.config.precision = 6
 ```
 
+An option whose name exists in both `formalism.iit` and
+`formalism.actual_causation` (`mechanism_partition_scheme`) is written by its
+dotted path: `pyphi.config["iit.mechanism_partition_scheme"] = ...`. The layer
+objects are read-only: `pyphi.config.numerics.precision = 6` raises a
+`ConfigurationError` that shows the write to use instead.
+
+Every write is checked against the other options. A combination that matches
+no version of IIT raises a `ConfigurationError` and leaves the configuration
+unchanged, so options that must agree change together, in one `override` call
+or through a preset.
+
 For a scoped change that is restored on exit (even if the block raises), use
 `override` as a context manager. This is the safe way to run one computation
 under non-default settings; it nests and accepts any number of options:
@@ -93,8 +104,9 @@ with pyphi.config.override(**iit3):
 
 The presets are `pyphi.iit3`, `pyphi.iit4_2023`, and `pyphi.iit4_2026` (IIT,
 the default). Setting `formalism.iit.version` on its own raises a
-`ConfigurationError`: the measures would stay where they were, and the result
-would be a mixture matching no paper.
+`ConfigurationError`, by assignment, in `override` or in a configuration file:
+the measures would stay where they were, and the result would be a mixture
+matching no paper.
 
 ## Configuration file
 

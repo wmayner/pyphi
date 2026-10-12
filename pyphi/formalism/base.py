@@ -134,9 +134,10 @@ def check_measure_compatible(formalism: PhiFormalism, measure: str) -> None:
             f"Measure {measure!r} is not compatible with "
             f"formalism {formalism.name!r}. Compatible measures for "
             f"this formalism: {sorted(formalism.compatible_measures)}. "
-            "If you want a different measure, set "
-            "config.formalism.iit.version to one whose compatible_measures "
-            "set contains it."
+            "Fix: use one of those, or select a version of IIT that defines "
+            f"{measure!r} with its preset (for example "
+            "pyphi.config.override(**pyphi.iit3)) or the formalism= argument "
+            "of pyphi.analyze, which set the version and its measures together."
         )
 
 
@@ -144,10 +145,11 @@ def check_sia_tie_strategy_compatible(formalism: PhiFormalism, strategy: Any) ->
     """Raise ``ConfigurationError`` if a SIA tie-resolution strategy uses a
     component the formalism's SIA result type does not support.
 
-    Called from a formalism's ``evaluate_system`` so a config assembled by
-    per-field assignment (which skips cross-field validation) still fails at
-    the dispatch boundary with a clear diagnostic, not with an
-    ``AttributeError`` deep inside tie resolution. Formalisms whose SIA type
+    Called from a formalism's ``evaluate_system`` so a configuration that
+    skipped the eager check (one built with ``validate_config`` off, or
+    installed from a snapshot) still fails at the dispatch boundary with a
+    clear diagnostic, not with an ``AttributeError`` deep inside tie
+    resolution. Formalisms whose SIA type
     supports every registered strategy declare
     ``compatible_sia_tie_strategies = None`` and are not checked.
     """
@@ -186,9 +188,9 @@ def check_specification_measure_compatible(
     """Raise :class:`MeasureNotCompatibleError` if ``measure`` isn't accepted
     by ``formalism`` as a specification measure.
 
-    Called from the formalism's measure-resolution sites so a config
-    assembled by per-field assignment (which skips cross-field validation)
-    still fails at the dispatch boundary rather than silently computing a
+    Called from the formalism's measure-resolution sites so a configuration
+    that skipped the eager check (one installed from a snapshot) still fails
+    at the dispatch boundary rather than silently computing a
     different Φ. Formalisms without a specified-state phase declare
     ``compatible_specification_measures = None`` and are not checked.
     Respects the ``validate_config=False`` opt-out, so a deliberately
@@ -215,8 +217,8 @@ def check_background_conditioning_compatible(
     """Raise ``ConfigurationError`` if the cause-side background-conditioning
     convention is one ``formalism`` does not define.
 
-    Called from a formalism's ``evaluate_system`` so a config assembled by
-    per-field assignment (which skips cross-field validation) still fails at
+    Called from a formalism's ``evaluate_system`` so a configuration that
+    skipped the eager check (one installed from a snapshot) still fails at
     the dispatch boundary rather than silently computing a different phi on
     proper-subset systems. Formalisms that accept any registered convention
     declare ``compatible_background_conditioning = None`` and are not
@@ -247,8 +249,8 @@ def check_mechanism_partition_scheme_compatible(
     """Raise ``ConfigurationError`` if a mechanism partition scheme is one
     ``formalism`` does not accept.
 
-    Called from a formalism's evaluation methods so a config assembled by
-    per-field assignment (which skips cross-field validation) still fails at
+    Called from a formalism's evaluation methods so a configuration that
+    skipped the eager check (one installed from a snapshot) still fails at
     the dispatch boundary rather than silently computing phi over a different
     partition family. Formalisms that accept any registered scheme declare
     ``compatible_mechanism_partition_schemes = None`` and are not checked.

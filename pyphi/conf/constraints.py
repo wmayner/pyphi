@@ -3,12 +3,15 @@
 Single-field validity is enforced by each config dataclass's
 ``__post_init__``. This module adds the orthogonal layer of *cross-field*
 constraints: combinations of individually-valid options that together compute
-nonsense or a silently-different quantity. They are evaluated eagerly on
-:meth:`~pyphi.conf._global._GlobalConfig.override` and ``load_yaml`` (gated by
-``config.infrastructure.validate_config``) so a wrong combination fails at the
-point of configuration with a :class:`~pyphi.conf.ConfigurationError` that
-names the two conflicting fields and a concrete fix — rather than at compute
-time, deep in the math, or not at all.
+nonsense or a silently-different quantity. They are evaluated on every write
+to ``pyphi.config``: after each assignment, and once after all the values of an
+:meth:`~pyphi.conf._global._GlobalConfig.override` or ``load_yaml`` call are
+applied (gated by ``config.infrastructure.validate_config``). A wrong
+combination fails at the point of configuration with a
+:class:`~pyphi.conf.ConfigurationError` that names the two conflicting fields
+and a concrete fix, rather than at compute time, deep in the math, or not at
+all. Snapshots installed in parallel workers come from an already-checked
+configuration and are not checked again.
 
 A constraint fires only on a combination that is wrong, not one that is
 merely inert. An option left at a default that the active formalism
