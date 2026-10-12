@@ -64,10 +64,10 @@ def sia_point(weights):
     ss = s.system_state
     if ss is not None and ss.cause is not None:
         row["cause_state"] = tuple(int(x) for x in ss.cause.state)
-        row["ii_cause"] = float(ss.cause.intrinsic_information)
+        row["ii_cause"] = float(ss.cause.intrinsic_specification)
     if ss is not None and ss.effect is not None:
         row["effect_state"] = tuple(int(x) for x in ss.effect.state)
-        row["ii_effect"] = float(ss.effect.intrinsic_information)
+        row["ii_effect"] = float(ss.effect.intrinsic_specification)
     return row
 
 

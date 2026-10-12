@@ -45,7 +45,7 @@ def _per_state_ii(system, direction):
     sizes = tuple(alphabet[i] for i in system.node_indices)
     return {
         state: float(
-            ra.intrinsic_information(
+            ra.intrinsic_specification(
                 system,
                 direction,
                 mechanism=system.node_indices,
@@ -90,7 +90,7 @@ def test_tie_members_share_runner_up_fields(xor_sia):
 def test_state_margin_none_when_no_competitor():
     system = examples.basic_system()
     measure = resolve_mechanism_measure(config.formalism.iit.specification_measure)
-    spec = ra.intrinsic_information(
+    spec = ra.intrinsic_specification(
         system,
         Direction.CAUSE,
         mechanism=system.node_indices,

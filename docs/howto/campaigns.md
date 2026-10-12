@@ -239,7 +239,7 @@ SIA are planned the same way — unless you pass a precomputed `sia=`
 SIA shards are planned, the collected structures carry no Φₛ, and each
 cell's congruence resolves against its own given state. A single-cell
 campaign takes one specification (the result of
-{func}`~pyphi.formalism.iit4.system_intrinsic_information`); a multi-cell
+{func}`~pyphi.formalism.iit4.system_intrinsic_specification`); a multi-cell
 campaign takes a mapping keyed by the full
 `(label, formalism, subset, state)` cell tuples, a mapping keyed by state
 alone when the other axes are singletons, or a callable
@@ -249,7 +249,7 @@ state:
 
 ```python
 resolution = {
-    state: system_intrinsic_information(
+    state: system_intrinsic_specification(
         pyphi.System(substrate, state), specification_measure=measure
     )
     for state in states

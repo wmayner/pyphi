@@ -231,14 +231,14 @@ def test_explicit_unreachable_state_fails_loud(tmp_path):
 def _resolution_state_for(substrate, state, formalism="IIT_4_0_2026"):
     import pyphi
     from pyphi.conf import presets as _presets
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
 
     with pyphi.config.override(
         **_presets.by_name[formalism], parallel=False, progress_bars=False
     ):
         system = pyphi.System(substrate, state)
-        return system_intrinsic_information(
+        return system_intrinsic_specification(
             system,
             specification_measure=resolve_mechanism_measure(
                 pyphi.config.formalism.iit.specification_measure
@@ -285,7 +285,7 @@ def test_resolution_state_callable_form(tmp_path):
 
 
 def test_resolution_state_type_validated_at_prepare(tmp_path):
-    with pytest.raises(TypeError, match="system_intrinsic_information"):
+    with pytest.raises(TypeError, match="system_intrinsic_specification"):
         prepare_ces(
             examples.basic_substrate(),
             states=BASIC_STATE,

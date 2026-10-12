@@ -1256,7 +1256,7 @@ def test_ria_eq_outside_tolerance():
 
 
 def test_state_specification_eq_within_tolerance():
-    """StateSpecification: intrinsic_information ~1e-15 apart compare equal."""
+    """StateSpecification: intrinsic_specification ~1e-15 apart compare equal."""
     from pyphi.direction import Direction
     from pyphi.models.state_specification import StateSpecification
 
@@ -1281,7 +1281,7 @@ def test_state_specification_eq_within_tolerance():
 
 
 def test_state_specification_eq_outside_tolerance():
-    """StateSpecification: intrinsic_information 1e-3 apart compare unequal."""
+    """StateSpecification: intrinsic_specification 1e-3 apart compare unequal."""
     from pyphi.direction import Direction
     from pyphi.models.state_specification import StateSpecification
 

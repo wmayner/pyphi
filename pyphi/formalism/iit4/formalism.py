@@ -11,7 +11,7 @@ Two variants are registered:
 
 Both delegate to the algorithms in :mod:`pyphi.formalism.iit4` (the
 ``__init__`` module that holds ``sia``, ``ces``,
-``system_intrinsic_information``).
+``system_intrinsic_specification``).
 """
 
 from __future__ import annotations
@@ -252,7 +252,7 @@ def _find_mip_iit4(
     from pyphi import resolve_ties
 
     if state is None:
-        specified_states = system.intrinsic_information(
+        specified_states = system.intrinsic_specification(
             direction,
             mechanism,
             purview,

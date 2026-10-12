@@ -765,7 +765,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         )
         return ra.cause_effect_info(self, mechanism, purview, **kwargs)
 
-    def intrinsic_information(
+    def intrinsic_specification(
         self,
         direction: Any,
         mechanism: Any,
@@ -776,7 +776,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        spec = ra.intrinsic_information(
+        spec = ra.intrinsic_specification(
             self,
             direction,
             mechanism,

@@ -116,7 +116,7 @@ _DELEGATED_TO_SYSTEM: frozenset[str] = frozenset(
         "cause_info",
         "effect_info",
         "cause_effect_info",
-        "intrinsic_information",
+        "intrinsic_specification",
         "potential_purviews",
         "indices2nodes",
         "cache_info",

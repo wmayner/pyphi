@@ -707,7 +707,7 @@ def cause_effect_info(
     )
 
 
-def intrinsic_information(
+def intrinsic_specification(
     cs: Any,
     direction: Direction,
     mechanism: tuple[int, ...],

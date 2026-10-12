@@ -81,7 +81,7 @@ from pyphi.system import System
 
 
 # TODO: refactor
-def system_intrinsic_information(
+def system_intrinsic_specification(
     system: System,
     *,
     specification_measure: (
@@ -110,7 +110,7 @@ def system_intrinsic_information(
     validate.directions(directions)
     # TODO(ties) deal with ties here
     ii = {
-        direction: system.intrinsic_information(
+        direction: system.intrinsic_specification(
             direction,
             mechanism=system.node_indices,
             purview=system.node_indices,
@@ -1077,7 +1077,7 @@ def sia(
         )
 
     if system_state is None:
-        system_state = system_intrinsic_information(
+        system_state = system_intrinsic_specification(
             system,
             specification_measure=specification_measure,
             directions=directions,
@@ -1335,7 +1335,7 @@ def sia_stride_search(
                     reasons=[NullResultReason.MONAD_WITH_SELFLOOP_DEFINED_TO_BE_ZERO_PHI]
                 ),
             )
-    system_state = system_intrinsic_information(
+    system_state = system_intrinsic_specification(
         system,
         specification_measure=specification_measure,
         directions=directions,
@@ -1394,7 +1394,7 @@ def merge_pair_minima(
         }
     if len(merged_pairs) == 1:
         return next(iter(merged_pairs.values()))
-    system_state = system_intrinsic_information(
+    system_state = system_intrinsic_specification(
         system, specification_measure=specification_measure
     )
     return _resolve_pair_sias(system, merged_pairs, system_state)
@@ -1416,7 +1416,7 @@ def mechanism_state_pins(
     specification_measure = resolve_mechanism_measure(
         config.formalism.iit.specification_measure
     )
-    return system.intrinsic_information(
+    return system.intrinsic_specification(
         direction,
         mechanism,
         purview,
@@ -1686,7 +1686,7 @@ def congruent_distinctions(
         Σφ_d are upper bounds on the cause-effect structure's.
     """
     distinctions = iit3._compute_distinctions(system, **kwargs)  # type: ignore[arg-type]
-    system_state = system_intrinsic_information(
+    system_state = system_intrinsic_specification(
         system, specification_measure=specification_measure
     )
     tied = (
@@ -1752,7 +1752,7 @@ def ces(
     if sia.system_state is not None:
         resolution_state = sia.system_state
     else:
-        resolution_state = system_intrinsic_information(
+        resolution_state = system_intrinsic_specification(
             system, specification_measure=specification_measure
         )
     resolved_distinctions = distinctions.resolve_congruence(resolution_state)

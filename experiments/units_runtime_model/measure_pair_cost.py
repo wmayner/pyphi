@@ -123,7 +123,7 @@ def measure(
                             cpu = time.process_time() - start
                             evaluations = calls
                             n_states = len(
-                                system.intrinsic_information(
+                                system.intrinsic_specification(
                                     direction,
                                     mechanism,
                                     purview,

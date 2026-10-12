@@ -397,10 +397,10 @@ def _ii_ceiling(system):
     specified cause or effect certifies φₛ = 0).
     """
     from pyphi.conf import config as _config
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
 
-    state = system_intrinsic_information(
+    state = system_intrinsic_specification(
         system,
         specification_measure=resolve_mechanism_measure(
             _config.formalism.iit.specification_measure

@@ -1,4 +1,4 @@
-"""Pins for ``intrinsic_information``'s winner, tie-family, and runner-up
+"""Pins for ``intrinsic_specification``'s winner, tie-family, and runner-up
 semantics.
 
 The winner is the first tolerance-tied state in enumeration order
@@ -53,7 +53,7 @@ def test_tolerance_tied_winner_precedes_raw_argmax():
     dist[1, 0] = 1.0 - 1e-15  # tolerance-tied, earlier in enumeration
     dist[0, 1] = 1.0  # raw maximum, later in enumeration
     dist[1, 1] = 0.25
-    spec = ra.intrinsic_information(
+    spec = ra.intrinsic_specification(
         _system(),
         Direction.EFFECT,
         (0,),
@@ -73,7 +73,7 @@ def test_exact_ties_keep_enumeration_order():
     dist[1, 0] = 1.0
     dist[0, 1] = 1.0
     dist[1, 1] = 0.25
-    spec = ra.intrinsic_information(
+    spec = ra.intrinsic_specification(
         _system(),
         Direction.EFFECT,
         (0,),
@@ -92,7 +92,7 @@ def test_no_ties_yields_singleton_family():
     dist[1, 0] = 0.2
     dist[0, 1] = 0.9
     dist[1, 1] = 0.3
-    spec = ra.intrinsic_information(
+    spec = ra.intrinsic_specification(
         _system(),
         Direction.EFFECT,
         (0,),
@@ -137,7 +137,7 @@ def test_matches_reference_on_real_measure(direction, mechanism, purview):
 
     system = _system()
     measure = resolve_mechanism_measure(pyphi.config.formalism.iit.specification_measure)
-    spec = ra.intrinsic_information(
+    spec = ra.intrinsic_specification(
         system, direction, mechanism, purview, specification_measure=measure
     )
     winner, tied, runner_up = _reference(system, direction, mechanism, purview, measure)
@@ -161,7 +161,7 @@ def test_uniform_system_ties_every_state():
     from pyphi.measures.distribution import resolve_mechanism_measure
 
     measure = resolve_mechanism_measure(pyphi.config.formalism.iit.specification_measure)
-    spec = ra.intrinsic_information(
+    spec = ra.intrinsic_specification(
         system, Direction.EFFECT, (0,), (0, 1), specification_measure=measure
     )
     assert spec.state == (0, 0)
@@ -219,13 +219,13 @@ def test_forward_cause_repertoire_single_state_is_not_a_sweep(monkeypatch):
 
 def test_both_sweep_guards_fire_before_the_specified_state_search_runs(monkeypatch):
     """The intrinsic-information search refuses rather than half-running."""
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
 
     monkeypatch.setattr(ra, "_MAX_FORWARD_SWEEP_STATES", 2)
     system = _tiny_system()
     with pytest.raises(ValueError, match="infeasible"):
-        system_intrinsic_information(
+        system_intrinsic_specification(
             system,
             specification_measure=resolve_mechanism_measure(
                 pyphi.config.formalism.iit.specification_measure

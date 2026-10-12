@@ -223,7 +223,7 @@ def setup_mech_partitions():
         pyphi.config.formalism.iit.specification_measure
     )
     repertoire = system.repertoire(Direction.CAUSE, mechanism, purview)
-    specified_state = system.intrinsic_information(
+    specified_state = system.intrinsic_specification(
         Direction.CAUSE,
         mechanism,
         purview,
@@ -329,7 +329,7 @@ def _sys_partition_workload(substrate_weights_seed=None, coupling_scale=1.0):
     from pyphi import System
     from pyphi.direction import Direction
     from pyphi.formalism.iit4 import intrinsic_differentiation_value
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
     from pyphi.measures.distribution import resolve_system_measure
     from pyphi.partition import system_partitions
@@ -354,7 +354,7 @@ def _sys_partition_workload(substrate_weights_seed=None, coupling_scale=1.0):
     specification_measure = resolve_mechanism_measure(
         pyphi.config.formalism.iit.specification_measure
     )
-    system_state = system_intrinsic_information(
+    system_state = system_intrinsic_specification(
         system, specification_measure=specification_measure
     )
     directions = tuple(Direction.both())

@@ -195,7 +195,7 @@ def test_max_entropy_distribution_is_read_only():
         d[...] = 99.0
 
 
-def test_intrinsic_information_collects_noise_tied_states() -> None:
+def test_intrinsic_specification_collects_noise_tied_states() -> None:
     """States within ``config.numerics.precision`` of the maximum join the
     tie family, even when their float values differ by ulp-level noise."""
     import pyphi
@@ -209,7 +209,7 @@ def test_intrinsic_information_collects_noise_tied_states() -> None:
             pyphi.config.formalism.iit.specification_measure
         )
         system = examples.iit4_2023_fig1a_system()
-        spec = system.intrinsic_information(
+        spec = system.intrinsic_specification(
             Direction.EFFECT, (2,), (0, 2), specification_measure=measure
         )
     # (1, 1) computes 2 ulp below (0, 1); both belong to the tie family.
@@ -217,7 +217,7 @@ def test_intrinsic_information_collects_noise_tied_states() -> None:
     assert sorted(t.state for t in spec.ties) == [(0, 1), (1, 1)]
 
 
-def test_intrinsic_information_winner_is_first_enumerated_tied_state() -> None:
+def test_intrinsic_specification_winner_is_first_enumerated_tied_state() -> None:
     """The winner is the first tied state in enumeration order — not the raw
     float argmax — and the runner-up is never the winner itself."""
     import pyphi
@@ -233,7 +233,7 @@ def test_intrinsic_information_winner_is_first_enumerated_tied_state() -> None:
         system = examples.iit4_2023_fig1a_system()
         # (1, 1) ties the raw argmax (0, 1) within precision; enumerating it
         # first makes it the winner under enumeration-order selection.
-        spec = system.intrinsic_information(
+        spec = system.intrinsic_specification(
             Direction.EFFECT,
             (2,),
             (0, 2),

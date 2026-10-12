@@ -439,11 +439,11 @@ class TestEq23IntrinsicInformationCap:
         """
         from pyphi.direction import Direction
         from pyphi.formalism.iit4 import sia
-        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.formalism.iit4 import system_intrinsic_specification
 
         system = self._noisy_copy_system(0.8, (1, 1))
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(
+            sys_state = system_intrinsic_specification(
                 system,
                 specification_measure=resolve_mechanism_measure(
                     config.formalism.iit.specification_measure
@@ -567,7 +567,7 @@ class TestPaperExamples:
         """
         import numpy as np
 
-        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.formalism.iit4 import system_intrinsic_specification
 
         p = 0.744
         system = self._monad_system(p)
@@ -576,13 +576,13 @@ class TestPaperExamples:
         ii_expected = min(i_diff_expected, i_spec_expected)
 
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(
+            sys_state = system_intrinsic_specification(
                 system,
                 specification_measure=resolve_mechanism_measure(
                     config.formalism.iit.specification_measure
                 ),
             )
-            # system_intrinsic_information uses INTRINSIC_SPECIFICATION,
+            # system_intrinsic_specification uses INTRINSIC_SPECIFICATION,
             # so it returns i_spec
             i_spec_pyphi = float(sys_state.effect.intrinsic_specification)
             assert i_spec_pyphi == pytest.approx(i_spec_expected, abs=1e-6)
@@ -604,12 +604,12 @@ class TestPaperExamples:
         """
         from pyphi import direction
         from pyphi import measures
-        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.formalism.iit4 import system_intrinsic_specification
 
         system = self._monad_system(p)
 
         with config.override(**self.II_CONFIG):
-            sys_state = system_intrinsic_information(
+            sys_state = system_intrinsic_specification(
                 system,
                 specification_measure=resolve_mechanism_measure(
                     config.formalism.iit.specification_measure
@@ -722,7 +722,7 @@ class TestNullSIAIntrinsicInformation:
     def test_null_sia_with_real_system_state_reports_none(self):
         from pyphi.formalism.base import FORMALISM_REGISTRY
         from pyphi.formalism.iit4 import sia as iit4_sia
-        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.formalism.iit4 import system_intrinsic_specification
         from pyphi.formalism.iit4.formalism import _resolve_system_measures
 
         with config.override(**presets.iit4_2026):
@@ -731,7 +731,7 @@ class TestNullSIAIntrinsicInformation:
             system_measure, specification_measure = _resolve_system_measures(
                 formalism, None, None
             )
-            system_state = system_intrinsic_information(
+            system_state = system_intrinsic_specification(
                 system, specification_measure=specification_measure
             )
             result = iit4_sia(

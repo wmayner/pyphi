@@ -184,7 +184,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.85,
       "relation": "implements",
-      "source": "core_repertoire_algebra_intrinsic_information",
+      "source": "core_repertoire_algebra_intrinsic_specification",
       "source_file": "pyphi/core/repertoire_algebra.py",
       "target": "papers_mice",
       "weight": 1.0
@@ -517,7 +517,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "relation": "implements",
-      "source": "iit4_init_system_intrinsic_information",
+      "source": "iit4_init_system_intrinsic_specification",
       "source_file": "pyphi/formalism/iit4/__init__.py",
       "target": "papers_2023_system_integrated_information_intrinsic_info_term",
       "weight": 1.0
@@ -526,7 +526,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.85,
       "relation": "implements",
-      "source": "iit4_init_system_intrinsic_information",
+      "source": "iit4_init_system_intrinsic_specification",
       "source_file": "pyphi/formalism/iit4/__init__.py",
       "target": "papers_2026_intrinsic_cause_effect_power_intrinsic_information",
       "weight": 1.0
@@ -2334,9 +2334,9 @@
       "_origin": "ast",
       "community": 29,
       "file_type": "code",
-      "id": "core_repertoire_algebra_intrinsic_information",
-      "label": "intrinsic_information()",
-      "norm_label": "intrinsic_information()",
+      "id": "core_repertoire_algebra_intrinsic_specification",
+      "label": "intrinsic_specification()",
+      "norm_label": "intrinsic_specification()",
       "source_file": "pyphi/core/repertoire_algebra.py",
       "source_location": "L582"
     },
@@ -2674,9 +2674,9 @@
       "_origin": "ast",
       "community": 2,
       "file_type": "code",
-      "id": "iit4_init_system_intrinsic_information",
-      "label": "system_intrinsic_information()",
-      "norm_label": "system_intrinsic_information()",
+      "id": "iit4_init_system_intrinsic_specification",
+      "label": "system_intrinsic_specification()",
+      "norm_label": "system_intrinsic_specification()",
       "source_file": "pyphi/formalism/iit4/__init__.py",
       "source_location": "L80"
     },

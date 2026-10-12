@@ -62,8 +62,8 @@ def evaluate(table: np.ndarray, state: tuple) -> dict | None:
     ss = getattr(sia, "system_state", None)
     if ss is None or ss.cause is None or ss.effect is None:
         return None  # short-circuited before state specification; no ii to compare
-    ii_c = float(ss.cause.intrinsic_information)
-    ii_e = float(ss.effect.intrinsic_information)
+    ii_c = float(ss.cause.intrinsic_specification)
+    ii_e = float(ss.effect.intrinsic_specification)
     phi = float(sia.phi)
     signed = float(sia.signed_phi) if sia.signed_phi is not None else phi
     return {

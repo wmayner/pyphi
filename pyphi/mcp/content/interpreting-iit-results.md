@@ -23,7 +23,9 @@ How to read an analysis result and explain it in plain language.
 - `summary.intrinsic_information` — **ii(s)**, the third term of φₛ.
   `summary.requirement_binding` gives the term and direction when ii(s) is
   what set φₛ (both φ_c and φ_e positive with φₛ = 0 is the usual sign), and
-  is `None` when integration set it.
+  is `None` when integration set it. Both keys are absent for a result whose
+  formalism does not use ii(s) in φₛ (IIT 4.0 as published in 2023, IIT
+  3.0).
 - Purview and mechanism labels are written in the specified *state*:
   uppercase is ON, lowercase is OFF, and a subscript gives the state of a
   unit with more than two states (`A₂`).

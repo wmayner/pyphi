@@ -30,6 +30,7 @@ PHI_ATTRS = {
     "signed_normalized_phi",
     "sum_phi",
     "intrinsic_information",
+    "intrinsic_specification",
 }
 ALLOWED_MODULES = {"numerics.py", "resolve_ties.py"}
 # isclose/allclose carry their own default tolerances, which are not

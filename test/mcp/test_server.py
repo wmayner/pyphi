@@ -665,9 +665,12 @@ def test_analyze_summary_carries_mip_and_requirement_terms(basic_handle):
         "direction": "EFFECT",
     }
     assert "MIP" in out["card"] and "ii(s)" in out["card"]
-    # Integration, not the requirement, set φₛ under 2023: no binding term.
+    # The 2023 version does not use ii(s) in φₛ, so its summary, like its
+    # card, carries neither ii(s) nor a binding term.
     out_2023 = srv.analyze(basic_handle, BASIC_STATE, formalism="IIT_4_0_2023")
-    assert out_2023["summary"]["requirement_binding"] is None
+    assert "intrinsic_information" not in out_2023["summary"]
+    assert "requirement_binding" not in out_2023["summary"]
+    assert "ii(s)" not in out_2023["card"]
 
 
 def test_estimate_cost_states_what_the_seconds_cover(basic_handle):

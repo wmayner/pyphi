@@ -615,7 +615,7 @@ def prepare_ces(
         Explicit congruence-resolution states; suppresses SIA shards, and
         the collected structures then carry no Φₛ. One specification (the
         result of
-        :func:`pyphi.formalism.iit4.system_intrinsic_information`) for a
+        :func:`pyphi.formalism.iit4.system_intrinsic_specification`) for a
         single-cell campaign; for multi-cell campaigns, a mapping keyed by
         the full ``(label, formalism, subset, state)`` cell tuples, a
         mapping keyed by state alone (when the other axes are singletons),
@@ -923,7 +923,7 @@ def _validate_resolution_spec(spec: Any, cell: tuple) -> None:
         raise TypeError(
             f"resolution_state for cell {cell!r} must be a system state "
             "specification carrying CAUSE and EFFECT state specifications — "
-            "the result of pyphi.formalism.iit4.system_intrinsic_information — "
+            "the result of pyphi.formalism.iit4.system_intrinsic_specification — "
             f"not {type(spec).__name__}"
         )
 
@@ -1246,7 +1246,7 @@ def _group_name(task: Any) -> str:
 
 _RESOLUTION_STATE_WARN_UNITS = 12
 """System size above which collect warns before computing the
-congruence-resolution state itself: ``system_intrinsic_information``
+congruence-resolution state itself: ``system_intrinsic_specification``
 enumerates every system state against every mechanism state (~4ⁿ), taking
 hours beyond ~12 units and raising as infeasible beyond ~16."""
 
@@ -1254,7 +1254,7 @@ hours beyond ~12 units and raising as infeasible beyond ~16."""
 def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any):
     """Assemble a structure whose congruence state comes without any Φₛ."""
     from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
     from pyphi.models.ces import CauseEffectStructure
     from pyphi.relations import relations as compute_relations
@@ -1264,14 +1264,14 @@ def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any)
         if n > _RESOLUTION_STATE_WARN_UNITS:
             warnings.warn(
                 f"no resolution_state was given, so collect will compute "
-                f"system_intrinsic_information over {n} units; its cost "
+                f"system_intrinsic_specification over {n} units; its cost "
                 f"grows ~4^n (hours beyond ~{_RESOLUTION_STATE_WARN_UNITS} "
                 f"units) and may dwarf the collected computation. Pass "
                 f"resolution_state (or a precomputed sia) to skip this.",
                 PyPhiWarning,
                 stacklevel=2,
             )
-        resolution_state = system_intrinsic_information(
+        resolution_state = system_intrinsic_specification(
             system,
             specification_measure=resolve_mechanism_measure(
                 config.formalism.iit.specification_measure  # pyright: ignore[reportAttributeAccessIssue]

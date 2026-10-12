@@ -20,10 +20,10 @@ PIN = {"parallel": False, "progress_bars": False}
 
 def _resolution_state(system):
     from pyphi.conf import config as _config
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
 
-    return system_intrinsic_information(
+    return system_intrinsic_specification(
         system,
         specification_measure=resolve_mechanism_measure(
             _config.formalism.iit.specification_measure
@@ -256,7 +256,7 @@ def test_two_substrate_sweep_collects_per_label(tmp_path):
 
 def test_assemble_without_sia_warns_when_resolution_state_missing(monkeypatch):
     """With no resolution state, collect computes
-    system_intrinsic_information itself — ~4^n, so large systems get a
+    system_intrinsic_specification itself — ~4^n, so large systems get a
     warning pointing at the escape hatches before the computation starts."""
     import pyphi.campaign as campaign_mod
     from pyphi.warnings import PyPhiWarning

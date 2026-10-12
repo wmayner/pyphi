@@ -25,7 +25,7 @@ from test.conftest import skip_if_no_emd_backend
 def _sia_kwargs():
     """Resolve measure kwargs from current config for module-level iit4 calls.
 
-    The module-level ``sia``/``phi_structure``/``system_intrinsic_information``
+    The module-level ``sia``/``phi_structure``/``system_intrinsic_specification``
     require explicit measures; tests invoke them with default-config measures.
     """
     return {
@@ -374,12 +374,12 @@ class TestPermutationSymmetry:
     All measures must be invariant under this permutation.
     """
 
-    def test_system_intrinsic_information_symmetric(self):
+    def test_system_intrinsic_specification_symmetric(self):
         """Cause/effect intrinsic information must be equal for permuted systems."""
         sub_ax = System(example_substrates.and_xor_substrate(), (0, 1))
         sub_xa = System(example_substrates.xor_and_substrate(), (1, 0))
-        ss_ax = new_big_phi.system_intrinsic_information(sub_ax, **_spec_kwargs())
-        ss_xa = new_big_phi.system_intrinsic_information(sub_xa, **_spec_kwargs())
+        ss_ax = new_big_phi.system_intrinsic_specification(sub_ax, **_spec_kwargs())
+        ss_xa = new_big_phi.system_intrinsic_specification(sub_xa, **_spec_kwargs())
         assert float(ss_ax.cause.intrinsic_specification) == pytest.approx(
             float(ss_xa.cause.intrinsic_specification)
         )

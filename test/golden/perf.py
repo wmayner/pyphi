@@ -119,10 +119,10 @@ def _compute_specified_state(system: System) -> None:
     mechanism's size — the one layer here that does.
     """
     from pyphi.conf import config
-    from pyphi.formalism.iit4 import system_intrinsic_information
+    from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure
 
-    system_intrinsic_information(
+    system_intrinsic_specification(
         system,
         specification_measure=resolve_mechanism_measure(
             config.formalism.iit.specification_measure

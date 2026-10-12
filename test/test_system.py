@@ -235,17 +235,17 @@ def test_distinction_nonexistent(s):
 
 
 class TestIntrinsicInformationTies:
-    """Test that intrinsic_information() correctly tracks tied states."""
+    """Test that intrinsic_specification() correctly tracks tied states."""
 
     def test_tied_states_are_stored(self):
-        """intrinsic_information() should populate .ties when states tie.
+        """intrinsic_specification() should populate .ties when states tie.
 
         AND-XOR at state (0,1): the cause GID is 0.5 for both purview states
         (1,0) and (0,1), creating a tie. Both should appear in .ties.
         """
         net = example_substrates.and_xor_substrate()
         sub = System(net, (0, 1))
-        spec = sub.intrinsic_information(
+        spec = sub.intrinsic_specification(
             Direction.CAUSE,
             (0, 1),
             (0, 1),
@@ -261,7 +261,7 @@ class TestIntrinsicInformationTies:
         """All tied StateSpecifications must have the same intrinsic information."""
         net = example_substrates.and_xor_substrate()
         sub = System(net, (0, 1))
-        spec = sub.intrinsic_information(
+        spec = sub.intrinsic_specification(
             Direction.CAUSE,
             (0, 1),
             (0, 1),
@@ -276,7 +276,7 @@ class TestIntrinsicInformationTies:
         """When a single state uniquely maximizes II, ties should have length 1."""
         net = example_substrates.and_xor_substrate()
         sub = System(net, (0, 1))
-        spec = sub.intrinsic_information(
+        spec = sub.intrinsic_specification(
             Direction.EFFECT,
             (0, 1),
             (0, 1),

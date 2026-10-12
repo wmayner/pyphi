@@ -415,7 +415,7 @@ class TestSpecifiedStateAxis:
         estimate is exact to that constant.
         """
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.formalism.iit4 import system_intrinsic_information
+        from pyphi.formalism.iit4 import system_intrinsic_specification
         from pyphi.measures.distribution import resolve_mechanism_measure
         from pyphi.system import System
         from test.golden.perf_fixtures import noisy_ring
@@ -430,7 +430,7 @@ class TestSpecifiedStateAxis:
 
         substrate = noisy_ring(n, seed=11)
         system = System(substrate, (0,) * n, subset=substrate.node_indices)
-        system_intrinsic_information(
+        system_intrinsic_specification(
             system,
             specification_measure=resolve_mechanism_measure(
                 pyphi.config.formalism.iit.specification_measure

@@ -252,10 +252,12 @@ def _substrate_summary(substrate: Any) -> dict[str, Any]:
 def _requirement_binding(sia: Any) -> tuple[float, dict[str, str] | None] | None:
     """The intrinsic information ii(s) of a system irreducibility analysis
     and, when the intrinsic-information requirement set φₛ, the term and
-    direction that did; ``None`` for analyses without the quantity (earlier
-    versions of IIT, bare distinctions)."""
+    direction that did. ``None`` when the result's formalism does not apply
+    the requirement (IIT 3.0, IIT 4.0 as published in 2023) and for bare
+    distinctions, so the summary omits ii(s) where the analysis card does."""
     ii = getattr(sia, "intrinsic_information", None)
-    if ii is None or not hasattr(sia, "explain"):
+    applies_requirement = getattr(sia, "_applies_requirement", None)
+    if ii is None or applies_requirement is None or not applies_requirement():
         return None
     finding = next(
         (f for f in sia.explain().findings if f.kind == "requirement_binding"),

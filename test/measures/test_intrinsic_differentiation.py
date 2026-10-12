@@ -4,11 +4,11 @@ from pyphi.examples import EXAMPLES
 from pyphi.measures.distribution import resolve_mechanism_measure
 
 
-def test_intrinsic_information():
+def test_intrinsic_specification():
     with config.override(specification_measure="INTRINSIC_SPECIFICATION"):
         system = EXAMPLES["system"]["differentiation_micro_1"]()
         mechanism = (0, 1)
-        result = system.intrinsic_information(
+        result = system.intrinsic_specification(
             Direction.CAUSE,
             mechanism,
             mechanism,
@@ -99,7 +99,7 @@ def test_composite_keeps_repertoire_rank():
     assert out.shape == rng_shape
 
 
-def test_public_intrinsic_information_purview_rank_and_value():
+def test_public_intrinsic_specification_purview_rank_and_value():
     """End to end on ``basic_system``: the specified state has purview
     length, and the cause-side value matches the by-hand Eq. 6/11
     computation min(GID, surprisal of the posterior)."""
@@ -115,7 +115,7 @@ def test_public_intrinsic_information_purview_rank_and_value():
         system = examples.basic_system()
         mechanism, purview = (0,), (1,)
         measure = resolve_mechanism_measure("INTRINSIC_INFORMATION")
-        result = system.intrinsic_information(
+        result = system.intrinsic_specification(
             Direction.CAUSE, mechanism, purview, specification_measure=measure
         )
         assert len(result.state) == len(purview)

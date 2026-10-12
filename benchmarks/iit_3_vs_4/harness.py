@@ -383,7 +383,7 @@ PHASE_ANCHORS: list[tuple[str, str]] = [
     ("pyphi/subsystem.py", "find_mice"),
     ("pyphi/subsystem.py", "intrinsic_information"),
     ("pyphi/subsystem.py", "forward_repertoire"),
-    ("pyphi/system.py", "intrinsic_information"),
+    ("pyphi/system.py", "intrinsic_specification"),
     # Relations (4.0 only)
     ("pyphi/relations.py", "all_relations"),
     ("pyphi/relations.py", "compute_relations"),
