@@ -27,9 +27,9 @@ from pyphi.campaign import _parse_memory
 from pyphi.campaign import _resolve_compute_ref
 from pyphi.conf import config
 from pyphi.cost import shard_cache_budget_bytes
-from pyphi.sweep import _formalism_preset
-from pyphi.sweep import _run_cell
-from pyphi.sweep import _Skipped
+from pyphi.sweeps import _formalism_preset
+from pyphi.sweeps import _run_cell
+from pyphi.sweeps import _Skipped
 
 __all__ = ["run_task"]
 

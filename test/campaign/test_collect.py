@@ -8,7 +8,7 @@ from pyphi import examples
 from pyphi.campaign import collect
 from pyphi.campaign import prepare
 from pyphi.campaign import status
-from pyphi.sweep import sweep
+from pyphi.sweeps import sweep
 from pyphi.warnings import PyPhiWarning
 
 AXES = {

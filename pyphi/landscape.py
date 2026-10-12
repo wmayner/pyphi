@@ -127,7 +127,7 @@ def _eval_point(
     formalism: str | None,
 ) -> tuple[dict[str, Any], Any]:
     """Evaluate one SIA at ``theta`` and extract its row."""
-    from pyphi.analyze import analyze
+    from pyphi.analysis import analyze
 
     sia: Any = analyze(
         builder(float(theta)), state, subset=subset, formalism=formalism, compute="sia"
@@ -236,7 +236,7 @@ def landscape_section(
     formalism : str, optional
         Leave unset to compute IIT under the active configuration. Pass an
         earlier version's name only to reproduce published results; it
-        applies to these evaluations only, as in :func:`pyphi.analyze.analyze`.
+        applies to these evaluations only, as in :func:`pyphi.analyze`.
     progress : bool, optional
         Show a progress bar; defaults to
         ``config.infrastructure.progress_bars``.
@@ -256,7 +256,7 @@ def landscape_section(
     Points are evaluated sequentially; each point is one full SIA.
     """
     # ponytail: sequential-only; if n >= 5 landscapes demand it, follow
-    # pyphi/sweep.py's _run_cells_parallel pattern (module-level cell
+    # pyphi/sweeps.py's _run_cells_parallel pattern (module-level cell
     # function, parallel=False inside workers).
     thetas = [float(theta) for theta in grid]
     show_progress = fallback(progress, config.infrastructure.progress_bars)
@@ -399,7 +399,7 @@ def perturb(
     formalism : str, optional
         Leave unset to compute IIT under the active configuration. Pass an
         earlier version's name only to reproduce published results; it
-        applies to these evaluations only, as in :func:`pyphi.analyze.analyze`.
+        applies to these evaluations only, as in :func:`pyphi.analyze`.
 
     Returns
     -------

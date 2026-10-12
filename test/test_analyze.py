@@ -8,8 +8,8 @@ import pytest
 
 from pyphi import System
 from pyphi import examples
-from pyphi.analyze import Analysis
-from pyphi.analyze import analyze
+from pyphi.analysis import Analysis
+from pyphi.analysis import analyze
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig

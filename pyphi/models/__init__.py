@@ -56,8 +56,8 @@ from .actual_causation import AcSystemIrreducibilityAnalysis
 from .actual_causation import CausalLink
 from .actual_causation import DirectedAccount
 from .actual_causation import Event
-from .actual_causation import _null_ac_ria
-from .actual_causation import _null_ac_sia
+from .actual_causation import _null_ac_ria as _null_ac_ria
+from .actual_causation import _null_ac_sia as _null_ac_sia
 from .ces import CauseEffectStructure
 from .complex import Complex
 from .complex import ExcludedCandidate
@@ -68,7 +68,7 @@ from .distinction import Distinction
 from .distinctions import Distinctions
 from .distinctions import ResolvedDistinctions
 from .distinctions import UnresolvedDistinctions
-from .distinctions import _null_ces
+from .distinctions import _null_ces as _null_ces
 from .explanation import Explanation
 from .explanation import Finding
 from .explanation import NullResultReason
@@ -89,10 +89,12 @@ from .protocols import AcSIAInterface
 from .protocols import CauseEffectStructureInterface
 from .protocols import SIAInterface
 from .ria import RepertoireIrreducibilityAnalysis
-from .ria import _null_ria
+from .ria import _null_ria as _null_ria
 from .sia import IIT3SystemIrreducibilityAnalysis
-from .sia import _null_sia
-from .state_specification import DistinctionPhiNormalizationRegistry
+from .sia import _null_sia as _null_sia
+from .state_specification import (
+    DistinctionPhiNormalizationRegistry as DistinctionPhiNormalizationRegistry,
+)
 from .state_specification import StateSpecification
 from .state_specification import SystemStateSpecification
 from .state_specification import UnitState
@@ -115,7 +117,6 @@ __all__ = [
     "DirectedJointPartition",
     "DirectedSetPartition",
     "Distinction",
-    "DistinctionPhiNormalizationRegistry",
     "Distinctions",
     "EdgeCut",
     "Event",
@@ -141,11 +142,6 @@ __all__ = [
     "TotalCut",
     "UnitState",
     "UnresolvedDistinctions",
-    "_null_ac_ria",
-    "_null_ac_sia",
-    "_null_ces",
-    "_null_ria",
-    "_null_sia",
     "distinction_phi_normalizations",
     "normalization_factor",
 ]

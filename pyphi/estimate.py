@@ -40,7 +40,7 @@ from pyphi._progress import tqdm
 
 from . import convert
 from . import numerics
-from .analyze import analyze
+from .analysis import analyze
 from .conf import config
 from .provenance import Provenance
 from .serializable import Serializable

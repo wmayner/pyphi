@@ -8,7 +8,9 @@ protocols, type aliases, utilities) are not listed.
 ## The top-level namespace
 
 `import pyphi` gives the everyday API in one place: `Substrate`, `System`,
-`analyze`, `sweep`, `examples`, and `config`.
+`analyze`, `sweep`, `examples`, and `config`. The analysis entry points and
+their result classes appear below under their top-level names; the modules
+that define them are listed under Analysis.
 
 The [example networks](examples.md) page shows every registered example
 rendered from the objects themselves.
@@ -18,6 +20,12 @@ rendered from the objects themselves.
    :toctree: _autosummary
 
    pyphi
+   pyphi.analyze
+   pyphi.Analysis
+   pyphi.sweep
+   pyphi.SweepResult
+   pyphi.optimize
+   pyphi.OptimizationResult
 ```
 
 ## Substrates and systems
@@ -45,8 +53,8 @@ rendered from the objects themselves.
    :toctree: _autosummary
    :recursive:
 
-   pyphi.analyze
-   pyphi.sweep
+   pyphi.analysis
+   pyphi.sweeps
    pyphi.cost
    pyphi.conf
    pyphi.formalism
@@ -60,7 +68,7 @@ rendered from the objects themselves.
    pyphi.actual
    pyphi.matching
    pyphi.landscape
-   pyphi.optimize
+   pyphi.optimization
    pyphi.dynamics
 ```
 

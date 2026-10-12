@@ -1447,7 +1447,7 @@ def _register_complexes_result() -> None:
 
 
 def _register_analysis() -> None:
-    from pyphi.analyze import Analysis
+    from pyphi.analysis import Analysis
 
     _ENCODERS[Analysis] = lambda a: schema.AnalysisSchema(
         system=to_schema(a.system),
@@ -1533,7 +1533,7 @@ def _register_phi_posterior() -> None:
 
 
 def _register_sweep_result() -> None:
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     _ENCODERS[SweepResult] = lambda r: schema.SweepResultSchema(
         df=frames.dataframe_to_schema(r.df),
@@ -1759,7 +1759,7 @@ def _register_campaign() -> None:
 
 
 def _register_optimization_result() -> None:
-    from pyphi.optimize import OptimizationResult
+    from pyphi.optimization import OptimizationResult
 
     def _encode_optimization_result(r: Any) -> Any:
         best_objective = float(r.best_objective)

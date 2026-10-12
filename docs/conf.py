@@ -101,14 +101,16 @@ napoleon_use_ivar = True
 napoleon_google_docstring = False
 
 # pyphi.relations defines both a function and a class whose names differ
-# only in case (relation/Relation, relations/Relations). On case-insensitive
-# filesystems the default per-object stub filenames collide, so remap the
-# functions to distinct filenames.
+# only in case (relation/Relation, relations/Relations), and the top-level
+# class pyphi.Analysis differs only in case from the module pyphi.analysis.
+# On case-insensitive filesystems the default per-object stub filenames
+# collide, so remap one of each pair to a distinct filename.
 autosummary_filename_map = {
     "pyphi.relations.relation": "pyphi.relations.relation-function",
     "pyphi.relations.relations": "pyphi.relations.relations-function",
     "pyphi.mcp.content.TOPICS": "pyphi.mcp.content.TOPICS-attribute",
     "pyphi.mcp.content.topics": "pyphi.mcp.content.topics-function",
+    "pyphi.Analysis": "pyphi.Analysis-class",
 }
 
 intersphinx_mapping = {

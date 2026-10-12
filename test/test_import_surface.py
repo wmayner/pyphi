@@ -1,5 +1,8 @@
 """Tests for the top-level pyphi import surface."""
 
+import importlib
+import types
+
 import pyphi
 
 
@@ -50,9 +53,59 @@ def test_estimate_analysis_in_all():
     assert "AnalysisEstimate" in pyphi.__all__
 
 
-def test_sweep_name_is_the_function_not_the_submodule():
-    # pyphi.sweep is bound to the sweep() function at module scope; __all__
-    # documents that, not the submodule of the same name.
-    assert "sweep" in pyphi.__all__
-    assert callable(pyphi.sweep)
-    assert pyphi.sweep.__module__ == "pyphi.sweep"
+def test_entry_point_modules_are_modules_and_functions_stay_on_top():
+    for module, function, cls in [
+        ("analysis", "analyze", "Analysis"),
+        ("sweeps", "sweep", "SweepResult"),
+        ("optimization", "optimize", "OptimizationResult"),
+    ]:
+        mod = importlib.import_module(f"pyphi.{module}")
+        assert isinstance(mod, types.ModuleType)
+        assert getattr(mod, function) is getattr(pyphi, function)
+        assert getattr(mod, cls) is getattr(pyphi, cls)
+
+
+def test_star_import_does_not_rebind_common_names():
+    namespace = {"log": "mine", "cache": "mine", "utils": "mine"}
+    exec("from pyphi import *", namespace)
+    assert namespace["log"] == "mine"
+    assert namespace["cache"] == "mine"
+    assert namespace["utils"] == "mine"
+
+
+def test_all_lists_only_public_names():
+    internal = {
+        "deferred",
+        "registry",
+        "protocols",
+        "utils",
+        "node",
+        "combinatorics",
+        "serializable",
+        "data_structures",
+        "constants",
+        "log",
+        "cache",
+        "TransitionSystem",
+    }
+    assert not internal & set(pyphi.__all__)
+    assert all(hasattr(pyphi, name) for name in pyphi.__all__)
+    for name in (
+        "analyze",
+        "sweep",
+        "optimize",
+        "Analysis",
+        "SweepResult",
+        "OptimizationResult",
+        "Substrate",
+        "System",
+    ):
+        assert name in pyphi.__all__
+
+
+def test_models_all_has_no_private_names():
+    assert not [n for n in pyphi.models.__all__ if n.startswith("_")]
+
+
+def test_actual_declares_its_public_surface():
+    assert "Transition" in pyphi.actual.__all__

@@ -25,8 +25,8 @@ the probability of each unit's next state given the current state of all of
 them. A :class:`~pyphi.system.System` is a candidate subset of a substrate's
 units in a state; integrated information is a property of systems.
 
-:func:`~pyphi.analyze.analyze` is the entry point. Given a substrate and a
-state it returns an :class:`~pyphi.analyze.Analysis` whose ``phi`` is φₛ, the
+:func:`~pyphi.analyze` is the entry point. Given a substrate and a
+state it returns an :class:`~pyphi.Analysis` whose ``phi`` is φₛ, the
 system integrated information (whether the system exists as one whole), whose
 ``ces`` is the Φ-structure the system specifies, and whose ``big_phi`` is Φ,
 the structure integrated information (how much structure it specifies). The
@@ -38,12 +38,12 @@ see `Reproduce results from earlier versions of IIT
 <https://pyphi.readthedocs.io/en/latest/howto/earlier-versions.html>`_.
 
 :meth:`Substrate.complexes <pyphi.substrate.Substrate.complexes>` finds the
-complexes of a substrate in a state. :func:`~pyphi.sweep.sweep` runs one
+complexes of a substrate in a state. :func:`~pyphi.sweep` runs one
 computation over many states or subsets.
 :func:`~pyphi.cost.estimate_analysis` counts the work of an analysis before
 it runs. :func:`~pyphi.serialize.save` and :func:`~pyphi.serialize.load`
 persist results. To search across macro grains, pass ``grains=True`` to
-:func:`~pyphi.analyze.analyze` or use :mod:`pyphi.macro`.
+:func:`~pyphi.analyze` or use :mod:`pyphi.macro`.
 
 Configuration
 ~~~~~~~~~~~~~
@@ -106,16 +106,16 @@ import pyphi.measures.ces
 import pyphi.measures.distribution
 import pyphi.models.state_specification  # noqa: F401
 
-from . import formalism  # noqa: F401
-from . import partition  # noqa: F401
-from . import relations  # noqa: F401
-from . import resolve_ties  # noqa: F401
+from . import formalism
+from . import partition
+from . import relations
+from . import resolve_ties
 
 # Lift main interfaces to the top-level namespace.
 from .actual import Transition
-from .actual import TransitionSystem
-from .analyze import Analysis as Analysis
-from .analyze import analyze as analyze
+from .actual import TransitionSystem as TransitionSystem
+from .analysis import Analysis as Analysis
+from .analysis import analyze as analyze
 from .conf import config
 from .conf import iit3
 from .conf import iit4_2023
@@ -133,14 +133,14 @@ from .landscape import landscape_section as landscape_section
 from .landscape import perturb as perturb
 from .landscape import weight_axis as weight_axis
 from .log import enable_logging as enable_logging
-from .optimize import OptimizationResult as OptimizationResult
-from .optimize import optimize as optimize
-from .optimize import weight_axes as weight_axes
+from .optimization import OptimizationResult as OptimizationResult
+from .optimization import optimize as optimize
+from .optimization import weight_axes as weight_axes
 from .serialize import load
 from .serialize import save
 from .substrate import Substrate
-from .sweep import SweepResult as SweepResult
-from .sweep import sweep as sweep
+from .sweeps import SweepResult as SweepResult
+from .sweeps import sweep as sweep
 from .system import System
 
 # The conf bootstrap applies ``pyphi_config.yml`` before the formalism
@@ -197,24 +197,14 @@ _RENAMED = {
 }
 
 
-# Submodules that require optional dependencies at import time; kept out of
-# ``__all__`` so ``from pyphi import *`` works on a base install. They remain
-# importable as attributes and are listed by ``dir(pyphi)``.
-_OPTIONAL_DEP_SUBMODULES = frozenset({"visualize", "mcp"})
-
-# Submodule names shadowed at module scope by a top-level function of the
-# same name (``pyphi.analyze``, ``pyphi.optimize``, ``pyphi.sweep`` are the
-# ``analyze``/``optimize``/``sweep`` functions, not the submodules), so
-# ``__all__`` documents the function, not the submodule, for these names.
-_SHADOWED_BY_FUNCTION = frozenset({"analyze", "optimize", "sweep"})
-
-# Submodule names that collide with a standard-library module name
-# (``pyphi.types``, ``pyphi.warnings``): excluded from ``__all__`` so
-# ``from pyphi import *`` cannot rebind a caller's ``types``/``warnings``
-# import to PyPhi's own submodule. They remain importable as attributes
-# (``pyphi.types``, ``pyphi.warnings``) and are listed by ``dir(pyphi)``.
-_STDLIB_NAME_COLLISIONS = frozenset(_SUBMODULE_NAMES) & sys.stdlib_module_names
-
+# The public surface, matching the API reference (docs/reference/api.md).
+# Internal modules (``utils``, ``log``, ``cache``, ``registry``, ...) remain
+# importable as attributes but are left out, so ``from pyphi import *`` does
+# not rebind common names in the caller's namespace. Submodules that need
+# optional dependencies at import time (``visualize``, ``mcp``) are left out
+# so the star import works on a base install. Most submodules listed here are
+# imported lazily by ``__getattr__``, which static checkers cannot see.
+# pyright: reportUnsupportedDunderAll=false
 __all__ = [
     "Analysis",
     "AnalysisEstimate",
@@ -228,7 +218,6 @@ __all__ = [
     "SweepResult",
     "System",
     "Transition",
-    "TransitionSystem",
     "analyze",
     "config",
     "enable_logging",
@@ -246,13 +235,48 @@ __all__ = [
     "sweep",
     "weight_axes",
     "weight_axis",
-] + [
-    name
-    for name in sorted(_SUBMODULE_NAMES)
-    if not name.startswith("_")
-    and name not in _OPTIONAL_DEP_SUBMODULES
-    and name not in _SHADOWED_BY_FUNCTION
-    and name not in _STDLIB_NAME_COLLISIONS
+]
+__all__ += [
+    "actual",
+    "analysis",
+    "automorphism",
+    "campaign",
+    "compositional_state",
+    "condensation",
+    "conf",
+    "connectivity",
+    "convert",
+    "core",
+    "cost",
+    "direction",
+    "display",
+    "distribution",
+    "dynamics",
+    "estimate",
+    "examples",
+    "exceptions",
+    "formalism",
+    "graph",
+    "labels",
+    "landscape",
+    "macro",
+    "matching",
+    "measures",
+    "models",
+    "numerics",
+    "optimization",
+    "parallel",
+    "partition",
+    "provenance",
+    "relations",
+    "resolve_ties",
+    "serialize",
+    "substrate",
+    "substrate_generator",
+    "sweeps",
+    "system",
+    "timescale",
+    "validate",
 ]
 
 

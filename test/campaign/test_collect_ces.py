@@ -149,7 +149,7 @@ def test_partial_collect_reports_missing_groups(tmp_path):
 
 def test_multi_state_collect_returns_sweep_result(tmp_path):
     import pyphi
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     substrate = examples.basic_substrate()
     states = [(1, 0, 0), (1, 1, 0)]
@@ -209,7 +209,7 @@ def test_weakly_connected_subset_collects(tmp_path):
 
 def test_multi_subset_sweep_collects_each_cell(tmp_path):
     import pyphi
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     substrate = examples.basic_substrate()
     subsets = [(0, 1, 2), (0, 1)]
@@ -236,7 +236,7 @@ def test_multi_subset_sweep_collects_each_cell(tmp_path):
 
 
 def test_two_substrate_sweep_collects_per_label(tmp_path):
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     directory = tmp_path / "camp"
     prepare_ces(
@@ -274,7 +274,7 @@ def test_multi_state_per_cell_resolution_matches_single_cell_campaigns(tmp_path)
     plans the same shards the equivalent single-cell campaigns would and
     collects each structure congruence-resolved against its own state."""
     from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     substrate = examples.basic_substrate()
     states = [(1, 0, 0), (1, 1, 0)]

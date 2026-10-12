@@ -137,7 +137,7 @@ def _eval_one(
     ``functools.partial`` over the fixed arguments is a picklable one-argument
     worker for ``map_reduce``.
     """
-    from pyphi.analyze import analyze
+    from pyphi.analysis import analyze
     from pyphi.direction import Direction
 
     try:
@@ -274,7 +274,7 @@ def _eval_batch(
 ) -> list[dict[str, Any]]:
     """Evaluate a whole population, sequentially or through ``map_reduce``.
 
-    The parallel branch mirrors ``pyphi.sweep._run_cells_parallel``: one level
+    The parallel branch mirrors ``pyphi.sweeps._run_cells_parallel``: one level
     of parallelism (``parallel=True`` on the outer ``map_reduce``, inner
     ``parallel=False`` in the worker config snapshot), one candidate per cell.
     """
@@ -383,7 +383,7 @@ def optimize(
     formalism : str, optional
         Leave unset to compute IIT under the active configuration. Pass an
         earlier version's name only to reproduce published results; it
-        applies to these evaluations only, as in :func:`pyphi.analyze.analyze`.
+        applies to these evaluations only, as in :func:`pyphi.analyze`.
     parallel : bool, optional
         Evaluate each generation's population through ``map_reduce``; defaults to
         ``config.infrastructure.parallel``. Requires ``builder`` and a callable

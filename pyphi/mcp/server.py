@@ -999,7 +999,7 @@ def collect_campaign(directory: str, partial: bool = False) -> dict[str, Any]:
     import dataclasses
 
     from pyphi import campaign
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     result = campaign.collect(directory, partial=partial)
     ref = _register_result(result)

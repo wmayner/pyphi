@@ -6,11 +6,11 @@ import pytest
 
 import pyphi
 from pyphi import examples
-from pyphi.optimize import OptimizationResult
-from pyphi.optimize import _eval_one
-from pyphi.optimize import _objective_value
-from pyphi.optimize import optimize
-from pyphi.optimize import weight_axes
+from pyphi.optimization import OptimizationResult
+from pyphi.optimization import _eval_one
+from pyphi.optimization import _objective_value
+from pyphi.optimization import optimize
+from pyphi.optimization import weight_axes
 from pyphi.substrate_generator import ising
 from test.conftest import skip_if_no_emd_backend
 
@@ -259,7 +259,7 @@ def test_optimization_result_equality_does_not_raise():
     import numpy as np
     import pandas as pd
 
-    from pyphi.optimize import OptimizationResult
+    from pyphi.optimization import OptimizationResult
 
     def make(objective):
         return OptimizationResult(

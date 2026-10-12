@@ -694,7 +694,7 @@ class SIAShardTaskSchema(msgspec.Struct, frozen=True, tag="campaign_sia_task"):
 
 
 class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_result"):
-    """An :func:`~pyphi.optimize.optimize` outcome.
+    """An :func:`~pyphi.optimize` outcome.
 
     ``best_objective`` is stored as None exactly when the run had no
     reachable candidate (NaN on the domain object; JSON cannot carry NaN).

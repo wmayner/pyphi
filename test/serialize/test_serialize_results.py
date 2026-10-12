@@ -11,13 +11,13 @@ from pyphi import serialize
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
-from pyphi.optimize import OptimizationResult
-from pyphi.optimize import optimize
-from pyphi.optimize import weight_axes
+from pyphi.optimization import OptimizationResult
+from pyphi.optimization import optimize
+from pyphi.optimization import weight_axes
 from pyphi.serialize import frames
 from pyphi.substrate_generator import ising
-from pyphi.sweep import SweepResult
-from pyphi.sweep import sweep
+from pyphi.sweeps import SweepResult
+from pyphi.sweeps import sweep
 
 
 class TestDataFrameCodec:

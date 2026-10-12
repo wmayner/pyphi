@@ -156,7 +156,7 @@ def test_landscape_section_iit3_rows_carry_defaults():
     """A documented non-4.0 preset produces rows, not AttributeErrors.
 
     IIT 4.0-only columns carry NaN/None, the contract established by
-    ``pyphi.sweep._row_sia``.
+    ``pyphi.sweeps._row_sia``.
     """
     substrate = examples.basic_substrate()
     section = landscape_section(

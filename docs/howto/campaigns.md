@@ -14,7 +14,7 @@ is prepare → submit → monitor → collect:
    resubmission list; failed or missing tasks are resubmitted by running
    `condor_submit pyphi.sub` again.
 4. `pyphi.campaign.collect(...)` reassembles the outputs into the exact
-   {class}`~pyphi.sweep.SweepResult` a local {func}`~pyphi.sweep.sweep`
+   {class}`~pyphi.SweepResult` a local {func}`~pyphi.sweep`
    would have returned.
 
 This guide covers the campaign workflow; cluster-specific setup — accounts,
@@ -23,7 +23,7 @@ in {doc}`chtc`.
 
 ## Prepare the campaign
 
-`prepare` takes the same axes as {func}`~pyphi.sweep.sweep` — substrates,
+`prepare` takes the same axes as {func}`~pyphi.sweep` — substrates,
 states, subsets, and the computation — plus packing controls,
 and writes a self-contained directory:
 

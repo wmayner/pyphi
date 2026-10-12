@@ -36,14 +36,14 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.models.pandas import ToPandasMixin
 from pyphi.parallel.chunking import cost_balanced_partition
-from pyphi.sweep import _UNREACHABLE
-from pyphi.sweep import SweepResult
-from pyphi.sweep import _build_df
-from pyphi.sweep import _enumerate_cells
-from pyphi.sweep import _extract_row
-from pyphi.sweep import _formalism_preset
-from pyphi.sweep import _normalize_formalisms
-from pyphi.sweep import _normalize_substrates
+from pyphi.sweeps import _UNREACHABLE
+from pyphi.sweeps import SweepResult
+from pyphi.sweeps import _build_df
+from pyphi.sweeps import _enumerate_cells
+from pyphi.sweeps import _extract_row
+from pyphi.sweeps import _formalism_preset
+from pyphi.sweeps import _normalize_formalisms
+from pyphi.sweeps import _normalize_substrates
 from pyphi.warnings import PyPhiWarning
 
 __all__ = [
@@ -383,7 +383,7 @@ def prepare(
 ) -> CampaignStatus:
     """Materialize a sweep as a self-contained HTCondor campaign directory.
 
-    Enumerates exactly the cells :func:`pyphi.sweep.sweep` would run over the
+    Enumerates exactly the cells :func:`pyphi.sweep` would run over the
     same axes, estimates each cell's workload with
     :func:`pyphi.cost.estimate_analysis` under its formalism preset, packs
     cells into cost-balanced tasks, and writes the campaign directory: one
@@ -396,10 +396,10 @@ def prepare(
     Parameters
     ----------
     substrates
-        As in :func:`pyphi.sweep.sweep`: one substrate, a sequence, or a
+        As in :func:`pyphi.sweep`: one substrate, a sequence, or a
         ``{label: substrate}`` mapping.
     states, subsets, formalisms, compute
-        As in :func:`pyphi.sweep.sweep`. A callable ``compute`` must be an
+        As in :func:`pyphi.sweep`. A callable ``compute`` must be an
         importable module-level function.
     directory
         Target directory; created, and must not already exist.
@@ -569,7 +569,7 @@ def prepare_ces(
 ) -> CampaignStatus:
     """Materialize a scoped CES sweep as a campaign.
 
-    Enumerates exactly the cells :func:`pyphi.sweep.sweep` would run over
+    Enumerates exactly the cells :func:`pyphi.sweep` would run over
     the same axes, all sharing one scope, and plans shards for each cell's
     scoped distinction computation (and, unless a precomputed ``sia`` or
     explicit ``resolution_state`` is given, for its system irreducibility
@@ -585,10 +585,10 @@ def prepare_ces(
     Parameters
     ----------
     substrates
-        As in :func:`pyphi.sweep.sweep`: one substrate, a sequence, or a
+        As in :func:`pyphi.sweep`: one substrate, a sequence, or a
         ``{label: substrate}`` mapping.
     states, subsets, formalisms
-        As in :func:`pyphi.sweep.sweep`; scalars are accepted anywhere.
+        As in :func:`pyphi.sweep`; scalars are accepted anywhere.
     scope : CESScope, optional
         One feasibility surface shared by every cell, resolved per
         substrate; ``None`` is the unconstrained scope.

@@ -11,7 +11,7 @@ kernelspec:
 
 # Read a result
 
-{func}`pyphi.analyze` returns an {class}`~pyphi.analyze.Analysis`. This page
+{func}`pyphi.analyze` returns an {class}`~pyphi.Analysis`. This page
 walks through what it prints and what each row means, then through the
 system irreducibility analysis underneath it and how to interpret an unexpected value.
 

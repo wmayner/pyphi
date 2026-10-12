@@ -10,7 +10,7 @@ from pyphi import sweep
 from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
-from pyphi.sweep import SweepResult
+from pyphi.sweeps import SweepResult
 
 
 def test_sweep_over_states_shape_and_parity():
@@ -264,7 +264,7 @@ def test_sweep_result_equality_does_not_raise():
     whose elementwise result has no truth value; equality must be usable."""
     import pandas as pd
 
-    from pyphi.sweep import SweepResult
+    from pyphi.sweeps import SweepResult
 
     a = SweepResult(df=pd.DataFrame({"x": [1, 2]}), results=[1], skipped=[])
     b = SweepResult(df=pd.DataFrame({"x": [1, 2]}), results=[1], skipped=[])
