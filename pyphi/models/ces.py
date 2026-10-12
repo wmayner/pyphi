@@ -215,7 +215,21 @@ class CauseEffectStructure(
 
     @property
     def big_phi(self):
-        """float: Φ, the sum of distinction and relation φ."""
+        """float: Φ, the structure integrated information — the sum of
+        distinction and relation φ.
+
+        Raises
+        ------
+        AttributeError
+            For a structure computed under IIT 3.0, which has no relations and
+            so no structure integrated information. That version's Φ is the
+            system-level value ``sia.phi``.
+        """
+        if system_phi_label(self.config) == "Φ":
+            raise AttributeError(
+                "IIT 3.0 has no structure integrated information; its Φ is the "
+                "system-level value on `.phi`."
+            )
         return self.sum_phi_distinctions + self.sum_phi_relations
 
     def _resolve_members(self, items) -> list:

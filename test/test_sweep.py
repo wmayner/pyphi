@@ -262,3 +262,23 @@ def test_sweep_result_equality_does_not_raise():
     assert a == b
     assert a != c
     assert a != object()
+
+
+def test_flat_label_subset_is_one_subset_like_indices():
+    """A flat sequence of labels is one subset, as analyze(subset=...) reads it."""
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2023):
+        by_label = sweep(substrate, states=[(1, 0, 0)], subsets=("A", "B"))
+        by_index = sweep(substrate, states=[(1, 0, 0)], subsets=(0, 1))
+    assert len(by_label.df) + len(by_label.skipped) == 1
+    assert list(by_label.df["phi"]) == list(by_index.df["phi"])
+
+
+def test_explicit_axis_reads_flat_sequences_as_one_entry():
+    from pyphi.campaign import _axis_as_json
+    from pyphi.sweeps import _explicit_axis
+
+    assert _explicit_axis(("A", "B"), "subsets") == [("A", "B")]
+    assert _explicit_axis((0, 1), "subsets") == [(0, 1)]
+    assert _explicit_axis([("A", "B"), ("C",)], "subsets") == [("A", "B"), ("C",)]
+    assert _axis_as_json(("A", "B"), "subsets") == [["A", "B"]]

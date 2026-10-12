@@ -54,6 +54,28 @@ def test_iit3_analysis_reads_like_every_other_version():
     assert np.isnan(frame["sum_phi_r"].item())
 
 
+def test_iit3_ces_has_no_big_phi_like_the_analysis():
+    """IIT 3.0 has no structure integrated information, so the structure's
+    big_phi raises the same error as the analysis's; display, the table and
+    the MCP summary still work."""
+    from pyphi.mcp.server import _result_summary
+
+    analysis = pyphi.analyze(examples.xor_substrate(), (0, 0, 0), formalism="IIT_3_0")
+    with pytest.raises(AttributeError, match="no structure integrated"):
+        _ = analysis.ces.big_phi
+    with pytest.raises(AttributeError, match="no structure integrated"):
+        _ = analysis.big_phi
+    assert str(analysis.ces)
+    assert analysis.ces._repr_html_()
+    assert len(analysis.ces.to_pandas()) == 3
+    bare = pyphi.analyze(
+        examples.xor_substrate(), (0, 0, 0), formalism="IIT_3_0", compute="ces"
+    )
+    summary = _result_summary(bare)
+    assert summary["num_distinctions"] == 3
+    assert "big_phi" not in summary
+
+
 def test_iit3_ces_round_trips(tmp_path):
     ces = pyphi.analyze(examples.xor_substrate(), (0, 0, 0), formalism="IIT_3_0").ces
     pyphi.save(ces, tmp_path / "c.json")
@@ -153,6 +175,7 @@ def test_iit3_2014_examples_are_registered():
     "module,name",
     [
         ("pyphi.models", "Concept"),
+        ("pyphi.models", "Cut"),
         ("pyphi.convert", "b2l"),
         ("pyphi.convert", "sbs2sbn"),
     ],
@@ -163,12 +186,48 @@ def test_removed_aliases_name_the_replacement(module, name):
 
 
 @pytest.mark.parametrize(
-    "old,new", [("null_concept", "null_distinction"), ("apply_cut", "apply_partition")]
+    "old,new",
+    [
+        ("null_concept", "null_distinction"),
+        ("apply_cut", "apply_partition"),
+        ("concept", "distinction"),
+    ],
 )
 def test_removed_system_names_name_the_replacement(old, new):
     system = examples.xor_system()
-    with pytest.raises(AttributeError, match=new):
+    with pytest.raises(AttributeError, match=f"`{new}`"):
         getattr(system, old)
+
+
+def test_models_cut_names_the_replacement():
+    with pytest.raises(AttributeError, match="DirectedBipartition"):
+        _ = pyphi.models.Cut
+
+
+@pytest.mark.parametrize(
+    "old,new",
+    [
+        ("cut", "partition"),
+        ("ces", "distinctions"),
+        ("partitioned_ces", "partitioned_distinctions"),
+    ],
+)
+def test_removed_iit3_sia_names_name_the_replacement(old, new):
+    sia = pyphi.analyze(
+        examples.xor_substrate(), (0, 0, 0), formalism="IIT_3_0", compute="sia"
+    )
+    with pytest.raises(AttributeError, match=f"`{new}`"):
+        getattr(sia, old)
+
+
+def test_removed_transition_names_name_the_replacement():
+    from pyphi import actual
+
+    transition = examples.prevention_transition()
+    with pytest.raises(AttributeError, match="`apply_partition`"):
+        _ = transition.apply_cut
+    with pytest.raises(AttributeError, match="`partition`"):
+        _ = actual.sia(transition).cut
 
 
 def test_system_card_says_partition():

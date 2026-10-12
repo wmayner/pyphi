@@ -134,6 +134,23 @@ class TestAgainstRealSweeps:
         assert est.is_exact is True
         assert est.distinct_systems_upper_bound == len(result.records) == 3
 
+    @pytest.mark.parametrize("max_constituents", [2, 4])
+    def test_first_level_judgments_match_the_search(self, max_constituents):
+        """The search judges each decomposition once per update grain, so the
+        first level's judgment count must count each grain."""
+        from pyphi import examples
+        from pyphi.macro.search import intrinsic_units
+
+        substrate = examples.grid3_substrate()
+        bounds = SearchBounds(
+            max_depth=1, max_update_grain=2, max_constituents=max_constituents
+        )
+        with config.override(**presets.iit4_2026):
+            result = intrinsic_units(substrate, ((0, 0, 0), (0, 0, 0)), bounds=bounds)
+            est = bounds.estimate(substrate)
+        # The search's verdicts open with one trivial verdict per micro unit.
+        assert est.judgments_by_level == (len(result.verdicts) - len(substrate),)
+
     def test_chain_depth_zero_upper_bound(self):
         from pyphi.macro.search import complexes
         from test.macro.test_macro_search import decaying_chain_substrate

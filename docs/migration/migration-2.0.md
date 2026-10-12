@@ -33,7 +33,8 @@ topic is tagged with who it affects:
 | `pyphi.models.CauseEffectStructure`, the concepts | `pyphi.models.Distinctions` | [1.x] |
 | `PhiStructure` | `pyphi.models.CauseEffectStructure` | [4.0-branch] |
 | `subsystem.null_concept` | `system.null_distinction` | [1.x] |
-| `subsystem.apply_cut(cut)` | `system.apply_partition(partition)` | [1.x] |
+| `subsystem.apply_cut(cut)`, `transition.apply_cut(cut)` | `system.apply_partition(partition)`, `transition.apply_partition(partition)` | [1.x] |
+| `pyphi.actual.events(network, previous_state, current_state, next_state, nodes)`; `indices=` on `true_events` and `extrinsic_events` | `pyphi.actual.events(substrate, previous_state, current_state, next_state, subset=nodes)`; `subset=` on all three | [1.x] |
 | `pyphi.convert.b2l`, `l2b`, `l2s`, `b2s`, `s2l`, `s2b` | `be2le`, `le2be`, `le_index2state`, `be_index2state`, `state2le_index`, `state2be_index` | [1.x] |
 | `pyphi.convert.b2l_sbs`, `l2b_sbs` | `be2le_state_by_state`, `le2be_state_by_state` | [1.x] |
 | `pyphi.convert.to_md`, `to_2d` | `to_multidimensional`, `to_2dimensional` | [1.x] |

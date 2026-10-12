@@ -86,11 +86,6 @@ class Analysis(Displayable, Serializable):
             no structure integrated information. That version's Φ is
             :attr:`phi`.
         """
-        if self._phi_label == "Φ":
-            raise AttributeError(
-                "IIT 3.0 has no structure integrated information; its Φ is the "
-                "system-level value on `.phi`."
-            )
         return float(self.ces.big_phi)
 
     def _describe(self, verbosity: int) -> Description:

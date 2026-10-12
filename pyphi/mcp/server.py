@@ -308,9 +308,9 @@ def _result_summary(result: Any, formalism: str | None = None) -> dict[str, Any]
         summary["intrinsic_information"], summary["requirement_binding"] = binding
 
     # A full analysis carries its cause-effect structure on ``.ces``; a bare
-    # cause-effect structure result is one itself (it has ``big_phi``).
+    # cause-effect structure result is one itself.
     ces = getattr(result, "ces", None)
-    if ces is None and hasattr(result, "big_phi"):
+    if ces is None and isinstance(result, CauseEffectStructure):
         ces = result
     if ces is not None:
         add_float("sum_phi_distinctions", ces, "sum_phi_distinctions")

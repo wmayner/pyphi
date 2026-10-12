@@ -227,6 +227,17 @@ def test_phi_posterior_is_reproducible(grid3_posterior):
     assert a.seed == 42
 
 
+def test_phi_posterior_formalism_applies_to_every_draw(grid3_posterior):
+    kwargs = {"n_samples": 3, "seed": 5}
+    chosen = phi_posterior(grid3_posterior, (0, 0, 0), formalism="IIT_3_0", **kwargs)
+    with pyphi.config.override(**pyphi.iit3):
+        ambient = phi_posterior(grid3_posterior, (0, 0, 0), **kwargs)
+    default = phi_posterior(grid3_posterior, (0, 0, 0), **kwargs)
+    np.testing.assert_array_equal(chosen.samples, ambient.samples)
+    assert chosen.complex_samples == ambient.complex_samples
+    assert not np.array_equal(chosen.samples, default.samples)
+
+
 def test_phi_posterior_is_a_mixture(grid3_phi_posterior):
     pp = grid3_phi_posterior
     assert isinstance(pp, PhiPosterior)

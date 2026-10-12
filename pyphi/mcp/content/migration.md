@@ -25,6 +25,8 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.metrics` | `pyphi.measures` |
 | `pyphi.models.Concept` | `pyphi.models.Distinction` |
 | `subsystem.null_concept` / `subsystem.apply_cut(cut)` | `system.null_distinction` / `system.apply_partition(partition)` |
+| `transition.apply_cut(cut)` | `transition.apply_partition(partition)` |
+| `pyphi.actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events` | `subset=nodes`, keyword-only, on all three |
 | `pyphi.convert.b2l`, `sbn2sbs`, and the other short names | the long names (`be2le`, `state_by_node2state_by_state`, ...) |
 | `subsystem.cause_tpm` / `effect_tpm` | `system.cause_marginal` / `effect_marginal` (plus `proper_*` variants) |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` |

@@ -538,6 +538,7 @@ def estimate_analysis(
     state: Any = None,
     *,
     subset: Any = None,
+    formalism: str | None = None,
     compute: str | None = None,
     limit: int = 1_000_000,
     scope: Any | None = None,
@@ -545,10 +546,10 @@ def estimate_analysis(
     """Count the workload of a single-system analysis, without running it.
 
     Drives the same enumeration machinery :func:`pyphi.analyze` would use
-    under the active configuration: the system partition scheme, the
-    connectivity-pruned purview sets, and the mechanism partition scheme.
-    No φ is computed and no state is needed — every counted quantity is
-    state-independent.
+    under the active configuration, or under ``formalism``: the system
+    partition scheme, the connectivity-pruned purview sets, and the mechanism
+    partition scheme. No φ is computed and no state is needed — every counted
+    quantity is state-independent.
 
     Parameters
     ----------
@@ -561,12 +562,18 @@ def estimate_analysis(
     subset : optional
         Node indices (or labels) of the candidate system; ``None`` uses
         the whole substrate.
+    formalism : str or None, optional
+        Leave unset to count under the active configuration. A version name
+        counts the analysis that ``analyze(..., formalism=...)`` would run;
+        it applies to this call only.
     compute : str or None, optional
         ``None`` estimates the full analysis; ``"sia"`` only the
         system-partition axis; ``"distinctions"`` only the distinction
         axis; ``"ces"`` the distinction axis plus the system-partition
         axis, since unfolding a cause-effect structure computes a system
-        irreducibility analysis first.
+        irreducibility analysis first. A callable is not accepted, since
+        its cost is whatever the callable does; estimate the computation it
+        runs instead.
     limit : int, optional
         Work budget for the counting walk itself: purview evaluations and
         fresh partition enumerations each cost one unit, while memoized
@@ -588,7 +595,8 @@ def estimate_analysis(
     ------
     ValueError
         If ``compute`` is not ``"sia"``, ``"ces"``, ``"distinctions"``, or
-        ``None``, or if ``state`` does not have one entry per unit.
+        ``None``, if ``formalism`` names no known version, or if ``state``
+        does not have one entry per unit.
 
     Examples
     --------
@@ -599,6 +607,12 @@ def estimate_analysis(
     >>> est.system_partitions
     22
     """
+    if callable(compute):
+        raise ValueError(
+            "estimate_analysis cannot price a callable compute, since its cost "
+            "is whatever the callable does; estimate the computation it runs "
+            "('sia', 'ces' or 'distinctions') instead"
+        )
     if compute not in (None, "sia", "ces", "distinctions"):
         raise ValueError(
             f"unknown compute: {compute!r}; expected 'sia', 'ces', "
@@ -610,6 +624,20 @@ def estimate_analysis(
             f"{substrate.size} units; to estimate a candidate system, pass "
             "its units as subset="
         )
+    from pyphi.conf import presets
+
+    with presets.use(formalism):
+        return _estimate_analysis(substrate, subset, compute, limit, scope)
+
+
+def _estimate_analysis(
+    substrate: Substrate,
+    subset: Any,
+    compute: str | None,
+    limit: int,
+    scope: Any | None,
+) -> AnalysisEstimate:
+    """Count the workload of one analysis under the active configuration."""
     from pyphi import utils
     from pyphi.conf import config
     from pyphi.direction import Direction

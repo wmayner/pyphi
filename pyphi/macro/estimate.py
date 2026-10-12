@@ -36,6 +36,7 @@ from pyphi.macro.search import _competitor_members
 from pyphi.macro.search import _decompositions
 from pyphi.macro.search import _max_tau
 from pyphi.macro.search import _require_iit4
+from pyphi.macro.search import _update_grains
 from pyphi.macro.search import candidate_mappings
 from pyphi.models.pandas import ToPandasMixin
 
@@ -120,8 +121,9 @@ class SearchEstimate(Displayable, ToPandasMixin):
     bounds : SearchBounds
         The bounds the estimate describes.
     judgments_by_level : tuple[int, ...]
-        Candidate decompositions judged per macroing level (the first
-        level's count is exact; deeper levels are worst-case).
+        Judgments per macroing level, one per candidate decomposition and
+        update grain (the first level's count is exact; deeper levels are
+        worst-case).
     worst_case_pool_by_level : tuple[int, ...]
         Concrete units in the pool after each level, all-pass.
     assemblies_upper_bound : int
@@ -300,8 +302,11 @@ def estimate_search(
                             if delta <= 0:
                                 continue
                             judged[key] = base
-                            counter.charge(delta)
-                            judged_this_level += delta
+                            # The search judges a decomposition once per
+                            # update grain its variants take.
+                            judgments = delta * len(_update_grains(V, bounds))
+                            counter.charge(judgments)
+                            judged_this_level += judgments
                             record_combo(V)
                             members = _competitor_members(
                                 pool_at_class_start, footprint, W, _max_tau(V, bounds)

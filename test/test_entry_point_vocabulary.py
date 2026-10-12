@@ -89,6 +89,22 @@ def test_compute_vocabulary_is_shared():
             pyphi.estimate_analysis(s, compute=compute)
 
 
+def test_estimate_analysis_takes_formalism():
+    s = examples.basic_substrate()
+    with config.override(**pyphi.iit3):
+        expected = pyphi.estimate_analysis(s)
+    estimate = pyphi.estimate_analysis(s, formalism="IIT_3_0")
+    assert estimate == expected
+    assert estimate != pyphi.estimate_analysis(s)
+
+
+def test_estimate_analysis_says_a_callable_cannot_be_priced():
+    with pytest.raises(ValueError, match="cannot price a callable"):
+        pyphi.estimate_analysis(
+            examples.basic_substrate(), compute=lambda system: system.sia()
+        )
+
+
 def test_sweep_unknown_compute_names_the_vocabulary():
     with pytest.raises(ValueError, match="distinctions"):
         pyphi.sweep(examples.basic_substrate(), states=[(1, 0, 0)], compute="Ces")

@@ -558,6 +558,13 @@ class Transition(Serializable):
             }
         )
 
+    def __getattr__(self, name: str) -> Any:
+        # Called only when normal attribute lookup fails.
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if name == "apply_cut":
+            message += ". PyPhi 2.0 renamed it `apply_partition`"
+        raise AttributeError(message)
+
     def apply_partition(self, partition: DirectedBipartition) -> "Transition":
         return replace(self, partition=partition)
 

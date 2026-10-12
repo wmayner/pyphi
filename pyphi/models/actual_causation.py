@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import namedtuple
 from collections.abc import Sequence
+from typing import Any
 
 from pyphi import numerics
 from pyphi.direction import Direction
@@ -789,6 +790,13 @@ class AcSystemIrreducibilityAnalysis(
         return isinstance(other, AcSystemIrreducibilityAnalysis) and (
             self.direction == other.direction
         )
+
+    def __getattr__(self, name: str) -> Any:
+        # Called only when normal attribute lookup fails.
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if name == "cut":
+            message += ". PyPhi 2.0 renamed it `partition`"
+        raise AttributeError(message)
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):

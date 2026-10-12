@@ -43,6 +43,7 @@ from . import numerics
 from .analysis import analyze
 from .conf import config
 from .conf import fallback
+from .conf import presets
 from .provenance import Provenance
 from .serializable import Serializable
 from .substrate import Substrate
@@ -390,6 +391,7 @@ def phi_posterior(
     n_samples: int,
     seed: int,
     subset: Sequence[int] | None = None,
+    formalism: str | None = None,
     screen_margin: float | None = None,
     progress: bool | None = None,
 ) -> PhiPosterior:
@@ -415,6 +417,10 @@ def phi_posterior(
     subset
         Unit indices of the candidate system; ``None`` uses the
         whole substrate.
+    formalism
+        Leave unset to compute IIT under the active configuration. Pass an
+        earlier version's name only to reproduce published results; it
+        applies to every draw of this call, as in :func:`pyphi.analyze`.
     screen_margin
         Margin threshold for the complex-identity screen; ``None``
         (default) disables it. When given, the maximal complex of the
@@ -450,7 +456,22 @@ def phi_posterior(
     """
     if n_samples < 1:
         raise ValueError(f"n_samples must be at least 1, got {n_samples}")
+    with presets.use(formalism):
+        return _phi_posterior(
+            posterior, state, n_samples, seed, subset, screen_margin, progress
+        )
 
+
+def _phi_posterior(
+    posterior: SubstratePosterior,
+    state: tuple[int, ...],
+    n_samples: int,
+    seed: int,
+    subset: Sequence[int] | None,
+    screen_margin: float | None,
+    progress: bool | None,
+) -> PhiPosterior:
+    """Propagate a substrate posterior under the active configuration."""
     screened = False
     reference_margins = None
     reference_units: tuple[int, ...] | None = None

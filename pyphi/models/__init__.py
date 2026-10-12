@@ -146,4 +146,10 @@ def __getattr__(name: str):
     message = f"module {__name__!r} has no attribute {name!r}"
     if name == "Concept":
         message += ". PyPhi 2.0 renamed it `Distinction`"
+    elif name == "Cut":
+        message += (
+            ". PyPhi 2.0 replaced it with "
+            "`DirectedBipartition(direction, from_nodes, to_nodes)`, applied with "
+            "`System(..., partition=)`"
+        )
     raise AttributeError(message)

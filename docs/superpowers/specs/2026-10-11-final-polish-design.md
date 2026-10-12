@@ -113,8 +113,9 @@ meanings, wherever they apply:
 
 Consequences:
 
-- `compute` accepts the same five values everywhere it appears. `sweep`
-  gains `"distinctions"` and `None`. Default: `None` on `analyze` and
+- `compute` accepts the same five values everywhere it appears, except
+  that `estimate_analysis` rejects a callable, whose cost it cannot count.
+  `sweep` gains `"distinctions"` and `None`. Default: `None` on `analyze` and
   `estimate_analysis` (unchanged); **`"sia"` on `sweep`**, kept because a
   sweep multiplies cost by the number of cells, and stated in the
   docstring and how-to. (Open for review: default `sweep` to `None` too.)

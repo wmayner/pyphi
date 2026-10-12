@@ -143,11 +143,16 @@ def _check_mode(axis: str, value: str, modes: tuple[str, ...]) -> None:
 def _explicit_axis(values: Any, axis: str) -> list[tuple[Any, ...]]:
     """An explicit states or subsets axis as a list of tuples.
 
-    A flat sequence of integers (numpy integers included) is one entry;
-    anything else is an iterable of entries, such as the rows of a 2-D array.
+    A flat sequence whose items are all integers (numpy integers included) or
+    all strings (unit labels) is one entry, as ``analyze(subset=...)`` reads
+    it; anything else is an iterable of entries, such as the rows of a 2-D
+    array.
     """
     values = list(values)
-    if values and all(isinstance(x, Integral) for x in values):
+    if values and (
+        all(isinstance(x, Integral) for x in values)
+        or all(isinstance(x, str) for x in values)
+    ):
         values = [values]
     entries = [
         tuple(int(x) if isinstance(x, Integral) else x for x in entry)
@@ -460,8 +465,9 @@ def sweep(
         array), or ``"all"``. Explicit states apply to every substrate;
         ``"all"`` enumerates per substrate.
     subsets
-        ``"full"`` (whole system), ``"all"`` (non-empty powerset), a tuple of
-        node indices, or an iterable of them. Explicit subsets apply to every
+        ``"full"`` (whole system), ``"all"`` (non-empty powerset), one subset
+        as a tuple of node indices or of labels, or an iterable of subsets.
+        Explicit subsets apply to every
         substrate; ``"full"`` and ``"all"`` are resolved per substrate.
     formalisms
         Leave unset to compute IIT under the active configuration, honored

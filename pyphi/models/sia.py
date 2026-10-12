@@ -32,6 +32,13 @@ from .pandas import ToPandasMixin
 from .partitions import _cut_grid
 from .partitions import concise_partition
 
+# PyPhi 1.x attributes of the IIT 3.0 result that 2.0 renamed.
+_RENAMED_ATTRIBUTES = {
+    "cut": "partition",
+    "ces": "distinctions",
+    "partitioned_ces": "partitioned_distinctions",
+}
+
 
 class IIT3SystemIrreducibilityAnalysis(
     HasProvenance, Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable
@@ -261,6 +268,13 @@ class IIT3SystemIrreducibilityAnalysis(
                 self.current_state,
             )
         )
+
+    def __getattr__(self, name: str) -> Any:
+        # Called only when normal attribute lookup fails.
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if name in _RENAMED_ATTRIBUTES:
+            message += f". PyPhi 2.0 renamed it `{_RENAMED_ATTRIBUTES[name]}`"
+        raise AttributeError(message)
 
     def order_by(self) -> tuple[Any, bytes]:
         """Sort key: ``(phi, partition.lex_key())``."""
