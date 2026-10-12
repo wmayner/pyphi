@@ -687,3 +687,40 @@ class TestTieStrategyNamesValidatedEagerly:
             **{"iit.sia_tie_resolution": ["PHI", "PARTITION_LEX"]},
         ):
             pass  # no ConfigurationError
+
+
+class TestPartitionSchemeNamesValidatedEagerly:
+    """A partition scheme name that is not registered fails at configuration
+    time, under every version, not when a partition is first enumerated."""
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "iit.mechanism_partition_scheme",
+            "iit.system_partition_scheme",
+            "actual_causation.mechanism_partition_scheme",
+        ],
+    )
+    def test_unregistered_name_rejected(self, path: str) -> None:
+        with (
+            pytest.raises(ConfigurationError) as exc,
+            config.override(**{path: "TRI"}),
+        ):
+            pass
+        message = str(exc.value)
+        assert path.split(".")[-1] in message
+        assert "'TRI'" in message
+
+    def test_mechanism_message_lists_the_registered_schemes(self) -> None:
+        with pytest.raises(ConfigurationError, match="WEDGE_TRIPARTITION"):
+            config["iit.mechanism_partition_scheme"] = "TRI"
+
+    def test_system_message_lists_the_registered_schemes(self) -> None:
+        with pytest.raises(ConfigurationError, match="DIRECTED_SET_PARTITION"):
+            config["iit.system_partition_scheme"] = "TRI"
+
+    def test_ac_registered_names_accepted(self) -> None:
+        with config.override(
+            **{"actual_causation.mechanism_partition_scheme": "JOINT_BIPARTITION"}
+        ):
+            pass  # no ConfigurationError

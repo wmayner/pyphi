@@ -209,3 +209,34 @@ class TestFormerNames:
         assert "numerics.precision" in message
         assert "infrastructure.parallel_partition_evaluation" in message
         assert "SYSTEM_CUTS" in message
+
+
+class TestAWriteOfTheWrongTypeIsUndone:
+    """A value of the wrong type fails the check with a ConfigurationError and
+    is rolled back, so later writes are not blocked by it."""
+
+    def test_wrong_type_raises_configuration_error_and_rolls_back(self):
+        before = config.snapshot()
+        with pytest.raises(ConfigurationError, match="sia_tie_resolution"):
+            config.sia_tie_resolution = 5
+        assert config.snapshot() == before
+        config.precision = 6
+        assert config.precision == 6
+
+    def test_wrong_type_under_iit3_raises_configuration_error(self):
+        with config.override(**pyphi.iit3):
+            with pytest.raises(ConfigurationError, match="sia_tie_resolution"):
+                config.sia_tie_resolution = 5
+            assert config.formalism.iit.sia_tie_resolution == ("PHI", "PARTITION_LEX")
+
+    def test_any_failure_of_the_check_rolls_back(self, monkeypatch):
+        from pyphi.conf import constraints
+
+        def explode(_config):
+            raise RuntimeError("check failed")
+
+        before = config.snapshot()
+        monkeypatch.setattr(constraints, "check_config_constraints", explode)
+        with pytest.raises(RuntimeError, match="check failed"):
+            config.precision = 3
+        assert config.snapshot() == before

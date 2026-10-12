@@ -377,7 +377,8 @@ class _GlobalConfig:
     def _check(self, before: ConfigSnapshot) -> None:
         """Run the cross-field checks after one write; undo it if they fail.
 
-        The error adds how to change options that must agree, since one
+        The write is undone whatever the checks raise. A constraint violation's
+        error adds how to change options that must agree, since one
         assignment cannot.
         """
         if not self._infrastructure.validate_config:
@@ -398,6 +399,9 @@ class _GlobalConfig:
                     "call."
                 )
             raise ConfigurationError(f"{exc} {advice}") from None
+        except Exception:
+            self.install_snapshot(before)
+            raise
 
     def __iter__(self) -> Iterator[str]:
         """Yield every leaf field as a dotted path in dataclass declaration order.

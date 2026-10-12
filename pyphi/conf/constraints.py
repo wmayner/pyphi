@@ -58,6 +58,7 @@ unconstrained.
 from __future__ import annotations
 
 from collections.abc import Callable
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -135,6 +136,42 @@ def _compatible_measures(version: str) -> frozenset[str] | None | object:
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
         return formalism
     return frozenset(formalism.compatible_measures)
+
+
+def _strategy_components(strategy: Any) -> tuple[str, ...] | None:
+    """Return the component names of a tie-resolution strategy value.
+
+    A strategy is one registered name or a sequence of them. Returns ``None``
+    for any other value.
+    """
+    if isinstance(strategy, str):
+        return (strategy,)
+    if isinstance(strategy, Sequence) and all(isinstance(c, str) for c in strategy):
+        return tuple(strategy)
+    return None
+
+
+def _unregistered_partition_scheme(
+    path: str, scheme: Any, registry_name: str
+) -> str | None:
+    """Return an error message if ``scheme`` is not a registered scheme name.
+
+    ``registry_name`` names a partition-scheme registry in
+    :mod:`pyphi.partition`, imported lazily because ``pyphi.partition`` depends
+    on ``pyphi.conf``. The check is skipped while that module cannot be
+    imported yet (the bootstrap window).
+    """
+    try:
+        from pyphi import partition
+    except ImportError:
+        return None
+    registered = getattr(partition, registry_name).store
+    if isinstance(scheme, str) and scheme in registered:
+        return None
+    return (
+        f"formalism.{path}={scheme!r} is not a registered partition scheme. "
+        f"Registered schemes: {sorted(registered)}."
+    )
 
 
 @register_constraint("measure_compatible_with_version")
@@ -215,7 +252,8 @@ def _measure_compatible_with_version(config: Any) -> str | None:
 
 @register_constraint("system_partition_scheme_compatible_with_version")
 def _system_partition_scheme_compatible_with_version(config: Any) -> str | None:
-    """The system partition scheme must be one the active formalism accepts.
+    """The system partition scheme must be registered and be one the active
+    formalism accepts.
 
     IIT 3.0 only supports ``DIRECTED_BIPARTITION`` /
     ``DIRECTED_BIPARTITION_CUT_ONE`` system schemes (its ``sia_partitions``
@@ -224,6 +262,13 @@ def _system_partition_scheme_compatible_with_version(config: Any) -> str | None:
     ``compatible_system_partition_schemes = None`` and are not constrained.
     """
     iit = config.formalism.iit
+    unregistered = _unregistered_partition_scheme(
+        "iit.system_partition_scheme",
+        iit.system_partition_scheme,
+        "system_partition_types",
+    )
+    if unregistered is not None:
+        return unregistered
     version = iit.version
     formalism = _active_formalism(version)
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
@@ -247,9 +292,11 @@ def _system_partition_scheme_compatible_with_version(config: Any) -> str | None:
 
 @register_constraint("mechanism_partition_scheme_compatible_with_version")
 def _mechanism_partition_scheme_compatible_with_version(config: Any) -> str | None:
-    """The mechanism partition scheme must be one the active formalism accepts.
+    """The mechanism partition schemes must be registered, and the IIT one
+    must be one the active formalism accepts.
 
-    IIT 3.0 defines mechanism-level φ over bipartitions (with the wedge
+    The actual-causation scheme is checked for registration only. IIT 3.0
+    defines mechanism-level φ over bipartitions (with the wedge
     tripartition as its registered variant); pairing it with the IIT 4.0
     ``JOINT_PARTITION_ALL`` family silently computes a different quantity
     than the 2014 paper's φ. Formalisms that accept any registered scheme
@@ -257,6 +304,16 @@ def _mechanism_partition_scheme_compatible_with_version(config: Any) -> str | No
     constrained.
     """
     iit = config.formalism.iit
+    for path, scheme in (
+        ("iit.mechanism_partition_scheme", iit.mechanism_partition_scheme),
+        (
+            "actual_causation.mechanism_partition_scheme",
+            config.formalism.actual_causation.mechanism_partition_scheme,
+        ),
+    ):
+        unregistered = _unregistered_partition_scheme(path, scheme, "partition_types")
+        if unregistered is not None:
+            return unregistered
     version = iit.version
     formalism = _active_formalism(version)
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
@@ -297,8 +354,9 @@ def _sia_tie_resolution_compatible_with_version(config: Any) -> str | None:
     compatible = getattr(formalism, "compatible_sia_tie_strategies", None)
     if compatible is None:
         return None  # unconstrained (e.g. IIT 4.0)
-    strategy = iit.sia_tie_resolution
-    components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+    components = _strategy_components(iit.sia_tie_resolution)
+    if components is None:
+        return None  # reported by tie_resolution_strategies_registered
     for component in components:
         if component not in compatible:
             return (
@@ -336,7 +394,13 @@ def _tie_resolution_strategies_registered(config: Any) -> str | None:
         "sia_tie_resolution",
     ):
         strategy = getattr(iit, field_name)
-        components = (strategy,) if isinstance(strategy, str) else tuple(strategy)
+        components = _strategy_components(strategy)
+        if components is None:
+            return (
+                f"formalism.iit.{field_name}={strategy!r} must be a "
+                f"tie-resolution strategy name or a sequence of names. "
+                f"Registered strategies: {sorted(valid)}."
+            )
         for component in components:
             if component not in valid:
                 return (
