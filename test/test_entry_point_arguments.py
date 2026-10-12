@@ -105,22 +105,16 @@ def test_system_keeps_its_subset_through_a_cut():
     assert system.apply_partition(cut).node_indices == (0, 1)
 
 
-def test_copy_replace_keeps_the_subset():
+def test_replace_keeps_the_subset():
     import copy
-
-    system = pyphi.System(examples.basic_substrate(), (1, 0, 0), subset=(0, 1))
-    changed = copy.replace(system, state=(1, 1, 0))
-    assert changed.state == (1, 1, 0)
-    assert changed.node_indices == (0, 1)
-
-
-def test_dataclasses_replace_says_how_to_keep_the_subset():
     import dataclasses
 
     system = pyphi.System(examples.basic_substrate(), (1, 0, 0), subset=(0, 1))
-    with pytest.raises(AttributeError, match=r"copy\.replace"):
-        dataclasses.replace(system, state=(1, 1, 0))
-    assert not hasattr(system, "subset")
+    assert system.subset == system.node_indices == (0, 1)
+    for replace in (copy.replace, dataclasses.replace):
+        changed = replace(system, state=(1, 1, 0))
+        assert changed.state == (1, 1, 0)
+        assert changed.node_indices == (0, 1)
 
 
 def test_actual_events_take_subset():

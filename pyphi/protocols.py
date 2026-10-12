@@ -166,6 +166,7 @@ PUBLIC_SYSTEM_ATTRS: frozenset[str] = frozenset(
         "background_state",
         "substrate",
         "node_indices",
+        "subset",
         "node_labels",
         "nodes",
         "proper_cause_marginal",
@@ -269,6 +270,7 @@ class SystemPublicInterface(Protocol):
     background_state: Any
     substrate: Any
     node_indices: Any
+    subset: Any
     node_labels: Any
     nodes: Any
     proper_cause_marginal: Any

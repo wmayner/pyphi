@@ -326,24 +326,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         message = f"{type(self).__name__!r} object has no attribute {name!r}"
         if name in _RENAMED_ATTRIBUTES:
             message += f". PyPhi 2.0 renamed it `{_RENAMED_ATTRIBUTES[name]}`"
-        elif name == "subset":
-            # dataclasses.replace reads every init argument back from the
-            # instance, and ``subset`` is only a constructor argument.
-            message += (
-                "; the system's units are `node_indices`. To copy a System "
-                "with changes, use copy.replace(system, ...), which keeps its "
-                "units, or pass subset=system.node_indices to "
-                "dataclasses.replace"
-            )
         raise AttributeError(message)
-
-    def __replace__(self, /, **changes: Any) -> System:
-        """Return a copy of this system with ``changes`` applied.
-
-        Called by :func:`copy.replace`. The copy keeps this system's units.
-        """
-        changes.setdefault("subset", self.node_indices)
-        return replace(self, **changes)
 
     def apply_partition(self, partition: DirectedBipartition) -> System:
         """Return a new System with the given partition applied.
@@ -1252,7 +1235,13 @@ class System(Displayable, ToPandasMixin, Serializable):
         ra.clear_caches(self)
 
 
-# ``subset`` is only the constructor's spelling; the resolved units are
-# ``node_indices``. The dataclass leaves the InitVar's default behind as a
-# class attribute, which would otherwise read as ``system.subset is None``.
-delattr(System, "subset")
+def _subset(self: System) -> NodeIndices:
+    """The units of the system, as passed to ``subset``: ``node_indices``."""
+    return self.node_indices
+
+
+# ``subset`` is the constructor's spelling of ``node_indices``. Reading it
+# back gives the resolved units, so ``dataclasses.replace`` and
+# ``copy.replace`` keep a system's units. This replaces the InitVar default
+# the dataclass leaves behind as a class attribute.
+System.subset = property(_subset)  # pyright: ignore[reportAttributeAccessIssue]
