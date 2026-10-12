@@ -1,1 +1,0 @@
-Tie-breaking how-to: corrected the claim that tie-breaking never changes φ or φ_s (system-partition and state ties can change φ_s, and purview ties can change Φ), corrected the description of the `sia_tie_resolution` default (smallest normalized φ, then largest raw φ), and explained how values within `precision` of a tie are reported.

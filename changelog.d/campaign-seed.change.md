@@ -1,1 +1,0 @@
-`pyphi.campaign.prepare` and `pyphi.campaign.prepare_ces`, and the MCP tools `prepare_campaign` and `prepare_ces_campaign`, no longer take `seed`, which drew no random numbers and only labeled provenance. Campaign manifests no longer record a seed; a manifest written by 2.0.0rc1–rc3 still collects. Record a seed with the `pyphi.provenance` writers, as for `sweep`.

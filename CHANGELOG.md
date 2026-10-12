@@ -5,7 +5,7 @@ Changelog
 
 2.0.0
 -----
-_2026-10-01_
+_2026-10-12_
 
 PyPhi 2.0 is a comprehensive rework of the library around IIT 4.0 (Albantakis et
 al. 2023; Mayner et al. 2026): new core value types, first-class formalism
@@ -107,27 +107,54 @@ and `migrate_code` prompt on the MCP server).
 
 **Analysis entry points**
 
-- `pyphi.analyze(substrate, state, *, subset=…, formalism=…, compute=…)`:
-  analyze one candidate system and get an `Analysis` bundle exposing `.sia`,
-  `.ces`, and `.phi` uniformly across formalisms. `formalism=` switches
-  formalism per call, by version name (`"IIT_3_0"`), by the name a preset is
-  exported under (`"iit3"`), or by the preset itself (`pyphi.iit3`);
-  `compute="sia"`/`"ces"` returns the raw result;
-  `grains=True` runs the bounded intrinsic-unit grain search instead.
+- `pyphi.analyze(substrate, state, *, subset=…, formalism=…, compute=…,
+  parallel=…, progress=…)`: analyze one candidate system and get an
+  `Analysis` bundle exposing `.sia`, `.ces`, and `.phi` uniformly across
+  formalisms. `formalism=` switches formalism per call, by version name
+  (`"IIT_3_0"`), by the name a preset is exported under (`"iit3"`), or by the
+  preset itself (`pyphi.iit3`); passing the default's name, `"IIT_4_0_2026"`,
+  applies its complete preset, which differs from leaving the argument unset
+  only when the active configuration has been customized. `compute="sia"`,
+  `"ces"` or `"distinctions"` returns the raw result, and a callable returns
+  `compute(system)`. `grains=True` runs the bounded intrinsic-unit grain
+  search instead (`grains=False` means no grain search). `parallel=True` runs
+  the call in parallel at the system-partition, purview and distinction
+  levels, or over the candidate systems of a grain search; finer tuning goes
+  through the per-level options in `config.infrastructure`.
 - `pyphi.sweep(substrates, states=…, subsets=…, formalisms=…, compute=…)`:
   run the same computation over the cartesian product of axes and get a
-  `SweepResult` — a tidy long-format DataFrame plus the aligned raw results.
-  Accepts a single substrate, a sequence, or a `{label: substrate}` mapping;
-  `"all"` enumerates states or subsets, recording dynamically-unreachable
-  states in `.skipped`; SIA rows carry the selection-margin columns; cells
-  run in parallel when parallelism is enabled.
+  `SweepResult` — a long-format DataFrame plus the aligned raw results.
+  `SweepResult.df` always has the columns `substrate`, `formalism`, `subset`
+  and `state` and a default `RangeIndex`, however many values each axis has.
+  `compute` takes the same values as in `analyze` and defaults to `"sia"`:
+  SIA rows carry the selection-margin columns; rows for `compute="ces"` and
+  `compute=None` have the columns of `Analysis.to_pandas()`, including
+  `big_phi` (Φ) and `sum_phi_d`; and rows for `compute="distinctions"` have
+  `n_distinctions`, `sum_phi_d` and `congruence`. `sweep` accepts a single
+  substrate, a sequence, or a `{label: substrate}` mapping; `"all"`
+  enumerates states or subsets, recording dynamically-unreachable states in
+  `.skipped`; numpy integer states, 2-D arrays of states, and a single subset
+  given as indices or labels are accepted; and the axes are validated before
+  anything is computed, so an empty axis or an unknown string raises
+  `ValueError`. Cells run in parallel when parallelism is enabled, and a
+  `SweepResult` prints as a compact card.
+  `sweep` draws no random numbers and takes no seed; record one with
+  `pyphi.provenance.save_dataframe(..., seed=…)`.
 - `pyphi.estimate_analysis()`: an analytic pre-flight that counts the
   workload of a single-system analysis — system partitions, candidate
   mechanisms, purview evaluations, mechanism-partition sweeps — without
   computing any φ, optionally restricted to a scope. It can be called like
-  `analyze(substrate, state)`; the counts do not depend on the state.
-  `SearchBounds.estimate()` is the same pre-flight for the macro grain
-  search.
+  `analyze(substrate, state)`, takes `formalism=` as `analyze` does, and
+  accepts every `compute` value except a callable, whose cost depends on what
+  the callable does; the counts do not depend on the state. When the stored
+  partition count for a smaller system already exceeds its counting budget,
+  it stops without enumerating and reports that count as a lower bound on
+  `system_partitions`. `SearchBounds.estimate()` is the same pre-flight for
+  the macro grain search.
+- The functions `pyphi.analyze`, `pyphi.sweep` and `pyphi.optimize` are
+  defined in the modules `pyphi.analysis`, `pyphi.sweeps` and
+  `pyphi.optimization`, which hold the API reference pages for `Analysis`,
+  `SweepResult` and `OptimizationResult`.
 - A `Complex` result type: `Substrate.complexes()` and `maximal_complex()`
   return `Complex` objects exposing `is_maximal`, the excluded overlapping
   candidates, and `exclusion_margin` (the φₛ gap to the best overlapping
@@ -143,21 +170,35 @@ and `migrate_code` prompt on the MCP server).
   exactly like a micro `System`. Both paper examples are reproduced at the
   published precision.
 - The intrinsic-unit criteria and bounded grain search (Marshall et al.
-  2024, Sec. 2.2.2): `pyphi.macro.criteria` (Eqs. 15–16 verdicts with
-  witnesses) and `pyphi.macro.search` (`SearchBounds`, the intrinsic-unit
-  recursion, the valid-system set, and the one-call Eq. 19 `complexes()`
-  driver returning winners, ties, and the full evaluation record). Search
-  drivers can parallelize their independent φₛ evaluations, and under the
-  default formalism the search skips partition sweeps whose outcome is
-  certified by the intrinsic-information requirement (`prune=`), with
-  identical results.
+  2026): `pyphi.macro.criteria` (Eqs. 16–17 verdicts with witnesses) and
+  `pyphi.macro.search` (`SearchBounds`, the intrinsic-unit recursion, the
+  valid-system set, and the one-call Eq. 20 `complexes()` driver returning
+  winners, ties, and the full evaluation record). As Eq. 17 requires, a
+  candidate unit is compared only with competitors whose units have an
+  update grain, counted in micro updates, no greater than its own:
+  `intrinsic_units` reports one verdict per decomposition and update grain
+  (`DecompositionVerdict.micro_grain`), `competing_systems` and
+  `is_intrinsic_unit` apply the same bound, and `estimate_search` counts one
+  judgment per decomposition and update grain. Candidate systems with
+  φₛ = 0 are reducible and are dropped before the exclusion cascade, so a
+  substrate whose candidates are all reducible has no complexes, as with
+  `Substrate.complexes`, and a complex's `excluded` record lists only rivals
+  with φₛ > 0. The `ComplexesResult` the search returns prints as a card (its
+  complexes with their φₛ, units and grains, the number of candidate systems
+  evaluated, and the number of tied cliques), and its `to_pandas()` has one
+  row per complex. Search drivers can parallelize their independent φₛ
+  evaluations (`parallel=` and `progress=`, keyword-only like `bounds=` and
+  `prune=`), and under the default formalism the search skips partition
+  sweeps whose outcome is certified by the intrinsic-information
+  requirement (`prune=`), with identical results.
 
 **Multi-valued units and TPMs**
 
 - Multi-valued (k > 2) units are supported throughout the SIA/CES pipeline,
   including heterogeneous per-node alphabets. Substrates are constructed via
   `Substrate(state_space=…)` (a uniform alphabet size or per-node state
-  labels) or `alphabet=k`; states may be given as labels. The EMD repertoire
+  labels) or `alphabet=` (one size for every unit, or one size per unit);
+  states may be given as labels. The EMD repertoire
   measure generalizes to k-ary state spaces, so it remains usable as the IIT
   3.0 mechanism measure on non-binary substrates. Actual causation inherits
   k-ary support through the shared `System` machinery.
@@ -167,7 +208,11 @@ and `migrate_code` prompt on the MCP server).
   Convenience methods include `is_deterministic()`, `permute_nodes()`,
   `subtpm()`, `infer_cm()`/`infer_edge()` (TPM-implied connectivity), and
   `to_xarray()`. `JointTPM` is a read-only view of the joint conditional
-  (`Substrate.joint_tpm()`), uniform for binary and k-ary substrates.
+  (`Substrate.joint_tpm()`), uniform for binary and k-ary substrates. When
+  every unit is binary, `np.asarray(substrate.tpm)` gives the state-by-node
+  array (one row per input state, little-endian, one column per unit);
+  otherwise it raises a `TypeError` that points to `.to_pandas()` and
+  `.to_joint()`.
 
 **Relations and structure queries**
 
@@ -178,7 +223,9 @@ and `migrate_code` prompt on the MCP server).
   `sample(n)` with standard errors. Every query is closed-form on
   `AnalyticalRelations` and answered by iteration on `ConcreteRelations`;
   `materialize()` explicitly enumerates a bounded concrete set when one is
-  needed.
+  needed. `AnalyticalRelations.to_pandas()` returns the degree spectrum, one
+  row per degree with the number of relations and their Σφ_r. A relation's
+  `purview` is a `frozenset`.
 - `PhiFold`: the slice of a cause-effect structure induced by one or more
   distinctions with their incident relations. `big_phi_contribution` gives a
   fold's additive share of Φ, and fold contributions tile: summing over any
@@ -220,8 +267,9 @@ and `migrate_code` prompt on the MCP server).
   `SubstratePosterior` (independent Beta posteriors over TPM cells) from
   perturbational transition pairs or an observational trajectory, with a
   `CoverageReport` recording which states the data constrained.
-  `phi_posterior()` propagates the posterior through the SIA by Monte Carlo
-  and keeps the whole mixture: `p_positive` (the probability the system is
+  `phi_posterior()` (which takes `formalism=` and `progress=` like
+  `analyze`) propagates the posterior through the SIA by Monte Carlo and
+  keeps the whole mixture: `p_positive` (the probability the system is
   integrated at all), unconditional and conditional quantiles, the raw Φ
   samples, and the complex-identity categorical — it cannot be coerced to a
   bare float. `SubstratePosterior.edge_probability` gives a graded
@@ -237,8 +285,14 @@ and `migrate_code` prompt on the MCP server).
   axis into a tidy DataFrame tracking φ, every discrete selection identity,
   selection margins, and regime boundaries; `perturb()` estimates local
   derivatives and the linearized distance to each kind of selection switch;
-  `weight_axis()` builds axes over connection weights. `pyphi.optimize()` is
-  a seeded population-based black-box optimizer over substrate weights.
+  `weight_axis()` builds axes over connection weights. `LandscapeSection`
+  and `Perturbation` print compact cards, compare by value, and are
+  unhashable. `pyphi.optimize()` is a seeded population-based black-box
+  optimizer over substrate weights; `goal="maximize"` or `"minimize"` sets
+  which way it searches (recorded as `OptimizationResult.goal`). Before
+  searching, it builds the substrate at the midpoint of the bounds and the
+  candidate system on it, so a wrong number of bounds, a bad state or an
+  out-of-range `subset` raises its own error.
   `pyphi.substrate_generator.random_substrate(n, seed=…)` gives exactly
   reproducible random substrates.
 
@@ -251,9 +305,10 @@ and `migrate_code` prompt on the MCP server).
   evaluate much tighter bounds on the measured per-atom profile of a
   distinction set in O(|D|·n) with no relation enumeration. The
   `validate_phi_bounds` debug check compares every in-domain IIT 4.0 result
-  against the theorem-certified ceilings and raises on violation; because
-  the bounds are proven, an in-domain violation can only come from a
-  formalism bug.
+  (binary units under the generalized intrinsic difference, where the
+  bounds are certified) against the theorem-certified ceilings and raises
+  on violation; because the bounds are proven, an in-domain violation can
+  only come from a formalism bug.
 
 **Result transparency**
 
@@ -261,7 +316,13 @@ and `migrate_code` prompt on the MCP server).
   out as it did — which short-circuit conditions applied, the winning and
   runner-up partitions and the φ gap between them, the binding direction —
   across IIT 4.0, IIT 3.0, and actual causation. The formalisms'
-  short-circuit enums are unified into a single `NullResultReason`.
+  short-circuit enums are unified into a single `NullResultReason`. The
+  runner-up partition (`sia.runner_up`) is ranked by the quantity that
+  selects the minimum partition (the first φ-valued component of
+  `sia_tie_resolution`, normalized φ by default) and keeps the values it was
+  ranked on, which under the intrinsic-information requirement are the
+  values before the requirement applies; its `gap` field is the difference
+  `explain()` reports.
 - `result.diff(other)`: a typed, displayable comparison — Δφ; whether a MIP
   change is real or a reshuffle among tied partitions; gained, lost, and
   changed distinctions, relations, and links; and attribution of differences
@@ -309,7 +370,11 @@ and `migrate_code` prompt on the MCP server).
   sections, readable numbers, collections as tables — in the terminal, and
   as a styled HTML card in notebooks, with verbosity levels controlling how
   much is computed and shown. Node labels are used wherever available, with
-  k-ary states rendered as Unicode subscripts (`A₂`). `to_pandas()` exports
+  k-ary states rendered as Unicode subscripts (`A₂`). Purview labels in
+  distinction cards, the distinction table and `plot_ces` are written in
+  the state the distinction specifies: uppercase for ON, lowercase for OFF,
+  and a subscript for a value above 1 (`P₂`); under IIT 3.0, which has no
+  specified states, they are uncased. `to_pandas()` exports
   labeled, analysis-friendly data (a `Series` for scalar records, a
   `DataFrame` for collections) from every displayable type, including TPMs,
   partitions, and state specifications.
@@ -341,7 +406,9 @@ and `migrate_code` prompt on the MCP server).
   introductory network, all five Fig. 6 architectures, and the Fig. 7
   state-dependence example (including the inactivated variant), built from
   the authors' weight matrices and reproduced to the paper's printed
-  precision in the test suite.
+  precision in the test suite. Each paper's examples carry its prefix
+  (`iit4_2023_`, `iit3_2014_`, `marshall_2023_`, and so on), in the
+  function names and in their names in `pyphi.examples.EXAMPLES`.
 
 **Cluster campaigns**
 
@@ -351,7 +418,9 @@ and `migrate_code` prompt on the MCP server).
   generated submit file; `python -m pyphi.campaign run` executes one task;
   `status()` and `collect()` work purely from output files, so resubmission
   is just `condor_submit` again, and `collect()` reassembles the exact
-  result a local run would produce.
+  result a local run would produce. `prepare()` and `prepare_ces()` draw no
+  random numbers and take no seed; record one with the `pyphi.provenance`
+  writers.
 - Scoped cause-effect-structure sharding: declare which mechanisms and
   purviews are feasible with `CESScope`/`AxisScope` (explicit lists, order
   bounds, unit containment, a per-order purview-order table), let
@@ -378,7 +447,18 @@ and `migrate_code` prompt on the MCP server).
   visualization, campaigns); and guided prompts for explaining results,
   porting pre-2.0 code, building a substrate from a description, and
   planning a cluster campaign step by step. Running `pyphi-mcp` without the
-  `mcp` extra says how to install it.
+  `mcp` extra says how to install it. The `analyze` guard refuses an
+  analysis that is too large before starting it (a fully connected
+  substrate of ten or more units, for example). `estimate_cost` takes
+  `subset`, so it prices the system `analyze` will run on, and documents its
+  `scope` keys. `inspect` with no path returns the result's summary and the
+  paths that can be inspected, and `plot` says which results each kind of
+  plot needs. An unknown `detail`, `compute` or scope key raises instead of
+  being ignored. `build_substrate` documents its default labels (`n0`, `n1`,
+  …) and the joint array that multi-valued units need, and
+  `describe_substrate` explains the state order with the substrate's own
+  labels. The reference topics, the `pyphi` skill and the MCP how-to list
+  every tool and prompt and say which tools write files.
 - PyPhi now prints a short note to stderr when it is imported under an AI coding
   agent, naming the two mistakes that most often go wrong unaided — reporting φₛ
   as Φ, and the little-endian state convention — and pointing at the bundled
@@ -429,8 +509,9 @@ and `migrate_code` prompt on the MCP server).
   read before anything else happens. The block sits between markers so a later
   install refreshes it without touching surrounding content, and
   `pyphi-mcp uninstall` removes both halves. `--from`, `--scope`, `--client`,
-  `--print` and `--force` cover the variants; with no subcommand `pyphi-mcp`
-  still runs the server.
+  `--print` and `--force` cover the variants (`--print` lists every change,
+  including the `CLAUDE.md` import, and respects `--no-iit-expert` and
+  `--no-skills`); with no subcommand `pyphi-mcp` still runs the server.
 - `pyphi-mcp install` offers to install the `pyphi` agent skill into Claude
   Code, Codex and Cursor. `--skills` and `--no-skills` answer the prompt
   without a terminal; `--agent` and `--agent-path` reach agents that were not
@@ -455,7 +536,7 @@ and `migrate_code` prompt on the MCP server).
   original's repertoires without recomputation.
 - `pyphi.cost.estimate_analysis` now counts the specified-state search as its own
   work axis, `specified_state_evaluations`. The search maximizes intrinsic
-  information over the whole system as both mechanism and purview, so it performs
+  specification over the whole system as both mechanism and purview, so it performs
   two forward repertoire evaluations per system state — a cost that grows with
   the size of the system rather than of any mechanism, and one that none of the
   partition or purview axes bound. The MCP server's `analyze` guard checks the
@@ -464,13 +545,25 @@ and `migrate_code` prompt on the MCP server).
   The `performance` reference topic now calls the axis out, since it is the one
   that dominates a large *sparse* system: thinning connectivity shrinks every
   other axis through purview pruning but leaves this one untouched.
-- Added `intrinsic_specification` on `StateSpecification` and, per direction, on
-  the IIT 4.0 `SystemIrreducibilityAnalysis` — the name Mayner et al. (2026,
-  Eqs. 7 and 9) give the quantity Albantakis et al. (2023) call intrinsic
-  information — alongside the existing `intrinsic_differentiation`, so both
-  terms of the intrinsic-information requirement (2026, Eq. 13) are readable by
-  their paper names. `to_pandas()` on the SIA gains the four per-direction
-  columns.
+- The per-direction value a specified state maximizes is called intrinsic
+  specification under every version of IIT, the name Mayner, Marshall &
+  Tononi (2026, Sec. 2.3, Eqs. 7 and 9) give the quantity Albantakis et al.
+  (2023) call intrinsic information. `StateSpecification` carries
+  `intrinsic_specification` and `runner_up_intrinsic_specification`, and the
+  IIT 4.0 `SystemIrreducibilityAnalysis` carries it per direction alongside
+  `intrinsic_differentiation`, so both terms of the intrinsic-information
+  requirement (2026, Eq. 13) are readable by their paper names; `to_pandas()`
+  on the SIA has the four per-direction columns. The functions that find a
+  specified state are `System.intrinsic_specification()`,
+  `pyphi.core.repertoire_algebra.intrinsic_specification()` and
+  `pyphi.formalism.iit4.system_intrinsic_specification()`.
+  `sia.intrinsic_information` is ii(s), the minimum of intrinsic
+  differentiation and intrinsic specification and the third term of φₛ, and
+  the `INTRINSIC_INFORMATION` measure computes ii. Result cards label the
+  per-direction value "Intrinsic specification", and `explain()` reports the
+  specified-state margins as `(i_spec)`. A MICE reports the current state of
+  its purview units as `current_state` (also a `to_pandas()` column) and the
+  state it specifies as `specified_state.state`.
 - `explain()` on an IIT 4.0 system analysis now reports when the
   intrinsic-information requirement (Mayner et al. 2026, Eq. 23) set φₛ, naming
   the direction and the term — intrinsic differentiation or intrinsic
@@ -507,7 +600,11 @@ and `migrate_code` prompt on the MCP server).
 - The MCP `analyze` tool takes a `subset` (node indices or labels) to analyze a
   candidate system inside a larger substrate, and its summary and card now carry
   the minimum information partition, the intrinsic information ii(s), and which
-  term of the intrinsic-information requirement set φₛ when it did.
+  term of the intrinsic-information requirement set φₛ when it did. For a
+  result whose formalism does not use ii(s), the summary leaves out
+  `intrinsic_information` and `requirement_binding`, as the analysis card
+  does; when the analysis stopped early because φₛ is 0 for a structural
+  reason, its `null_reason` key says why.
 - The package ships a `py.typed` marker, so type checkers use PyPhi's type hints
   in downstream projects.
 - The MCP server has a `documentation` reference topic describing how to read
@@ -529,15 +626,50 @@ and `migrate_code` prompt on the MCP server).
   (`pyphi.Network`, `pyphi.Subsystem`, `pyphi.compute`, `pyphi.jsonify`, and
   the `examples.*_network` / `*_subsystem` functions) raise an
   `AttributeError` that gives the replacement.
-- `pyphi.models.Concept` → `pyphi.models.Distinction` (with `Concept` kept
-  as an alias for the IIT 3.0 idiom); the canonical query is
-  `pyphi.formalism.distinction`; `System` gains `ces()` and
-  `phi_structure()` mirroring `sia()`.
+- The examples from the 2014 IIT 3.0 paper (Oizumi et al., 2014) carry the
+  prefix `iit3_2014_`: 1.x `fig1a()` is now `iit3_2014_fig1a_substrate()`,
+  and likewise for `fig3a`, `fig3b`, `fig4`, `fig5a`, `fig5b`, `fig6`,
+  `fig8`, `fig9`, `fig10`, `fig14` and `fig16`, with the systems
+  `iit3_2014_fig4_system()`, `iit3_2014_fig5a_system()` and
+  `iit3_2014_fig5b_system()`. Their names in `pyphi.examples.EXAMPLES`, and so
+  in the MCP server's `list_examples` and `load_example`, are the same
+  (`"iit3_2014_fig4"`). The 1.x names (`fig1a()`, `fig4()`, …,
+  `actual_causation()`, `prevention()`) raise an `AttributeError` that gives
+  the current name, and `examples.frog_example` raises one that gives
+  `frog_substrate`.
+- `pyphi.models.Concept` → `pyphi.models.Distinction`, `System.concept()` →
+  `System.distinction()`, and `System.null_concept` →
+  `System.null_distinction`; the old names raise an `AttributeError` that
+  gives the replacement. The canonical query is
+  `pyphi.formalism.distinction`, and `System` gains `ces()` mirroring
+  `sia()`.
+- The argument that picks the units of the candidate system is `subset`
+  everywhere, and it is keyword-only: `System(substrate, state, subset=…)`
+  replaces 1.x `Subsystem(network, state, nodes)`, and `actual.events`,
+  `actual.true_events` and `actual.extrinsic_events` take `subset` in place
+  of `nodes` and `indices`, as do `Substrate.sia(state, subset=…)`,
+  `Substrate.ces(…)` and `pyphi.analyze`. `system.subset` and
+  `system.node_indices` read back the resolved units, so
+  `dataclasses.replace(system, state=…)` keeps a system's units.
+  `Transition`'s `partition` (1.x `cut`) and `noise_background` arguments
+  are keyword-only.
+- The analysis methods `Substrate.sia`, `ces`, `complexes`,
+  `maximal_complex`, `irreducible_sias` and `all_sias`, and `System.sia`,
+  `ces`, `distinctions`, `mic`, `mie` and `phi`, raise a `TypeError` on a
+  keyword argument they do not use, as do `pyphi.formalism.iit4.sia` and
+  `pyphi.formalism.iit3.sia`. The `Substrate` methods, `System.sia` and
+  `System.ces` take `formalism=` with the same meaning as on `analyze`, and
+  the complex-search methods also take `parallel=` and `progress=`.
+  `System.distinctions(congruent=…)` is keyword-only, and
+  `pyphi.conf.presets.use(formalism)` returns a context manager that applies
+  a formalism's preset.
 - The cause-effect-structure hierarchy now matches the paper's terms: the
   old distinctions-only `CauseEffectStructure` is now
   `pyphi.models.Distinctions`, and the old `PhiStructure` (distinctions +
   relations + SIA) is now `pyphi.models.CauseEffectStructure`. "Φ-structure"
   remains the conceptual term for the cause-effect structure of a complex.
+  `Distinctions.phis` and `.mechanisms` return tuples (1.x returned lists),
+  as does the new `.purviews(direction)`.
 - `pyphi.metrics` → `pyphi.measures` (most registry entries are divergences,
   and the paper says "measure").
 - The IIT 4.0 implementation moved from `pyphi.new_big_phi` to
@@ -561,8 +693,16 @@ and `migrate_code` prompt on the MCP server).
   | `GeneralSetPartition` | `DirectedSetPartition` |
 
   Attributes follow (`System.cut` → `.partition`, `.is_cut` →
-  `.is_partitioned`, `SIA.cut_system` → `SIA.partitioned_system`, and
-  siblings). The `Cut` replacement takes an explicit `Direction` as its
+  `.is_partitioned`, `System.apply_cut(partition)` →
+  `System.apply_partition(partition)` (also on `TransitionSystem` and
+  `Transition`), `SIA.cut_system` → `SIA.partitioned_system`, and
+  siblings); on IIT 3.0 results `sia.cut`, `sia.ces` and
+  `sia.partitioned_ces` are `sia.partition`, `sia.distinctions` and
+  `sia.partitioned_distinctions`. The 1.x names `pyphi.models.Cut`,
+  `Transition.apply_cut`, and these SIA attributes (`sia.cut` on
+  actual-causation results too) raise an `AttributeError` that gives the
+  replacement, and the `System` card labels its partition row "Partition".
+  The `Cut` replacement takes an explicit `Direction` as its
   first argument; IIT 3.0 callers should pass `Direction.EFFECT` (the IIT
   3.0 φ computation does not read the direction, so values are unchanged).
 - The partition-scheme registries are renamed to describe what they yield.
@@ -591,8 +731,9 @@ and `migrate_code` prompt on the MCP server).
   top-level result carries a `ConfigSnapshot`, and
   `config.override(**result.config.as_overrides())` reruns the exact
   recorded computation. The config facade implements the Mapping protocol
-  (iterate all leaf settings as dotted paths). The 1.x flat uppercase
-  format raises a `ConfigurationError` pointing at the rename map:
+  (iterate all leaf settings as dotted paths). A 1.x flat uppercase
+  `pyphi_config.yml` raises a `ConfigurationError` that lists the 2.0
+  location of each of its options, following this map:
 
   | 1.x flat option | 2.0 layered option |
   |---|---|
@@ -613,7 +754,9 @@ and `migrate_code` prompt on the MCP server).
 
   Reading or setting an option on `pyphi.config` by its uppercase 1.x name
   (`pyphi.config.PRECISION`) still works and raises a `FutureWarning` giving
-  the lowercase name.
+  the lowercase name when the option kept its name. Reading or setting a
+  renamed or removed option raises an error that gives what replaced it, and
+  a misspelt option name suggests the closest real one.
 
 - The default formalism is IIT 4.0 (2026): `formalism.iit.version =
   "IIT_4_0_2026"` with `system_phi_measure = "INTRINSIC_INFORMATION"`, which
@@ -626,6 +769,21 @@ and `migrate_code` prompt on the MCP server).
   configuration time instead of silently computing a different quantity. If
   you previously combined a distribution measure such as `EMD` with an IIT
   4.0 version, switch to `"IIT_3_0"` to keep the same numerical behavior.
+- Every write to `pyphi.config` is checked against the other options, as
+  `config.override()` and configuration files are: an item assignment
+  (`pyphi.config["iit.version"] = …`), an attribute assignment, or
+  replacing a layer or the `iit` sub-namespace raises a
+  `ConfigurationError` when the result matches no version of IIT, and
+  leaves the configuration unchanged. The message says how to change
+  options together, and to switch versions it recommends the version's
+  preset or the `formalism=` argument. A value of the wrong type (such as
+  `pyphi.config.sia_tie_resolution = 5`) is rejected and undone the same
+  way, and a partition scheme name (`mechanism_partition_scheme`,
+  `system_partition_scheme`, or the actual-causation
+  `mechanism_partition_scheme`) that is not registered raises a
+  `ConfigurationError` listing the registered schemes. Assigning to a layer
+  object (`pyphi.config.numerics.precision = 6`) raises a
+  `ConfigurationError` that shows the supported write.
 - PyPhi produces no log output by default: it attaches a `NullHandler` and
   no longer configures the root logger or writes `pyphi.log`. Enable
   logging explicitly with `pyphi.enable_logging(level=…, file=…)`.
@@ -679,7 +837,7 @@ and `migrate_code` prompt on the MCP server).
   are all accepted. Distinction bags are typed by resolution status
   (`UnresolvedDistinctions` / `ResolvedDistinctions`), so an unresolved
   tied-state pick cannot flow into relation computation unnoticed.
-- A direction whose intrinsic information is zero up to the configured
+- A direction whose intrinsic specification is zero up to the configured
   precision short-circuits as having no cause or effect instead of
   computing through to a noise-level φₛ.
 - Actual causation enforces the realization principle (Albantakis et al.
@@ -690,9 +848,16 @@ and `migrate_code` prompt on the MCP server).
   `mechanism_partition_scheme`, `partitioned_repertoire_scheme`,
   `background_scheme`, `alpha_aggregation`) with paper-faithful defaults,
   independent of the IIT settings.
-- IIT 3.0 is restored paper-faithfully: `iit3.ces()` returns a
-  `CauseEffectStructure` wrapping the SIA and distinctions (with an empty
-  `NullRelations`); the IIT 3.0 SIA class is
+- IIT 3.0 is restored paper-faithfully: `analysis.ces` is a
+  `CauseEffectStructure` under every version of IIT, so under IIT 3.0
+  `System.ces()`, `analyze(..., compute="ces")` and `iit3.ces()` compute the
+  SIA it embeds (`.sia`) and hold the distinctions as `.distinctions`, with
+  an empty `NullRelations` as `.relations`; `len(ces.distinctions)`,
+  iteration and `ces.distinctions.phis` work the same under every version.
+  IIT 3.0 has no structure integrated information, so `ces.big_phi` raises
+  the same `AttributeError` as `analysis.big_phi`, the structure's card
+  shows no relation rows, and `Analysis.to_pandas()` and sweep rows report
+  `sum_phi_r` as `NaN`. The IIT 3.0 SIA class is
   `IIT3SystemIrreducibilityAnalysis`; the `IIT_3_0` preset is a complete
   formalism specification (including
   `background_conditioning="CONDITION_CURRENT_STATE"`, reproducing
@@ -719,16 +884,38 @@ and `migrate_code` prompt on the MCP server).
   `parquet` extra.
 - `import pyphi` imports submodules lazily: imports are faster, optional
   dependencies are only loaded when used, and `from pyphi import *` works
-  on a base install. Importing PyPhi no longer creates `__pyphi_cache__/` in
+  on a base install. `pyphi.__all__` is an explicit list of the public names
+  and modules, so `from pyphi import *` binds no internal modules (such as
+  `log`, `cache` and `utils`) and does not rebind the stdlib names
+  `warnings` and `types`; `pyphi.models.__all__` lists no private names,
+  and `pyphi.actual` declares an `__all__` of its documented functions.
+  Importing PyPhi no longer creates `__pyphi_cache__/` in
   the working directory; the directory appears when something is first
   cached to disk.
 - A quieter first run: progress bars appear only once a computation has run
   for a second, and the welcome message is five lines. Changing
   `distinction_phi_normalization` no longer warns that `system.clear_caches()`
   is needed, since results on existing systems follow the configuration they
-  are computed under.
-- Unknown node labels raise a `ValueError` listing the known labels instead
-  of a bare `KeyError`.
+  are computed under. Importing PyPhi in a notebook without ipywidgets
+  prints no `TqdmWarning`, and importing POT shows none of its
+  `SyntaxWarning`s.
+- Errors for common first mistakes say what is wrong and how to fix it.
+  Unknown node labels raise a `ValueError` listing the known labels instead
+  of a bare `KeyError`, and node labels must be strings. A state-by-state
+  TPM is checked for entries outside [0, 1], NaN, and rows that do not sum
+  to 1 before the conditional-independence test, and the error gives the
+  row and its input state; the conditional-independence error links to the
+  page that explains it. An out-of-range TPM entry is reported as entered,
+  with its unit and input state. `pyphi.analyze`, `pyphi.estimate_analysis`
+  and `pyphi.System` raise a `TypeError` that says what to pass when given a
+  `System` or an array instead of a `Substrate`. A state must be a sequence
+  with one entry per substrate unit (including the background units outside
+  `subset`), and a string, dict, scalar or `None` raises a `TypeError`; a
+  subset that is not a sequence, mixes labels with indices, or lists a unit
+  twice raises an error. `pyphi.load` explains a file it cannot read (a
+  PyPhi 1.x `jsonify` file, a file not saved by `pyphi.save`, malformed
+  data, or a file from a newer version) and gives the path. An unknown
+  unit-function name lists the known ones.
 - `Substrate.complexes()` follows the paper's meaning of "complex" (a
   non-overlapping local maximum under exclusion); the previous
   every-irreducible-system semantics is `substrate.irreducible_sias`.
@@ -779,13 +966,10 @@ and `migrate_code` prompt on the MCP server).
   formalism's `requires_ii_cap`) to `applies_intrinsic_information_requirement`,
   matching the project's terminology for Mayner et al. (2026) Eq. 23.
 
-- `pyphi.cost.estimate_analysis` takes `subset`, `compute`, `limit`, and
-  `scope` by keyword only. Its second positional argument is the state, which
-  it accepts and does not use, so a state is never read as the candidate
-  subset.
-- Under IIT 3.0, `System.ces()` and `analyze().ces` return a
-  `ResolvedDistinctions` (its concepts under `.concepts`) rather than the
-  internal `UnresolvedDistinctions`.
+- `pyphi.cost.estimate_analysis` takes `subset`, `formalism`, `compute`,
+  `limit`, and `scope` by keyword only. Its second positional argument is the
+  state, which it accepts and does not use, so a state is never read as the
+  candidate subset.
 - Result cards align every key/value section to one label-column width, so
   values line up down the whole card in both the text and the HTML rendering.
 
@@ -800,10 +984,13 @@ and `migrate_code` prompt on the MCP server).
 - The Analysis card shows a `Formalism` row only when the result was computed
   under an earlier version of IIT (`IIT_4_0_2023` or `IIT_3_0`).
   `Analysis.formalism` and serialized results record the version for every
-  result.
-- The Analysis card adds a "Why φ_s = 0" row when both φ_c and φ_e are
-  positive but the system has no intrinsic information, as every
-  deterministic system does.
+  result. The card shows no ii(s) row for a result computed under a version
+  that does not use ii(s) in φₛ.
+- The Analysis card adds a "Why φ_s = 0" row when φₛ is 0 for a structural
+  reason, such as a system that is not strongly connected, or when both φ_c
+  and φ_e are positive but the system has no intrinsic information, as
+  every deterministic system does. IIT 4.0 null results record the system's
+  current state.
 
 ### Config
 
@@ -818,8 +1005,9 @@ and `migrate_code` prompt on the MCP server).
   `shortcircuit_sia=False` now also disables the sweep-level short-circuit,
   so margins are exact everywhere.
 - `infrastructure.validate_config` (default on): eager cross-field
-  validation of configuration combinations, applied on `override()`, YAML
-  load, and at import time for `pyphi_config.yml`.
+  validation of configuration combinations, applied on every write to
+  `pyphi.config`, on `override()`, on YAML load, and at import time for
+  `pyphi_config.yml`.
 - `infrastructure.repr_max_table_rows` (default 50): collection tables in
   result displays truncate with a `… N more` indicator.
 - Parallel dispatch thresholds are returned to measured per-item costs:
@@ -906,7 +1094,7 @@ and `migrate_code` prompt on the MCP server).
 - The process scheduler now hashes the configuration snapshot only when chunks are actually submitted to worker processes. `map_reduce()` calls that resolve to sequential execution no longer pay the ~1 ms snapshot-hashing cost per call.
 - `unconstrained_forward_cause_repertoire` and
   `unconstrained_forward_effect_repertoire` are no longer memoized:
-  `intrinsic_information` requests each `(mechanism, purview)` pair once, so
+  `intrinsic_specification` requests each `(mechanism, purview)` pair once, so
   their caches stored entries that were never read back. The per-state loop
   that carries the real cost keeps its own caching one level down, in
   `effect_repertoire`. No computed value changes.
@@ -1022,12 +1210,10 @@ and `migrate_code` prompt on the MCP server).
   its levels. The `"NONE"` tie-resolution strategy is also accepted in list
   form (`["NONE"]`), matching the bare-string form instead of raising
   `NotImplementedError`.
-- `pyphi.cost.estimate_analysis(substrate, compute="ces")` now counts the
-  system-partition axis under IIT 4.0, where unfolding a cause-effect structure
-  computes a system irreducibility analysis before it unfolds anything (Eq. 57).
-  It previously reported `system_partitions=None` for that analysis under every
-  formalism, which was right only for IIT 3.0, whose cause-effect structure is
-  the bare distinctions.
+- `pyphi.cost.estimate_analysis(substrate, compute="ces")` counts the
+  system-partition axis under every formalism, since unfolding a cause-effect
+  structure computes a system irreducibility analysis before it unfolds
+  anything (IIT 4.0, Eq. 57; IIT 3.0's structure embeds its SIA as well).
 
   The MCP server's `analyze` guard inherited the undercount, and refused an
   analysis on whichever single axis matched the requested `compute`. It now
@@ -1076,7 +1262,7 @@ and `migrate_code` prompt on the MCP server).
   `system_partition_include_total`: the partition-count memo is keyed on the
   option, so estimates are correct (and the memo cannot be cross-poisoned)
   when the total cut is included.
-- The one-line display of a `DirectedBipartition` now always points the cut arrow from `from_nodes` to `to_nodes` — the connections the cut severs — and annotates the causal direction textually. Previously a CAUSE-labeled cut drew the arrow reversed relative to the severed-connections grid.
+- The one-line display of a `DirectedBipartition` now always points the cut arrow from `from_nodes` to `to_nodes` — the connections the cut severs — and annotates the causal direction textually. Previously a CAUSE-labeled cut drew the arrow reversed relative to the severed-connections grid. A directed set partition prints its parts with the connections it severs (`2 parts: {A,BC}; cut B→A, C→A`), so partitions into the same parts that sever different connections print differently, and an edge cut prints its severed connections.
 - Disk-cache writes now use a per-call temporary filename, so two threads writing the same key no longer collide on a shared temp path (which raised `FileNotFoundError`).
 - `pyphi.dynamics` now handles explicit-alphabet TPMs (the `(*alphabet_sizes, n_units, max_alphabet)` layout produced by `Substrate.joint_tpm()`): `simulate()`, `settle()`, `mean_dynamics()`, `most_probable_next_state()`, and `number_of_units()` previously misread the layout as a binary state-by-node TPM and returned wrong-length binary states. Random initial states are now drawn from each unit's own alphabet, and `simulate()`/`settle()` reject an `initial_state` of the wrong length.
 - Tie-resolution strategy names (`state_tie_resolution`, `mip_tie_resolution`, `purview_tie_resolution`, `sia_tie_resolution`) are now validated against the registered strategies at configuration time, so a typo fails immediately instead of mid-computation.
@@ -1139,7 +1325,7 @@ and `migrate_code` prompt on the MCP server).
   counts still match the figures exactly. The published values embed the old
   enumeration-order tie resolution, which is relabeling-dependent and
   sub-maximal under the S1 supplement's own rule.
-- `fig5b_substrate` now implements gate B as AND(A, C), matching Figure 5B of the 2014 IIT 3.0 paper and the fixture's own diagram (it was transcribed as OR). The example's distinction count is unchanged. `differentiation_macro_tpm` no longer divides the p² term by 3 — the coarse-grained probability is now p² + 2pε/3, which reduces to p² at ε = 0 as the grouping requires.
+- `iit3_2014_fig5b_substrate` (1.x `fig5b`) now implements gate B as AND(A, C), matching Figure 5B of the 2014 IIT 3.0 paper and the fixture's own diagram (it was transcribed as OR). The example's distinction count is unchanged. `differentiation_macro_tpm` no longer divides the p² term by 3 — the coarse-grained probability is now p² + 2pε/3, which reduces to p² at ε = 0 as the grouping requires.
 - Complexes found with the certified intrinsic-information prune (the default
   under the 2026 formalism) could not be saved: gated excluded candidates carry
   `phi=None`, which crashed the serializer. Gated candidates now serialize, and
@@ -1254,12 +1440,10 @@ and `migrate_code` prompt on the MCP server).
   set is the complement of the system, results are unchanged.
 - The provenance writers no longer crash when `params` contains
   `"seed": None`.
-- IIT 3.0 computations now reject an incompatible `mechanism_partition_scheme` (e.g. the IIT 4.0 `JOINT_PARTITION_ALL` family) at the dispatch boundary when the configuration was assembled by per-field assignment, instead of silently computing phi over a different partition family.
 - `SweepResult` and `OptimizationResult` equality no longer raises: the generated dataclass `__eq__` compared DataFrame/ndarray fields elementwise, whose truth value is ambiguous. Both now define value equality (`DataFrame.equals`, `np.array_equal`).
 - `RepertoireIrreducibilityAnalysis.ties` now preserves co-optimal tied MIPs whose partitions differ. Deduplication keyed on RIA equality alone, which deliberately ignores the partition, so partition-distinct tied MIPs collapsed to one and `diff()` reported a MIP change instead of a tie.
 - Fixed TPM row-stochasticity validation admitting relative slack: `numpy.allclose`'s default relative tolerance let row sums off by up to ~1.1e-5 pass while the error message claimed the configured absolute tolerance (1e-13 by default). Row sums are now checked against the absolute tolerance only.
 - Fixed `pyphi.timescale.run_tpm` silently discarding conditional dependence for `time_scale >= 2`: the round trip through state-by-node form dropped dependencies introduced by iteration, returning a TPM with the wrong multi-step dynamics. It now raises `ConditionallyDependentError` when the exact iterated dynamics cannot be expressed in state-by-node form, and returns the exact iterated TPM when they can.
-- The runner-up partition reported on a `SystemIrreducibilityAnalysis` is now ranked by the same quantity that selects the MIP (the primary φ-valued component of `sia_tie_resolution`, normalized φ by default) instead of always by raw φ, so the reported runner-up is the actual nearest competitor. When ranked by normalized φ, `RunnerUp.normalized_phi` carries the value and the gap finding reports the normalized gap.
 - Node labels now survive serialization everywhere they are displayed. Mechanism
   and system partitions (`Part`, `JointPartition` and its variants, `NullCut`,
   `DirectedBipartition`, `DirectedJointPartition`), state specifications, and a
@@ -1286,9 +1470,6 @@ and `migrate_code` prompt on the MCP server).
 - `sia.ties` now contains only the specified-state readings whose φ_s is tied with the winner (up to the configured numerical precision). Previously every evaluated reading was attached as a tie, including readings whose φ_s lost the state-resolution cascade outright.
 - Fixed a crash (`ValueError: cascade requires at least one candidate`) in `sia(directions=[...])` when the requested direction's specified state was tied. Single-direction analyses now resolve specified-state ties within that direction alone.
 - Fixed a `ZeroDivisionError` when analyzing a single-unit system under the `DIRECTED_BIPARTITION_CUT_ONE` system partition scheme. A single unit has no bipartition with two nonempty parts, so the scheme now yields no partitions and the analysis reports φ_s = 0, matching the other schemes.
-- `from pyphi import *` no longer rebinds the stdlib names `warnings` and
-  `types` to PyPhi submodules, and `estimate_analysis` / `AnalysisEstimate`
-  are now included in `pyphi.__all__`.
 - Fixed the thread scheduler ignoring the chunking policy: it submitted one future per item (10,000 submissions for `chunksize=4096`) and never consulted `size_func`. It now submits chunked futures honoring `chunksize` and `size_func`, like the process backend, with unchanged result-order semantics.
 - Fixed a thread-backend `map_reduce` permanently disabling config-snapshot installs in its process: the parent-PID latch that suppresses in-thread snapshot application was never reset, so a nested thread dispatch inside a process-pool worker made that worker silently ignore every later configuration snapshot. The latch is now restored when the thread dispatch completes.
 - `timescale.run_cm` no longer mutates the caller's connectivity matrix (and
@@ -1312,7 +1493,7 @@ and `migrate_code` prompt on the MCP server).
   and `Direction.both()` walks the cause direction first, so an oversized system
   spent its entire cause sweep before anything refused.
 - IIT 3.0 configurations now require `background_conditioning="CONDITION_CURRENT_STATE"`, the convention of the shipped preset and the post-2014 literature. Pairing IIT 3.0 with `CAUSAL_MARGINALIZATION` previously passed validation and silently changed phi on proper-subset systems. A `System` that pins its own convention is checked against the pinned value.
-- Configuration validation now covers `formalism.iit.specification_measure`: a measure the active formalism does not accept (e.g. `EMD` under IIT 4.0) is rejected when the configuration is applied, and again at the dispatch boundary for configurations assembled by per-field assignment. Previously such a value was accepted and silently changed Φ and φₛ.
+- Configuration validation now covers `formalism.iit.specification_measure`: a measure the active formalism does not accept (e.g. `EMD` under IIT 4.0) is rejected when the configuration is written. Previously such a value was accepted and silently changed Φ and φₛ.
 - The shipped `pyphi_config_3.0.yml` reference config failed to load (it used a
   retired field name) and had drifted from the `IIT_3_0` preset. It is now an
   exact mirror of the preset.
@@ -1320,9 +1501,8 @@ and `migrate_code` prompt on the MCP server).
   left the IIT 4.0 default (`NORMALIZED_PHI`, ...) in place, and `analyze()`
   crashed with an `AttributeError` deep inside tie resolution (IIT 3.0 SIA
   results have no normalized φ). Incompatible SIA tie strategies are now
-  rejected with a `ConfigurationError` naming the field and a fix — eagerly on
-  `config.override()` / `load_yaml()`, and at the analysis dispatch boundary
-  for configs assembled by per-field assignment.
+  rejected with a `ConfigurationError` that gives the field and a fix when the
+  configuration is written.
 - `IIT3SystemIrreducibilityAnalysis` no longer includes `distinctions` in its hash. The compute path assigns `distinctions` to tie peers after construction, which changed the hash mid-lifetime.
 - `formalism.iit.version="IIT_4_0_2026"` now requires a `system_phi_measure` that applies the intrinsic-information requirement (Eq. 23), i.e. `INTRINSIC_INFORMATION`. Previously pairing version 2026 with `GENERALIZED_INTRINSIC_DIFFERENCE` passed validation and computed the 2023 quantity while results reported version 2026.
 - `Substrate` now rejects a non-square 2-D `tpm=` array whose row count is not `2**n` for its `n` columns (for example 8 rows with 2 columns), naming the expected row count. Such arrays were previously reshaped into a scrambled substrate over the wrong number of nodes.
@@ -1339,7 +1519,8 @@ and `migrate_code` prompt on the MCP server).
   probability is sufficient. `possible_complexes`, `Substrate.complexes`, and
   the macro-unit search now evaluate candidate systems they previously skipped.
 - Setting `formalism.iit.version` to `IIT_4_0_2023` without the rest of the
-  preset (in `config.override(...)` or `pyphi_config.yml`) raises a
+  preset (by assignment, in `config.override(...)`, or in `pyphi_config.yml`)
+  raises a
   `ConfigurationError`. It was accepted and kept the default system measure, so
   results were labeled `IIT_4_0_2023` but computed with the
   intrinsic-information requirement. Select an earlier version with
@@ -1350,9 +1531,10 @@ and `migrate_code` prompt on the MCP server).
 ### Documentation
 
 - The documentation toolchain is rebuilt: pydata-sphinx-theme, MyST Markdown
-  with build-time-executed code cells, notebook pairing with Colab links, an
-  API reference generated from the current module layout on every build, and
-  a docs CI job that fails on any warning or failed cell.
+  with build-time-executed code cells, notebook pairing with Colab links
+  (each Colab notebook starts with an install cell), an API reference
+  generated from the current module layout on every build, and a docs CI
+  job that fails on any warning or failed cell.
 - The documentation is overhauled for the IIT 4.0 (2026) default: getting
   started and the theory pipeline run on the paper's Fig. 1A network, a
   worked tutorial follows the paper's Figs. 1→2→4, and a theory page
@@ -1362,11 +1544,18 @@ and `migrate_code` prompt on the MCP server).
   derivations for every formalism, confirmed empirically, and which
   configuration settings extend the tractable system size), macro units and
   exclusion across grains, recursive exclusion, and the intrinsic-units
-  tutorial.
+  tutorial. The theory pages, the glossary, the `Substrate.complexes`
+  docstring and the MCP references define a complex by the recursive
+  exclusion rule: accept the candidate with the highest φₛ, exclude every
+  candidate that overlaps it, and repeat on the rest.
 - New how-to guides: sweeps, selection margins and tie-breaking, substrate
   parameter landscapes, the relations query interface, visualization, the
   grain search, cluster campaigns, and running PyPhi on an HTCondor cluster
-  (CHTC).
+  (CHTC). The tie-breaking guide explains which ties can change values
+  (system-partition and state ties can change φₛ, and purview ties can
+  change Φ), describes the `sia_tie_resolution` default (smallest normalized
+  φ, then largest raw φ), and explains how values within `precision` of a
+  tie are reported.
 - A migration guide for pre-2.0 code ships as an MCP reference topic with a
   matching `migrate_code` prompt.
 
@@ -1412,8 +1601,11 @@ and `migrate_code` prompt on the MCP server).
   estimate reports counts without a time and a full estimate is a lower bound.
 
 - The migration guide gains the example-network renames, a table from every 1.x
-  configuration option to its 2.0 location, and a table of the quantities (1.x
-  `compute.phi` is `analysis.phi` under IIT 3.0).
+  configuration option to its 2.0 location, the renamed option values, a table
+  of the quantities (1.x `compute.phi` is `analysis.phi` under IIT 3.0), a
+  table of result attributes, rows for `compute.complexes`, `condensed` and
+  `all_complexes`, and a Macro section: 1.x macro values do not reproduce,
+  and 1.x IIT 3.0 values agree to about 1e-5.
 - The IIT 4.0 demo notebook is now rendered in full on its tutorial page from
   stored outputs.
 - The documentation site has a new visual design: a palette anchored on the
@@ -1460,7 +1652,8 @@ and `migrate_code` prompt on the MCP server).
   `pyphi` skill describe the theory PyPhi computes as IIT, citing
   Albantakis et al. (2023) and Mayner, Marshall & Tononi (2026) together.
   Earlier versions are covered on one page and in the `configuration` and
-  `migration` references.
+  `migration` references; the page gives a session-wide recipe that works
+  for every preset and links to the layered `pyphi_config_3.0.yml`.
 - Statements about IIT in the MCP reference content, docstrings, and theory
   docs were checked against the published IIT 4.0 paper and its S1 and S2
   Texts: φₛ = 0 under the default can come from ii(s) = 0 as well as from
