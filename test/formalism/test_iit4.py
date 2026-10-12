@@ -67,9 +67,9 @@ def _pin_iit4_2023():
 EXAMPLE_NAMES = [
     "basic",
     "basic_noisy_selfloop",
-    "fig4",
-    "fig5a",
-    "fig5b",
+    "iit3_2014_fig4",
+    "iit3_2014_fig5a",
+    "iit3_2014_fig5b",
     "grid3",
     "residue",
     "rule110",

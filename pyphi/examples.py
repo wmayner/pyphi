@@ -616,7 +616,7 @@ def rule154_system():
 
 
 @register_example
-def fig1a_substrate():
+def iit3_2014_fig1a_substrate():
     """The substrate shown in Figure 1A of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
@@ -698,7 +698,7 @@ def fig1a_substrate():
 
 
 @register_example
-def fig3a_substrate():
+def iit3_2014_fig3a_substrate():
     """The substrate shown in Figure 3A of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
@@ -730,7 +730,7 @@ def fig3a_substrate():
 
 
 @register_example
-def fig3b_substrate():
+def iit3_2014_fig3b_substrate():
     """The substrate shown in Figure 3B of the 2014 IIT 3.0 paper."""
     # fmt: off
     tpm = np.array([
@@ -762,7 +762,7 @@ def fig3b_substrate():
 
 
 @register_example
-def fig4_substrate():
+def iit3_2014_fig4_substrate():
     """The substrate shown in Figures 4, 6, 8, 9 and 10 of the 2014 IIT 3.0 paper.
 
     Diagram::
@@ -800,12 +800,12 @@ def fig4_substrate():
 
 
 @register_example
-def fig4_system():
-    return System(fig4_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
+def iit3_2014_fig4_system():
+    return System(iit3_2014_fig4_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
 
 
 @register_example
-def fig5a_substrate():
+def iit3_2014_fig5a_substrate():
     """The substrate shown in Figure 5A of the 2014 IIT 3.0 paper.
 
     Diagram::
@@ -842,12 +842,12 @@ def fig5a_substrate():
 
 
 @register_example
-def fig5a_system():
-    return System(fig5a_substrate(), state=(0, 0, 0), subset=(0, 1, 2))
+def iit3_2014_fig5a_system():
+    return System(iit3_2014_fig5a_substrate(), state=(0, 0, 0), subset=(0, 1, 2))
 
 
 @register_example
-def fig5b_substrate():
+def iit3_2014_fig5b_substrate():
     """The substrate shown in Figure 5B of the 2014 IIT 3.0 paper.
 
     Diagram::
@@ -884,19 +884,22 @@ def fig5b_substrate():
 
 
 @register_example
-def fig5b_system():
-    return System(fig5b_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
+def iit3_2014_fig5b_system():
+    return System(iit3_2014_fig5b_substrate(), state=(1, 0, 1), subset=(0, 1, 2))
 
 
-# The substrates in figures 4, 6 and 8 are the same.
-fig6_substrate = fig8_substrate = fig9_substrate = fig10_substrate = fig4_substrate
+# The substrates in figures 4, 6, 8, 9 and 10 are the same.
+iit3_2014_fig6_substrate = iit3_2014_fig4_substrate
+iit3_2014_fig8_substrate = iit3_2014_fig4_substrate
+iit3_2014_fig9_substrate = iit3_2014_fig4_substrate
+iit3_2014_fig10_substrate = iit3_2014_fig4_substrate
 
 # The substrate in Figure 14 is the same as that in Figure 1A.
-fig14_substrate = fig1a_substrate
+iit3_2014_fig14_substrate = iit3_2014_fig1a_substrate
 
 
 @register_example
-def fig16_substrate():
+def iit3_2014_fig16_substrate():
     """The ABCDEFG portion of the substrate shown in Figure 16 of the 2014
     IIT 3.0 paper."""
     # fmt: off
@@ -1862,10 +1865,26 @@ def ac_2019_three_candidate_election_substrate():
     )
 
 
+_2014_FIGURES = ("1a", "3a", "3b", "4", "5a", "5b", "6", "8", "9", "10", "14", "16")
+
+# Earlier names of renamed examples: the PyPhi 1.x names, and the unprefixed
+# names of the 2014 examples in the 2.0 release candidates.
+_RENAMED = {
+    **{f"fig{n}": f"iit3_2014_fig{n}_substrate" for n in _2014_FIGURES},
+    **{f"fig{n}_substrate": f"iit3_2014_fig{n}_substrate" for n in _2014_FIGURES},
+    **{f"fig{n}_system": f"iit3_2014_fig{n}_system" for n in ("4", "5a", "5b")},
+    "actual_causation": "actual_causation_substrate",
+    "prevention": "prevention_transition",
+}
+
+
 def __getattr__(name: str):
     message = f"module {__name__!r} has no attribute {name!r}"
+    # ``*_network`` and ``*_subsystem`` became ``*_substrate`` and ``*_system``.
     for old, new in (("_network", "_substrate"), ("_subsystem", "_system")):
-        renamed = name.removesuffix(old) + new
-        if name.endswith(old) and renamed in globals():
-            message += f". PyPhi 2.0 renamed it `{renamed}`"
+        if name.endswith(old):
+            name = name.removesuffix(old) + new
+    renamed = _RENAMED.get(name, name)
+    if renamed in globals():
+        message += f". PyPhi 2.0 renamed it `{renamed}`"
     raise AttributeError(message)

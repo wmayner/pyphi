@@ -49,7 +49,7 @@ Currently covered
 * **IIT 3.0 (2014), Oizumi et al., Fig 12 -- "Assessing the integrated
   conceptual information".** The paper's main worked example: a 3-unit logic-gate
   network (A = OR, B = AND, C = XOR, fully connected; ``pyphi.examples.
-  fig4_substrate``) in state (1, 0, 0). The system big-phi reproduces the figure's
+  iit3_2014_fig4_substrate``) in state (1, 0, 0). The system big-phi reproduces the figure's
   ``Phi = 1.92`` (PyPhi computes 23/12 = 1.9167; the Mayner et al. 2018 practical
   guide reports 1.917 for the same example), and the constellation reproduces the
   six concepts with the published ``phi^Max`` values {0.5, 0.33, 0.25, 0.25, 0.17,
@@ -279,7 +279,7 @@ def test_iit4_2023_fig6C_copy_ring(_iit4_2023):
 # --------------------------------------------------------------------------- #
 # The paper's main worked example (Figs 4, 6, 8-12, 14) is a 3-unit network of
 # logic gates -- A = OR, B = AND, C = XOR, fully connected -- evaluated in state
-# (1, 0, 0) (the figure's "s_t(ABC) = 100"). This is pyphi.examples.fig4_substrate.
+# (1, 0, 0) (the figure's "s_t(ABC) = 100"). This is pyphi.examples.iit3_2014_fig4_substrate.
 # NOTE: fig4_*system* fixes the *different* state (1, 0, 1); the 2014 worked
 # example is in state (1, 0, 0), so we build the substrate and set the state here.
 #
@@ -319,7 +319,9 @@ def test_iit3_2014_fig12_system_phi(_iit3):
     PyPhi computes 23/12 = 1.91666..., which rounds to the paper's 1.92 and
     matches the 1.917 reported by the Mayner et al. 2018 practical guide.
     """
-    sia = System(examples.fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)).sia()
+    sia = System(
+        examples.iit3_2014_fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)
+    ).sia()
     assert round(float(sia.phi), 2) == 1.92
     assert float(sia.phi) == pytest.approx(23 / 12, abs=1e-4)
 
@@ -331,7 +333,9 @@ def test_iit3_2014_fig12_constellation(_iit3):
     and the per-mechanism assignment (concepts are labeled by mechanism in the
     paper's Figs 9-11).
     """
-    ces = System(examples.fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)).ces()
+    ces = System(
+        examples.iit3_2014_fig4_substrate(), _FIG12_STATE, subset=(0, 1, 2)
+    ).ces()
     concepts = list(ces.distinctions)
     assert len(concepts) == 6
     assert sorted(round(float(c.phi), 2) for c in concepts) == sorted(

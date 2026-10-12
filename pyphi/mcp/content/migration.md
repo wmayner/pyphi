@@ -54,10 +54,20 @@ on the current state.
 Every `*_network` example is now `*_substrate` and every `*_subsystem` is
 `*_system` (`basic_network()` → `basic_substrate()`, `basic_subsystem()` →
 `basic_system()`, and so on for `xor`, `residue`, `grid3`, `rule110`,
-`rule154`, `macro`, `fig4`, `fig5a`, `fig5b`); `frog_example()` split into
-`frog_substrate()` and `frog_transition()`. Transitions and bare matrices keep
-their names. The IIT 4.0 paper's networks are new: `iit4_2023_fig1a_substrate()`
-and the other `iit4_2023_*` functions.
+`rule154`, `macro`); `frog_example()` split into `frog_substrate()` and
+`frog_transition()`. Transitions and bare matrices keep their names. The
+networks of the 2014 IIT 3.0 paper carry the prefix `iit3_2014_`: 1.x
+`fig1a()` → `iit3_2014_fig1a_substrate()`, `fig4()` →
+`iit3_2014_fig4_substrate()`, and so on for `fig3a`, `fig3b`, `fig5a`,
+`fig5b`, `fig6`, `fig8`, `fig9`, `fig10`, `fig14` and `fig16`
+(`iit3_2014_fig4_system()`, `iit3_2014_fig5a_system()` and
+`iit3_2014_fig5b_system()` also exist). The 2.0 release candidates' unprefixed
+`fig4_substrate()` names are gone too. 1.x `actual_causation()` →
+`actual_causation_substrate()`, `prevention()` → `prevention_transition()`.
+`iit3_2014_fig5b_substrate()` follows the paper's Figure 5B (unit B is
+AND(A, C)); 1.x `fig5b()` computed OR, so its results differ. The IIT 4.0
+paper's networks are new: `iit4_2023_fig1a_substrate()` and the other
+`iit4_2023_*` functions.
 
 ### Configuration options
 

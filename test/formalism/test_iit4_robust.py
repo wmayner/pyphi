@@ -45,9 +45,9 @@ def _ces_kwargs():
 EXPECTED_PHI_STRUCTURE = {
     "basic": {"num_distinctions": 2, "has_distinctions": True},
     "basic_noisy_selfloop": {"num_distinctions": 2, "has_distinctions": True},
-    "fig4": {"num_distinctions": 4, "has_distinctions": True},
-    "fig5a": {"num_distinctions": 2, "has_distinctions": True},
-    "fig5b": {"num_distinctions": 1, "has_distinctions": True},
+    "iit3_2014_fig4": {"num_distinctions": 4, "has_distinctions": True},
+    "iit3_2014_fig5a": {"num_distinctions": 2, "has_distinctions": True},
+    "iit3_2014_fig5b": {"num_distinctions": 1, "has_distinctions": True},
     "grid3": {"num_distinctions": 7, "has_distinctions": True},
     "residue": {"num_distinctions": 0, "has_distinctions": False},
     "rule110": {"num_distinctions": 0, "has_distinctions": False},
@@ -121,10 +121,10 @@ class TestDistinctionCounts:
         This is a published reference example, so the expected count
         is validated against the paper.
         """
-        system = EXAMPLES["system"]["fig4"]()
+        system = EXAMPLES["system"]["iit3_2014_fig4"]()
         result = new_big_phi.ces(system, **_ces_kwargs())
 
-        expected_count = EXPECTED_PHI_STRUCTURE["fig4"]["num_distinctions"]
+        expected_count = EXPECTED_PHI_STRUCTURE["iit3_2014_fig4"]["num_distinctions"]
         actual_count = len(result.distinctions) if hasattr(result, "distinctions") else 0
 
         assert actual_count == expected_count, (
@@ -192,9 +192,9 @@ class TestCauseEffectStructureComponents:
         [
             "basic",
             "basic_noisy_selfloop",
-            "fig4",
-            "fig5a",
-            "fig5b",
+            "iit3_2014_fig4",
+            "iit3_2014_fig5a",
+            "iit3_2014_fig5b",
             "grid3",
             "residue",
             "rule110",
@@ -224,9 +224,9 @@ class TestCauseEffectStructureComponents:
         [
             "basic",
             "basic_noisy_selfloop",
-            "fig4",
-            "fig5a",
-            "fig5b",
+            "iit3_2014_fig4",
+            "iit3_2014_fig5a",
+            "iit3_2014_fig5b",
             "grid3",
             "residue",
             "rule110",
@@ -256,9 +256,9 @@ class TestCauseEffectStructureComponents:
         [
             "basic",
             "basic_noisy_selfloop",
-            "fig4",
-            "fig5a",
-            "fig5b",
+            "iit3_2014_fig4",
+            "iit3_2014_fig5a",
+            "iit3_2014_fig5b",
             "grid3",
             pytest.param("rule154", marks=pytest.mark.slow),
             "xor",
@@ -381,9 +381,9 @@ class TestCrossExampleConsistency:
         [
             "basic",
             "basic_noisy_selfloop",
-            "fig4",
-            "fig5a",
-            "fig5b",
+            "iit3_2014_fig4",
+            "iit3_2014_fig5a",
+            "iit3_2014_fig5b",
             "grid3",
             "residue",
             "rule110",

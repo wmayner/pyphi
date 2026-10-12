@@ -18,7 +18,7 @@ from pyphi.formalism import iit4 as new_big_phi
 from pyphi.measures.distribution import resolve_mechanism_measure
 from pyphi.measures.distribution import resolve_system_measure
 
-NETWORKS = ["xor", "basic", "rule110", "fig4", "grid3"]
+NETWORKS = ["xor", "basic", "rule110", "iit3_2014_fig4", "grid3"]
 
 
 @pytest.fixture(scope="module", params=NETWORKS)

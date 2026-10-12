@@ -126,7 +126,7 @@ def test_basic_substrate_honors_passed_cm():
 
 def test_fig5b_gates_match_the_2014_paper():
     """Figure 5B of the 2014 paper: A = NULL, B = AND(A, C), C = OR(A, B)."""
-    substrate = examples.fig5b_substrate()
+    substrate = examples.iit3_2014_fig5b_substrate()
     for idx in range(8):
         state = (idx & 1, (idx >> 1) & 1, (idx >> 2) & 1)
         a, b, c = state

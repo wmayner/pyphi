@@ -55,7 +55,11 @@ transition probability matrix but a distribution over cause/effect states. See
 The example functions follow the same vocabulary: every `*_network` is now
 `*_substrate` and every `*_subsystem` is `*_system`. Transitions and bare
 matrices (`prevention_transition`, `cond_depend_tpm`, `cond_independ_tpm`,
-`differentiation_*_tpm`) keep their names.
+`differentiation_*_tpm`) keep their names. The networks from the 2014 IIT 3.0
+paper (Oizumi et al., 2014) carry the prefix `iit3_2014_`, as the later papers'
+networks carry theirs. In the 2.0 release candidates they had no prefix
+(`fig4_substrate()`). Every old name in this table raises an `AttributeError`
+that gives the new one.
 
 | Old | New |
 | --- | --- |
@@ -70,12 +74,18 @@ matrices (`prevention_transition`, `cond_depend_tpm`, `cond_independ_tpm`,
 | `examples.macro_network()` / `_subsystem()` | `examples.macro_substrate()` / `_system()` |
 | `examples.blackbox_network()` | `examples.blackbox_substrate()` |
 | `examples.propagation_delay_network()` | `examples.propagation_delay_substrate()` |
-| `examples.fig1a_network()`, `fig3a`, `fig3b`, `fig16` | `examples.fig1a_substrate()`, `fig3a_substrate()`, `fig3b_substrate()`, `fig16_substrate()` |
-| `examples.fig4_network()` / `_subsystem()`, `fig5a`, `fig5b` | `examples.fig4_substrate()` / `_system()`, `fig5a_*`, `fig5b_*` |
-| `examples.actual_causation_network()` | `examples.actual_causation_substrate()` |
+| `examples.fig1a()`, `fig3a()`, `fig3b()`, `fig16()` [1.x]; `fig1a_network()` and the like [4.0-branch] | `examples.iit3_2014_fig1a_substrate()`, `iit3_2014_fig3a_substrate()`, `iit3_2014_fig3b_substrate()`, `iit3_2014_fig16_substrate()` |
+| `examples.fig4()`, `fig5a()`, `fig5b()` [1.x]; `fig4_network()` / `_subsystem()` [4.0-branch] | `examples.iit3_2014_fig4_substrate()` / `iit3_2014_fig4_system()`, `iit3_2014_fig5a_*`, `iit3_2014_fig5b_*` |
+| `examples.fig6()`, `fig8()`, `fig9()`, `fig10()` (the Figure 4 network), `fig14()` (the Figure 1A network) [1.x] | `examples.iit3_2014_fig6_substrate()`, `iit3_2014_fig8_substrate()`, `iit3_2014_fig9_substrate()`, `iit3_2014_fig10_substrate()`, `iit3_2014_fig14_substrate()` |
+| `examples.actual_causation()` [1.x]; `actual_causation_network()` [4.0-branch] | `examples.actual_causation_substrate()` |
+| `examples.prevention()` [1.x] | `examples.prevention_transition()` |
 | `examples.disjunction_conjunction_network()` | `examples.disjunction_conjunction_substrate()` |
 | `examples.frog_example()` | `examples.frog_substrate()` and `examples.frog_transition()` |
 | `examples.differentiation_micro_1_subsystem()` | `examples.differentiation_micro_1_system()` |
+
+`iit3_2014_fig5b_substrate()` follows Figure 5B of the 2014 paper, in which
+unit B is AND(A, C); the 1.x `fig5b()` network computed OR(A, C), so its
+results differ.
 
 The IIT 4.0 paper's networks are new in 2.0 (`iit4_2023_fig1a_substrate()`
 and the other `iit4_2023_*`, `marshall_2023_*`, and `mayner_2026_*`

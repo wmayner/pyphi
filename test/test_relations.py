@@ -82,7 +82,7 @@ def _pin_formalism():
         yield
 
 
-NETWORKS = ["grid3", "basic", "xor", "rule110", "fig4"]
+NETWORKS = ["grid3", "basic", "xor", "rule110", "iit3_2014_fig4"]
 
 
 @pytest.mark.parametrize("case_name", NETWORKS)

@@ -200,7 +200,7 @@ class TestSubstratesAxis:
         # Substrates of different sizes coexist under states="all".
         subs = {
             "small": examples.basic_substrate(),
-            "fig4": examples.fig4_substrate(),
+            "fig4": examples.iit3_2014_fig4_substrate(),
         }
         result = sweep(
             subs,
@@ -211,7 +211,7 @@ class TestSubstratesAxis:
         )
         computed_plus_skipped = len(result.df) + len(result.skipped)
         n_small = len(examples.basic_substrate())
-        n_fig4 = len(examples.fig4_substrate())
+        n_fig4 = len(examples.iit3_2014_fig4_substrate())
         assert computed_plus_skipped == 2**n_small + 2**n_fig4
 
     def test_skipped_entries_are_4_tuples(self):

@@ -208,7 +208,7 @@ if GENERATION == "pre":
 else:
     NETWORKS = {
         "basic": NetworkFixture("basic", examples.basic_system, 3),
-        "fig4": NetworkFixture("fig4", examples.fig4_system, 3),
+        "fig4": NetworkFixture("fig4", examples.iit3_2014_fig4_system, 3),
         "xor": NetworkFixture("xor", examples.xor_system, 3),
         "macro": NetworkFixture("macro", examples.macro_system, 4),
         "residue": NetworkFixture("residue", examples.residue_system, 5),

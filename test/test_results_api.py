@@ -121,6 +121,34 @@ def test_perturbation_is_unhashable():
 
 
 @pytest.mark.parametrize(
+    "old,new",
+    [
+        ("fig1a_substrate", "iit3_2014_fig1a_substrate"),
+        ("fig4_system", "iit3_2014_fig4_system"),
+        ("fig1a", "iit3_2014_fig1a_substrate"),
+        ("fig4", "iit3_2014_fig4_substrate"),
+        ("fig14", "iit3_2014_fig14_substrate"),
+        ("fig1a_network", "iit3_2014_fig1a_substrate"),
+        ("fig4_subsystem", "iit3_2014_fig4_system"),
+        ("actual_causation", "actual_causation_substrate"),
+        ("prevention", "prevention_transition"),
+        ("xor_network", "xor_substrate"),
+    ],
+)
+def test_old_example_names_point_to_new(old, new):
+    assert hasattr(examples, new)
+    with pytest.raises(AttributeError, match=new):
+        getattr(examples, old)
+
+
+def test_iit3_2014_examples_are_registered():
+    assert examples.EXAMPLES["substrate"]["iit3_2014_fig4"] is (
+        examples.iit3_2014_fig4_substrate
+    )
+    assert "fig4" not in examples.EXAMPLES["substrate"]
+
+
+@pytest.mark.parametrize(
     "module,name",
     [
         ("pyphi.models", "Concept"),

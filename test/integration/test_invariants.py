@@ -315,7 +315,7 @@ class TestCauseEffectStructureInvariants:
     computation, including distinctions and relations.
     """
 
-    @pytest.mark.parametrize("example_name", ["basic", "fig4", "xor"])
+    @pytest.mark.parametrize("example_name", ["basic", "iit3_2014_fig4", "xor"])
     def test_phi_structure_has_distinctions(self, example_name):
         """Non-trivial systems should have at least one distinction.
 
@@ -339,7 +339,7 @@ class TestCauseEffectStructureInvariants:
                 f"System '{example_name}' has phi > 0 but zero distinctions"
             )
 
-    @pytest.mark.parametrize("example_name", ["basic", "fig4"])
+    @pytest.mark.parametrize("example_name", ["basic", "iit3_2014_fig4"])
     def test_phi_structure_has_relations(self, example_name):
         """Systems with multiple distinctions should have relations.
 

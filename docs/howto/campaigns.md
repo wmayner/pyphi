@@ -33,7 +33,7 @@ from pyphi import campaign, examples
 
 status = campaign.prepare(
     {
-        "grid": examples.fig4_substrate(),
+        "grid": examples.iit3_2014_fig4_substrate(),
         "basic": examples.basic_substrate(),
     },
     states="all",
