@@ -251,12 +251,14 @@ def _keep_strategy(iit: Any, current: Any) -> Any:
     Returns
     -------
     IITConfig
-        When ``iit`` is the ``"iit"`` entry of a preset, a copy carrying
-        ``current``'s options that choose how a quantity is computed rather
-        than its value (``relation_computation``); otherwise ``iit``
-        unchanged, so an explicitly built configuration applies as given.
+        When ``iit`` equals the ``"iit"`` entry of a preset (a copied or
+        unpickled preset counts), a copy carrying ``current``'s options that
+        choose how a quantity is computed rather than its value
+        (``relation_computation``); otherwise ``iit`` unchanged, so a
+        configuration that differs from every preset, including one that sets
+        ``relation_computation`` itself, applies as given.
     """
-    if not any(iit is preset["iit"] for preset in by_name.values()):
+    if not any(iit == preset["iit"] for preset in by_name.values()):
         return iit
     return replace(iit, **{name: getattr(current, name) for name in _STRATEGY_FIELDS})
 

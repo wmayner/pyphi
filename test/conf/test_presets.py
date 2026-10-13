@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import pickle
 from pathlib import Path
 
@@ -312,12 +313,27 @@ class TestPresetsKeepComputationStrategy:
             assert config.formalism.iit.version == "IIT_4_0_2023"
             assert config.formalism.iit.relation_computation == "CONCRETE"
 
-    def test_an_explicit_iit_config_applies_as_given(self):
+    @pytest.mark.parametrize(
+        "clone", [copy.deepcopy, lambda p: pickle.loads(pickle.dumps(p))]
+    )
+    def test_a_copied_preset_keeps_relation_computation(self, clone):
         with (
             config.override(relation_computation="CONCRETE"),
-            config.override(iit=IITConfig()),
+            config.override(**clone(iit3)),
+        ):
+            assert config.formalism.iit.version == "IIT_3_0"
+            assert config.formalism.iit.relation_computation == "CONCRETE"
+
+    def test_an_explicit_iit_config_applies_as_given(self):
+        explicit = dataclasses.replace(IITConfig(), system_partition_include_total=True)
+        with (
+            config.override(relation_computation="CONCRETE"),
+            config.override(iit=explicit),
         ):
             assert config.formalism.iit.relation_computation == "ANALYTICAL"
+        explicit = dataclasses.replace(iit4_2023["iit"], relation_computation="CONCRETE")
+        with config.override(iit=explicit):
+            assert config.formalism.iit.relation_computation == "CONCRETE"
 
     def test_formalism_argument_keeps_concrete_relations(self):
         import pyphi
