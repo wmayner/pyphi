@@ -557,9 +557,16 @@ class SystemIrreducibilityAnalysis(
             Finding(kind="null_result", label="Null result", value=reason)
             for reason in self.reasons or []
         ]
-        # The MIP is named whenever the runner-up gap is reported, since the
-        # gap is measured from it, even when φₛ is 0.
-        if self.partition is not None and (bool(self) or self.runner_up is not None):
+        state_margins = self.state_margins
+        reports_margin = self.partition_margin is not None or any(
+            margin is not None for margin in state_margins.values()
+        )
+        # The MIP is named whenever the runner-up gap, a selection margin or
+        # the tie flag is reported, since each describes its selection, even
+        # when φₛ is 0.
+        if self.partition is not None and (
+            bool(self) or self.runner_up is not None or reports_margin
+        ):
             findings.append(
                 Finding(
                     kind="winning_partition",
@@ -596,7 +603,6 @@ class SystemIrreducibilityAnalysis(
                     value=self.partition_margin,
                 )
             )
-        state_margins = self.state_margins
         for direction in Direction.both():
             margin = state_margins[direction]
             if margin is not None:
@@ -609,9 +615,7 @@ class SystemIrreducibilityAnalysis(
                         tone=tone,
                     )
                 )
-        if self.partition_margin is not None or any(
-            margin is not None for margin in state_margins.values()
-        ):
+        if reports_margin:
             findings.append(
                 Finding(
                     kind="effectively_tied",

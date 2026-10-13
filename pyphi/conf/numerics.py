@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
+
 from pyphi.conf._helpers import read_only
 from pyphi.conf._helpers import yaml_repr
 
@@ -28,6 +30,9 @@ class NumericsConfig:
     __repr__ = yaml_repr
 
     def __post_init__(self) -> None:
+        # NumPy integers are accepted wherever Python ones are.
+        if isinstance(self.precision, np.integer):
+            object.__setattr__(self, "precision", self.precision.item())
         if not isinstance(self.precision, int) or isinstance(self.precision, bool):
             raise ValueError(
                 f"precision must be int; got {type(self.precision).__name__}"

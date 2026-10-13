@@ -1090,14 +1090,6 @@ def _candidate_systems(
     systems = []
     seen: set[tuple[int, ...]] = set()
     for candidate in candidates:
-        units = (
-            candidate.node_indices
-            if isinstance(candidate, System)
-            else substrate.node_labels.coerce_to_indices(candidate)
-        )
-        if units in seen:
-            continue
-        seen.add(units)
         if isinstance(candidate, System):
             if candidate.state != coerced or (
                 candidate.substrate is not substrate and candidate.substrate != substrate
@@ -1107,9 +1099,18 @@ def _candidate_systems(
                     f"{candidate.state} is not a system of this substrate in "
                     f"state {tuple(state)}; give candidates as subsets of units"
                 )
-            systems.append(candidate)
+            candidate._recheck_state()
+            units = candidate.node_indices
         else:
-            systems.append(System(substrate, state, subset=units))
+            units = substrate.node_labels.coerce_to_indices(candidate)
+        if units in seen:
+            continue
+        seen.add(units)
+        systems.append(
+            candidate
+            if isinstance(candidate, System)
+            else System(substrate, state, subset=units)
+        )
     return systems
 
 

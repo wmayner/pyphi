@@ -411,3 +411,31 @@ def test_candidates_naming_one_system_twice_are_evaluated_once(candidates):
     assert found[0].phi == pytest.approx(2.0)
     assert maximal.node_indices == (1, 2)
     assert len({s.node_indices for s in sias}) == len(sias)
+
+
+def test_a_candidate_system_is_checked_under_the_formalism_of_the_call():
+    """A System built under IIT 4.0 in a state IIT 3.0 cannot analyze must be
+    rejected as the same candidate given as a subset is, not scored 0."""
+    from pyphi.conf import presets
+    from pyphi.system import System
+
+    substrate = examples.marshall_2023_fig1_substrate()
+    state = (0, 0, 0, 1)
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        substrate.all_sias(state, candidates=[(0, 2)], formalism="IIT_3_0")
+    with config.override(**presets.iit4_2026):
+        system = System(substrate, state, subset=(0, 2))
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        substrate.all_sias(state, candidates=[system], formalism="IIT_3_0")
+
+
+def test_a_duplicate_candidate_system_in_another_state_is_rejected():
+    """The state check runs before duplicates are skipped."""
+    from pyphi.system import System
+
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with pytest.raises(ValueError, match="not a system of this substrate"):
+        substrate.all_sias(
+            (1, 0, 0),
+            candidates=[(0, 1, 2), System(substrate, (0, 0, 0))],
+        )

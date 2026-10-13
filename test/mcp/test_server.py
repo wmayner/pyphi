@@ -325,6 +325,21 @@ def test_a_boolean_mask_subset_is_rejected(basic_handle, tool):
         _call_tool(tool, arguments)
 
 
+@pytest.mark.parametrize("tool", ["analyze", "estimate_cost"])
+def test_a_subset_of_integral_floats_is_accepted(basic_handle, tool):
+    # Some JSON clients send every number as a float.
+    from mcp.server.fastmcp.exceptions import ToolError
+
+    arguments = {"handle": basic_handle, "subset": [0.0, 1.0]}
+    if tool == "analyze":
+        arguments["state"] = [1, 0, 0]
+    _, structured = _call_tool(tool, arguments)
+    if tool == "analyze":
+        assert structured["summary"]["subset"] == [0, 1]
+    with pytest.raises(ToolError, match="subset"):
+        _call_tool(tool, {**arguments, "subset": [0.5, 1.0]})
+
+
 def test_configure_parallel_rejects_zero_workers_and_changes_nothing():
     before = srv.configure_parallel()
     with pytest.raises(ValueError, match="parallel_workers"):

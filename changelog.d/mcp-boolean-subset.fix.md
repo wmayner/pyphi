@@ -1,1 +1,1 @@
-The MCP `analyze`, `estimate_cost` and `prepare_ces_campaign` tools reject JSON booleans in `subset`. They were read as the indices 1 and 0, so a mask such as `[false, true]` analyzed units A and B instead of B.
+The MCP `analyze`, `estimate_cost` and `prepare_ces_campaign` tools reject JSON booleans in `subset`. They were read as the indices 1 and 0, so a mask such as `[false, true]` analyzed units A and B instead of B. Numbers with no fractional part, such as `[0.0, 1.0]`, are accepted as indices, as before.

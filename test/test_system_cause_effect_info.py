@@ -65,3 +65,23 @@ def test_info_queries_run_under_iit3(s, query):
     with pyphi.config.override(**pyphi.iit3):
         value = getattr(s, query)((0, 1), (0, 2))
     assert value >= 0
+
+
+@pytest.mark.parametrize("query", ["cause_info", "effect_info", "cause_effect_info"])
+def test_info_queries_take_an_explicit_measure_under_iit4(s, query):
+    """An explicit distance defines the quantity under any version of IIT, by
+    name or as a measure."""
+    from pyphi.core import repertoire_algebra as ra
+    from pyphi.measures.distribution import resolve_mechanism_measure
+
+    with pyphi.config.override(**pyphi.iit4_2026):
+        kld = resolve_mechanism_measure("KLD", s.substrate.factored_tpm.alphabet_sizes)
+        by_name = getattr(s, query)((0, 1), (0, 2), repertoire_distance="KLD")
+        by_measure = getattr(s, query)((0, 1), (0, 2), repertoire_distance=kld)
+        direct = getattr(ra, query)(s, (0, 1), (0, 2), repertoire_distance=kld)
+    assert by_name == by_measure == direct
+
+
+def test_info_queries_reject_an_unknown_measure_name(s):
+    with pytest.raises(ValueError, match="NOT_A_MEASURE"):
+        s.cause_info((0, 1), (0, 2), repertoire_distance="NOT_A_MEASURE")

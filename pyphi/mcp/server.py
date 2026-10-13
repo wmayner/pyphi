@@ -20,11 +20,12 @@ from dataclasses import asdict
 from dataclasses import fields
 from importlib import metadata
 from pathlib import Path
+from typing import Annotated
 from typing import Any
 
 import numpy as np
 from mcp.server.fastmcp import FastMCP
-from pydantic import StrictInt
+from pydantic import BeforeValidator
 
 import pyphi
 from pyphi import examples
@@ -515,7 +516,19 @@ def _compute_arg(compute: str) -> str | None:
     return None if compute == "full" else compute
 
 
-def _subset_indices(substrate: Any, subset: list[StrictInt | str] | None) -> Any:
+def _reject_bool(value: Any) -> Any:
+    if isinstance(value, bool):
+        raise ValueError("a unit is an index or a label, not a boolean")
+    return value
+
+
+UnitIndex = Annotated[int, BeforeValidator(_reject_bool)]
+"""A unit index from JSON: an integer, or a float with no fractional part
+(some clients send ``1.0``); a boolean is rejected, since a mask such as
+``[false, true]`` would otherwise be read as the indices 0 and 1."""
+
+
+def _subset_indices(substrate: Any, subset: list[UnitIndex | str] | None) -> Any:
     """Node indices for a tool's ``subset`` (indices or labels), or ``None``."""
     if subset is None:
         return None
@@ -600,7 +613,7 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
 def analyze(
     handle: str,
     state: list[int],
-    subset: list[StrictInt | str] | None = None,
+    subset: list[UnitIndex | str] | None = None,
     formalism: str | None = None,
     compute: str = "full",
     detail: str = "summary",
@@ -720,7 +733,7 @@ def analyze(
 @mcp.tool()
 def estimate_cost(
     handle: str,
-    subset: list[StrictInt | str] | None = None,
+    subset: list[UnitIndex | str] | None = None,
     compute: str = "full",
     formalism: str | None = None,
     scope: dict[str, Any] | None = None,
@@ -864,7 +877,7 @@ def prepare_ces_campaign(
     state: list[int],
     directory: str,
     units_per_job: float,
-    subset: list[StrictInt | str] | None = None,
+    subset: list[UnitIndex | str] | None = None,
     scope: dict[str, Any] | None = None,
     formalism: str | None = None,
     sia_ref: str | None = None,

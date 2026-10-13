@@ -660,7 +660,9 @@ def prepare_ces(
         the full ``(label, formalism, subset, state)`` cell tuples, a
         mapping keyed by state alone (when the other axes are singletons),
         or a callable ``cell -> specification``. Every cell must resolve;
-        values are validated here rather than at collect time.
+        values are validated here rather than at collect time. IIT 3.0
+        resolves no congruence, so a campaign with a cell under IIT 3.0
+        raises :class:`ValueError`.
     ordering : {"bottleneck_first", None}, optional
         Reorder each partition-stride shard's slice so likely-reducible
         partitions are evaluated first (sparse substrates short-circuit
@@ -987,6 +989,14 @@ def _normalize_resolution_states(resolution_state: Any, cells: list) -> dict | N
     """
     if resolution_state is None:
         return None
+    for label, formalism_, subset, state in cells:
+        if (formalism_ or config.formalism.iit.version) == "IIT_3_0":  # pyright: ignore[reportAttributeAccessIssue]
+            raise ValueError(
+                "resolution_state has no meaning under IIT 3.0, whose "
+                "cause-effect structures have no congruence to resolve; cell "
+                f"{(label, formalism_, tuple(subset), tuple(state))!r} is under "
+                "IIT 3.0. Prepare IIT 3.0 cells in a campaign without it"
+            )
     keys = [_cell_key(cell) for cell in cells]
     if isinstance(resolution_state, Mapping):
         state_keyed = all(
@@ -1137,7 +1147,9 @@ def collect(
         states, in any of the forms :func:`prepare_ces` accepts (a single
         specification for single-cell campaigns, a cell- or state-keyed
         mapping, or a callable). Overrides the states stored at
-        preparation.
+        preparation. Not accepted for a cell under IIT 3.0, which resolves
+        no congruence (:class:`ValueError`); an IIT 3.0 structure collected
+        without its analysis holds every distinction and a null analysis.
     """
     directory = Path(directory)
     manifest = _load_manifest(directory)
@@ -1297,7 +1309,17 @@ hours beyond ~12 units and raising as infeasible beyond ~16."""
 
 
 def _assemble_without_sia(system: Any, distinctions: Any, resolution_state: Any):
-    """Assemble a structure whose congruence state comes without any φₛ."""
+    """Assemble a structure whose congruence state comes without any φₛ.
+
+    Under IIT 3.0 there is no congruence to resolve: the structure holds
+    every distinction and no relations, with a null analysis.
+    """
+    if config.formalism.iit.version == "IIT_3_0":  # pyright: ignore[reportAttributeAccessIssue]
+        from pyphi.formalism.iit3 import ces as iit3_ces
+        from pyphi.models import _null_sia
+
+        return iit3_ces(system, sia=_null_sia(system), distinctions=distinctions)
+
     from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
     from pyphi.formalism.iit4 import system_intrinsic_specification
     from pyphi.measures.distribution import resolve_mechanism_measure

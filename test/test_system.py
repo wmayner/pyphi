@@ -757,3 +757,62 @@ def test_mip_query_options_are_checked(query, error, match):
         with pytest.raises(Exception, match=match) as raised:
             query(system)
     assert type(raised.value).__name__ == error
+
+
+@pytest.mark.parametrize("value", [0, 1, np.int64(1)])
+def test_a_direction_may_be_given_by_value(value):
+    """Direction(value) accepts 0 and 1, and so do the mechanism queries."""
+    import pyphi
+    from pyphi import examples
+
+    with config.override(**pyphi.iit4_2026):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        by_value = system.find_mip(value, (0,), (1,))
+        assert by_value == system.find_mip(Direction(value), (0,), (1,))
+        assert system.find_mice(value, (0,)) == system.find_mice(Direction(value), (0,))
+
+
+@pytest.mark.parametrize("value", [2, True, "cause", None])
+def test_a_direction_other_than_cause_or_effect_is_rejected(value):
+    import pyphi
+    from pyphi import examples
+
+    with config.override(**pyphi.iit4_2026):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        with pytest.raises(ValueError, match=r"Direction\.CAUSE or Direction\.EFFECT"):
+            system.find_mip(value, (0,), (1,))
+
+
+@pytest.mark.parametrize("method", ["sia", "ces"])
+def test_an_active_override_checks_the_state_under_that_formalism(method):
+    """Computing under config.override(**iit3) a System built under IIT 4.0
+    must reject a state IIT 3.0 cannot analyze, as formalism= does."""
+    import pyphi
+    from pyphi import examples
+    from pyphi.conf import presets
+
+    substrate = examples.marshall_2023_fig1_substrate()
+    state = (0, 0, 0, 1)
+    with config.override(**presets.iit4_2026):
+        system = System(substrate, state, subset=(0, 2))
+    with (
+        config.override(**pyphi.iit3),
+        pytest.raises(exceptions.StateUnreachableForwardsError),
+    ):
+        getattr(system, method)()
+
+
+def test_a_system_built_without_state_validation_is_not_rechecked():
+    """validate_system_states=False at construction opts the System out of
+    the check, whether or not the override is still active at compute time."""
+    import pyphi
+    from pyphi import examples
+
+    substrate = examples.marshall_2023_fig1_substrate()
+    state = (0, 0, 0, 1)
+    with config.override(validate_system_states=False):
+        system = System(substrate, state, subset=(0, 2))
+    with config.override(**pyphi.iit3):
+        assert system.sia().phi == 0
+    with config.override(**pyphi.iit3, validate_system_states=False):
+        assert system.sia().phi == 0

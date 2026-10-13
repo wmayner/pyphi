@@ -175,6 +175,36 @@ def test_shard_results_are_unchanged_by_a_binding_cache_ceiling(tmp_path):
         ]
 
 
+def test_a_shard_allowed_too_little_memory_to_cache_still_runs(tmp_path, monkeypatch):
+    """An allowance below the reserve leaves a cache ceiling of 0, which keeps
+    the caches empty; every task must still run and give the same results."""
+    from pyphi.cache import cache_utils
+    from pyphi.cost import shard_cache_budget_bytes
+
+    directories = {}
+    for name, granted in (("unbounded", None), ("small", "128MB")):
+        directory = tmp_path / name
+        prepare_ces(
+            examples.basic_substrate(),
+            states=BASIC_STATE,
+            formalisms="IIT_4_0_2026",
+            directory=directory,
+            units_per_job=5.0,
+        )
+        if granted is not None:
+            monkeypatch.setattr(cache_utils, "_cgroup_memory_limit", lambda: None)
+            monkeypatch.setenv("PYPHI_SHARD_MEMORY", granted)
+            assert shard_cache_budget_bytes(128 * 1024**2) == 0
+        _run_all(directory)
+        directories[name] = directory
+    for f in sorted((directories["unbounded"] / "outputs").glob("task-*.json.gz")):
+        expected = load(f)
+        got = load(directories["small"] / "outputs" / f.name)
+        assert [str(e.result) for e in got.entries] == [
+            str(e.result) for e in expected.entries
+        ]
+
+
 def test_bottleneck_ordering_gives_same_results(tmp_path):
     a = tmp_path / "plain"
     b = tmp_path / "ordered"

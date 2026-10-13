@@ -72,14 +72,19 @@ def _reject_unknown(caller: str, kwargs: Any, *names: str) -> None:
 
 
 def _check_direction(direction: Any) -> Any:
-    """Return ``direction`` if it is ``Direction.CAUSE`` or ``Direction.EFFECT``."""
+    """Return ``direction`` as ``Direction.CAUSE`` or ``Direction.EFFECT``,
+    which may also be given by value (``0`` or ``1``)."""
     from pyphi.direction import Direction
 
-    if not isinstance(direction, Direction) or direction not in Direction.both():
+    try:
+        resolved = None if isinstance(direction, bool) else Direction(direction)
+    except (ValueError, TypeError):
+        resolved = None
+    if resolved not in Direction.both():
         raise ValueError(
             f"direction must be Direction.CAUSE or Direction.EFFECT; got {direction!r}"
         )
-    return direction
+    return resolved
 
 
 def _mip_options(system: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -273,8 +278,12 @@ class System(Displayable, ToPandasMixin, Serializable):
             self._validate_state_reachable()
 
     def _validate_state_reachable(self) -> None:
-        """Raise if the state is unreachable under this system's dynamics."""
+        """Raise if the state is unreachable under this system's dynamics, and
+        record the background conditioning it was checked under."""
         validate.state_reachable(self)
+        object.__setattr__(
+            self, "_checked_conditioning", self._resolved_background_conditioning()
+        )
 
     def _check_precomputed(self, *, sia: Any = None, distinctions: Any = None) -> None:
         """Raise ``ValueError`` if a precomputed analysis or distinctions
@@ -318,16 +327,23 @@ class System(Displayable, ToPandasMixin, Serializable):
                         f"system's {expected}"
                     )
 
-    def _validate_state_under(self, formalism: Any) -> None:
-        """Check the state under ``formalism``, already active, when one is
-        selected for a call.
+    def _recheck_state(self) -> None:
+        """Check the state again when the background conditioning now in
+        effect differs from the one it was checked under.
 
-        Reachability depends on the formalism's background conditioning, and
-        construction checked it only under the formalism active then.
+        Reachability depends on the background conditioning, which the
+        active formalism sets unless the System pins it. A System built with
+        ``validate_system_states`` off was never checked and is not checked
+        here.
         """
         from pyphi.conf import config as _config
 
-        if formalism is not None and _config.infrastructure.validate_system_states:
+        checked = getattr(self, "_checked_conditioning", None)
+        if (
+            checked is not None
+            and _config.infrastructure.validate_system_states
+            and checked != self._resolved_background_conditioning()
+        ):
             self._validate_state_reachable()
 
     def __lt__(self, other: object) -> bool:
@@ -895,10 +911,14 @@ class System(Displayable, ToPandasMixin, Serializable):
     # ---- info / phi proxies ----
 
     def _info_kwargs(self, caller: str, kwargs: dict[str, Any]) -> dict[str, Any]:
-        """The options of an information query, with the configured measure
-        filled in; any option but ``repertoire_distance`` and ``state`` raises
-        ``TypeError``, and so does a query under a version of IIT that does
-        not define these quantities (any but IIT 3.0)."""
+        """The options of an information query, with the measure resolved.
+
+        Any option but ``repertoire_distance`` and ``state`` raises
+        ``TypeError``. A measure name resolves to its measure. Without an
+        explicit measure the configured ``mechanism_phi_measure`` is used,
+        which only IIT 3.0 defines for these quantities; under another
+        version of IIT that raises ``TypeError``.
+        """
         from pyphi.conf import config as _config
         from pyphi.conf import reject_unknown_kwargs
         from pyphi.measures.distribution import resolve_mechanism_measure
@@ -906,24 +926,29 @@ class System(Displayable, ToPandasMixin, Serializable):
         reject_unknown_kwargs(
             f"System.{caller}", kwargs, ["repertoire_distance", "state"]
         )
+        alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
+        if kwargs.get("repertoire_distance") is not None:
+            kwargs["repertoire_distance"] = _resolve_measure(
+                "repertoire_distance",
+                kwargs["repertoire_distance"],
+                lambda name: resolve_mechanism_measure(name, alphabet_sizes),
+            )
+            return kwargs
         version = _config.formalism.iit.version
         if version != "IIT_3_0":
             raise TypeError(
-                f"System.{caller}() is an IIT 3.0 quantity (the distance between "
-                "a mechanism's repertoire and the unconstrained repertoire) and "
-                f"is not defined under {version}. Under IIT 4.0, a mechanism's "
-                "intrinsic specification of its purview is on System.mic() and "
+                f"System.{caller}() with the configured measure is an IIT 3.0 "
+                "quantity (the distance between a mechanism's repertoire and "
+                f"the unconstrained repertoire) and is not defined under "
+                f"{version}; pass repertoire_distance= to choose a distance, "
+                "such as 'KLD'. Under IIT 4.0, a mechanism's intrinsic "
+                "specification of its purview is on System.mic() and "
                 "System.mie() (mice.specified_state.intrinsic_specification) "
                 "or System.intrinsic_specification(), and the system's is "
-                "System.sia().intrinsic_specification. To compute this "
-                "quantity, run under pyphi.config.override(**pyphi.iit3)."
+                "System.sia().intrinsic_specification."
             )
-        kwargs.setdefault(
-            "repertoire_distance",
-            resolve_mechanism_measure(
-                _config.formalism.iit.mechanism_phi_measure,
-                self.substrate.factored_tpm.alphabet_sizes,
-            ),
+        kwargs["repertoire_distance"] = resolve_mechanism_measure(
+            _config.formalism.iit.mechanism_phi_measure, alphabet_sizes
         )
         return kwargs
 
@@ -1090,8 +1115,10 @@ class System(Displayable, ToPandasMixin, Serializable):
             If a measure name is not a registered measure, or
             ``partition_scheme`` is not a registered system partition scheme.
         ~pyphi.exceptions.StateUnreachableForwardsError
-            If ``formalism`` is given and the state is unreachable under it,
-            as :func:`pyphi.analyze` would raise.
+            If the state is unreachable under the background conditioning of
+            the formalism in effect for the call, as :func:`pyphi.analyze`
+            would raise. Not raised for a System built with
+            ``config.infrastructure.validate_system_states`` off.
         """
         from pyphi.cache.disk import maybe_disk_cached
         from pyphi.conf import presets
@@ -1145,7 +1172,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             return _sia(self, **call_kwargs)
 
         with presets.use(formalism):
-            self._validate_state_under(formalism)
+            self._recheck_state()
             return maybe_disk_cached(self, "sia", options, _compute)
 
     def ces(
@@ -1185,8 +1212,10 @@ class System(Displayable, ToPandasMixin, Serializable):
             the system or its mechanism state differs from the system's
             state. Nothing checks that they come from the same substrate.
         ~pyphi.exceptions.StateUnreachableForwardsError
-            If ``formalism`` is given and the state is unreachable under it,
-            as :func:`pyphi.analyze` would raise.
+            If the state is unreachable under the background conditioning of
+            the formalism in effect for the call, as :func:`pyphi.analyze`
+            would raise. Not raised for a System built with
+            ``config.infrastructure.validate_system_states`` off.
 
         Notes
         -----
@@ -1224,7 +1253,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             )
 
         with presets.use(formalism):
-            self._validate_state_under(formalism)
+            self._recheck_state()
             return maybe_disk_cached(self, "ces", options, _compute)
 
     def distinctions(self, *, congruent: bool = False) -> Any:
@@ -1337,7 +1366,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.measures.distribution import resolve_mechanism_measure
 
         _reject_unknown(caller, kwargs, *_MIP_OPTIONS)
-        _check_direction(direction)
+        direction = _check_direction(direction)
         kwargs = _mip_options(self, kwargs)
         if _config.formalism.iit.version != "IIT_3_0":
             alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
@@ -1434,7 +1463,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.formalism import find_mice as _find_mice
 
         _reject_unknown("find_mice", kwargs, "purviews")
-        _check_direction(direction)
+        direction = _check_direction(direction)
         if "purviews" in kwargs:
             kwargs["purviews"] = self._coerce_purviews(kwargs["purviews"])
         return _find_mice(self, direction, self._coerce_units(mechanism), **kwargs)

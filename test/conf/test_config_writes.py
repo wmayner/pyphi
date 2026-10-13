@@ -269,8 +269,7 @@ class TestValuesThatWouldFailLaterAreRejected:
             ("iit.mip_tie_resolution", [], "non-empty"),
             ("infrastructure.repr_max_table_rows", "x", "must be int"),
             ("infrastructure.repr_max_table_rows", -1, "at least 0"),
-            ("infrastructure.memory_ceiling_bytes", -5, "positive"),
-            ("infrastructure.memory_ceiling_bytes", 0, "positive"),
+            ("infrastructure.memory_ceiling_bytes", -5, "number of bytes"),
             ("infrastructure.repr_verbosity", True, "must be int"),
         ],
     )
@@ -312,6 +311,18 @@ class TestValuesThatWouldFailLaterAreRejected:
         with config.override(parallel=np.True_, repr_max_table_rows=np.int64(7)):
             assert config.infrastructure.parallel is True
             assert type(config.infrastructure.repr_max_table_rows) is int
+
+    def test_numpy_integers_are_accepted_in_numerics_settings(self):
+        import numpy as np
+
+        with config.override(precision=np.int64(10)):
+            assert config.precision == 10
+            assert type(config.numerics.precision) is int
+
+    def test_a_zero_memory_ceiling_keeps_the_caches_empty(self):
+        """Campaign shards allowed less than the reserve derive a ceiling of 0."""
+        with config.override(memory_ceiling_bytes=0):
+            assert config.infrastructure.memory_ceiling_bytes == 0
 
     def test_an_actual_causation_measure_error_does_not_recommend_iit_presets(self):
         from pyphi.formalism.actual_causation.formalism import _resolve_ac_measures

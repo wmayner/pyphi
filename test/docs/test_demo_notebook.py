@@ -24,13 +24,14 @@ def test_stored_outputs_match_the_code():
 
 
 def _text_outputs(cell) -> list[str]:
-    out = []
+    # The kernel flushes stdout on a timer, so one print loop can arrive as
+    # several stream outputs; concatenate them so the split point is ignored.
+    text = ""
     for o in cell.get("outputs", []):
         if o.output_type == "stream" and o.name == "stdout":
-            out.append(o.text)
+            text += o.text
         elif o.output_type in ("execute_result", "display_data"):
-            out.append(o.data.get("text/plain", ""))
-    text = "\n".join(out)
+            text += o.data.get("text/plain", "") + "\n"
     text = re.sub(r"<[^>]+ at 0x[0-9a-f]+>", "<obj>", text)  # object addresses
     timing = re.compile(r"\b\d+(\.\d+)?\s*(s|ms|it/s)\b")
     return [line for line in text.splitlines() if not timing.search(line)]

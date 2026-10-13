@@ -102,3 +102,15 @@ def test_explain_names_the_mip_when_phi_s_is_zero():
     assert sia.phi == 0
     assert "runner_up" in f
     assert f["winning_partition"] == concise_partition(sia.partition)
+
+
+def test_explain_names_the_mip_whenever_a_selection_margin_is_reported():
+    """A margin or tie flag describes the MIP's selection, so the MIP is named
+    even when φₛ is 0 and there is no runner-up."""
+    with pyphi.config.override(**pyphi.iit4_2026):
+        sia = pyphi.System(examples.basic_substrate(), (1, 0, 0), subset=(1, 2)).sia()
+    f = _findings(sia)
+    assert sia.phi == 0
+    assert "runner_up" not in f
+    assert "partition_margin" in f and "effectively_tied" in f
+    assert f["winning_partition"] == concise_partition(sia.partition)

@@ -94,6 +94,66 @@ def test_iit3_campaign_completes_and_equals_unsharded(tmp_path):
     )
 
 
+def test_iit3_partial_collect_before_the_sia_finishes(tmp_path):
+    """Without its SIA an IIT 3.0 campaign assembles the distinctions it has,
+    with no congruence to resolve, instead of failing in IIT 4.0 congruence."""
+    from pyphi.models import IIT3SystemIrreducibilityAnalysis
+    from pyphi.relations import NullRelations
+
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms="IIT_3_0",
+        directory=directory,
+        units_per_job=5.0,
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    sia_tasks = {
+        row["task_id"] for row in manifest["tasks"] if row["kind"] == "sia_shard"
+    }
+    assert sia_tasks
+    for row in manifest["tasks"]:
+        if row["task_id"] not in sia_tasks:
+            run_task(
+                directory / "tasks" / f"task-{row['task_id']:04d}.json.gz",
+                substrates_dir=directory / "substrates",
+                outputs_dir=directory / "outputs",
+            )
+    with pytest.warns(PyPhiWarning, match="incomplete"):
+        partial = collect(directory, partial=True)
+    assert isinstance(partial.sia, IIT3SystemIrreducibilityAnalysis)
+    assert isinstance(partial.relations, NullRelations)
+    _run_all(directory)
+    complete = collect(directory)
+    assert sorted(
+        (d.mechanism, d.cause.purview, d.effect.purview, float(d.phi))
+        for d in partial.distinctions
+    ) == sorted(
+        (d.mechanism, d.cause.purview, d.effect.purview, float(d.phi))
+        for d in complete.distinctions
+    )
+
+
+def test_resolution_state_is_rejected_under_iit3(tmp_path):
+    """IIT 3.0 resolves no congruence, so a resolution state has no meaning."""
+    with config.override(**presets.by_name["IIT_4_0_2026"], **PIN):
+        state = _resolution_state(System(examples.basic_substrate(), BASIC_STATE))
+    with pytest.raises(ValueError, match=r"IIT 3\.0"):
+        prepare_ces(
+            examples.basic_substrate(),
+            states=BASIC_STATE,
+            formalisms="IIT_3_0",
+            directory=tmp_path / "camp",
+            units_per_job=5.0,
+            resolution_state=state,
+        )
+    assert not (tmp_path / "camp").exists()
+    directory = _campaign(tmp_path, "IIT_3_0")
+    with pytest.raises(ValueError, match=r"IIT 3\.0"):
+        collect(directory, resolution_state=state)
+
+
 def test_scope_report_written_and_certified(tmp_path):
     scope = CESScope(mechanisms=AxisScope(containing=(0,)))
     directory = _campaign(tmp_path, "IIT_4_0_2026", scope=scope)

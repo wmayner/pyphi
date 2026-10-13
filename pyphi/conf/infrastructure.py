@@ -177,7 +177,8 @@ class InfrastructureConfig:
     """An absolute ceiling on the process's resident memory, above which the
     in-memory caches hold their occupancy steady by evicting least recently
     used entries (default ``None``). Replaces ``memory_ceiling_percentage``
-    when set, for an allowance no cgroup reports. It is compared against
+    when set, for an allowance no cgroup reports; ``0`` keeps them empty.
+    It is compared against
     the whole process's resident memory, of which the caches are usually a
     small part, so size it from what the process may use: the caches get
     the ceiling less the interpreter, the substrate, and working space."""
@@ -348,10 +349,10 @@ class InfrastructureConfig:
             )
         if self.memory_ceiling_bytes is not None:
             _check_int("memory_ceiling_bytes", self.memory_ceiling_bytes)
-            if self.memory_ceiling_bytes <= 0:
+            if self.memory_ceiling_bytes < 0:
                 raise ValueError(
-                    "memory_ceiling_bytes must be a positive number of bytes or "
-                    f"None; got {self.memory_ceiling_bytes}"
+                    "memory_ceiling_bytes must be a number of bytes (0 keeps the "
+                    f"caches empty) or None; got {self.memory_ceiling_bytes}"
                 )
         _check_bool("cache_repertoires", self.cache_repertoires)
         _check_bool("cache_potential_purviews", self.cache_potential_purviews)
