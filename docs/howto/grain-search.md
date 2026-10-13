@@ -27,6 +27,16 @@ before the system's intrinsic information became part of the definition of
 $\varphi_s$, so this page pins the version of IIT that paper used (see
 {doc}`earlier-versions`).
 
+The search is defined for IIT 4.0 with the background outside each candidate
+system causally marginalized, the default value of
+`config.formalism.iit.background_conditioning`. The macro cause TPM weights the
+micro background before the update window by its posterior (Marshall et al.
+2026, Eq. 34), and the paper defines no version of it that conditions the
+background on its current state. The search, and
+{meth}`MacroSystem.from_micro <pyphi.macro.system.MacroSystem.from_micro>`, raise
+`ValueError` under the IIT 3.0 preset or under
+`background_conditioning="CONDITION_CURRENT_STATE"`.
+
 ```{code-cell} python
 import numpy as np
 

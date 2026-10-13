@@ -35,6 +35,27 @@ from pyphi.substrate import Substrate
 from pyphi.system import System
 
 
+def _require_marginalized_background() -> None:
+    """Raise unless the cause-side background is causally marginalized.
+
+    The macro cause TPM weights the micro background before the update window
+    by its posterior (Marshall et al. 2026, Eq. 34), which matches
+    ``CAUSAL_MARGINALIZATION`` and has no counterpart that conditions the
+    background on its current state.
+    """
+    from pyphi.conf import config as _config
+
+    convention = _config.formalism.iit.background_conditioning
+    if convention != "CAUSAL_MARGINALIZATION":
+        raise ValueError(
+            "the intrinsic-units macro construction marginalizes the cause-side "
+            "background (Marshall et al. 2026, Eq. 34) and has no version for "
+            f"background_conditioning={convention!r}; set "
+            "config.formalism.iit.background_conditioning to "
+            "'CAUSAL_MARGINALIZATION' to build macro systems or search grains"
+        )
+
+
 def _macro_state(units, history):
     state = []
     for unit in units:
@@ -87,7 +108,15 @@ class MacroSystem(System):
             micro grain 1.
         node_labels : optional
             Labels for the macro units.
+
+        Raises
+        ------
+        ValueError
+            If ``config.formalism.iit.background_conditioning`` is not
+            ``"CAUSAL_MARGINALIZATION"``, the only background convention the
+            macro cause TPM is defined for.
         """
+        _require_marginalized_background()
         units = tuple(units)
         _validate_units(substrate, units)
         history = _normalize_history(units, substrate, micro_history)

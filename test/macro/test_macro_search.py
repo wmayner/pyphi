@@ -981,6 +981,35 @@ class TestRecursiveCondensation:
             with pytest.raises(ValueError, match="IIT_3_0"):
                 competing_systems(substrate, micro_unit(0), state)
 
+    def test_current_state_background_rejected_eagerly(self):
+        import dataclasses
+
+        import pyphi
+
+        substrate = decaying_chain_substrate()
+        state = (0, 0, 0, 0)
+        iit = dataclasses.replace(
+            presets.iit4_2026["iit"], background_conditioning="CONDITION_CURRENT_STATE"
+        )
+        match = "background_conditioning"
+        with config.override(**{**presets.iit4_2026, "iit": iit}):
+            with pytest.raises(ValueError, match=match):
+                complexes(substrate, state, bounds=SearchBounds(max_depth=0))
+            with pytest.raises(ValueError, match=match):
+                pyphi.analyze(substrate, state, grains=SearchBounds(max_depth=0))
+            with pytest.raises(ValueError, match=match):
+                intrinsic_units(substrate, state, bounds=SearchBounds())
+            with pytest.raises(ValueError, match=match):
+                valid_systems(substrate, state, bounds=SearchBounds())
+            with pytest.raises(ValueError, match=match):
+                is_intrinsic_unit(substrate, micro_unit(0), state)
+            with pytest.raises(ValueError, match=match):
+                competing_systems(substrate, micro_unit(0), state)
+            with pytest.raises(ValueError, match=match):
+                SearchBounds(max_depth=0).estimate(substrate)
+            with pytest.raises(ValueError, match=match):
+                MacroSystem.from_micro(substrate, [micro_unit(0)], state)
+
     def test_chain_margins_count_beaten_rivals_only(self):
         from pyphi.substrate import complexes as micro_complexes
 

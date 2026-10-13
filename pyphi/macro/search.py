@@ -52,6 +52,7 @@ from pyphi.macro.criteria import _as_unit
 from pyphi.macro.criteria import canonical_units
 from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.system import MacroSystem
+from pyphi.macro.system import _require_marginalized_background
 from pyphi.macro.tpm import _system_micro_indices
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
@@ -68,8 +69,9 @@ _MAPPING_POLICIES = ("FAMILIES", "EXHAUSTIVE")
 _APPORTIONMENT_POLICIES = ("NONE", "ENUMERATE")
 
 
-def _require_iit4() -> None:
-    """The intrinsic-units macro formalism is defined for IIT 4.0 only."""
+def _require_macro_formalism() -> None:
+    """The intrinsic-units macro formalism is defined for IIT 4.0 only, with
+    the cause-side background causally marginalized."""
     from pyphi.conf import config as _config
 
     version = _config.formalism.iit.version
@@ -78,6 +80,7 @@ def _require_iit4() -> None:
             "the intrinsic-units macro framework is not defined for "
             f"IIT_3_0; got config.formalism.iit.version={version!r}"
         )
+    _require_marginalized_background()
 
 
 @dataclass(frozen=True)
@@ -1027,7 +1030,7 @@ def competing_systems(
     ``config.infrastructure.parallel_macro_system_evaluation``.
     """
     parallel_kwargs = _parallel_options(parallel, progress)
-    _require_iit4()
+    _require_macro_formalism()
     mode = _resolve_prune(prune)
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
@@ -1083,7 +1086,7 @@ def is_intrinsic_unit(
     ``config.infrastructure.parallel_macro_system_evaluation``.
     """
     parallel_kwargs = _parallel_options(parallel, progress)
-    _require_iit4()
+    _require_macro_formalism()
     mode = _resolve_prune(prune)
     history = _normalized_history(
         substrate, micro_history, _unit_history_requirement(unit, bounds)
@@ -1162,7 +1165,7 @@ def intrinsic_units(
     ``config.infrastructure.parallel_macro_system_evaluation``.
     """
     parallel_kwargs = _parallel_options(parallel, progress)
-    _require_iit4()
+    _require_macro_formalism()
     mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, float] = {}
@@ -1204,7 +1207,7 @@ def valid_systems(
     ``config.infrastructure.parallel_macro_system_evaluation``.
     """
     parallel_kwargs = _parallel_options(parallel, progress)
-    _require_iit4()
+    _require_macro_formalism()
     mode = _resolve_prune(prune)
     history = _normalized_history(substrate, micro_history, bounds.max_micro_grain)
     memo: dict[MacroSystem, float] = {}
@@ -1431,7 +1434,7 @@ def complexes(
     distinguishes gated candidates from evaluated ones.
     """
     parallel_kwargs = _parallel_options(parallel, progress)
-    _require_iit4()
+    _require_macro_formalism()
     from pyphi import validate
     from pyphi.condensation import Candidate
     from pyphi.condensation import exclusion_cascade

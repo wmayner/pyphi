@@ -35,7 +35,7 @@ from pyphi.macro.search import _assemble_systems
 from pyphi.macro.search import _competitor_members
 from pyphi.macro.search import _decompositions
 from pyphi.macro.search import _max_tau
-from pyphi.macro.search import _require_iit4
+from pyphi.macro.search import _require_macro_formalism
 from pyphi.macro.search import _update_grains
 from pyphi.macro.search import candidate_mappings
 from pyphi.models.pandas import ToPandasMixin
@@ -239,7 +239,7 @@ def estimate_search(
     decomposition passes judgment; the estimate assumes every
     decomposition passes, so it raises unconditionally.
     """
-    _require_iit4()
+    _require_macro_formalism()
     counter = _Counter(limit)
     truncated = False
 
