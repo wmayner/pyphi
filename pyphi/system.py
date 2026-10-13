@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import replace
 from functools import cached_property
+from functools import wraps
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -55,15 +56,19 @@ def _given(**options: Any) -> dict[str, Any]:
 
 
 # The options the mechanism-level MIP queries accept, besides the parallel
-# options of :data:`pyphi.conf.PARALLEL_KWARGS`.
+# options below.
 _MIP_OPTIONS = ("partitions", "state", "mechanism_measure", "specification_measure")
+
+# The parallel options the mechanism-level queries accept. The other options
+# of :func:`pyphi.parallel.map_reduce` (reduce and short-circuit hooks) can
+# change the result, so they are not part of the public signature.
+_PARALLEL_OPTIONS = ("parallel", "progress", "chunksize", "sequential_threshold")
 
 
 def _reject_unknown(caller: str, kwargs: Any, *names: str) -> None:
     from pyphi.conf import reject_unknown_kwargs
-    from pyphi.conf._helpers import PARALLEL_KWARGS
 
-    reject_unknown_kwargs(f"System.{caller}", kwargs, [*names, *PARALLEL_KWARGS])
+    reject_unknown_kwargs(f"System.{caller}", kwargs, [*names, *_PARALLEL_OPTIONS])
 
 
 def _check_direction(direction: Any) -> Any:
@@ -186,20 +191,6 @@ class System(Displayable, ToPandasMixin, Serializable):
     background_conditioning: str | None = field(default=None)
     background_state: tuple[int, ...] | None = field(default=None)
     node_indices: NodeIndices = field(init=False)
-
-    def __new__(cls, *args: Any, **kwargs: Any) -> System:
-        # Point a ported ``Subsystem(network, state, nodes)`` call at the
-        # keyword-only ``subset`` instead of a bare argument-count error.
-        old = [name for name in ("indices", "nodes", "node_indices") if name in kwargs]
-        if len(args) > 2 or old:
-            given = (
-                f"keyword argument {old[0]!r}" if old else "a third positional argument"
-            )
-            raise TypeError(
-                f"{cls.__name__}() got {given}; pass the units of the candidate "
-                "system as the keyword-only subset=..."
-            )
-        return super().__new__(cls)
 
     def __post_init__(self, subset: NodeIndices | None) -> None:
         substrate = self.substrate
@@ -905,7 +896,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     def _info_kwargs(self, caller: str, kwargs: dict[str, Any]) -> dict[str, Any]:
         """The options of an information query, with the configured measure
         filled in; any option but ``repertoire_distance`` and ``state`` raises
-        ``TypeError``."""
+        ``TypeError``, and so does a query under a version of IIT that does
+        not define these quantities (any but IIT 3.0)."""
         from pyphi.conf import config as _config
         from pyphi.conf import reject_unknown_kwargs
         from pyphi.measures.distribution import resolve_mechanism_measure
@@ -913,6 +905,18 @@ class System(Displayable, ToPandasMixin, Serializable):
         reject_unknown_kwargs(
             f"System.{caller}", kwargs, ["repertoire_distance", "state"]
         )
+        version = _config.formalism.iit.version
+        if version != "IIT_3_0":
+            raise TypeError(
+                f"System.{caller}() is an IIT 3.0 quantity (the distance between "
+                "a mechanism's repertoire and the unconstrained repertoire) and "
+                f"is not defined under {version}. Under IIT 4.0, a mechanism's "
+                "intrinsic specification of its purview is on System.mic() and "
+                "System.mie() (mice.specified_state.intrinsic_specification) "
+                "or System.intrinsic_specification(), and the system's is "
+                "System.sia().intrinsic_specification. To compute this "
+                "quantity, run under pyphi.config.override(**pyphi.iit3)."
+            )
         kwargs.setdefault(
             "repertoire_distance",
             resolve_mechanism_measure(
@@ -1297,9 +1301,9 @@ class System(Displayable, ToPandasMixin, Serializable):
             :class:`~pyphi.models.state_specification.StateSpecification`)
             to evaluate at, instead of searching the specified states.
             ``mechanism_measure`` and ``specification_measure``: a measure
-            name or a measure, overriding the configuration. The parallel
-            options of :func:`~pyphi.parallel.map_reduce` are also
-            accepted.
+            name or a measure, overriding the configuration. ``parallel``,
+            ``progress``, ``chunksize`` and ``sequential_threshold`` tune the
+            parallel evaluation of the partitions.
 
         Returns
         -------
@@ -1562,3 +1566,24 @@ def _subset(self: System) -> NodeIndices:
 # ``copy.replace`` keep a system's units. This replaces the InitVar default
 # the dataclass leaves behind as a class attribute.
 System.subset = property(_subset)  # pyright: ignore[reportAttributeAccessIssue]
+
+
+_dataclass_init = System.__init__
+
+
+@wraps(_dataclass_init)
+def _init(self: System, *args: Any, **kwargs: Any) -> None:
+    # Point a ported ``Subsystem(network, state, nodes)`` call at the
+    # keyword-only ``subset`` instead of a bare argument-count error.
+    # ``wraps`` keeps the dataclass signature for help(), inspect and Sphinx.
+    old = [name for name in ("indices", "nodes", "node_indices") if name in kwargs]
+    if len(args) > 2 or old:
+        given = f"keyword argument {old[0]!r}" if old else "a third positional argument"
+        raise TypeError(
+            f"{type(self).__name__}() got {given}; pass the units of the "
+            "candidate system as the keyword-only subset=..."
+        )
+    _dataclass_init(self, *args, **kwargs)
+
+
+System.__init__ = _init  # pyright: ignore[reportAttributeAccessIssue]

@@ -650,12 +650,14 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         ``formalism`` selects the version of IIT for this call only, as on
         :func:`pyphi.analyze`.
         """
-        from pyphi.conf import presets
-
-        with presets.use(formalism):
-            return all_sias(
-                self, state, candidates, parallel=parallel, progress=progress
-            )
+        return all_sias(
+            self,
+            state,
+            candidates=candidates,
+            formalism=formalism,
+            parallel=parallel,
+            progress=progress,
+        )
 
     def irreducible_sias(
         self,
@@ -671,12 +673,14 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         ``formalism`` selects the version of IIT for this call only, as on
         :func:`pyphi.analyze`.
         """
-        from pyphi.conf import presets
-
-        with presets.use(formalism):
-            return irreducible_sias(
-                self, state, candidates, parallel=parallel, progress=progress
-            )
+        return irreducible_sias(
+            self,
+            state,
+            candidates=candidates,
+            formalism=formalism,
+            parallel=parallel,
+            progress=progress,
+        )
 
     def complexes(
         self,
@@ -693,12 +697,14 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         ``formalism`` selects the version of IIT for this call only, as on
         :func:`pyphi.analyze`.
         """
-        from pyphi.conf import presets
-
-        with presets.use(formalism):
-            return complexes(
-                self, state, candidates, parallel=parallel, progress=progress
-            )
+        return complexes(
+            self,
+            state,
+            candidates=candidates,
+            formalism=formalism,
+            parallel=parallel,
+            progress=progress,
+        )
 
     def maximal_complex(
         self,
@@ -715,12 +721,14 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         ``formalism`` selects the version of IIT for this call only, as on
         :func:`pyphi.analyze`.
         """
-        from pyphi.conf import presets
-
-        with presets.use(formalism):
-            return maximal_complex(
-                self, state, candidates, parallel=parallel, progress=progress
-            )
+        return maximal_complex(
+            self,
+            state,
+            candidates=candidates,
+            formalism=formalism,
+            parallel=parallel,
+            progress=progress,
+        )
 
     def __len__(self) -> int:
         """int: The number of nodes in the substrate."""
@@ -1108,8 +1116,9 @@ def _candidate_systems(
 def all_sias(
     substrate: Substrate,
     state: tuple[int, ...],
-    candidates: Iterable[Any] | None = None,
     *,
+    candidates: Iterable[Any] | None = None,
+    formalism: Any = None,
     parallel: bool | None = None,
     progress: bool | None = None,
 ) -> list[Any]:
@@ -1125,53 +1134,58 @@ def all_sias(
     a mathematically safe optimization, since such candidates are not
     strongly connected and have φₛ = 0.
 
-    ``parallel`` and ``progress`` govern the evaluation of the candidates;
-    ``None`` defers to ``config.infrastructure.parallel_complex_evaluation``.
-    Each candidate's own analysis runs without a progress bar.
+    ``formalism`` selects the version of IIT for this call only, as on
+    :func:`pyphi.analyze`. ``parallel`` and ``progress`` govern the
+    evaluation of the candidates; ``None`` defers to
+    ``config.infrastructure.parallel_complex_evaluation``. Each candidate's
+    own analysis runs without a progress bar.
     """
     from pyphi import conf as _conf
     from pyphi.conf import config as _config
+    from pyphi.conf import presets
     from pyphi.parallel import map_reduce
 
-    iterable = (
-        possible_complexes(substrate, state)
-        if candidates is None
-        else _candidate_systems(substrate, state, candidates)
-    )
+    with presets.use(formalism):
+        iterable = (
+            possible_complexes(substrate, state)
+            if candidates is None
+            else _candidate_systems(substrate, state, candidates)
+        )
 
-    sia_fn, map_kwargs = _resolved_sia()
-    map_kwargs["progress"] = False
+        sia_fn, map_kwargs = _resolved_sia()
+        map_kwargs["progress"] = False
 
-    overrides = {
-        name: value
-        for name, value in (("parallel", parallel), ("progress", progress))
-        if value is not None
-    }
-    pkwargs = _conf.parallel_kwargs(
-        _config.infrastructure.parallel_complex_evaluation, **overrides
-    )
-    # Results must follow candidate enumeration order: downstream tie
-    # resolution (condensation tiers, is_maximal stamping) is
-    # input-order-dependent, so worker-completion order would make the
-    # reported major complex nondeterministic under ties.
-    pkwargs["ordered"] = True
-    result = map_reduce(
-        sia_fn,
-        iterable,
-        total=2 ** len(substrate) - 1,
-        map_kwargs=map_kwargs,
-        desc="Evaluating complexes",
-        **pkwargs,
-    )
-    assert result is not None
-    return result
+        overrides = {
+            name: value
+            for name, value in (("parallel", parallel), ("progress", progress))
+            if value is not None
+        }
+        pkwargs = _conf.parallel_kwargs(
+            _config.infrastructure.parallel_complex_evaluation, **overrides
+        )
+        # Results must follow candidate enumeration order: downstream tie
+        # resolution (condensation tiers, is_maximal stamping) is
+        # input-order-dependent, so worker-completion order would make the
+        # reported major complex nondeterministic under ties.
+        pkwargs["ordered"] = True
+        result = map_reduce(
+            sia_fn,
+            iterable,
+            total=2 ** len(substrate) - 1,
+            map_kwargs=map_kwargs,
+            desc="Evaluating complexes",
+            **pkwargs,
+        )
+        assert result is not None
+        return result
 
 
 def irreducible_sias(
     substrate: Substrate,
     state: tuple[int, ...],
-    candidates: Iterable[Any] | None = None,
     *,
+    candidates: Iterable[Any] | None = None,
+    formalism: Any = None,
     parallel: bool | None = None,
     progress: bool | None = None,
 ) -> list[Any]:
@@ -1179,13 +1193,20 @@ def irreducible_sias(
 
     These are *not* complexes — overlapping candidates may both appear in
     the returned list. The complexes (a subset satisfying exclusion) are
-    obtained from :func:`complexes`. ``candidates`` is as in
+    obtained from :func:`complexes`. The arguments are as in
     :func:`all_sias`.
     """
     return list(
         filter(
             None,
-            all_sias(substrate, state, candidates, parallel=parallel, progress=progress),
+            all_sias(
+                substrate,
+                state,
+                candidates=candidates,
+                formalism=formalism,
+                parallel=parallel,
+                progress=progress,
+            ),
         )
     )
 
@@ -1193,8 +1214,9 @@ def irreducible_sias(
 def complexes(
     substrate: Substrate,
     state: tuple[int, ...],
-    candidates: Iterable[Any] | None = None,
     *,
+    candidates: Iterable[Any] | None = None,
+    formalism: Any = None,
     parallel: bool | None = None,
     progress: bool | None = None,
 ) -> tuple[Any, ...]:
@@ -1205,7 +1227,7 @@ def complexes(
     candidates that remain. A candidate that an accepted complex has excluded
     takes no further part, so a complex can overlap a candidate with higher
     φₛ when another complex excluded that candidate. The returned tuple is
-    non-overlapping, ordered by φₛ descending. ``candidates`` is as in
+    non-overlapping, ordered by φₛ descending. The arguments are as in
     :func:`all_sias`.
 
     The search walks SIAs in descending φₛ tiers and groups survivors into
@@ -1221,82 +1243,97 @@ def complexes(
     as indeterminate and the tier walk continues to the next group.
     """
     from pyphi import validate
+    from pyphi.conf import presets
     from pyphi.models.complex import Complex
     from pyphi.system import System
 
-    candidate_sias = irreducible_sias(
-        substrate, state, candidates, parallel=parallel, progress=progress
-    )
-    if not candidate_sias:
-        return ()
-
-    def _as_candidate(sia: Any) -> Candidate:
-        indices = tuple(_sia_node_indices(sia) or ())
-        return Candidate(
-            footprint=frozenset(indices),
-            phi=float(sia.phi),
-            sia_provider=lambda sia=sia: sia,
-            system_provider=lambda indices=indices: System(
-                substrate, state, subset=indices
-            ),
+    with presets.use(formalism):
+        candidate_sias = irreducible_sias(
+            substrate,
+            state,
+            candidates=candidates,
+            parallel=parallel,
+            progress=progress,
         )
+        if not candidate_sias:
+            return ()
 
-    cascade_candidates = [_as_candidate(sia) for sia in candidate_sias]
-    cascade = (
-        iit3_exclusion_cascade
-        if _config_iit_version() == "IIT_3_0"
-        else exclusion_cascade
-    )
-    outcome = cascade(cascade_candidates)
-    if not outcome.accepted:
-        return ()
+        def _as_candidate(sia: Any) -> Candidate:
+            indices = tuple(_sia_node_indices(sia) or ())
+            return Candidate(
+                footprint=frozenset(indices),
+                phi=float(sia.phi),
+                sia_provider=lambda sia=sia: sia,
+                system_provider=lambda indices=indices: System(
+                    substrate, state, subset=indices
+                ),
+            )
 
-    records = exclusion_records(outcome.accepted, cascade_candidates)
-    result = tuple(
-        Complex(
-            sia=cand.sia_provider(),
-            substrate=substrate,
-            is_maximal=(i == 0),
-            excluded=records[tuple(sorted(cand.footprint))],
+        cascade_candidates = [_as_candidate(sia) for sia in candidate_sias]
+        cascade = (
+            iit3_exclusion_cascade
+            if _config_iit_version() == "IIT_3_0"
+            else exclusion_cascade
         )
-        for i, cand in enumerate(outcome.accepted)
-    )
-    validate.non_overlapping(result)
-    return result
+        outcome = cascade(cascade_candidates)
+        if not outcome.accepted:
+            return ()
+
+        records = exclusion_records(outcome.accepted, cascade_candidates)
+        result = tuple(
+            Complex(
+                sia=cand.sia_provider(),
+                substrate=substrate,
+                is_maximal=(i == 0),
+                excluded=records[tuple(sorted(cand.footprint))],
+            )
+            for i, cand in enumerate(outcome.accepted)
+        )
+        validate.non_overlapping(result)
+        return result
 
 
 def maximal_complex(
     substrate: Substrate,
     state: tuple[int, ...],
-    candidates: Iterable[Any] | None = None,
     *,
+    candidates: Iterable[Any] | None = None,
+    formalism: Any = None,
     parallel: bool | None = None,
     progress: bool | None = None,
 ) -> Any:
     """Return the complex with maximum φₛ over the substrate.
 
-    Equivalent to the first element of :func:`complexes`; ``candidates`` is
+    Equivalent to the first element of :func:`complexes`; the arguments are
     as in :func:`all_sias`. Returns a
     null-object :class:`~pyphi.models.complex.Complex` (falsy, with empty
     units) when no irreducible candidate exists.
     """
+    from pyphi.conf import presets
     from pyphi.models.complex import Complex
     from pyphi.system import System
 
-    found = complexes(substrate, state, candidates, parallel=parallel, progress=progress)
-    if found:
-        return found[0]
-    # No irreducible candidate; return a null-object Complex over the empty
-    # system (falsy, with empty units).
-    from pyphi.conf import config as _config
+    with presets.use(formalism):
+        found = complexes(
+            substrate,
+            state,
+            candidates=candidates,
+            parallel=parallel,
+            progress=progress,
+        )
+        if found:
+            return found[0]
+        # No irreducible candidate; return a null-object Complex over the empty
+        # system (falsy, with empty units).
+        from pyphi.conf import config as _config
 
-    empty = System(substrate, state, subset=())
-    if _config.formalism.iit.version == "IIT_3_0":
-        from pyphi.formalism.iit3 import _null_sia
+        empty = System(substrate, state, subset=())
+        if _config.formalism.iit.version == "IIT_3_0":
+            from pyphi.formalism.iit3 import _null_sia
 
-        null_sia = _null_sia(empty)
-    else:
-        from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+            null_sia = _null_sia(empty)
+        else:
+            from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
 
-        null_sia = NullSystemIrreducibilityAnalysis()
-    return Complex(sia=null_sia, substrate=substrate, is_maximal=True, excluded=())
+            null_sia = NullSystemIrreducibilityAnalysis()
+        return Complex(sia=null_sia, substrate=substrate, is_maximal=True, excluded=())

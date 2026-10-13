@@ -1,0 +1,1 @@
+`System` shows its own parameters in `help()`, `inspect.signature` and the API reference (`substrate`, `state`, then the keyword-only `subset`, `partition` and the rest) instead of `(*args, **kwargs)`.

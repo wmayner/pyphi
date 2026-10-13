@@ -53,9 +53,14 @@ __all__ = [
     "account",
     "causal_nexus",
     "directed_account",
+    "events",
+    "extrinsic_events",
     "nexus",
+    "nice_true_ces",
     "sia",
     "transitions",
+    "true_ces",
+    "true_events",
 ]
 
 log = logging.getLogger(__name__)
@@ -810,7 +815,7 @@ class Transition(Serializable):
     # =========================================================================
 
     # TODO: alias to `irreducible_cause/effect ratio?
-    def find_mip(self, direction, mechanism, purview, allow_neg=False):
+    def find_mip(self, direction, mechanism, purview, *, allow_neg=False):
         """Find the ratio minimum information partition for a mechanism
         over a purview.
 
@@ -850,7 +855,7 @@ class Transition(Serializable):
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
-    def find_causal_link(self, direction, mechanism, purviews=None, allow_neg=False):
+    def find_causal_link(self, direction, mechanism, purviews=None, *, allow_neg=False):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
@@ -900,6 +905,7 @@ def _active_ac_formalism() -> "ActualCausationFormalism":
 def directed_account(
     transition,
     direction,
+    *,
     mechanisms=None,
     purviews=None,
     allow_neg=False,
@@ -960,7 +966,7 @@ def account(
     )
 
 
-def sia(transition, direction=Direction.BIDIRECTIONAL, **parallel_options):
+def sia(transition, direction=Direction.BIDIRECTIONAL, *, parallel=None, progress=None):
     """Return the minimal information partition of a transition in a specific
     direction.
 
@@ -973,21 +979,24 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, **parallel_options):
         The transition to analyze.
     direction : Direction, optional
         Cause, effect, or both (the default).
-    **parallel_options
-        Options of the parallel partition evaluation, such as ``parallel``
-        and ``progress``. Any other name raises ``TypeError``.
+    parallel : bool or None, optional
+        Whether to evaluate the partitions in parallel. ``None`` defers to
+        ``config.infrastructure.parallel``.
+    progress : bool or None, optional
+        Whether to show a progress bar. ``None`` defers to
+        ``config.infrastructure.progress_bars``.
 
     Returns
     -------
     AcSystemIrreducibilityAnalysis
         The analysis of the transition.
     """
-    from pyphi.conf import reject_unknown_kwargs
-
-    reject_unknown_kwargs("sia", parallel_options)
-    return _active_ac_formalism().evaluate_system(
-        transition, direction, **parallel_options
-    )
+    options = {
+        name: value
+        for name, value in (("parallel", parallel), ("progress", progress))
+        if value is not None
+    }
+    return _active_ac_formalism().evaluate_system(transition, direction, **options)
 
 
 # =============================================================================

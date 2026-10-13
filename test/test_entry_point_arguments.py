@@ -260,3 +260,80 @@ def test_true_events_take_maximal_complex():
         )
     with pytest.raises(TypeError, match="major_complex"):
         actual.true_events(swap, *states, major_complex=None)
+
+
+def test_system_signature_shows_its_parameters():
+    import inspect
+
+    parameters = inspect.signature(pyphi.System).parameters
+    assert list(parameters)[:2] == ["substrate", "state"]
+    assert parameters["subset"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert "partition" in parameters
+
+
+def test_actual_sia_rejects_internal_parallel_hooks():
+    transition = examples.prevention_transition()
+    with pytest.raises(TypeError, match="reduce_func"):
+        actual.sia(transition, reduce_func=lambda xs: list(xs)[:1])
+    assert actual.sia(transition, parallel=False, progress=False).alpha == (
+        actual.sia(transition).alpha
+    )
+
+
+@pytest.mark.parametrize("hook", ["reduce_func", "shortcircuit_func", "map_kwargs"])
+def test_system_mip_queries_reject_internal_parallel_hooks(hook):
+    system = pyphi.System(examples.iit4_2023_fig1a_substrate(), (1, 0, 0))
+    with pytest.raises(TypeError, match=hook):
+        system.cause_mip((0,), (0,), **{hook: None})
+
+
+def test_actual_causation_options_are_keyword_only():
+    import inspect
+
+    for function, names in [
+        (actual.Transition.find_causal_link, ["allow_neg"]),
+        (actual.Transition.find_mip, ["allow_neg"]),
+        (actual.directed_account, ["mechanisms", "purviews", "allow_neg"]),
+    ]:
+        parameters = inspect.signature(function).parameters
+        for name in names:
+            assert parameters[name].kind is inspect.Parameter.KEYWORD_ONLY, name
+
+
+def test_actual_star_exports_its_event_functions():
+    for name in [
+        "events",
+        "true_events",
+        "extrinsic_events",
+        "true_ces",
+        "nice_true_ces",
+    ]:
+        assert name in actual.__all__
+
+
+@pytest.mark.parametrize(
+    "name", ["all_sias", "irreducible_sias", "complexes", "maximal_complex"]
+)
+def test_module_complex_functions_match_the_substrate_methods(name):
+    import inspect
+
+    from pyphi import substrate as substrate_module
+
+    function = getattr(substrate_module, name)
+    method = getattr(pyphi.Substrate, name)
+    function_parameters = inspect.signature(function).parameters
+    assert function_parameters["candidates"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert (
+        list(function_parameters)[2:] == list(inspect.signature(method).parameters)[2:]
+    )
+
+
+def test_module_complexes_takes_formalism():
+    from pyphi import substrate as substrate_module
+
+    s = examples.basic_substrate()
+    with pyphi.config.override(**pyphi.iit4_2026):
+        expected = s.complexes((1, 0, 0), formalism="IIT_3_0")
+        found = substrate_module.complexes(s, (1, 0, 0), formalism="IIT_3_0")
+    assert [c.phi for c in found] == [c.phi for c in expected]
+    assert [c.node_indices for c in found] == [c.node_indices for c in expected]
