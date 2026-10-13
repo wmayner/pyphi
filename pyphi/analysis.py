@@ -160,16 +160,18 @@ class Analysis(Displayable, Serializable):
         """A one-row DataFrame that identifies the analysis and gives its
         values.
 
-        The identifiers are ``formalism`` (the version name, as in a sweep's
-        rows), ``subset`` (the system's sorted unit indices) and
-        ``current_state`` (the system's state), as in the SIA's own row. The
-        values are φₛ (``phi``), ``normalized_phi``, Φ (``big_phi``),
-        ``n_distinctions``, ``sum_phi_d`` and ``sum_phi_r``, the same columns
-        as a sweep's rows for ``compute="ces"`` or ``compute=None``.
+        The identifiers are ``formalism`` (the version name), ``subset``
+        (the system's sorted unit indices) and ``state`` (the substrate's
+        state), as in a sweep's rows, and ``current_state`` (the system's
+        state), as in the SIA's own row. The values are φₛ (``phi``),
+        ``normalized_phi``, Φ (``big_phi``), ``n_distinctions``,
+        ``sum_phi_d`` and ``sum_phi_r``, the same columns as a sweep's rows
+        for ``compute="ces"`` or ``compute=None``.
         """
         record = {
             "formalism": self.formalism,
             "subset": tuple(int(i) for i in self.system.node_indices),
+            "state": tuple(int(x) for x in self.system.state),
             "current_state": tuple(int(x) for x in self.system.proper_state),
             **_structure_record(self.sia, self.ces),
         }

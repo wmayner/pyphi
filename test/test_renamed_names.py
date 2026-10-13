@@ -41,6 +41,36 @@ def test_removed_system_attributes_give_their_replacement(name, replacement):
         getattr(examples.basic_system(), name)
 
 
+@pytest.mark.parametrize(
+    ("name", "replacement"),
+    [("apply_cut", "apply_partition"), ("cut", "partition"), ("network", "substrate")],
+)
+def test_removed_transition_system_attributes_give_their_replacement(name, replacement):
+    system = examples.prevention_transition().cause_system
+    with pytest.raises(AttributeError, match=f"`{replacement}`"):
+        getattr(system, name)
+
+
+@pytest.mark.parametrize(
+    ("module", "name", "replacement"),
+    [
+        (pyphi, "distance", "pyphi.measures.distribution"),
+        (pyphi.utils, "eq", "pyphi.numerics.eq"),
+        (pyphi.utils, "is_positive", "pyphi.numerics.is_positive"),
+        (pyphi.utils, "is_nonpositive", "pyphi.numerics.is_nonpositive"),
+    ],
+)
+def test_removed_1x_helpers_give_their_replacement(module, name, replacement):
+    with pytest.raises(AttributeError, match=replacement):
+        getattr(module, name)
+
+
+def test_an_unknown_utils_name_gets_the_ordinary_error():
+    with pytest.raises(AttributeError) as raised:
+        pyphi.utils.no_such_name  # noqa: B018
+    assert str(raised.value) == "module 'pyphi.utils' has no attribute 'no_such_name'"
+
+
 def test_iit4_sia_cut_gives_partition():
     with pyphi.config.override(**pyphi.iit4_2026):
         sia = pyphi.analyze(

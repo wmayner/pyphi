@@ -64,3 +64,30 @@ def test_composite_accepts_callable_combination():
         combination=lambda probs, **_: probs[0],
     )
     assert comp(0, weights, (0, 1)) == 1.0
+
+
+@pytest.mark.parametrize(
+    ("sub_specs", "kwargs", "message"),
+    [
+        ([{"mechanism": "sigmoid", "inputs": (1,), "parms": {}}], {}, "'parms'"),
+        (
+            [{"mechanism": "sigmoid", "inputs": (1,), "params": {"determinsm": 4}}],
+            {},
+            "'determinsm'",
+        ),
+        ([{"mechanism": "copy", "inputs": (1,)}], {"steepnes": 9.0}, "'steepnes'"),
+    ],
+    ids=["spec key", "mechanism parameter", "combination option"],
+)
+def test_composite_rejects_misspelt_keys_and_parameters(sub_specs, kwargs, message):
+    """A misspelt name would be dropped and its parameter left at its default."""
+    with pytest.raises(TypeError, match=message):
+        C.composite(sub_specs, "first_necessary", **kwargs)
+
+
+def test_composite_accepts_the_options_it_uses():
+    C.composite(
+        [{"mechanism": "sigmoid", "inputs": (1,), "params": {"determinism": 4}}],
+        "first_necessary",
+        steepness=9.0,
+    )

@@ -256,15 +256,15 @@ def _connectivity_indices(spec: Mapping[str, Any]):
 def _real_weight_pairs(spec: Mapping[str, Any]):
     """Yield ``(input_index, weight)`` for the *weighted* sub-mechanisms only.
 
-    Input weights come from ``params['input_weights']`` (or ``params['weights']``),
-    aligned to ``inputs`` in order; further inputs (e.g. modulators) are left as
-    connectivity markers.
+    Input weights come from ``params['input_weights']``, aligned to ``inputs``
+    in order; further inputs (e.g. modulators) are left as connectivity
+    markers.
     """
     for sub in _sub_specs(spec):
         if sub["mechanism"] not in WEIGHTED:
             continue
         params = sub.get("params", {})
-        input_weights = params.get("input_weights", params.get("weights"))
+        input_weights = params.get("input_weights")
         if input_weights is None:
             continue
         for i, w in zip(sub["inputs"], input_weights, strict=False):

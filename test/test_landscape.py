@@ -234,3 +234,43 @@ def test_landscape_partition_column_matches_the_sia_frame():
         section = landscape_section(lambda _theta: substrate, (0, 1, 1), [0.0])
         sia = pyphi.analyze(substrate, (0, 1, 1), compute="sia")
     assert section.df["partition"].iloc[0] == sia.to_pandas()["partition"].iloc[0]
+
+
+def _rc_part_id(partition):
+    """The partition string release candidates 1-3 wrote."""
+    if partition is None or getattr(partition, "is_null", False):
+        return "NullCut"
+    set_partition = getattr(partition, "set_partition", None)
+    if set_partition is not None:
+        parts = str(sorted(sorted(part) for part in set_partition))
+    else:
+        parts = type(partition).__name__
+    return f"{parts}|{sorted(partition.removed_edges())}"
+
+
+@pytest.mark.parametrize(
+    ("formalism", "subset", "state"),
+    [
+        ("IIT_4_0_2026", None, (0, 1, 1)),
+        ("IIT_4_0_2026", (0, 2), (1, 0, 0)),
+        pytest.param("IIT_3_0", None, (1, 0, 0), marks=skip_if_no_emd_backend),
+    ],
+)
+def test_a_section_saved_by_a_release_candidate_loads_with_current_partitions(
+    tmp_path, formalism, subset, state
+):
+    """rc1-rc3 wrote '[[0, 1], [2]]|[(2, 0), (2, 1)]'; loading gives the string
+    SystemIrreducibilityAnalysis.to_pandas() writes."""
+    from dataclasses import replace
+
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with pyphi.config.override(**pyphi.conf.presets.by_name[formalism]):
+        section = landscape_section(
+            lambda _theta: substrate, state, [0.0, 1.0], subset=subset
+        )
+    old = section.df.copy()
+    old["partition"] = [_rc_part_id(sia.partition) for sia in section.sias]
+    assert (old["partition"] != section.df["partition"]).all()
+    path = tmp_path / "section.json"
+    pyphi.save(replace(section, df=old), path)
+    pd.testing.assert_frame_equal(pyphi.load(path).df, section.df)

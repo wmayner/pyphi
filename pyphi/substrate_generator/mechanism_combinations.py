@@ -95,11 +95,30 @@ def composite(sub_specs, combination="selective", **combination_kwargs):
     Callable
         A unit function ``f(element, weights, state, **kwargs) -> float`` whose
         value is the combined probability of its sub-mechanisms.
+
+    Raises
+    ------
+    TypeError
+        If a sub-spec has a key other than ``mechanism``, ``inputs`` and
+        ``params``, or ``params`` or ``combination_kwargs`` names an option
+        the mechanism or combination does not take. A callable that accepts
+        any keyword is not checked.
     """
+    # Imported here: the package imports this module.
+    from . import _check_spec
+    from . import _named_options
+    from . import _reject_unknown
+
     if isinstance(combination, str):
         combine = MECHANISM_COMBINATIONS[combination]
     else:
         combine = combination
+    options = _named_options(combine, 1)
+    if options is not None:
+        _reject_unknown(combination_kwargs, options, "the combination's options")
+    sub_specs = list(sub_specs)
+    for k, spec in enumerate(sub_specs):
+        _check_spec(spec, f"sub-spec {k}")
 
     resolved = []
     for spec in sub_specs:

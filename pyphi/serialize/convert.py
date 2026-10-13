@@ -1616,11 +1616,23 @@ def _register_landscape() -> None:
         sias=tuple(to_schema(sia) for sia in r.sias),
         skipped=tuple(float(theta) for theta in r.skipped),
     )
-    _DECODERS[schema.LandscapeSectionSchema] = lambda s: LandscapeSection(
-        df=frames.schema_to_dataframe(s.df),
-        sias=[from_schema(sia) for sia in s.sias],
-        skipped=list(s.skipped),
-    )
+
+    def _decode_landscape_section(s: schema.LandscapeSectionSchema) -> Any:
+        from pyphi.landscape import _is_rc_part_id
+        from pyphi.landscape import _part_id
+
+        df = frames.schema_to_dataframe(s.df)
+        sias = [from_schema(sia) for sia in s.sias]
+        # Release candidates wrote another partition string; the analyses
+        # the rows came from give the current one.
+        if "partition" in df.columns and len(sias) == len(df):
+            df["partition"] = [
+                _part_id(sia.partition) if _is_rc_part_id(value) else value
+                for value, sia in zip(df["partition"], sias, strict=True)
+            ]
+        return LandscapeSection(df=df, sias=sias, skipped=list(s.skipped))
+
+    _DECODERS[schema.LandscapeSectionSchema] = _decode_landscape_section
 
     def nan_to_none(value: float) -> float | None:
         return None if math.isnan(value) else float(value)
@@ -1877,12 +1889,26 @@ def _register_optimization_result() -> None:
     _ENCODERS[OptimizationResult] = _encode_optimization_result
 
     def _decode_optimization_result(s: schema.OptimizationResultSchema) -> Any:
+        from pyphi.landscape import _upgrade_part_id
+
+        best_substrate = from_schema(s.best_substrate)
+        best_sia = _dec_optional(s.best_sia)
+        trajectory = frames.schema_to_dataframe(s.trajectory)
+        # Release candidates wrote another partition string. Every row
+        # analyzed the same units, which the best analysis names.
+        if best_sia is not None and "partition" in trajectory.columns:
+            trajectory["partition"] = [
+                _upgrade_part_id(
+                    value, best_sia.node_indices, best_substrate.node_labels
+                )
+                for value in trajectory["partition"]
+            ]
         return OptimizationResult(
             best_params=arrays.bytes_to_array(s.best_params),
             best_objective=math.nan if s.best_objective is None else s.best_objective,
-            best_substrate=from_schema(s.best_substrate),
-            best_sia=_dec_optional(s.best_sia),
-            trajectory=frames.schema_to_dataframe(s.trajectory),
+            best_substrate=best_substrate,
+            best_sia=best_sia,
+            trajectory=trajectory,
             bounds=[(lo, hi) for lo, hi in s.bounds],
             seed=s.seed,
             goal=_renamed(s.goal, s.direction),

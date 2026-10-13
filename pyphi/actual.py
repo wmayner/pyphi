@@ -352,7 +352,13 @@ class TransitionSystem(Serializable):
         """
         if name in _DELEGATED_TO_SYSTEM:
             return getattr(self._underlying_system, name)
-        raise AttributeError(name)
+        from pyphi.system import _RENAMED_ATTRIBUTES
+
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        new = _RENAMED_ATTRIBUTES.get(name)
+        if new is not None and hasattr(self, new):
+            message += f". PyPhi 2.0 renamed it `{new}`"
+        raise AttributeError(message)
 
     def sia(self, **kw: Any) -> Any:
         raise NotImplementedError(

@@ -280,3 +280,14 @@ def iter_with_default(seq: Iterable[Any], default: object) -> Generator[Any]:
         if default is NO_DEFAULT:
             raise ValueError("Cannot iterate over empty sequence without default")
         yield default
+
+
+# PyPhi 1.x comparison helpers that 2.0 moved to ``pyphi.numerics``.
+_MOVED_TO_NUMERICS = frozenset({"eq", "is_positive", "is_nonpositive"})
+
+
+def __getattr__(name: str) -> Any:
+    message = f"module {__name__!r} has no attribute {name!r}"
+    if name in _MOVED_TO_NUMERICS:
+        message += f". PyPhi 2.0 moved it to `pyphi.numerics.{name}`"
+    raise AttributeError(message)

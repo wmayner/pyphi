@@ -139,10 +139,29 @@ def test_sweep_ces_rows_match_analysis_to_pandas():
         swept = pyphi.sweep(s, states=[(0, 1, 1)], compute="ces").df
         full = pyphi.sweep(s, states=[(0, 1, 1)], compute=None).df
         expected = pyphi.analyze(s, (0, 1, 1)).to_pandas()
-    # Sweep rows give the substrate state; the analysis gives the system's.
+    # The analysis also gives the system's state, which sweep rows leave out.
     expected = expected.drop(columns="current_state")
     for df in (swept, full):
         pd.testing.assert_frame_equal(df[list(expected.columns)], expected)
+
+
+def test_analysis_rows_line_up_with_sweep_rows_for_a_subset():
+    """state is the substrate's state in both tables; current_state, the
+    subset's, is only in the analysis."""
+    s = examples.iit4_2023_fig1a_substrate()
+    with config.override(**pyphi.iit4_2026, progress_bars=False):
+        swept = pyphi.sweep(s, states=[(0, 1, 1)], subsets=[(1, 2)], compute="ces").df
+        row = pyphi.analyze(s, (0, 1, 1), subset=(1, 2)).to_pandas()
+    assert list(row.columns[:4]) == ["formalism", "subset", "state", "current_state"]
+    assert row["state"].iloc[0] == (0, 1, 1)
+    assert row["current_state"].iloc[0] == (1, 1)
+    combined = pd.concat([swept, row], ignore_index=True)
+    assert list(combined["state"]) == [(0, 1, 1), (0, 1, 1)]
+    shared = [c for c in row.columns if c in swept.columns]
+    pd.testing.assert_frame_equal(
+        combined.loc[[1], shared].reset_index(drop=True),
+        swept[shared].reset_index(drop=True),
+    )
 
 
 def test_callable_structure_sweep_round_trips_unchanged():

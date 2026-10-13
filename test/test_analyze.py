@@ -140,6 +140,7 @@ def test_analyze_to_pandas_one_row_columns():
     assert set(df.columns) == {
         "formalism",
         "subset",
+        "state",
         "current_state",
         "phi",
         "normalized_phi",

@@ -201,6 +201,7 @@ _RENAMED = {
     "Network": "`pyphi.Substrate`",
     "Subsystem": "`pyphi.System`",
     "compute": "`pyphi.analyze(substrate, state)`",
+    "distance": "`pyphi.measures.distribution`",
     "jsonify": "`pyphi.serialize`, `pyphi.save` and `pyphi.load`",
 }
 

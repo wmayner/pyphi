@@ -306,3 +306,46 @@ def test_optimize_takes_quantity_not_objective():
     )
     with pytest.raises(TypeError, match="objective"):
         optimize(axis, STATE, [(0.2, 1.2)], seed=1, objective="phi")  # pyright: ignore[reportCallIssue]
+
+
+@pytest.mark.parametrize("subset", [None, (0, 1)])
+def test_a_result_saved_by_a_release_candidate_loads_with_current_partitions(
+    tmp_path, subset
+):
+    """rc1-rc3 wrote '[[0, 1], [2]]|[(2, 0), (2, 1)]' in the trajectory's
+    partition column; loading gives the string the SIA frame writes."""
+    from dataclasses import replace
+
+    from pyphi.models.partitions import NullCut
+    from pyphi.models.partitions import concise_partition
+    from pyphi.partition import system_partitions
+    from test.test_landscape import _rc_part_id
+
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    with pyphi.config.override(**pyphi.iit4_2026):
+        result = optimize(
+            axis,
+            STATE,
+            [(0.2, 1.2)],
+            seed=5,
+            popsize=4,
+            maxiter=3,
+            subset=subset,
+            parallel=False,
+        )
+        units = result.best_sia.node_indices
+        labels = result.best_substrate.node_labels
+        partitions = [
+            *system_partitions(units, node_labels=labels),
+            NullCut(units, labels),
+        ]
+    rc = {concise_partition(p): _rc_part_id(p) for p in partitions}
+    trajectory = result.trajectory.copy()
+    trajectory["partition"] = [rc.get(p, p) for p in trajectory["partition"]]
+    assert (trajectory["partition"] != result.trajectory["partition"]).any()
+    path = tmp_path / "result.json"
+    replace(result, trajectory=trajectory).save(path)
+    back = OptimizationResult.load(path)
+    pd.testing.assert_frame_equal(back.trajectory, result.trajectory)

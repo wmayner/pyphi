@@ -28,7 +28,10 @@ common case of varying a single connection weight of a
 
 from __future__ import annotations
 
+import ast
+import functools
 import math
+import re
 from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -117,6 +120,82 @@ def _part_id(partition: Any) -> str | None:
     from pyphi.models.partitions import concise_partition
 
     return None if partition is None else concise_partition(partition)
+
+
+_RC_PARTITION_ID = re.compile(r"^(\[.*\]|[A-Za-z]+)\|(\[.*\])$")
+
+
+@functools.cache
+def _set_partition_ids(
+    node_indices: tuple[int, ...], node_labels: Any
+) -> dict[str, str]:
+    """Map the release-candidate string of each directed set partition of
+    ``node_indices`` to the string :func:`_part_id` writes for it."""
+    from pyphi.partition import system_partitions
+
+    ids = {}
+    with config.override(system_partition_scheme="DIRECTED_SET_PARTITION"):
+        for partition in system_partitions(node_indices, node_labels=node_labels):
+            blocks = sorted(sorted(block) for block in partition.set_partition)
+            ids[f"{blocks}|{sorted(partition.removed_edges())}"] = _part_id(partition)
+    return ids
+
+
+def _is_rc_part_id(value: Any) -> bool:
+    """Whether ``value`` is a partition string in the release-candidate form."""
+    return isinstance(value, str) and (
+        value == "NullCut" or _RC_PARTITION_ID.match(value) is not None
+    )
+
+
+def _upgrade_part_id(value: Any, node_indices: Sequence[int], node_labels: Any) -> Any:
+    """The partition string of a table row, in the form :func:`_part_id`
+    writes, from the form saved by release candidates 1-3.
+
+    Those wrote ``"NullCut"`` or ``"<parts>|<severed connections>"``, where
+    ``<parts>`` is a set partition's sorted blocks of positions in
+    ``node_indices`` or the partition type's name. A value in any other form
+    is returned unchanged.
+    """
+    from pyphi.direction import Direction
+    from pyphi.models.partitions import DirectedBipartition
+    from pyphi.models.partitions import EdgeCut
+    from pyphi.models.partitions import NullCut
+    from pyphi.models.partitions import TotalCut
+
+    if not isinstance(value, str):
+        return value
+    node_indices = tuple(int(i) for i in node_indices)
+    if value == "NullCut":
+        return _part_id(NullCut(node_indices, node_labels))
+    match = _RC_PARTITION_ID.match(value)
+    if match is None:
+        return value
+    parts, edges = match.group(1), ast.literal_eval(match.group(2))
+    position = {unit: i for i, unit in enumerate(node_indices)}
+    matrix = np.zeros((len(node_indices), len(node_indices)), dtype=int)
+    for a, b in edges:
+        matrix[position[a], position[b]] = 1
+    if parts.startswith("["):
+        # The saved blocks are sorted, but the string orders them as the
+        # partition generator does, so the partition is found among those
+        # the generator yields.
+        return _set_partition_ids(node_indices, node_labels).get(value, value)
+    partition: Any
+    if parts == "DirectedBipartition":
+        partition = DirectedBipartition(
+            Direction.EFFECT,
+            tuple(sorted({a for a, _ in edges})),
+            tuple(sorted({b for _, b in edges})),
+            node_labels,
+        )
+    elif parts == "TotalCut":
+        partition = TotalCut(node_indices, node_labels)
+    elif parts == "EdgeCut":
+        partition = EdgeCut(node_indices, matrix, node_labels)
+    else:
+        return value
+    return _part_id(partition)
 
 
 def _optional_float(value: Any) -> float:
