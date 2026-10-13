@@ -1,0 +1,1 @@
+The read-only presets (`pyphi.iit3`, `pyphi.iit4_2023`, `pyphi.iit4_2026` and `pyphi.conf.presets.by_name`) can be pickled and copied with `copy.copy` and `copy.deepcopy`; the copies are read-only too.

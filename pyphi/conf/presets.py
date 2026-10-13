@@ -31,15 +31,41 @@ copy to apply with :meth:`config.override`.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from collections.abc import Mapping
 from contextlib import AbstractContextManager
 from contextlib import nullcontext
 from dataclasses import replace
-from types import MappingProxyType
 from typing import Any
 
 from pyphi.conf.formalism import ActualCausationConfig
 from pyphi.conf.formalism import IITConfig
+
+
+class _ReadOnlyMapping(Mapping[str, Any]):
+    """A mapping that cannot be changed in place but can be pickled and
+    copied (``types.MappingProxyType`` can be neither)."""
+
+    __slots__ = ("_data",)
+
+    def __init__(self, data: Mapping[str, Any]) -> None:
+        self._data = dict(data)
+
+    def __getitem__(self, key: str) -> Any:
+        return self._data[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._data)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __repr__(self) -> str:
+        return repr(self._data)
+
+    def __reduce__(self) -> tuple[Any, ...]:
+        return (type(self), (self._data,))
+
 
 # IIT 3.0 — Oizumi/Albantakis/Tononi 2014. Distribution-distance based.
 #
@@ -69,7 +95,7 @@ from pyphi.conf.formalism import IITConfig
 # ``shortcircuit_sia`` does NOT gate IIT 3.0's short-circuit logic;
 # 3.0's early-exit conditions live in ``iit3._sia`` independent of
 # the flag.
-iit3: Mapping[str, Any] = MappingProxyType(
+iit3: Mapping[str, Any] = _ReadOnlyMapping(
     {
         "iit": IITConfig(
             version="IIT_3_0",
@@ -122,7 +148,7 @@ iit3: Mapping[str, Any] = MappingProxyType(
 # ``system_phi_measure`` is ``INTRINSIC_INFORMATION``), so a non-default
 # preset that omitted a measure would silently inherit the requirement. A preset is an
 # absolute formalism, independent of what the current default happens to be.
-iit4_2023: Mapping[str, Any] = MappingProxyType(
+iit4_2023: Mapping[str, Any] = _ReadOnlyMapping(
     {
         "iit": IITConfig(
             version="IIT_4_0_2023",
@@ -135,7 +161,7 @@ iit4_2023: Mapping[str, Any] = MappingProxyType(
     }
 )
 
-iit4_2026: Mapping[str, Any] = MappingProxyType(
+iit4_2026: Mapping[str, Any] = _ReadOnlyMapping(
     {
         "iit": IITConfig(
             version="IIT_4_0_2026",
@@ -151,7 +177,7 @@ iit4_2026: Mapping[str, Any] = MappingProxyType(
 # Map a formalism version-name string (as stored in
 # ``config.formalism.iit.version``) to its preset dict, for callers that select
 # a formalism by name (e.g. ``pyphi.sweep``, ``pyphi.analyze``).
-by_name: Mapping[str, Mapping[str, Any]] = MappingProxyType(
+by_name: Mapping[str, Mapping[str, Any]] = _ReadOnlyMapping(
     {
         "IIT_3_0": iit3,
         "IIT_4_0_2023": iit4_2023,

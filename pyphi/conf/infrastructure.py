@@ -18,6 +18,9 @@ from pyphi.conf._helpers import yaml_repr
 
 _VALID_REPR_VERBOSITY = frozenset({0, 1, 2, 3, 4})
 
+# The backend names pyphi.parallel.scheduler.default_scheduler accepts.
+_PARALLEL_BACKENDS = frozenset({"auto", "local", "process", "thread", "dask"})
+
 _PARALLEL_LEVEL_FIELDS = (
     "parallel_complex_evaluation",
     "parallel_partition_evaluation",
@@ -154,7 +157,7 @@ class InfrastructureConfig:
     See :doc:`/howto/parallel`."""
     parallel_workers: int = -1
     """Number of worker processes or threads; ``-1`` (default) uses every
-    core."""
+    core, ``-2`` every core but one, and so on. It may not be ``0``."""
     parallel_backend: str = "local"
     """Where parallel work runs: ``"local"`` (default; a pool of processes),
     ``"thread"`` (a pool of threads), or ``"auto"`` (threads on a
@@ -162,9 +165,10 @@ class InfrastructureConfig:
     configured through :mod:`pyphi.parallel` and the ``cluster`` extra."""
 
     memory_ceiling_percentage: int = 50
-    """The share of the memory this process may use that the in-memory
-    caches may occupy (default ``50``), above which they evict least
-    recently used entries to admit new ones. The denominator is the
+    """The percentage (``0`` to ``100``) of the memory this process may use
+    that the in-memory caches may occupy (default ``50``), above which they
+    evict least recently used entries to admit new ones; ``0`` keeps them
+    empty. The denominator is the
     process's cgroup allowance where it has one (a scheduler-managed job, a
     container) and total physical memory otherwise."""
     memory_ceiling_bytes: int | None = None
@@ -303,13 +307,35 @@ class InfrastructureConfig:
                 raise ConfigurationError(
                     f"{name} has unknown key(s) {unknown}; valid keys: {sorted(default)}"
                 )
-            object.__setattr__(self, name, FrozenMap({**default, **dict(value)}))
+            merged = {**default, **dict(value)}
+            _check_bool(f"{name}['parallel']", merged["parallel"])
+            _check_bool(f"{name}['progress']", merged["progress"])
+            for key, least in (("sequential_threshold", 0), ("chunksize", 1)):
+                _check_int(f"{name}[{key!r}]", merged[key])
+                if merged[key] < least:
+                    raise ValueError(f"{name}[{key!r}] must be at least {least}")
+            object.__setattr__(self, name, FrozenMap(merged))
         _check_bool("parallel", self.parallel)
         _check_int("parallel_workers", self.parallel_workers)
+        if self.parallel_workers == 0:
+            raise ValueError(
+                "parallel_workers must not be 0; use a positive number of "
+                "workers, or -1 for every core (-2 for all but one, and so on)"
+            )
+        if self.parallel_backend not in _PARALLEL_BACKENDS:
+            raise ValueError(
+                f"parallel_backend={self.parallel_backend!r} is not one of "
+                f"{sorted(_PARALLEL_BACKENDS)}"
+            )
         _check_int(
             "memory_ceiling_percentage",
             self.memory_ceiling_percentage,
         )
+        if not 0 <= self.memory_ceiling_percentage <= 100:
+            raise ValueError(
+                "memory_ceiling_percentage must be between 0 and 100; got "
+                f"{self.memory_ceiling_percentage}"
+            )
         if self.memory_ceiling_bytes is not None:
             _check_int("memory_ceiling_bytes", self.memory_ceiling_bytes)
         _check_bool("cache_repertoires", self.cache_repertoires)
@@ -339,9 +365,4 @@ class InfrastructureConfig:
         if not isinstance(self.label_separator, str):
             raise ValueError(
                 f"label_separator must be str; got {type(self.label_separator).__name__}"
-            )
-        if not isinstance(self.parallel_backend, str):
-            raise ValueError(
-                "parallel_backend must be str; got "
-                f"{type(self.parallel_backend).__name__}"
             )

@@ -344,15 +344,15 @@ def test_backend_selection():
 class TestGetNumProcesses:
     """Tests for get_num_processes edge cases."""
 
-    def test_zero_workers_raises_error(self):
-        """``parallel_workers=0`` raises ValueError."""
+    def test_zero_workers_is_rejected_by_the_config(self):
+        """``parallel_workers=0`` is rejected when it is set."""
         from pyphi import config
 
         with (
+            pytest.raises(ValueError, match="must not be 0"),
             config.override(parallel_workers=0),
-            pytest.raises(ValueError, match="may not be 0"),
         ):
-            parallel.get_num_processes()
+            pass
 
     def test_negative_workers_calculates_correctly(self):
         """``parallel_workers=-1`` means all CPUs, ``-2`` means all but one."""

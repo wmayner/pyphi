@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import copy
+import pickle
 from pathlib import Path
 
 import pytest
@@ -14,6 +16,7 @@ from pyphi.conf import config
 from pyphi.conf import iit3
 from pyphi.conf import iit4_2023
 from pyphi.conf import iit4_2026
+from pyphi.conf import presets
 from pyphi.conf.formalism import IITConfig
 
 
@@ -244,6 +247,26 @@ class TestPresetsAreReadOnly:
     def test_a_preset_cannot_be_mutated(self, preset):
         with pytest.raises(TypeError):
             preset["precision"] = 2  # type: ignore[index]
+
+    @pytest.mark.parametrize("preset", [iit3, iit4_2023, iit4_2026])
+    @pytest.mark.parametrize(
+        "copier",
+        [
+            lambda p: pickle.loads(pickle.dumps(p)),
+            copy.deepcopy,
+            copy.copy,
+        ],
+        ids=["pickle", "deepcopy", "copy"],
+    )
+    def test_a_preset_pickles_and_copies_and_stays_read_only(self, preset, copier):
+        duplicate = copier(preset)
+        assert duplicate == preset
+        assert presets.canonical(duplicate) == preset["iit"].version
+        with pytest.raises(TypeError):
+            duplicate["precision"] = 2  # type: ignore[index]
+
+    def test_by_name_pickles(self):
+        assert pickle.loads(pickle.dumps(presets.by_name)) == presets.by_name
 
     def test_a_copy_applies_through_override(self):
         with config.override(**{**iit3, "precision": 8}):

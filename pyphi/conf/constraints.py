@@ -23,7 +23,11 @@ The measure/version constraint reproduces the reactive
 eagerly, so the two cannot diverge from what the compute path enforces.
 
 Register a constraint by appending a :class:`ConfigConstraint` to
-:data:`CONFIG_CONSTRAINTS`, or with :func:`register_constraint`.
+:data:`CONFIG_CONSTRAINTS`, or with :func:`register_constraint`. A check
+returns a message for a combination that is wrong, and raises
+:class:`~pyphi.conf._field_routing.UnregisteredValueError` for a name that
+nothing is registered under (a misspelt measure, scheme or strategy), which no
+other option can fix.
 
 Notes
 -----
@@ -57,12 +61,14 @@ unconstrained.
 
 from __future__ import annotations
 
+import difflib
 from collections.abc import Callable
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._field_routing import UnregisteredValueError
 
 # A constraint inspects the (post-override) config and returns an error message
 # — naming both conflicting fields and a fix — when violated, else ``None``.
@@ -151,10 +157,11 @@ def _strategy_components(strategy: Any) -> tuple[str, ...] | None:
     return None
 
 
-def _unregistered_partition_scheme(
+def _require_registered_partition_scheme(
     path: str, scheme: Any, registry_name: str
-) -> str | None:
-    """Return an error message if ``scheme`` is not a registered scheme name.
+) -> None:
+    """Raise :class:`UnregisteredValueError` if ``scheme`` is not a registered
+    scheme name.
 
     ``registry_name`` names a partition-scheme registry in
     :mod:`pyphi.partition`, imported lazily because ``pyphi.partition`` depends
@@ -164,14 +171,52 @@ def _unregistered_partition_scheme(
     try:
         from pyphi import partition
     except ImportError:
-        return None
+        return
     registered = getattr(partition, registry_name).store
-    if isinstance(scheme, str) and scheme in registered:
-        return None
-    return (
-        f"formalism.{path}={scheme!r} is not a registered partition scheme. "
-        f"Registered schemes: {sorted(registered)}."
+    _require_registered(f"formalism.{path}", scheme, registered, "partition scheme")
+
+
+def _require_registered(
+    path: str, value: Any, known: Any, kind: str, *, component: bool = False
+) -> None:
+    """Raise :class:`UnregisteredValueError` if ``value`` is not in ``known``.
+
+    ``component`` marks ``value`` as one entry of the option at ``path``. The
+    message suggests the closest known name.
+    """
+    if isinstance(value, str) and value in known:
+        return
+    close = difflib.get_close_matches(str(value), sorted(known), n=1)
+    hint = f" Did you mean {close[0]!r}?" if close else ""
+    subject = f"{path} entry {value!r}" if component else f"{path}={value!r}"
+    raise UnregisteredValueError(
+        f"{subject} is not a registered {kind}.{hint} Registered: {sorted(known)}."
     )
+
+
+def _require_registered_measure(field_name: str, value: Any) -> None:
+    """Raise :class:`UnregisteredValueError` if no measure is registered under
+    ``value`` for the IIT option ``field_name``.
+
+    A name that is not registered cannot be fixed by changing the version, so
+    it is reported as unregistered rather than as incompatible. Registries are
+    imported lazily: :mod:`pyphi.measures` depends on :mod:`pyphi.conf`.
+    """
+    from pyphi.measures import ces
+    from pyphi.measures import distribution as d
+
+    if field_name == "system_phi_measure":
+        known = set(d.composite_measures)
+    elif field_name == "ces_measure":
+        known = set(ces.measures)
+    else:
+        known = (
+            set(d.distribution_measures)
+            | set(d.state_aware_measures)
+            | set(d.stateful_distribution_measures)
+            | set(d.composite_measures)
+        )
+    _require_registered(f"formalism.iit.{field_name}", value, known, "measure")
 
 
 @register_constraint("measure_compatible_with_version")
@@ -209,6 +254,7 @@ def _measure_compatible_with_version(config: Any) -> str | None:
     for field_name in fields_to_check:
         measure = getattr(iit, field_name)
         if measure not in compatible:
+            _require_registered_measure(field_name, measure)
             return (
                 f"formalism.iit.{field_name}={measure!r} is not compatible "
                 f"with formalism.iit.version={version!r}. Compatible measures "
@@ -224,6 +270,7 @@ def _measure_compatible_with_version(config: Any) -> str | None:
     # a declaration are not constrained.
     compatible_spec = getattr(formalism, "compatible_specification_measures", None)
     if compatible_spec is not None and iit.specification_measure not in compatible_spec:
+        _require_registered_measure("specification_measure", iit.specification_measure)
         return (
             f"formalism.iit.specification_measure="
             f"{iit.specification_measure!r} is not compatible with "
@@ -240,6 +287,7 @@ def _measure_compatible_with_version(config: Any) -> str | None:
     # quantity. Formalisms without a declaration are not constrained.
     compatible_ces = getattr(formalism, "compatible_ces_measures", None)
     if compatible_ces is not None and iit.ces_measure not in compatible_ces:
+        _require_registered_measure("ces_measure", iit.ces_measure)
         return (
             f"formalism.iit.ces_measure={iit.ces_measure!r} is not compatible "
             f"with formalism.iit.version={version!r}. Compatible CES measures "
@@ -262,13 +310,11 @@ def _system_partition_scheme_compatible_with_version(config: Any) -> str | None:
     ``compatible_system_partition_schemes = None`` and are not constrained.
     """
     iit = config.formalism.iit
-    unregistered = _unregistered_partition_scheme(
+    _require_registered_partition_scheme(
         "iit.system_partition_scheme",
         iit.system_partition_scheme,
         "system_partition_types",
     )
-    if unregistered is not None:
-        return unregistered
     version = iit.version
     formalism = _active_formalism(version)
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
@@ -311,9 +357,7 @@ def _mechanism_partition_scheme_compatible_with_version(config: Any) -> str | No
             config.formalism.actual_causation.mechanism_partition_scheme,
         ),
     ):
-        unregistered = _unregistered_partition_scheme(path, scheme, "partition_types")
-        if unregistered is not None:
-            return unregistered
+        _require_registered_partition_scheme(path, scheme, "partition_types")
     version = iit.version
     formalism = _active_formalism(version)
     if formalism is None or formalism is _FORMALISM_UNAVAILABLE:
@@ -395,19 +439,20 @@ def _tie_resolution_strategies_registered(config: Any) -> str | None:
     ):
         strategy = getattr(iit, field_name)
         components = _strategy_components(strategy)
-        if components is None:
-            return (
+        if not components:
+            raise UnregisteredValueError(
                 f"formalism.iit.{field_name}={strategy!r} must be a "
-                f"tie-resolution strategy name or a sequence of names. "
-                f"Registered strategies: {sorted(valid)}."
+                f"tie-resolution strategy name or a non-empty sequence of "
+                f"names. Registered strategies: {sorted(valid)}."
             )
         for component in components:
-            if component not in valid:
-                return (
-                    f"formalism.iit.{field_name} component {component!r} is not "
-                    f"a registered tie-resolution strategy. Registered "
-                    f"strategies: {sorted(valid)}."
-                )
+            _require_registered(
+                f"formalism.iit.{field_name}",
+                component,
+                valid,
+                "tie-resolution strategy",
+                component=True,
+            )
     return None
 
 
@@ -483,3 +528,30 @@ def _system_measure_matches_requirement(config: Any) -> str | None:
         f"pyphi.iit4_2026), which set every field together, or set "
         f"formalism.iit.system_phi_measure to {fix}."
     )
+
+
+@register_constraint("actual_causation_formalism_registered")
+def _actual_causation_formalism_registered(config: Any) -> str | None:
+    """The actual-causation version must be registered, and its alpha measure
+    one that version accepts."""
+    try:
+        from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+    except ImportError:
+        return None  # bootstrap window; see _FORMALISM_UNAVAILABLE
+    registry = ACTUAL_CAUSATION_FORMALISM_REGISTRY
+    if not len(registry):
+        return None  # the formalisms are still being registered
+    ac = config.formalism.actual_causation
+    _require_registered(
+        "formalism.actual_causation.version",
+        ac.version,
+        set(registry),
+        "actual-causation formalism",
+    )
+    _require_registered(
+        "formalism.actual_causation.alpha_measure",
+        ac.alpha_measure,
+        registry[ac.version].compatible_measures,
+        f"alpha measure of {ac.version}",
+    )
+    return None

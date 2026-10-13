@@ -380,8 +380,8 @@ class TestGlobalConfigFacade:
     def test_replacing_actual_causation_subnamespace_works(self):
         original = config.formalism.actual_causation
         try:
-            config.actual_causation = ActualCausationConfig(alpha_measure="KLD")
-            assert config.formalism.actual_causation.alpha_measure == "KLD"
+            config.actual_causation = ActualCausationConfig(alpha_measure="WPMI")
+            assert config.formalism.actual_causation.alpha_measure == "WPMI"
         finally:
             config.actual_causation = original
 
@@ -449,8 +449,8 @@ class TestDottedPathAccessor:
     def test_write_actual_causation_field(self):
         original = config.formalism.actual_causation.alpha_measure
         try:
-            config["formalism.actual_causation.alpha_measure"] = "KLD"
-            assert config.formalism.actual_causation.alpha_measure == "KLD"
+            config["formalism.actual_causation.alpha_measure"] = "WPMI"
+            assert config.formalism.actual_causation.alpha_measure == "WPMI"
         finally:
             config["formalism.actual_causation.alpha_measure"] = original
 
@@ -462,20 +462,20 @@ class TestDottedPathAccessor:
         with pytest.raises(KeyError, match="Invalid config path"):
             _ = config[""]
 
-    def test_write_empty_path_raises_keyerror(self):
-        with pytest.raises(KeyError, match="Path must address a leaf"):
+    def test_write_empty_path_raises_configuration_error(self):
+        with pytest.raises(ConfigurationError, match="Path must address a leaf"):
             config[""] = 1
 
-    def test_write_single_part_path_raises_keyerror(self):
-        with pytest.raises(KeyError, match="Path must address a leaf"):
+    def test_write_single_part_path_raises_configuration_error(self):
+        with pytest.raises(ConfigurationError, match="Path must address a leaf"):
             config["precision"] = 1
 
-    def test_write_unknown_layer_raises_keyerror(self):
-        with pytest.raises(KeyError, match="Unknown top-level layer"):
+    def test_write_unknown_layer_raises_configuration_error(self):
+        with pytest.raises(ConfigurationError, match="Unknown top-level layer"):
             config["bogus.precision"] = 1
 
-    def test_write_unknown_field_within_known_layer_raises_keyerror(self):
-        with pytest.raises(KeyError, match="Unknown config path"):
+    def test_write_unknown_field_within_known_layer_raises_configuration_error(self):
+        with pytest.raises(ConfigurationError, match="Unknown config path"):
             config["numerics.nonexistent_field"] = 1
 
 

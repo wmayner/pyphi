@@ -55,13 +55,10 @@ def get_num_processes() -> int:
     Raises
     ------
     ValueError
-        If ``parallel_workers`` is 0, or if it is negative enough that the
-        implied count would be non-positive.
+        If ``parallel_workers`` is negative enough that the implied count
+        would be non-positive. (The configuration rejects 0 when it is set.)
     """
     cpu_count = multiprocessing.cpu_count()
-
-    if config.infrastructure.parallel_workers == 0:
-        raise ValueError("Invalid parallel_workers; value may not be 0.")
 
     if cpu_count < config.infrastructure.parallel_workers:
         log.info(

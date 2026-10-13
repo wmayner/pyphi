@@ -42,13 +42,13 @@ class TestNestedYAMLLoader:
             ---
             formalism:
               actual_causation:
-                alpha_measure: KLD
+                alpha_measure: WPMI
             """)
         )
         original = config.formalism.actual_causation.alpha_measure
         try:
             config.load_yaml(str(path))
-            assert config.formalism.actual_causation.alpha_measure == "KLD"
+            assert config.formalism.actual_causation.alpha_measure == "WPMI"
         finally:
             config.alpha_measure = original
 
@@ -230,6 +230,24 @@ class TestImportTimeValidation:
         assert result.returncode != 0
         assert "ConfigurationError" in result.stderr
 
+    def test_a_version_alone_names_the_file_and_the_preset(self, tmp_path):
+        (tmp_path / "pyphi_config.yml").write_text(
+            "formalism:\n  iit:\n    version: IIT_3_0\n"
+        )
+        result = self._import_pyphi(tmp_path)
+        assert result.returncode != 0
+        assert str(tmp_path / "pyphi_config.yml") in result.stderr
+        assert "pyphi_config_3.0.yml" in result.stderr
+
+    def test_an_unknown_option_names_the_file(self, tmp_path):
+        (tmp_path / "pyphi_config.yml").write_text(
+            "formalism:\n  iit:\n    mechanism_phi_measur: EMD\n"
+        )
+        result = self._import_pyphi(tmp_path)
+        assert result.returncode != 0
+        assert str(tmp_path / "pyphi_config.yml") in result.stderr
+        assert "Did you mean 'mechanism_phi_measure'?" in result.stderr
+
     def test_valid_yaml_imports_cleanly(self, tmp_path):
         (tmp_path / "pyphi_config.yml").write_text(
             textwrap.dedent("""\
@@ -274,6 +292,22 @@ class TestSectionRouting:
         with pytest.raises(ConfigurationError, match="belongs to"):
             config.load_yaml(str(path))
         assert config.infrastructure.parallel == before
+
+    @pytest.mark.parametrize(
+        "text",
+        ["formalism:\n  iit: 5\n", "numerics: 3\n", "formalism: [1]\n"],
+    )
+    def test_a_section_that_is_not_a_mapping_is_rejected(self, tmp_path, text):
+        path = tmp_path / "config.yml"
+        path.write_text(text)
+        with pytest.raises(ConfigurationError, match="must map option names"):
+            config.load_yaml(str(path))
+
+    def test_a_misspelt_nested_option_suggests_the_name(self, tmp_path):
+        path = tmp_path / "config.yml"
+        path.write_text("formalism:\n  iit:\n    mechanism_phi_measur: EMD\n")
+        with pytest.raises(ConfigurationError, match="mechanism_phi_measure"):
+            config.load_yaml(str(path))
 
     def test_stray_formalism_key_rejected(self, tmp_path):
         path = tmp_path / "config.yml"

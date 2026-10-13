@@ -240,3 +240,88 @@ class TestAWriteOfTheWrongTypeIsUndone:
         with pytest.raises(RuntimeError, match="check failed"):
             config.precision = 3
         assert config.snapshot() == before
+
+
+class TestValuesThatWouldFailLaterAreRejected:
+    """A value that is accepted but fails, or is ignored, at compute time is
+    rejected when it is written."""
+
+    @pytest.mark.parametrize(
+        ("path", "value", "match"),
+        [
+            ("actual_causation.version", "NOPE", "actual-causation formalism"),
+            ("actual_causation.alpha_measure", "NOPE", "alpha measure"),
+            ("actual_causation.alpha_measure", "KLD", "alpha measure"),
+            ("infrastructure.parallel_workers", 0, "must not be 0"),
+            ("infrastructure.parallel_backend", "nope", "parallel_backend"),
+            ("infrastructure.memory_ceiling_percentage", 200, "between 0 and 100"),
+            ("infrastructure.memory_ceiling_percentage", -1, "between 0 and 100"),
+            (
+                "infrastructure.parallel_partition_evaluation",
+                {"parallel": "no"},
+                r"\['parallel'\] must be bool",
+            ),
+            (
+                "infrastructure.parallel_partition_evaluation",
+                {"chunksize": 0},
+                "at least 1",
+            ),
+            ("iit.mip_tie_resolution", [], "non-empty"),
+        ],
+    )
+    def test_rejected_at_write(self, path, value, match):
+        before = config.snapshot()
+        with pytest.raises(ValueError, match=match):
+            config[path] = value
+        assert config.snapshot() == before
+
+    def test_an_actual_causation_measure_error_does_not_recommend_iit_presets(self):
+        from pyphi.formalism.actual_causation.formalism import _resolve_ac_measures
+        from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY
+        from pyphi.formalism.base import MeasureNotCompatibleError
+
+        with pytest.raises(MeasureNotCompatibleError) as raised:
+            _resolve_ac_measures(
+                ACTUAL_CAUSATION_FORMALISM_REGISTRY["AC_2019"], alpha_measure_name="KLD"
+            )
+        assert "iit3" not in str(raised.value)
+        assert "actual_causation.alpha_measure" in str(raised.value)
+
+
+class TestEveryWritePathReportsATypoAlike:
+    """A misspelt option raises ConfigurationError with a suggestion, whichever
+    way it is written."""
+
+    def test_item_write(self):
+        with pytest.raises(
+            ConfigurationError, match="Did you mean 'mechanism_phi_measure'"
+        ):
+            config["iit.mechanism_phi_measur"] = "X"
+
+    def test_override(self):
+        with (
+            pytest.raises(
+                ConfigurationError, match="Did you mean 'mechanism_phi_measure'"
+            ),
+            config.override({"iit.mechanism_phi_measur": "X"}),
+        ):
+            pass
+
+    def test_a_path_below_an_option(self):
+        with pytest.raises(ConfigurationError, match="is an option, not a section"):
+            config["numerics.precision.real"] = 3
+
+    def test_an_unregistered_measure_is_called_unregistered(self):
+        with pytest.raises(ConfigurationError) as raised:
+            config.mechanism_phi_measure = "INTRINSIC_INFO"
+        message = str(raised.value)
+        assert "not a registered measure" in message
+        assert "Did you mean 'INTRINSIC_INFORMATION'" in message
+        assert "must agree" not in message
+
+    def test_override_of_the_version_alone_recommends_its_preset(self):
+        with (
+            pytest.raises(ConfigurationError, match=r"override\(\*\*pyphi\.iit3\)"),
+            config.override({"iit.version": "IIT_3_0"}),
+        ):
+            pass

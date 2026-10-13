@@ -16,11 +16,11 @@ the rename map.
 
 from __future__ import annotations
 
-import contextlib
 from pathlib import Path
 
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._field_routing import UnregisteredValueError
 from pyphi.conf._global import _GlobalConfig
 from pyphi.conf._helpers import fallback
 from pyphi.conf._helpers import parallel_kwargs
@@ -40,8 +40,34 @@ PYPHI_USER_CONFIG_PATH = Path("pyphi_config.yml")
 
 config: _GlobalConfig = _GlobalConfig()
 
-with contextlib.suppress(FileNotFoundError):
+
+def _config_file_error(
+    error: ConfigurationError, *, combination: bool = False
+) -> ConfigurationError:
+    """Return ``error`` restated as a problem with ``pyphi_config.yml``.
+
+    Used for errors raised while ``import pyphi`` applies the file, so that the
+    message names the file. ``combination`` marks an error about options that
+    must agree, whose message then says how to select a version of IIT in the
+    file.
+    """
+    message = f"{PYPHI_USER_CONFIG_PATH.resolve()} is not a valid configuration: {error}"
+    if combination and not isinstance(error, UnregisteredValueError):
+        message += (
+            " To select a version of IIT in this file, write out every option "
+            "its preset sets (print(pyphi.iit3) lists them); "
+            "https://github.com/wmayner/pyphi/blob/main/pyphi_config_3.0.yml "
+            "is a complete example for IIT 3.0."
+        )
+    return type(error)(message)
+
+
+try:
     config.load_yaml(PYPHI_USER_CONFIG_PATH)
+except FileNotFoundError:
+    pass
+except ConfigurationError as error:
+    raise _config_file_error(error) from None
 
 
 __all__ = [

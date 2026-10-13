@@ -32,6 +32,12 @@ class ConfigurationError(ValueError):
     """Raised on config schema problems (collisions, unknown options, etc.)."""
 
 
+class UnregisteredValueError(ConfigurationError):
+    """A configured name that nothing is registered under, such as a misspelt
+    measure. No change to the other options makes it valid, so its message
+    carries no advice about options that must agree."""
+
+
 _MEASURES = ("formalism.iit.mechanism_phi_measure", "formalism.iit.system_phi_measure")
 
 RENAMED_FIELDS: dict[str, tuple[str, ...]] = {

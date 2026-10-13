@@ -88,7 +88,9 @@ def test_ac_formalism_unknown_version_raises():
 def test_public_api_dispatches_through_active_formalism():
     """The public AC entry points resolve the formalism from the registry by
     ``config.formalism.actual_causation.version``; an unknown version raises
-    KeyError, which is only possible if dispatch goes through the registry."""
+    KeyError, which is only possible if dispatch goes through the registry.
+    (The config rejects an unknown version when it is written, so the check is
+    switched off to reach dispatch.)"""
     from pyphi import actual
     from pyphi import config
     from pyphi import examples
@@ -96,7 +98,7 @@ def test_public_api_dispatches_through_active_formalism():
     transition = examples.prevention_transition()
     # Default version computes a result.
     assert actual.account(transition) is not None
-    with config.override({"actual_causation.version": "NOPE"}):
+    with config.override({"actual_causation.version": "NOPE"}, validate_config=False):
         with pytest.raises(KeyError):
             actual.account(transition)
         with pytest.raises(KeyError):

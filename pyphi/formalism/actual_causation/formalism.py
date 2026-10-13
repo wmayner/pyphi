@@ -35,7 +35,11 @@ def _resolve_ac_measures(
     alpha_name = (
         alpha_measure_name if alpha_measure_name is not None else ac.alpha_measure
     )
-    check_measure_compatible(formalism, alpha_name)
+    check_measure_compatible(
+        formalism,
+        alpha_name,
+        fix="Fix: set pyphi.config['actual_causation.alpha_measure'] to one of those.",
+    )
 
     pr_name = (
         partitioned_repertoire_scheme_name

@@ -122,22 +122,28 @@ class MeasureNotCompatibleError(Exception):
     """
 
 
-def check_measure_compatible(formalism: PhiFormalism, measure: str) -> None:
+def check_measure_compatible(
+    formalism: PhiFormalism, measure: str, *, fix: str | None = None
+) -> None:
     """Raise :class:`MeasureNotCompatibleError` if ``measure`` isn't accepted
     by ``formalism``.
 
     Called from each formalism's ``evaluate_*`` methods so the failure
-    surface is at the dispatch boundary, not deep inside the math.
+    surface is at the dispatch boundary, not deep inside the math. ``fix``
+    replaces the default advice, which is about selecting a version of IIT.
     """
     if measure not in formalism.compatible_measures:
+        if fix is None:
+            fix = (
+                "Fix: use one of those, or select a version of IIT that defines "
+                f"{measure!r} with its preset (for example "
+                "pyphi.config.override(**pyphi.iit3)) or the formalism= argument "
+                "of pyphi.analyze, which set the version and its measures together."
+            )
         raise MeasureNotCompatibleError(
             f"Measure {measure!r} is not compatible with "
             f"formalism {formalism.name!r}. Compatible measures for "
-            f"this formalism: {sorted(formalism.compatible_measures)}. "
-            "Fix: use one of those, or select a version of IIT that defines "
-            f"{measure!r} with its preset (for example "
-            "pyphi.config.override(**pyphi.iit3)) or the formalism= argument "
-            "of pyphi.analyze, which set the version and its measures together."
+            f"this formalism: {sorted(formalism.compatible_measures)}. {fix}"
         )
 
 

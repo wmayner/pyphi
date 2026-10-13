@@ -148,9 +148,17 @@ from .system import System
 # Re-validate here, now that formalisms are registered, so an invalid YAML
 # config fails at import rather than at compute time.
 if config.infrastructure.validate_config:
+    from .conf import PYPHI_USER_CONFIG_PATH
+    from .conf import ConfigurationError
+    from .conf import _config_file_error
     from .conf.constraints import check_config_constraints
 
-    check_config_constraints(config)
+    try:
+        check_config_constraints(config)
+    except ConfigurationError as error:
+        if not PYPHI_USER_CONFIG_PATH.exists():
+            raise
+        raise _config_file_error(error, combination=True) from None
 
 # Silent by default: a library attaches only a NullHandler to its own logger
 # and leaves real handlers to the application (or pyphi.enable_logging).

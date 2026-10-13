@@ -582,7 +582,7 @@ class TestCesMeasureCompatibility:
         message = str(exc.value)
         assert "ces_measure" in message
         assert "KLD" in message
-        assert "Fix" in message
+        assert "not a registered measure" in message
 
     def test_iit4_with_emd_ces_measure_rejected(self) -> None:
         with (

@@ -50,6 +50,7 @@ import yaml
 
 from pyphi.conf._field_routing import FIELD_TO_LAYER
 from pyphi.conf._field_routing import ConfigurationError
+from pyphi.conf._field_routing import UnregisteredValueError
 from pyphi.conf._field_routing import colliding_formalism_fields
 from pyphi.conf._field_routing import unknown_option_hint
 from pyphi.conf._field_routing import version_advice
@@ -89,13 +90,30 @@ def _normalize_config_path(path: str) -> str:
 
 def _rebuild_nested(current: Any, parts: list[str], value: Any, full_path: str) -> Any:
     """Replace a leaf field inside a frozen nested dataclass via path."""
-    if not hasattr(current, parts[0]):
-        raise KeyError(f"Unknown config path: {full_path!r}")
+    if not is_dataclass(current) or isinstance(current, type):
+        raise ConfigurationError(
+            f"Unknown config path: {full_path!r}; "
+            f"{full_path.rsplit('.', len(parts))[0]!r} is an option, not a section."
+        )
+    if parts[0] not in {f.name for f in fields(current)}:
+        raise ConfigurationError(
+            f"Unknown config path: {full_path!r}. {unknown_option_hint(parts[0])}"
+        )
     if len(parts) == 1:
         return replace(current, **{parts[0]: value})
     sub = getattr(current, parts[0])
     new_sub = _rebuild_nested(sub, parts[1:], value, full_path)
     return replace(current, **{parts[0]: new_sub})
+
+
+def _require_section(name: str, value: Any) -> None:
+    """Raise ``ConfigurationError`` unless a config-file section ``value`` is a
+    mapping of options (or empty)."""
+    if value is not None and not isinstance(value, Mapping):
+        raise ConfigurationError(
+            f"The {name!r} section of a config file must map option names to "
+            f"values; got {type(value).__name__} {value!r}."
+        )
 
 
 def _read_via_target(
@@ -252,7 +270,11 @@ class _GlobalConfig:
         # as an empty section rather than failing with a bare AttributeError
         # on the ``.items()`` call below.
         data = {section: (fields_dict or {}) for section, fields_dict in data.items()}
+        for section, fields_dict in data.items():
+            _require_section(section, fields_dict)
         formalism_data = dict(data.pop("formalism", {}))
+        for sub_name in ("iit", "actual_causation"):
+            _require_section(f"formalism.{sub_name}", formalism_data.get(sub_name))
         saved = self.snapshot()
         try:
             for section_name, fields_dict in data.items():
@@ -360,14 +382,15 @@ class _GlobalConfig:
         path = _normalize_config_path(path)
         parts = path.split(".")
         if len(parts) < 2 or not all(parts):
-            raise KeyError(
+            raise ConfigurationError(
                 f"Path must address a leaf field on a layer "
                 f"(e.g. 'numerics.precision'): {path!r}"
             )
         layer_name = parts[0]
         if layer_name not in _LAYER_NAMES:
-            raise KeyError(
-                f"Unknown top-level layer {layer_name!r}; expected one of {_LAYER_NAMES}"
+            raise ConfigurationError(
+                f"Unknown top-level layer {layer_name!r}; expected one of "
+                f"{_LAYER_NAMES}. {unknown_option_hint(parts[-1])}"
             )
         new_layer = _rebuild_nested(
             getattr(self, "_" + layer_name), parts[1:], value, path
@@ -387,6 +410,9 @@ class _GlobalConfig:
 
         try:
             check_config_constraints(self)
+        except UnregisteredValueError:
+            self.install_snapshot(before)
+            raise
         except ConfigurationError as exc:
             attempted = self._formalism.iit.version
             self.install_snapshot(before)
@@ -594,7 +620,18 @@ class _OverrideContext(contextlib.ContextDecorator):
             if self._config.infrastructure.validate_config:
                 from pyphi.conf.constraints import check_config_constraints
 
-                check_config_constraints(self._config)
+                try:
+                    check_config_constraints(self._config)
+                except UnregisteredValueError:
+                    raise
+                except ConfigurationError as exc:
+                    # Selecting a version without its preset is the usual cause.
+                    attempted = self._config.formalism.iit.version
+                    if attempted == saved.formalism.iit.version:
+                        raise
+                    raise ConfigurationError(
+                        f"{exc} {version_advice(attempted)}"
+                    ) from None
         except Exception:
             # A rejected (or otherwise failed) override must not leave the
             # global config in a half-applied state, since __exit__ won't run.
