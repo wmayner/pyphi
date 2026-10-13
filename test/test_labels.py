@@ -64,3 +64,17 @@ def test_coerce_to_indices_rejects_out_of_range(nl):
         nl.coerce_to_indices((0, 7))
     with pytest.raises(ValueError, match="out of range"):
         nl.coerce_to_indices((-1,))
+
+
+@pytest.mark.parametrize(
+    ("nodes", "match"),
+    [
+        ((True, False), "boolean"),
+        ((0.0, 1.0), "non-integer"),
+        ([[0, 1]], "nested sequence"),
+        (("A", 1), "not a mix"),
+    ],
+)
+def test_coerce_to_indices_names_what_is_wrong(nl, nodes, match):
+    with pytest.raises(ValueError, match=match):
+        nl.coerce_to_indices(nodes)

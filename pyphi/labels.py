@@ -44,6 +44,11 @@ def label_with_state(label: str | int, state: int) -> str:
     return text.upper() + subscript(state)
 
 
+def _is_sequence(x: object) -> bool:
+    """Whether ``x`` is a sequence of values rather than one index or label."""
+    return isinstance(x, Iterable) and not isinstance(x, str)
+
+
 def default_label(index: int) -> str:
     """Default label for a node."""
     return f"n{index}"
@@ -140,8 +145,9 @@ class NodeLabels(Sequence[str]):
         TypeError
             If ``nodes`` is not iterable.
         ValueError
-            If ``nodes`` mixes labels with indices, names an unknown label or
-            an out-of-range index, or names a unit more than once.
+            If ``nodes`` mixes labels with indices, contains booleans,
+            non-integer numbers, or nested sequences, names an unknown label
+            or an out-of-range index, or names a unit more than once.
         """
         if nodes is None:
             return self.node_indices
@@ -152,8 +158,23 @@ class NodeLabels(Sequence[str]):
             )
 
         nodes_list = list(nodes)  # Materialize to allow multiple iteration
+        if any(isinstance(node, (bool, np.bool_)) for node in nodes_list):
+            raise ValueError(
+                f"nodes {nodes_list!r} contain booleans; give node indices or "
+                "labels, not a boolean mask"
+            )
         if all(isinstance(node, str) for node in nodes_list):
             indices = self.labels2indices(tuple(nodes_list))  # type: ignore[arg-type]
+        elif any(_is_sequence(node) for node in nodes_list):
+            raise ValueError(
+                f"nodes {nodes_list!r} contain a nested sequence; give one flat "
+                "sequence of node indices or labels"
+            )
+        elif any(isinstance(node, (float, np.floating, complex)) for node in nodes_list):
+            raise ValueError(
+                f"nodes {nodes_list!r} contain non-integer numbers; node indices "
+                "must be integers"
+            )
         elif all(isinstance(node, (int, np.integer)) for node in nodes_list):
             indices = tuple(int(node) for node in nodes_list)
             out_of_range = [i for i in indices if not 0 <= i < len(self.node_indices)]

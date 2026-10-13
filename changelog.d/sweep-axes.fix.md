@@ -1,0 +1,1 @@
+`pyphi.sweep` and `pyphi.campaign.prepare`/`prepare_ces` accept iterators such as `itertools.product(...)` for `states` and `subsets` with several formalisms or substrates (they reported the axis as empty), run a version named more than once in `formalisms` only once (duplicates multiplied the rows quadratically), and treat `subsets=None` as the whole system.

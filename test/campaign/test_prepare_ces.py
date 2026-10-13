@@ -575,3 +575,26 @@ def test_workloads_override_rejects_multiple_planning_groups(tmp_path):
             units_per_job=1e9,
             workloads={(0,): MechanismWorkload(units=7, max_repertoire_cells=2)},
         )
+
+
+def test_formalisms_default_to_the_active_configuration(tmp_path):
+    status = prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        directory=tmp_path / "camp",
+        units_per_job=1e6,
+    )
+    manifest = json.loads((tmp_path / "camp" / "manifest.json").read_text())
+    assert status.n_tasks == len(manifest["tasks"])
+    assert manifest["groups"][0]["formalism"] is None
+
+
+def test_iterator_states_survive_several_formalisms(tmp_path):
+    status = prepare_ces(
+        examples.basic_substrate(),
+        states=iter([BASIC_STATE]),
+        formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
+        directory=tmp_path / "camp",
+        units_per_job=1e6,
+    )
+    assert status.n_cells == 2

@@ -133,3 +133,26 @@ def test_sweep_scaffold_writes_uniform_memory_column(tmp_path):
     assert lines
     for line in lines:
         assert line.split(",")[1].strip() == "2GB"
+
+
+def test_iterator_states_survive_several_formalisms(tmp_path):
+    import itertools
+
+    status = prepare(
+        examples.basic_substrate(),
+        states=itertools.product([0, 1], repeat=3),
+        formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
+        directory=tmp_path / "camp",
+    )
+    assert status.n_cells == 2 * 8
+
+
+def test_subsets_are_recorded_as_resolved_indices(tmp_path):
+    prepare(
+        examples.basic_substrate(),
+        states=[(1, 0, 0)],
+        subsets=[("A", "B"), (1, 0)],
+        directory=tmp_path / "camp",
+    )
+    manifest = json.loads((tmp_path / "camp" / "manifest.json").read_text())
+    assert [cell[2] for cell in manifest["cells"]] == [[0, 1], [0, 1]]

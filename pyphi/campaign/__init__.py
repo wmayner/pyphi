@@ -29,7 +29,6 @@ import msgspec
 from pyphi import serialize
 from pyphi.analysis import _check_compute
 from pyphi.conf import config
-from pyphi.conf import presets
 from pyphi.cost import estimate_analysis
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -39,6 +38,7 @@ from pyphi.models.pandas import ToPandasMixin
 from pyphi.parallel.chunking import cost_balanced_partition
 from pyphi.sweeps import _UNREACHABLE
 from pyphi.sweeps import SweepResult
+from pyphi.sweeps import _axis_values
 from pyphi.sweeps import _build_df
 from pyphi.sweeps import _enumerate_cells
 from pyphi.sweeps import _enumerates
@@ -443,6 +443,8 @@ def prepare(
             "campaign directories are never overwritten"
         )
     compute_name, compute_ref = _compute_spec(compute)
+    states = _axis_values(states, "states")
+    subsets = _axis_values(subsets, "subsets")
     labeled = _normalize_substrates(substrates)
     substrate_map = dict(labeled)
     formalisms_ = _normalize_formalisms(formalisms)
@@ -664,9 +666,8 @@ def prepare_ces(
     if sia is not None and resolution_state is not None:
         raise ValueError("pass either sia or resolution_state, not both")
     formalisms_ = _normalize_formalisms(formalisms)
-    for name in formalisms_:
-        if name is not None and name not in presets.by_name:
-            raise ValueError(f"unknown formalism {name!r}")
+    states = _axis_values(states, "states")
+    subsets = _axis_values(subsets, "subsets")
     scope = scope if scope is not None else CESScope()
     memory_floor = _parse_memory(request_memory)
     labeled = _normalize_substrates(substrates)
@@ -712,7 +713,7 @@ def prepare_ces(
         if key in group_data:
             continue
         group_keys.append(key)
-        with config.override(**presets.by_name[formalism_], progress_bars=False):
+        with config.override(**_formalism_preset(formalism_), progress_bars=False):
             # The plan is state-independent; the group's first cell state
             # stands in for construction (and is validated here).
             system = System(substrate_map[label], tuple(state), subset=subset)

@@ -961,7 +961,8 @@ def prepare_campaign(
     directory : str
         Target campaign directory; must not already exist.
     states, subsets, formalisms
-        Sweep axes: explicit lists, or ``"all"`` / ``"full"``.
+        Sweep axes: ``"all"`` / ``"full"``, one state or subset as a flat
+        list, or a list of them.
     compute : str
         ``"sia"`` (default), ``"full"``, ``"ces"`` or ``"distinctions"``,
         as in ``analyze``.
@@ -979,12 +980,10 @@ def prepare_campaign(
     from pyphi import campaign
 
     substrates = {handle: _get_substrate(handle) for handle in handles}
-    states_ = states if isinstance(states, str) else [tuple(s) for s in states]
-    subsets_ = subsets if isinstance(subsets, str) else [tuple(s) for s in subsets]
     result = campaign.prepare(
         substrates,
-        states=states_,
-        subsets=subsets_,
+        states=states,
+        subsets=subsets,
         formalisms=formalisms,
         compute=_compute_arg(compute),
         directory=directory,

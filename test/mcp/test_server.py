@@ -861,3 +861,25 @@ def test_prepare_campaign_accepts_the_full_analysis(tmp_path):
         compute="full",
     )
     assert prepared["status"]["n_tasks"] == 1
+
+
+def test_prepare_ces_campaign_without_a_formalism(tmp_path):
+    handle = srv.load_example("basic")["handle"]
+    prepared = srv.prepare_ces_campaign(
+        handle=handle,
+        state=[1, 0, 0],
+        directory=str(tmp_path / "camp"),
+        units_per_job=1e6,
+    )
+    assert prepared["status"]["n_tasks"] >= 1
+
+
+def test_prepare_campaign_reads_a_flat_list_as_one_state_or_subset(tmp_path):
+    handle = srv.load_example("basic")["handle"]
+    prepared = srv.prepare_campaign(
+        handles=[handle],
+        states=[1, 0, 0],
+        subsets=[0, 1],
+        directory=str(tmp_path / "camp"),
+    )
+    assert prepared["status"]["n_cells"] == 1

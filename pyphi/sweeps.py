@@ -11,12 +11,13 @@ its own configuration snapshot, so a row is independently reproducible.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from collections.abc import Mapping
 from dataclasses import dataclass
 from itertools import product
-from numbers import Integral
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from pyphi import exceptions
@@ -36,6 +37,7 @@ from pyphi.display.tables import capped_table
 from pyphi.models.ces import CauseEffectStructure
 from pyphi.serializable import Serializable
 from pyphi.substrate import Substrate
+from pyphi.substrate import _coerce_state_to_indices
 from pyphi.system import System
 
 # A dynamically-unreachable state has no defined cause/effect repertoire, so its
@@ -134,40 +136,71 @@ class SweepResult(Displayable, Serializable):
 def _check_mode(axis: str, value: str, modes: tuple[str, ...]) -> None:
     if value not in modes:
         expected = " or ".join(repr(mode) for mode in modes)
+        one = "one state tuple" if axis == "states" else "one subset of units"
         raise ValueError(
-            f"unknown {axis} {value!r}; expected {expected}, one tuple of node "
-            "indices, or an iterable of them"
+            f"unknown {axis} {value!r}; expected {expected}, {one}, or an "
+            "iterable of them"
         )
+
+
+def _is_entry(x: Any) -> bool:
+    """Whether ``x`` is a whole axis entry (a sequence) rather than one element."""
+    return isinstance(x, Iterable) and not isinstance(x, str)
 
 
 def _explicit_axis(values: Any, axis: str) -> list[tuple[Any, ...]]:
     """An explicit states or subsets axis as a list of tuples.
 
-    A flat sequence whose items are all integers (numpy integers included) or
-    all strings (unit labels) is one entry, as ``analyze(subset=...)`` reads
-    it; anything else is an iterable of entries, such as the rows of a 2-D
-    array.
+    A flat sequence, none of whose items is itself a sequence, is one entry,
+    as ``analyze(subset=...)`` reads it; anything else is an iterable of
+    entries, such as the rows of a 2-D array.
     """
     values = list(values)
-    if values and (
-        all(isinstance(x, Integral) for x in values)
-        or all(isinstance(x, str) for x in values)
-    ):
+    if values and not any(_is_entry(x) for x in values):
         values = [values]
-    entries = [
-        tuple(int(x) if isinstance(x, Integral) else x for x in entry)
+    if not values:
+        raise ValueError(f"{axis} is empty")
+    for entry in values:
+        if not _is_entry(entry):
+            hint = (
+                "; 'full' and 'all' are valid only as the whole subsets value"
+                if entry in ("full", "all")
+                else ""
+            )
+            raise ValueError(
+                f"{axis} entry {entry!r} is not a sequence; give one tuple or "
+                f"an iterable of tuples{hint}"
+            )
+    # Numpy scalars become Python scalars, so entries serialize to JSON.
+    return [
+        tuple(x.item() if isinstance(x, np.generic) else x for x in entry)
         for entry in values
     ]
-    if not entries:
-        raise ValueError(f"{axis} is empty")
-    return entries
+
+
+def _axis_values(axis: Any, name: str) -> Any:
+    """Materialize an explicit axis once, so an iterator survives reuse.
+
+    A mode string passes through; ``subsets=None`` means the whole system,
+    as ``analyze(subset=None)`` does.
+    """
+    if axis is None:
+        if name == "subsets":
+            return "full"
+        raise ValueError(f"{name} is None; give a tuple, an iterable of them, or 'all'")
+    if isinstance(axis, str):
+        return axis
+    return _explicit_axis(axis, name)
 
 
 def _normalize_states(substrate: Any, states: Any) -> list[tuple[int, ...]]:
     if isinstance(states, str):
         _check_mode("states", states, ("all",))
         return list(utils.all_states(substrate.factored_tpm.alphabet_sizes))
-    return _explicit_axis(states, "states")
+    return [
+        _coerce_state_to_indices(state, substrate.state_space)
+        for state in _explicit_axis(states, "states")
+    ]
 
 
 def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
@@ -177,7 +210,11 @@ def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
         if subsets == "full":
             return [tuple(nodes)]
         return list(utils.powerset(nodes, nonempty=True))
-    return _explicit_axis(subsets, "subsets")
+    # Resolved indices, so one system has one key however it was spelled.
+    return [
+        substrate.node_labels.coerce_to_indices(subset)
+        for subset in _explicit_axis(subsets, "subsets")
+    ]
 
 
 def _enumerates(axis: Any) -> bool:
@@ -189,13 +226,14 @@ def _normalize_formalisms(formalisms: Any) -> list[str | None]:
     """Normalize the formalisms axis; ``None`` means the ambient config.
 
     ``None`` means the ambient config; a version name applies its complete
-    preset.
+    preset. Duplicates, including two spellings of one version, are dropped.
     """
     if formalisms is None:
         return [None]
-    if isinstance(formalisms, (str, dict)):
+    if isinstance(formalisms, (str, Mapping)):
         formalisms = [formalisms]
-    names = [presets.canonical(formalism) for formalism in formalisms]
+    # One entry per version, however many spellings name it.
+    names = list(dict.fromkeys(presets.canonical(f) for f in formalisms))
     if not names:
         raise ValueError("formalisms is empty; pass None for the active version")
     return names
@@ -323,13 +361,14 @@ def _extract_row(result: Any, compute: Any) -> dict[str, Any]:
     if compute == "distinctions":
         return _row_distinctions(result)
     to_pandas = getattr(result, "to_pandas", None)
-    if to_pandas is not None:
-        record = to_pandas()
-        if isinstance(record, pd.Series):
-            return record.to_dict()
-        if isinstance(record, pd.DataFrame) and len(record) == 1:
-            return record.iloc[0].to_dict()
-    return {"phi": getattr(result, "phi", None)}
+    record = to_pandas() if to_pandas is not None else None
+    if isinstance(record, pd.DataFrame) and len(record) == 1:
+        record = record.iloc[0]
+    if isinstance(record, pd.Series):
+        return record.to_dict()
+    if result is not None and pd.api.types.is_scalar(result):
+        return {"value": result}
+    return {}
 
 
 def _long_format(df: pd.DataFrame, results: list[Any]) -> pd.DataFrame:
@@ -462,27 +501,34 @@ def sweep(
         or a mapping of label to substrate.
     states
         A state tuple, an iterable of states (such as the rows of a 2-D
-        array), or ``"all"``. Explicit states apply to every substrate;
-        ``"all"`` enumerates per substrate.
+        array or an iterator), or ``"all"``. Explicit states apply to every
+        substrate; ``"all"`` enumerates per substrate. The ``state`` column
+        holds each state as unit-state indices.
     subsets
-        ``"full"`` (whole system), ``"all"`` (non-empty powerset), one subset
-        as a tuple of node indices or of labels, or an iterable of subsets.
-        Explicit subsets apply to every
-        substrate; ``"full"`` and ``"all"`` are resolved per substrate.
+        ``"full"`` or ``None`` (whole system), ``"all"`` (non-empty
+        powerset), one subset as a tuple of node indices or of labels, or an
+        iterable of subsets. Explicit subsets apply to every substrate;
+        ``"full"`` and ``"all"`` are resolved per substrate. The ``subset``
+        column holds each subset as sorted node indices, however it was
+        given.
     formalisms
         Leave unset to compute IIT under the active configuration, honored
         exactly as :func:`pyphi.analyze` honors it (no preset is applied, so
         runtime customizations survive). To reproduce published results,
         pass an iterable of version names (``"IIT_4_0_2023"``, ``"IIT_3_0"``,
         or ``"IIT_4_0_2026"`` for the current version), each of which applies
-        its complete preset. See :doc:`/howto/earlier-versions`.
+        its complete preset. A version named more than once, under any of
+        its names, runs once. See :doc:`/howto/earlier-versions`.
     compute
         What to compute in each cell, as in :func:`pyphi.analyze`:
         ``"sia"`` (the default), ``"ces"``, ``"distinctions"``, ``None``
         for the full :class:`~pyphi.analysis.Analysis`, or a callable taking
         a ``System``. The default differs from ``analyze``'s because a sweep
         multiplies the cost of one analysis by the number of cells, and the
-        system irreducibility analysis is the cheapest.
+        system irreducibility analysis is the cheapest. A callable's return
+        value is stored in ``results``; the table gets a ``value`` column
+        when it is a scalar, or the columns of its ``to_pandas()`` when that
+        is one row.
     parallel : bool or None, optional
         ``None`` follows ``config.infrastructure.parallel``; ``True`` or
         ``False`` forces.
@@ -499,8 +545,8 @@ def sweep(
     ------
     ValueError
         Before any computation, if an axis is empty, a string axis is not one
-        of its modes, a formalism is unknown, or ``compute`` is not one of
-        the values above.
+        of its modes, a subset or state is invalid for a substrate, a
+        formalism is unknown, or ``compute`` is not one of the values above.
 
     Notes
     -----
@@ -521,6 +567,8 @@ def sweep(
     # (uncomputable) cells; skip and record those. When every axis is given
     # explicitly, an uncomputable cell fails loud.
     _check_compute(compute)
+    states = _axis_values(states, "states")
+    subsets = _axis_values(subsets, "subsets")
     skip_uncomputable = _enumerates(states) or _enumerates(subsets)
     labeled = _normalize_substrates(substrates)
     substrate_map = dict(labeled)

@@ -1,0 +1,1 @@
+`pyphi.campaign.prepare_ces` and the MCP `prepare_ces_campaign` tool no longer fail with `KeyError: None` when `formalisms` is omitted; the campaign then runs under the active configuration, as `prepare` does.

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 
+import pytest
+
 from pyphi import System
 from pyphi import examples
 from pyphi import sweep
@@ -282,3 +284,104 @@ def test_explicit_axis_reads_flat_sequences_as_one_entry():
     assert _explicit_axis((0, 1), "subsets") == [(0, 1)]
     assert _explicit_axis([("A", "B"), ("C",)], "subsets") == [("A", "B"), ("C",)]
     assert _axis_as_json(("A", "B"), "subsets") == [["A", "B"]]
+
+
+# ---- axis normalization ----
+
+
+def _fig1a():
+    return examples.iit4_2023_fig1a_substrate()
+
+
+def test_iterator_axes_survive_several_formalisms_and_substrates():
+    import itertools
+
+    substrate = _fig1a()
+    result = sweep(
+        substrate,
+        states=itertools.product([0, 1], repeat=len(substrate)),
+        formalisms=["IIT_4_0_2023", "IIT_4_0_2026"],
+        progress=False,
+    )
+    assert len(result.df) == 2 * 2 ** len(substrate)
+    result = sweep(
+        [substrate, substrate],
+        states=[(1, 0, 0)],
+        subsets=itertools.combinations(range(3), 2),
+        progress=False,
+    )
+    assert len(result.df) == 2 * 3
+
+
+def test_subset_column_holds_resolved_indices(tmp_path):
+    result = sweep(
+        _fig1a(),
+        states=(1, 0, 0),
+        subsets=[("A", "B"), ("B", "A"), (1, 0), (0, 1, 2)],
+        progress=False,
+    )
+    assert list(result.df.subset) == [(0, 1), (0, 1), (0, 1), (0, 1, 2)]
+    assert result.df.groupby("subset").size().to_dict() == {(0, 1): 3, (0, 1, 2): 1}
+    # A table built from mixed spellings saves.
+    result.save(tmp_path / "mixed.json")
+
+
+def test_duplicate_formalisms_run_once():
+    with config.override(**presets.iit3):
+        result = sweep(
+            examples.basic_substrate(),
+            states=(1, 0, 0),
+            formalisms=["iit3", "IIT_3_0", "IIT_3_0"],
+            progress=False,
+        )
+    assert len(result.df) == 1
+
+
+def test_subsets_none_is_the_whole_system():
+    result = sweep(_fig1a(), states=[(1, 0, 0)], subsets=None, progress=False)
+    assert list(result.df.subset) == [(0, 1, 2)]
+
+
+@pytest.mark.parametrize(
+    ("subsets", "match"),
+    [
+        ([(0, 1), "full"], "valid only as the whole subsets value"),
+        (("A", 1), "not a mix"),
+        ((True, False), "boolean"),
+        ([(0, 5)], "out of range"),
+    ],
+)
+def test_invalid_subsets_raise_before_computing(subsets, match):
+    with pytest.raises(ValueError, match=match):
+        sweep(_fig1a(), states=(1, 0, 0), subsets=subsets)
+
+
+def test_boolean_state_array_is_one_state():
+    import numpy as np
+
+    result = sweep(_fig1a(), states=np.array([True, False, False]), progress=False)
+    assert list(result.df.state) == [(1, 0, 0)]
+
+
+def test_unknown_states_mode_message_describes_states():
+    with pytest.raises(ValueError, match="one state tuple"):
+        sweep(_fig1a(), states="bogus")
+
+
+def test_callable_scalar_fills_a_value_column():
+    result = sweep(_fig1a(), states=[(1, 0, 0)], compute=_forty_two, progress=False)
+    assert "phi" not in result.df.columns
+    assert result.df.value.tolist() == [42]
+
+
+def test_callable_object_adds_no_invented_columns():
+    result = sweep(_fig1a(), states=[(1, 0, 0)], compute=_an_object, progress=False)
+    assert list(result.df.columns) == ["substrate", "formalism", "subset", "state"]
+
+
+def _forty_two(system):
+    return 42
+
+
+def _an_object(system):
+    return object()
