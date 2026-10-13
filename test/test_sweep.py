@@ -320,8 +320,8 @@ def test_subset_column_holds_resolved_indices(tmp_path):
         subsets=[("A", "B"), ("B", "A"), (1, 0), (0, 1, 2)],
         progress=False,
     )
-    assert list(result.df.subset) == [(0, 1), (0, 1), (0, 1), (0, 1, 2)]
-    assert result.df.groupby("subset").size().to_dict() == {(0, 1): 3, (0, 1, 2): 1}
+    # Spellings of one system resolve to one cell.
+    assert list(result.df.subset) == [(0, 1), (0, 1, 2)]
     # A table built from mixed spellings saves.
     result.save(tmp_path / "mixed.json")
 
@@ -335,6 +335,23 @@ def test_duplicate_formalisms_run_once():
             progress=False,
         )
     assert len(result.df) == 1
+
+
+def test_repeated_states_run_once():
+    result = sweep(_fig1a(), states=[(1, 0, 0), (0, 0, 0), (1, 0, 0)], progress=False)
+    assert list(result.df.state) == [(1, 0, 0), (0, 0, 0)]
+
+
+def test_campaign_tasks_have_no_repeated_cells(tmp_path):
+    from pyphi.campaign import prepare
+
+    campaign = prepare(
+        _fig1a(),
+        states=[(1, 0, 0), (1, 0, 0)],
+        subsets=[(0, 1), ("A", "B"), (1, 0)],
+        directory=tmp_path / "campaign",
+    )
+    assert campaign.n_cells == campaign.n_tasks == 1
 
 
 def test_subsets_none_is_the_whole_system():

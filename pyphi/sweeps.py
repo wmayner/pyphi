@@ -199,10 +199,13 @@ def _normalize_states(substrate: Any, states: Any) -> list[tuple[int, ...]]:
     if isinstance(states, str):
         _check_mode("states", states, ("all",))
         return list(utils.all_states(substrate.factored_tpm.alphabet_sizes))
-    return [
-        _coerce_state_to_indices(state, substrate.state_space)
-        for state in _explicit_axis(states, "states")
-    ]
+    # A state given more than once, however it is spelled, runs once.
+    return list(
+        dict.fromkeys(
+            _coerce_state_to_indices(state, substrate.state_space)
+            for state in _explicit_axis(states, "states")
+        )
+    )
 
 
 def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
@@ -212,11 +215,14 @@ def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
         if subsets == "full":
             return [tuple(nodes)]
         return list(utils.powerset(nodes, nonempty=True))
-    # Resolved indices, so one system has one key however it was spelled.
-    return [
-        substrate.node_labels.coerce_to_indices(subset)
-        for subset in _explicit_axis(subsets, "subsets")
-    ]
+    # Resolved indices, so one system has one key and runs once however it
+    # was spelled.
+    return list(
+        dict.fromkeys(
+            substrate.node_labels.coerce_to_indices(subset)
+            for subset in _explicit_axis(subsets, "subsets")
+        )
+    )
 
 
 def _enumerates(axis: Any) -> bool:
@@ -505,14 +511,15 @@ def sweep(
         A state tuple, an iterable of states (such as the rows of a 2-D
         array or an iterator), or ``"all"``. Explicit states apply to every
         substrate; ``"all"`` enumerates per substrate. The ``state`` column
-        holds each state as unit-state indices.
+        holds each state as unit-state indices. A state given more than once
+        runs once.
     subsets
         ``"full"`` or ``None`` (whole system), ``"all"`` (non-empty
         powerset), one subset as a tuple of node indices or of labels, or an
         iterable of subsets. Explicit subsets apply to every substrate;
         ``"full"`` and ``"all"`` are resolved per substrate. The ``subset``
         column holds each subset as sorted node indices, however it was
-        given.
+        given, and subsets that name the same units run once.
     formalisms
         Leave unset to compute IIT under the active configuration, honored
         exactly as :func:`pyphi.analyze` honors it (no preset is applied, so

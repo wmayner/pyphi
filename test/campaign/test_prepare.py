@@ -155,4 +155,4 @@ def test_subsets_are_recorded_as_resolved_indices(tmp_path):
         directory=tmp_path / "camp",
     )
     manifest = json.loads((tmp_path / "camp" / "manifest.json").read_text())
-    assert [cell[2] for cell in manifest["cells"]] == [[0, 1], [0, 1]]
+    assert [cell[2] for cell in manifest["cells"]] == [[0, 1]]
