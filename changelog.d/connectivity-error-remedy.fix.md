@@ -1,0 +1,1 @@
+The error for an under-specified connectivity matrix, and the build-substrate how-to, say to set `pyphi.config.validate_connectivity = False` (or use `pyphi.config.override`). They told users to pass `validate_connectivity=False` to `Substrate`, which does not accept it.

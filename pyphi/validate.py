@@ -106,8 +106,9 @@ def connectivity(cm: np.ndarray, factored_tpm: FactoredTPM) -> bool:
             "Connectivity matrix is under-specified: the TPM implies "
             f"edge(s) {edges} that the connectivity matrix omits. These "
             "dependencies would be silently marginalized out, under-counting "
-            "phi. Add the edge(s) to the connectivity matrix, or set "
-            "validate_connectivity=False to allow a permissive matrix."
+            "phi. Add the edge(s) to the connectivity matrix, or allow a "
+            "permissive matrix with pyphi.config.validate_connectivity = False "
+            "(or pyphi.config.override(validate_connectivity=False))."
         )
     return True
 

@@ -4,6 +4,8 @@ PyPhi 2.0 is a breaking release. **There are no deprecation shims:** every
 pre-2.0 name below is gone, not aliased, so old code raises `ImportError` or
 `AttributeError` until it is updated. When helping someone port their code,
 change every occurrence — a partial rename will not run.
+If the code was written against a 2.0 release candidate (rc1–rc3), go to
+section 8 first: some of its calls now return different numbers without an error.
 
 (The full guide is at
 https://pyphi.readthedocs.io/en/stable/migration/migration-2.0.html, with its
@@ -28,10 +30,17 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `transition.apply_cut(cut)` | `transition.apply_partition(partition)` |
 | `pyphi.actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events` | `subset=nodes`, keyword-only, on all three |
 | `pyphi.convert.b2l`, `sbn2sbs`, and the other short names | the long names (`be2le`, `state_by_node2state_by_state`, ...) |
-| `subsystem.cause_tpm` / `effect_tpm` | `system.cause_marginal` / `effect_marginal` (plus `proper_*` variants) |
+| `subsystem.cause_tpm` / `effect_tpm` (and `proper_*`) | `system.cause_marginal` / `effect_marginal` (and `proper_*_marginal`) |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` |
 | `pyphi.utils.eq` / `is_positive` / `is_nonpositive` | `pyphi.numerics.eq` / `is_positive` / `is_nonpositive` |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` |
+| `ria.purview_state`, `mice.purview_state` (4.0 branch) | `ria.current_state`, `mice.current_state`; the state a mechanism specifies is `mice.specified_state.state` |
+| `state_specification.intrinsic_information` (4.0 branch) | `state_specification.intrinsic_specification` (`sia.intrinsic_information` is a different quantity, ii(s), and keeps its name) |
+| `subsystem.intrinsic_information(direction, mechanism, purview, ...)` (4.0 branch) | `system.intrinsic_specification(direction, mechanism, purview, ...)` |
+| `pyphi.models.SystemIrreducibilityAnalysis` | `pyphi.formalism.iit4.SystemIrreducibilityAnalysis` (IIT 4.0) or `pyphi.models.IIT3SystemIrreducibilityAnalysis` (IIT 3.0) |
+| `pyphi.models.Bipartition` / `Tripartition` / `KPartition` | `JointBipartition` / `JointTripartition` / `JointPartition` |
+| `pyphi.models.KCut` / `ActualCut` | `DirectedJointPartition(direction, partition)` / `DirectedBipartition` |
+| `subsystem.cut` | `system.partition` |
 
 Two traps in that table:
 
@@ -94,8 +103,8 @@ paper's networks are new: `iit4_2023_fig1a_substrate()` and the other
 | `LOG_*` | `pyphi.enable_logging(level, file)` |
 
 Some option values changed with the names. Write the new value: a 1.x value
-such as `"TRI"` is accepted when written and fails when the computation looks
-the scheme up.
+such as `"TRI"` is rejected when written, with a `ConfigurationError` that
+lists the registered scheme names.
 
 | 1.x setting | 2.0 setting |
 | --- | --- |
@@ -131,7 +140,7 @@ preset's precision of 6 (for example a cause information of 0.214284 in 1.x and
 | 1.x | 2.0 |
 | --- | --- |
 | `subsystem.concept(mechanism)` | `system.distinction(mechanism)` |
-| `sia.cut` (IIT 3.0 and actual-causation results) | `sia.partition` |
+| `sia.cut` (IIT 3.0, IIT 4.0 and actual-causation results) | `sia.partition` |
 | `sia.ces`, `sia.partitioned_ces` | `sia.distinctions`, `sia.partitioned_distinctions` |
 | `major_complex.subsystem`, `.subsystem.nodes` | `complex.sia`, `complex.node_indices` |
 | `causal_nexus(...).transition` | `cause_indices` and `effect_indices` on the result |
@@ -325,7 +334,71 @@ reproduce old numbers:
 
 See the `gotchas` and `theory` references for what the requirement is.
 
-## 8. Checklist for migrating a file
+## 8. Upgrading from a 2.0 release candidate (rc1 to rc3)
+
+Names that existed only in a release candidate were renamed without aliases,
+and most of the old ones fail with a plain `AttributeError` or `TypeError`.
+Files saved by an rc still load. If the code to port was written against an rc,
+read this section before anything else.
+
+**Results that change without an error — recompute them.**
+
+- In rc1 to rc3, `Substrate.sia` / `complexes` / `maximal_complex` /
+  `irreducible_sias` / `all_sias` and `System.sia` dropped unknown keywords, so
+  `subset=` and `formalism=` were ignored and the whole substrate was analyzed
+  under the active configuration. Both are honored now and any other unknown
+  keyword raises `TypeError`. (`Substrate.ces` raised in rc3.)
+- The grain search (`analyze(..., grains=True)`, `pyphi.macro.complexes`)
+  checks reachability on the cause TPM, compares a unit only with competitors
+  no slower than itself (Marshall et al. 2026, Eq. 17), and drops φₛ = 0
+  candidates before exclusion; it can return different complexes.
+- Presets (`pyphi.iit3`, `iit4_2023`, `iit4_2026`, `presets.by_name`) are
+  read-only mappings (copy with `dict(...)`); `formalism=<modified preset>`
+  raises `ValueError`; presets and `formalism=` keep the current
+  `relation_computation`.
+- `SweepResult.df` always has a `RangeIndex` and the columns `substrate`,
+  `formalism`, `subset`, `state` first (rc3 used a `MultiIndex` for several
+  axes, so `df.loc[(...)]` fails and `df.iloc[:, 0]` is `substrate`, not
+  `phi`). The `subset` column is sorted unit indices; duplicate formalisms
+  run once; `subsets=None` is the whole system; a callable `compute` gives a
+  `value` column. `LandscapeSection.df` has a `theta` column instead of a θ
+  index.
+- `to_pandas()` on one object (a SIA, a distinction, an estimate) is a
+  one-row `DataFrame`, not a `Series`; the SIA's `system` column is `subset`.
+- Purview labels in cards, tables and `plot_ces` are written in the
+  specified state, not the current state.
+- Writing an unknown dotted config path raises `ConfigurationError` (was
+  `KeyError`); more values are rejected when written (`parallel_workers = 0`,
+  unknown `parallel_backend`, `memory_ceiling_percentage` outside 0–100, empty
+  tie lists, unregistered measures and schemes); `parallel=` must be
+  `True`/`False`/`None`.
+- MCP tools reject arguments they do not define; `estimate_cost` takes
+  `subset`.
+
+**Renames.**
+
+| rc3 | 2.0.0 |
+| --- | --- |
+| `System.from_substrate(s, st, nodes)` (also on `TransitionSystem`, `MacroSystem`) | `System(s, st, subset=nodes)` |
+| `node_indices=`, `nodes=`, `indices=` or a third positional argument on `System`, `MacroSystem`, `Substrate.sia` / `ces` | `subset=`, keyword-only |
+| `actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events`; `major_complex=` | `subset=` (keyword-only); `maximal_complex=` |
+| `reachable_systems(substrate, indices, state)` | `reachable_systems(substrate, state, subset=...)` |
+| positional `partition` / `noise_background` on `Transition`; positional index tuples on `PerceptualSystem`, `TriggeredTPM`, `build_triggered_tpm`; positional `candidates` on `Substrate.complexes` and relatives | keyword-only |
+| `parallel_kwargs={...}` on `analyze`, `Substrate.complexes`, `pyphi.macro` search functions | `parallel=True/False/None` and `progress=`; tune with `config.override` on the `infrastructure` per-level options |
+| `seed=` on `sweep`, `campaign.prepare`, `campaign.prepare_ces` | removed; use the `pyphi.provenance` writers (`save_dataframe(..., seed=)`) |
+| `optimize(direction=)`, `OptimizationResult.direction` | `goal=`, `.goal` |
+| modules `pyphi.analyze`, `pyphi.sweep`, `pyphi.optimize` | `pyphi.analysis`, `pyphi.sweeps`, `pyphi.optimization` (or `pyphi.Analysis`, `pyphi.SweepResult`, `pyphi.OptimizationResult`) |
+| `StateSpecification.intrinsic_information` / `runner_up_intrinsic_information`; `System.intrinsic_information(...)`; `iit4.system_intrinsic_information` | `intrinsic_specification` / `runner_up_intrinsic_specification`; `System.intrinsic_specification(...)`; `iit4.system_intrinsic_specification` |
+| `purview_state` on RIA / MICE and in `to_pandas()` | `current_state` |
+| `Distinctions(concepts=)`, `.concepts` | `Distinctions(distinctions=)`; iterate the object |
+| IIT 3.0 `analysis.ces` as `ResolvedDistinctions` | always `CauseEffectStructure`; use `analysis.ces.distinctions` |
+| unprefixed 2014 examples (`fig4_substrate()`, `fig4_system()`, ...) | `iit3_2014_fig4_substrate()`, `iit3_2014_fig4_system()`, ... |
+| `models.Concept`, `System.null_concept`, `apply_cut`, short `convert` names (kept as aliases in rc3) | removed; see the first table |
+| `AnalysisEstimate.compute == "full"` | `None` |
+| Matplotlib helpers with mixed return types | all return `(fig, ax)` |
+| `sweep(compute=)` of `"sia"`, `"ces"` or a callable | also `"distinctions"` and `None` (full analysis) |
+
+## 9. Checklist for migrating a file
 
 1. Rename `Network`→`Substrate`, `Subsystem`→`System`, and the other names in
    the table above; fix every `import`.

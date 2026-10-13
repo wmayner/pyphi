@@ -75,6 +75,20 @@ def test_under_specified_cm_raises():
         _mutual_copy(cm=under_spec)
 
 
+def test_under_specified_error_names_a_remedy_that_works():
+    """The error points at the config option, not at a Substrate keyword."""
+    under_spec = np.array([[0, 0], [1, 0]])
+    with pytest.raises(ValueError) as excinfo:
+        _mutual_copy(cm=under_spec)
+    message = str(excinfo.value)
+    assert "pyphi.config.validate_connectivity = False" in message
+    config.validate_connectivity = False
+    try:
+        assert _mutual_copy(cm=under_spec) is not None
+    finally:
+        config.validate_connectivity = True
+
+
 def test_under_specified_cm_undercounts_phi():
     """With validation off, omitting a real edge silently under-counts φ.
 

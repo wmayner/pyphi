@@ -125,8 +125,8 @@ for d in ces.distinctions:
 Three distinctions, matching Fig 2: the first-order mechanisms $a$
 ($\varphi_d = 0.33$) and $B$ ($0.32$), and the second-order mechanism $aB$
 ($0.07$). Each specifies the *purviews* shown — the units its cause and effect
-power is about. A single distinction prints its full detail, including the
-repertoires (the probability distributions it specifies over its purviews):
+power is about. A single distinction prints its mechanism and φ_d and, for each direction, its
+purview, its φ and the state it specifies:
 
 ```{code-cell} python
 ces.distinctions[1]

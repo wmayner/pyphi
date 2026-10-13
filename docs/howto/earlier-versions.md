@@ -164,8 +164,8 @@ match a paper, first check which version the paper used, then check the
 substrate, the state, and the candidate system.
 
 {func}`pyphi.sweep` can compute the same cells under several versions in one
-call through its `formalisms=` argument, which indexes the resulting table by
-version; see {doc}`sweep`.
+call through its `formalisms=` argument, which gives the resulting table a
+`formalism` column; see {doc}`sweep`.
 
 ## References
 

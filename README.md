@@ -79,8 +79,8 @@ for IIT research:
   (requires the `visualize` extra).
 - **Export and interop** — export results to pandas DataFrames or xarray, and
   substrates to networkx, GraphML, or a two-timeslice dynamic Bayesian network.
-- **Saving and loading** — persist any result to disk (JSON, transparently
-  gzipped) and reload it later.
+- **Saving and loading** — persist any result to disk (JSON or msgpack,
+  gzip-compressed when the path ends in `.gz`) and reload it later.
 
 > **Release status.** The current release on PyPI is the **2.0** line, which
 > implements IIT 4.0. Upgrading from 1.x involves breaking changes; see

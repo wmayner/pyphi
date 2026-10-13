@@ -14,11 +14,12 @@ kernelspec:
 # Query relational structure
 
 In IIT 4.0, a cause-effect structure is a set of **distinctions** together with the
-**relations** among them. A relation is any set of two or more distinctions whose
-purviews overlap in a congruent way, and its integrated information $\varphi_r$ contributes
+**relations** among them. A relation is any set of one or more distinctions whose
+purviews overlap in a congruent way (a single distinction relates its own cause and
+effect), and its integrated information $\varphi_r$ contributes
 to the system's Φ. Relations are the combinatorial bottleneck: a structure with
-`|D|` distinctions can have up to `2^{|D|} − 1` relations, and `|D|` itself can reach
-`2^n − 1` for `n` units. The IIT 4.0 paper's Figure 6D — 27 distinctions — has
+$|D|$ distinctions can have up to $2^{|D|}-1$ relations, and $|D|$ itself can reach
+$2^n-1$ for $n$ units. The IIT 4.0 paper's Figure 6D — 27 distinctions — has
 **1,537,080 relations**, and its Φ is dominated by the relational part.
 
 But the relation set is fully determined by the distinctions: each distinction
@@ -40,27 +41,10 @@ import seaborn as sns
 import pyphi
 from pyphi import examples
 from pyphi.conf import config
-from pyphi.formalism import iit4
-from pyphi.measures.distribution import (
-    resolve_mechanism_measure,
-    resolve_system_measure,
-)
 from pyphi.relations import AnalyticalRelations, ConcreteRelations
 
 sns.set_theme(style="whitegrid", context="notebook")
 config.progress_bars = False  # keep the output readable
-
-
-# Compute a cause-effect structure (distinctions and relations) for a system,
-# using the measures selected by the active configuration.
-def compute_ces(system):
-    return iit4.ces(
-        system,
-        system_measure=resolve_system_measure(config.formalism.iit.system_phi_measure),
-        specification_measure=resolve_mechanism_measure(
-            config.formalism.iit.specification_measure
-        ),
-    )
 ```
 
 ## 1. A cause-effect structure and its relations
@@ -69,7 +53,7 @@ We use `grid3`, a three-unit network small enough to enumerate every relation
 explicitly, yet rich enough to have relations of several degrees.
 
 ```{code-cell} python
-ces = compute_ces(examples.grid3_system())
+ces = examples.grid3_system().ces()
 ces
 ```
 

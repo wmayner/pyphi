@@ -16,6 +16,10 @@ topic is tagged with who it affects:
 - **[1.x]** — released PyPhi 1.x (the PyPhi-paper / IIT 3.0 era).
 - **[4.0-branch]** — the IIT 4.0 feature branch.
 - **[both]** — everyone.
+- **[rc]** — the 2.0 release candidates (rc1 to rc3). If you are upgrading from
+  one of those, read {ref}`upgrading-from-rc`
+  first: some calls that ran without error under a release candidate now
+  compute different numbers.
 
 ## Renames at a glance
 
@@ -25,8 +29,9 @@ topic is tagged with who it affects:
 | `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` | [1.x] |
 | `network.tpm` (an array) | `substrate.tpm` (a `FactoredTPM`; `np.asarray(substrate.tpm)` gives the state-by-node array when every unit is binary) | [1.x] |
 | `pyphi.compute.*` | `pyphi.analyze(...)` | [1.x] |
-| `subsystem.cause_tpm` | `system.cause_marginal` | [both] |
-| `subsystem.effect_tpm` | `system.effect_marginal` | [both] |
+| `subsystem.cause_tpm`, `proper_cause_tpm` | `system.cause_marginal`, `proper_cause_marginal` | [both] |
+| `subsystem.effect_tpm`, `proper_effect_tpm` | `system.effect_marginal`, `proper_effect_marginal` | [both] |
+| `subsystem.cut` | `system.partition` | [1.x] |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` | [both] |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` | [both] |
 | `pyphi.models.Concept` | `pyphi.models.Distinction` | [1.x] |
@@ -39,11 +44,23 @@ topic is tagged with who it affects:
 | `pyphi.convert.b2l_sbs`, `l2b_sbs` | `be2le_state_by_state`, `le2be_state_by_state` | [1.x] |
 | `pyphi.convert.to_md`, `to_2d` | `to_multidimensional`, `to_2dimensional` | [1.x] |
 | `pyphi.convert.sbn2sbs`, `sbs2sbn` | `state_by_node2state_by_state`, `state_by_state2state_by_node` | [1.x] |
+| `pyphi.new_big_phi` | `pyphi.formalism.iit4` (`sia`, `ces`) | [4.0-branch] |
+| `pyphi.network_generator` | `pyphi.substrate_generator` | [4.0-branch] |
+| `pyphi.metrics` | `pyphi.measures` | [4.0-branch] |
+| `ria.purview_state`, `mice.purview_state` (the current state of the purview units) | `ria.current_state`, `mice.current_state`; the state a mechanism specifies is `mice.specified_state.state` | [4.0-branch] |
+| `state_specification.intrinsic_information` | `state_specification.intrinsic_specification`. `sia.intrinsic_information` is a different quantity, ii(s), and keeps its name | [4.0-branch] |
+| `subsystem.intrinsic_information(direction, mechanism, purview, ...)` | `system.intrinsic_specification(direction, mechanism, purview, ...)` | [4.0-branch] |
+| `pyphi.models.SystemIrreducibilityAnalysis` | `pyphi.formalism.iit4.SystemIrreducibilityAnalysis` (IIT 4.0) or `pyphi.models.IIT3SystemIrreducibilityAnalysis` (IIT 3.0) | [1.x] |
+| `pyphi.models.Bipartition`, `Tripartition`, `KPartition` | `JointBipartition`, `JointTripartition`, `JointPartition` | [1.x] |
+| `pyphi.models.KCut`, `pyphi.models.ActualCut` | `DirectedJointPartition(direction, partition)`, `DirectedBipartition` (applied with `Transition(..., partition=)` or `transition.apply_partition`) | [1.x] |
 
-Using a removed name as an attribute, as in `pyphi.Network`, raises an error
-that gives its replacement. Importing it, as in `from pyphi import Network`,
-raises a plain `ImportError` instead, because Python's import statement drops
-that message; look the name up in the table above.
+Using a removed 1.x name as an attribute, as in `pyphi.Network`, raises an
+error that gives its replacement. Importing it, as in
+`from pyphi import Network`, raises a plain `ImportError` instead, because
+Python's import statement drops that message; look the name up in the table
+above. The `[4.0-branch]` names `purview_state` and `intrinsic_information` on
+a result or a system raise a plain `AttributeError`, and so do the names that
+existed only in a release candidate (see the last section).
 
 The name `CauseEffectStructure` now means a different object. In 1.x it was
 the list of concepts, which 2.0 calls `Distinctions`; in 2.0 it is the
@@ -152,7 +169,8 @@ values are the names in {mod}`pyphi.measures`.
 | `VALIDATE_JSON_VERSION` | removed |
 
 Some option values changed along with the names. Write the new value: a 1.x
-value such as `"TRI"` fails when the computation looks the scheme up.
+value such as `"TRI"` is rejected when it is written, with a
+`ConfigurationError` that lists the registered scheme names.
 
 | 1.x setting | 2.0 setting |
 | --- | --- |
@@ -197,7 +215,7 @@ an `AttributeError`, or an `ImportError` when the module is gone.
 | 1.x | 2.0 |
 | --- | --- |
 | `subsystem.concept(mechanism)` | `system.distinction(mechanism)` |
-| `sia.cut`, on IIT 3.0 and actual-causation results | `sia.partition` |
+| `sia.cut`, on IIT 3.0, IIT 4.0 and actual-causation results | `sia.partition` |
 | `sia.ces`, `sia.partitioned_ces` | `sia.distinctions`, `sia.partitioned_distinctions` |
 | `major_complex.subsystem`, `major_complex.subsystem.nodes` | `complex.sia` and `complex.node_indices` |
 | `causal_nexus(...).transition` | `cause_indices` and `effect_indices` on the result |
@@ -432,3 +450,115 @@ expected behavior of the intrinsic-information requirement; pin
 `formalism="IIT_4_0_2023"` to reproduce numbers published with the IIT 4.0
 paper in 2023. See
 {doc}`../theory/intrinsic-information`.
+
+(upgrading-from-rc)=
+
+## Upgrading from a 2.0 release candidate
+
+**[rc]** The 2.0 release candidates (rc1 to rc3) were pre-releases, so the
+names they introduced were changed without aliases, and most of the old names
+fail with an ordinary `AttributeError` or `TypeError` that does not give the
+replacement. Files saved by rc1, rc2 or rc3 still load; a sweep table saved by
+a release candidate loads in the long format described below. Everything else
+that changed between rc3 and 2.0.0 is in the tables here.
+
+### Results that change without an error
+
+Code that ran under a release candidate can run under 2.0.0 and return
+different numbers. Recompute results from any of these.
+
+- **`subset=` and `formalism=` were ignored.** In rc1 to rc3,
+  `Substrate.sia`, `complexes`, `maximal_complex`, `irreducible_sias` and
+  `all_sias`, and `System.sia`, took `**kwargs` and dropped any keyword they
+  did not use. A call such as `substrate.sia(state, subset=(0, 1))` analyzed
+  the whole substrate, and `substrate.complexes(state, formalism="IIT_4_0_2023")`
+  or `system.sia(formalism="IIT_3_0")` computed under the active
+  configuration (the 2026 default). In 2.0.0 both keywords are honored, and
+  any other unrecognized keyword raises a `TypeError`. For example, on
+  `examples.basic_noisy_selfloop_substrate()` in state `(1, 0, 0)`,
+  `complexes(state, formalism="IIT_4_0_2023")` returned φₛ of
+  0.152003, 0.121863 and 0.014518 in rc3, which are the 2026 values, and
+  returns 0.686877, 0.254967 and 0.014518 now. (`Substrate.ces` raised a
+  `TypeError` for these keywords in rc3.)
+- **Grain search.** The search for intrinsic units and complexes
+  (`pyphi.analyze(..., grains=True)`, `pyphi.macro.complexes`) now checks
+  whether a macro system's state is reachable on the cause TPM, so candidates
+  that are reachable only through the background's past are no longer
+  discarded. It compares a candidate unit only with competitors whose units
+  update no more slowly than its own (Marshall et al. 2026, Eq. 17; the
+  default `max_update_grain=1` is unaffected), and it drops candidates with
+  φₛ = 0 before the exclusion cascade. The search can return different
+  complexes than rc3 did.
+- **Presets.** `pyphi.iit3`, `pyphi.iit4_2023`, `pyphi.iit4_2026` and
+  `pyphi.conf.presets.by_name` are read-only mappings; copy one with
+  `dict(pyphi.iit3)` to change it. Passing a modified copy as `formalism=`
+  raises a `ValueError` where rc3 silently ran the unmodified preset. Applying
+  a preset, or `formalism=`, keeps the current `relation_computation`
+  instead of resetting it, because that option changes how relations are
+  computed and not their values.
+- **Sweep tables.** `SweepResult.df` has a default `RangeIndex` and the
+  columns `substrate`, `formalism`, `subset` and `state` first, however many
+  values each axis has. A table over several axes had a `MultiIndex`, so
+  `df.loc[(...)]` and `df.xs(...)` fail now, and `df.iloc[:, 0]` is the
+  `substrate` column, no longer `phi`. The `subset` column holds sorted unit
+  indices whatever spelling was given, and a formalism named twice runs once.
+  `sweep(subsets=None)` means the whole system. With a callable `compute`, a
+  scalar result goes in a `value` column; there is no `phi` column of `None`.
+  `LandscapeSection.df` has a `theta` column and a default index, where it was
+  indexed by θ.
+- **`to_pandas()` on one object.** A system irreducibility analysis, a
+  distinction, a perturbation or an estimate returns a one-row `DataFrame`
+  instead of a `Series`, and the analysis names its units column `subset`
+  (sorted indices) instead of `system`. Code that reads `row["phi"]` from the
+  old `Series` now gets a one-element `Series`; use `row["phi"].iloc[0]` or
+  `pd.concat` the rows.
+- **Purview labels.** Purview labels in distinction cards, tables and
+  `plot_ces` are written in the state the distinction specifies (uppercase
+  for ON, lowercase for OFF), as relation cards already did; they showed the
+  current state in rc3.
+- **Configuration errors.** Writing an unknown dotted path
+  (`pyphi.config["iit.mechanism_phi_measur"] = ...`, `override({...})` or a
+  `pyphi_config.yml` entry) raises a `ConfigurationError`, where rc3 raised a
+  `KeyError`. More values are rejected when they are written:
+  `parallel_workers = 0`, an unknown `parallel_backend`, a
+  `memory_ceiling_percentage` outside 0 to 100, an empty tie-resolution list,
+  and a partition scheme, measure or actual-causation version that is not
+  registered. `parallel=` must be `True`, `False` or `None` everywhere.
+- **MCP tools.** The server's tools reject an argument they do not define,
+  where rc3 dropped it. `estimate_cost` takes `subset`.
+
+### Renamed or changed
+
+| rc3 | 2.0.0 |
+| --- | --- |
+| `System.from_substrate(substrate, state, nodes)`; the same on `TransitionSystem` and `MacroSystem` | `System(substrate, state, subset=nodes)` |
+| `System(substrate, state, node_indices)` or a third positional argument; `node_indices=`, `nodes=` and `indices=` on `System` and `Substrate.sia` / `ces` | `subset=`, keyword-only. The `TypeError` says so |
+| `MacroSystem(substrate, state, node_indices, ...)` | `MacroSystem(substrate, state, units, ...)` with `subset=` keyword-only; `MacroSystem.from_micro` is unchanged |
+| `pyphi.actual.events(..., nodes)`, and `indices=` on `true_events` and `extrinsic_events` | `subset=` on all three, keyword-only |
+| `major_complex=` on `true_events` and `extrinsic_events` | `maximal_complex=` |
+| `pyphi.substrate.reachable_systems(substrate, indices, state)` | `reachable_systems(substrate, state, subset=...)` |
+| `Transition(..., partition, noise_background)` positional; `PerceptualSystem(substrate, system_indices, sensory_indices)`; `TriggeredTPM(array, sensory_indices, ...)`; `build_triggered_tpm(substrate, sensory_indices, ...)` | `partition=`, `noise_background=`, `system_indices=` and `sensory_indices=` are keyword-only |
+| `candidates=` positional on `Substrate.complexes`, `maximal_complex`, `all_sias`, `irreducible_sias` | keyword-only; it also accepts subsets of units |
+| `analyze(..., parallel_kwargs={...})`; `parallel_kwargs=` on `Substrate.complexes` and the `pyphi.macro` search functions | `parallel=True`, `False` or `None`, and `progress=`. Finer tuning goes through the per-level options in `config.infrastructure`, with `pyphi.config.override`. `bounds=` and `prune=` on the search functions are keyword-only |
+| `sweep(..., seed=)`, `campaign.prepare(..., seed=)`, `campaign.prepare_ces(..., seed=)` | removed, because no random numbers are drawn; record a seed with the `pyphi.provenance` writers (`save_dataframe(..., seed=)`) |
+| `optimize(..., direction="minimize")`; `OptimizationResult.direction` | `goal="minimize"`; `OptimizationResult.goal`. Saved results load |
+| `pyphi.analyze`, `pyphi.sweep` and `pyphi.optimize` as modules (`from pyphi.sweep import SweepResult`) | the modules are `pyphi.analysis`, `pyphi.sweeps` and `pyphi.optimization`; the classes are also `pyphi.Analysis`, `pyphi.SweepResult` and `pyphi.OptimizationResult`. The functions keep their top-level names |
+| `StateSpecification.intrinsic_information`, `runner_up_intrinsic_information` | `intrinsic_specification`, `runner_up_intrinsic_specification` |
+| `System.intrinsic_information(...)`, `pyphi.core.repertoire_algebra.intrinsic_information`, `pyphi.formalism.iit4.system_intrinsic_information` | `System.intrinsic_specification`, `repertoire_algebra.intrinsic_specification`, `iit4.system_intrinsic_specification` |
+| `ria.purview_state`, `mice.purview_state`, and the `purview_state` column of `to_pandas()` | `current_state` |
+| `Distinctions(concepts=...)`, `.concepts` | `Distinctions(distinctions=...)`; the object is a sequence of distinctions, so iterate or index it |
+| `analysis.ces` under IIT 3.0 was a `ResolvedDistinctions` (`len(analysis.ces)`, `analysis.ces.phis`) | always a `CauseEffectStructure`; the distinctions are `analysis.ces.distinctions` |
+| `examples.fig1a_substrate()`, `fig4_substrate()`, `fig4_system()`, and the rest of the unprefixed 2014 examples | `examples.iit3_2014_fig1a_substrate()`, `iit3_2014_fig4_substrate()`, `iit3_2014_fig4_system()`, and so on |
+| `pyphi.models.Concept`, `System.null_concept`, `System.apply_cut`, `Transition.apply_cut`, and the short `pyphi.convert` names (`b2l`, `sbn2sbs`, ...), which rc3 kept as aliases | removed; use the 2.0 names in the first table of this guide |
+| `AnalysisEstimate.compute == "full"` | `None`, as the `compute=` argument spells the full analysis |
+| `SystemIrreducibilityAnalysis.to_pandas()` column `system` | `subset` |
+| `pyphi.models.pandas.record_to_series` | removed; `to_pandas()` always returns a `DataFrame` |
+| Matplotlib helpers returned a graph, a figure, axes or a tuple depending on the helper | all return `(fig, ax)`; `plot_repertoires` no longer returns the repertoires and `plot_system` no longer returns a graph |
+| `pyphi.sweep(compute=...)` accepted `"sia"`, `"ces"` or a callable | also `"distinctions"` and `None` (the full analysis), as in `analyze` |
+| `pyphi.estimate_analysis`, `pyphi.phi_posterior` | take `formalism=`; `phi_posterior` also takes `progress=` |
+
+The IIT 3.0 and actual-causation methods that took `**kwargs` and ignored what
+they did not use (`Transition.find_*`, `actual.sia`, `actual.account`,
+`System.find_mice`, `find_mip`, `mic`, `mie`, `phi`, `all_distinctions`, and
+`build_substrate`, `build_tpm`, `weight_axis` with a misspelt unit-function
+option) now raise a `TypeError` for an unknown keyword.

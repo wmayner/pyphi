@@ -56,9 +56,11 @@ Pass a connectivity matrix (`cm=`; `cm[i, j] = 1` when unit `i` is an input
 to unit `j`) only when you know the wiring. Without one PyPhi assumes every
 unit may influence every other, which is always correct and only slower. A
 connectivity matrix that omits an input the TPM depends on is rejected with a
-`ValueError` that names the missing edge. Passing `validate_connectivity=False`
-allows it, and the omitted input is then marginalized out of the unit's
-transition probabilities.
+`ValueError` that names the missing edge. Setting
+`pyphi.config.validate_connectivity = False` allows it (for a block of code,
+`with pyphi.config.override(validate_connectivity=False):`), and the omitted
+input is then marginalized out of the unit's transition probabilities.
+`Substrate` itself takes no such argument.
 
 Check one transition you know before trusting anything computed from the
 matrix. The card above prints the matrix with its row states, and the
