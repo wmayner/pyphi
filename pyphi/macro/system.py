@@ -23,6 +23,9 @@ from dataclasses import field
 from functools import cached_property
 from typing import Any
 
+import numpy as np
+
+from pyphi import exceptions
 from pyphi.core.tpm.factored import FactoredTPM
 from pyphi.macro.tpm import _normalize_history
 from pyphi.macro.tpm import _validate_units
@@ -100,6 +103,22 @@ class MacroSystem(System):
             micro_history=history,
             macro_cause_marginal=cause_marginal,
         )
+
+    def _validate_state_reachable(self) -> None:
+        """Raise if no prior macro state can produce the current macro state.
+
+        The check runs on the cause TPM, which weights the pre-window
+        background by its posterior (Marshall et al. 2026, Eq. 34). The effect
+        TPM that backs the synthetic substrate holds the background at its
+        current state (Eq. 33), which would make some reachable states look
+        unreachable.
+        """
+        cause = self.cause_marginal
+        joint = np.ones(cause.alphabet_sizes, dtype=np.float64)
+        for i in range(cause.n_nodes):
+            joint = joint * cause.factor(i)[..., self.state[i]]
+        if joint.sum() <= 0.0:
+            raise exceptions.StateUnreachableForwardsError(self.state)
 
     @property
     def cause_marginal(self) -> FactoredTPM:  # type: ignore[override]

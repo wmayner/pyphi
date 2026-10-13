@@ -98,7 +98,7 @@ class TestAgainstRealSweeps:
         est = bounds.estimate(substrate)
         assert est.distinct_systems_upper_bound == len(result.records) == 10
 
-    def test_bu_depth_zero_unreachable_gap(self):
+    def test_bu_depth_zero_exact(self):
         from pyphi.macro.search import complexes
         from test.macro.test_macro_criteria import bu_substrate
 
@@ -107,10 +107,10 @@ class TestAgainstRealSweeps:
         with config.override(**presets.iit4_2023):
             result = complexes(substrate, (0, 0, 0), bounds=bounds)
         est = bounds.estimate(substrate)
-        # One candidate's state is unreachable under its own TPM and is
-        # discarded at run time; the enumeration cannot predict that.
+        # The universe state is reachable, so every micro candidate's cause
+        # TPM reaches its state and none is discarded at run time.
         assert est.distinct_systems_upper_bound == 7
-        assert len(result.records) == 6
+        assert len(result.records) == 7
 
     def test_bu_defaults_upper_bound(self):
         from pyphi.macro.search import complexes

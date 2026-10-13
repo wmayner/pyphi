@@ -1,0 +1,1 @@
+Under `prune="certified"`, the grain search no longer lists candidates whose intrinsic-information ceiling is 0 in `Complex.excluded`. A ceiling of 0 certifies φₛ = 0, so these candidates are reducible and are not rivals of any complex.

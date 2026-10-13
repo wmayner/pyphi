@@ -178,7 +178,11 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.conf import config as _config
 
         if _config.infrastructure.validate_system_states:
-            validate.state_reachable(self)
+            self._validate_state_reachable()
+
+    def _validate_state_reachable(self) -> None:
+        """Raise if the state is unreachable under this system's dynamics."""
+        validate.state_reachable(self)
 
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, System):

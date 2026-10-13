@@ -148,9 +148,12 @@ class TestUnitIntegration:
             assert unit_integration(min_substrate(), (0,), ((0, 0),)) == 0.0
             assert unit_integration(min_substrate(), (1,), ((0, 0),)) == 0.0
 
-    def test_unreachable_state_gives_zero(self):
-        # bu unit C is forced ON when (A, B) = (0, 0): the one-unit
-        # system over C cannot exist in state 0, so phi_s is zero.
+    def test_reducible_singleton_gives_zero(self):
+        # bu unit C is forced ON when (A, B) = (0, 0), so with the
+        # background held at its current state C = 0 has no predecessor.
+        # The cause TPM weights the background's past by its posterior,
+        # which reaches C = 0 through (A, B) = (0, 1); the one-unit system
+        # exists and is reducible.
         with config.override(**presets.iit4_2023):
             assert unit_integration(bu_substrate(), (2,), ((0, 0, 0),)) == 0.0
 

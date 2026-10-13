@@ -1504,8 +1504,11 @@ def complexes(
         sweep_gated = ()
     records_map = exclusion_records(outcome.accepted, candidates)
     if sweep_gated:
+        from pyphi import numerics as _numerics
         from pyphi.models.complex import ExcludedCandidate
 
+        # A ceiling of 0 certifies φₛ = 0: the candidate is reducible and is
+        # not a rival of any complex.
         for accepted_candidate in outcome.accepted:
             key = tuple(sorted(accepted_candidate.footprint))
             extra = tuple(
@@ -1518,6 +1521,7 @@ def complexes(
                 )
                 for p in sweep_gated
                 if accepted_candidate.footprint & p.footprint
+                and _numerics.is_positive(p.ceiling)
             )
             records_map[key] = records_map[key] + extra
     winners = tuple(

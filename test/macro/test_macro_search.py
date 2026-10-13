@@ -234,7 +234,7 @@ class TestMicroExemption:
         assert verdict.phi == 0.0
         assert verdict.num_competitors == 0
 
-    def test_micro_unit_with_unreachable_state_still_valid(self):
+    def test_reducible_micro_unit_still_valid(self):
         with config.override(**presets.iit4_2023):
             verdict = is_intrinsic_unit(bu_substrate(), micro_unit(2), (0, 0, 0))
         assert verdict.valid
@@ -440,7 +440,7 @@ class TestIntrinsicUnits:
         assert full[0].verdict.reason is Reason.NOT_MAXIMAL
         assert full[0].verdict.phi == pytest.approx(0.8300749985576875, abs=1e-13)
         assert full[0].verdict.witness_phi == 1.0
-        # Unit C: unreachable state, phi 0, still valid ground.
+        # Unit C: reducible (phi 0), still valid ground.
         unit_c = [v for v in result.verdicts if v.constituents == (2,)]
         assert unit_c[0].verdict.valid
         assert unit_c[0].verdict.phi == 0.0
@@ -478,13 +478,15 @@ class TestValidSystems:
         for system in systems:
             assert_eq18(system)
 
-    def test_bu_drops_unreachable_singleton(self):
+    def test_bu_keeps_singleton_reached_through_the_background(self):
+        # {C} = 0 has no predecessor with (A, B) held at (0, 0), but the
+        # universe state (0, 1, 0) produces it, so its cause TPM reaches it
+        # and the system is constructed like the other 6 micro combinations.
         with config.override(**presets.iit4_2023):
             systems = valid_systems(bu_substrate(), (0, 0, 0), bounds=SearchBounds())
-        # 7 micro combinations minus the unconstructable {C}.
-        assert len(systems) == 6
-        assert all(
-            tuple(u.micro_constituents for u in s.units) != ((2,),) for s in systems
+        assert len(systems) == 7
+        assert any(
+            tuple(u.micro_constituents for u in s.units) == ((2,),) for s in systems
         )
 
     def test_tie_substrate_count(self):
@@ -1280,6 +1282,28 @@ class TestCertifiedComplexes:
             off, on = self._run(substrate, (0, 0, 0, 0))
             _complexes_equal(off, on)
             assert len(on.complexes) >= 2  # the fixture's two disjoint winners
+
+    def test_reducible_gated_candidates_are_not_listed_as_excluded(self):
+        # Under 'certified', candidates whose ii ceiling is 0 are certified
+        # reducible (φₛ = 0) and so are not rivals of the complex.
+        tpm = np.array(
+            [
+                [0.9, 0.0, 0.2],
+                [0.9, 0.2, 0.5],
+                [0.9, 0.5, 0.0],
+                [1.0, 1.0, 0.0],
+                [0.0, 0.9, 0.5],
+                [0.9, 1.0, 0.2],
+                [0.0, 0.2, 0.0],
+                [0.9, 0.5, 0.5],
+            ]
+        )
+        with config.override(**presets.iit4_2026):
+            off, on = self._run(Substrate(tpm), (0, 0, 0))
+        _complexes_equal(off, on)
+        excluded = on.complexes[0].excluded
+        assert any(e.gated for e in excluded)
+        assert all(e.ii_ceiling > 0 for e in excluded if e.gated)
 
     def test_gated_record_invariants(self):
         with config.override(**presets.iit4_2026):
