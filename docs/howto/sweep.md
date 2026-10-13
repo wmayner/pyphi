@@ -126,10 +126,13 @@ result.df.set_index("state")["phi"].round(6)
 here is `"sia"`, which computes only the SIA of each cell, because a sweep
 multiplies the cost of one analysis by the number of cells and the SIA is the
 cheapest result. Pass `compute="ces"` to compute the cause-effect structure
-instead. The columns change to match, and are the ones
+instead. The value columns change to match, and are the ones
 `Analysis.to_pandas()` returns: φ_s (`phi`), `normalized_phi`, Φ (`big_phi`),
 the number of distinctions, and the summed $\varphi$ of the distinctions
-(`sum_phi_d`) and of the relations (`sum_phi_r`).
+(`sum_phi_d`) and of the relations (`sum_phi_r`). Its identifying columns
+`formalism`, `subset` and `state` are the sweep's too, so a single analysis can
+be concatenated with sweep rows; it also has `current_state`, the subset's
+state, and lacks the sweep's `substrate`.
 
 ```{code-cell} python
 pyphi.sweep(substrate, states="all", compute="ces").df.round(6)
@@ -159,9 +162,12 @@ tied = result.df[result.df.effectively_tied.astype(bool)]
 tied[["phi", "partition_margin", "cause_state_margin", "effect_state_margin"]].round(6)
 ```
 
-Cells computed under IIT 3.0, which does not report margins, hold `NaN` in the
-three margin columns and `None` in `effectively_tied`. Use `isna()` to select
-them; the `astype(bool)` filter above leaves them out.
+Cells computed under IIT 3.0, which does not report margins, hold no value in
+the three margin columns or in `effectively_tied`. In a sweep computed entirely
+under IIT 3.0 every one of these columns holds `None`; when other cells report
+margins, the margin columns hold `NaN` for the IIT 3.0 cells and
+`effectively_tied` holds `None`. Use `isna()` to select them, which matches
+both; the `astype(bool)` filter above leaves them out.
 
 ## Running in parallel
 

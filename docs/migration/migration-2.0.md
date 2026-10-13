@@ -54,14 +54,18 @@ topic is tagged with who it affects:
 | `pyphi.models.Bipartition`, `Tripartition`, `KPartition` | `JointBipartition`, `JointTripartition`, `JointPartition` | [1.x] |
 | `pyphi.models.KCut`, `pyphi.models.ActualCut` | `DirectedJointPartition(direction, partition)`, `DirectedBipartition` (applied with `Transition(..., partition=)` or `transition.apply_partition`) | [1.x] |
 
-Using a removed 1.x name as an attribute, as in `pyphi.Network`, raises an
-error that gives its replacement. Importing it, as in
-`from pyphi import Network`, raises a plain `ImportError` instead, because
-Python's import statement drops that message; look the name up in the table
-above. The `[4.0-branch]` names give no replacement: `pyphi.new_big_phi`,
-`pyphi.network_generator` and `pyphi.metrics` raise a plain `AttributeError`
-(or a plain `ImportError` when imported), and so do `purview_state` and
-`intrinsic_information` on a result or a system, and the names that existed
+Most removed names, used as an attribute, raise an `AttributeError` that gives
+the replacement: `pyphi.Network` and the other 1.x names in this table,
+`pyphi.distance` and `pyphi.utils.eq`, the IIT 4.0 branch's `cause_tpm`,
+`effect_tpm` (and their `proper_` forms) and `PhiStructure`, and every renamed
+example function, including the release candidates' unprefixed 2014 names such
+as `fig4_substrate()`. Importing one, as in `from pyphi import Network`, raises
+a plain `ImportError` instead, because Python's import statement drops that
+message; look the name up in the table above. A few names give no
+replacement and raise a plain `AttributeError` (or a plain `ImportError` when
+imported): the `pyphi.tpm` module, the IIT 4.0 branch's `pyphi.new_big_phi`,
+`pyphi.network_generator` and `pyphi.metrics`, `purview_state` and
+`intrinsic_information` on a result or a system, and most names that existed
 only in a release candidate (see the last section).
 
 The name `CauseEffectStructure` now means a different object. In 1.x it was
@@ -539,8 +543,9 @@ different numbers. Recompute results from any of these.
   `LandscapeSection.df` has a `theta` column and a default index, where it was
   indexed by θ.
 - **`to_pandas()` on one object.** A system irreducibility analysis, a
-  distinction, a perturbation or an estimate returns a one-row `DataFrame`
-  instead of a `Series`, and the analysis names its units column `subset`
+  distinction or an estimate returns a one-row `DataFrame` instead of a
+  `Series` (a `Perturbation`, which had no `to_pandas()`, now has one that
+  returns a one-row `DataFrame` too), and the analysis names its units column `subset`
   (sorted indices) instead of `system`. Code that reads `row["phi"]` from the
   old `Series` now gets a one-element `Series`; use `row["phi"].iloc[0]` or
   `pd.concat` the rows.
@@ -553,11 +558,13 @@ different numbers. Recompute results from any of these.
   `pyphi_config.yml` entry) raises a `ConfigurationError`, where rc3 raised a
   `KeyError`. More values are rejected when they are written:
   `parallel_workers = 0`, an unknown `parallel_backend`, a
-  `memory_ceiling_percentage` outside 0 to 100, an empty tie-resolution list,
+  `memory_ceiling_percentage` outside 0 to 100, a negative
+  `memory_ceiling_bytes`, an empty tie-resolution list,
   and a partition scheme, measure or actual-causation version that is not
   registered. `parallel=` must be `True`, `False` or `None` everywhere.
 - **MCP tools.** The server's tools reject an argument they do not define,
-  where rc3 dropped it. `estimate_cost` takes `subset`.
+  where rc3 dropped it, and a JSON boolean in `subset`. `estimate_cost` takes
+  `subset`.
 - **Candidates for the complex search.** `candidates=` on `Substrate.complexes`,
   `maximal_complex`, `all_sias` and `irreducible_sias` evaluates a system named
   more than once (as `(1, 2)` and `(2, 1)`, or as a subset and a `System`) once,
@@ -573,10 +580,13 @@ different numbers. Recompute results from any of these.
   system's units, as under IIT 4.0. In rc3 they were the state of the whole
   substrate, so a table that mixed formalisms mixed the two meanings in one
   column.
-- **Reachability checks.** `System.sia(formalism=...)` and
-  `System.ces(formalism=...)` raise `StateUnreachableForwardsError` when the
-  system's state cannot be analyzed under that formalism, as `pyphi.analyze`
-  does. rc3 returned a null result (Φ = 0). `System.ces(sia=, distinctions=)`
+- **Reachability checks.** `System.sia()` and `System.ces()` raise
+  `StateUnreachableForwardsError` when the system's state cannot be analyzed
+  under the formalism in effect for the call, whether chosen with
+  `formalism=` or with `pyphi.config.override(...)`, as `pyphi.analyze` does.
+  rc3 returned a null result (Φ = 0). The complex functions check a `System`
+  given in `candidates=` the same way. A system built with
+  `validate_system_states` off is not checked. `System.ces(sia=, distinctions=)`
   and `prepare_ces(sia=)` raise a `ValueError` for results computed on another
   system.
 - **Macro unit labels.** A `MacroSystem` built by `MacroSystem.from_micro`
@@ -593,16 +603,19 @@ different numbers. Recompute results from any of these.
   `System.sia(partition_scheme=<unknown>)` raises a `ValueError` where rc3
   raised a `KeyError`.
 - **`cause_info` and `effect_info`.** `System.cause_info`, `effect_info` and
-  `cause_effect_info` are IIT 3.0 quantities. Outside IIT 3.0 they raise a
-  `TypeError` that points to `mic`, `mie` and `intrinsic_specification`; rc3
-  failed on every call with an error about dispatching the measure.
+  `cause_effect_info` with the configured measure are IIT 3.0 quantities.
+  Outside IIT 3.0 they raise a `TypeError` that points to `mic`, `mie` and
+  `intrinsic_specification`; rc3 failed on every such call with an error about
+  dispatching the measure. With an explicit `repertoire_distance=`, given as a
+  measure or a registered name such as `"KLD"`, they work under every version.
 - **Repeated values and argument types.** `progress=` must be `True`, `False` or
   `None`. The integer fields of `SearchBounds` reject floats and booleans. The
   `pyphi.campaign` planners reject `jobs` below 1, a `units_per_job` that is not
   positive, and an unknown `ordering` (rc3 ignored or crashed on them). A
   `config.iit = replace(..., relation_computation=X)` write applies as given,
-  even when the result equals a preset. `create_substrate` raises a `TypeError`
-  for an unknown key in a spec or an unknown parameter. A string `subset`
+  even when the result equals a preset. `create_substrate` and
+  `substrate_generator.composite` raise a `TypeError` for an unknown key in a
+  spec or an unknown parameter. A string `subset`
   raises a `TypeError`.
 - **Tables and cards.** `Distinctions.to_pandas()` and
   `CauseEffectStructure.to_pandas()` have a `RangeIndex` and a `mechanism`
@@ -611,12 +624,16 @@ different numbers. Recompute results from any of these.
   and `MaximallyIrreducibleCause/Effect` frames is a tuple, and a new
   `intrinsic_specification` column holds the intrinsic specification.
   `Complex.to_pandas()` has a `node_indices` column, and `Analysis.to_pandas()`
-  starts with `formalism`, `subset` and `current_state` columns. The
+  starts with `formalism`, `subset`, `state` (the substrate's state, as in a
+  sweep's rows) and `current_state` (the subset's state) columns. The
   `partition` column of `LandscapeSection.df` and `OptimizationResult.to_pandas()`
   uses the string of the analysis tables (`2 parts: {AB,C}; cut C→A, C→B`, and
-  `None` for no partition). The `Complex` card labels its row "Maximal
-  complex" (it read "Is maximal") and adds a "Gated candidates (φₛ not computed)"
-  row. `PhiPosterior` compares by value, prints a compact card, and has
+  `None` for no partition); tables saved by a release candidate get the new
+  strings when they load. The `Complex` card labels its row "Maximal
+  complex" (it read "Is maximal"). Its "Excluded candidates" row no longer
+  counts the candidates that were excluded without computing their φₛ; a
+  separate "Gated candidates (φₛ not computed)" row counts those, and appears
+  only when there are any. `PhiPosterior` compares by value, prints a compact card, and has
   `to_pandas()`.
 
 ### Renamed or changed
@@ -626,7 +643,7 @@ different numbers. Recompute results from any of these.
 | `System.from_substrate(substrate, state, nodes)` | `System(substrate, state, subset=nodes)` |
 | `TransitionSystem.from_substrate(substrate, before_state, after_state, cause_indices, effect_indices, direction, partition)` | `TransitionSystem(...)` with the same arguments |
 | `MacroSystem.from_substrate(...)`, which always raised a `TypeError` | `MacroSystem.from_micro(...)` |
-| `System(substrate, state, node_indices)` or a third positional argument; `node_indices=`, `nodes=` and `indices=` on `System` and `Substrate.sia` / `ces` | `subset=`, keyword-only. The `TypeError` says so |
+| `System(substrate, state, node_indices)`, positional or as `node_indices=`; `Substrate.sia(state, indices)` and `ces`, positional or as `indices=` | `subset=`, keyword-only. The `TypeError` says so |
 | `MacroSystem(substrate, state, node_indices, ...)` | `MacroSystem(substrate, state, units, ...)` with `subset=` keyword-only; `MacroSystem.from_micro` is unchanged |
 | `pyphi.actual.events(..., nodes)`, and `indices=` on `true_events` and `extrinsic_events` | `subset=` on all three, keyword-only |
 | `major_complex=` on `true_events` and `extrinsic_events` | `maximal_complex=` |
@@ -648,7 +665,11 @@ different numbers. Recompute results from any of these.
 | `Distinctions(concepts=...)`, `.concepts` | `Distinctions(distinctions=...)`; the object is a sequence of distinctions, so iterate or index it |
 | `analysis.ces` under IIT 3.0 was a `ResolvedDistinctions` (`len(analysis.ces)`, `analysis.ces.phis`) | always a `CauseEffectStructure`; the distinctions are `analysis.ces.distinctions` |
 | `examples.fig1a_substrate()`, `fig4_substrate()`, `fig4_system()`, and the rest of the unprefixed 2014 examples | `examples.iit3_2014_fig1a_substrate()`, `iit3_2014_fig4_substrate()`, `iit3_2014_fig4_system()`, and so on |
-| `pyphi.models.Concept`, `System.null_concept`, `System.apply_cut`, `Transition.apply_cut`, and the short `pyphi.convert` names (`b2l`, `sbn2sbs`, ...), which rc3 kept as aliases | removed; use the 2.0 names in the first table of this guide |
+| `pyphi.models.Concept`, `System.null_concept`, and the short `pyphi.convert` names (`b2l`, `sbn2sbs`, ...), which rc3 kept as aliases | removed; use the 2.0 names in the first table of this guide |
+| `System.apply_cut`, `TransitionSystem.apply_cut` and `Transition.apply_cut`, the only name rc3 had for the method | `apply_partition`. The `AttributeError` gives the new name |
+| `system.distinctions(True)` | `system.distinctions(congruent=True)`; `congruent` is keyword-only, and a positional argument raises a `TypeError` |
+| `DecompositionVerdict(constituents, background_apportionment, verdict)` | a required `micro_grain` field (the candidate's update grain τ) comes before `verdict`, and `intrinsic_units(...).verdicts` holds one verdict per decomposition and update grain, where rc3 held one per decomposition |
+| `from pyphi import *` bound `TransitionSystem` and the internal modules `cache`, `combinatorics`, `constants`, `data_structures`, `deferred`, `log`, `node`, `protocols`, `registry`, `relabel`, `serializable` and `utils` | the star import binds the public names only; import those directly (`from pyphi.actual import TransitionSystem`, `from pyphi import utils`) |
 | `AnalysisEstimate.compute == "full"` | `None`, as the `compute=` argument spells the full analysis |
 | `SystemIrreducibilityAnalysis.to_pandas()` column `system` | `subset` |
 | `pyphi.models.pandas.record_to_series` | removed; `to_pandas()` always returns a `DataFrame` |

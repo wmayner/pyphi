@@ -42,13 +42,17 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.models.KCut` / `ActualCut` | `DirectedJointPartition(direction, partition)` / `DirectedBipartition` |
 | `subsystem.cut` | `system.partition` |
 
-A removed 1.x name used as an attribute (`pyphi.Network`) raises an error that
-gives its replacement; imported (`from pyphi import Network`) it raises a plain
-`ImportError`, because the import statement drops that message. The 4.0-branch
-modules `new_big_phi`, `network_generator` and `metrics`, the names
-`purview_state` and `intrinsic_information` on a result or a system, and names
-that existed only in a release candidate (section 8) raise a plain
-`AttributeError`, or `ImportError` when imported.
+Most removed names used as an attribute raise an `AttributeError` that gives
+the replacement: `pyphi.Network` and the other 1.x names in the table,
+`pyphi.distance` and `pyphi.utils.eq`, the 4.0 branch's `cause_tpm` /
+`effect_tpm` (and `proper_*`) and `PhiStructure`, and every renamed example,
+including the release candidates' unprefixed 2014 names (`fig4_substrate()`).
+Imported (`from pyphi import Network`), they raise a plain `ImportError`,
+because the import statement drops that message. A few give no replacement and
+raise a plain `AttributeError` (or `ImportError` when imported): the
+`pyphi.tpm` module, the 4.0-branch modules `new_big_phi`, `network_generator`
+and `metrics`, `purview_state` and `intrinsic_information` on a result or a
+system, and most names that existed only in a release candidate (section 8).
 
 Two traps in that table:
 
@@ -401,11 +405,11 @@ read this section before anything else.
   specified state, not the current state.
 - Writing an unknown dotted config path raises `ConfigurationError` (was
   `KeyError`); more values are rejected when written (`parallel_workers = 0`,
-  unknown `parallel_backend`, `memory_ceiling_percentage` outside 0–100, empty
-  tie lists, unregistered measures and schemes); `parallel=` must be
+  unknown `parallel_backend`, `memory_ceiling_percentage` outside 0–100, a
+  negative `memory_ceiling_bytes`, empty tie lists, unregistered measures and schemes); `parallel=` must be
   `True`/`False`/`None`.
-- MCP tools reject arguments they do not define; `estimate_cost` takes
-  `subset`.
+- MCP tools reject arguments they do not define and JSON booleans in
+  `subset`; `estimate_cost` takes `subset`.
 - `candidates=` on `Substrate.complexes` / `maximal_complex` / `all_sias` /
   `irreducible_sias` evaluates a system named more than once (`(1, 2)` and
   `(2, 1)`, or a subset and a `System`) once, at its first occurrence; rc3's
@@ -414,9 +418,11 @@ read this section before anything else.
   string raises `TypeError`, as candidates and as a subset.
 - Under IIT 3.0, `sia.current_state` is the state of the system's units, as
   under IIT 4.0 (rc3: the whole substrate's state).
-- `System.sia(formalism=)` and `System.ces(formalism=)` raise
-  `StateUnreachableForwardsError` for a state the formalism cannot analyze
-  (rc3 returned Φ = 0). `System.ces(sia=, distinctions=)` and
+- `System.sia()` and `System.ces()` raise `StateUnreachableForwardsError`
+  for a state that the formalism in effect for the call (from `formalism=` or
+  `config.override`) cannot analyze (rc3 returned Φ = 0); the complex
+  functions check a `System` given in `candidates=` the same way. A system
+  built with `validate_system_states` off is not checked. `System.ces(sia=, distinctions=)` and
   `prepare_ces(sia=)` raise `ValueError` for results of another system.
 - `MacroSystem.from_micro` without `node_labels` (and every grain-search
   complex) labels units by their micro constituents (`"C"`, `"AB"`), not
@@ -428,23 +434,29 @@ read this section before anything else.
   version does not define, and `TypeError` for a `state` that is not a
   specified state. `System.sia(partition_scheme=<unknown>)` raises
   `ValueError` (was `KeyError`).
-- `System.cause_info` / `effect_info` / `cause_effect_info` are IIT 3.0
-  quantities; elsewhere they raise `TypeError` pointing to `mic`, `mie` and
-  `intrinsic_specification` (rc3 failed on every call).
+- `System.cause_info` / `effect_info` / `cause_effect_info` with the
+  configured measure are IIT 3.0 quantities; elsewhere they raise `TypeError`
+  pointing to `mic`, `mie` and `intrinsic_specification` (rc3 failed on every
+  such call). With an explicit `repertoire_distance=` (a measure or a name
+  such as `"KLD"`) they work under every version.
 - `progress=` must be `True`/`False`/`None`; `SearchBounds` integer fields
   reject floats and booleans; the campaign planners reject `jobs` < 1, a
   non-positive `units_per_job` and an unknown `ordering`;
   `config.iit = replace(..., relation_computation=X)` applies as given;
-  `create_substrate` raises `TypeError` for an unknown spec key or parameter.
+  `create_substrate` and `substrate_generator.composite` raise `TypeError`
+  for an unknown spec key or parameter.
 - Tables: `Distinctions` / `CauseEffectStructure` `to_pandas()` have a
   `RangeIndex` and a `mechanism` column (`set_index("mechanism")` restores the
   old shape); `specified_state` in RIA / MICE frames is a tuple, with a new
   `intrinsic_specification` column; `Complex.to_pandas()` adds
   `node_indices`; `Analysis.to_pandas()` starts with `formalism`, `subset`,
-  `current_state`; the `partition` column of landscape and optimization
-  tables uses the SIA string (`2 parts: {AB,C}; cut C→A, C→B`, `None` for no
-  partition). The `Complex` card says "Maximal complex" (was "Is maximal") and
-  adds a "Gated candidates (φₛ not computed)" row. `PhiPosterior` compares by
+  `state` (the substrate's state, as in sweep rows) and `current_state` (the
+  subset's); the `partition` column of landscape and optimization tables uses
+  the SIA string (`2 parts: {AB,C}; cut C→A, C→B`, `None` for no partition),
+  and tables saved by a release candidate get it when they load. The `Complex`
+  card says "Maximal complex" (was "Is maximal"); "Excluded candidates" no
+  longer counts candidates excluded without computing φₛ, which a "Gated
+  candidates (φₛ not computed)" row counts when there are any. `PhiPosterior` compares by
   value and has a card and `to_pandas()`.
 
 **Renames.**
@@ -454,7 +466,7 @@ read this section before anything else.
 | `System.from_substrate(s, st, nodes)` | `System(s, st, subset=nodes)` |
 | `TransitionSystem.from_substrate(substrate, before_state, after_state, cause_indices, effect_indices, direction, partition)` | `TransitionSystem(...)`, same arguments |
 | `MacroSystem.from_substrate(...)` (always raised `TypeError`) | `MacroSystem.from_micro(...)` |
-| `node_indices=`, `nodes=`, `indices=` or a third positional argument on `System`, `Substrate.sia` / `ces` | `subset=`, keyword-only |
+| `node_indices` on `System` and `indices` on `Substrate.sia` / `ces`, positional or by keyword | `subset=`, keyword-only |
 | `MacroSystem(substrate, state, node_indices, ...)` | `MacroSystem(substrate, state, units, ...)` with `subset=` keyword-only; `MacroSystem.from_micro` is unchanged |
 | `actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events`; `major_complex=` | `subset=` (keyword-only); `maximal_complex=` |
 | `reachable_systems(substrate, indices, state)` | `reachable_systems(substrate, state, subset=...)` |
@@ -472,7 +484,11 @@ read this section before anything else.
 | `Distinctions(concepts=)`, `.concepts` | `Distinctions(distinctions=)`; iterate the object |
 | IIT 3.0 `analysis.ces` as `ResolvedDistinctions` | always `CauseEffectStructure`; use `analysis.ces.distinctions` |
 | unprefixed 2014 examples (`fig4_substrate()`, `fig4_system()`, ...) | `iit3_2014_fig4_substrate()`, `iit3_2014_fig4_system()`, ... |
-| `models.Concept`, `System.null_concept`, `apply_cut`, short `convert` names (kept as aliases in rc3) | removed; see the first table |
+| `models.Concept`, `System.null_concept`, short `convert` names (kept as aliases in rc3) | removed; see the first table |
+| `apply_cut` on `System`, `TransitionSystem` and `Transition` (rc3's only name for it) | `apply_partition`; the `AttributeError` gives the new name |
+| `system.distinctions(True)` | `system.distinctions(congruent=True)`; keyword-only, positional raises `TypeError` |
+| `DecompositionVerdict(constituents, background_apportionment, verdict)` | new required `micro_grain` field (update grain τ) before `verdict`; `intrinsic_units(...).verdicts` has one verdict per decomposition and update grain (rc3: one per decomposition) |
+| `from pyphi import *` bound `TransitionSystem` and internal modules (`cache`, `combinatorics`, `constants`, `data_structures`, `deferred`, `log`, `node`, `protocols`, `registry`, `relabel`, `serializable`, `utils`) | binds public names only; import those directly (`from pyphi.actual import TransitionSystem`) |
 | `AnalysisEstimate.compute == "full"` | `None` |
 | `pyphi.models.pandas.record_to_series` | removed; `to_pandas()` always returns a `DataFrame` |
 | Matplotlib helpers with mixed return types | all return `(fig, ax)` |
