@@ -49,6 +49,7 @@ from typing import Literal
 import yaml
 
 from pyphi.conf._field_routing import FIELD_TO_LAYER
+from pyphi.conf._field_routing import FILE_VERSION_ADVICE
 from pyphi.conf._field_routing import ConfigurationError
 from pyphi.conf._field_routing import UnregisteredValueError
 from pyphi.conf._field_routing import colliding_formalism_fields
@@ -304,7 +305,14 @@ class _GlobalConfig:
             if self.infrastructure.validate_config:
                 from pyphi.conf.constraints import check_config_constraints
 
-                check_config_constraints(self)
+                try:
+                    check_config_constraints(self)
+                except UnregisteredValueError:
+                    raise
+                except ConfigurationError as exc:
+                    if self._formalism.iit.version == saved.formalism.iit.version:
+                        raise
+                    raise ConfigurationError(f"{exc} {FILE_VERSION_ADVICE}") from None
         except Exception:
             # Don't leave a half-loaded / invalid config installed on failure.
             self.install_snapshot(saved)
@@ -387,6 +395,10 @@ class _GlobalConfig:
                 f"(e.g. 'numerics.precision'): {path!r}"
             )
         layer_name = parts[0]
+        if path == "formalism.iit" and isinstance(value, IITConfig):
+            from pyphi.conf.presets import _keep_strategy
+
+            value = _keep_strategy(value, self._formalism.iit)
         if layer_name not in _LAYER_NAMES:
             raise ConfigurationError(
                 f"Unknown top-level layer {layer_name!r}; expected one of "

@@ -288,6 +288,11 @@ class InfrastructureConfig:
         # the others to a call-site fallback); unknown keys are rejected.
         from pyphi.data_structures import FrozenMap
 
+        # NumPy booleans and integers are accepted wherever Python ones are.
+        for f in fields(self):
+            value = getattr(self, f.name)
+            if isinstance(value, np.bool_ | np.integer):
+                object.__setattr__(self, f.name, value.item())
         level_defaults = None
         for name in _PARALLEL_LEVEL_FIELDS:
             value = getattr(self, name)
@@ -343,6 +348,11 @@ class InfrastructureConfig:
             )
         if self.memory_ceiling_bytes is not None:
             _check_int("memory_ceiling_bytes", self.memory_ceiling_bytes)
+            if self.memory_ceiling_bytes <= 0:
+                raise ValueError(
+                    "memory_ceiling_bytes must be a positive number of bytes or "
+                    f"None; got {self.memory_ceiling_bytes}"
+                )
         _check_bool("cache_repertoires", self.cache_repertoires)
         _check_bool("cache_potential_purviews", self.cache_potential_purviews)
         _check_bool("cache_macro_construction", self.cache_macro_construction)
@@ -362,10 +372,16 @@ class InfrastructureConfig:
         _check_bool("validate_connectivity", self.validate_connectivity)
         _check_bool("validate_phi_bounds", self.validate_phi_bounds)
         _check_bool("validate_config", self.validate_config)
+        _check_int("repr_verbosity", self.repr_verbosity)
         if self.repr_verbosity not in _VALID_REPR_VERBOSITY:
             raise ValueError(
                 f"repr_verbosity={self.repr_verbosity!r} not in "
                 f"{sorted(_VALID_REPR_VERBOSITY)}"
+            )
+        _check_int("repr_max_table_rows", self.repr_max_table_rows)
+        if self.repr_max_table_rows < 0:
+            raise ValueError(
+                f"repr_max_table_rows must be at least 0; got {self.repr_max_table_rows}"
             )
         if not isinstance(self.label_separator, str):
             raise ValueError(

@@ -189,6 +189,14 @@ by_name: Mapping[str, Mapping[str, Any]] = _ReadOnlyMapping(
 # preset keeps their current values, so a preset never undoes them.
 _STRATEGY_FIELDS = ("relation_computation",)
 
+# Mark each preset's IITConfig so that applying it can be told apart from an
+# explicit IITConfig that happens to equal it. The mark is an instance
+# attribute outside the dataclass fields: copy, deepcopy and pickle keep it,
+# dataclasses.replace() drops it, and equality ignores it.
+_PRESET_MARK = "_pyphi_preset"
+for _preset in (iit3, iit4_2023, iit4_2026):
+    object.__setattr__(_preset["iit"], _PRESET_MARK, True)
+
 # The same presets under the names they are exported by (``pyphi.iit3`` ...).
 _ALIASES: dict[str, str] = {
     "iit3": "IIT_3_0",
@@ -251,14 +259,14 @@ def _keep_strategy(iit: Any, current: Any) -> Any:
     Returns
     -------
     IITConfig
-        When ``iit`` equals the ``"iit"`` entry of a preset (a copied or
+        When ``iit`` is the ``"iit"`` entry of a preset (a copied or
         unpickled preset counts), a copy carrying ``current``'s options that
         choose how a quantity is computed rather than its value
-        (``relation_computation``); otherwise ``iit`` unchanged, so a
-        configuration that differs from every preset, including one that sets
-        ``relation_computation`` itself, applies as given.
+        (``relation_computation``); otherwise ``iit`` unchanged, so an
+        IITConfig built with ``dataclasses.replace`` or the constructor
+        applies as given, even when its values equal a preset's.
     """
-    if not any(iit == preset["iit"] for preset in by_name.values()):
+    if not getattr(iit, _PRESET_MARK, False):
         return iit
     return replace(iit, **{name: getattr(current, name) for name in _STRATEGY_FIELDS})
 

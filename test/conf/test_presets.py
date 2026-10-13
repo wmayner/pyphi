@@ -335,6 +335,28 @@ class TestPresetsKeepComputationStrategy:
         with config.override(iit=explicit):
             assert config.formalism.iit.relation_computation == "CONCRETE"
 
+    def test_a_replaced_iit_config_equal_to_a_preset_applies_as_given(self):
+        # The value equals the 2026 preset's IITConfig, but it was built with
+        # replace(), so it is an explicit request for closed-form relations.
+        with config.override(relation_computation="CONCRETE"):
+            wanted = dataclasses.replace(
+                config.formalism.iit, relation_computation="ANALYTICAL"
+            )
+            assert wanted == iit4_2026["iit"]
+            config.iit = wanted
+            assert config.formalism.iit.relation_computation == "ANALYTICAL"
+        with (
+            config.override(relation_computation="CONCRETE"),
+            config.override(iit=wanted),
+        ):
+            assert config.formalism.iit.relation_computation == "ANALYTICAL"
+
+    def test_item_and_attribute_writes_of_a_preset_agree(self):
+        with config.override(relation_computation="CONCRETE"):
+            config["formalism.iit"] = iit4_2023["iit"]
+            assert config.formalism.iit.version == "IIT_4_0_2023"
+            assert config.formalism.iit.relation_computation == "CONCRETE"
+
     def test_formalism_argument_keeps_concrete_relations(self):
         import pyphi
         from pyphi.relations import ConcreteRelations

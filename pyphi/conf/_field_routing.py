@@ -179,6 +179,16 @@ def former_option_location(name: str) -> str | None:
     return None
 
 
+# How to select a version of IIT in a configuration file, where a preset
+# cannot be applied by name.
+FILE_VERSION_ADVICE = (
+    "To select a version of IIT in a configuration file, write out every "
+    "option its preset sets (print(pyphi.iit3) lists them); "
+    "https://github.com/wmayner/pyphi/blob/main/pyphi_config_3.0.yml "
+    "is a complete example for IIT 3.0."
+)
+
+
 def version_advice(version: Any = None) -> str:
     """Say how to select ``version`` of IIT: with its preset, never alone.
 

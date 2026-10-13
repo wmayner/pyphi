@@ -91,6 +91,14 @@ class TestNestedYAMLLoader:
         with pytest.raises(ConfigurationError, match="rename map"):
             config.load_yaml(str(path))
 
+    def test_a_version_only_file_says_how_to_select_a_version(self, tmp_path):
+        path = tmp_path / "version_only.yml"
+        path.write_text("formalism:\n  iit:\n    version: IIT_3_0\n")
+        before = config.snapshot()
+        with pytest.raises(ConfigurationError, match=r"pyphi_config_3\.0\.yml"):
+            config.load_yaml(str(path))
+        assert config.snapshot() == before
+
     def test_renamed_field_error_names_its_replacement(self, tmp_path):
         """A config written against an earlier name says what to change."""
         from pyphi.conf._field_routing import RENAMED_FIELDS

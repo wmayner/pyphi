@@ -267,6 +267,11 @@ class TestValuesThatWouldFailLaterAreRejected:
                 "at least 1",
             ),
             ("iit.mip_tie_resolution", [], "non-empty"),
+            ("infrastructure.repr_max_table_rows", "x", "must be int"),
+            ("infrastructure.repr_max_table_rows", -1, "at least 0"),
+            ("infrastructure.memory_ceiling_bytes", -5, "positive"),
+            ("infrastructure.memory_ceiling_bytes", 0, "positive"),
+            ("infrastructure.repr_verbosity", True, "must be int"),
         ],
     )
     def test_rejected_at_write(self, path, value, match):
@@ -284,6 +289,13 @@ class TestValuesThatWouldFailLaterAreRejected:
         assert level["parallel"] is True
         assert level["chunksize"] == 4
         assert type(level["chunksize"]) is int
+
+    def test_numpy_values_are_accepted_in_scalar_settings(self):
+        import numpy as np
+
+        with config.override(parallel=np.True_, repr_max_table_rows=np.int64(7)):
+            assert config.infrastructure.parallel is True
+            assert type(config.infrastructure.repr_max_table_rows) is int
 
     def test_an_actual_causation_measure_error_does_not_recommend_iit_presets(self):
         from pyphi.formalism.actual_causation.formalism import _resolve_ac_measures

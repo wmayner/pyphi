@@ -19,6 +19,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pyphi.conf._field_routing import FIELD_TO_LAYER
+from pyphi.conf._field_routing import FILE_VERSION_ADVICE
 from pyphi.conf._field_routing import ConfigurationError
 from pyphi.conf._field_routing import UnregisteredValueError
 from pyphi.conf._global import _GlobalConfig
@@ -53,12 +54,7 @@ def _config_file_error(
     """
     message = f"{PYPHI_USER_CONFIG_PATH.resolve()} is not a valid configuration: {error}"
     if combination and not isinstance(error, UnregisteredValueError):
-        message += (
-            " To select a version of IIT in this file, write out every option "
-            "its preset sets (print(pyphi.iit3) lists them); "
-            "https://github.com/wmayner/pyphi/blob/main/pyphi_config_3.0.yml "
-            "is a complete example for IIT 3.0."
-        )
+        message += " " + FILE_VERSION_ADVICE
     return type(error)(message)
 
 
