@@ -386,3 +386,6 @@ relation sets throughout, set
 ```python
 pyphi.config.relation_computation = "CONCRETE"
 ```
+
+The setting stays in effect when you pass `formalism=` or apply a preset, since
+the two backends give the same values.

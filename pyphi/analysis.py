@@ -246,7 +246,10 @@ def analyze(
         earlier version's name (``"IIT_4_0_2023"`` or ``"IIT_3_0"``) only to
         reproduce published results; it applies to this call only. The name
         a preset is exported under (``"iit3"``) and the preset itself
-        (``pyphi.iit3``) select the same version. ``"IIT_4_0_2026"`` names the
+        (``pyphi.iit3``) select the same version; a modified copy of a preset
+        raises ``ValueError``, since this argument only selects published
+        versions (apply modified settings with ``pyphi.config.override`` and
+        leave ``formalism`` unset). ``"IIT_4_0_2026"`` names the
         default; passing it applies that version's complete preset, which
         differs from leaving ``formalism`` unset only if the active
         configuration has been customized. See :doc:`/howto/earlier-versions`.

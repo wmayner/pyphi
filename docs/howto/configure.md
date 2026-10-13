@@ -121,7 +121,11 @@ its own copy of the configuration.
 The default `formalism` settings compute IIT. Earlier versions of the theory,
 which are needed to reproduce some published results, are each defined by a
 complete set of `formalism` settings, packaged as a preset.
-{doc}`earlier-versions` describes them and how to apply one.
+{doc}`earlier-versions` describes them and how to apply one. A preset sets
+every `formalism` option except `relation_computation`, which chooses how
+relations are computed but not their values, so your choice of it survives a
+preset or a `formalism=` argument. The presets are read-only; to adjust one,
+apply a copy, such as `pyphi.config.override(**{**pyphi.iit3, "precision": 8})`.
 
 ## Loading a configuration file
 

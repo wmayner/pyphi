@@ -46,7 +46,8 @@ class IITConfig:
     background conditioning, short-circuiting, and tie-resolution policies
     it uses. Each attribute documents its own values; the presets
     ``pyphi.iit3``, ``pyphi.iit4_2023``, and ``pyphi.iit4_2026`` set them
-    together so that a version never runs with options it does not define.
+    together so that a version never runs with options it does not define
+    (all but ``relation_computation``, which does not change values).
     """
 
     version: str = "IIT_4_0_2026"
@@ -129,7 +130,9 @@ class IITConfig:
     (default; relation counts and φ sums in closed form, without
     enumerating relations, so individual relations cannot be listed) or
     ``"CONCRETE"`` (every relation enumerated, which grows exponentially
-    with the number of distinctions). See :mod:`pyphi.relations`."""
+    with the number of distinctions). Both give the same values, so applying
+    a preset, directly or through ``formalism=``, leaves this option as it
+    is. See :mod:`pyphi.relations`."""
     assume_partitions_cannot_create_new_concepts: bool = False
     """IIT 3.0 only. When ``True``, evaluating a system partition considers
     only the mechanisms that were concepts in the unpartitioned system,

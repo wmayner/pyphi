@@ -1,6 +1,6 @@
 """Canonical IIT formalism presets.
 
-Each preset is a :class:`dict` consumable by :meth:`config.override`:
+Each preset is a read-only mapping consumable by :meth:`config.override`:
 
 - :data:`iit3` — IIT 3.0 (Oizumi et al. 2014).
 - :data:`iit4_2023` — IIT 4.0 (Albantakis et al. 2023).
@@ -18,15 +18,24 @@ A preset specifies its formalism sub-namespaces wholesale via
 :class:`~pyphi.conf.formalism.IITConfig` and
 :class:`~pyphi.conf.formalism.ActualCausationConfig` instances, so
 applying a preset resets every field in those sub-namespaces to its
-canonical value for that paper. Fields outside the formalism layer
-(e.g. ``precision``) appear as additional top-level keys when the
-paper's behavior depends on them.
+canonical value for that paper, except ``relation_computation``, which
+selects how relations are computed rather than their values, and which a
+preset leaves as it is. Fields outside the formalism layer (e.g.
+``precision``) appear as additional top-level keys when the paper's
+behavior depends on them.
+
+The presets are read-only so that they always describe the published
+formalism; ``dict(pyphi.iit3)`` or ``{**pyphi.iit3, ...}`` gives a mutable
+copy to apply with :meth:`config.override`.
 """
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from contextlib import AbstractContextManager
 from contextlib import nullcontext
+from dataclasses import replace
+from types import MappingProxyType
 from typing import Any
 
 from pyphi.conf.formalism import ActualCausationConfig
@@ -60,87 +69,99 @@ from pyphi.conf.formalism import IITConfig
 # ``shortcircuit_sia`` does NOT gate IIT 3.0's short-circuit logic;
 # 3.0's early-exit conditions live in ``iit3._sia`` independent of
 # the flag.
-iit3: dict[str, Any] = {
-    "iit": IITConfig(
-        version="IIT_3_0",
-        # Distribution-distance measures used at the mechanism and CES
-        # levels. The 2015 EMD-fix in ``_emd`` enforces inter-constellation-
-        # only mass flow; see ``pyphi/measures/ces.py:194-213``.
-        mechanism_phi_measure="EMD",
-        ces_measure="EMD",
-        # IIT 3.0's system Φ is the CES-distance, not a 4.0 system measure;
-        # pin GID explicitly so the default's ``INTRINSIC_INFORMATION`` requirement is
-        # never inherited here.
-        system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-        # IIT 3.0 partition schemes.
-        mechanism_partition_scheme="JOINT_BIPARTITION",
-        system_partition_scheme="DIRECTED_BIPARTITION",
-        # Paper-faithful: a single node with a self-loop does not generate
-        # phi by itself.
-        single_micro_nodes_with_selfloops_have_phi=False,
-        # Two-step purview tie resolution: prefer larger phi, break
-        # remaining ties by larger purview. Matches PyPhi 1.x's
-        # ``pyphi_config_3.0.yml`` default.
-        purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
-        mip_tie_resolution=["PHI", "PARTITION_LEX"],
-        sia_tie_resolution=["PHI", "PARTITION_LEX"],
-        # Paper-faithful: a cut can introduce a new concept; PyPhi does
-        # not optimize this away.
-        assume_partitions_cannot_create_new_concepts=False,
-        distinction_phi_normalization="NONE",
-        # Background units are fixed at their observed current state on the
-        # cause side (the PyPhi 1.x / post-2014-literature convention), so
-        # proper-subset analyses reproduce PyPhi 1.x results. Oizumi et al.
-        # (2014) itself fixed them at their actual past state for causes
-        # (IIT 4.0, S2 Text). The global default is IIT 4.0 Eq. 4 causal
-        # marginalization.
-        background_conditioning="CONDITION_CURRENT_STATE",
-    ),
-    "actual_causation": ActualCausationConfig(
-        # PMI is the paper-canonical alpha measure for IIT 3.0 actual
-        # causation (Albantakis et al. 2019).
-        alpha_measure="PMI",
-    ),
-    # IIT 3.0 uses precision 6, the tolerance at which its published values
-    # were computed.
-    "precision": 6,
-}
+iit3: Mapping[str, Any] = MappingProxyType(
+    {
+        "iit": IITConfig(
+            version="IIT_3_0",
+            # Distribution-distance measures used at the mechanism and CES
+            # levels. The 2015 EMD-fix in ``_emd`` enforces inter-constellation-
+            # only mass flow; see ``pyphi/measures/ces.py:194-213``.
+            mechanism_phi_measure="EMD",
+            ces_measure="EMD",
+            # IIT 3.0's system Φ is the CES-distance, not a 4.0 system
+            # measure; pin GID explicitly so the default's
+            # ``INTRINSIC_INFORMATION`` requirement is never inherited here.
+            system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+            # IIT 3.0 partition schemes.
+            mechanism_partition_scheme="JOINT_BIPARTITION",
+            system_partition_scheme="DIRECTED_BIPARTITION",
+            # Paper-faithful: a single node with a self-loop does not generate
+            # phi by itself.
+            single_micro_nodes_with_selfloops_have_phi=False,
+            # Two-step purview tie resolution: prefer larger phi, break
+            # remaining ties by larger purview. Matches PyPhi 1.x's
+            # ``pyphi_config_3.0.yml`` default.
+            purview_tie_resolution=["PHI", "PURVIEW_SIZE"],
+            mip_tie_resolution=["PHI", "PARTITION_LEX"],
+            sia_tie_resolution=["PHI", "PARTITION_LEX"],
+            # Paper-faithful: a cut can introduce a new concept; PyPhi does
+            # not optimize this away.
+            assume_partitions_cannot_create_new_concepts=False,
+            distinction_phi_normalization="NONE",
+            # Background units are fixed at their observed current state on the
+            # cause side (the PyPhi 1.x / post-2014-literature convention), so
+            # proper-subset analyses reproduce PyPhi 1.x results. Oizumi et al.
+            # (2014) itself fixed them at their actual past state for causes
+            # (IIT 4.0, S2 Text). The global default is IIT 4.0 Eq. 4 causal
+            # marginalization.
+            background_conditioning="CONDITION_CURRENT_STATE",
+        ),
+        "actual_causation": ActualCausationConfig(
+            # PMI is the paper-canonical alpha measure for IIT 3.0 actual
+            # causation (Albantakis et al. 2019).
+            alpha_measure="PMI",
+        ),
+        # IIT 3.0 uses precision 6, the tolerance at which its published values
+        # were computed.
+        "precision": 6,
+    }
+)
 
 # The measure fields are set explicitly, not left to the ``IITConfig`` dataclass
 # defaults: those defaults encode the *default* formalism (IIT 4.0 2026, whose
 # ``system_phi_measure`` is ``INTRINSIC_INFORMATION``), so a non-default
 # preset that omitted a measure would silently inherit the requirement. A preset is an
 # absolute formalism, independent of what the current default happens to be.
-iit4_2023: dict[str, Any] = {
-    "iit": IITConfig(
-        version="IIT_4_0_2023",
-        # IIT 4.0 system φ without the requirement: GID at every level.
-        mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-        system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-        specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    ),
-    "actual_causation": ActualCausationConfig(),
-}
+iit4_2023: Mapping[str, Any] = MappingProxyType(
+    {
+        "iit": IITConfig(
+            version="IIT_4_0_2023",
+            # IIT 4.0 system φ without the requirement: GID at every level.
+            mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+            system_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+            specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+        ),
+        "actual_causation": ActualCausationConfig(),
+    }
+)
 
-iit4_2026: dict[str, Any] = {
-    "iit": IITConfig(
-        version="IIT_4_0_2026",
-        mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-        # System φ applies the intrinsic-information requirement, Eq. 23.
-        system_phi_measure="INTRINSIC_INFORMATION",
-        specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
-    ),
-    "actual_causation": ActualCausationConfig(),
-}
+iit4_2026: Mapping[str, Any] = MappingProxyType(
+    {
+        "iit": IITConfig(
+            version="IIT_4_0_2026",
+            mechanism_phi_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+            # System φ applies the intrinsic-information requirement, Eq. 23.
+            system_phi_measure="INTRINSIC_INFORMATION",
+            specification_measure="GENERALIZED_INTRINSIC_DIFFERENCE",
+        ),
+        "actual_causation": ActualCausationConfig(),
+    }
+)
 
 # Map a formalism version-name string (as stored in
 # ``config.formalism.iit.version``) to its preset dict, for callers that select
 # a formalism by name (e.g. ``pyphi.sweep``, ``pyphi.analyze``).
-by_name: dict[str, dict[str, Any]] = {
-    "IIT_3_0": iit3,
-    "IIT_4_0_2023": iit4_2023,
-    "IIT_4_0_2026": iit4_2026,
-}
+by_name: Mapping[str, Mapping[str, Any]] = MappingProxyType(
+    {
+        "IIT_3_0": iit3,
+        "IIT_4_0_2023": iit4_2023,
+        "IIT_4_0_2026": iit4_2026,
+    }
+)
+
+# Options that choose how a quantity is computed, not its value. Applying a
+# preset keeps their current values, so a preset never undoes them.
+_STRATEGY_FIELDS = ("relation_computation",)
 
 # The same presets under the names they are exported by (``pyphi.iit3`` ...).
 _ALIASES: dict[str, str] = {
@@ -155,10 +176,10 @@ def canonical(formalism: Any) -> str | None:
 
     Parameters
     ----------
-    formalism : str, dict, or None
+    formalism : str, mapping, or None
         A version name (``"IIT_3_0"``), the name a preset is exported under
-        (``"iit3"``), or a preset itself (``pyphi.iit3``). Names are matched
-        without regard to case.
+        (``"iit3"``), or a preset itself (``pyphi.iit3``), or an unmodified
+        copy of one. Names are matched without regard to case.
 
     Returns
     -------
@@ -168,18 +189,50 @@ def canonical(formalism: Any) -> str | None:
     Raises
     ------
     ValueError
-        If ``formalism`` selects no known version.
+        If ``formalism`` selects no known version, or is a mapping that
+        differs from the preset of the version it names.
     """
     if formalism is None:
         return None
-    if isinstance(formalism, dict):
+    if isinstance(formalism, Mapping):
         name = getattr(formalism.get("iit"), "version", None)
     else:
         name = _ALIASES.get(str(formalism).lower(), str(formalism).upper())
-    if name not in by_name:
+    preset = by_name.get(name) if isinstance(name, str) else None
+    if preset is None:
         valid = ", ".join(sorted(by_name))
         raise ValueError(f"unknown formalism {formalism!r}; expected one of: {valid}")
+    if isinstance(formalism, Mapping) and dict(formalism) != dict(preset):
+        raise ValueError(
+            f"formalism= selects a published version of IIT by its preset, but "
+            f"this mapping differs from the {name} preset. To compute with "
+            "modified settings, apply them with pyphi.config.override(**settings) "
+            "and leave formalism unset."
+        )
     return name
+
+
+def _keep_strategy(iit: Any, current: Any) -> Any:
+    """Return ``iit`` with the current strategy options if it is a preset's.
+
+    Parameters
+    ----------
+    iit : IITConfig
+        The IIT sub-namespace about to be applied.
+    current : IITConfig
+        The IIT sub-namespace currently applied.
+
+    Returns
+    -------
+    IITConfig
+        When ``iit`` is the ``"iit"`` entry of a preset, a copy carrying
+        ``current``'s options that choose how a quantity is computed rather
+        than its value (``relation_computation``); otherwise ``iit``
+        unchanged, so an explicitly built configuration applies as given.
+    """
+    if not any(iit is preset["iit"] for preset in by_name.values()):
+        return iit
+    return replace(iit, **{name: getattr(current, name) for name in _STRATEGY_FIELDS})
 
 
 def use(formalism: Any) -> AbstractContextManager[Any]:
@@ -187,7 +240,7 @@ def use(formalism: Any) -> AbstractContextManager[Any]:
 
     Parameters
     ----------
-    formalism : str, dict, or None
+    formalism : str, mapping, or None
         Anything :func:`canonical` accepts.
 
     Returns
@@ -199,7 +252,7 @@ def use(formalism: Any) -> AbstractContextManager[Any]:
     Raises
     ------
     ValueError
-        If ``formalism`` selects no known version.
+        If :func:`canonical` rejects ``formalism``.
     """
     name = canonical(formalism)
     if name is None:

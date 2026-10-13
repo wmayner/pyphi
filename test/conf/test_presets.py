@@ -237,3 +237,71 @@ class TestOverrideApplication:
         # sub-namespace replacement.
         with config.override(**preset):
             pass
+
+
+class TestPresetsAreReadOnly:
+    @pytest.mark.parametrize("preset", [iit3, iit4_2023, iit4_2026])
+    def test_a_preset_cannot_be_mutated(self, preset):
+        with pytest.raises(TypeError):
+            preset["precision"] = 2  # type: ignore[index]
+
+    def test_a_copy_applies_through_override(self):
+        with config.override(**{**iit3, "precision": 8}):
+            assert config.numerics.precision == 8
+            assert config.formalism.iit.version == "IIT_3_0"
+
+
+class TestFormalismMappings:
+    def test_an_unmodified_copy_selects_its_version(self):
+        from pyphi.conf import presets
+
+        assert presets.canonical(dict(iit3)) == "IIT_3_0"
+
+    def test_a_modified_preset_is_rejected(self):
+        import dataclasses
+
+        from pyphi.conf import presets
+
+        custom = {
+            **iit3,
+            "iit": dataclasses.replace(iit3["iit"], mechanism_phi_measure="KLD"),
+        }
+        with pytest.raises(ValueError, match=r"config\.override"):
+            presets.canonical(custom)
+
+    def test_analyze_rejects_a_modified_preset(self):
+        import pyphi
+
+        custom = {**iit4_2023, "precision": 3}
+        with pytest.raises(ValueError, match="differs from the IIT_4_0_2023 preset"):
+            pyphi.analyze(pyphi.examples.basic_substrate(), (1, 0, 0), formalism=custom)
+
+
+class TestPresetsKeepComputationStrategy:
+    @pytest.mark.parametrize("preset", [iit3, iit4_2023, iit4_2026])
+    def test_override_with_a_preset_keeps_relation_computation(self, preset):
+        with config.override(relation_computation="CONCRETE"), config.override(**preset):
+            assert config.formalism.iit.relation_computation == "CONCRETE"
+
+    def test_assigning_a_preset_iit_keeps_relation_computation(self):
+        with config.override(relation_computation="CONCRETE"):
+            config.iit = iit4_2023["iit"]
+            assert config.formalism.iit.version == "IIT_4_0_2023"
+            assert config.formalism.iit.relation_computation == "CONCRETE"
+
+    def test_an_explicit_iit_config_applies_as_given(self):
+        with (
+            config.override(relation_computation="CONCRETE"),
+            config.override(iit=IITConfig()),
+        ):
+            assert config.formalism.iit.relation_computation == "ANALYTICAL"
+
+    def test_formalism_argument_keeps_concrete_relations(self):
+        import pyphi
+        from pyphi.relations import ConcreteRelations
+
+        with config.override(relation_computation="CONCRETE"):
+            analysis = pyphi.analyze(
+                pyphi.examples.basic_substrate(), (0, 0, 0), formalism="IIT_4_0_2026"
+            )
+        assert isinstance(analysis.ces.relations, ConcreteRelations)

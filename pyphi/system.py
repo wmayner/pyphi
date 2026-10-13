@@ -869,7 +869,7 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         Parameters
         ----------
-        formalism : str, dict, or None, optional
+        formalism : str, mapping, or None, optional
             The version of IIT, selected as by :func:`pyphi.analyze`, for
             this call only. ``None`` uses the active configuration.
         system_state : SystemStateSpecification, optional
@@ -960,7 +960,7 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         Parameters
         ----------
-        formalism : str, dict, or None, optional
+        formalism : str, mapping, or None, optional
             The version of IIT, selected as by :func:`pyphi.analyze`, for
             this call only. ``None`` uses the active configuration.
         sia : SystemIrreducibilityAnalysis, optional

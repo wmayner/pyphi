@@ -514,6 +514,9 @@ class _GlobalConfig:
 
         # Wholesale formalism sub-namespace replacement
         if field_name == "iit" and isinstance(value, IITConfig):
+            from pyphi.conf.presets import _keep_strategy
+
+            value = _keep_strategy(value, self._formalism.iit)
             new_formalism = replace(self._formalism, iit=value)
             object.__setattr__(self, "_formalism", new_formalism)
             return
