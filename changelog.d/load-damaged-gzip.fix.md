@@ -1,0 +1,1 @@
+`pyphi.load` raises `ValueError`, with the path in the error's notes, for a truncated or damaged `.gz` file, as it does for every other unreadable file. It used to raise `EOFError` or `gzip.BadGzipFile` without the path.

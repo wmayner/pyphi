@@ -10,6 +10,7 @@ save and decompressed on load.
 
 import gzip
 import os
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -189,13 +190,22 @@ def load(target: Any, *, format: str | None = None) -> Any:
     A path ending in ``.gz`` is transparently decompressed.
     """
     fmt = _infer_format(target, format)
-    if isinstance(target, (str, os.PathLike)):
-        opener = gzip.open if _is_gzip_path(target) else open
-        with opener(target, "rb") as f:
-            data = f.read()
-    else:
-        data = target.read()
     try:
+        if isinstance(target, (str, os.PathLike)):
+            if _is_gzip_path(target):
+                try:
+                    with gzip.open(target, "rb") as f:
+                        data = f.read()
+                except (EOFError, gzip.BadGzipFile, zlib.error) as error:
+                    raise ValueError(
+                        "the file is not a complete gzip stream; it may be "
+                        f"truncated or not compressed ({error})"
+                    ) from error
+            else:
+                with open(target, "rb") as f:
+                    data = f.read()
+        else:
+            data = target.read()
         return loads(data, format=fmt)
     except ValueError as error:
         if isinstance(target, (str, os.PathLike)):

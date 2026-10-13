@@ -311,6 +311,16 @@ def test_loading_a_truncated_file_names_the_path(tmp_path):
     assert str(path) in "".join(raised.value.__notes__)
 
 
+@pytest.mark.parametrize("damage", ["truncated", "not gzip"])
+def test_loading_a_damaged_gzip_file_names_the_path(tmp_path, damage):
+    path = tmp_path / "cut.json.gz"
+    pyphi.save(examples.basic_substrate(), path)
+    path.write_bytes(path.read_bytes()[:200] if damage == "truncated" else b"{}")
+    with pytest.raises(ValueError, match="gzip") as raised:
+        pyphi.load(path)
+    assert str(path) in "".join(raised.value.__notes__)
+
+
 def test_the_card_says_why_a_system_that_is_not_strongly_connected_has_zero_phi():
     with pyphi.config.override(**pyphi.iit4_2026):
         analysis = pyphi.analyze(examples.basic_substrate(), (1, 0, 0), subset=(0, 1))
