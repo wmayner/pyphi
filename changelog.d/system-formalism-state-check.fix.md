@@ -1,0 +1,1 @@
+`System.sia(formalism=...)` and `System.ces(formalism=...)` check that the system's state is reachable under the selected formalism, as `pyphi.analyze` does, and raise `StateUnreachableForwardsError` when it is not. A system built under IIT 4.0 and computed with `formalism="IIT_3_0"` in a state IIT 3.0 cannot analyze returned a null result (Φ = 0) instead.

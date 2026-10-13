@@ -632,3 +632,79 @@ def test_iit3_ces_holds_resolved_distinctions():
     assert isinstance(ces.distinctions, ResolvedDistinctions)
     assert analysis.ces == ces
     assert len(ces.distinctions) == 4
+
+
+@pytest.mark.parametrize("method", ["sia", "ces"])
+def test_formalism_argument_checks_the_state_under_that_formalism(method):
+    """A System built under the default formalism and computed with
+    formalism="IIT_3_0" must reject a state IIT 3.0 cannot analyze, as
+    pyphi.analyze does, instead of returning a null result."""
+    import pyphi
+    from pyphi import examples
+    from pyphi.conf import presets
+
+    substrate = examples.marshall_2023_fig1_substrate()
+    state = (0, 0, 0, 1)
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        pyphi.analyze(substrate, state, subset=(0, 2), formalism="IIT_3_0")
+    with config.override(**presets.iit4_2026):
+        system = System(substrate, state, subset=(0, 2))
+    with pytest.raises(exceptions.StateUnreachableForwardsError):
+        getattr(system, method)(formalism="IIT_3_0")
+
+
+def test_ces_rejects_results_computed_for_another_system():
+    """A precomputed analysis or distinctions of other units or another state
+    would silently change the cause-effect structure."""
+    from pyphi import examples
+    from pyphi.conf import presets
+
+    basic = examples.basic_substrate()
+    with config.override(**presets.iit4_2023):
+        system = System(basic, (1, 0, 0))
+        own = system.ces(sia=system.sia(), distinctions=system.distinctions())
+        assert own.big_phi == pytest.approx(system.ces().big_phi)
+        other_state = System(basic, (1, 1, 0))
+        other_units = System(basic, (1, 0, 0), subset=(1, 2))
+        with pytest.raises(ValueError, match="state"):
+            system.ces(sia=other_state.sia())
+        with pytest.raises(ValueError, match="units"):
+            system.ces(sia=other_units.sia())
+        with pytest.raises(ValueError, match="mechanism state"):
+            system.ces(distinctions=other_state.distinctions())
+        with pytest.raises(ValueError, match="outside"):
+            other_units.ces(distinctions=system.distinctions())
+
+
+def test_mic_and_mie_accept_purviews_in_any_order_or_as_labels():
+    """An unsorted in-system purview returned a null MICE with φ = 0."""
+    from pyphi import examples
+    from pyphi.conf import presets
+
+    with config.override(**presets.iit4_2023):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        for method in (system.mic, system.mie):
+            expected = method((0,), purviews=[(1, 2)])
+            for spelled in ([(2, 1)], [("C", "B")]):
+                found = method(("A",), purviews=spelled)
+                assert found.purview == expected.purview
+                assert found.phi == pytest.approx(expected.phi)
+        found = system.find_mice(Direction.CAUSE, (0,), purviews=[(2, 1)])
+        assert found.phi == pytest.approx(system.mic((0,), purviews=[(1, 2)]).phi)
+        assert system.distinction(("A",)) == system.distinction((0,))
+
+
+@pytest.mark.parametrize(
+    ("mechanism", "purviews", "match"),
+    [
+        ((0,), [(5,)], "out of range"),
+        ((0, 0), None, "more than once"),
+        (("Z",), None, "unknown node labels"),
+    ],
+)
+def test_mic_rejects_unknown_units_with_a_clear_message(mechanism, purviews, match):
+    from pyphi import examples
+
+    system = System(examples.basic_substrate(), (1, 0, 0))
+    with pytest.raises(ValueError, match=match):
+        system.mic(mechanism, purviews=purviews)

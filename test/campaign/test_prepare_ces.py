@@ -598,3 +598,25 @@ def test_iterator_states_survive_several_formalisms(tmp_path):
         units_per_job=1e6,
     )
     assert status.n_cells == 2
+
+
+def test_precomputed_sia_of_another_state_is_rejected_before_writing(tmp_path):
+    import pyphi
+    from pyphi.conf import presets as _presets
+
+    substrate = examples.basic_substrate()
+    with pyphi.config.override(
+        **_presets.by_name["IIT_4_0_2026"], parallel=False, progress_bars=False
+    ):
+        sia = pyphi.System(substrate, (1, 1, 0)).sia()
+    directory = tmp_path / "camp"
+    with pytest.raises(ValueError, match="state"):
+        prepare_ces(
+            substrate,
+            states=BASIC_STATE,
+            formalisms="IIT_4_0_2026",
+            directory=directory,
+            units_per_job=1e9,
+            sia=sia,
+        )
+    assert not directory.exists()

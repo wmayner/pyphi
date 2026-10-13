@@ -619,7 +619,9 @@ def prepare_ces(
         specific to its substrate and subset.
     sia : optional
         A precomputed system irreducibility analysis; suppresses SIA
-        shards and is used at collection. Single-cell campaigns only.
+        shards and is used at collection. Single-cell campaigns only. It
+        must name the cell's units and state (:class:`ValueError`
+        otherwise).
     resolution_state : optional
         Explicit congruence-resolution states; suppresses SIA shards, and
         the collected structures then carry no φₛ. One specification (the
@@ -717,6 +719,9 @@ def prepare_ces(
             # The plan is state-independent; the group's first cell state
             # stands in for construction (and is validated here).
             system = System(substrate_map[label], tuple(state), subset=subset)
+            # A precomputed analysis of another system would be used at
+            # collection; reject it before anything is written.
+            system._check_precomputed(sia=sia)  # pyright: ignore[reportPrivateUsage]
             resolved = resolve_scope(scope, system.node_labels)
             group_workloads = (
                 workloads
@@ -1088,7 +1093,8 @@ def collect(
         Return the partial result instead of raising on incomplete tasks.
     sia : optional
         For CES campaigns: a system irreducibility analysis to use at
-        assembly, overriding whatever the campaign planned.
+        assembly, overriding whatever the campaign planned. It must name
+        the campaign's units and state (:class:`ValueError` otherwise).
     resolution_state : optional
         For CES campaigns without any SIA: explicit congruence-resolution
         states, in any of the forms :func:`prepare_ces` accepts (a single

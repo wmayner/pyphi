@@ -228,6 +228,60 @@ class System(Displayable, ToPandasMixin, Serializable):
         """Raise if the state is unreachable under this system's dynamics."""
         validate.state_reachable(self)
 
+    def _check_precomputed(self, *, sia: Any = None, distinctions: Any = None) -> None:
+        """Raise ``ValueError`` if a precomputed analysis or distinctions
+        name other units or another state than this system."""
+        if sia is not None:
+            units = getattr(sia, "node_indices", None)
+            if units is not None and tuple(units) != self.node_indices:
+                raise ValueError(
+                    f"sia was computed for units {tuple(units)}, not this "
+                    f"system's units {self.node_indices}"
+                )
+            state = getattr(sia, "current_state", None)
+            # A whole-substrate state is accepted for analyses saved by
+            # releases that stored it under IIT 3.0.
+            if state is not None and tuple(state) not in (
+                self.proper_state,
+                self.state,
+            ):
+                raise ValueError(
+                    f"sia was computed in state {tuple(state)}, not this "
+                    f"system's state {self.proper_state}"
+                )
+        if distinctions is not None:
+            units = set(self.node_indices)
+            for distinction in distinctions:
+                mechanism = tuple(distinction.mechanism)
+                purviews = (distinction.cause_purview, distinction.effect_purview)
+                if not units.issuperset(mechanism) or any(
+                    p is not None and not units.issuperset(p) for p in purviews
+                ):
+                    raise ValueError(
+                        f"the distinction of mechanism {mechanism} lies outside "
+                        f"this system's units {self.node_indices}"
+                    )
+                mechanism_state = getattr(distinction.cause, "mechanism_state", None)
+                expected = utils.state_of(mechanism, self.state)
+                if mechanism_state is not None and tuple(mechanism_state) != expected:
+                    raise ValueError(
+                        f"the distinction of mechanism {mechanism} was computed "
+                        f"in mechanism state {tuple(mechanism_state)}, not this "
+                        f"system's {expected}"
+                    )
+
+    def _validate_state_under(self, formalism: Any) -> None:
+        """Check the state under ``formalism``, already active, when one is
+        selected for a call.
+
+        Reachability depends on the formalism's background conditioning, and
+        construction checked it only under the formalism active then.
+        """
+        from pyphi.conf import config as _config
+
+        if formalism is not None and _config.infrastructure.validate_system_states:
+            self._validate_state_reachable()
+
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, System):
             return NotImplemented
@@ -974,6 +1028,9 @@ class System(Displayable, ToPandasMixin, Serializable):
             is neither a name nor a measure object.
         ValueError
             If a measure name is not a registered measure.
+        ~pyphi.exceptions.StateUnreachableForwardsError
+            If ``formalism`` is given and the state is unreachable under it,
+            as :func:`pyphi.analyze` would raise.
         """
         from pyphi.cache.disk import maybe_disk_cached
         from pyphi.conf import presets
@@ -1018,6 +1075,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             return _sia(self, **call_kwargs)
 
         with presets.use(formalism):
+            self._validate_state_under(formalism)
             return maybe_disk_cached(self, "sia", options, _compute)
 
     def ces(
@@ -1048,6 +1106,18 @@ class System(Displayable, ToPandasMixin, Serializable):
         CauseEffectStructure
             The cause-effect structure under the selected formalism.
 
+        Raises
+        ------
+        ValueError
+            If ``sia`` or ``distinctions`` was computed for other units or
+            another state: the analysis's units or state differ from this
+            system's, or a distinction's mechanism or purviews lie outside
+            the system or its mechanism state differs from the system's
+            state. Nothing checks that they come from the same substrate.
+        ~pyphi.exceptions.StateUnreachableForwardsError
+            If ``formalism`` is given and the state is unreachable under it,
+            as :func:`pyphi.analyze` would raise.
+
         Notes
         -----
         For results computed under an earlier version of IIT (see
@@ -1058,6 +1128,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.cache.disk import maybe_disk_cached
         from pyphi.conf import presets
 
+        self._check_precomputed(sia=sia, distinctions=distinctions)
         options = _given(sia=sia, distinctions=distinctions)
 
         def _compute() -> Any:
@@ -1083,6 +1154,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             )
 
         with presets.use(formalism):
+            self._validate_state_under(formalism)
             return maybe_disk_cached(self, "ces", options, _compute)
 
     def distinctions(self, *, congruent: bool = False) -> Any:
@@ -1215,57 +1287,92 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         return _phi(self, mechanism, purview)
 
+    def _coerce_units(self, nodes: Any) -> tuple[int, ...]:
+        """Sorted node indices for ``nodes``, given as indices or labels.
+
+        Raises ``ValueError`` for an unknown label, an index outside the
+        substrate, or a unit named twice.
+        """
+        return self.substrate.node_labels.coerce_to_indices(nodes)
+
+    def _coerce_purviews(self, purviews: Any) -> Any:
+        if purviews is None:
+            return None
+        return [self._coerce_units(purview) for purview in purviews]
+
     def find_mice(self, direction: Any, mechanism: Any, **kwargs: Any) -> Any:
         from pyphi.formalism import find_mice as _find_mice
 
         _reject_unknown("find_mice", kwargs, "purviews")
-        return _find_mice(self, direction, mechanism, **kwargs)
+        if "purviews" in kwargs:
+            kwargs["purviews"] = self._coerce_purviews(kwargs["purviews"])
+        return _find_mice(self, direction, self._coerce_units(mechanism), **kwargs)
 
     def mic(self, mechanism: Any, *, purviews: Any = None) -> Any:
         """Return the maximally irreducible cause of a mechanism.
 
         Parameters
         ----------
-        mechanism : tuple[int, ...]
-            The mechanism's node indices.
-        purviews : iterable of tuple[int, ...], optional
-            The candidate purviews to search. Candidates outside this system
-            or reducible by its connectivity are skipped. ``None`` searches
-            every purview of the system that the connectivity does not rule
-            out.
+        mechanism : tuple
+            The mechanism's units, as node indices or labels in any order.
+        purviews : iterable of tuple, optional
+            The candidate purviews to search, each as node indices or labels
+            in any order. Candidates outside this system or reducible by its
+            connectivity are skipped. ``None`` searches every purview of the
+            system that the connectivity does not rule out.
 
         Returns
         -------
         MaximallyIrreducibleCause
             The cause purview of maximal φ, with its minimum partition
             and specified state.
+
+        Raises
+        ------
+        ValueError
+            If the mechanism or a purview names an unknown label or an index
+            outside the substrate, or names a unit more than once.
         """
         from pyphi.formalism import mic as _mic
 
-        return _mic(self, mechanism, purviews=purviews)
+        return _mic(
+            self,
+            self._coerce_units(mechanism),
+            purviews=self._coerce_purviews(purviews),
+        )
 
     def mie(self, mechanism: Any, *, purviews: Any = None) -> Any:
         """Return the maximally irreducible effect of a mechanism.
 
         Parameters
         ----------
-        mechanism : tuple[int, ...]
-            The mechanism's node indices.
-        purviews : iterable of tuple[int, ...], optional
-            The candidate purviews to search. Candidates outside this system
-            or reducible by its connectivity are skipped. ``None`` searches
-            every purview of the system that the connectivity does not rule
-            out.
+        mechanism : tuple
+            The mechanism's units, as node indices or labels in any order.
+        purviews : iterable of tuple, optional
+            The candidate purviews to search, each as node indices or labels
+            in any order. Candidates outside this system or reducible by its
+            connectivity are skipped. ``None`` searches every purview of the
+            system that the connectivity does not rule out.
 
         Returns
         -------
         MaximallyIrreducibleEffect
             The effect purview of maximal φ, with its minimum partition
             and specified state.
+
+        Raises
+        ------
+        ValueError
+            If the mechanism or a purview names an unknown label or an index
+            outside the substrate, or names a unit more than once.
         """
         from pyphi.formalism import mie as _mie
 
-        return _mie(self, mechanism, purviews=purviews)
+        return _mie(
+            self,
+            self._coerce_units(mechanism),
+            purviews=self._coerce_purviews(purviews),
+        )
 
     def phi_max(self, mechanism: Any) -> float:
         from pyphi.formalism import phi_max as _phi_max
@@ -1275,7 +1382,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     def distinction(self, mechanism: Any) -> Any:
         from pyphi.formalism import distinction as _distinction
 
-        return _distinction(self, mechanism)
+        return _distinction(self, self._coerce_units(mechanism))
 
     def all_distinctions(self) -> Any:
         from pyphi.formalism import all_distinctions as _all_distinctions
