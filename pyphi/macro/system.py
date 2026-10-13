@@ -67,6 +67,16 @@ def _macro_state(units, history):
     return tuple(state)
 
 
+def _micro_labels(substrate: Substrate, units) -> tuple[str, ...] | None:
+    """Each unit's micro constituents' labels, joined; ``None`` when two
+    units would share a label."""
+    labels = tuple(
+        "".join(substrate.node_labels.indices2labels(unit.micro_constituents))
+        for unit in units
+    )
+    return labels if len(set(labels)) == len(labels) else None
+
+
 @dataclass(frozen=True, eq=False)
 class MacroSystem(System):
     """A system of macro units, consumed by the pipeline like a System.
@@ -107,7 +117,11 @@ class MacroSystem(System):
             ``max(tau_J)``. A bare state is accepted when every unit has
             micro grain 1.
         node_labels : optional
-            Labels for the macro units.
+            Labels for the macro units. If None, each unit is labelled by
+            its micro constituents' labels in ``substrate``, joined (``"A"``
+            for a unit over micro unit ``A``, ``"AB"`` for a unit over ``A``
+            and ``B``), so the system prints in the substrate's labels; when
+            two units would share a label, the default labels are used.
 
         Raises
         ------
@@ -121,6 +135,8 @@ class MacroSystem(System):
         _validate_units(substrate, units)
         history = _normalize_history(units, substrate, micro_history)
         cause_marginal, effect_marginal = macro_tpms(substrate, units, history)
+        if node_labels is None:
+            node_labels = _micro_labels(substrate, units)
         macro_substrate = Substrate.from_factored(
             effect_marginal, node_labels=node_labels
         )

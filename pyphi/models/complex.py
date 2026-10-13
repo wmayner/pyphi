@@ -139,7 +139,12 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
     is_maximal : bool
         Whether this is the φₛ-maximal complex.
     excluded : tuple[ExcludedCandidate, ...]
-        Overlapping candidates excluded in this complex's favor.
+        Overlapping candidates excluded in this complex's favor. A complex
+        from the grain search under ``prune="certified"`` also lists gated
+        candidates (``gated=True``, ``phi=None``): their φₛ is bounded by
+        an intrinsic-information ceiling below this complex's φₛ but was
+        never computed, so some of them may be reducible (φₛ = 0) and would
+        not be listed by a full evaluation.
     """
 
     def __init__(
@@ -255,14 +260,17 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         cls = type(self).__name__
-        num_excluded = len(self.excluded)
+        num_gated = sum(c.gated for c in self.excluded)
         phi_label = system_phi_label(getattr(self.sia, "config", None))
         rows = [
             Row(phi_label, self.phi),
             Row("Nodes", str(self.node_indices)),
-            Row("Is maximal", self.is_maximal),
-            Row("Excluded candidates", num_excluded),
+            Row("Maximal complex", self.is_maximal),
+            Row("Excluded candidates", len(self.excluded) - num_gated),
         ]
+        if num_gated:
+            # Gated candidates were never evaluated; some may be reducible.
+            rows.append(Row("Gated candidates (φₛ not computed)", num_gated))
         margin = self.exclusion_margin
         if margin is not None:
             rows.append(Row("Selection margin", margin))

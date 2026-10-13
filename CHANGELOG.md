@@ -182,8 +182,9 @@ and `migrate_code` prompt on the MCP server).
   judgment per decomposition and update grain. Candidate systems with
   φₛ = 0 are reducible and are dropped before the exclusion cascade, so a
   substrate whose candidates are all reducible has no complexes, as with
-  `Substrate.complexes`, and a complex's `excluded` record lists only rivals
-  with φₛ > 0. The `ComplexesResult` the search returns prints as a card (its
+  `Substrate.complexes`, and a complex's `excluded` record lists only
+  evaluated rivals with φₛ > 0, plus, under the certified prune, the gated
+  candidates whose φₛ was bounded but not computed. The `ComplexesResult` the search returns prints as a card (its
   complexes with their φₛ, units and grains, the number of candidate systems
   evaluated, and the number of tied cliques), and its `to_pandas()` has one
   row per complex. Search drivers can parallelize their independent φₛ

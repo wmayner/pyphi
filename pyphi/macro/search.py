@@ -1429,9 +1429,13 @@ def complexes(
 
     Notes
     -----
-    Under the certified prune the identified complexes, ties, and
-    verdicts are identical to a full evaluation; only ``records``
-    distinguishes gated candidates from evaluated ones.
+    Under the certified prune the identified complexes, φₛ values, ties,
+    and verdicts are identical to a full evaluation. The candidates the
+    prune gated appear in ``records`` with ``gated=True``, and those with
+    a positive ceiling that overlap a complex also appear in its
+    ``excluded`` list, with ``phi=None``. A gated candidate's φₛ is bounded by its
+    intrinsic-information ceiling but never computed, so it may be
+    reducible (φₛ = 0); a full evaluation lists only rivals with φₛ > 0.
     """
     parallel_kwargs = _parallel_options(parallel, progress)
     _require_macro_formalism()

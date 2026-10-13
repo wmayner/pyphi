@@ -848,7 +848,7 @@ def test_complex_describe_structure():
     # A complex's system-level value is φₛ under IIT 4.0, not Φ.
     assert "φ_s" in all_row_labels
     assert "Nodes" in all_row_labels
-    assert "Is maximal" in all_row_labels
+    assert "Maximal complex" in all_row_labels
     assert "Excluded candidates" in all_row_labels
 
 
@@ -857,7 +857,7 @@ def test_complex_repr_is_card():
     out = repr(cx)
     assert out.startswith("╭─ Complex")
     assert "φ_s" in out
-    assert "Is maximal" in out
+    assert "Maximal complex" in out
 
 
 def test_complex_html_is_card():

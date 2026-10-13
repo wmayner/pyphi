@@ -1333,6 +1333,16 @@ class TestCertifiedComplexes:
         excluded = on.complexes[0].excluded
         assert any(e.gated for e in excluded)
         assert all(e.ii_ceiling > 0 for e in excluded if e.gated)
+        # The card counts gated candidates apart from evaluated rivals,
+        # since a gated candidate's φₛ was never computed and may be 0.
+        rows = {
+            r.label: r.value
+            for sec in on.complexes[0]._describe(2).sections
+            for r in sec.rows
+        }
+        num_gated = sum(e.gated for e in excluded)
+        assert rows["Gated candidates (φₛ not computed)"] == num_gated
+        assert rows["Excluded candidates"] == len(excluded) - num_gated
 
     def test_gated_record_invariants(self):
         with config.override(**presets.iit4_2026):
@@ -1462,3 +1472,30 @@ def test_certified_equals_off_on_random_substrates(data):
         off = complexes(substrate, (0, 0, 0), bounds=bounds, prune="off")
         on = complexes(substrate, (0, 0, 0), bounds=bounds, prune="certified")
         _complexes_equal(off, on)
+
+
+def test_grain_search_complexes_print_in_the_substrates_labels():
+    """A complex found by the grain search names its units by the
+    substrate's labels, as the same system analyzed directly does."""
+    from pyphi import System
+    from pyphi import examples
+
+    substrate = examples.iit4_2023_fig1a_substrate()
+    state = (0, 1, 1)
+    with config.override(**presets.iit4_2026):
+        found = complexes(substrate, state, bounds=SearchBounds(max_depth=0))
+        direct = System(substrate, state, subset=(0, 1)).sia()
+    by_units = {c.node_indices: c for c in found.complexes}
+    assert tuple(by_units[(0, 1)].sia.node_labels) == ("A", "B")
+    assert tuple(by_units[(2,)].sia.node_labels) == ("C",)
+    assert str(by_units[(0, 1)].sia.partition) == str(direct.partition)
+
+
+def test_macro_units_are_labelled_by_their_joined_micro_labels():
+    from pyphi import examples
+
+    substrate = examples.iit4_2023_fig1a_substrate()
+    unit = MacroUnit((0, 1), 1, (0, 1, 1, 0))
+    with config.override(**presets.iit4_2026):
+        system = MacroSystem.from_micro(substrate, (unit,), (0, 1, 1))
+    assert tuple(system.substrate.node_labels) == ("AB",)
