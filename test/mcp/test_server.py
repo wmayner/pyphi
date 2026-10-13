@@ -254,6 +254,63 @@ def test_analyze_parallel_unknown_level_errors(basic_handle):
         srv.analyze(basic_handle, BASIC_STATE, parallel=["bogus"])
 
 
+def _call_tool(name, arguments):
+    import anyio
+
+    return anyio.run(srv.mcp.call_tool, name, arguments)
+
+
+@pytest.mark.parametrize(
+    ("tool", "arguments", "unknown"),
+    [
+        ("analyze", {"state": [1, 0, 0], "formalsim": "iit3"}, "formalsim"),
+        ("analyze", {"state": [1, 0, 0], "subsets": [0, 1]}, "subsets"),
+        ("describe_substrate", {"bogus": 1}, "bogus"),
+    ],
+)
+def test_tools_reject_unknown_arguments(basic_handle, tool, arguments, unknown):
+    from mcp.server.fastmcp.exceptions import ToolError
+
+    with pytest.raises(ToolError, match=unknown):
+        _call_tool(tool, {"handle": basic_handle, **arguments})
+
+
+def test_prepare_campaign_rejects_a_seed(basic_handle, tmp_path):
+    from mcp.server.fastmcp.exceptions import ToolError
+
+    arguments = {
+        "handles": [basic_handle],
+        "states": [[1, 0, 0]],
+        "directory": str(tmp_path / "campaign"),
+        "jobs": 1,
+        "seed": 3,
+    }
+    with pytest.raises(ToolError, match="seed"):
+        _call_tool("prepare_campaign", arguments)
+
+
+def test_tool_schemas_forbid_unknown_arguments():
+    import anyio
+
+    tools = anyio.run(srv.mcp.list_tools)
+    assert tools
+    assert all(tool.inputSchema.get("additionalProperties") is False for tool in tools)
+
+
+def test_a_known_argument_still_reaches_the_tool(basic_handle):
+    _, structured = _call_tool(
+        "analyze", {"handle": basic_handle, "state": [1, 0, 0], "subset": [0, 1]}
+    )
+    assert structured["summary"]["subset"] == [0, 1]
+
+
+def test_configure_parallel_rejects_zero_workers_and_changes_nothing():
+    before = srv.configure_parallel()
+    with pytest.raises(ValueError, match="parallel_workers"):
+        srv.configure_parallel(enable=True, workers=0)
+    assert srv.configure_parallel() == before
+
+
 def test_configure_parallel_roundtrip():
     # A no-argument call reads without changing anything.
     state = srv.configure_parallel()

@@ -1115,8 +1115,14 @@ def configure_parallel(
             spec = levels
         else:
             spec = enable
-        for option, value in _parallel_overrides(spec, workers).items():
-            setattr(pyphi.config, option, value)
+        overrides = _parallel_overrides(spec, workers)
+        before = pyphi.config.snapshot()
+        try:
+            for option, value in overrides.items():
+                setattr(pyphi.config, option, value)
+        except Exception:
+            pyphi.config.install_snapshot(before)  # all of the change or none
+            raise
     return _parallel_state()
 
 
@@ -1423,6 +1429,27 @@ from . import resources as _resources  # noqa: E402
 
 _resources.register(mcp)
 _prompts.register(mcp)
+
+
+def _forbid_unknown_arguments(server: FastMCP) -> None:
+    """Make every tool of ``server`` reject arguments it does not define.
+
+    FastMCP's argument models ignore unknown keys, so a misspelt argument
+    (``subsets`` for ``subset``, ``formalsim`` for ``formalism``) would
+    silently run with its default. Forbidding extra keys turns that into a
+    validation error that names the key, and the advertised input schemas say
+    ``additionalProperties: false``.
+    """
+    # ponytail: FastMCP has no public switch for this; _tool_manager is the
+    # only route to the argument models.
+    for tool in server._tool_manager.list_tools():
+        model = tool.fn_metadata.arg_model
+        model.model_config["extra"] = "forbid"
+        model.model_rebuild(force=True)
+        tool.parameters = model.model_json_schema(by_alias=True)
+
+
+_forbid_unknown_arguments(mcp)
 
 
 if __name__ == "__main__":
