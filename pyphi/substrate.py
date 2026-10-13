@@ -1057,12 +1057,26 @@ def _candidate_systems(
     substrate: Substrate, state: tuple[int, ...], candidates: Iterable[Any]
 ) -> list[Any]:
     """The candidate systems ``candidates`` names, each a subset of units or a
-    :class:`~pyphi.system.System` of ``substrate`` in ``state``."""
+    :class:`~pyphi.system.System` of ``substrate`` in ``state``.
+
+    Candidates that name the same units, however they are spelled, are kept
+    once, at their first occurrence: two copies of one system would tie with
+    each other in the exclusion cascade and exclude each other.
+    """
     from pyphi.system import System
 
     coerced = _coerce_state_to_indices(state, substrate.state_space)
     systems = []
+    seen: set[tuple[int, ...]] = set()
     for candidate in candidates:
+        units = (
+            candidate.node_indices
+            if isinstance(candidate, System)
+            else substrate.node_labels.coerce_to_indices(candidate)
+        )
+        if units in seen:
+            continue
+        seen.add(units)
         if isinstance(candidate, System):
             if candidate.state != coerced or (
                 candidate.substrate is not substrate and candidate.substrate != substrate
@@ -1074,7 +1088,7 @@ def _candidate_systems(
                 )
             systems.append(candidate)
         else:
-            systems.append(System(substrate, state, subset=candidate))
+            systems.append(System(substrate, state, subset=units))
     return systems
 
 
@@ -1090,7 +1104,9 @@ def all_sias(
 
     Includes reducible (φₛ = 0) candidates. ``candidates`` gives the
     candidate systems, each as a subset of units (node indices or labels)
-    or as a :class:`~pyphi.system.System` of this substrate in ``state``.
+    or as a :class:`~pyphi.system.System` of this substrate in ``state``;
+    candidates that name the same units, such as ``(0, 1)``, ``(1, 0)`` and
+    ``("A", "B")``, are evaluated once, at their first occurrence.
     The default is :func:`possible_complexes`, which skips subsets
     containing nodes that lack either inputs or outputs in the substrate —
     a mathematically safe optimization, since such candidates are not

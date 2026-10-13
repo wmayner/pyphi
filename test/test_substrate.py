@@ -364,3 +364,28 @@ def test_a_candidate_system_in_another_state_is_rejected():
     substrate = examples.iit4_2023_fig1a_substrate()
     with pytest.raises(ValueError, match="not a system of this substrate"):
         substrate.complexes((1, 0, 0), candidates=[System(substrate, (0, 0, 0))])
+
+
+@pytest.mark.parametrize(
+    "candidates",
+    [
+        [(1, 2), (2, 1)],
+        [(1, 2), (0, 1, 2), ("B", "C")],
+        [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)],
+    ],
+)
+def test_candidates_naming_one_system_twice_are_evaluated_once(candidates):
+    """Two spellings of one system would tie with each other in the exclusion
+    cascade and exclude each other, hiding the true complex."""
+    from pyphi.conf import presets
+
+    substrate = examples.basic_substrate()
+    state = (1, 0, 0)
+    with config.override(**presets.iit4_2023):
+        found = substrate.complexes(state, candidates=candidates)
+        maximal = substrate.maximal_complex(state, candidates=candidates)
+        sias = substrate.all_sias(state, candidates=candidates)
+    assert [c.node_indices for c in found] == [(1, 2)]
+    assert found[0].phi == pytest.approx(2.0)
+    assert maximal.node_indices == (1, 2)
+    assert len({s.node_indices for s in sias}) == len(sias)
