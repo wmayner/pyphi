@@ -66,7 +66,9 @@ def _check_unit_function_kwargs(
     Keywords given to :func:`build_tpm` are passed to every unit function, and
     the unit functions accept extra keywords so that one set of keywords can
     serve a mix of functions. A misspelt keyword would therefore change the
-    substrate silently; this check rejects it instead.
+    substrate silently; this check rejects it instead. A callable outside
+    :data:`UNIT_FUNCTIONS` that accepts ``**kwargs`` may read any keyword, so
+    when one is present the check is skipped.
 
     Parameters
     ----------
@@ -84,6 +86,7 @@ def _check_unit_function_kwargs(
         return
     if isinstance(unit_functions, str) or callable(unit_functions):
         unit_functions = [unit_functions]
+    builtin = list(UNIT_FUNCTIONS.values())
     names: set[str] = set()
     for unit_function in unit_functions:
         func = (
@@ -94,6 +97,8 @@ def _check_unit_function_kwargs(
         try:
             params = list(inspect.signature(func).parameters.values())
         except (TypeError, ValueError):  # not introspectable: accept anything
+            return
+        if func not in builtin and any(p.kind is p.VAR_KEYWORD for p in params):
             return
         names.update(
             p.name for p in params[3:] if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)

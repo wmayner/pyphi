@@ -230,6 +230,27 @@ def test_unit_function_keywords_are_checked():
     build_substrate(["ising", "gaussian", "ising"], weights, temperature=1, mu=0.1)
 
 
+def test_user_unit_function_with_var_keywords_takes_any_keyword():
+    import numpy as np
+
+    from pyphi.substrate_generator import build_substrate
+
+    def sigmoid(element, weights, state, **kwargs):
+        x = np.dot(weights[:, element], state)
+        return 1 / (1 + np.exp(-kwargs["beta"] * x))
+
+    weights = np.array([[0.0, 1.0], [1.0, 0.0]])
+    substrate = build_substrate(sigmoid, weights, beta=2.0)
+    assert substrate.tpm.shape[0] == 2
+    # A user callable without **kwargs is still checked.
+
+    def fixed(element, weights, state, beta=1.0):
+        return 0.5
+
+    with pytest.raises(TypeError, match="Did you mean 'beta'"):
+        build_substrate(fixed, weights, bata=2.0)
+
+
 def test_true_events_take_maximal_complex():
     swap = pyphi.Substrate([[0, 0], [0, 1], [1, 0], [1, 1]], cm=[[0, 1], [1, 0]])
     states = ((1, 0), (0, 1), (1, 0))
