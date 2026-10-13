@@ -872,8 +872,8 @@ return different numbers without an error.
 - The partition-scheme registries are renamed to describe what they yield.
   Mechanism-level: `BI` → `JOINT_BIPARTITION`, `TRI` → `WEDGE_TRIPARTITION`,
   `ALL` → `JOINT_PARTITION_ALL`. System-level: `DIRECTED_BI` →
-  `DIRECTED_BIPARTITION` (and its `_CUT_ONE`, `_SEQUENTIAL`, and
-  `TEMPORAL_*` variants), `GENERAL` → `EDGE_CUT_ALL`,
+  `DIRECTED_BIPARTITION` (and its `_CUT_ONE` and `_SEQUENTIAL`
+  variants), `GENERAL` → `EDGE_CUT_ALL`,
   `GENERAL_BIDIRECTIONAL` → `EDGE_CUT_BIDIRECTIONAL`, `SET_UNI`/`SET_BI` →
   `DIRECTED_SET_PARTITION`. The generator functions in `pyphi.partition`
   follow suit.
@@ -1752,17 +1752,14 @@ return different numbers without an error.
   marginalization (Albantakis et al. 2023, Eq. 4) a positive substrate-level
   probability is sufficient. `possible_complexes`, `Substrate.complexes`, and
   the macro-unit search now evaluate candidate systems they previously skipped.
-- Setting `formalism.iit.version` to `IIT_4_0_2023` without the rest of the
-  preset (by assignment, in `config.override(...)`, or in `pyphi_config.yml`)
-  raises a
-  `ConfigurationError`. It was accepted and kept the default system measure, so
-  results were labeled `IIT_4_0_2023` but computed with the
-  intrinsic-information requirement. Select an earlier version with
-  `formalism=` or a preset (`pyphi.iit4_2023`); `config.override` of the
-  version alone says so too. For a configuration file, read at import or
-  with `pyphi.config.load_yaml`, the error says to write out every option
-  the preset sets and links the complete IIT 3.0 example,
-  `pyphi_config_3.0.yml`.
+- Setting `formalism.iit.version` to an earlier version without the rest of
+  its preset raises a `ConfigurationError`, whether by assignment, in
+  `config.override(...)`, or in `pyphi_config.yml`, because the version's
+  measures would otherwise stay at the default and results would carry a
+  label they were not computed under. The error says to select the version
+  with `formalism=` or a preset (`pyphi.iit4_2023`); for a configuration
+  file, it says to write out every option the preset sets and links the
+  complete IIT 3.0 example, `pyphi_config_3.0.yml`.
 - The `node_labels` argument of `plot_ces` relabels distinction mechanisms as
   well as purviews.
 
