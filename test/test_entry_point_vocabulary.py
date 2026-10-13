@@ -234,6 +234,31 @@ def test_analyze_parallel_and_progress_do_not_change_the_result():
             assert sia.phi == expected.phi
 
 
+@pytest.mark.parametrize("value", [1, "yes", "partitions"])
+@pytest.mark.parametrize(
+    "run",
+    [
+        lambda s, p: pyphi.analyze(s, (1, 0, 0), compute="sia", parallel=p),
+        lambda s, p: pyphi.analyze(s, (1, 0, 0), grains=True, parallel=p),
+        lambda s, p: pyphi.sweep(s, states=[(1, 0, 0)], parallel=p),
+        lambda s, p: s.complexes((1, 0, 0), parallel=p),
+    ],
+    ids=["analyze", "grains", "sweep", "complexes"],
+)
+def test_parallel_must_be_a_bool(run, value):
+    with pytest.raises(TypeError, match="parallel must be True, False or None"):
+        run(examples.basic_substrate(), value)
+
+
+def test_parallel_accepts_a_numpy_bool():
+    s = examples.basic_substrate()
+    with config.override(**pyphi.iit4_2026):
+        assert (
+            pyphi.analyze(s, (1, 0, 0), compute="sia", parallel=np.True_).phi
+            == pyphi.analyze(s, (1, 0, 0), compute="sia").phi
+        )
+
+
 def test_analyze_parallel_reaches_the_grain_search(monkeypatch):
     from pyphi.macro import search
 

@@ -18,6 +18,7 @@ from copy import copy
 from dataclasses import asdict
 from typing import Any
 
+import numpy as np
 import yaml
 
 
@@ -105,6 +106,8 @@ def parallel_kwargs(
     """
     from pyphi.conf import config
 
+    if user_kwargs.get("parallel") is not None:
+        user_kwargs["parallel"] = check_parallel_flag(user_kwargs["parallel"])
     kwargs = copy(dict(option_kwargs))
     if not config.infrastructure.progress_bars:
         kwargs["progress"] = False
@@ -130,16 +133,33 @@ PARALLEL_LEVELS = {
 ANALYSIS_PARALLEL_LEVELS = ("partitions", "purviews", "distinctions")
 
 
-def parallel_overrides(parallel: bool | Iterable[str] | None) -> dict[str, Any]:
+def check_parallel_flag(parallel: Any) -> bool | None:
+    """Return a ``parallel=`` argument as a bool, or None if it is None.
+
+    Raises
+    ------
+    TypeError
+        If ``parallel`` is not a bool (Python or NumPy) or None.
+    """
+    if parallel is None or isinstance(parallel, bool):
+        return parallel
+    if isinstance(parallel, np.bool_):
+        return bool(parallel)
+    raise TypeError(f"parallel must be True, False or None, not {parallel!r}.")
+
+
+def parallel_overrides(
+    parallel: bool | list[str] | tuple[str, ...] | None,
+) -> dict[str, Any]:
     """Build ``config.override`` values that run one analysis in parallel.
 
     Parameters
     ----------
-    parallel : bool, iterable of str, or None
+    parallel : bool, list or tuple of str, or None
         ``None`` changes nothing. ``False`` closes the global gate, so every
         level runs sequentially. ``True`` opens the gate and switches on the
-        levels a single analysis uses (:data:`ANALYSIS_PARALLEL_LEVELS`); an
-        iterable of names from :data:`PARALLEL_LEVELS` switches on those
+        levels a single analysis uses (:data:`ANALYSIS_PARALLEL_LEVELS`); a
+        list or tuple of names from :data:`PARALLEL_LEVELS` switches on those
         levels instead. Either way every other level is switched off.
 
     Returns
@@ -149,16 +169,22 @@ def parallel_overrides(parallel: bool | Iterable[str] | None) -> dict[str, Any]:
 
     Raises
     ------
+    TypeError
+        If ``parallel`` is none of these, for example a string.
     ValueError
         If a level name is not in :data:`PARALLEL_LEVELS`.
     """
     from pyphi.conf import config
 
-    if parallel is None:
-        return {}
-    if parallel is False:
-        return {"parallel": False}
-    enabled = ANALYSIS_PARALLEL_LEVELS if parallel is True else tuple(parallel)
+    if isinstance(parallel, (list, tuple)):
+        enabled = tuple(parallel)
+    else:
+        parallel = check_parallel_flag(parallel)
+        if parallel is None:
+            return {}
+        if parallel is False:
+            return {"parallel": False}
+        enabled = ANALYSIS_PARALLEL_LEVELS
     unknown = [name for name in enabled if name not in PARALLEL_LEVELS]
     if unknown:
         raise ValueError(
@@ -222,6 +248,7 @@ __all__ = [
     "ANALYSIS_PARALLEL_LEVELS",
     "PARALLEL_KWARGS",
     "PARALLEL_LEVELS",
+    "check_parallel_flag",
     "fallback",
     "parallel_kwargs",
     "parallel_overrides",

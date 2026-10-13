@@ -27,7 +27,9 @@ from pyphi.analysis import _check_compute
 from pyphi.analysis import _run_compute
 from pyphi.analysis import _structure_record
 from pyphi.conf import config
+from pyphi.conf import fallback
 from pyphi.conf import presets
+from pyphi.conf._helpers import check_parallel_flag
 from pyphi.direction import Direction
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -574,7 +576,9 @@ def sweep(
     substrate_map = dict(labeled)
     formalisms_ = _normalize_formalisms(formalisms)
     enumerated = _enumerate_cells(labeled, states, subsets, formalisms_)
-    use_parallel = config.infrastructure.parallel if parallel is None else parallel
+    use_parallel = fallback(
+        check_parallel_flag(parallel), config.infrastructure.parallel
+    )
 
     keys: list[tuple[Any, str, tuple, tuple]] = []
     raw: list[Any] = []

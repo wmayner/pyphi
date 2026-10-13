@@ -27,6 +27,7 @@ from numpy.typing import NDArray
 
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.conf._helpers import check_parallel_flag
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -491,7 +492,9 @@ def optimize(
     _check_inputs(builder, box, state, subset, formalism)
     sign = -1.0 if goal == "maximize" else 1.0  # DE minimizes sign*objective
     show = fallback(progress, config.infrastructure.progress_bars)
-    use_parallel = fallback(parallel, config.infrastructure.parallel)
+    use_parallel = fallback(
+        check_parallel_flag(parallel), config.infrastructure.parallel
+    )
     objective_name = objective if isinstance(objective, str) else "<callable>"
 
     rows: list[dict[str, Any]] = []

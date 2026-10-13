@@ -989,9 +989,14 @@ def _f_for_unit(
 def _parallel_options(parallel: bool | None, progress: bool | None) -> dict:
     """The candidate-evaluation overrides a public search function forwards:
     ``parallel`` and ``progress``, where given."""
+    from pyphi.conf._helpers import check_parallel_flag
+
     return {
         name: value
-        for name, value in (("parallel", parallel), ("progress", progress))
+        for name, value in (
+            ("parallel", check_parallel_flag(parallel)),
+            ("progress", progress),
+        )
         if value is not None
     }
 
