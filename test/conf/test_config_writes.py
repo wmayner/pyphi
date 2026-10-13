@@ -275,6 +275,16 @@ class TestValuesThatWouldFailLaterAreRejected:
             config[path] = value
         assert config.snapshot() == before
 
+    def test_numpy_values_are_accepted_in_level_settings(self):
+        import numpy as np
+
+        path = "infrastructure.parallel_partition_evaluation"
+        config[path] = {"parallel": np.True_, "chunksize": np.int64(4)}
+        level = config.infrastructure.parallel_partition_evaluation
+        assert level["parallel"] is True
+        assert level["chunksize"] == 4
+        assert type(level["chunksize"]) is int
+
     def test_an_actual_causation_measure_error_does_not_recommend_iit_presets(self):
         from pyphi.formalism.actual_causation.formalism import _resolve_ac_measures
         from pyphi.formalism.base import ACTUAL_CAUSATION_FORMALISM_REGISTRY

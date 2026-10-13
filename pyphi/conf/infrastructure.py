@@ -13,6 +13,8 @@ from dataclasses import field
 from dataclasses import fields
 from typing import Any
 
+import numpy as np
+
 from pyphi.conf._helpers import read_only
 from pyphi.conf._helpers import yaml_repr
 
@@ -307,7 +309,10 @@ class InfrastructureConfig:
                 raise ConfigurationError(
                     f"{name} has unknown key(s) {unknown}; valid keys: {sorted(default)}"
                 )
-            merged = {**default, **dict(value)}
+            merged = {
+                key: v.item() if isinstance(v, np.bool_ | np.integer) else v
+                for key, v in {**default, **dict(value)}.items()
+            }
             _check_bool(f"{name}['parallel']", merged["parallel"])
             _check_bool(f"{name}['progress']", merged["progress"])
             for key, least in (("sequential_threshold", 0), ("chunksize", 1)):
