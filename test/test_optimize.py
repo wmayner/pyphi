@@ -72,7 +72,7 @@ def test_eval_one_reachable_row_carries_margins_and_sia():
         state=STATE,
         subset=None,
         formalism=None,
-        objective="signed_normalized_phi",
+        quantity="signed_normalized_phi",
     )
     assert row["reachable"] is True
     assert row["_sia"] is not None
@@ -93,7 +93,7 @@ def test_eval_one_unreachable_row_is_penalized_not_raised():
         state=(0, 1, 1),
         subset=None,
         formalism=None,
-        objective="signed_normalized_phi",
+        quantity="signed_normalized_phi",
     )
     assert row["reachable"] is False
     assert row["_sia"] is None
@@ -122,7 +122,7 @@ def test_optimize_concentrates_above_random_mean():
                 state=STATE,
                 subset=None,
                 formalism=None,
-                objective="signed_normalized_phi",
+                quantity="signed_normalized_phi",
             )["objective"]
             for _ in range(n)
         ]
@@ -162,12 +162,12 @@ def test_optimize_logs_unreachable_not_raised():
     assert not result.trajectory["reachable"].any()
 
 
-def test_optimize_rejects_unknown_objective_name():
+def test_optimize_rejects_unknown_quantity_name():
     axis = weight_axes(
         [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
     )
-    with pytest.raises(ValueError, match="unknown objective"):
-        optimize(axis, STATE, [(0.2, 1.2)], seed=1, objective="not_a_quantity")
+    with pytest.raises(ValueError, match="unknown quantity"):
+        optimize(axis, STATE, [(0.2, 1.2)], seed=1, quantity="not_a_quantity")
 
 
 def test_parallel_matches_sequential_best():
@@ -191,13 +191,13 @@ def test_optimize_callable_objective_and_minimize():
         STATE,
         [(0.2, 1.2)],
         seed=3,
-        objective=lambda sia: float(sia.phi),
+        quantity=lambda sia: float(sia.phi),
         goal="minimize",
         popsize=5,
         maxiter=5,
         parallel=False,
     )
-    assert result.objective_name == "<callable>"
+    assert result.quantity_name == "<callable>"
     assert result.goal == "minimize"
     # Minimizing φ: the best is the smallest logged objective.
     assert result.best_objective == pytest.approx(result.trajectory["objective"].min())
@@ -232,7 +232,7 @@ def test_eval_one_iit3_returns_finite_phi_objective():
         state=STATE,
         subset=None,
         formalism="IIT_3_0",
-        objective="phi",
+        quantity="phi",
     )
     assert row["reachable"] is True
     assert np.isfinite(row["objective"])
@@ -288,7 +288,7 @@ def test_optimization_result_equality_does_not_raise():
             bounds=[(0.0, 1.0)],
             seed=1,
             goal="maximize",
-            objective_name="phi",
+            quantity_name="phi",
             settings={},
             config_snapshot={},
             n_evaluations=1,
@@ -298,3 +298,11 @@ def test_optimization_result_equality_does_not_raise():
     assert make(0.5) == make(0.5)
     assert make(0.5) != make(0.6)
     assert make(0.5) != object()
+
+
+def test_optimize_takes_quantity_not_objective():
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    with pytest.raises(TypeError, match="objective"):
+        optimize(axis, STATE, [(0.2, 1.2)], seed=1, objective="phi")  # pyright: ignore[reportCallIssue]

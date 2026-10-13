@@ -139,6 +139,8 @@ def test_sweep_ces_rows_match_analysis_to_pandas():
         swept = pyphi.sweep(s, states=[(0, 1, 1)], compute="ces").df
         full = pyphi.sweep(s, states=[(0, 1, 1)], compute=None).df
         expected = pyphi.analyze(s, (0, 1, 1)).to_pandas()
+    # Sweep rows give the substrate state; the analysis gives the system's.
+    expected = expected.drop(columns="current_state")
     for df in (swept, full):
         pd.testing.assert_frame_equal(df[list(expected.columns)], expected)
 

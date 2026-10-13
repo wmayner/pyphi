@@ -187,7 +187,7 @@ def _assert_optimization_equal(a, b):
     assert a.bounds == b.bounds
     assert a.seed == b.seed
     assert a.goal == b.goal
-    assert a.objective_name == b.objective_name
+    assert a.quantity_name == b.quantity_name
     assert a.settings == b.settings
     assert a.config_snapshot == b.config_snapshot
     assert a.n_evaluations == b.n_evaluations
@@ -237,7 +237,7 @@ class TestOptimizationResultRoundTrip:
             bounds=[(0.0, 1.0)],
             seed=1,
             goal="maximize",
-            objective_name="signed_normalized_phi",
+            quantity_name="signed_normalized_phi",
             settings={
                 "backend": "scipy.differential_evolution",
                 "popsize": 4,
@@ -298,5 +298,6 @@ class TestRC3Files:
     def test_optimization_direction_loads_as_goal(self):
         loaded = OptimizationResult.load(RC3_DATA / "rc3_fig1a_optimization.json.gz")
         assert loaded.goal == "minimize"
+        assert loaded.quantity_name == "signed_normalized_phi"
         back = serialize.loads(serialize.dumps(loaded))
         _assert_optimization_equal(loaded, back)

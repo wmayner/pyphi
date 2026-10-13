@@ -138,6 +138,9 @@ def test_analyze_to_pandas_one_row_columns():
     df = result.to_pandas()
     assert len(df) == 1
     assert set(df.columns) == {
+        "formalism",
+        "subset",
+        "current_state",
         "phi",
         "normalized_phi",
         "big_phi",
@@ -317,3 +320,14 @@ def test_analysis_reports_its_formalism():
         else:
             assert "Formalism" in card
             assert name in card
+
+
+def test_analyze_to_pandas_identifies_the_analysis():
+    substrate = examples.basic_substrate()
+    with config.override(**presets.iit4_2026):
+        result = analyze(substrate, (1, 0, 0), subset=(1, 0))
+    row = result.to_pandas().iloc[0]
+    sia_row = result.sia.to_pandas().iloc[0]
+    assert row["formalism"] == "IIT_4_0_2026"
+    assert row["subset"] == sia_row["subset"] == (0, 1)
+    assert row["current_state"] == sia_row["current_state"]

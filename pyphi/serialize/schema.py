@@ -742,16 +742,17 @@ class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_re
     trajectory: DataFrameSchema
     bounds: tuple[tuple[float, float], ...]
     seed: int
-    objective_name: str
     settings: dict[str, Any]
     config_snapshot: dict[str, Any]
     n_evaluations: int
     n_unreachable: int
     # Always written; absent only from files saved by 2.0.0rc1 to rc3, which
-    # use the field name below instead.
+    # use the field names below instead.
     goal: str | msgspec.UnsetType = msgspec.UNSET
-    # Field name written by 2.0.0rc1 to rc3; read on decode, never written.
+    quantity_name: str | msgspec.UnsetType = msgspec.UNSET
+    # Field names written by 2.0.0rc1 to rc3; read on decode, never written.
     direction: str | msgspec.UnsetType = msgspec.UNSET
+    objective_name: str | msgspec.UnsetType = msgspec.UNSET
 
 
 class SequenceSchema(msgspec.Struct, frozen=True, tag="sequence"):

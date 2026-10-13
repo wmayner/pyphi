@@ -126,9 +126,9 @@ def _objective_value(sia: Any, objective: Any) -> float:
         value = getattr(sia, objective)
     except AttributeError:
         raise ValueError(
-            f"objective {objective!r} is not available on "
-            f"{type(sia).__name__}; choose an objective the requested "
-            f"formalism provides (e.g. objective='phi')"
+            f"quantity {objective!r} is not available on "
+            f"{type(sia).__name__}; choose a quantity the requested "
+            f"formalism provides (e.g. quantity='phi')"
         ) from None
     return _optional_float(value)
 
@@ -140,7 +140,7 @@ def _eval_one(
     state: tuple[int, ...],
     subset: Sequence[int] | None,
     formalism: str | None,
-    objective: Any,
+    quantity: Any,
 ) -> dict[str, Any]:
     """Evaluate one candidate; unreachable states are penalized, not raised.
 
@@ -178,7 +178,7 @@ def _eval_one(
     effect = system_state.effect if system_state is not None else None
     margins = getattr(sia, "state_margins", None)
     return {
-        "objective": _objective_value(sia, objective),
+        "objective": _objective_value(sia, quantity),
         "reachable": True,
         "partition": _part_id(sia.partition),
         "cause_state": None if cause is None else tuple(int(x) for x in cause.state),
@@ -221,8 +221,8 @@ class OptimizationResult(Displayable, Serializable):
         The seed driving the run.
     goal : str
         ``"maximize"`` or ``"minimize"``.
-    objective_name : str
-        The quantity name, or ``"<callable>"``.
+    quantity_name : str
+        The optimized quantity's name, or ``"<callable>"``.
     settings : dict
         Backend and budget: ``backend``, ``popsize``, ``maxiter``, ``tol``.
     config_snapshot : dict
@@ -241,7 +241,7 @@ class OptimizationResult(Displayable, Serializable):
     bounds: list[tuple[float, float]]
     seed: int
     goal: str
-    objective_name: str
+    quantity_name: str
     settings: dict[str, Any]
     config_snapshot: dict[str, Any]
     n_evaluations: int
@@ -262,7 +262,7 @@ class OptimizationResult(Displayable, Serializable):
             and self.bounds == other.bounds
             and self.seed == other.seed
             and self.goal == other.goal
-            and self.objective_name == other.objective_name
+            and self.quantity_name == other.quantity_name
             and self.settings == other.settings
             and self.config_snapshot == other.config_snapshot
             and self.n_evaluations == other.n_evaluations
@@ -275,7 +275,7 @@ class OptimizationResult(Displayable, Serializable):
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         params = ", ".join(format_value(float(p)) for p in self.best_params)
         rows = (
-            Row("Goal", f"{self.goal} {self.objective_name}"),
+            Row("Goal", f"{self.goal} {self.quantity_name}"),
             Row("Best objective", self.best_objective),
             Row("Best parameters", f"({params})"),
             Row("Evaluations", self.n_evaluations),
@@ -286,7 +286,7 @@ class OptimizationResult(Displayable, Serializable):
             title="OptimizationResult",
             sections=(Section(rows=rows),),
             compact=(
-                f"OptimizationResult({self.goal} {self.objective_name}: "
+                f"OptimizationResult({self.goal} {self.quantity_name}: "
                 f"{format_value(float(self.best_objective))})"
             ),
         )
@@ -298,7 +298,7 @@ def _eval_batch(
     state: tuple[int, ...],
     subset: Sequence[int] | None,
     formalism: str | None,
-    objective: Any,
+    quantity: Any,
     parallel: bool,
     progress: bool,
 ) -> list[dict[str, Any]]:
@@ -316,7 +316,7 @@ def _eval_batch(
                 state=state,
                 subset=subset,
                 formalism=formalism,
-                objective=objective,
+                quantity=quantity,
             )
             for theta in thetas
         ]
@@ -335,7 +335,7 @@ def _eval_batch(
         state=state,
         subset=subset,
         formalism=formalism,
-        objective=objective,
+        quantity=quantity,
     )
     results: list[Any] = []
     with config.override(parallel=False, **preset):
@@ -389,7 +389,7 @@ def optimize(
     bounds: Sequence[tuple[float, float]],
     *,
     seed: int,
-    objective: Any = "signed_normalized_phi",
+    quantity: Any = "signed_normalized_phi",
     goal: str = "maximize",
     x0: NDArray[Any] | None = None,
     popsize: int = 15,
@@ -405,7 +405,7 @@ def optimize(
     Runs a seeded, population-based black-box optimizer
     (:func:`scipy.optimize.differential_evolution`) over a bounded box of
     parameters, evaluating each candidate as one system irreducibility
-    analysis. The default objective, signed normalized φₛ, is continuous across
+    analysis. The default quantity, signed normalized φₛ, is continuous across
     minimum-information-partition switches, so the gradient-free search sees no
     discontinuities.
 
@@ -422,10 +422,11 @@ def optimize(
     seed : int
         Seeds an isolated ``np.random.default_rng`` driving the optimizer, and
         is recorded on the result. Required.
-    objective : str or Callable
-        ``"signed_normalized_phi"`` (default), ``"phi"``, ``"signed_phi"``, or
-        ``"normalized_phi"`` by name, or a callable ``SIA → float`` for any
-        other objective.
+    quantity : str or Callable
+        The quantity to optimize: ``"signed_normalized_phi"`` (default),
+        ``"phi"``, ``"signed_phi"``, or ``"normalized_phi"`` by name, as in
+        :func:`~pyphi.landscape.perturb`, or a callable ``SIA → float`` for
+        any other quantity.
     goal : str
         ``"maximize"`` (default) or ``"minimize"``.
     x0 : NDArray, optional
@@ -446,8 +447,8 @@ def optimize(
     parallel : bool, optional
         Evaluate each generation's population through ``map_reduce``; defaults to
         ``config.infrastructure.parallel``. Requires ``builder`` and a callable
-        ``objective`` to be picklable (:func:`weight_axes` and the named string
-        objectives are).
+        ``quantity`` to be picklable (:func:`weight_axes` and the named
+        quantities are).
     progress : bool, optional
         Show a progress bar; defaults to ``config.infrastructure.progress_bars``.
 
@@ -458,7 +459,7 @@ def optimize(
     Raises
     ------
     ValueError
-        If ``objective`` is a name that is not one of the four φₛ variants;
+        If ``quantity`` is a name that is not one of the four φₛ variants;
         if ``goal`` is neither ``"maximize"`` nor ``"minimize"``; or if
         ``builder`` cannot build a substrate from ``len(bounds)`` parameters,
         or ``state`` or ``subset`` does not fit that substrate. These are
@@ -472,15 +473,15 @@ def optimize(
     next even where the objective is smooth. Selection identities and margins
     are logged for inspection only.
 
-    With ``parallel=True`` the ``builder`` and ``objective`` are sent to worker
+    With ``parallel=True`` the ``builder`` and ``quantity`` are sent to worker
     processes, so both must be picklable. A closure builder or a lambda
-    objective must be run with ``parallel=False``.
+    quantity must be run with ``parallel=False``.
     """
     from scipy.optimize import differential_evolution
 
-    if isinstance(objective, str) and objective not in _QUANTITIES:
+    if isinstance(quantity, str) and quantity not in _QUANTITIES:
         raise ValueError(
-            f"unknown objective {objective!r}; expected one of "
+            f"unknown quantity {quantity!r}; expected one of "
             f"{', '.join(sorted(_QUANTITIES))}, or a callable"
         )
     from pyphi.conf import presets
@@ -496,7 +497,7 @@ def optimize(
     use_parallel = fallback(
         check_parallel_flag(parallel), config.infrastructure.parallel
     )
-    objective_name = objective if isinstance(objective, str) else "<callable>"
+    quantity_name = quantity if isinstance(quantity, str) else "<callable>"
 
     rows: list[dict[str, Any]] = []
     # Only the best candidate's SIA is retained; keeping every candidate's
@@ -511,7 +512,7 @@ def optimize(
         # scipy hands a (D, S) matrix under vectorized=True.
         thetas = [population[:, i] for i in range(population.shape[1])]
         evaluated = _eval_batch(
-            builder, thetas, state, subset, formalism, objective, use_parallel, show
+            builder, thetas, state, subset, formalism, quantity, use_parallel, show
         )
         scores = np.empty(len(evaluated))
         for member, (theta, row) in enumerate(zip(thetas, evaluated, strict=True)):
@@ -605,7 +606,7 @@ def optimize(
         bounds=box,
         seed=int(seed),
         goal=goal,
-        objective_name=objective_name,
+        quantity_name=quantity_name,
         settings={
             "backend": "scipy.differential_evolution",
             "popsize": popsize,

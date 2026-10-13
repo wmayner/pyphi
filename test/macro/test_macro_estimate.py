@@ -7,6 +7,12 @@ from pyphi.conf import presets
 from pyphi.macro.estimate import SearchEstimate
 from pyphi.macro.estimate import estimate_search
 from pyphi.macro.search import SearchBounds
+from pyphi.substrate_generator import random_substrate
+
+
+def _units(n):
+    """A substrate of ``n`` units; the estimate reads only its size."""
+    return random_substrate(n, seed=0)
 
 
 class TestCountingWalk:
@@ -14,7 +20,7 @@ class TestCountingWalk:
         # n=2 at default bounds: one candidate decomposition ({0},{1});
         # judgment evaluates it + its two singleton competitors; its 5
         # FAMILIES-mapped variants join the pool; the sweep adds them.
-        est = estimate_search(SearchBounds(), 2)
+        est = estimate_search(_units(2), bounds=SearchBounds())
         assert est.judgments_by_level == (1,)
         assert est.worst_case_pool_by_level == (7,)  # 2 micro + 5 variants
         assert est.assemblies_upper_bound == 8
@@ -25,11 +31,11 @@ class TestCountingWalk:
         assert est.truncated is False
 
     def test_min_exhaustive_worst_case(self):
-        est = estimate_search(SearchBounds(mappings="EXHAUSTIVE"), 2)
+        est = estimate_search(_units(2), bounds=SearchBounds(mappings="EXHAUSTIVE"))
         assert est.distinct_systems_upper_bound == 10  # 3 + 7 mappings
 
     def test_depth_zero_is_exact(self):
-        est = estimate_search(SearchBounds(max_depth=0), 2)
+        est = estimate_search(_units(2), bounds=SearchBounds(max_depth=0))
         assert est.is_exact is True
         assert est.judgments_by_level == ()
         assert est.distinct_systems_upper_bound == 3  # {0}, {1}, {0,1}
@@ -37,12 +43,12 @@ class TestCountingWalk:
         assert est.systems_by_unit_count == {1: 2, 2: 1}
 
     def test_depth_zero_counts_subsets(self):
-        est = estimate_search(SearchBounds(max_depth=0), 3)
+        est = estimate_search(_units(3), bounds=SearchBounds(max_depth=0))
         assert est.distinct_systems_upper_bound == 7  # nonempty subsets
         assert est.systems_by_unit_count == {1: 3, 2: 3, 3: 1}
 
     def test_truncation(self):
-        est = estimate_search(SearchBounds(), 4, limit=5)
+        est = estimate_search(_units(4), bounds=SearchBounds(), limit=5)
         assert est.truncated is True
         assert est.is_exact is False
         assert 0 < est.distinct_systems_upper_bound <= 5
@@ -52,16 +58,16 @@ class TestCountingWalk:
             mappings="EXHAUSTIVE", max_constituents=4, exhaustive_cap=8
         )
         with pytest.raises(ValueError, match="exhaustive_cap"):
-            estimate_search(bounds, 4)
+            estimate_search(_units(4), bounds=bounds)
 
     def test_monotone_in_depth(self):
-        shallow = estimate_search(SearchBounds(max_depth=0), 3)
-        deep = estimate_search(SearchBounds(max_depth=1), 3)
+        shallow = estimate_search(_units(3), bounds=SearchBounds(max_depth=0))
+        deep = estimate_search(_units(3), bounds=SearchBounds(max_depth=1))
         assert deep.distinct_systems_upper_bound >= shallow.distinct_systems_upper_bound
 
     def test_partitions_capped_does_not_pollute_exactness(self):
         with config.override(**presets.iit4_2023):
-            est = estimate_search(SearchBounds(max_depth=0), 10)
+            est = estimate_search(_units(10), bounds=SearchBounds(max_depth=0))
         assert est.is_exact is True
         assert est.truncated is False
         assert est.partitions_capped is True
@@ -72,7 +78,7 @@ class TestCountingWalk:
             config.override(**presets.iit3),
             pytest.raises(ValueError, match="IIT_3_0"),
         ):
-            estimate_search(SearchBounds(), 2)
+            estimate_search(_units(2), bounds=SearchBounds())
 
 
 class TestAgainstRealSweeps:
@@ -170,7 +176,7 @@ class TestPartitionWeights:
     def test_partition_counts_pinned(self):
         # Measured values under DIRECTED_SET_PARTITION.
         with config.override(**presets.iit4_2023):
-            est = estimate_search(SearchBounds(max_depth=0), 5)
+            est = estimate_search(_units(5), bounds=SearchBounds(max_depth=0))
         assert est.partitions_by_unit_count == {
             1: 1,
             2: 3,
@@ -181,7 +187,7 @@ class TestPartitionWeights:
 
     def test_partition_sweeps_are_weighted_sum(self):
         with config.override(**presets.iit4_2023):
-            est = estimate_search(SearchBounds(max_depth=0), 3)
+            est = estimate_search(_units(3), bounds=SearchBounds(max_depth=0))
         expected = sum(
             est.systems_by_unit_count[m] * est.partitions_by_unit_count[m]
             for m in est.systems_by_unit_count
@@ -193,7 +199,7 @@ class TestPartitionWeights:
 
 class TestSurfaces:
     def test_display_card_headline_rows(self):
-        est = estimate_search(SearchBounds(), 2)
+        est = estimate_search(_units(2), bounds=SearchBounds())
         desc = est._describe(verbosity=2)
         labels = [row.label for section in desc.sections for row in section.rows]
         assert "Candidate systems" in labels
@@ -201,13 +207,13 @@ class TestSurfaces:
         assert "m = 1" in labels  # bucket section
 
     def test_qualifier_tracks_exactness(self):
-        exact = estimate_search(SearchBounds(max_depth=0), 2)
-        bound = estimate_search(SearchBounds(), 2)
+        exact = estimate_search(_units(2), bounds=SearchBounds(max_depth=0))
+        bound = estimate_search(_units(2), bounds=SearchBounds())
         assert "= 3" in exact._describe(2).compact
         assert "≤ 8" in bound._describe(2).compact
 
     def test_pandas_record_scalars(self):
-        est = estimate_search(SearchBounds(), 2)
+        est = estimate_search(_units(2), bounds=SearchBounds())
         record = est._pandas_record()
         assert record["distinct_systems_upper_bound"] == 8
         assert record["is_exact"] is False
@@ -241,9 +247,23 @@ class TestPrimitiveAgreement:
 
     def test_counts_monotone_in_limit(self):
         estimates = [
-            estimate_search(SearchBounds(), 4, limit=lim)
+            estimate_search(_units(4), bounds=SearchBounds(), limit=lim)
             for lim in (5, 50, 500, 1_000_000)
         ]
         counts = [e.distinct_systems_upper_bound for e in estimates]
         assert counts == sorted(counts)
         assert estimates[-1].truncated is False
+
+
+def test_estimate_search_matches_search_bounds_estimate():
+    import inspect
+
+    function = inspect.signature(estimate_search).parameters
+    method = inspect.signature(SearchBounds.estimate).parameters
+    assert next(iter(function)) == "substrate"
+    assert function["bounds"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert function["limit"].kind is method["limit"].kind
+    with config.override(**presets.iit4_2026):
+        substrate = _units(3)
+        bounds = SearchBounds(max_depth=0)
+        assert estimate_search(substrate, bounds=bounds) == bounds.estimate(substrate)

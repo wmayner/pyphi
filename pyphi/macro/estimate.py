@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass
+from typing import Any
 
 from pyphi.cost import _PARTITION_COUNT_CAP
 from pyphi.cost import _Counter
@@ -222,10 +223,33 @@ class SearchEstimate(Displayable, ToPandasMixin):
 
 
 def estimate_search(
-    bounds: SearchBounds, n: int, limit: int = 1_000_000
+    substrate: Any,
+    *,
+    bounds: SearchBounds | None = None,
+    limit: int = 1_000_000,
 ) -> SearchEstimate:
-    """Count the candidate systems a grain search over ``n`` micro units
-    would evaluate under ``bounds``, without running it.
+    """Count the candidate systems a grain search over ``substrate`` would
+    evaluate under ``bounds``, without running it.
+
+    The same estimate as :meth:`SearchBounds.estimate
+    <pyphi.macro.search.SearchBounds.estimate>`. Only the substrate's size is
+    read: no TPM is constructed and no φₛ is computed.
+
+    Parameters
+    ----------
+    substrate : Substrate
+        The micro substrate the search would run over.
+    bounds : SearchBounds, optional
+        The search bounds. ``None`` uses the default ``SearchBounds()``, as
+        :func:`pyphi.macro.complexes` does.
+    limit : int, optional
+        The count at which the walk stops and the estimate is reported as
+        truncated.
+
+    Returns
+    -------
+    SearchEstimate
+        The counts of candidate systems and partitions.
 
     Notes
     -----
@@ -240,6 +264,9 @@ def estimate_search(
     decomposition passes, so it raises unconditionally.
     """
     _require_macro_formalism()
+    if bounds is None:
+        bounds = SearchBounds()
+    n = substrate.size
     counter = _Counter(limit)
     truncated = False
 

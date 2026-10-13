@@ -157,11 +157,23 @@ class Analysis(Displayable, Serializable):
         return tuple(rows)
 
     def to_pandas(self) -> pd.DataFrame:
-        """A one-row DataFrame: φₛ (``phi``), ``normalized_phi``, Φ
-        (``big_phi``), ``n_distinctions``, ``sum_phi_d`` and ``sum_phi_r``.
-        The same columns as a sweep's rows for ``compute="ces"`` or
-        ``compute=None``."""
-        return pd.DataFrame([_structure_record(self.sia, self.ces)])
+        """A one-row DataFrame that identifies the analysis and gives its
+        values.
+
+        The identifiers are ``formalism`` (the version name, as in a sweep's
+        rows), ``subset`` (the system's sorted unit indices) and
+        ``current_state`` (the system's state), as in the SIA's own row. The
+        values are φₛ (``phi``), ``normalized_phi``, Φ (``big_phi``),
+        ``n_distinctions``, ``sum_phi_d`` and ``sum_phi_r``, the same columns
+        as a sweep's rows for ``compute="ces"`` or ``compute=None``.
+        """
+        record = {
+            "formalism": self.formalism,
+            "subset": tuple(int(i) for i in self.system.node_indices),
+            "current_state": tuple(int(x) for x in self.system.proper_state),
+            **_structure_record(self.sia, self.ces),
+        }
+        return pd.DataFrame([record])
 
 
 def _structure_record(sia: Any, ces: CauseEffectStructure) -> dict[str, Any]:
