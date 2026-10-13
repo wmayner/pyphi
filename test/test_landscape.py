@@ -3,6 +3,7 @@
 import math
 
 import numpy as np
+import pandas as pd
 import pytest
 
 import pyphi
@@ -50,9 +51,10 @@ def test_weight_axis_does_not_mutate_weights(axis):
 def test_section_matches_direct_analyze(axis):
     grid = [0.55, 0.60, 0.65]
     section = landscape_section(axis, STATE, grid)
-    assert list(section.df.index) == grid
-    assert section.df.index.name == "theta"
-    for theta, row in section.df.iterrows():
+    assert list(section.df["theta"]) == grid
+    assert isinstance(section.df.index, pd.RangeIndex)
+    for _, row in section.df.iterrows():
+        theta = row["theta"]
         sia = pyphi.analyze(axis(theta), STATE, compute="sia")
         assert row["phi"] == pytest.approx(float(sia.phi))
         assert row["signed_phi"] == pytest.approx(float(sia.signed_phi))
@@ -183,3 +185,44 @@ def test_an_empty_grid_raises():
     substrate = examples.basic_substrate()
     with pytest.raises(ValueError, match="grid is empty"):
         landscape_section(lambda _theta: substrate, (1, 0, 0), [])
+
+
+@pytest.mark.parametrize("suffix", [".json", ".msgpack"])
+def test_section_and_perturbation_round_trip(axis, tmp_path, suffix):
+    with pyphi.config.override(**pyphi.iit4_2026):
+        section = landscape_section(axis, STATE, [0.55, 0.7])
+        perturbation = perturb(axis, STATE, 0.7)
+    path = tmp_path / f"section{suffix}"
+    pyphi.save(section, path)
+    assert pyphi.load(path) == section
+    path = tmp_path / f"perturbation{suffix}"
+    pyphi.save(perturbation, path)
+    loaded = pyphi.load(path)
+    pd.testing.assert_frame_equal(loaded.to_pandas(), perturbation.to_pandas())
+    assert loaded.sias == perturbation.sias
+
+
+def test_single_results_are_one_row_frames(axis):
+    with pyphi.config.override(**pyphi.iit4_2026):
+        sia = pyphi.analyze(axis(0.7), STATE, compute="sia")
+        perturbation = perturb(axis, STATE, 0.7)
+    for frame in (sia.to_pandas(), perturbation.to_pandas()):
+        assert isinstance(frame, pd.DataFrame)
+        assert len(frame) == 1
+    record = sia.to_pandas().iloc[0]
+    assert record["subset"] == (0, 1, 2)
+    assert record["phi"] == pytest.approx(float(sia.phi))
+
+
+def test_optimization_result_card_is_compact():
+    from pyphi.optimization import weight_axes
+
+    builder = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1)], temperature=0.25
+    )
+    with pyphi.config.override(**pyphi.iit4_2026):
+        result = pyphi.optimize(builder, STATE, [(-1, 1)], seed=0, maxiter=2, popsize=3)
+    text = repr(result)
+    assert text.count("\n") < 15
+    assert "OptimizationResult" in text
+    assert "Substrate" not in text

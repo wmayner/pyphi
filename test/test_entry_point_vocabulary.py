@@ -212,6 +212,8 @@ def test_landscape_reprs_are_compact():
     assert repr(perturbation).count("\n") < 30
     assert "Perturbation" in repr(perturbation)
     record = perturbation.to_pandas()
+    assert len(record) == 1
+    record = record.iloc[0]
     assert record["derivative"] == perturbation.derivative
     assert record["partition_margin"] == perturbation.margins["partition"]
 

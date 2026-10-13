@@ -43,11 +43,6 @@ class ToDictMixin:
 _DISTRIBUTION_COLUMNS = ["direction", "kind", "purview", "state", "probability"]
 
 
-def record_to_series(record: Mapping[str, Any], name: str | None = None) -> pd.Series:
-    """Build a Series from an ordered field-to-value mapping."""
-    return pd.Series(dict(record), name=name)
-
-
 def records_to_frame(
     rows: Iterable[Mapping[str, Any]],
     index: str | None = None,
@@ -118,19 +113,20 @@ def distribution_rows(
 class ToPandasMixin:
     """Export a result object to a labeled Pandas structure.
 
-    ``to_pandas()`` returns a ``Series`` for scalar-record types and a
-    ``DataFrame`` with a labeled index for collections and distributions.
-    Units render as labels. Subclasses implement ``_pandas_record()`` (record
-    types, which inherit the Series-building ``_to_pandas``) or override
-    ``_to_pandas()`` (collections and distributions).
+    ``to_pandas()`` returns a ``DataFrame``: one row for a single object,
+    so that rows from different results concatenate, and one row per
+    element for collections and distributions. Units render as labels.
+    Subclasses implement ``_pandas_record()`` (single objects, which inherit
+    the one-row ``_to_pandas``) or override ``_to_pandas()`` (collections and
+    distributions).
     """
 
-    def to_pandas(self) -> pd.Series | pd.DataFrame:
+    def to_pandas(self) -> pd.DataFrame:
         """Return a labeled Pandas view of this object."""
         return self._to_pandas()
 
-    def _to_pandas(self) -> pd.Series | pd.DataFrame:
-        return record_to_series(self._pandas_record(), name=type(self).__name__)
+    def _to_pandas(self) -> pd.DataFrame:
+        return pd.DataFrame([dict(self._pandas_record())])
 
     def _pandas_record(self) -> Mapping[str, Any]:
         raise NotImplementedError(type(self).__name__)

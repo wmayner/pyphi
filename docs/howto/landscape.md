@@ -56,7 +56,7 @@ tidy table:
 
 ```{code-cell} python
 section = pyphi.landscape_section(axis, (1, 0, 0), np.linspace(0.40, 0.75, 15))
-section.df[["phi", "signed_phi", "normalized_phi", "partition_margin", "regime"]].round(4)
+section.df[["theta", "phi", "signed_phi", "normalized_phi", "partition_margin", "regime"]].round(4)
 ```
 
 The `regime` column groups grid points by their **selection regime**: the

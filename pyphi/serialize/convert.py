@@ -1593,6 +1593,55 @@ def _register_sweep_result() -> None:
     _DECODERS[schema.SweepResultSchema] = _decode_sweep_result
 
 
+def _register_landscape() -> None:
+    from pyphi.landscape import LandscapeSection
+    from pyphi.landscape import Perturbation
+
+    _ENCODERS[LandscapeSection] = lambda r: schema.LandscapeSectionSchema(
+        df=frames.dataframe_to_schema(r.df),
+        sias=tuple(to_schema(sia) for sia in r.sias),
+        skipped=tuple(float(theta) for theta in r.skipped),
+    )
+    _DECODERS[schema.LandscapeSectionSchema] = lambda s: LandscapeSection(
+        df=frames.schema_to_dataframe(s.df),
+        sias=[from_schema(sia) for sia in s.sias],
+        skipped=list(s.skipped),
+    )
+
+    def nan_to_none(value: float) -> float | None:
+        return None if math.isnan(value) else float(value)
+
+    def none_to_nan(value: float | None) -> float:
+        return math.nan if value is None else value
+
+    _ENCODERS[Perturbation] = lambda p: schema.PerturbationSchema(
+        theta=float(p.theta),
+        h=float(p.h),
+        quantity=p.quantity,
+        value=nan_to_none(p.value),
+        derivative=nan_to_none(p.derivative),
+        left_derivative=nan_to_none(p.left_derivative),
+        right_derivative=nan_to_none(p.right_derivative),
+        margins={k: nan_to_none(v) for k, v in p.margins.items()},
+        margin_derivatives={k: nan_to_none(v) for k, v in p.margin_derivatives.items()},
+        same_regime=bool(p.same_regime),
+        sias=tuple(to_schema(sia) for sia in p.sias),
+    )
+    _DECODERS[schema.PerturbationSchema] = lambda s: Perturbation(
+        theta=s.theta,
+        h=s.h,
+        quantity=s.quantity,
+        value=none_to_nan(s.value),
+        derivative=none_to_nan(s.derivative),
+        left_derivative=none_to_nan(s.left_derivative),
+        right_derivative=none_to_nan(s.right_derivative),
+        margins={k: none_to_nan(v) for k, v in s.margins.items()},
+        margin_derivatives={k: none_to_nan(v) for k, v in s.margin_derivatives.items()},
+        same_regime=s.same_regime,
+        sias=tuple(from_schema(sia) for sia in s.sias),
+    )
+
+
 def _register_campaign() -> None:
     from pyphi.campaign import CampaignTask
     from pyphi.campaign import CampaignTaskOutput
@@ -1901,5 +1950,6 @@ def _do_register() -> None:
     _register_substrate_posterior()
     _register_phi_posterior()
     _register_sweep_result()
+    _register_landscape()
     _register_campaign()
     _register_optimization_result()

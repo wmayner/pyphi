@@ -27,6 +27,11 @@ from numpy.typing import NDArray
 
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.display import Description
+from pyphi.display import Displayable
+from pyphi.display import Row
+from pyphi.display import Section
+from pyphi.display.numbers import format_value
 from pyphi.landscape import _QUANTITIES
 from pyphi.landscape import _UNREACHABLE
 from pyphi.landscape import _optional_float
@@ -187,8 +192,8 @@ def _eval_one(
     }
 
 
-@dataclass(frozen=True, eq=False)
-class OptimizationResult(Serializable):
+@dataclass(frozen=True, eq=False, repr=False)
+class OptimizationResult(Displayable, Serializable):
     """The outcome of an :func:`optimize` run.
 
     Attributes
@@ -264,6 +269,25 @@ class OptimizationResult(Serializable):
 
     def to_pandas(self) -> pd.DataFrame:
         return self.trajectory
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        params = ", ".join(format_value(float(p)) for p in self.best_params)
+        rows = (
+            Row("Goal", f"{self.goal} {self.objective_name}"),
+            Row("Best objective", self.best_objective),
+            Row("Best parameters", f"({params})"),
+            Row("Evaluations", self.n_evaluations),
+            Row("Unreachable", self.n_unreachable),
+            Row("Seed", self.seed),
+        )
+        return Description(
+            title="OptimizationResult",
+            sections=(Section(rows=rows),),
+            compact=(
+                f"OptimizationResult({self.goal} {self.objective_name}: "
+                f"{format_value(float(self.best_objective))})"
+            ),
+        )
 
 
 def _eval_batch(

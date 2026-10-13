@@ -244,10 +244,10 @@ class TestBudget:
 
 class TestPresentation:
     def test_pandas_record(self):
-        record = estimate_analysis(_dense3()).to_pandas()
+        record = estimate_analysis(_dense3()).to_pandas().iloc[0]
         assert record["n_units"] == 3
         assert record["mechanisms"] == 7
-        assert record["capped"] is False
+        assert bool(record["capped"]) is False
 
     def test_card_renders(self):
         est = estimate_analysis(_dense3())
@@ -422,7 +422,7 @@ class TestSpecifiedStateAxis:
 
     def test_appears_in_the_record_and_the_card(self):
         est = estimate_analysis(_dense3())
-        assert est.to_pandas()["specified_state_evaluations"] == 16
+        assert est.to_pandas().iloc[0]["specified_state_evaluations"] == 16
         assert "Specified-state evaluations" in str(est)
 
     @pytest.mark.parametrize("n", [3, 4, 5])

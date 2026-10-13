@@ -8,10 +8,16 @@ from pyphi import examples
 from pyphi.direction import Direction
 from pyphi.labels import NodeLabels
 from pyphi.models.pandas import distribution_rows
-from pyphi.models.pandas import record_to_series
 from pyphi.models.pandas import records_to_frame
 from pyphi.models.pandas import state_multiindex
 from pyphi.utils import all_states
+
+
+def _one_row(frame):
+    """The single row of a single object's ``to_pandas()`` frame."""
+    assert isinstance(frame, pd.DataFrame)
+    assert len(frame) == 1
+    return frame.iloc[0]
 
 
 def test_state_multiindex_binary():
@@ -72,10 +78,18 @@ def test_distribution_rows_none_is_empty():
     assert distribution_rows(Direction.CAUSE, "repertoire", (0,), None, None) == []
 
 
-def test_record_to_series_preserves_order():
-    series = record_to_series({"phi": 0.5, "mechanism": ("A",)}, name="X")
-    assert list(series.index) == ["phi", "mechanism"]
-    assert series.name == "X"
+def test_single_object_is_a_one_row_frame_in_record_order():
+    from pyphi.models.pandas import ToPandasMixin
+
+    class Record(ToPandasMixin):
+        def _pandas_record(self):
+            return {"phi": 0.5, "mechanism": ("A",)}
+
+    frame = Record().to_pandas()
+    assert isinstance(frame, pd.DataFrame)
+    assert list(frame.columns) == ["phi", "mechanism"]
+    assert isinstance(frame.index, pd.RangeIndex)
+    assert len(frame) == 1
 
 
 def test_records_to_frame_empty_has_columns():
@@ -91,8 +105,7 @@ def basic_ces():
 
 def test_distinction_to_pandas_is_labeled_series(basic_ces):
     distinction = next(iter(basic_ces.distinctions))
-    series = distinction.to_pandas()
-    assert isinstance(series, pd.Series)
+    series = _one_row(distinction.to_pandas())
     assert {
         "phi",
         "mechanism",
@@ -106,16 +119,14 @@ def test_distinction_to_pandas_is_labeled_series(basic_ces):
 
 def test_mice_to_pandas_is_labeled_series(basic_ces):
     mice = next(iter(basic_ces.distinctions)).cause
-    series = mice.to_pandas()
-    assert isinstance(series, pd.Series)
+    series = _one_row(mice.to_pandas())
     assert all(isinstance(label, str) for label in series["mechanism"])
     assert str(series["direction"]) == "CAUSE"
 
 
 def test_ria_to_pandas_is_labeled_series(basic_ces):
     ria = next(iter(basic_ces.distinctions)).cause.ria
-    series = ria.to_pandas()
-    assert isinstance(series, pd.Series)
+    series = _one_row(ria.to_pandas())
     assert all(isinstance(label, str) for label in series["purview"])
     assert series["direction"] in ("CAUSE", "EFFECT")
 
@@ -247,8 +258,8 @@ def test_label_carrying_types_never_emit_raw_int_units(basic_ces):
         distinction.cause.to_pandas(),
         distinction.cause.ria.to_pandas(),
     ]
-    for series in series_exports:
-        assert isinstance(series, pd.Series)
+    for frame in series_exports:
+        series = _one_row(frame)
         assert not any("." in str(label) for label in series.index)
 
     frame = basic_ces.distinctions.to_pandas()

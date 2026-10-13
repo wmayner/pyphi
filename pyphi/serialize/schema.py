@@ -627,6 +627,32 @@ class SweepResultSchema(msgspec.Struct, frozen=True, tag="sweep_result"):
     skipped: tuple[tuple["str | int", str, tuple[int, ...], tuple[int, ...]], ...]
 
 
+class LandscapeSectionSchema(msgspec.Struct, frozen=True, tag="landscape_section"):
+    df: DataFrameSchema
+    sias: tuple["Schema", ...]
+    skipped: tuple[float, ...]
+
+
+class PerturbationSchema(msgspec.Struct, frozen=True, tag="perturbation"):
+    """A :func:`~pyphi.perturb` outcome.
+
+    Floats that are NaN on the domain object are stored as None, since JSON
+    cannot carry NaN.
+    """
+
+    theta: float
+    h: float
+    quantity: str
+    value: float | None
+    derivative: float | None
+    left_derivative: float | None
+    right_derivative: float | None
+    margins: dict[str, float | None]
+    margin_derivatives: dict[str, float | None]
+    same_regime: bool
+    sias: tuple["Schema", ...]
+
+
 class CampaignTaskSchema(msgspec.Struct, frozen=True, tag="campaign_task"):
     task_id: int
     kind: str
@@ -784,6 +810,8 @@ Schema = (
     | SubstratePosteriorSchema
     | PhiPosteriorSchema
     | SweepResultSchema
+    | LandscapeSectionSchema
+    | PerturbationSchema
     | OptimizationResultSchema
     | CampaignTaskSchema
     | CellOutputSchema

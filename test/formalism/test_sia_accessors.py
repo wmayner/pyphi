@@ -79,7 +79,7 @@ def test_null_sia_accessors_are_none():
 
 
 def test_to_pandas_includes_ii_and_fraction(fig1a_sia_2026):
-    record = fig1a_sia_2026.to_pandas()
+    record = fig1a_sia_2026.to_pandas().iloc[0]
     assert record["intrinsic_information"] == pytest.approx(
         fig1a_sia_2026.intrinsic_information
     )
@@ -113,7 +113,7 @@ def test_sia_intrinsic_specification_none_on_null_sia():
 
 def test_sia_pandas_has_per_direction_specification_and_differentiation(fig1a_sia_2026):
     sia = fig1a_sia_2026
-    record = sia.to_pandas()
+    record = sia.to_pandas().iloc[0]
     for column in (
         "cause_intrinsic_specification",
         "effect_intrinsic_specification",

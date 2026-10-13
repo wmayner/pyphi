@@ -418,7 +418,8 @@ Many changes are small on their own and add up to a library that is easier to
 live with:
 
 - **Every displayable object exports to pandas.** `to_pandas()` returns a
-  labeled Series for a scalar result and a DataFrame for a collection, on
+  labeled DataFrame: one row for a single result, so rows from different
+  results concatenate, and one row per element for a collection, on
   analyses, structures, distinctions, relations, TPMs, partitions, and
   state specifications alike. `sweep()` returns its results the same way.
 - **Results print well in a list.** Under IPython and Jupyter, a result

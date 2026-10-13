@@ -137,7 +137,9 @@ class IIT3SystemIrreducibilityAnalysis(
     def _pandas_record(self):
         return {
             "phi": float(self.phi),
-            "system": self._system_label(),
+            "subset": None
+            if self.node_indices is None
+            else tuple(int(i) for i in self.node_indices),
             "current_state": self.current_state,
             "partition": concise_partition(self.partition)
             if self.partition is not None

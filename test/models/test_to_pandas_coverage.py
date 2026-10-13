@@ -9,13 +9,19 @@ from pyphi.conf import config
 from pyphi.conf import presets
 
 
+def _one_row(frame):
+    """The single row of a single object's ``to_pandas()`` frame."""
+    assert isinstance(frame, pd.DataFrame)
+    assert len(frame) == 1
+    return frame.iloc[0]
+
+
 def test_sia_to_pandas_series_has_phi():
     substrate = examples.basic_substrate()
     state = examples.basic_state()
     with config.override(**presets.iit4_2023):
         sia = substrate.sia(state)
-    s = sia.to_pandas()
-    assert isinstance(s, pd.Series)
+    s = _one_row(sia.to_pandas())
     assert float(s["phi"]) == float(sia.phi)
 
 
@@ -24,8 +30,7 @@ def test_iit3_sia_to_pandas_series_has_phi():
     state = examples.basic_state()
     with config.override(**presets.iit3):
         sia = substrate.sia(state)
-    s = sia.to_pandas()
-    assert isinstance(s, pd.Series)
+    s = _one_row(sia.to_pandas())
     assert float(s["phi"]) == float(sia.phi)
 
 
@@ -38,14 +43,12 @@ def test_complex_and_excluded_to_pandas_series():
     with config.override(**presets.iit4_2023):
         sia = substrate.sia(state)
     cx = Complex(sia=sia, substrate=substrate, is_maximal=True, excluded=())
-    s = cx.to_pandas()
-    assert isinstance(s, pd.Series)
+    s = _one_row(cx.to_pandas())
     assert float(s["phi"]) == float(sia.phi)
     assert bool(s["is_maximal"]) is True
 
     ec = ExcludedCandidate(node_indices=(0, 1), phi=0.0)
-    es = ec.to_pandas()
-    assert isinstance(es, pd.Series)
+    es = _one_row(ec.to_pandas())
     assert tuple(es["node_indices"]) == (0, 1)
 
 
@@ -101,8 +104,7 @@ def test_ac_family_to_pandas():
 
     transition = _or_gate_transition()
     acsia = actual.sia(transition)
-    s = acsia.to_pandas()
-    assert isinstance(s, pd.Series)
+    s = _one_row(acsia.to_pandas())
     assert float(s["alpha"]) == float(acsia.alpha)
 
     account = actual.account(transition, Direction.CAUSE)
@@ -111,10 +113,9 @@ def test_ac_family_to_pandas():
     assert len(df) == len(account)
 
     link = account[0]
-    ls = link.to_pandas()
-    assert isinstance(ls, pd.Series)
+    ls = _one_row(link.to_pandas())
     assert float(ls["alpha"]) == float(link.alpha)
-    assert isinstance(link._ria.to_pandas(), pd.Series)
+    _one_row(link._ria.to_pandas())
 
 
 def test_factored_tpm_to_pandas_state_by_node():
@@ -159,15 +160,13 @@ def test_unitstate_to_pandas_series():
     from pyphi.models.state_specification import UnitState
 
     us = UnitState(index=1, state=1, label="B")
-    s = us.to_pandas()
-    assert isinstance(s, pd.Series)
+    s = _one_row(us.to_pandas())
     assert int(s["state"]) == 1
 
 
 def test_node_to_pandas_series():
     system = examples.basic_system()
-    s = system.nodes[0].to_pandas()
-    assert isinstance(s, pd.Series)
+    s = _one_row(system.nodes[0].to_pandas())
     assert set(s.index) >= {"node", "label", "state"}
 
 

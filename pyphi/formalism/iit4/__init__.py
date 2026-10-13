@@ -460,7 +460,9 @@ class SystemIrreducibilityAnalysis(
             "effect_intrinsic_differentiation": _optional_float(
                 (self.intrinsic_differentiation or {}).get(Direction.EFFECT)
             ),
-            "system": self._system_label(),
+            "subset": None
+            if self.node_indices is None
+            else tuple(int(i) for i in self.node_indices),
             "current_state": self.current_state,
             "partition": concise_partition(self.partition)
             if self.partition is not None

@@ -224,7 +224,7 @@ def test_null_sia_explain_has_no_margin_findings():
 
 
 def test_to_pandas_includes_margins(basic_sia):
-    record = basic_sia.to_pandas()
+    record = basic_sia.to_pandas().iloc[0]
     assert float(record["partition_margin"]) == pytest.approx(
         float(basic_sia.partition_margin)
     )
@@ -422,7 +422,7 @@ def test_ria_state_margin_reads_specified_state(basic_mice_effect):
 
 
 def test_mechanism_margins_in_pandas_and_findings(basic_mice_effect, basic_mice_cause):
-    record = basic_mice_effect.to_pandas()
+    record = basic_mice_effect.to_pandas().iloc[0]
     assert float(record["purview_margin"]) == pytest.approx(0.0)
     assert "partition_margin" in record
     assert "state_margin" in record

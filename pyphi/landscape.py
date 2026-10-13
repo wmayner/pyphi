@@ -50,6 +50,7 @@ from pyphi.display import Section
 from pyphi.display import system_phi_label
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
+from pyphi.serializable import Serializable
 
 _UNREACHABLE = (
     exceptions.StateUnreachableForwardsError,
@@ -176,14 +177,14 @@ def _selection_identity(row: dict[str, Any]) -> tuple[Any, ...]:
 
 
 @dataclass(frozen=True, eq=False, repr=False)
-class LandscapeSection(Displayable):
+class LandscapeSection(Displayable, Serializable):
     """A 1-D section of the φ landscape along one parameter axis.
 
     Attributes
     ----------
     df : pd.DataFrame
-        One row per evaluated grid point, indexed by ``theta``. Columns:
-        the four φ variants (``phi``, ``signed_phi``, ``normalized_phi``,
+        One row per evaluated grid point, with a default index. Columns:
+        ``theta``, the four φ variants (``phi``, ``signed_phi``, ``normalized_phi``,
         ``signed_normalized_phi``), the selection identity (``partition``,
         ``cause_state``, ``effect_state``), the selection margins
         (``partition_margin``, ``cause_state_margin``,
@@ -224,7 +225,7 @@ class LandscapeSection(Displayable):
         n_regimes = df["regime"].nunique()
         rows = [Row("Points", len(df))]
         if len(df):
-            thetas = df.index.to_numpy(dtype=float)
+            thetas = df["theta"].to_numpy(dtype=float)
             low, high = format_value(thetas.min()), format_value(thetas.max())
             rows.append(Row("θ", f"{low} to {high}"))
         rows += [Row("Regimes", n_regimes), Row("Skipped", len(self.skipped))]
@@ -238,7 +239,7 @@ class LandscapeSection(Displayable):
                         capped_table(
                             ("θ", phi, f"Normalized {phi}", "Regime"),
                             df.itertuples(),
-                            lambda r: (r.Index, r.phi, r.normalized_phi, r.regime),
+                            lambda r: (r.theta, r.phi, r.normalized_phi, r.regime),
                             total=len(df),
                         ),
                     ),
@@ -255,7 +256,7 @@ class LandscapeSection(Displayable):
         """Brackets ``(theta_left, theta_right)`` between consecutive grid
         points whose selection identity differs — the selection-regime
         boundaries resolved at the grid's spacing."""
-        thetas = self.df.index.to_numpy()
+        thetas = self.df["theta"].to_numpy()
         regimes = self.df["regime"].to_numpy()
         return [
             (float(thetas[i]), float(thetas[i + 1]))
@@ -348,12 +349,14 @@ def landscape_section(
         row["regime"] = regime
         previous = identity
 
-    df = pd.DataFrame(rows, index=pd.Index(kept_thetas, name="theta"))
+    df = pd.DataFrame(
+        [{"theta": theta, **row} for theta, row in zip(kept_thetas, rows, strict=True)]
+    )
     return LandscapeSection(df=df, sias=sias, skipped=skipped)
 
 
 @dataclass(frozen=True, repr=False)
-class Perturbation(Displayable):
+class Perturbation(Displayable, Serializable):
     """Local finite-difference behavior of one quantity at one point.
 
     Built from exactly three analyses, at θ − h, θ, and θ + h.
@@ -405,25 +408,27 @@ class Perturbation(Displayable):
     # The margin dictionaries are mutable, so a perturbation has no hash.
     __hash__ = None  # type: ignore[assignment]
 
-    def to_pandas(self) -> pd.Series:
-        """The scalar fields as a Series; each margin ``m`` appears as
-        ``m_margin`` and its derivative as ``m_margin_derivative``."""
-        return pd.Series(
-            {
-                "theta": self.theta,
-                "h": self.h,
-                "quantity": self.quantity,
-                "value": self.value,
-                "derivative": self.derivative,
-                "left_derivative": self.left_derivative,
-                "right_derivative": self.right_derivative,
-                "same_regime": self.same_regime,
-                **{f"{name}_margin": self.margins[name] for name in _MARGIN_NAMES},
-                **{
-                    f"{name}_margin_derivative": self.margin_derivatives[name]
-                    for name in _MARGIN_NAMES
-                },
-            }
+    def to_pandas(self) -> pd.DataFrame:
+        """The scalar fields as a one-row DataFrame; each margin ``m`` appears
+        as ``m_margin`` and its derivative as ``m_margin_derivative``."""
+        return pd.DataFrame(
+            [
+                {
+                    "theta": self.theta,
+                    "h": self.h,
+                    "quantity": self.quantity,
+                    "value": self.value,
+                    "derivative": self.derivative,
+                    "left_derivative": self.left_derivative,
+                    "right_derivative": self.right_derivative,
+                    "same_regime": self.same_regime,
+                    **{f"{name}_margin": self.margins[name] for name in _MARGIN_NAMES},
+                    **{
+                        f"{name}_margin_derivative": self.margin_derivatives[name]
+                        for name in _MARGIN_NAMES
+                    },
+                }
+            ]
         )
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
