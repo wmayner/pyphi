@@ -95,8 +95,10 @@ def weight_axis(
     the analysis at θ = 0 may short-circuit as reducible even where the
     values at θ = ±ε do not.
     """
+    from pyphi.substrate_generator import _check_unit_function_kwargs
     from pyphi.substrate_generator import build_substrate
 
+    _check_unit_function_kwargs(unit_functions, kwargs)
     base = np.array(weights, dtype=float)
 
     def build(theta: float) -> Any:

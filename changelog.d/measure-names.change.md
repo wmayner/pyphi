@@ -1,0 +1,1 @@
+`System.sia(system_measure=..., specification_measure=...)`, `System.intrinsic_specification` and `System.partitioned_repertoire` accept measure names, such as `"GENERALIZED_INTRINSIC_DIFFERENCE"`, as well as resolved measure objects. Any other value raises `TypeError`.

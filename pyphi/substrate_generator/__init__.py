@@ -1,6 +1,8 @@
 # substrate_generator/__init__.py
 """High-level interface for creating systems by specifying architecture."""
 
+import difflib
+import inspect
 import string
 from collections.abc import Callable
 from collections.abc import Iterable
@@ -55,6 +57,57 @@ __all__ = [
 ]
 
 
+def _check_unit_function_kwargs(
+    unit_functions: str | Callable | Iterable[str | Callable],
+    kwargs: Mapping[str, Any],
+) -> None:
+    """Raise if a keyword names no parameter of any of the unit functions.
+
+    Keywords given to :func:`build_tpm` are passed to every unit function, and
+    the unit functions accept extra keywords so that one set of keywords can
+    serve a mix of functions. A misspelt keyword would therefore change the
+    substrate silently; this check rejects it instead.
+
+    Parameters
+    ----------
+    unit_functions : str or Callable or Iterable[str or Callable]
+        The unit functions, as accepted by :func:`build_tpm`.
+    kwargs : Mapping[str, Any]
+        The keywords that will be passed to every unit function.
+
+    Raises
+    ------
+    TypeError
+        If a keyword is not a named parameter of at least one unit function.
+    """
+    if not kwargs:
+        return
+    if isinstance(unit_functions, str) or callable(unit_functions):
+        unit_functions = [unit_functions]
+    names: set[str] = set()
+    for unit_function in unit_functions:
+        func = (
+            UNIT_FUNCTIONS.get(unit_function, unit_function)
+            if isinstance(unit_function, str)
+            else unit_function
+        )
+        try:
+            params = list(inspect.signature(func).parameters.values())
+        except (TypeError, ValueError):  # not introspectable: accept anything
+            return
+        names.update(
+            p.name for p in params[3:] if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+        )
+    for key in kwargs:
+        if key not in names:
+            close = difflib.get_close_matches(key, names, n=1)
+            hint = f" Did you mean {close[0]!r}?" if close else ""
+            raise TypeError(
+                f"unexpected keyword argument {key!r}: no unit function takes "
+                f"it (they take {sorted(names)}).{hint}"
+            )
+
+
 def build_tpm(
     unit_functions: str | Callable | Iterable[str | Callable],
     weights: NDArray[Any],
@@ -79,7 +132,8 @@ def build_tpm(
     Other Parameters
     ----------------
     **kwargs
-        Passed through to every unit function.
+        Passed through to every unit function. Each keyword must be a named
+        parameter of at least one of the unit functions.
 
     Returns
     -------
@@ -93,6 +147,8 @@ def build_tpm(
     ValueError
         If ``weights`` is not square, or if an iterable of unit functions does
         not have one entry per node.
+    TypeError
+        If a keyword argument is not a parameter of any unit function.
     """
     if weights.ndim != 2 or weights.shape[0] != weights.shape[1]:
         raise ValueError("weights must be a square matrix")
@@ -122,6 +178,7 @@ def build_tpm(
             f"unknown unit function(s) {unknown}; the names are "
             f"{sorted(UNIT_FUNCTIONS)}, or pass a callable"
         )
+    _check_unit_function_kwargs(unit_functions_list, kwargs)
     tpm = np.zeros([2] * N + [N])
     for state in all_states(N):
         for element, func in enumerate(unit_functions_list):
@@ -158,7 +215,8 @@ def build_substrate(
     Other Parameters
     ----------------
     **kwargs
-        Passed through to every unit function.
+        Passed through to every unit function. Each keyword must be a named
+        parameter of at least one of the unit functions.
 
     Returns
     -------

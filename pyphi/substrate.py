@@ -8,6 +8,7 @@ computation.
 from __future__ import annotations
 
 import hashlib
+import inspect
 import math
 from collections.abc import Iterable
 from collections.abc import Mapping
@@ -112,6 +113,14 @@ def _has_multivalued_unit(state_space: StateSpace) -> bool:
     if state_space and all(not isinstance(labels, tuple) for labels in state_space):
         return len(state_space) != 2  # one flat alphabet applied to every unit
     return any(len(labels) != 2 for labels in state_space)
+
+
+def _reject_unknown_options(caller: str, method: Any, options: dict[str, Any]) -> None:
+    """Raise ``TypeError`` for an option that ``method`` does not take."""
+    from pyphi.conf import reject_unknown_kwargs
+
+    names = inspect.signature(method).parameters.keys() - {"self", "formalism"}
+    reject_unknown_kwargs(caller, options, [*names, "subset"])
 
 
 class Substrate(Displayable, ToPandasMixin, Serializable):
@@ -586,6 +595,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         from pyphi.conf import presets
         from pyphi.system import System
 
+        _reject_unknown_options("Substrate.sia", System.sia, options)
         with presets.use(formalism):
             return System(self, state, subset=subset).sia(**options)
 
@@ -621,6 +631,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         from pyphi.conf import presets
         from pyphi.system import System
 
+        _reject_unknown_options("Substrate.ces", System.ces, options)
         with presets.use(formalism):
             return System(self, state, subset=subset).ces(**options)
 

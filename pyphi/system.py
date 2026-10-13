@@ -54,6 +54,30 @@ def _given(**options: Any) -> dict[str, Any]:
     return {name: value for name, value in options.items() if value is not None}
 
 
+# The options the mechanism-level MIP queries accept, besides the parallel
+# options of :data:`pyphi.conf.PARALLEL_KWARGS`.
+_MIP_OPTIONS = ("partitions", "state", "mechanism_measure", "specification_measure")
+
+
+def _reject_unknown(caller: str, kwargs: Any, *names: str) -> None:
+    from pyphi.conf import reject_unknown_kwargs
+    from pyphi.conf._helpers import PARALLEL_KWARGS
+
+    reject_unknown_kwargs(f"System.{caller}", kwargs, [*names, *PARALLEL_KWARGS])
+
+
+def _resolve_measure(argument: str, measure: Any, resolve: Any) -> Any:
+    """Return the measure a name or measure argument stands for."""
+    if measure is None or (callable(measure) and hasattr(measure, "name")):
+        return measure
+    if isinstance(measure, str):
+        return resolve(measure)
+    raise TypeError(
+        f"{argument} must be a measure name or a measure returned by "
+        f"{resolve.__name__}(); got {type(measure).__name__}"
+    )
+
+
 # PyPhi 1.x attributes of ``Subsystem`` that 2.0 renamed on ``System``.
 _RENAMED_ATTRIBUTES = {
     "concept": "distinction",
@@ -100,6 +124,20 @@ class System(Displayable, ToPandasMixin, Serializable):
     background_conditioning: str | None = field(default=None)
     background_state: tuple[int, ...] | None = field(default=None)
     node_indices: NodeIndices = field(init=False)
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> System:
+        # Point a ported ``Subsystem(network, state, nodes)`` call at the
+        # keyword-only ``subset`` instead of a bare argument-count error.
+        old = [name for name in ("indices", "nodes", "node_indices") if name in kwargs]
+        if len(args) > 2 or old:
+            given = (
+                f"keyword argument {old[0]!r}" if old else "a third positional argument"
+            )
+            raise TypeError(
+                f"{cls.__name__}() got {given}; pass the units of the candidate "
+                "system as the keyword-only subset=..."
+            )
+        return super().__new__(cls)
 
     def __post_init__(self, subset: NodeIndices | None) -> None:
         substrate = self.substrate
@@ -624,7 +662,11 @@ class System(Displayable, ToPandasMixin, Serializable):
         **kwargs: Any,
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.measures.distribution import resolve_mechanism_measure
 
+        mechanism_measure = _resolve_measure(
+            "mechanism_measure", mechanism_measure, resolve_mechanism_measure
+        )
         return ra.partitioned_repertoire(
             self, direction, partition, mechanism_measure=mechanism_measure, **kwargs
         )
@@ -808,9 +850,12 @@ class System(Displayable, ToPandasMixin, Serializable):
             The mechanism's node indices.
         purview : tuple[int, ...]
             The purview's node indices.
-        specification_measure : callable
+        specification_measure : str or measure
             The measure of intrinsic specification maximized over the purview
-            states, such as the active formalism's specification measure.
+            states: a name that ``config.formalism.iit.specification_measure``
+            accepts, or the measure
+            :func:`~pyphi.measures.distribution.resolve_mechanism_measure`
+            returns for one.
         **kwargs
             Passed to
             :func:`pyphi.core.repertoire_algebra.intrinsic_specification`;
@@ -824,7 +869,11 @@ class System(Displayable, ToPandasMixin, Serializable):
             ``ties``.
         """
         from pyphi.core import repertoire_algebra as ra
+        from pyphi.measures.distribution import resolve_mechanism_measure
 
+        specification_measure = _resolve_measure(
+            "specification_measure", specification_measure, resolve_mechanism_measure
+        )
         spec = ra.intrinsic_specification(
             self,
             direction,
@@ -887,10 +936,18 @@ class System(Displayable, ToPandasMixin, Serializable):
         directions : iterable of Direction, optional
             The directions whose specified states are computed. ``None``
             computes both.
-        system_measure, specification_measure : callable, optional
-            Measures that replace the ones the configuration names
-            (``config.formalism.iit.system_phi_measure`` and
-            ``specification_measure``).
+        system_measure : str or measure, optional
+            The system φ measure, in place of
+            ``config.formalism.iit.system_phi_measure``: a name that option
+            accepts, such as ``"GENERALIZED_INTRINSIC_DIFFERENCE"``, or the
+            measure :func:`~pyphi.measures.distribution.resolve_system_measure`
+            returns for one.
+        specification_measure : str or measure, optional
+            The measure of intrinsic specification, in place of
+            ``config.formalism.iit.specification_measure``: a name that option
+            accepts, or the measure
+            :func:`~pyphi.measures.distribution.resolve_mechanism_measure`
+            returns for one.
         parallel : bool or None, optional
             Evaluate the partitions in parallel. ``None`` defers to
             ``config.infrastructure.parallel_partition_evaluation``.
@@ -907,11 +964,22 @@ class System(Displayable, ToPandasMixin, Serializable):
         TypeError
             Under IIT 3.0, if any option other than ``parallel`` or
             ``progress`` is given: that version has no specified states,
-            partition schemes or system measures to set.
+            partition schemes or system measures to set. Also if a measure
+            is neither a name nor a measure object.
+        ValueError
+            If a measure name is not a registered measure.
         """
         from pyphi.cache.disk import maybe_disk_cached
         from pyphi.conf import presets
+        from pyphi.measures.distribution import resolve_mechanism_measure
+        from pyphi.measures.distribution import resolve_system_measure
 
+        system_measure = _resolve_measure(
+            "system_measure", system_measure, resolve_system_measure
+        )
+        specification_measure = _resolve_measure(
+            "specification_measure", specification_measure, resolve_mechanism_measure
+        )
         options = _given(
             system_state=system_state,
             partitions=partitions,
@@ -1080,6 +1148,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.formalism import find_mip as _find_mip
         from pyphi.measures.distribution import resolve_mechanism_measure
 
+        _reject_unknown("find_mip", kwargs, *_MIP_OPTIONS)
         if _config.formalism.iit.version != "IIT_3_0":
             alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
             kwargs.setdefault(
@@ -1097,21 +1166,25 @@ class System(Displayable, ToPandasMixin, Serializable):
     def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         from pyphi.formalism import cause_mip as _cause_mip
 
+        _reject_unknown("cause_mip", kwargs, *_MIP_OPTIONS)
         return _cause_mip(self, mechanism, purview, **kwargs)
 
     def effect_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         from pyphi.formalism import effect_mip as _effect_mip
 
+        _reject_unknown("effect_mip", kwargs, *_MIP_OPTIONS)
         return _effect_mip(self, mechanism, purview, **kwargs)
 
     def phi_cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.formalism import phi_cause_mip as _phi_cause_mip
 
+        _reject_unknown("phi_cause_mip", kwargs, *_MIP_OPTIONS)
         return _phi_cause_mip(self, mechanism, purview, **kwargs)
 
     def phi_effect_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.formalism import phi_effect_mip as _phi_effect_mip
 
+        _reject_unknown("phi_effect_mip", kwargs, *_MIP_OPTIONS)
         return _phi_effect_mip(self, mechanism, purview, **kwargs)
 
     def phi(self, mechanism: Any, purview: Any) -> float:
@@ -1139,6 +1212,7 @@ class System(Displayable, ToPandasMixin, Serializable):
     def find_mice(self, direction: Any, mechanism: Any, **kwargs: Any) -> Any:
         from pyphi.formalism import find_mice as _find_mice
 
+        _reject_unknown("find_mice", kwargs, "purviews")
         return _find_mice(self, direction, mechanism, **kwargs)
 
     def mic(self, mechanism: Any, *, purviews: Any = None) -> Any:
@@ -1197,10 +1271,10 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         return _distinction(self, mechanism)
 
-    def all_distinctions(self, **kwargs: Any) -> Any:
+    def all_distinctions(self) -> Any:
         from pyphi.formalism import all_distinctions as _all_distinctions
 
-        return _all_distinctions(self, **kwargs)
+        return _all_distinctions(self)
 
     def evaluate_partition(
         self,

@@ -810,7 +810,7 @@ class Transition(Serializable):
     # =========================================================================
 
     # TODO: alias to `irreducible_cause/effect ratio?
-    def find_mip(self, direction, mechanism, purview, allow_neg=False, **kwargs):
+    def find_mip(self, direction, mechanism, purview, allow_neg=False):
         """Find the ratio minimum information partition for a mechanism
         over a purview.
 
@@ -818,7 +818,7 @@ class Transition(Serializable):
         (``config.formalism.actual_causation.version``).
         """
         return _active_ac_formalism().evaluate_mechanism(
-            self, direction, mechanism, purview, allow_neg=allow_neg, **kwargs
+            self, direction, mechanism, purview, allow_neg=allow_neg
         )
 
     # Phi_max methods
@@ -850,9 +850,7 @@ class Transition(Serializable):
             if set(purview).issubset(self.purview_indices(direction))
         ]
 
-    def find_causal_link(
-        self, direction, mechanism, purviews=None, allow_neg=False, **kwargs
-    ):
+    def find_causal_link(self, direction, mechanism, purviews=None, allow_neg=False):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
@@ -860,16 +858,20 @@ class Transition(Serializable):
         (``config.formalism.actual_causation.version``).
         """
         return _active_ac_formalism().evaluate_causal_link(
-            self, direction, mechanism, purviews=purviews, allow_neg=allow_neg, **kwargs
+            self, direction, mechanism, purviews=purviews, allow_neg=allow_neg
         )
 
-    def find_actual_cause(self, mechanism, purviews=None, **kw):
+    def find_actual_cause(self, mechanism, purviews=None, *, allow_neg=False):
         """Return the actual cause of a mechanism."""
-        return self.find_causal_link(Direction.CAUSE, mechanism, purviews, **kw)
+        return self.find_causal_link(
+            Direction.CAUSE, mechanism, purviews, allow_neg=allow_neg
+        )
 
-    def find_actual_effect(self, mechanism, purviews=None, **kw):
+    def find_actual_effect(self, mechanism, purviews=None, *, allow_neg=False):
         """Return the actual effect of a mechanism."""
-        return self.find_causal_link(Direction.EFFECT, mechanism, purviews, **kw)
+        return self.find_causal_link(
+            Direction.EFFECT, mechanism, purviews, allow_neg=allow_neg
+        )
 
     def find_mice(self, *args, **kwargs):
         """Alias for :meth:`find_causal_link`."""
@@ -901,7 +903,6 @@ def directed_account(
     mechanisms=None,
     purviews=None,
     allow_neg=False,
-    **kwargs,
 ):
     """Return every causal link of the specified direction.
 
@@ -914,27 +915,79 @@ def directed_account(
         mechanisms=mechanisms,
         purviews=purviews,
         allow_neg=allow_neg,
-        **kwargs,
     )
 
 
-def account(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
+def account(
+    transition,
+    direction=Direction.BIDIRECTIONAL,
+    *,
+    mechanisms=None,
+    purviews=None,
+    allow_neg=False,
+):
     """Return the set of all causal links for a :class:`Transition`.
 
     Dispatches through the active actual-causation formalism
     (``config.formalism.actual_causation.version``).
+
+    Parameters
+    ----------
+    transition : Transition
+        The transition to account for.
+    direction : Direction, optional
+        Cause, effect, or both (the default).
+    mechanisms : iterable, optional
+        The mechanisms to consider. ``None`` considers every mechanism.
+    purviews : iterable, optional
+        The purviews to consider. ``None`` considers every purview.
+    allow_neg : bool, optional
+        Keep causal links with negative α.
+
+    Returns
+    -------
+    Account or DirectedAccount
+        An :class:`~pyphi.models.Account` for a bidirectional call over every
+        mechanism and purview, otherwise a
+        :class:`~pyphi.models.DirectedAccount`.
     """
-    return _active_ac_formalism().evaluate_account(transition, direction, **kwargs)
+    return _active_ac_formalism().evaluate_account(
+        transition,
+        direction,
+        mechanisms=mechanisms,
+        purviews=purviews,
+        allow_neg=allow_neg,
+    )
 
 
-def sia(transition, direction=Direction.BIDIRECTIONAL, **kwargs):
+def sia(transition, direction=Direction.BIDIRECTIONAL, **parallel_options):
     """Return the minimal information partition of a transition in a specific
     direction.
 
     Dispatches through the active actual-causation formalism
     (``config.formalism.actual_causation.version``).
+
+    Parameters
+    ----------
+    transition : Transition
+        The transition to analyze.
+    direction : Direction, optional
+        Cause, effect, or both (the default).
+    **parallel_options
+        Options of the parallel partition evaluation, such as ``parallel``
+        and ``progress``. Any other name raises ``TypeError``.
+
+    Returns
+    -------
+    AcSystemIrreducibilityAnalysis
+        The analysis of the transition.
     """
-    return _active_ac_formalism().evaluate_system(transition, direction, **kwargs)
+    from pyphi.conf import reject_unknown_kwargs
+
+    reject_unknown_kwargs("sia", parallel_options)
+    return _active_ac_formalism().evaluate_system(
+        transition, direction, **parallel_options
+    )
 
 
 # =============================================================================
@@ -1187,15 +1240,15 @@ def true_ces(system, previous_state, next_state):
     return result
 
 
-def _complex_units(substrate, current_state, subset, major_complex):
-    """The units of the major complex: given directly, or found."""
-    if subset is not None and major_complex is not None:
-        raise ValueError("give at most one of subset and major_complex")
+def _complex_units(substrate, current_state, subset, maximal_complex):
+    """The units of the maximal complex: given directly, or found."""
+    if subset is not None and maximal_complex is not None:
+        raise ValueError("give at most one of subset and maximal_complex")
     if subset is not None:
         return substrate.node_labels.coerce_to_indices(subset)
-    if major_complex is None:
-        major_complex = substrate.maximal_complex(current_state)
-    return major_complex.node_indices
+    if maximal_complex is None:
+        maximal_complex = substrate.maximal_complex(current_state)
+    return maximal_complex.node_indices
 
 
 def true_events(
@@ -1205,7 +1258,7 @@ def true_events(
     next_state,
     *,
     subset=None,
-    major_complex=None,
+    maximal_complex=None,
 ):
     """Return all mechanisms that have true causes and true effects within the
     complex.
@@ -1221,26 +1274,26 @@ def true_events(
     next_state : tuple[int]
         The state of the substrate at ``t + 1``.
     subset : optional
-        The units of the major complex, by index or label. ``None`` finds
-        the major complex with :meth:`~pyphi.substrate.Substrate.maximal_complex`.
-    major_complex : Complex, optional
-        The major complex. Give at most one of ``subset`` and
-        ``major_complex``.
+        The units of the maximal complex, by index or label. ``None`` finds
+        the maximal complex with :meth:`~pyphi.substrate.Substrate.maximal_complex`.
+    maximal_complex : Complex, optional
+        The maximal complex. Give at most one of ``subset`` and
+        ``maximal_complex``.
 
     Returns
     -------
     tuple[Event]
-        The true events in the major complex.
+        The true events in the maximal complex.
 
     Raises
     ------
     ValueError
-        If both ``subset`` and ``major_complex`` are given.
+        If both ``subset`` and ``maximal_complex`` are given.
     TransitionUnreachableError
         If either observed pair of the state triplet is impossible under
         the substrate dynamics.
     """
-    nodes = _complex_units(substrate, current_state, subset, major_complex)
+    nodes = _complex_units(substrate, current_state, subset, maximal_complex)
     return events(substrate, previous_state, current_state, next_state, subset=nodes)
 
 
@@ -1251,9 +1304,9 @@ def extrinsic_events(
     next_state,
     *,
     subset=None,
-    major_complex=None,
+    maximal_complex=None,
 ):
-    """Set of all mechanisms that are in the major complex but which have true
+    """Set of all mechanisms that are in the maximal complex but which have true
     causes and effects within the entire substrate.
 
     Parameters
@@ -1267,23 +1320,23 @@ def extrinsic_events(
     next_state : tuple[int]
         The state of the substrate at ``t + 1``.
     subset : optional
-        The units of the major complex, by index or label. ``None`` finds
-        the major complex with :meth:`~pyphi.substrate.Substrate.maximal_complex`.
-    major_complex : Complex, optional
-        The major complex. Give at most one of ``subset`` and
-        ``major_complex``.
+        The units of the maximal complex, by index or label. ``None`` finds
+        the maximal complex with :meth:`~pyphi.substrate.Substrate.maximal_complex`.
+    maximal_complex : Complex, optional
+        The maximal complex. Give at most one of ``subset`` and
+        ``maximal_complex``.
 
     Returns
     -------
     tuple[Event]
-        The extrinsic events in the major complex.
+        The extrinsic events in the maximal complex.
 
     Raises
     ------
     ValueError
-        If both ``subset`` and ``major_complex`` are given.
+        If both ``subset`` and ``maximal_complex`` are given.
     """
-    mc_nodes = _complex_units(substrate, current_state, subset, major_complex)
+    mc_nodes = _complex_units(substrate, current_state, subset, maximal_complex)
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     return events(
         substrate, previous_state, current_state, next_state, mechanisms=mechanisms

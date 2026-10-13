@@ -124,3 +124,118 @@ def test_actual_events_take_subset():
     )
     with pytest.raises(TypeError):
         actual.events(swap, (1, 0), (0, 1), (1, 0), (0, 1))
+
+
+@pytest.mark.parametrize(
+    ("call", "message"),
+    [
+        (
+            lambda s: s.sia((1, 0, 0), subsett=(0, 1)),
+            r"Substrate\.sia\(\).*'subsett'.*Did you mean 'subset'",
+        ),
+        (
+            lambda s: s.ces((1, 0, 0), indices=(0, 1)),
+            r"Substrate\.ces\(\).*'indices'.*subset=",
+        ),
+        (
+            lambda s: s.sia((1, 0, 0), partition_schme="X"),
+            r"Did you mean 'partition_scheme'",
+        ),
+        (lambda s: pyphi.System(s, (1, 0, 0), (0, 1)), r"subset="),
+        (lambda s: pyphi.System(s, (1, 0, 0), nodes=(0, 1)), r"'nodes'.*subset="),
+    ],
+)
+def test_misspelt_and_old_keywords_name_the_called_method(call, message):
+    with pytest.raises(TypeError, match=message):
+        call(examples.iit4_2023_fig1a_substrate())
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda s: s.find_mice(pyphi.Direction.CAUSE, (0,), bogus=1),
+        lambda s: s.find_mip(pyphi.Direction.CAUSE, (0,), (0,), bogus=1),
+        lambda s: s.cause_mip((0,), (0,), bogus=1),
+        lambda s: s.effect_mip((0,), (0,), bogus=1),
+        lambda s: s.phi_cause_mip((0,), (0,), bogus=1),
+        lambda s: s.phi_effect_mip((0,), (0,), bogus=1),
+        lambda s: s.all_distinctions(bogus=1),
+    ],
+)
+def test_system_mechanism_queries_reject_unknown_keywords(call):
+    system = pyphi.System(examples.iit4_2023_fig1a_substrate(), (1, 0, 0))
+    with pytest.raises(TypeError, match="bogus"):
+        call(system)
+
+
+def test_system_mechanism_queries_keep_their_options():
+    with pyphi.config.override(**pyphi.iit4_2026):
+        system = pyphi.System(examples.iit4_2023_fig1a_substrate(), (1, 0, 0))
+        mice = system.find_mice(pyphi.Direction.CAUSE, (0,), purviews=[(0,)])
+        mip = system.find_mip(pyphi.Direction.CAUSE, (0,), (0,), parallel=False)
+    assert mice.phi == pytest.approx(mip.phi)
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda tr: actual.sia(tr, bogus=1),
+        lambda tr: actual.account(tr, bogus=1),
+        lambda tr: actual.account(tr, allow_negative=True),
+        lambda tr: tr.find_actual_cause((0,), bogus=1),
+        lambda tr: tr.find_actual_effect((0,), bogus=1),
+        lambda tr: tr.find_causal_link(pyphi.Direction.CAUSE, (0,), bogus=1),
+    ],
+)
+def test_actual_causation_entry_points_reject_unknown_keywords(call):
+    transition = actual.Transition(
+        examples.actual_causation_substrate(), (0, 1), (1, 0), (0, 1), (0, 1)
+    )
+    with pytest.raises(TypeError, match=r"bogus|allow_negative"):
+        call(transition)
+
+
+def test_system_sia_takes_measure_names():
+    from pyphi.measures.distribution import resolve_system_measure
+
+    with pyphi.config.override(**pyphi.iit4_2026):
+        system = pyphi.System(examples.iit4_2023_fig1a_substrate(), (1, 0, 0))
+        name = pyphi.config.formalism.iit.system_phi_measure
+        by_name = system.sia(system_measure=name).phi
+        by_object = system.sia(system_measure=resolve_system_measure(name)).phi
+        assert by_name == pytest.approx(by_object) == pytest.approx(system.sia().phi)
+        with pytest.raises(TypeError, match="system_measure must be"):
+            system.sia(system_measure=lambda *_, **__: 0.0)
+        with pytest.raises(ValueError, match="NOPE"):
+            system.sia(specification_measure="NOPE")
+
+
+def test_unit_function_keywords_are_checked():
+    import numpy as np
+
+    from pyphi.substrate_generator import build_substrate
+    from pyphi.substrate_generator import ising
+
+    weights = np.array([[-0.2, 0.7, 0.2], [0.7, -0.2, 0.0], [0.0, -0.8, 0.2]])
+    units = [ising.probability] * 3
+    build_substrate(units, weights, temperature=0.25)
+    with pytest.raises(TypeError, match="Did you mean 'temperature'"):
+        build_substrate(units, weights, temprature=0.25)
+    with pytest.raises(TypeError, match="temprature"):
+        pyphi.weight_axis(units, weights, (0, 1), temprature=0.25)
+    with pytest.raises(TypeError, match="temprature"):
+        pyphi.weight_axes(units, weights, [(0, 1)], temprature=0.25)
+    # A keyword shared across a mix of unit functions is accepted when at
+    # least one of them names it.
+    build_substrate(["ising", "gaussian", "ising"], weights, temperature=1, mu=0.1)
+
+
+def test_true_events_take_maximal_complex():
+    swap = pyphi.Substrate([[0, 0], [0, 1], [1, 0], [1, 1]], cm=[[0, 1], [1, 0]])
+    states = ((1, 0), (0, 1), (1, 0))
+    with pytest.raises(ValueError, match="maximal_complex"):
+        actual.true_events(
+            swap, *states, subset=(0, 1), maximal_complex=swap.maximal_complex((0, 1))
+        )
+    with pytest.raises(TypeError, match="major_complex"):
+        actual.true_events(swap, *states, major_complex=None)

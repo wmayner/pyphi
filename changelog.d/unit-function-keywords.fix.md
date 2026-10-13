@@ -1,0 +1,1 @@
+`build_substrate`, `build_tpm`, `pyphi.weight_axis` and `pyphi.weight_axes` raise `TypeError` for a keyword that none of the unit functions takes, with a suggestion for a near match. A misspelt keyword such as `temprature=` used to be ignored, which built a different substrate without any error.

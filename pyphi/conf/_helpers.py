@@ -11,6 +11,7 @@ respecting the global parallel + progress switches.
 
 from __future__ import annotations
 
+import difflib
 from collections.abc import Iterable
 from collections.abc import Mapping
 from copy import copy
@@ -173,17 +174,48 @@ def parallel_overrides(parallel: bool | Iterable[str] | None) -> dict[str, Any]:
     return overrides
 
 
-def reject_unknown_kwargs(caller: str, kwargs: Mapping[str, Any]) -> None:
-    """Raise ``TypeError`` if ``kwargs`` holds a name outside :data:`PARALLEL_KWARGS`.
+# Names that PyPhi 1.x and the 2.0 release candidates used for the units of the
+# candidate system, which every entry point now calls ``subset``.
+_OLD_SUBSET_NAMES = frozenset({"indices", "nodes", "node_indices"})
 
-    For functions whose ``**kwargs`` reach only :func:`parallel_kwargs`,
-    which drops unknown names: a misspelt or misplaced option then fails
-    instead of being ignored.
+
+def reject_unknown_kwargs(
+    caller: str,
+    kwargs: Mapping[str, Any],
+    allowed: Iterable[str] = PARALLEL_KWARGS,
+) -> None:
+    """Raise ``TypeError`` if ``kwargs`` holds a name outside ``allowed``.
+
+    For functions whose ``**kwargs`` reach code that would drop or ignore
+    unknown names: a misspelt or misplaced option then fails instead of being
+    ignored. The message names ``caller`` and suggests a close match, or,
+    when ``subset`` is allowed, ``subset=`` for an old name of that argument.
+
+    Parameters
+    ----------
+    caller : str
+        The function name the message reports, such as ``"Substrate.sia"``.
+    kwargs : Mapping[str, Any]
+        The keyword arguments given.
+    allowed : Iterable[str], optional
+        The accepted names. Defaults to :data:`PARALLEL_KWARGS`.
+
+    Raises
+    ------
+    TypeError
+        If a name in ``kwargs`` is not in ``allowed``.
     """
-    unknown = sorted(set(kwargs) - set(PARALLEL_KWARGS))
-    if unknown:
-        names = ", ".join(repr(name) for name in unknown)
-        raise TypeError(f"{caller}() got unexpected keyword argument(s): {names}")
+    allowed = list(allowed)
+    for name in kwargs:
+        if name in allowed:
+            continue
+        message = f"{caller}() got an unexpected keyword argument {name!r}"
+        close = difflib.get_close_matches(name, allowed, n=1)
+        if name in _OLD_SUBSET_NAMES and "subset" in allowed:
+            message += "; pass the units of the candidate system as subset=..."
+        elif close:
+            message += f". Did you mean {close[0]!r}?"
+        raise TypeError(message)
 
 
 __all__ = [

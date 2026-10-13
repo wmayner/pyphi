@@ -77,6 +77,9 @@ def weight_axes(
     connectivity matrix (``cm = weights != 0``), a discrete topology change,
     exactly as for :func:`pyphi.landscape.weight_axis`.
     """
+    from pyphi.substrate_generator import _check_unit_function_kwargs
+
+    _check_unit_function_kwargs(unit_functions, kwargs)
     return _WeightAxis(
         unit_functions=unit_functions,
         base=np.array(weights, dtype=float),
