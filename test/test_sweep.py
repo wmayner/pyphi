@@ -337,12 +337,16 @@ def test_duplicate_formalisms_run_once():
     assert len(result.df) == 1
 
 
-def test_repeated_states_run_once():
-    result = sweep(_fig1a(), states=[(1, 0, 0), (0, 0, 0), (1, 0, 0)], progress=False)
-    assert list(result.df.state) == [(1, 0, 0), (0, 0, 0)]
+def test_repeated_states_give_one_row_each():
+    # States sampled with replacement must keep their duplicates, so an
+    # average over the rows is an average over the draws.
+    states = [(1, 0, 0), (0, 0, 0), (1, 0, 0)]
+    result = sweep(_fig1a(), states=states, progress=False)
+    assert list(result.df.state) == states
+    assert len(result.results) == 3
 
 
-def test_campaign_tasks_have_no_repeated_cells(tmp_path):
+def test_campaign_merges_subset_spellings_and_keeps_repeated_states(tmp_path):
     from pyphi.campaign import prepare
 
     campaign = prepare(
@@ -351,7 +355,7 @@ def test_campaign_tasks_have_no_repeated_cells(tmp_path):
         subsets=[(0, 1), ("A", "B"), (1, 0)],
         directory=tmp_path / "campaign",
     )
-    assert campaign.n_cells == campaign.n_tasks == 1
+    assert campaign.n_cells == 2
 
 
 def test_subsets_none_is_the_whole_system():

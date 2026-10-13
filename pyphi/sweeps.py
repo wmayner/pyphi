@@ -199,13 +199,12 @@ def _normalize_states(substrate: Any, states: Any) -> list[tuple[int, ...]]:
     if isinstance(states, str):
         _check_mode("states", states, ("all",))
         return list(utils.all_states(substrate.factored_tpm.alphabet_sizes))
-    # A state given more than once, however it is spelled, runs once.
-    return list(
-        dict.fromkeys(
-            _coerce_state_to_indices(state, substrate.state_space)
-            for state in _explicit_axis(states, "states")
-        )
-    )
+    # Repeats are kept: states drawn at random with replacement give one row
+    # per draw.
+    return [
+        _coerce_state_to_indices(state, substrate.state_space)
+        for state in _explicit_axis(states, "states")
+    ]
 
 
 def _normalize_subsets(substrate: Any, subsets: Any) -> list[tuple[int, ...]]:
@@ -512,7 +511,8 @@ def sweep(
         array or an iterator), or ``"all"``. Explicit states apply to every
         substrate; ``"all"`` enumerates per substrate. The ``state`` column
         holds each state as unit-state indices. A state given more than once
-        runs once.
+        gives one row each time, so states sampled with replacement can be
+        averaged over the rows.
     subsets
         ``"full"`` or ``None`` (whole system), ``"all"`` (non-empty
         powerset), one subset as a tuple of node indices or of labels, or an

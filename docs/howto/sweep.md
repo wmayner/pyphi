@@ -93,8 +93,9 @@ The `subsets` argument chooses which subsets of nodes to treat as the
 candidate system. Pass `"all"` for the non-empty powerset, `"full"` (the
 default) for the whole substrate, one tuple of node indices or labels, or a
 list of them. The `subset` column always holds sorted node indices, so a
-subset spelled with labels and the same subset spelled with indices group
-together. Here we hold the state fixed and vary the subset:
+subset spelled with labels and the same subset spelled with indices are
+merged into one row, computed once. Here we hold the state fixed and vary the
+subset:
 
 ```{code-cell} python
 pyphi.sweep(substrate, states=(0, 1, 1), subsets="all").df.round(6)
@@ -103,7 +104,10 @@ pyphi.sweep(substrate, states=(0, 1, 1), subsets="all").df.round(6)
 `states` takes the same kinds of value: `"all"`, one state, or a list of
 states. NumPy integers, the rows of a 2-D array and iterators such as
 `itertools.product(...)` work too, so states drawn with a random number
-generator can be passed directly. An empty axis, an unknown string, or a
+generator can be passed directly. Unlike subsets, a state given more than once
+gives one row each time, so a sample drawn with replacement keeps its
+duplicates and an average over the `phi` column is an average over the draws.
+An empty axis, an unknown string, or a
 subset or state that does not fit a substrate raises a `ValueError` before
 anything is computed.
 
