@@ -29,8 +29,8 @@ topic is tagged with who it affects:
 | `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` | [1.x] |
 | `network.tpm` (an array) | `substrate.tpm` (a `FactoredTPM`; `np.asarray(substrate.tpm)` gives the state-by-node array when every unit is binary) | [1.x] |
 | `pyphi.compute.*` | `pyphi.analyze(...)` | [1.x] |
-| `subsystem.cause_tpm`, `proper_cause_tpm` | `system.cause_marginal`, `proper_cause_marginal` | [both] |
-| `subsystem.effect_tpm`, `proper_effect_tpm` | `system.effect_marginal`, `proper_effect_marginal` | [both] |
+| `subsystem.cause_tpm`, `proper_cause_tpm` | `system.cause_marginal`, `proper_cause_marginal` | [4.0-branch] |
+| `subsystem.effect_tpm`, `proper_effect_tpm` | `system.effect_marginal`, `proper_effect_marginal` | [4.0-branch] |
 | `subsystem.cut` | `system.partition` | [1.x] |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` | [both] |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` | [both] |
@@ -58,9 +58,11 @@ Using a removed 1.x name as an attribute, as in `pyphi.Network`, raises an
 error that gives its replacement. Importing it, as in
 `from pyphi import Network`, raises a plain `ImportError` instead, because
 Python's import statement drops that message; look the name up in the table
-above. The `[4.0-branch]` names `purview_state` and `intrinsic_information` on
-a result or a system raise a plain `AttributeError`, and so do the names that
-existed only in a release candidate (see the last section).
+above. The `[4.0-branch]` names give no replacement: `pyphi.new_big_phi`,
+`pyphi.network_generator` and `pyphi.metrics` raise a plain `AttributeError`
+(or a plain `ImportError` when imported), and so do `purview_state` and
+`intrinsic_information` on a result or a system, and the names that existed
+only in a release candidate (see the last section).
 
 The name `CauseEffectStructure` now means a different object. In 1.x it was
 the list of concepts, which 2.0 calls `Distinctions`; in 2.0 it is the
@@ -69,9 +71,13 @@ analysis. An unported import of `CauseEffectStructure` therefore still
 succeeds, but gives the newer object.
 
 `cause_marginal` and `effect_marginal` (with the `proper_cause_marginal` /
-`proper_effect_marginal` variants) are the causal marginals of IIT 4.0. The old
-`cause_tpm` / `effect_tpm` names were a misnomer — the value was never a
-transition probability matrix but a distribution over cause/effect states. See
+`proper_effect_marginal` variants) replace the IIT 4.0 branch's `cause_tpm` and
+`effect_tpm`; released 1.x had neither. They hold the cause and effect TPMs of
+IIT 4.0, 𝒯_c and 𝒯_e (Albantakis et al., 2023, Eqs. 3–4), with the background
+causally marginalized conditional on the current state: held at its current
+state for effects, and with its past states weighted by their probability
+given the current state for causes. `effect_marginal` is a factored transition
+matrix and `cause_marginal` a mapping of per-unit cause factors. See
 [Substrate and system](../theory/substrate-and-system.md) for what they are.
 
 ### Example networks
@@ -488,7 +494,27 @@ different numbers. Recompute results from any of these.
   update no more slowly than its own (Marshall et al. 2026, Eq. 17; the
   default `max_update_grain=1` is unaffected), and it drops candidates with
   φₛ = 0 before the exclusion cascade. The search can return different
-  complexes than rc3 did.
+  complexes than rc3 did. It also raises a `ValueError` under
+  `background_conditioning="CONDITION_CURRENT_STATE"`: the macro cause TPM is
+  defined only with the background causally marginalized, and rc3 built it
+  that way whatever the setting, so its values disagreed with
+  `Substrate.complexes` (see {doc}`../howto/grain-search`).
+- **Setting the version alone.** rc3 accepted
+  `pyphi.config["formalism.iit.version"] = "IIT_4_0_2023"` (or
+  `config["iit.version"]`) on its own. That changed the version recorded with
+  each result but left the measures as they were, so results computed after
+  such a write carry a version label that does not match the measures they
+  were computed with. Recompute them. 2.0.0 raises a `ConfigurationError`;
+  apply the whole preset with `pyphi.config.override(**pyphi.iit4_2023)`, or
+  pass `formalism="IIT_4_0_2023"`.
+- **Runner-up partition.** `sia.runner_up` is `None` when the partition sweep
+  stopped early at a partition with φₛ = 0, because the partitions evaluated
+  before the stop need not include the true runner-up; rc3 reported the best
+  of them. Under the intrinsic-information requirement, the runner-up keeps
+  the values it was ranked on, from before the requirement applies, where rc3
+  lowered them by the requirement. `RunnerUp.gap` is new: how far the
+  runner-up's ranking value exceeds the MIP's. Files saved by a release
+  candidate load with `gap=None`.
 - **Presets.** `pyphi.iit3`, `pyphi.iit4_2023`, `pyphi.iit4_2026` and
   `pyphi.conf.presets.by_name` are read-only mappings; copy one with
   `dict(pyphi.iit3)` to change it. Passing a modified copy as `formalism=`
@@ -500,8 +526,11 @@ different numbers. Recompute results from any of these.
   columns `substrate`, `formalism`, `subset` and `state` first, however many
   values each axis has. A table over several axes had a `MultiIndex`, so
   `df.loc[(...)]` and `df.xs(...)` fail now, and `df.iloc[:, 0]` is the
-  `substrate` column, no longer `phi`. The `subset` column holds sorted unit
-  indices whatever spelling was given, and a formalism named twice runs once.
+  `substrate` column, no longer `phi`. A flat sequence is one subset: rc3 read
+  `subsets=("A", "B")` as the two one-unit subsets `("A",)` and `("B",)`, and
+  2.0.0 runs the single subset `(0, 1)`. The `subset` column holds sorted unit
+  indices whatever spelling was given, and a subset, state or formalism given
+  more than once, under any spelling, runs once.
   `sweep(subsets=None)` means the whole system. With a callable `compute`, a
   scalar result goes in a `value` column; there is no `phi` column of `None`.
   `LandscapeSection.df` has a `theta` column and a default index, where it was
@@ -556,9 +585,12 @@ different numbers. Recompute results from any of these.
 | Matplotlib helpers returned a graph, a figure, axes or a tuple depending on the helper | all return `(fig, ax)`; `plot_repertoires` no longer returns the repertoires and `plot_system` no longer returns a graph |
 | `pyphi.sweep(compute=...)` accepted `"sia"`, `"ces"` or a callable | also `"distinctions"` and `None` (the full analysis), as in `analyze` |
 | `pyphi.estimate_analysis`, `pyphi.phi_posterior` | take `formalism=`; `phi_posterior` also takes `progress=` |
+| `dynamics.simulate(tpm, initial_state, timesteps, clamp, rng, seed)` and `dynamics.mean_dynamics(tpm, repetitions, seed)` with `seed` or `rng` positional; `rng` won when both were given | `seed=` and `rng=` are keyword-only on both, and giving both raises a `TypeError` |
 
 The IIT 3.0 and actual-causation methods that took `**kwargs` and ignored what
 they did not use (`Transition.find_*`, `actual.sia`, `actual.account`,
 `System.find_mice`, `find_mip`, `mic`, `mie`, `phi`, `all_distinctions`, and
 `build_substrate`, `build_tpm`, `weight_axis` with a misspelt unit-function
-option) now raise a `TypeError` for an unknown keyword.
+option) now raise a `TypeError` for an unknown keyword. The unit-function
+check is skipped when one of the unit functions is your own and takes
+`**kwargs`, since it can read any keyword.

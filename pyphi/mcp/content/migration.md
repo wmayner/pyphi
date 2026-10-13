@@ -19,18 +19,18 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.Network` | `pyphi.Substrate` |
 | `pyphi.Subsystem(network, state, nodes)` | `pyphi.System(substrate, state, subset=nodes)` |
 | `network.tpm` (an array) | `substrate.tpm` (a `FactoredTPM`; `np.asarray(substrate.tpm)` is the state-by-node array for binary units) |
-| `pyphi.network_generator` | `pyphi.substrate_generator` |
+| `pyphi.network_generator` (4.0 branch) | `pyphi.substrate_generator` |
 | `pyphi.compute.phi(...)` / `pyphi.compute.ces(...)` | `pyphi.analyze(...)` |
-| `from pyphi import new_big_phi` | `from pyphi.formalism import iit4` |
-| `pyphi.new_big_phi.phi_structure` | `pyphi.formalism.iit4.ces` |
-| `pyphi.new_big_phi.sia` | `pyphi.formalism.iit4.sia` |
-| `pyphi.metrics` | `pyphi.measures` |
+| `from pyphi import new_big_phi` (4.0 branch) | `from pyphi.formalism import iit4` |
+| `pyphi.new_big_phi.phi_structure` (4.0 branch) | `pyphi.formalism.iit4.ces` |
+| `pyphi.new_big_phi.sia` (4.0 branch) | `pyphi.formalism.iit4.sia` |
+| `pyphi.metrics` (4.0 branch) | `pyphi.measures` |
 | `pyphi.models.Concept` | `pyphi.models.Distinction` |
 | `subsystem.null_concept` / `subsystem.apply_cut(cut)` | `system.null_distinction` / `system.apply_partition(partition)` |
 | `transition.apply_cut(cut)` | `transition.apply_partition(partition)` |
 | `pyphi.actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events` | `subset=nodes`, keyword-only, on all three |
 | `pyphi.convert.b2l`, `sbn2sbs`, and the other short names | the long names (`be2le`, `state_by_node2state_by_state`, ...) |
-| `subsystem.cause_tpm` / `effect_tpm` (and `proper_*`) | `system.cause_marginal` / `effect_marginal` (and `proper_*_marginal`) |
+| `subsystem.cause_tpm` / `effect_tpm` (and `proper_*`) (4.0 branch) | `system.cause_marginal` / `effect_marginal` (and `proper_*_marginal`) |
 | `pyphi.jsonify` | `pyphi.serialize` / `pyphi.save` / `pyphi.load` |
 | `pyphi.utils.eq` / `is_positive` / `is_nonpositive` | `pyphi.numerics.eq` / `is_positive` / `is_nonpositive` |
 | `pyphi.config.IIT_VERSION` | `pyphi.config.formalism.iit.version` |
@@ -41,6 +41,14 @@ site root; this is the condensed agent-facing copy. Keep the two in sync.)
 | `pyphi.models.Bipartition` / `Tripartition` / `KPartition` | `JointBipartition` / `JointTripartition` / `JointPartition` |
 | `pyphi.models.KCut` / `ActualCut` | `DirectedJointPartition(direction, partition)` / `DirectedBipartition` |
 | `subsystem.cut` | `system.partition` |
+
+A removed 1.x name used as an attribute (`pyphi.Network`) raises an error that
+gives its replacement; imported (`from pyphi import Network`) it raises a plain
+`ImportError`, because the import statement drops that message. The 4.0-branch
+modules `new_big_phi`, `network_generator` and `metrics`, the names
+`purview_state` and `intrinsic_information` on a result or a system, and names
+that existed only in a release candidate (section 8) raise a plain
+`AttributeError`, or `ImportError` when imported.
 
 Two traps in that table:
 
@@ -55,11 +63,14 @@ Two traps in that table:
   old function call into a property access blindly; the modern entry point
   is `pyphi.analyze`.
 
-`cause_marginal` / `effect_marginal` replace the old `cause_tpm` /
-`effect_tpm`. IIT 4.0 calls these objects the cause and effect TPMs, 𝒯_c and
-𝒯_e (Albantakis et al. 2023, Eqs. 3–4). The new attributes hold them in
-factored, per-unit form, with the background causally marginalized conditional
-on the current state.
+`cause_marginal` / `effect_marginal` (and the `proper_*` variants) replace the
+4.0 branch's `cause_tpm` / `effect_tpm`; released 1.x had neither. They hold
+the cause and effect TPMs of IIT 4.0, 𝒯_c and 𝒯_e (Albantakis et al. 2023,
+Eqs. 3–4), with the background causally marginalized conditional on the current
+state: held at its current state for effects, and with its past states weighted
+by their probability given the current state for causes. `effect_marginal` is a
+factored transition matrix and `cause_marginal` a mapping of per-unit cause
+factors.
 
 ### Example networks
 
@@ -351,7 +362,23 @@ read this section before anything else.
 - The grain search (`analyze(..., grains=True)`, `pyphi.macro.complexes`)
   checks reachability on the cause TPM, compares a unit only with competitors
   no slower than itself (Marshall et al. 2026, Eq. 17), and drops φₛ = 0
-  candidates before exclusion; it can return different complexes.
+  candidates before exclusion; it can return different complexes. It raises
+  `ValueError` under `background_conditioning="CONDITION_CURRENT_STATE"`: the
+  macro cause TPM is defined only with the background causally marginalized,
+  and rc3 built it that way whatever the setting, so its values disagreed with
+  `Substrate.complexes`.
+- rc3 accepted `config["formalism.iit.version"] = ...` (or
+  `config["iit.version"]`) on its own: the recorded version changed but the
+  measures did not, so results computed after such a write are labelled with
+  a version they were not computed under. Recompute them. 2.0.0 raises
+  `ConfigurationError`; use `config.override(**pyphi.iit4_2023)` or
+  `formalism=`.
+- `sia.runner_up` is `None` when the partition sweep stopped early at a
+  partition with φₛ = 0 (rc3 reported the best of the partitions evaluated
+  before the stop). Under the intrinsic-information requirement the runner-up
+  keeps the values it was ranked on, from before the requirement applies
+  (rc3 lowered them). `RunnerUp.gap` is new: how far the runner-up's ranking
+  value exceeds the MIP's (`None` in files saved by an rc).
 - Presets (`pyphi.iit3`, `iit4_2023`, `iit4_2026`, `presets.by_name`) are
   read-only mappings (copy with `dict(...)`); `formalism=<modified preset>`
   raises `ValueError`; presets and `formalism=` keep the current
@@ -359,9 +386,12 @@ read this section before anything else.
 - `SweepResult.df` always has a `RangeIndex` and the columns `substrate`,
   `formalism`, `subset`, `state` first (rc3 used a `MultiIndex` for several
   axes, so `df.loc[(...)]` fails and `df.iloc[:, 0]` is `substrate`, not
-  `phi`). The `subset` column is sorted unit indices; duplicate formalisms
-  run once; `subsets=None` is the whole system; a callable `compute` gives a
-  `value` column. `LandscapeSection.df` has a `theta` column instead of a θ
+  `phi`). A flat sequence is one subset: rc3 read `subsets=("A", "B")` as
+  the two one-unit subsets `("A",)` and `("B",)`; 2.0.0 runs the one subset
+  `(0, 1)`. The `subset` column is sorted unit indices; a subset, state or
+  formalism given more than once, under any spelling, runs once;
+  `subsets=None` is the whole system; a callable `compute` gives a `value`
+  column. `LandscapeSection.df` has a `theta` column instead of a θ
   index.
 - `to_pandas()` on one object (a SIA, a distinction, an estimate) is a
   one-row `DataFrame`, not a `Series`; the SIA's `system` column is `subset`.
@@ -380,7 +410,8 @@ read this section before anything else.
 | rc3 | 2.0.0 |
 | --- | --- |
 | `System.from_substrate(s, st, nodes)` (also on `TransitionSystem`, `MacroSystem`) | `System(s, st, subset=nodes)` |
-| `node_indices=`, `nodes=`, `indices=` or a third positional argument on `System`, `MacroSystem`, `Substrate.sia` / `ces` | `subset=`, keyword-only |
+| `node_indices=`, `nodes=`, `indices=` or a third positional argument on `System`, `Substrate.sia` / `ces` | `subset=`, keyword-only |
+| `MacroSystem(substrate, state, node_indices, ...)` | `MacroSystem(substrate, state, units, ...)` with `subset=` keyword-only; `MacroSystem.from_micro` is unchanged |
 | `actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events`; `major_complex=` | `subset=` (keyword-only); `maximal_complex=` |
 | `reachable_systems(substrate, indices, state)` | `reachable_systems(substrate, state, subset=...)` |
 | positional `partition` / `noise_background` on `Transition`; positional index tuples on `PerceptualSystem`, `TriggeredTPM`, `build_triggered_tpm`; positional `candidates` on `Substrate.complexes` and relatives | keyword-only |
@@ -395,8 +426,18 @@ read this section before anything else.
 | unprefixed 2014 examples (`fig4_substrate()`, `fig4_system()`, ...) | `iit3_2014_fig4_substrate()`, `iit3_2014_fig4_system()`, ... |
 | `models.Concept`, `System.null_concept`, `apply_cut`, short `convert` names (kept as aliases in rc3) | removed; see the first table |
 | `AnalysisEstimate.compute == "full"` | `None` |
+| `pyphi.models.pandas.record_to_series` | removed; `to_pandas()` always returns a `DataFrame` |
 | Matplotlib helpers with mixed return types | all return `(fig, ax)` |
 | `sweep(compute=)` of `"sia"`, `"ces"` or a callable | also `"distinctions"` and `None` (full analysis) |
+| `estimate_analysis`, `phi_posterior` without `formalism=` | both take `formalism=`; `phi_posterior` also takes `progress=` |
+| `dynamics.simulate` / `mean_dynamics` with positional `seed` or `rng` (`rng` won when both were given) | `seed=` and `rng=` keyword-only; giving both raises `TypeError` |
+
+The IIT 3.0 and actual-causation methods that dropped unknown keywords
+(`Transition.find_*`, `actual.sia`, `actual.account`, `System.find_mice`,
+`find_mip`, `mic`, `mie`, `phi`, `all_distinctions`) raise `TypeError` for
+one now, and so do `build_substrate`, `build_tpm` and `weight_axis` for a
+unit-function option no unit function takes. That check is skipped when one
+of the unit functions is the user's own and takes `**kwargs`.
 
 ## 9. Checklist for migrating a file
 
