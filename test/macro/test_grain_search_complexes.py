@@ -24,6 +24,17 @@ def test_grain_search_returns_no_complex_when_every_candidate_is_reducible():
             assert not result.maximal_complex
 
 
+def test_an_empty_complexes_result_keeps_its_columns():
+    with pyphi.config.override(**pyphi.iit4_2026):
+        empty = pyphi.analyze(examples.basic_substrate(), (1, 0, 0), grains=True)
+        full = pyphi.analyze(
+            examples.iit4_2023_fig1a_substrate(), (0, 1, 1), grains=True
+        )
+    df = empty.to_pandas()
+    assert len(df) == 0
+    assert list(df.columns) == list(full.to_pandas().columns)
+
+
 def test_grain_search_complexes_all_have_positive_phi():
     with pyphi.config.override(**pyphi.iit4_2026):
         result = pyphi.analyze(

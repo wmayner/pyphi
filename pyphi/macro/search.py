@@ -1311,7 +1311,18 @@ class ComplexesResult(Displayable, ToPandasMixin):
                     **complex_._pandas_record(),
                 }
             )
-        return records_to_frame(rows)
+        # With no complex, the null complex's record supplies the columns.
+        columns = (
+            None
+            if rows
+            else [
+                "node_indices",
+                "units",
+                "grains",
+                *self.maximal_complex._pandas_record(),
+            ]
+        )
+        return records_to_frame(rows, columns=columns)
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         from pyphi.conf.formalism import IITConfig

@@ -297,6 +297,11 @@ def landscape_section(
     -------
     LandscapeSection
 
+    Raises
+    ------
+    ValueError
+        If ``grid`` is empty.
+
     Notes
     -----
     Grid points whose state is dynamically unreachable are skipped and
@@ -311,6 +316,8 @@ def landscape_section(
     # pyphi/sweeps.py's _run_cells_parallel pattern (module-level cell
     # function, parallel=False inside workers).
     thetas = [float(theta) for theta in grid]
+    if not thetas:
+        raise ValueError("grid is empty")
     show_progress = fallback(progress, config.infrastructure.progress_bars)
     iterator = tqdm(
         thetas, desc="Evaluating landscape section", disable=not show_progress

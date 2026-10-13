@@ -177,3 +177,9 @@ def test_landscape_section_iit3_rows_carry_defaults():
     assert row["cause_state"] is None
     assert row["effect_state"] is None
     assert row["effectively_tied"] is None
+
+
+def test_an_empty_grid_raises():
+    substrate = examples.basic_substrate()
+    with pytest.raises(ValueError, match="grid is empty"):
+        landscape_section(lambda _theta: substrate, (1, 0, 0), [])

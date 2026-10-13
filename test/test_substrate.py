@@ -343,3 +343,24 @@ class TestInactivate:
         assert examples.iit4_2023_fig7_inactivated_substrate() == (
             examples.iit4_2023_fig7_substrate().inactivate({"E": 0})
         )
+
+
+def test_candidates_may_be_subsets_by_index_or_label():
+    from pyphi.conf import presets
+
+    substrate = examples.iit4_2023_fig1a_substrate()
+    state = (1, 0, 0)
+    with config.override(**presets.iit4_2023):
+        by_index = substrate.all_sias(state, candidates=[(0, 1), (0, 1, 2)])
+        by_label = substrate.all_sias(state, candidates=[("A", "B"), ("A", "B", "C")])
+        direct = [substrate.sia(state, subset=s) for s in [(0, 1), (0, 1, 2)]]
+    assert [s.phi for s in by_index] == [s.phi for s in direct]
+    assert [s.phi for s in by_label] == [s.phi for s in direct]
+
+
+def test_a_candidate_system_in_another_state_is_rejected():
+    from pyphi.system import System
+
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with pytest.raises(ValueError, match="not a system of this substrate"):
+        substrate.complexes((1, 0, 0), candidates=[System(substrate, (0, 0, 0))])

@@ -1,0 +1,1 @@
+The `candidates=` argument of `Substrate.complexes`, `maximal_complex`, `all_sias` and `irreducible_sias` accepts subsets of units (indices or labels) as well as `System` objects, and rejects a `System` of another substrate or state.

@@ -571,7 +571,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         subset : optional
             The units of the candidate system, by index or label. ``None``
             uses the whole substrate.
-        formalism : str, dict, or None, optional
+        formalism : str, mapping, or None, optional
             The version of IIT, selected as by :func:`pyphi.analyze`, for
             this call only. ``None`` uses the active configuration.
         **options
@@ -606,7 +606,7 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
         subset : optional
             The units of the candidate system, by index or label. ``None``
             uses the whole substrate.
-        formalism : str, dict, or None, optional
+        formalism : str, mapping, or None, optional
             The version of IIT, selected as by :func:`pyphi.analyze`, for
             this call only. ``None`` uses the active configuration.
         **options
@@ -1018,6 +1018,31 @@ def _resolved_sia() -> tuple[Any, dict[str, Any]]:
     return _sia, kwargs
 
 
+def _candidate_systems(
+    substrate: Substrate, state: tuple[int, ...], candidates: Iterable[Any]
+) -> list[Any]:
+    """The candidate systems ``candidates`` names, each a subset of units or a
+    :class:`~pyphi.system.System` of ``substrate`` in ``state``."""
+    from pyphi.system import System
+
+    coerced = _coerce_state_to_indices(state, substrate.state_space)
+    systems = []
+    for candidate in candidates:
+        if isinstance(candidate, System):
+            if candidate.state != coerced or (
+                candidate.substrate is not substrate and candidate.substrate != substrate
+            ):
+                raise ValueError(
+                    f"candidate system {candidate.node_indices} in state "
+                    f"{candidate.state} is not a system of this substrate in "
+                    f"state {tuple(state)}; give candidates as subsets of units"
+                )
+            systems.append(candidate)
+        else:
+            systems.append(System(substrate, state, subset=candidate))
+    return systems
+
+
 def all_sias(
     substrate: Substrate,
     state: tuple[int, ...],
@@ -1028,11 +1053,13 @@ def all_sias(
 ) -> list[Any]:
     """Return SIAs for every candidate system of the substrate.
 
-    Includes reducible (φₛ = 0) candidates. The default candidate
-    iterator is :func:`possible_complexes`, which skips subsets containing
-    nodes that lack either inputs or outputs in the substrate — a
-    mathematically safe optimization, since such candidates are not strongly
-    connected and have φₛ = 0.
+    Includes reducible (φₛ = 0) candidates. ``candidates`` gives the
+    candidate systems, each as a subset of units (node indices or labels)
+    or as a :class:`~pyphi.system.System` of this substrate in ``state``.
+    The default is :func:`possible_complexes`, which skips subsets
+    containing nodes that lack either inputs or outputs in the substrate —
+    a mathematically safe optimization, since such candidates are not
+    strongly connected and have φₛ = 0.
 
     ``parallel`` and ``progress`` govern the evaluation of the candidates;
     ``None`` defers to ``config.infrastructure.parallel_complex_evaluation``.
@@ -1042,7 +1069,11 @@ def all_sias(
     from pyphi.conf import config as _config
     from pyphi.parallel import map_reduce
 
-    iterable = possible_complexes(substrate, state) if candidates is None else candidates
+    iterable = (
+        possible_complexes(substrate, state)
+        if candidates is None
+        else _candidate_systems(substrate, state, candidates)
+    )
 
     sia_fn, map_kwargs = _resolved_sia()
     map_kwargs["progress"] = False
@@ -1084,7 +1115,8 @@ def irreducible_sias(
 
     These are *not* complexes — overlapping candidates may both appear in
     the returned list. The complexes (a subset satisfying exclusion) are
-    obtained from :func:`complexes`.
+    obtained from :func:`complexes`. ``candidates`` is as in
+    :func:`all_sias`.
     """
     return list(
         filter(
@@ -1109,7 +1141,8 @@ def complexes(
     candidates that remain. A candidate that an accepted complex has excluded
     takes no further part, so a complex can overlap a candidate with higher
     φₛ when another complex excluded that candidate. The returned tuple is
-    non-overlapping, ordered by φₛ descending.
+    non-overlapping, ordered by φₛ descending. ``candidates`` is as in
+    :func:`all_sias`.
 
     The search walks SIAs in descending φₛ tiers and groups survivors into
     overlap cliques per tier. Each multi-candidate clique escalates to the
@@ -1178,7 +1211,8 @@ def maximal_complex(
 ) -> Any:
     """Return the complex with maximum φₛ over the substrate.
 
-    Equivalent to the first element of :func:`complexes`. Returns a
+    Equivalent to the first element of :func:`complexes`; ``candidates`` is
+    as in :func:`all_sias`. Returns a
     null-object :class:`~pyphi.models.complex.Complex` (falsy, with empty
     units) when no irreducible candidate exists.
     """
