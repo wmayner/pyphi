@@ -29,8 +29,9 @@ class CESMeasureRegistry(Registry):
     Users can define custom measures. The third positional or keyword
     argument is the :class:`~pyphi.system.System` context; measures that
     do not need it can accept it as ``system=None`` and ignore it.
-    Register a measure, then select it by setting
-    ``config.ces_measure = 'ALWAYS_ZERO'``.
+    ``config.formalism.iit.ces_measure`` accepts only the measures that the
+    active IIT version defines (``SUM_SMALL_PHI`` for the IIT 4.0 versions),
+    so a registered measure cannot be selected through the configuration.
 
     Examples
     --------

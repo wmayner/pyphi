@@ -192,6 +192,7 @@ def test_removed_aliases_name_the_replacement(module, name):
         ("null_concept", "null_distinction"),
         ("apply_cut", "apply_partition"),
         ("concept", "distinction"),
+        ("network", "substrate"),
     ],
 )
 def test_removed_system_names_name_the_replacement(old, new):

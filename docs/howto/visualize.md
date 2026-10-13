@@ -28,10 +28,6 @@ interactive figures in a page like this one needs the connected Plotly renderer
 selected once:
 
 ```{code-cell} python
-import warnings
-
-warnings.filterwarnings("ignore")
-
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.io as pio

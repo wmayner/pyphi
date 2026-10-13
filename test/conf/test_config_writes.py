@@ -280,6 +280,22 @@ class TestValuesThatWouldFailLaterAreRejected:
             config[path] = value
         assert config.snapshot() == before
 
+    def test_an_alpha_measure_the_version_does_not_accept_is_not_called_unregistered(
+        self,
+    ):
+        from pyphi.measures.distribution import actual_causation_measures
+
+        @actual_causation_measures.register("ALWAYS_ZERO_TEST")
+        def always_zero(a, b):
+            return 0
+
+        try:
+            with pytest.raises(ValueError, match="accepts") as error:
+                config["actual_causation.alpha_measure"] = "ALWAYS_ZERO_TEST"
+            assert "not a registered" not in str(error.value)
+        finally:
+            actual_causation_measures.store.pop("ALWAYS_ZERO_TEST", None)
+
     def test_numpy_values_are_accepted_in_level_settings(self):
         import numpy as np
 

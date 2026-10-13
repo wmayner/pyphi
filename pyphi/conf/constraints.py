@@ -177,18 +177,32 @@ def _require_registered_partition_scheme(
 
 
 def _require_registered(
-    path: str, value: Any, known: Any, kind: str, *, component: bool = False
+    path: str,
+    value: Any,
+    known: Any,
+    kind: str,
+    *,
+    component: bool = False,
+    accepted_by: str | None = None,
 ) -> None:
     """Raise :class:`UnregisteredValueError` if ``value`` is not in ``known``.
 
     ``component`` marks ``value`` as one entry of the option at ``path``. The
-    message suggests the closest known name.
+    message suggests the closest known name. ``accepted_by`` names the
+    formalism that fixes ``known``; the message then says ``value`` is not
+    accepted by it, which also covers a measure that is registered but
+    belongs to another formalism.
     """
     if isinstance(value, str) and value in known:
         return
     close = difflib.get_close_matches(str(value), sorted(known), n=1)
     hint = f" Did you mean {close[0]!r}?" if close else ""
     subject = f"{path} entry {value!r}" if component else f"{path}={value!r}"
+    if accepted_by is not None:
+        raise UnregisteredValueError(
+            f"{subject} is not one of the {kind} that {accepted_by} accepts."
+            f"{hint} Accepted: {sorted(known)}."
+        )
     raise UnregisteredValueError(
         f"{subject} is not a registered {kind}.{hint} Registered: {sorted(known)}."
     )
@@ -552,6 +566,7 @@ def _actual_causation_formalism_registered(config: Any) -> str | None:
         "formalism.actual_causation.alpha_measure",
         ac.alpha_measure,
         registry[ac.version].compatible_measures,
-        f"alpha measure of {ac.version}",
+        "alpha measures",
+        accepted_by=ac.version,
     )
     return None

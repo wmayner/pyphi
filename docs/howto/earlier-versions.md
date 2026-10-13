@@ -18,6 +18,9 @@ IIT 3.0 (Oizumi, Albantakis & Tononi, 2014). PyPhi implements both, so those
 results can be reproduced. This page describes how the versions differ, how to
 compute under an earlier one, and how to compare the numbers.
 
+IIT 3.0 uses the earth mover's distance, which needs the `emd` extra:
+`pip install "pyphi[emd]"`.
+
 ```{code-cell} python
 import pyphi
 

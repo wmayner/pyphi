@@ -159,8 +159,9 @@ tied = result.df[result.df.effectively_tied.astype(bool)]
 tied[["phi", "partition_margin", "cause_state_margin", "effect_state_margin"]].round(6)
 ```
 
-Cells computed under IIT 3.0, which does not report margins, have `None` in
-these columns.
+Cells computed under IIT 3.0, which does not report margins, hold `NaN` in the
+three margin columns and `None` in `effectively_tied`. Use `isna()` to select
+them; the `astype(bool)` filter above leaves them out.
 
 ## Running in parallel
 

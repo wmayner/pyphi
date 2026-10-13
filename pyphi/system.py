@@ -146,6 +146,7 @@ _RENAMED_ATTRIBUTES = {
     "null_concept": "null_distinction",
     "apply_cut": "apply_partition",
     "cut": "partition",
+    "network": "substrate",
     "cause_tpm": "cause_marginal",
     "effect_tpm": "effect_marginal",
     "proper_cause_tpm": "proper_cause_marginal",

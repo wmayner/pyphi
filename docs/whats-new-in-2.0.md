@@ -228,7 +228,7 @@ the data actually constrained. Any existing computation applies to
 posterior samples unchanged, and `phi_posterior()` propagates the posterior
 through the analysis by Monte Carlo, reporting the full mixture — the
 probability the system is integrated at all, conditional and unconditional
-quantiles, raw Φ samples, and which unit set is maximal per sample.
+quantiles, raw φₛ samples, and which unit set is maximal per sample.
 Coercing the result to a bare float raises, pointing at the summaries that
 respect the uncertainty.
 
@@ -452,7 +452,7 @@ live with:
   `read_metadata()` reads back without loading the payload.
 - **Guided errors.** Iterating an analytical relation set raises a
   `TypeError` that points at `strongest(k)`, `materialize()`, or the
-  `CONCRETE` setting; coercing a Φ posterior to a float points at the
+  `CONCRETE` setting; coercing a φₛ posterior to a float points at the
   summaries that respect the uncertainty; an intractable request fails at
   once with its estimated cost instead of by timeout.
 - **Faster, lighter imports.** Submodules and optional dependencies load on

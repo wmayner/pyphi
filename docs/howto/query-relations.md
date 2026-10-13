@@ -33,6 +33,9 @@ This guide walks through the interface on a small network where we can also
 enumerate the relations directly and check that the two agree. For the theory
 of distinctions and relations, see {doc}`../theory/distinctions-and-relations`.
 
+The plots on this page need the `visualize` extra (Matplotlib and seaborn):
+`pip install "pyphi[visualize]"`.
+
 ```{code-cell} python
 import matplotlib.pyplot as plt
 import pandas as pd

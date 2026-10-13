@@ -151,6 +151,7 @@ preset's precision of 6 (for example a cause information of 0.214284 in 1.x and
 | 1.x | 2.0 |
 | --- | --- |
 | `subsystem.concept(mechanism)` | `system.distinction(mechanism)` |
+| `subsystem.network` | `system.substrate` |
 | `sia.cut` (IIT 3.0, IIT 4.0 and actual-causation results) | `sia.partition` |
 | `sia.ces`, `sia.partitioned_ces` | `sia.distinctions`, `sia.partitioned_distinctions` |
 | `major_complex.subsystem`, `.subsystem.nodes` | `complex.sia`, `complex.node_indices` |
@@ -388,8 +389,9 @@ read this section before anything else.
   axes, so `df.loc[(...)]` fails and `df.iloc[:, 0]` is `substrate`, not
   `phi`). A flat sequence is one subset: rc3 read `subsets=("A", "B")` as
   the two one-unit subsets `("A",)` and `("B",)`; 2.0.0 runs the one subset
-  `(0, 1)`. The `subset` column is sorted unit indices; a subset, state or
-  formalism given more than once, under any spelling, runs once;
+  `(0, 1)`. The `subset` column is sorted unit indices; a subset or
+  formalism given more than once, under any spelling, runs once, but a state
+  given more than once gives one row each time (as in rc3);
   `subsets=None` is the whole system; a callable `compute` gives a `value`
   column. `LandscapeSection.df` has a `theta` column instead of a θ
   index.
@@ -404,20 +406,66 @@ read this section before anything else.
   `True`/`False`/`None`.
 - MCP tools reject arguments they do not define; `estimate_cost` takes
   `subset`.
+- `candidates=` on `Substrate.complexes` / `maximal_complex` / `all_sias` /
+  `irreducible_sias` evaluates a system named more than once (`(1, 2)` and
+  `(2, 1)`, or a subset and a `System`) once, at its first occurrence; rc3's
+  copies excluded each other and could drop the true complex. A flat sequence
+  such as `candidates=("A", "B")` is one candidate (rc3 read it as two). A
+  string raises `TypeError`, as candidates and as a subset.
+- Under IIT 3.0, `sia.current_state` is the state of the system's units, as
+  under IIT 4.0 (rc3: the whole substrate's state).
+- `System.sia(formalism=)` and `System.ces(formalism=)` raise
+  `StateUnreachableForwardsError` for a state the formalism cannot analyze
+  (rc3 returned Φ = 0). `System.ces(sia=, distinctions=)` and
+  `prepare_ces(sia=)` raise `ValueError` for results of another system.
+- `MacroSystem.from_micro` without `node_labels` (and every grain-search
+  complex) labels units by their micro constituents (`"C"`, `"AB"`), not
+  `n0`, `n1`.
+- `System.mic` / `mie` / `find_mice` / `distinction` accept labels and any
+  order of units and raise `ValueError` for an out-of-range or repeated unit.
+  `find_mip`, `cause_mip`, `effect_mip`, `phi_cause_mip`, `phi_effect_mip`
+  accept measure names, raise `MeasureNotCompatibleError` for a measure the
+  version does not define, and `TypeError` for a `state` that is not a
+  specified state. `System.sia(partition_scheme=<unknown>)` raises
+  `ValueError` (was `KeyError`).
+- `System.cause_info` / `effect_info` / `cause_effect_info` are IIT 3.0
+  quantities; elsewhere they raise `TypeError` pointing to `mic`, `mie` and
+  `intrinsic_specification` (rc3 failed on every call).
+- `progress=` must be `True`/`False`/`None`; `SearchBounds` integer fields
+  reject floats and booleans; the campaign planners reject `jobs` < 1, a
+  non-positive `units_per_job` and an unknown `ordering`;
+  `config.iit = replace(..., relation_computation=X)` applies as given;
+  `create_substrate` raises `TypeError` for an unknown spec key or parameter.
+- Tables: `Distinctions` / `CauseEffectStructure` `to_pandas()` have a
+  `RangeIndex` and a `mechanism` column (`set_index("mechanism")` restores the
+  old shape); `specified_state` in RIA / MICE frames is a tuple, with a new
+  `intrinsic_specification` column; `Complex.to_pandas()` adds
+  `node_indices`; `Analysis.to_pandas()` starts with `formalism`, `subset`,
+  `current_state`; the `partition` column of landscape and optimization
+  tables uses the SIA string (`2 parts: {AB,C}; cut C→A, C→B`, `None` for no
+  partition). The `Complex` card says "Maximal complex" (was "Is maximal") and
+  adds a "Gated candidates (φₛ not computed)" row. `PhiPosterior` compares by
+  value and has a card and `to_pandas()`.
 
 **Renames.**
 
 | rc3 | 2.0.0 |
 | --- | --- |
-| `System.from_substrate(s, st, nodes)` (also on `TransitionSystem`, `MacroSystem`) | `System(s, st, subset=nodes)` |
+| `System.from_substrate(s, st, nodes)` | `System(s, st, subset=nodes)` |
+| `TransitionSystem.from_substrate(substrate, before_state, after_state, cause_indices, effect_indices, direction, partition)` | `TransitionSystem(...)`, same arguments |
+| `MacroSystem.from_substrate(...)` (always raised `TypeError`) | `MacroSystem.from_micro(...)` |
 | `node_indices=`, `nodes=`, `indices=` or a third positional argument on `System`, `Substrate.sia` / `ces` | `subset=`, keyword-only |
 | `MacroSystem(substrate, state, node_indices, ...)` | `MacroSystem(substrate, state, units, ...)` with `subset=` keyword-only; `MacroSystem.from_micro` is unchanged |
 | `actual.events(..., nodes)`; `indices=` on `true_events` / `extrinsic_events`; `major_complex=` | `subset=` (keyword-only); `maximal_complex=` |
 | `reachable_systems(substrate, indices, state)` | `reachable_systems(substrate, state, subset=...)` |
-| positional `partition` / `noise_background` on `Transition`; positional index tuples on `PerceptualSystem`, `TriggeredTPM`, `build_triggered_tpm`; positional `candidates` on `Substrate.complexes` and relatives | keyword-only |
+| positional `partition` / `noise_background` on `Transition`; positional index tuples on `PerceptualSystem`, `TriggeredTPM`, `build_triggered_tpm`; positional `candidates` on `Substrate.complexes` and relatives (also the `pyphi.substrate` functions, which now take `formalism=`); positional `allow_neg` on `Transition.find_causal_link` / `find_mip`; positional `mechanisms` / `purviews` / `allow_neg` on `actual.directed_account` | keyword-only |
 | `parallel_kwargs={...}` on `analyze`, `Substrate.complexes`, `pyphi.macro` search functions | `parallel=True/False/None` and `progress=`; tune with `config.override` on the `infrastructure` per-level options |
 | `seed=` on `sweep`, `campaign.prepare`, `campaign.prepare_ces` | removed; use the `pyphi.provenance` writers (`save_dataframe(..., seed=)`) |
 | `optimize(direction=)`, `OptimizationResult.direction` | `goal=`, `.goal` |
+| `optimize(objective=)`, `OptimizationResult.objective_name` | `quantity=` (a callable still works; `objective=` raises `TypeError`), `quantity_name`; saved results load; `best_objective` and the trajectory `objective` column keep their names |
+| `pyphi.macro.estimate_search(bounds, n, limit)`; `SearchBounds.estimate(substrate, limit)` | `estimate_search(substrate, *, bounds=None, limit=1_000_000)`; `limit` keyword-only on both |
+| `actual.sia(..., **kwargs)` and `System` mechanism queries with `reduce_func`, `shortcircuit_func`, `map_func` or other parallel-map options | `actual.sia` takes `parallel=` and `progress=`; the `System` queries take `parallel`, `progress`, `chunksize`, `sequential_threshold`; anything else is a `TypeError` |
+| `SubstratePosterior.sample` with neither or both of `seed` and `rng` raised `ValueError` | raises `TypeError` |
 | modules `pyphi.analyze`, `pyphi.sweep`, `pyphi.optimize` | `pyphi.analysis`, `pyphi.sweeps`, `pyphi.optimization` (or `pyphi.Analysis`, `pyphi.SweepResult`, `pyphi.OptimizationResult`) |
 | `StateSpecification.intrinsic_information` / `runner_up_intrinsic_information`; `System.intrinsic_information(...)`; `iit4.system_intrinsic_information` | `intrinsic_specification` / `runner_up_intrinsic_specification`; `System.intrinsic_specification(...)`; `iit4.system_intrinsic_specification` |
 | `purview_state` on RIA / MICE and in `to_pandas()` | `current_state` |

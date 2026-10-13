@@ -507,7 +507,7 @@ stateful_distribution_measures = StatefulDistributionMeasureRegistry()
 class ActualCausationMeasureRegistry(Registry):
     """Storage for distance functions used in :mod:`pyphi.actual`.
 
-    Users can define custom measures:
+    Users can register custom measures and call them directly:
 
     Examples
     --------
@@ -515,9 +515,10 @@ class ActualCausationMeasureRegistry(Registry):
         ... def always_zero(a, b):
         ...    return 0
 
-    And use them by setting, *e.g.*,
-    ``config.formalism.actual_causation.alpha_measure = 'ALWAYS_ZERO'``
-    (or ``config.alpha_measure = 'ALWAYS_ZERO'``).
+    ``config.formalism.actual_causation.alpha_measure`` accepts only the
+    measures that the active actual-causation formalism defines (``PMI`` and
+    ``WPMI`` for ``AC_2019``), so a registered measure cannot be selected
+    through the configuration.
     """
 
     # pylint: disable=arguments-differ

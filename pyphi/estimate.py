@@ -14,14 +14,14 @@ assert the ``regime``:
   stationarity) — assumptions about the world that the data cannot verify.
   States the trajectory never visits are *unidentified*, not merely
   unsampled: substrates that differ only on unvisited rows produce
-  identical data and can have materially different Φ. The
+  identical data and can have materially different φₛ. The
   :class:`CoverageReport` records exactly which rows the data constrained.
 
 Estimation is per-unit counting with a conjugate symmetric Beta prior on
 every cell of the state-by-node TPM (default Jeffreys, ``a = 1/2``). The
 result is a :class:`SubstratePosterior` — a distribution over substrates,
-never a single point estimate: Φ of a posterior-mean TPM conflates
-epistemic uncertainty with genuine indeterminism and suppresses Φ where the
+never a single point estimate: φₛ of a posterior-mean TPM conflates
+epistemic uncertainty with genuine indeterminism and suppresses φₛ where the
 data is merely uninformative.
 """
 
@@ -204,10 +204,10 @@ class SubstratePosterior(Serializable):
     def mean_substrate(self) -> Substrate:
         """The posterior-mean substrate: every TPM cell at its Beta mean.
 
-        A reference point, not an estimator: Φ of the mean substrate
+        A reference point, not an estimator: φₛ of the mean substrate
         conflates epistemic uncertainty with the substrate's own
         indeterminism (see the module docstring), so it must not be
-        reported as an estimate of Φ. Its role is to anchor reference
+        reported as an estimate of φₛ. Its role is to anchor reference
         computations such as the selection-margin screen in
         :func:`phi_posterior`.
         """
@@ -274,20 +274,25 @@ class SubstratePosterior(Serializable):
 
 @dataclass(frozen=True, eq=False, repr=False)
 class PhiPosterior(Displayable, Serializable):
-    """Posterior distribution over Φ, propagated from a substrate posterior.
+    """Posterior distribution over φₛ, propagated from a substrate posterior.
 
     The distribution is generically a mixture: a point mass at zero from
     samples whose candidate system is reducible (the system does not exist
-    as one entity), and a continuous density over the Φ values of the
+    as one entity), and a continuous density over the φₛ values of the
     irreducible samples. Because the mixture's mean describes no possible
     system, ``float()`` refuses; summarize with :attr:`p_positive`,
     :meth:`quantiles`, :meth:`conditional_quantiles`, or the raw
     :attr:`samples`.
 
+    Each sample is the system integrated information φₛ (``sia.phi``) of the
+    candidate system given by ``subset`` (the whole substrate by default),
+    not of the maximal complex of that draw and not the structure
+    integrated information Φ.
+
     Attributes
     ----------
     samples
-        Per-draw Φ values, shape ``(n_samples,)``.
+        Per-draw φₛ values, shape ``(n_samples,)``.
     complex_samples
         Per-draw unit indices of the maximal complex;
         ``()`` when no irreducible candidate exists in that draw.
@@ -392,7 +397,7 @@ class PhiPosterior(Displayable, Serializable):
 
     @property
     def p_positive(self) -> float:
-        """Posterior probability that Φ is positive (the system is integrated)."""
+        """Posterior probability that φₛ is positive (the system is integrated)."""
         return sum(numerics.is_positive(phi) for phi in self.samples) / len(self.samples)
 
     def quantiles(self, qs: Sequence[float]) -> NDArray[np.float64]:
@@ -400,7 +405,7 @@ class PhiPosterior(Displayable, Serializable):
         return np.quantile(self.samples, qs)
 
     def conditional_quantiles(self, qs: Sequence[float]) -> NDArray[np.float64] | None:
-        """Quantiles of Φ conditional on the system being integrated.
+        """Quantiles of φₛ conditional on the system being integrated.
 
         Returns ``None`` when no sample is positive.
         """
@@ -428,7 +433,7 @@ class PhiPosterior(Displayable, Serializable):
                 " (uncovered states are unidentified, not merely unsampled)."
             )
         raise TypeError(
-            "A PhiPosterior is a distribution over Φ (generically a mixture"
+            "A PhiPosterior is a distribution over φₛ (generically a mixture"
             " of a point mass at zero and a continuous density) and cannot"
             " be summarized by one float. Use .p_positive, .quantiles(qs),"
             " .conditional_quantiles(qs), or .samples." + detail
@@ -499,7 +504,7 @@ def phi_posterior(
         SIA's internal margins are recorded on the result for audit but
         do not gate the screen: a tied partition or specified state
         within the winner does not contest which units win. The per-draw
-        SIA (and hence every Φ sample) is always computed in full, and
+        SIA (and hence every φₛ sample) is always computed in full, and
         the draw stream is identical to the unscreened run.
     progress
         Show a progress bar over the draws; ``None`` (default) follows
@@ -507,7 +512,7 @@ def phi_posterior(
 
     Returns
     -------
-    A :class:`PhiPosterior` over the per-draw Φ values and complex
+    A :class:`PhiPosterior` over the per-draw φₛ values and complex
     identities.
 
     Notes
@@ -573,7 +578,7 @@ def _phi_posterior(
     rng = np.random.default_rng(seed)
     draws = range(n_samples)
     if fallback(progress, config.infrastructure.progress_bars):
-        draws = tqdm(draws, desc="Sampling Φ posterior")
+        draws = tqdm(draws, desc="Sampling φₛ posterior")
     phis = []
     complexes = []
     for _ in draws:
