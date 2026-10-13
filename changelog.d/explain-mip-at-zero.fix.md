@@ -1,0 +1,1 @@
+`explain()` on a system irreducibility analysis names the MIP whenever it reports a runner-up partition and gap, including when φₛ is 0 because the intrinsic-information requirement binds. It reported the gap without naming the partition it was measured from. This applies under IIT 4.0 and IIT 3.0.

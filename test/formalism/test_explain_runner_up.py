@@ -86,3 +86,19 @@ def test_directed_set_partition_names_severed_connections():
         "2 parts: {A,B}; cut B→A",
         "2 parts: {A,B}; cut A→B, B→A",
     }
+
+
+def test_explain_names_the_mip_when_phi_s_is_zero():
+    """When the intrinsic-information requirement sets φₛ to 0, explain()
+    still names the MIP the runner-up gap is measured from."""
+    import numpy as np
+
+    states = pyphi.utils.all_states(3)
+    tpm = np.array([[b, c ^ a, a & b] for a, b, c in states], dtype=float)
+    substrate = pyphi.Substrate(tpm, node_labels=("A", "B", "C"))
+    with pyphi.config.override(**pyphi.iit4_2026):
+        sia = pyphi.analyze(substrate, (1, 0, 1), compute="sia")
+    f = _findings(sia)
+    assert sia.phi == 0
+    assert "runner_up" in f
+    assert f["winning_partition"] == concise_partition(sia.partition)

@@ -557,7 +557,9 @@ class SystemIrreducibilityAnalysis(
             Finding(kind="null_result", label="Null result", value=reason)
             for reason in self.reasons or []
         ]
-        if self.partition is not None and bool(self):
+        # The MIP is named whenever the runner-up gap is reported, since the
+        # gap is measured from it, even when φₛ is 0.
+        if self.partition is not None and (bool(self) or self.runner_up is not None):
             findings.append(
                 Finding(
                     kind="winning_partition",

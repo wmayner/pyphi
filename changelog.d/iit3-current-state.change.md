@@ -1,0 +1,1 @@
+Under IIT 3.0, a system irreducibility analysis's `current_state` (and the `current_state` column of its `to_pandas()` frame) is the state of the system's units, one entry per unit, as under IIT 4.0. It was the state of the whole substrate, so results concatenated across formalisms mixed the two meanings in one column.

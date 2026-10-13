@@ -76,7 +76,9 @@ class IIT3SystemIrreducibilityAnalysis(
     node_labels : NodeLabels
         Labels corresponding to ``node_indices``.
     current_state : tuple[int, ...]
-        The system state at the time of analysis.
+        The state of the system's units at the time of analysis, one entry
+        per unit in ``node_indices`` (not the state of the whole
+        substrate).
     """
 
     phi: float  # Override parent to allow None during init
@@ -180,7 +182,13 @@ class IIT3SystemIrreducibilityAnalysis(
             Finding(kind="null_result", label="Null result", value=reason)
             for reason in (self.reasons or [])
         ]
-        if self.partition is not None and self.phi is not None and bool(self):
+        # The MIP is named whenever the runner-up gap is reported, since the
+        # gap is measured from it, even when Φ is 0.
+        if (
+            self.partition is not None
+            and self.phi is not None
+            and (bool(self) or self.runner_up is not None)
+        ):
             findings.append(
                 Finding(
                     kind="winning_partition",
@@ -314,6 +322,6 @@ def _null_sia(system, phi=0.0, reasons=None):
         partition=system.partition,
         node_indices=system.node_indices,
         node_labels=system.substrate.node_labels,
-        current_state=system.state,
+        current_state=system.proper_state,
         reasons=reasons,
     )

@@ -127,3 +127,16 @@ def test_sia_pandas_has_per_direction_specification_and_differentiation(fig1a_si
     assert record["effect_intrinsic_differentiation"] == pytest.approx(
         float(sia.intrinsic_differentiation[Direction.EFFECT])
     )
+
+
+@pytest.mark.parametrize("formalism", ["IIT_3_0", "IIT_4_0_2023", "IIT_4_0_2026"])
+@pytest.mark.parametrize("subset", [(1, 2), (1,)])
+def test_current_state_is_the_subsets_state_under_every_version(formalism, subset):
+    """``current_state`` holds one entry per unit of the system, for an
+    irreducible system and for a null result alike."""
+    substrate = examples.iit4_2023_fig1a_substrate()
+    state = (0, 1, 1)
+    sia = pyphi.analyze(
+        substrate, state, subset=subset, formalism=formalism, compute="sia"
+    )
+    assert sia.current_state == tuple(state[i] for i in subset)
