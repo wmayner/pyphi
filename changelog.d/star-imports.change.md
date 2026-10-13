@@ -1,0 +1,1 @@
+`pyphi.examples` declares `__all__`, so `from pyphi.examples import *` binds only the example functions and the `EXAMPLES` registry, not `np`, `config` and other module internals. `pyphi.models.__all__` no longer lists the `distinction_phi_normalizations` registry, which stays importable by name.

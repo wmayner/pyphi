@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import KW_ONLY
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -25,6 +26,9 @@ class PerceptualSystem:
     each stimulus (a state of the sensory interface ∂S). Only binary
     substrates are currently supported.
 
+    The index arguments are keyword-only, as on :func:`build_triggered_tpm`
+    and :class:`TriggeredTPM`, so the two tuples cannot be swapped silently.
+
     Attributes
     ----------
     substrate : Substrate
@@ -37,6 +41,7 @@ class PerceptualSystem:
     """
 
     substrate: Substrate
+    _: KW_ONLY
     system_indices: tuple[int, ...]
     sensory_indices: tuple[int, ...]
 
@@ -97,8 +102,8 @@ class PerceptualSystem:
         self._validate_tau(tau, tau_clamp)
         return build_triggered_tpm(
             self.substrate,
-            self.sensory_indices,
-            self.system_indices,
+            sensory_indices=self.sensory_indices,
+            system_indices=self.system_indices,
             tau=tau,
             tau_clamp=tau_clamp,
         )

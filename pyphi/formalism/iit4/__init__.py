@@ -240,6 +240,13 @@ class SystemIrreducibilityAnalysis(
     def order_by(self):
         return self.phi
 
+    def __getattr__(self, name: str) -> Any:
+        # Called only when normal attribute lookup fails.
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if name == "cut":
+            message += ". PyPhi 2.0 renamed it `partition`"
+        raise AttributeError(message)
+
     @property
     def ties(self):
         try:

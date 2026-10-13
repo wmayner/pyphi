@@ -948,23 +948,47 @@ def irreducible_purviews(
 
 def reachable_systems(
     substrate: Substrate,
-    indices: tuple[int, ...],
     state: tuple[int, ...],
-    **kwargs: Any,
+    *,
+    subset: NodeIndices | None = None,
+    **system_options: Any,
 ) -> Any:
-    """A generator over all systems in a valid state."""
+    """Generate every system over a subset of units whose state is reachable.
+
+    Parameters
+    ----------
+    substrate : Substrate
+        The substrate.
+    state : tuple[int, ...]
+        The state of the substrate's units.
+    subset : optional
+        The units whose nonempty subsets are generated, by index or label.
+        ``None`` uses every unit.
+    **system_options
+        Keyword arguments of :class:`~pyphi.system.System`.
+
+    Yields
+    ------
+    System
+        One system per nonempty subset whose state is reachable, largest
+        first.
+    """
     import contextlib
 
     from pyphi import exceptions
     from pyphi.system import System
 
     validate.is_substrate(substrate)
-
+    indices = (
+        substrate.node_indices
+        if subset is None
+        else substrate.node_labels.coerce_to_indices(subset)
+    )
     # Return systems largest to smallest to optimize parallel
     # resource usage.
-    for subset in utils.powerset(indices, nonempty=True, reverse=True):
+    for units in utils.powerset(indices, nonempty=True, reverse=True):
         with contextlib.suppress(exceptions.StateUnreachableError):
-            yield System(substrate, state, subset=subset, **kwargs)
+            yield System(substrate, state, subset=units, **system_options)
 
 
 def systems(substrate: Substrate, state: tuple[int, ...], **kwargs: Any) -> Any:
@@ -974,7 +998,7 @@ def systems(substrate: Substrate, state: tuple[int, ...], **kwargs: Any) -> Any:
         Does not return systems that are in an impossible state (after
         conditioning the system TPM on the state of the other nodes).
     """
-    return reachable_systems(substrate, substrate.node_indices, state, **kwargs)
+    return reachable_systems(substrate, state, **kwargs)
 
 
 def possible_complexes(
@@ -987,7 +1011,7 @@ def possible_complexes(
     they have no causal link with the rest of the system.
     """
     return reachable_systems(
-        substrate, substrate.causally_significant_nodes, state, **kwargs
+        substrate, state, subset=substrate.causally_significant_nodes, **kwargs
     )
 
 

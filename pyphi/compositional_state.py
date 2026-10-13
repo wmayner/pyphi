@@ -45,9 +45,7 @@ class CompositionalState(UserDict):
         if distinctions is not None:
             # Pull node_labels from the first concept; CES no longer carries
             # a back-reference to its candidate system.
-            self.node_labels = (
-                distinctions.concepts[0].node_labels if distinctions.concepts else None
-            )
+            self.node_labels = distinctions[0].node_labels if distinctions else None
             self.update(distinctions)
 
     def _to_indices(self, value):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+from dataclasses import KW_ONLY
 from dataclasses import dataclass
 
 import numpy as np
@@ -33,6 +34,7 @@ class TriggeredTPM:
     """
 
     array: np.ndarray
+    _: KW_ONLY
     sensory_indices: tuple[int, ...]
     system_indices: tuple[int, ...]
     node_labels: NodeLabels
@@ -163,7 +165,7 @@ def _lagged_sbs(step_sbn, t):
 
 
 def build_triggered_tpm(
-    substrate, sensory_indices, system_indices, *, tau, tau_clamp
+    substrate, *, sensory_indices, system_indices, tau, tau_clamp
 ) -> TriggeredTPM:
     """Construct the triggered TPM by clamp-then-noise evolution.
 

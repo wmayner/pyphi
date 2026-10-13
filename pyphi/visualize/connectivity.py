@@ -35,6 +35,23 @@ def _node_color(in_system, state, num_states):
 
 
 def plot_graph(g, **kwargs):
+    """Draw a directed graph with labeled nodes.
+
+    Parameters
+    ----------
+    g : networkx.DiGraph
+        The graph to draw.
+    **kwargs
+        Passed to :func:`networkx.draw_networkx`, overriding the defaults
+        (labels on, ``arrowsize=20``, ``node_size=600``, white labels). Pass
+        ``ax`` to draw into existing axes; otherwise the current axes are
+        used.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and axes.
+    """
     kwargs = {
         **{
             "with_labels": True,
@@ -44,11 +61,11 @@ def plot_graph(g, **kwargs):
         },
         **kwargs,
     }
-    nx.draw_networkx(
-        g,
-        **kwargs,
-    )
-    (kwargs.get("ax") or plt.gca()).set_axis_off()
+    ax = kwargs.setdefault("ax", None) or plt.gca()
+    kwargs["ax"] = ax
+    nx.draw_networkx(g, **kwargs)
+    ax.set_axis_off()
+    return ax.figure, ax
 
 
 def _system_graph(system):
@@ -68,10 +85,26 @@ def _system_graph(system):
 
 
 def plot_system(system, **kwargs):
+    """Draw a system's connectivity graph.
+
+    Each node is colored by whether it belongs to the system (blue) or the
+    background (grey), darker for higher states.
+
+    Parameters
+    ----------
+    system : System
+        The system to draw.
+    **kwargs
+        Passed to :func:`plot_graph`.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and axes.
+    """
     g, colors = _system_graph(system)
     kwargs.setdefault("node_color", colors)
-    plot_graph(g, **kwargs)
-    return g
+    return plot_graph(g, **kwargs)
 
 
 def _tick_labels(n, square, states):
@@ -109,6 +142,11 @@ def plot_tpm(
         equals ``len(states)``. If None, a square matrix with a power-of-two
         side is labeled with little-endian bit strings, and integer state
         indices are used otherwise.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and axes.
     """
     fig = plt.figure(figsize=figsize)
     ax = plt.axes()

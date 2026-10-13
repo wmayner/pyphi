@@ -789,7 +789,8 @@ def estimate_cost(
     units = estimate.distinction_units
     return {
         "card": str(estimate),
-        "estimate": asdict(estimate),
+        # The tool's own spelling of the full analysis, as its argument takes it.
+        "estimate": {**asdict(estimate), "compute": estimate.compute or "full"},
         "estimated_cpu_seconds": (None if units is None else runtime_seconds(units)),
         "estimated_cpu_seconds_covers": (
             "the distinction axis only (mechanisms, purviews, mechanism "
@@ -1354,8 +1355,7 @@ def plot(
         fig = visualize.plot_repertoires(result.system, result.sia)[0]
     elif kind == "connectivity":
         substrate = _get_substrate(target)
-        fig = plt.figure()
-        visualize.plot_graph(substrate.to_networkx())
+        fig, _ = visualize.plot_graph(substrate.to_networkx(), ax=plt.figure().gca())
     elif kind == "tpm":
         from pyphi import utils
 

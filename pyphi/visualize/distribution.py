@@ -215,6 +215,25 @@ def _repertoire_comparison(system, sia):
 
 
 def plot_repertoires(system, sia, **kwargs):
+    """Compare a system's forward repertoires with those of its MIP.
+
+    One panel per direction overlays the unpartitioned and partitioned
+    forward repertoires of the whole system.
+
+    Parameters
+    ----------
+    system : System
+        The system.
+    sia : SystemIrreducibilityAnalysis
+        Its system irreducibility analysis, whose partition is applied.
+    **kwargs
+        Passed to :func:`plot_distribution`.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and its two axes (cause, effect).
+    """
     repertoires = _repertoire_comparison(system, sia)
     labels = ["unpartitioned", "partitioned"]
     fig = plt.figure(figsize=(12, 9))
@@ -232,4 +251,4 @@ def plot_repertoires(system, sia, **kwargs):
     fig.tight_layout(h_pad=0.5)
     for ax in axes:
         ax.legend(bbox_to_anchor=(1.1, 1.1))
-    return fig, axes, repertoires
+    return fig, axes

@@ -588,7 +588,7 @@ def _register_distinctions() -> None:
     from pyphi.models.distinctions import UnresolvedDistinctions
 
     def encoder(struct_cls):
-        return lambda d: struct_cls(concepts=tuple(to_schema(c) for c in d.concepts))
+        return lambda d: struct_cls(concepts=tuple(to_schema(c) for c in d))
 
     def decoder(domain_cls):
         return lambda s: domain_cls(tuple(from_schema(c) for c in s.concepts))

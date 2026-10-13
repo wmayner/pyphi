@@ -109,3 +109,21 @@ def test_models_all_has_no_private_names():
 
 def test_actual_declares_its_public_surface():
     assert "Transition" in pyphi.actual.__all__
+
+
+def test_models_all_has_no_registries():
+    from pyphi import models
+
+    assert "distinction_phi_normalizations" not in models.__all__
+    assert models.distinction_phi_normalizations is not None
+
+
+def test_examples_star_import_binds_only_examples():
+    from pyphi import examples
+
+    namespace: dict = {}
+    exec("from pyphi.examples import *", namespace)
+    bound = set(namespace) - {"__builtins__"}
+    assert bound == set(examples.__all__)
+    assert not {"np", "config", "functools", "string", "System"} & bound
+    assert "iit4_2023_fig1a_substrate" in bound

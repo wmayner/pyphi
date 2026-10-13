@@ -94,7 +94,9 @@ from .state_specification import (
 from .state_specification import StateSpecification
 from .state_specification import SystemStateSpecification
 from .state_specification import UnitState
-from .state_specification import distinction_phi_normalizations
+from .state_specification import (
+    distinction_phi_normalizations as distinction_phi_normalizations,
+)
 from .state_specification import normalization_factor
 
 __all__ = [
@@ -137,19 +139,37 @@ __all__ = [
     "TotalCut",
     "UnitState",
     "UnresolvedDistinctions",
-    "distinction_phi_normalizations",
     "normalization_factor",
 ]
 
 
+# PyPhi 1.x and IIT 4.0-branch names of ``pyphi.models``, with their 2.0
+# replacements.
+_REPLACED = {
+    "Concept": "renamed it `Distinction`",
+    "Cut": (
+        "replaced it with `DirectedBipartition(direction, from_nodes, to_nodes)`, "
+        "applied with `System(..., partition=)`"
+    ),
+    "ActualCut": (
+        "replaced it with `DirectedBipartition`, applied with "
+        "`Transition(..., partition=)` or `transition.apply_partition`"
+    ),
+    "KCut": "replaced it with `DirectedJointPartition(direction, partition)`",
+    "Bipartition": "renamed it `JointBipartition`",
+    "Tripartition": "renamed it `JointTripartition`",
+    "KPartition": "renamed it `JointPartition`",
+    "SystemIrreducibilityAnalysis": (
+        "moved it: the IIT 4.0 result is "
+        "`pyphi.formalism.iit4.SystemIrreducibilityAnalysis` and the IIT 3.0 "
+        "result is `pyphi.models.IIT3SystemIrreducibilityAnalysis`"
+    ),
+    "PhiStructure": "replaced it with `CauseEffectStructure`",
+}
+
+
 def __getattr__(name: str):
     message = f"module {__name__!r} has no attribute {name!r}"
-    if name == "Concept":
-        message += ". PyPhi 2.0 renamed it `Distinction`"
-    elif name == "Cut":
-        message += (
-            ". PyPhi 2.0 replaced it with "
-            "`DirectedBipartition(direction, from_nodes, to_nodes)`, applied with "
-            "`System(..., partition=)`"
-        )
+    if name in _REPLACED:
+        message += f". PyPhi 2.0 {_REPLACED[name]}"
     raise AttributeError(message)

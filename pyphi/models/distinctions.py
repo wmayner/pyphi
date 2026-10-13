@@ -134,23 +134,33 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
     checked at the type level.
     """
 
-    def __init__(self, concepts: Iterable = ()):
-        # Normalize the order of concepts
-        self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
+    def __init__(self, distinctions: Iterable = ()):
+        # Normalize the order of the distinctions.
+        self._distinctions = tuple(sorted(distinctions, key=_concept_sort_key))
         self._specifiers = None
         self._purview_inclusion_by_order = defaultdict(defaultdict_set)
         self._sum_phi = None
 
     def __len__(self):
-        return len(self.concepts)
+        return len(self._distinctions)
 
     def __iter__(self):
-        return iter(self.concepts)
+        return iter(self._distinctions)
 
     def __getitem__(self, value):
         if isinstance(value, slice):
-            return type(self)(self.concepts[value])
-        return self.concepts[value]
+            return type(self)(self._distinctions[value])
+        return self._distinctions[value]
+
+    def __getattr__(self, name: str):
+        # Called only when normal attribute lookup fails.
+        message = f"{type(self).__name__!r} object has no attribute {name!r}"
+        if name == "concepts":
+            message += (
+                ". PyPhi 2.0 removed it: the object is itself a sequence of "
+                "distinctions, so iterate or index it directly"
+            )
+        raise AttributeError(message)
 
     def filter(self, predicate) -> Distinctions:
         """Return the distinctions satisfying ``predicate``.
@@ -183,16 +193,16 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Distinctions):
             return NotImplemented
-        return self.concepts == other.concepts
+        return self._distinctions == other._distinctions
 
     def __hash__(self):
-        return hash(self.concepts)
+        return hash(self._distinctions)
 
     def order_by(self):
-        return [self.concepts]
+        return [self._distinctions]
 
     def _to_pandas(self):
-        rows = [concept._pandas_record() for concept in self.concepts]
+        rows = [concept._pandas_record() for concept in self._distinctions]
         return records_to_frame(rows, index="mechanism", columns=_DISTINCTION_COLUMNS)
 
     @property
@@ -240,11 +250,11 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
         """The labeled mechanism of each concept."""
         # Get node_labels from the first concept if available
         if (
-            self.concepts
-            and hasattr(self.concepts[0], "node_labels")
-            and self.concepts[0].node_labels is not None
+            self._distinctions
+            and hasattr(self._distinctions[0], "node_labels")
+            and self._distinctions[0].node_labels is not None
         ):
-            label = self.concepts[0].node_labels.indices2labels
+            label = self._distinctions[0].node_labels.indices2labels
             return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
         # Fallback to numeric indices as strings
         return tuple(list(map(str, mechanism)) for mechanism in self.mechanisms)

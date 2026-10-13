@@ -17,11 +17,13 @@ PyPhi ships plotting helpers for the objects it computes: the cause-effect
 structure and its relations, the connectivity and transition probabilities of a
 substrate, cause and effect repertoires, a simulated trajectory, and the Ising
 building blocks used to generate substrates. This guide walks through each on a
-small example system.
+small example system. The helpers need the `visualize` extra:
+`pip install "pyphi[visualize]"`.
 
 The cause-effect-structure plots (`plot_ces`, `highlight_phi_fold`) use
 [Plotly](https://plotly.com/python/) and are interactive — drag to rotate the
-3-D hypergraph, hover for detail. The rest use Matplotlib. Rendering the
+3-D hypergraph, hover for detail. The rest use Matplotlib, and each returns its
+figure and axes as a `(fig, ax)` pair. Rendering the
 interactive figures in a page like this one needs the connected Plotly renderer
 selected once:
 
@@ -169,7 +171,7 @@ viz.plot_system(system);
 import networkx as nx
 
 graph = nx.from_numpy_array(system.cm, create_using=nx.DiGraph)
-viz.plot_graph(graph)
+viz.plot_graph(graph);
 ```
 
 `plot_tpm` shows the transition probability matrix as a heatmap. It expects a
@@ -203,7 +205,7 @@ system-irreducibility analysis:
 from pyphi.formalism import queries
 
 sia = queries.sia(system)
-fig, axes, reps = viz.plot_repertoires(system, sia)
+fig, axes = viz.plot_repertoires(system, sia)
 ```
 
 ## Trajectories
@@ -257,10 +259,15 @@ fig.write_html("ces.html", include_plotlyjs="inline")
 
 Do not rasterize these to PNG: static image export needs
 [kaleido](https://github.com/plotly/Kaleido), which PyPhi does not depend on, and these figures are meant to be rotated and hovered. Keep the
-cause-effect-structure plots as HTML. The Matplotlib figures (`plot_system`,
-`plot_graph`, `plot_tpm`, `plot_distribution`, `plot_repertoires`,
-`plot_dynamics`, the Ising helpers) save as images the usual way:
+cause-effect-structure plots as HTML.
+
+Every Matplotlib helper (`plot_system`, `plot_graph`, `plot_tpm`,
+`plot_distribution`, `plot_repertoires`, `plot_dynamics`, and the Ising helpers
+`ising.plot`, `ising.plot_sigmoid` and `ising.plot_inputs`) returns the figure
+and its axes (for `plot_repertoires`, an array of two axes). Save the figure as
+an image:
 
 ```python
+fig, ax = viz.plot_tpm(state_by_state)
 fig.savefig("figure.png", dpi=120, bbox_inches="tight")
 ```

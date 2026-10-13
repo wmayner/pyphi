@@ -171,21 +171,29 @@ def test_build_triggered_tpm_rejects_kary_substrate():
         cm=np.ones((2, 2)),
     )
     with pytest.raises(ValueError, match="binary"):
-        build_triggered_tpm(substrate, (0,), (1,), tau=1, tau_clamp=1)
+        build_triggered_tpm(
+            substrate, sensory_indices=(0,), system_indices=(1,), tau=1, tau_clamp=1
+        )
 
 
 def test_build_triggered_tpm_rejects_unsorted_indices():
     substrate = examples.basic_substrate()
     with pytest.raises(ValueError, match="system_indices"):
-        build_triggered_tpm(substrate, (0,), (2, 1), tau=1, tau_clamp=1)
+        build_triggered_tpm(
+            substrate, sensory_indices=(0,), system_indices=(2, 1), tau=1, tau_clamp=1
+        )
     with pytest.raises(ValueError, match="sensory_indices"):
-        build_triggered_tpm(substrate, (1, 0), (2,), tau=1, tau_clamp=1)
+        build_triggered_tpm(
+            substrate, sensory_indices=(1, 0), system_indices=(2,), tau=1, tau_clamp=1
+        )
 
 
 def test_build_triggered_tpm_rejects_duplicate_indices():
     substrate = examples.basic_substrate()
     with pytest.raises(ValueError, match="system_indices"):
-        build_triggered_tpm(substrate, (0,), (1, 1), tau=1, tau_clamp=1)
+        build_triggered_tpm(
+            substrate, sensory_indices=(0,), system_indices=(1, 1), tau=1, tau_clamp=1
+        )
 
 
 def test_mechanism_order_is_canonicalized():

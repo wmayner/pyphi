@@ -15,17 +15,20 @@ from .exceptions import NonConvergenceError
 def mean_dynamics(
     tpm: ArrayLike,
     repetitions: int = 100,
+    *,
     seed: int | None = None,
+    rng: np.random.Generator | None = None,
     **kwargs,
 ):
     """Return a sample of the dynamics averaged over all initial states.
 
-    A single generator seeded with ``seed`` is shared across all
-    repetitions, so a given seed reproduces the whole sample. An explicit
-    ``rng`` keyword argument takes precedence over ``seed``.
+    A single generator, ``rng`` or one seeded with ``seed``, is shared across
+    all repetitions, so a given seed reproduces the whole sample. Give at most
+    one of ``seed`` and ``rng``; with neither, the sample is not
+    reproducible. Other keyword arguments are passed to :func:`simulate`.
     """
     tpm = np.asarray(tpm, dtype=float)
-    kwargs.setdefault("rng", np.random.default_rng(seed))
+    kwargs["rng"] = _generator(rng, seed)
     clamp = kwargs.get("clamp", {})
     alphabets = _alphabet_sizes(tpm)
     free = tuple(a for i, a in enumerate(alphabets) if i not in clamp)
@@ -42,11 +45,19 @@ def mean_dynamics(
     return data.mean(axis=(0, 1))
 
 
+def _generator(rng: np.random.Generator | None, seed: int | None) -> np.random.Generator:
+    """The generator to draw from: ``rng``, or a new one seeded with ``seed``."""
+    if rng is not None and seed is not None:
+        raise TypeError("give at most one of rng and seed")
+    return rng if rng is not None else np.random.default_rng(seed)
+
+
 def simulate(
     tpm: ArrayLike,
     initial_state: tuple[int, ...] | None = None,
     timesteps: int | None = 100,
     clamp: Iterable[Mapping] | Mapping | None = None,
+    *,
     rng: np.random.Generator | None = None,
     seed: int | None = None,
 ):
@@ -68,13 +79,17 @@ def simulate(
         Units held fixed to a given value, either one mapping applied every
         step or one mapping per step.
     rng : numpy.random.Generator, optional
-        Generator to draw from. Takes precedence over ``seed``.
+        Generator to draw from.
     seed : int, optional
-        Seed for the generator created when ``rng`` is None. If both are
-        None, the trajectory is not reproducible.
+        Seed for a new generator. Give at most one of ``rng`` and ``seed``;
+        if both are None, the trajectory is not reproducible.
+
+    Raises
+    ------
+    TypeError
+        If both ``rng`` and ``seed`` are given.
     """
-    if rng is None:
-        rng = np.random.default_rng(seed)
+    rng = _generator(rng, seed)
 
     if isinstance(tpm, pd.DataFrame):
         N = len(tpm.index[0])  # pyright: ignore[reportIndexIssue, reportAttributeAccessIssue]

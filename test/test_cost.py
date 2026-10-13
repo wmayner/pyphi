@@ -78,7 +78,7 @@ class TestCounts:
     def test_counts_match_direct_enumeration(self):
         est = estimate_analysis(_dense3())
         assert est.n_units == 3
-        assert est.compute == "full"
+        assert est.compute is None
         assert est.state_space_size == 8
         assert est.mechanisms == 7
         assert est.system_partitions == sum(1 for _ in system_partitions((0, 1, 2)))

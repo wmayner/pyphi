@@ -285,13 +285,7 @@ class TestCauseEffectStructureComponents:
             f"(expected non-empty)"
         )
 
-        # Get count depending on structure type
-        if hasattr(distinctions, "__len__"):
-            count = len(distinctions)
-        elif hasattr(distinctions, "concepts"):
-            count = len(distinctions.concepts)
-        else:
-            count = 0
+        count = len(distinctions)
 
         assert count > 0, (
             f"CauseEffectStructure for '{example_name}' has zero distinctions "
@@ -324,7 +318,7 @@ class TestDistinctionProperties:
 
         # Get the concepts (distinctions)
         if hasattr(result.distinctions, "concepts"):
-            concepts = result.distinctions.concepts
+            concepts = tuple(result.distinctions)
         else:
             concepts = result.distinctions
 
@@ -350,7 +344,7 @@ class TestDistinctionProperties:
 
         # Get the concepts (distinctions)
         if hasattr(result.distinctions, "concepts"):
-            concepts = result.distinctions.concepts
+            concepts = tuple(result.distinctions)
         else:
             concepts = result.distinctions
 

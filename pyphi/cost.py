@@ -380,8 +380,10 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         Product of the candidate units' alphabet sizes — the scale of one
         repertoire evaluation. Reported as a weight, never multiplied into
         the counts.
-    compute : str
-        ``"full"``, ``"sia"``, ``"ces"``, or ``"distinctions"``.
+    compute : str or None
+        What the estimate covers, as the ``compute`` argument of
+        :func:`pyphi.analyze` names it: ``None`` for the full analysis, or
+        ``"sia"``, ``"ces"`` or ``"distinctions"``.
     system_partitions : int or None
         Partitions the system irreducibility analysis sweeps, under the
         active system partition scheme. Counted for a ``"ces"`` analysis,
@@ -436,7 +438,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
 
     n_units: int
     state_space_size: int
-    compute: str
+    compute: str | None
     system_partitions: int | None
     specified_state_evaluations: int | None
     mechanisms: int | None
@@ -525,7 +527,7 @@ class AnalysisEstimate(Displayable, ToPandasMixin):
         rows.append(Row("Capped", self.capped))
         return Description(
             title="AnalysisEstimate",
-            subtitle=f"{self.n_units} units, {self.compute}",
+            subtitle=f"{self.n_units} units, {self.compute or 'full analysis'}",
             sections=(Section(rows=tuple(rows)),),
             compact=(
                 f"AnalysisEstimate(n_units={self.n_units}, compute={self.compute!r})"
@@ -731,7 +733,7 @@ def _estimate_analysis(
     return AnalysisEstimate(
         n_units=m,
         state_space_size=state_space_size,
-        compute=scope,
+        compute=compute,
         system_partitions=system_partition_count,
         specified_state_evaluations=specified_state_evaluations,
         mechanisms=mechanisms,

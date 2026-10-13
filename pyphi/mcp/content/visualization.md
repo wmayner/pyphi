@@ -98,8 +98,9 @@ Chrome download), and a still frame of a figure meant to be rotated and hovered
 is misleading. Keep cause-effect-structure plots as HTML. In a notebook,
 `fig.show()` displays them inline. The other helpers (`plot_system`,
 `plot_graph`, `plot_tpm`, `plot_distribution`, `plot_repertoires`,
-`plot_dynamics`, the Ising helpers) return Matplotlib figures and save the usual
-way, `fig.savefig("figure.png")`.
+`plot_dynamics`, the Ising helpers) use Matplotlib. Each returns its figure and
+axes, `fig, ax = viz.plot_tpm(...)`, and the figure saves the usual way,
+`fig.savefig("figure.png")`.
 
 ## The full surface
 

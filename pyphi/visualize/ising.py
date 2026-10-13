@@ -11,15 +11,51 @@ from pyphi.substrate_generator.ising import energy
 from pyphi.utils import all_states
 
 
-def plot_sigmoid(x, temperature=1.0, field=0.0):
+def plot_sigmoid(x, temperature=1.0, field=0.0, ax=None):
+    """Plot the Ising activation probability against the input energy.
+
+    Parameters
+    ----------
+    x : array_like
+        Input energies.
+    temperature : float, optional
+        Temperature of the logistic activation.
+    field : float, optional
+        External field (threshold) of the activation.
+    ax : matplotlib.axes.Axes, optional
+        Axes to draw into; the current axes by default.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and axes.
+    """
     y = utils.sigmoid(x, temperature=temperature, field=field)
-    ax = sb.lineplot(x=x, y=y, linewidth=3)
+    ax = sb.lineplot(x=x, y=y, linewidth=3, ax=ax)
     ax.set_title(f"T = {temperature}")
     ax.vlines(x=0, ymin=0, ymax=1, color="grey", linewidth=1)
-    return ax
+    return ax.figure, ax
 
 
 def plot_inputs(data, x, y, label, ax=None, sep=0.015):
+    """Scatter labeled points, offsetting labels that share an x value.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        The points.
+    x, y, label : str
+        The columns holding each point's coordinates and label.
+    ax : matplotlib.axes.Axes, optional
+        Axes to draw into; the current axes by default.
+    sep : float, optional
+        Vertical offset between labels at the same x value.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and axes.
+    """
     ax = sb.scatterplot(data=data, x=x, y=y, ax=ax, s=100, color="red", alpha=0.25)
     seen = {}
     for _, row in data.iterrows():
@@ -27,8 +63,8 @@ def plot_inputs(data, x, y, label, ax=None, sep=0.015):
             seen[row[x]] += sep
         else:
             seen[row[x]] = sep
-        plt.text(x=row[x], y=row[y] + seen[row[x]], s=row[label])
-    return ax
+        ax.text(x=row[x], y=row[y] + seen[row[x]], s=row[label])
+    return ax.figure, ax
 
 
 def _state_energies(weights, temperature, field, N=None, spin=0):
@@ -53,12 +89,30 @@ def _state_energies(weights, temperature, field, N=None, spin=0):
 
 
 def plot(weights, temperature, field, N=None, spin=0):
+    """Plot one spin's activation sigmoid with every state's input energy.
+
+    Parameters
+    ----------
+    weights : numpy.ndarray
+        Coupling matrix.
+    temperature : float
+        Temperature of the logistic activation.
+    field : float
+        External field (threshold) of the activation.
+    N : int, optional
+        Use only the first ``N`` units of ``weights``.
+    spin : int, optional
+        The spin whose activation is plotted.
+
+    Returns
+    -------
+    tuple
+        The Matplotlib figure and axes.
+    """
     data = _state_energies(weights, temperature, field, N=N, spin=spin)
     limit = np.max(np.abs(data["energy"]))
     x = np.linspace(-limit, limit, num=200)
-    fig = plt.figure(figsize=(15, 6))
-    ax = plot_sigmoid(x, temperature=temperature, field=field)
-    ax = plot_inputs(
-        data=data, x="energy", y="probability", label="state", ax=ax, sep=0.05
-    )
-    return fig
+    fig, ax = plt.subplots(figsize=(15, 6))
+    plot_sigmoid(x, temperature=temperature, field=field, ax=ax)
+    plot_inputs(data=data, x="energy", y="probability", label="state", ax=ax, sep=0.05)
+    return fig, ax

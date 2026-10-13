@@ -78,11 +78,17 @@ def _resolve_measure(argument: str, measure: Any, resolve: Any) -> Any:
     )
 
 
-# PyPhi 1.x attributes of ``Subsystem`` that 2.0 renamed on ``System``.
+# Attributes of the 1.x and IIT 4.0-branch ``Subsystem`` that 2.0 renamed on
+# ``System``.
 _RENAMED_ATTRIBUTES = {
     "concept": "distinction",
     "null_concept": "null_distinction",
     "apply_cut": "apply_partition",
+    "cut": "partition",
+    "cause_tpm": "cause_marginal",
+    "effect_tpm": "effect_marginal",
+    "proper_cause_tpm": "proper_cause_marginal",
+    "proper_effect_tpm": "proper_effect_marginal",
 }
 
 

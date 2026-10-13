@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use("Agg", force=True)
 
 import matplotlib.axes
+import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -45,13 +46,31 @@ def test_system_graph_exact(xor_system):
     assert colors == ["lightblue"] * 3
 
 
-def test_plot_system_draws_and_returns_graph(xor_system):
+def test_plot_system_draws_and_returns_figure_and_axes(xor_system):
     from pyphi.visualize.connectivity import plot_system
 
     fig, ax = plt.subplots()
-    g = plot_system(xor_system, ax=ax)
-    assert sorted(g.nodes) == ["A", "B", "C"]
+    assert plot_system(xor_system, ax=ax) == (fig, ax)
+    labels = sorted(t.get_text() for t in ax.texts)
+    assert labels == ["A", "B", "C"]
     plt.close(fig)
+
+
+def test_matplotlib_helpers_return_figure_and_axes():
+    import networkx as nx
+
+    from pyphi.visualize import ising
+    from pyphi.visualize import plot_graph
+
+    results = [
+        plot_graph(nx.DiGraph([(0, 1)]), ax=plt.figure().gca()),
+        ising.plot(np.array([[0.0, 1.0], [1.0, 0.0]]), temperature=1.0, field=0.0),
+        ising.plot_sigmoid(np.linspace(-1, 1, 5), ax=plt.figure().gca()),
+    ]
+    for fig, ax in results:
+        assert isinstance(fig, matplotlib.figure.Figure)
+        assert ax.figure is fig
+        plt.close(fig)
 
 
 def test_plot_tpm_exported_and_labeled():
@@ -141,9 +160,8 @@ def test_repertoire_comparison_values(xor_system, xor_sia):
 def test_plot_repertoires_smoke(xor_system, xor_sia):
     from pyphi.visualize.distribution import plot_repertoires
 
-    fig, axes, reps = plot_repertoires(xor_system, xor_sia)
+    fig, axes = plot_repertoires(xor_system, xor_sia)
     assert len(axes) == 2
-    assert len(reps) == 2
     plt.close(fig)
 
 
@@ -163,8 +181,8 @@ def test_ising_plot_smoke():
     from pyphi.visualize.ising import plot
 
     w = np.array([[0.0, 1.0], [1.0, 0.0]])
-    fig = plot(w, temperature=1.0, field=0.0)
-    assert fig is not None
+    fig, ax = plot(w, temperature=1.0, field=0.0)
+    assert ax.figure is fig
     plt.close(fig)
 
 
@@ -201,8 +219,8 @@ def test_plot_system_kary_draws():
     from pyphi.visualize.connectivity import plot_system
 
     fig, ax = plt.subplots()
-    g = plot_system(_k3_system(), ax=ax)
-    assert len(g.nodes) == 2
+    plot_system(_k3_system(), ax=ax)
+    assert len(ax.texts) == 2
     plt.close(fig)
 
 
