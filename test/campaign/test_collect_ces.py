@@ -77,6 +77,23 @@ def test_sharded_equals_unsharded(tmp_path, formalism):
     assert float(result.relations.sum_phi()) == float(reference.relations.sum_phi())
 
 
+def test_iit3_campaign_completes_and_equals_unsharded(tmp_path):
+    # IIT 3.0's sia takes no partition restriction, so its whole-system SIA
+    # runs as one task; every task must succeed.
+    directory = _campaign(tmp_path, "IIT_3_0")
+    result = collect(directory)
+    with config.override(**presets.by_name["IIT_3_0"], **PIN):
+        reference = System(examples.basic_substrate(), BASIC_STATE).ces()
+    assert float(result.sia.phi) == float(reference.sia.phi)
+    assert sorted(
+        (d.mechanism, d.cause.purview, d.effect.purview, float(d.phi))
+        for d in result.distinctions
+    ) == sorted(
+        (d.mechanism, d.cause.purview, d.effect.purview, float(d.phi))
+        for d in reference.distinctions
+    )
+
+
 def test_scope_report_written_and_certified(tmp_path):
     scope = CESScope(mechanisms=AxisScope(containing=(0,)))
     directory = _campaign(tmp_path, "IIT_4_0_2026", scope=scope)

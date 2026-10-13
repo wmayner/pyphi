@@ -277,7 +277,13 @@ def plan_ces_shards(
 def plan_sia_shards(
     system: Any, units_per_job: float, memory_floor_bytes: int = 0
 ) -> list[ShardSpec]:
-    """Plan system-partition strides for the system irreducibility analysis."""
+    """Plan system-partition strides for the system irreducibility analysis.
+
+    Formalisms without specified-state pins (IIT 3.0) compute their SIA over
+    every partition at once, so they get a single task.
+    """
+    from pyphi.formalism.base import FORMALISM_REGISTRY
+
     scheme = config.formalism.iit.system_partition_scheme
     alphabet = system.substrate.factored_tpm.alphabet_sizes
     cells = math.prod(alphabet[u] for u in system.node_indices)
@@ -289,6 +295,9 @@ def plan_sia_shards(
         )
     )
     k = max(1, min(math.ceil(total / units_per_job), total))
+    formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
+    if not getattr(formalism, "has_state_pins", False):
+        k = 1
     return [
         ShardSpec(
             payload_kind="partition_stride",

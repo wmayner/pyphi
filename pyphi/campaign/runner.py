@@ -344,24 +344,20 @@ def sia_stride_entries(
     minima are taken without the intrinsic-information requirement (MIP
     selection compares normalized φ without it); the merge applies the
     requirement once the global MIP per pair is chosen. Pin-less formalisms
-    report the single sweep result.
+    (IIT 3.0) are planned as one stride covering every partition and report
+    the whole-system SIA.
     """
     from pyphi.formalism.base import FORMALISM_REGISTRY
 
     formalism = FORMALISM_REGISTRY[config.formalism.iit.version]  # pyright: ignore[reportAttributeAccessIssue]
     if not getattr(formalism, "has_state_pins", False):
-        sia = system.sia(partitions=parts)
+        sia = system.sia()
         if getattr(sia, "reasons", None):
-            # A null short-circuit (e.g. no strong connectivity) never
-            # consults the partition restriction, so every stride of the
-            # cell produces this same result.
             aux = {"short_circuit": True, "scheme": scheme}
         else:
+            # The only stride: the tie set is already in enumeration order.
             ties = getattr(sia, "ties", None) or (sia,)
-            aux = {
-                "tie_indices": _global_tie_indices(ties, parts, indices),
-                "scheme": scheme,
-            }
+            aux = {"tie_indices": list(range(len(ties))), "scheme": scheme}
         return [CellOutput(status="ok", result=sia, traceback=None, aux=aux)]
     from pyphi.formalism.iit4 import sia_stride_search
 

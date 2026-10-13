@@ -156,3 +156,25 @@ def test_subsets_are_recorded_as_resolved_indices(tmp_path):
     )
     manifest = json.loads((tmp_path / "camp" / "manifest.json").read_text())
     assert [cell[2] for cell in manifest["cells"]] == [[0, 1]]
+
+
+@pytest.mark.parametrize(
+    ("packing", "match"),
+    [
+        ({"jobs": 0}, "jobs must be"),
+        ({"jobs": -1}, "jobs must be"),
+        ({"jobs": 2.5}, "jobs must be"),
+        ({"jobs": True}, "jobs must be"),
+        ({"units_per_job": 0}, "units_per_job must be a positive number"),
+        ({"units_per_job": -5.0}, "units_per_job must be a positive number"),
+    ],
+)
+def test_packing_options_are_range_checked(tmp_path, packing, match):
+    with pytest.raises(ValueError, match=match):
+        prepare(
+            examples.basic_substrate(),
+            states=(1, 0, 0),
+            directory=tmp_path / "camp",
+            **packing,
+        )
+    assert not (tmp_path / "camp").exists()

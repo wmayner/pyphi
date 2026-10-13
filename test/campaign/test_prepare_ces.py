@@ -620,3 +620,22 @@ def test_precomputed_sia_of_another_state_is_rejected_before_writing(tmp_path):
             sia=sia,
         )
     assert not directory.exists()
+
+
+@pytest.mark.parametrize(
+    ("options", "match"),
+    [
+        ({"units_per_job": 0}, "units_per_job must be a positive number"),
+        ({"units_per_job": -5}, "units_per_job must be a positive number"),
+        ({"units_per_job": 100.0, "ordering": "nope"}, "unknown ordering"),
+    ],
+)
+def test_planning_options_are_checked(tmp_path, options, match):
+    with pytest.raises(ValueError, match=match):
+        prepare_ces(
+            examples.basic_substrate(),
+            states=(1, 0, 0),
+            directory=tmp_path / "camp",
+            **options,
+        )
+    assert not (tmp_path / "camp").exists()

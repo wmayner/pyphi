@@ -1,0 +1,1 @@
+A CES campaign prepared under IIT 3.0 (`campaign.prepare_ces(..., formalisms="iit3")` or the MCP `prepare_ces_campaign` tool) failed in its system irreducibility task every time it ran, so it could never be collected. IIT 3.0 now plans that analysis as one task over every partition, and its scope report leaves the relation bounds empty, since IIT 3.0 structures have no relations.

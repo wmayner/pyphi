@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 import msgspec
+import numpy as np
 
 from pyphi import serialize
 from pyphi.analysis import _check_compute
@@ -290,6 +291,33 @@ def _cell_weights(
     return weights, capped
 
 
+def _check_packing(jobs: Any, units_per_job: Any) -> tuple[int | None, float | None]:
+    """Return ``jobs`` and ``units_per_job`` as Python numbers, rejecting a
+    task count below 1 or a non-positive work budget."""
+    if jobs is not None and (
+        isinstance(jobs, bool) or not isinstance(jobs, int | np.integer) or jobs < 1
+    ):
+        raise ValueError(
+            f"jobs must be a whole number of tasks, at least 1; got {jobs!r}"
+        )
+    if units_per_job is not None and (
+        isinstance(units_per_job, bool)
+        or not isinstance(units_per_job, int | float | np.integer | np.floating)
+        or not math.isfinite(units_per_job)
+        or units_per_job <= 0
+    ):
+        raise ValueError(
+            f"units_per_job must be a positive number; got {units_per_job!r}"
+        )
+    return (
+        None if jobs is None else int(jobs),
+        None if units_per_job is None else float(units_per_job),
+    )
+
+
+_ORDERINGS = (None, "bottleneck_first")
+
+
 def _pack(
     weights: list[float], jobs: int | None, units_per_job: float | None
 ) -> list[list[int]]:
@@ -442,6 +470,7 @@ def prepare(
             f"campaign directory {directory} already exists; "
             "campaign directories are never overwritten"
         )
+    jobs, units_per_job = _check_packing(jobs, units_per_job)
     compute_name, compute_ref = _compute_spec(compute)
     states = _axis_values(states, "states")
     subsets = _axis_values(subsets, "subsets")
@@ -667,6 +696,14 @@ def prepare_ces(
         )
     if sia is not None and resolution_state is not None:
         raise ValueError("pass either sia or resolution_state, not both")
+    if units_per_job is None:
+        raise ValueError("units_per_job must be a positive number; got None")
+    _check_packing(None, units_per_job)
+    units_per_job = float(units_per_job)
+    if ordering not in _ORDERINGS:
+        raise ValueError(
+            f"unknown ordering {ordering!r}; expected 'bottleneck_first' or None"
+        )
     formalisms_ = _normalize_formalisms(formalisms)
     states = _axis_values(states, "states")
     subsets = _axis_values(subsets, "subsets")
@@ -1161,7 +1198,9 @@ class ScopeReport(Displayable, ToPandasMixin):
     ``sum_phi_r_lower`` is the Σφ_r of the computed relations — an exact
     lower bound for the full structure, since partial structures are exact
     substructures. ``sum_phi_r_upper`` and ``big_phi_upper`` are the
-    measured certificates from :mod:`pyphi.formalism.iit4.bounds`.
+    measured certificates from :mod:`pyphi.formalism.iit4.bounds`, or None
+    when no distinction was computed or the formalism (IIT 3.0) has no
+    relations.
     """
 
     mechanisms_computed: int
@@ -1303,10 +1342,12 @@ def _build_scope_report(
     sia_mode: str,
 ) -> ScopeReport:
     from pyphi.formalism.iit4 import bounds
+    from pyphi.relations import NullRelations
 
     n = len(system.node_indices)
     resolved = result.distinctions
-    if len(resolved):
+    # The certificates bound IIT 4.0 relations; an IIT 3.0 structure has none.
+    if len(resolved) and not isinstance(result.relations, NullRelations):
         upper_r = float(bounds.sum_phi_relations_measured_bound(resolved).value)
         upper_phi = float(bounds.big_phi_measured_bound(resolved).value)
     else:
