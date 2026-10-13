@@ -1,0 +1,1 @@
+`create_substrate` raises `TypeError` for a node spec key it does not use (such as `parms` for `params`) and for a parameter that the mechanism or the combination does not take (such as `determinsm`), with a suggestion for a near match. Misspelt keys and parameters used to be ignored, which left the parameter at its default and built a different substrate without any error.

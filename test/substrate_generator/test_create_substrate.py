@@ -133,3 +133,34 @@ def test_list_and_dict_specs_are_equivalent():
 def test_non_integer_mapping_keys_raise():
     with pytest.raises(TypeError):
         create_substrate({"a": {"mechanism": "copy", "inputs": (0,)}})  # type: ignore[dict-item]
+
+
+_SIGMOID = {
+    "mechanism": "sigmoid",
+    "inputs": (0, 1),
+    "params": {"input_weights": [0.5, 1.0], "determinism": 1.0, "threshold": 0.5},
+}
+_COPY = {"mechanism": "copy", "inputs": (0,)}
+
+
+@pytest.mark.parametrize(
+    ("spec", "message"),
+    [
+        (
+            {**_SIGMOID, "params": {"determinsm": 1.0}},
+            r"node 0's params.*'determinsm'.*Did you mean 'determinism'",
+        ),
+        ({**_SIGMOID, "parms": {}}, r"node 0 .*'parms'.*Did you mean 'params'"),
+        (
+            {"composite": [_SIGMOID], "combination_params": {"stepness": 5.0}},
+            r"combination_params.*'stepness'",
+        ),
+        (
+            {"composite": [{**_SIGMOID, "params": {"treshold": 0.5}}]},
+            r"composite\[0\]'s params.*'treshold'",
+        ),
+    ],
+)
+def test_create_substrate_rejects_misspelt_keys_and_parameters(spec, message):
+    with pytest.raises(TypeError, match=message):
+        create_substrate([spec, _COPY])

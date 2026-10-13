@@ -277,6 +277,71 @@ def _is_state_dependent(spec: Mapping[str, Any]) -> bool:
     return spec.get("mechanism") in STATE_DEPENDENT
 
 
+_SIMPLE_SPEC_KEYS = ("mechanism", "inputs", "params")
+_COMPOSITE_SPEC_KEYS = ("composite", "mechanism_combination", "combination_params")
+
+
+def _reject_unknown(names: Iterable[str], allowed: Iterable[str], what: str) -> None:
+    """Raise ``TypeError`` for a name outside ``allowed``, with a close match."""
+    allowed = sorted(allowed)
+    for name in names:
+        if name not in allowed:
+            close = difflib.get_close_matches(name, allowed, n=1)
+            hint = f" Did you mean {close[0]!r}?" if close else ""
+            raise TypeError(
+                f"{what} has an unknown key {name!r}; the keys are {allowed}.{hint}"
+            )
+
+
+def _named_options(func: Any, skip: int) -> set[str] | None:
+    """The keyword options ``func`` names after its first ``skip`` parameters,
+    or ``None`` when a callable outside PyPhi accepts any keyword."""
+    params = list(inspect.signature(func).parameters.values())
+    builtin = func in MECHANISMS.values() or func in MECHANISM_COMBINATIONS.values()
+    if not builtin and any(p.kind is p.VAR_KEYWORD for p in params):
+        return None
+    return {
+        p.name
+        for p in params[skip:]
+        if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD) and p.name != "inputs"
+    }
+
+
+def _check_spec(spec: Mapping[str, Any], where: str) -> None:
+    """Raise ``TypeError`` for a key or parameter that a node spec does not use.
+
+    A misspelt key or parameter would otherwise be dropped and the parameter
+    left at its default, changing the substrate without warning.
+    """
+    if "composite" in spec:
+        _reject_unknown(spec, _COMPOSITE_SPEC_KEYS, where)
+        combination = spec.get("mechanism_combination", "selective")
+        combine = (
+            MECHANISM_COMBINATIONS[combination]
+            if isinstance(combination, str)
+            else combination
+        )
+        options = _named_options(combine, 1)
+        if options is not None:
+            _reject_unknown(
+                spec.get("combination_params", {}),
+                options,
+                f"{where}'s combination_params",
+            )
+        for k, sub in enumerate(spec["composite"]):
+            _check_spec(sub, f"{where}'s composite[{k}]")
+        return
+    _reject_unknown(spec, _SIMPLE_SPEC_KEYS, where)
+    mechanism = spec["mechanism"]
+    func = MECHANISMS[mechanism] if isinstance(mechanism, str) else mechanism
+    options = _named_options(func, 3)
+    if options is None:
+        return
+    if mechanism in WEIGHTED:
+        options.add("input_weights")
+    _reject_unknown(spec.get("params", {}), options, f"{where}'s params")
+
+
 def _node_function(spec: Mapping[str, Any]) -> Callable:
     """Resolve a node spec to a bound unit function ``f(element, weights, state)``."""
     if "composite" in spec:
@@ -324,7 +389,9 @@ def create_substrate(
     Raises
     ------
     TypeError
-        If ``node_params`` is a mapping whose keys are not all integers.
+        If ``node_params`` is a mapping whose keys are not all integers, a spec
+        has a key not listed above, or ``params`` or ``combination_params``
+        names an option the mechanism or combination does not take.
 
     Notes
     -----
@@ -345,6 +412,8 @@ def create_substrate(
         specs = [node_params[k] for k in sorted(node_params)]
     else:
         specs = list(node_params)
+    for j, spec in enumerate(specs):
+        _check_spec(spec, f"the spec of node {j}")
 
     n = len(specs)
     weights = np.zeros((n, n))
