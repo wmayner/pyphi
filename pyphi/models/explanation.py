@@ -273,6 +273,12 @@ def _reason_value(value: Any) -> Any:
     return value.name if isinstance(value, NullResultReason) else value
 
 
+def _display_value(value: Any) -> Any:
+    """Render a :class:`NullResultReason` in plain words, as result cards do;
+    pass other values through unchanged."""
+    return value.description if isinstance(value, NullResultReason) else value
+
+
 @dataclass(frozen=True)
 class Explanation(Displayable):
     """A typed account of why a result came out as it did.
@@ -288,7 +294,7 @@ class Explanation(Displayable):
 
     def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
         rows = tuple(
-            Row(finding.label, _reason_value(finding.value), tone=finding.tone)
+            Row(finding.label, _display_value(finding.value), tone=finding.tone)
             for finding in self.findings
         )
         return Description(

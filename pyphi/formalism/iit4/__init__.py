@@ -284,6 +284,14 @@ class SystemIrreducibilityAnalysis(
             if margin is not None and numerics.eq(float(margin), 0.0)
         )
 
+    def _tied_label(self, label: str) -> str:
+        # Without a partition margin (a single partition, or a sweep that
+        # stopped at a zero-φ partition), only the state selections were
+        # checked for ties.
+        if self.partition_margin is None:
+            return f"{label} (states only)"
+        return label
+
     @property
     def effectively_tied(self) -> bool:
         """Whether any selection margin is within
@@ -502,14 +510,25 @@ class SystemIrreducibilityAnalysis(
             mip_rows.append(Row("Partition", concise_partition(self.partition)))
             if self.partition.num_connections_cut():
                 mip_body = (_cut_grid(self.partition),)
-        mip_rows.append(Row("Tied MIPs", len(self.ties) - 1))
+        # A tie can share the MIP's partition and differ only in a specified
+        # state, so partitions and states are counted separately.
+        tied_partitions: list[Any] = []
+        for tie in self.ties:
+            if not any(tie.partition == p for p in tied_partitions):
+                tied_partitions.append(tie.partition)
+        mip_rows.append(Row("Tied MIPs", len(tied_partitions) - 1))
+        tied_states = sum(tie.partition == self.partition for tie in self.ties) - 1
+        if tied_states:
+            mip_rows.append(Row("Tied specified states", tied_states))
         if verbosity >= FULL:
             if self.partition_margin is not None:
                 mip_rows.append(Row("Selection margin", self.partition_margin))
             if self.partition_margin is not None or any(
                 margin is not None for margin in self.state_margins.values()
             ):
-                mip_rows.append(Row("Effectively tied", self.effectively_tied))
+                mip_rows.append(
+                    Row(self._tied_label("Effectively tied"), self.effectively_tied)
+                )
         sections.append(Section(label="MIP", rows=tuple(mip_rows), body=mip_body))
         if self.reasons:
             reasons = ", ".join(getattr(r, "description", str(r)) for r in self.reasons)
@@ -585,7 +604,7 @@ class SystemIrreducibilityAnalysis(
             findings.append(
                 Finding(
                     kind="effectively_tied",
-                    label="Selection effectively tied",
+                    label=self._tied_label("Selection effectively tied"),
                     value=self.effectively_tied,
                     detail=(("tied_selections", self.tied_selections),),
                 )
@@ -1604,23 +1623,25 @@ def _find_mip_for_fixed_state(
         candidates = [default_sia]
     ties = tuple(resolve_ties.sias(candidates))
     mip_sia = ties[0]
-    # Rank the runner-up by the same quantity that selected the MIP
-    # (normalized φ under the default strategy), so the reported runner-up
-    # is the actual nearest competitor.
-    runner_up_key, key_is_normalized = sia_runner_up_key(
-        config.formalism.iit.sia_tie_resolution
-    )
-    mip_sia.runner_up = runner_up_from_candidates(
-        candidates,
-        runner_up_key(mip_sia),
-        key=runner_up_key,
-        normalized=key_is_normalized,
-    )
+    # The runner-up and the margin are only meaningful when every partition
+    # was evaluated: a short-circuited sweep yields a truncated prefix that
+    # says nothing about the full partition set.
+    complete_sweep = len(candidates) == len(partitions)
+    if complete_sweep:
+        # Rank the runner-up by the same quantity that selected the MIP
+        # (normalized φ under the default strategy), so the reported
+        # runner-up is the actual nearest competitor.
+        runner_up_key, key_is_normalized = sia_runner_up_key(
+            config.formalism.iit.sia_tie_resolution
+        )
+        mip_sia.runner_up = runner_up_from_candidates(
+            candidates,
+            runner_up_key(mip_sia),
+            key=runner_up_key,
+            normalized=key_is_normalized,
+        )
     others = [candidate for candidate in candidates if candidate is not mip_sia]
-    # The margin is only meaningful when every partition was evaluated: a
-    # short-circuited sweep yields a truncated prefix whose gap says nothing
-    # about the full partition set.
-    if others and len(candidates) == len(partitions):
+    if others and complete_sweep:
         # Reports the margin to the nearest competitor; the MIP was already
         # selected above via resolve_ties.sias.
         # numerics: exact — reported margin, not a selection.

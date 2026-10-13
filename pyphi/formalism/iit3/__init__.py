@@ -395,6 +395,7 @@ def _sia_map_reduce(
 
     kwargs = {**dict(config.infrastructure.parallel_partition_evaluation), **kwargs}
     null = _null_sia(system, reasons=[NullResultReason.NO_VALID_PARTITIONS])
+    cuts = list(cuts)
     candidates = map_reduce(
         evaluate_partition,
         cuts,
@@ -412,7 +413,10 @@ def _sia_map_reduce(
     if not ties:
         return null
     winner = ties[0]
-    winner.runner_up = runner_up_from_candidates(candidates, winner.phi)
+    # A short-circuited sweep evaluated only a prefix of the cuts, so its
+    # next-best candidate is not the runner-up over all of them.
+    if len(candidates) == len(cuts):
+        winner.runner_up = runner_up_from_candidates(candidates, winner.phi)
     # Capture phi-tied peers (same minimum phi value) before any
     # lex-based tiebreaker collapses the set to a single winner. These
     # peers are equally valid MIPs for the system; preserving them on

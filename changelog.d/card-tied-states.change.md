@@ -1,0 +1,1 @@
+The "Tied MIPs" row of a system irreducibility analysis card now counts only other tied partitions. A tie that keeps the minimum partition and differs only in a specified state is counted in a separate "Tied specified states" row. `explain()` now shows the reason for a null result in plain words, as the result card does; `Explanation.to_pandas()` still gives the enum name.

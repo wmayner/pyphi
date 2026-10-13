@@ -525,3 +525,50 @@ def test_tied_selections_partition(basic_sia):
     sia = examples.grid3_system().sia()
     assert "partition" in sia.tied_selections
     assert basic_sia.tied_selections == ()
+
+
+def test_runner_up_none_when_sweep_shortcircuits():
+    """A short-circuited sweep's next-best partition is not the runner-up over
+    all partitions, so none is reported, and the tie flag says it covers only
+    the state selections."""
+    sia = pyphi.analyze(_fig1a_substrate(0.9), (1, 0, 0), compute="sia")
+    assert sia.runner_up is None
+    by_kind = _findings_by_kind(sia.explain())
+    assert "runner_up" not in by_kind
+    assert by_kind["effectively_tied"][0].label.endswith("(states only)")
+
+
+def test_iit3_runner_up_none_when_sweep_shortcircuits():
+    """A and B copy each other and C = A AND B; the declared edges from C
+    have no effect, so cutting them gives Φ = 0 and stops the sweep."""
+    import numpy as np
+
+    from test.conftest import IIT_3_CONFIG
+
+    tpm = np.array([[b, a, a & b] for a, b, _ in pyphi.utils.all_states(3)], float)
+    substrate = pyphi.Substrate(tpm, cm=np.ones((3, 3), dtype=int))
+    with IIT_3_CONFIG:
+        sia = pyphi.analyze(substrate, (0, 0, 0), compute="sia")
+    assert float(sia.phi) == pytest.approx(0.0)
+    assert not sia.reasons
+    assert sia.runner_up is None
+
+
+def _mip_rows(sia):
+    from pyphi.display.mixin import HIGH
+
+    description = sia._describe(HIGH)
+    (section,) = [s for s in description.sections if s.label == "MIP"]
+    return {row.label: row.value for row in section.rows}
+
+
+def test_card_counts_state_ties_apart_from_partition_ties():
+    """The two tied readings of basic (1, 1, 0) share the partition and differ
+    only in the specified cause state, so no partition is tied."""
+    with pyphi.config.override(**pyphi.iit4_2026):
+        sia = pyphi.analyze(examples.basic_substrate(), (1, 1, 0), compute="sia")
+    assert len(sia.ties) == 2
+    assert all(t.partition == sia.partition for t in sia.ties)
+    rows = _mip_rows(sia)
+    assert rows["Tied MIPs"] == 0
+    assert rows["Tied specified states"] == 1

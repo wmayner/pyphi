@@ -80,7 +80,9 @@ sia
   a deterministic transition.
 - **MIP**: the partition, written as its parts followed by the connections
   it severs (the grid shows the same connections); "Tied MIPs" counts
-  partitions tied with it.
+  other partitions tied with it. When a tie keeps the same partition and
+  differs only in a specified state, the card counts it under "Tied
+  specified states" instead.
 
 $\varphi_s$ is the smallest of three terms: the cause-side integration
 $\varphi_c$, the effect-side integration $\varphi_e$, and the intrinsic

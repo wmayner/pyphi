@@ -71,13 +71,17 @@ def test_explanation_describe_and_pandas():
     )
     # repr/HTML render without error and mention the subject + reason.
     assert "Φ_s = 0.0" in repr(expl)
-    assert "NO_STRONG_CONNECTIVITY" in repr(expl)
+    # The card shows the reason in plain words, like the Analysis card;
+    # the DataFrame keeps the enum name as a stable key.
+    assert "not strongly connected" in str(expl)
+    assert "NO_STRONG_CONNECTIVITY" not in str(expl)
     assert "<" in expl._repr_html_()  # HTML backend produced markup
 
     df = expl.to_pandas()
     assert list(df.columns) == ["level", "kind", "label", "value"]
     assert len(df) == 2
     assert df.iloc[0]["kind"] == "null_result"
+    assert df.iloc[0]["value"] == "NO_STRONG_CONNECTIVITY"
 
 
 def test_iit3_null_sia_carries_reason(s_empty):
