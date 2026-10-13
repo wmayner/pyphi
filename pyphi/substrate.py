@@ -45,6 +45,7 @@ from .display import Displayable
 from .display import Row
 from .display import Section
 from .labels import NodeLabels
+from .labels import _is_sequence
 from .models.pandas import ToPandasMixin
 from .serializable import Serializable
 from .types import ConnectivityMatrix
@@ -1061,10 +1062,22 @@ def _candidate_systems(
 
     Candidates that name the same units, however they are spelled, are kept
     once, at their first occurrence: two copies of one system would tie with
-    each other in the exclusion cascade and exclude each other.
+    each other in the exclusion cascade and exclude each other. A flat
+    sequence of indices or labels, such as ``(0, 1)`` or ``("A", "B")``, is
+    one candidate, as in :func:`pyphi.sweep`.
     """
     from pyphi.system import System
 
+    if isinstance(candidates, str):
+        raise TypeError(
+            "candidates is a collection of subsets, such as [(0, 1), ('A', 'C')]; "
+            f"got the string {candidates!r}"
+        )
+    candidates = list(candidates)
+    if candidates and not any(
+        isinstance(c, System) or _is_sequence(c) for c in candidates
+    ):
+        candidates = [candidates]
     coerced = _coerce_state_to_indices(state, substrate.state_space)
     systems = []
     seen: set[tuple[int, ...]] = set()

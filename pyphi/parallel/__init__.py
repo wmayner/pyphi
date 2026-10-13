@@ -34,6 +34,7 @@ from typing import Any
 from pyphi._progress import tqdm
 from pyphi.conf import config
 from pyphi.conf import fallback
+from pyphi.conf._helpers import check_progress_flag
 from pyphi.utils import try_len
 
 log = logging.getLogger(__name__)
@@ -207,7 +208,9 @@ def map_reduce(
             "must match the sequential-evaluation prefix"
         )
     iterables = (items, *more_items)
-    show_progress = fallback(progress, config.infrastructure.progress_bars)
+    show_progress = fallback(
+        check_progress_flag(progress), config.infrastructure.progress_bars
+    )
     resolved_total = fallback(try_len(*iterables), total)
 
     if not parallel:

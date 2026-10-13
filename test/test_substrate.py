@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import pyphi
 from pyphi import Direction
 from pyphi import config
 from pyphi import examples
@@ -356,6 +357,27 @@ def test_candidates_may_be_subsets_by_index_or_label():
         direct = [substrate.sia(state, subset=s) for s in [(0, 1), (0, 1, 2)]]
     assert [s.phi for s in by_index] == [s.phi for s in direct]
     assert [s.phi for s in by_label] == [s.phi for s in direct]
+
+
+@pytest.mark.parametrize("flat", [(0, 1), ("A", "B")])
+def test_a_flat_subset_is_one_candidate(flat):
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with config.override(**pyphi.iit4_2026):
+        sias = substrate.all_sias((1, 0, 0), candidates=flat)
+    assert [s.node_indices for s in sias] == [(0, 1)]
+
+
+@pytest.mark.parametrize("candidates", ["AB", "all"])
+def test_a_string_of_candidates_is_rejected(candidates):
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with pytest.raises(TypeError, match="collection of subsets"):
+        substrate.complexes((1, 0, 0), candidates=candidates)
+
+
+def test_a_string_subset_is_rejected():
+    substrate = examples.iit4_2023_fig1a_substrate()
+    with pytest.raises(TypeError, match="sequence of node indices or labels"):
+        pyphi.analyze(substrate, (1, 0, 0), subset="AB", compute="sia")
 
 
 def test_a_candidate_system_in_another_state_is_rejected():

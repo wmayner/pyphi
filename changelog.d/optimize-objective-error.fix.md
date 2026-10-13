@@ -1,0 +1,1 @@
+When the objective of `pyphi.optimize` fails, for example because IIT 3.0 analyses have no `signed_normalized_phi`, the objective's own error is raised instead of a SciPy `RuntimeError` about its map-like callable.

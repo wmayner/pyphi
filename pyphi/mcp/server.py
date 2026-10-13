@@ -24,6 +24,7 @@ from typing import Any
 
 import numpy as np
 from mcp.server.fastmcp import FastMCP
+from pydantic import StrictInt
 
 import pyphi
 from pyphi import examples
@@ -368,14 +369,17 @@ def _distinctions_summary(
 def list_examples() -> dict[str, str]:
     """List the built-in example substrates that ``load_example`` can load.
 
-    Returns a mapping from each example's name to a one-line description. These
-    are the standard networks from the IIT literature (XOR, the basic 3-node
-    logic-gate system, the IIT 4.0 paper figures, and more).
+    Returns a mapping from each example's name to a description: the first
+    paragraph of its documentation, on one line. These are the standard networks
+    from the IIT literature (XOR, the basic 3-node logic-gate system, the IIT
+    4.0 paper figures, and more).
     """
+    import inspect
+
     out = {}
     for name, func in sorted(examples.EXAMPLES["substrate"].items()):
-        doc = (func.__doc__ or "").strip().splitlines()
-        out[name] = doc[0].strip() if doc else "(no description)"
+        paragraph = inspect.cleandoc(func.__doc__ or "").split("\n\n")[0]
+        out[name] = " ".join(paragraph.replace("``", "").split()) or "(no description)"
     return out
 
 
@@ -511,7 +515,7 @@ def _compute_arg(compute: str) -> str | None:
     return None if compute == "full" else compute
 
 
-def _subset_indices(substrate: Any, subset: list[int | str] | None) -> Any:
+def _subset_indices(substrate: Any, subset: list[StrictInt | str] | None) -> Any:
     """Node indices for a tool's ``subset`` (indices or labels), or ``None``."""
     if subset is None:
         return None
@@ -596,7 +600,7 @@ def _refuse_if_large(estimate: Any, compute: str, n_nodes: int) -> None:
 def analyze(
     handle: str,
     state: list[int],
-    subset: list[int | str] | None = None,
+    subset: list[StrictInt | str] | None = None,
     formalism: str | None = None,
     compute: str = "full",
     detail: str = "summary",
@@ -716,7 +720,7 @@ def analyze(
 @mcp.tool()
 def estimate_cost(
     handle: str,
-    subset: list[int | str] | None = None,
+    subset: list[StrictInt | str] | None = None,
     compute: str = "full",
     formalism: str | None = None,
     scope: dict[str, Any] | None = None,
@@ -860,7 +864,7 @@ def prepare_ces_campaign(
     state: list[int],
     directory: str,
     units_per_job: float,
-    subset: list[int | str] | None = None,
+    subset: list[StrictInt | str] | None = None,
     scope: dict[str, Any] | None = None,
     formalism: str | None = None,
     sia_ref: str | None = None,

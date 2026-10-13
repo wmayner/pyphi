@@ -323,6 +323,9 @@ def analyze(
                 f"grains must be True, False, or a SearchBounds instance; got {grains!r}"
             )
 
+    from pyphi.conf._helpers import check_progress_flag
+
+    progress = check_progress_flag(progress)
     progress_override = {} if progress is None else {"progress_bars": progress}
     with presets.use(formalism), config.override(**progress_override):
         if bounds is not None:

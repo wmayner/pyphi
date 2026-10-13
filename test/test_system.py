@@ -708,3 +708,52 @@ def test_mic_rejects_unknown_units_with_a_clear_message(mechanism, purviews, mat
     system = System(examples.basic_substrate(), (1, 0, 0))
     with pytest.raises(ValueError, match=match):
         system.mic(mechanism, purviews=purviews)
+
+
+def test_mip_queries_accept_a_measure_name():
+    import pyphi
+    from pyphi import examples
+
+    with config.override(**pyphi.iit4_2026):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        named = system.cause_mip(
+            (0,), (1,), mechanism_measure="GENERALIZED_INTRINSIC_DIFFERENCE"
+        )
+        assert named.phi == system.cause_mip((0,), (1,)).phi
+
+
+@pytest.mark.parametrize(
+    ("query", "error", "match"),
+    [
+        (
+            lambda s: s.cause_mip((0,), (1,), mechanism_measure="KLD"),
+            "MeasureNotCompatibleError",
+            "not compatible",
+        ),
+        (
+            lambda s: s.find_mip(Direction.CAUSE, (0,), (1,), state=(0,)),
+            "TypeError",
+            "specified state",
+        ),
+        (
+            lambda s: s.find_mice("cause", (0,)),
+            "ValueError",
+            "Direction.CAUSE or Direction.EFFECT",
+        ),
+        (
+            lambda s: s.sia(partition_scheme="directed_bipartition"),
+            "ValueError",
+            "unknown partition_scheme",
+        ),
+    ],
+    ids=["incompatible measure", "state", "direction", "partition scheme"],
+)
+def test_mip_query_options_are_checked(query, error, match):
+    import pyphi
+    from pyphi import examples
+
+    with config.override(**pyphi.iit4_2026):
+        system = System(examples.basic_substrate(), (1, 0, 0))
+        with pytest.raises(Exception, match=match) as raised:
+            query(system)
+    assert type(raised.value).__name__ == error

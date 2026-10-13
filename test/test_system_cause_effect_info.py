@@ -40,3 +40,9 @@ def test_cause_effect_info(s):
     purview = (0, 2)
     answer = min(s.cause_info(mechanism, purview), s.effect_info(mechanism, purview))
     assert s.cause_effect_info(mechanism, purview) == answer
+
+
+@pytest.mark.parametrize("query", ["cause_info", "effect_info", "cause_effect_info"])
+def test_info_queries_reject_an_unknown_keyword(s, query):
+    with pytest.raises(TypeError, match="bogus"):
+        getattr(s, query)((0, 1), (0, 2), bogus=1)

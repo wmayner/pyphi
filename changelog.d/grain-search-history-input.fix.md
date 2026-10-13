@@ -1,0 +1,1 @@
+The grain search accepts a micro history given as a 2-D NumPy array or a list of arrays, and a state that is not a sequence (such as `None`) gets the same `TypeError` it gets without `grains=`. The integer fields of `SearchBounds` reject floats and booleans with a `TypeError` instead of failing later in the search.

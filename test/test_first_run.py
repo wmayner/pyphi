@@ -448,3 +448,25 @@ def test_importing_pot_does_not_show_its_syntax_warnings(monkeypatch):
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         distribution.OptionalEMD().ot  # noqa: B018
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        lambda p: p["config"]["formalism"].__setitem__("iit", [1, 2]),
+        lambda p: p["partition"]["node_indices"].pop(0),
+    ],
+    ids=["config section replaced by a list", "partition index removed"],
+)
+def test_loading_a_damaged_payload_raises_value_error_naming_the_path(tmp_path, damage):
+    path = tmp_path / "sia.json"
+    with pyphi.config.override(**pyphi.iit4_2026):
+        pyphi.save(
+            pyphi.analyze(examples.basic_substrate(), (1, 0, 0), compute="sia"), path
+        )
+    doc = json.loads(path.read_text())
+    damage(doc["payload"])
+    path.write_text(json.dumps(doc))
+    with pytest.raises(ValueError, match="does not match the format") as raised:
+        pyphi.load(path)
+    assert str(path) in "".join(raised.value.__notes__)

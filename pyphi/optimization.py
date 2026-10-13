@@ -28,6 +28,7 @@ from numpy.typing import NDArray
 from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.conf._helpers import check_parallel_flag
+from pyphi.conf._helpers import check_progress_flag
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
@@ -491,7 +492,7 @@ def optimize(
     box = [(float(lo), float(hi)) for lo, hi in bounds]
     _check_inputs(builder, box, state, subset, formalism)
     sign = -1.0 if goal == "maximize" else 1.0  # DE minimizes sign*objective
-    show = fallback(progress, config.infrastructure.progress_bars)
+    show = fallback(check_progress_flag(progress), config.infrastructure.progress_bars)
     use_parallel = fallback(
         check_parallel_flag(parallel), config.infrastructure.parallel
     )
@@ -546,19 +547,35 @@ def optimize(
         generation += 1
         return scores
 
-    outcome = differential_evolution(
-        batch_objective,
-        box,
-        rng=np.random.default_rng(seed),
-        maxiter=maxiter,
-        popsize=popsize,
-        tol=tol,
-        x0=x0,
-        vectorized=True,
-        updating="deferred",
-        polish=False,
-        workers=1,
-    )
+    # scipy replaces an exception raised by the objective with its own
+    # RuntimeError about the map-like callable; keep the original to re-raise.
+    failures: list[Exception] = []
+
+    def checked_objective(population: NDArray[Any]) -> NDArray[Any]:
+        try:
+            return batch_objective(population)
+        except Exception as error:
+            failures.append(error)
+            raise
+
+    try:
+        outcome = differential_evolution(
+            checked_objective,
+            box,
+            rng=np.random.default_rng(seed),
+            maxiter=maxiter,
+            popsize=popsize,
+            tol=tol,
+            x0=x0,
+            vectorized=True,
+            updating="deferred",
+            polish=False,
+            workers=1,
+        )
+    except Exception:
+        if failures:
+            raise failures[0] from None
+        raise
 
     trajectory = pd.DataFrame(rows)
     # Derive the best from the logged evaluations (not `outcome`) so

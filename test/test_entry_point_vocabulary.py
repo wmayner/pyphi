@@ -250,6 +250,26 @@ def test_parallel_must_be_a_bool(run, value):
         run(examples.basic_substrate(), value)
 
 
+@pytest.mark.parametrize("value", [1, "no"])
+@pytest.mark.parametrize(
+    "run",
+    [
+        lambda s, p: pyphi.analyze(s, (1, 0, 0), compute="sia", progress=p),
+        lambda s, p: pyphi.analyze(s, (1, 0, 0), grains=True, progress=p),
+        lambda s, p: pyphi.sweep(s, states=[(1, 0, 0)], progress=p),
+        lambda s, p: s.complexes((1, 0, 0), progress=p),
+        lambda s, p: pyphi.System(s, (1, 0, 0)).sia(progress=p),
+        lambda s, p: pyphi.optimize(
+            lambda _: s, (1, 0, 0), [(0, 1)], seed=0, maxiter=1, popsize=2, progress=p
+        ),
+    ],
+    ids=["analyze", "grains", "sweep", "complexes", "System.sia", "optimize"],
+)
+def test_progress_must_be_a_bool(run, value):
+    with pytest.raises(TypeError, match="progress must be True, False or None"):
+        run(examples.basic_substrate(), value)
+
+
 def test_parallel_accepts_a_numpy_bool():
     s = examples.basic_substrate()
     with config.override(**pyphi.iit4_2026):
@@ -336,3 +356,9 @@ def test_optimize_validates_inputs_before_searching(state, kwargs, match):
             progress=False,
             **kwargs,
         )
+
+
+@pytest.mark.parametrize("state", [None, "AB"])
+def test_grain_search_names_a_state_that_is_not_a_sequence(state):
+    with pytest.raises(TypeError, match="a state is a sequence"):
+        pyphi.analyze(examples.basic_substrate(), state, grains=True)

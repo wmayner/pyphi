@@ -143,7 +143,8 @@ class NodeLabels(Sequence[str]):
         Raises
         ------
         TypeError
-            If ``nodes`` is not iterable.
+            If ``nodes`` is not iterable, or is a string (a label must be
+            given inside a tuple, such as ``("A",)``).
         ValueError
             If ``nodes`` mixes labels with indices, contains booleans,
             non-integer numbers, or nested sequences, names an unknown label
@@ -151,7 +152,7 @@ class NodeLabels(Sequence[str]):
         """
         if nodes is None:
             return self.node_indices
-        if not isinstance(nodes, Iterable):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if not isinstance(nodes, Iterable) or isinstance(nodes, str):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
                 "expected a sequence of node indices or labels, such as (0, 1) "
                 f"or ('A', 'B'); got {nodes!r}"

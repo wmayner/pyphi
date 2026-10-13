@@ -42,6 +42,15 @@ def basic_handle():
     return srv.load_example("basic")["handle"]
 
 
+def test_list_examples_descriptions_are_whole_sentences():
+    examples = srv.list_examples()
+    assert examples["actual_causation"] == (
+        "The actual causation example substrate, consisting of an OR and AND "
+        "gate with self-loops."
+    )
+    assert all("``" not in text and "\n" not in text for text in examples.values())
+
+
 def test_list_examples_includes_standard_networks():
     examples = srv.list_examples()
     assert "basic" in examples
@@ -302,6 +311,18 @@ def test_a_known_argument_still_reaches_the_tool(basic_handle):
         "analyze", {"handle": basic_handle, "state": [1, 0, 0], "subset": [0, 1]}
     )
     assert structured["summary"]["subset"] == [0, 1]
+
+
+@pytest.mark.parametrize("tool", ["analyze", "estimate_cost"])
+def test_a_boolean_mask_subset_is_rejected(basic_handle, tool):
+    # JSON true/false must not be read as the indices 1 and 0.
+    from mcp.server.fastmcp.exceptions import ToolError
+
+    arguments = {"handle": basic_handle, "subset": [False, True]}
+    if tool == "analyze":
+        arguments["state"] = [1, 0, 0]
+    with pytest.raises(ToolError, match="subset"):
+        _call_tool(tool, arguments)
 
 
 def test_configure_parallel_rejects_zero_workers_and_changes_nothing():

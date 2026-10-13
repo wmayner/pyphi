@@ -253,6 +253,23 @@ def test_objective_value_missing_attribute_raises_clear_error():
         _objective_value(MinimalSIA(), "signed_normalized_phi")
 
 
+def test_an_objective_the_formalism_lacks_raises_its_own_error():
+    # IIT 3.0 analyses have no signed normalized φₛ; the error must name that,
+    # not scipy's complaint about its map-like callable.
+    basic = examples.basic_substrate()
+    with pytest.raises(ValueError, match="signed_normalized_phi"):
+        optimize(
+            lambda _: basic,
+            (1, 0, 0),
+            [(0, 1)],
+            seed=1,
+            formalism="iit3",
+            maxiter=1,
+            popsize=2,
+            progress=False,
+        )
+
+
 def test_optimization_result_equality_does_not_raise():
     """The generated dataclass ``__eq__`` compared ndarray/DataFrame fields
     with ``==``, whose elementwise results have no truth value."""

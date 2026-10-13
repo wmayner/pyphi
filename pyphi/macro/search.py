@@ -35,17 +35,22 @@ the hashable :class:`~pyphi.macro.system.MacroSystem`.
 from __future__ import annotations
 
 import itertools
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing import Any
 
+import numpy as np
+
 from pyphi import exceptions
+from pyphi import validate
 from pyphi.display import Description
 from pyphi.display import Displayable
 from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
+from pyphi.labels import _is_sequence
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import UnitVerdict
 from pyphi.macro.criteria import _as_unit
@@ -83,6 +88,15 @@ def _require_macro_formalism() -> None:
     _require_marginalized_background()
 
 
+_INT_BOUNDS = (
+    "max_constituents",
+    "max_update_grain",
+    "max_depth",
+    "exhaustive_cap",
+    "max_background",
+)
+
+
 @dataclass(frozen=True)
 class SearchBounds:
     """Bounds on the intrinsic-unit search space.
@@ -116,6 +130,13 @@ class SearchBounds:
     max_background: int = 0
 
     def __post_init__(self) -> None:
+        for name in _INT_BOUNDS:
+            value = getattr(self, name)
+            if isinstance(value, np.integer):
+                value = value.item()
+                object.__setattr__(self, name, value)
+            if not isinstance(value, int) or isinstance(value, bool):
+                raise TypeError(f"{name} must be an integer; got {value!r}")
         if self.max_constituents < 1:
             raise ValueError(
                 f"max_constituents must be >= 1; got {self.max_constituents}"
@@ -224,15 +245,20 @@ def _normalized_history(substrate, micro_history, required: int):
 
     A bare state is accepted when ``required == 1``.
     """
-    history = tuple(micro_history)
-    if history and not isinstance(history[0], (tuple, list)):
+    if isinstance(micro_history, (bytes, Mapping)) or not _is_sequence(micro_history):
+        # The message for a state that is not a sequence, as analyze gives.
+        validate.state_length(micro_history, substrate.size)  # pyright: ignore[reportArgumentType]
+    history: tuple[Any, ...] = tuple(micro_history)
+    if history and not _is_sequence(history[0]):
         if required != 1:
             raise ValueError(
                 f"micro_history must be a sequence of {required} universe "
                 "states (oldest first); got a bare state"
             )
         history = (history,)
-    history = tuple(tuple(s) for s in history)
+    history = tuple(
+        tuple(v.item() if isinstance(v, np.generic) else v for v in s) for s in history
+    )
     if len(history) != required:
         raise ValueError(
             f"micro_history must have {required} entries (the maximum "
@@ -993,12 +1019,13 @@ def _parallel_options(parallel: bool | None, progress: bool | None) -> dict:
     """The candidate-evaluation overrides a public search function forwards:
     ``parallel`` and ``progress``, where given."""
     from pyphi.conf._helpers import check_parallel_flag
+    from pyphi.conf._helpers import check_progress_flag
 
     return {
         name: value
         for name, value in (
             ("parallel", check_parallel_flag(parallel)),
-            ("progress", progress),
+            ("progress", check_progress_flag(progress)),
         )
         if value is not None
     }

@@ -30,6 +30,7 @@ from pyphi.conf import config
 from pyphi.conf import fallback
 from pyphi.conf import presets
 from pyphi.conf._helpers import check_parallel_flag
+from pyphi.conf._helpers import check_progress_flag
 from pyphi.direction import Direction
 from pyphi.display import Description
 from pyphi.display import Displayable
@@ -576,6 +577,7 @@ def sweep(
     # (uncomputable) cells; skip and record those. When every axis is given
     # explicitly, an uncomputable cell fails loud.
     _check_compute(compute)
+    progress = check_progress_flag(progress)
     states = _axis_values(states, "states")
     subsets = _axis_values(subsets, "subsets")
     skip_uncomputable = _enumerates(states) or _enumerates(subsets)

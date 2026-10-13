@@ -123,6 +123,15 @@ class TestSearchBounds:
         with pytest.raises(ValueError, match="apportionment"):
             SearchBounds(apportionment="ALWAYS")
 
+    @pytest.mark.parametrize("value", [2.0, True, "2"])
+    def test_non_integer_bounds_rejected(self, value):
+        with pytest.raises(TypeError, match="max_update_grain must be an integer"):
+            SearchBounds(max_update_grain=value)
+
+    def test_numpy_integer_bounds_accepted(self):
+        bounds = SearchBounds(max_update_grain=np.int64(2))
+        assert type(bounds.max_update_grain) is int
+
     def test_enumerate_requires_max_background(self):
         with pytest.raises(ValueError, match="max_background"):
             SearchBounds(apportionment="ENUMERATE")
@@ -255,6 +264,29 @@ class TestGrainRaisedSingleton:
         assert verdict.num_competitors == 0
         assert verdict.valid == numerics.is_positive(verdict.phi)
         assert verdict.reason in (Reason.VALID, Reason.NOT_INTEGRATED)
+
+
+@pytest.mark.parametrize(
+    "as_numpy",
+    [np.array, lambda h: [np.array(s) for s in h]],
+    ids=["2-D array", "list of arrays"],
+)
+def test_a_numpy_history_is_a_history(as_numpy):
+    unit = MacroUnit((0,), 2, blackbox(1, 2, (0,)))
+    bounds = SearchBounds(max_update_grain=2)
+    history = ((1, 0, 1, 0), (1, 0, 1, 0))
+    with config.override(**presets.iit4_2023):
+        expected = is_intrinsic_unit(
+            _asymmetric_substrate(), unit, history, bounds=bounds
+        )
+        got = is_intrinsic_unit(
+            _asymmetric_substrate(), unit, as_numpy(history), bounds=bounds
+        )
+    assert (got.valid, got.phi, got.reason) == (
+        expected.valid,
+        expected.phi,
+        expected.reason,
+    )
 
 
 class TestCompetingSystems:

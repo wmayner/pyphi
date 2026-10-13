@@ -110,7 +110,18 @@ def loads(data: bytes, *, format: str = "json", node_labels: Any = None) -> Any:
             f"cannot load format_version {doc.format_version}: this version of "
             f"PyPhi reads format_version {FORMAT_VERSION} or lower"
         )
-    return convert.decode_document(doc.payload, doc.node_labels, node_labels=node_labels)
+    try:
+        return convert.decode_document(
+            doc.payload, doc.node_labels, node_labels=node_labels
+        )
+    except (KeyError, IndexError, TypeError, AttributeError) as error:
+        # A damaged or hand-edited payload fails wherever the decoder first
+        # meets the bad field; report it as data that does not match.
+        raise ValueError(
+            "the document does not match the format this version of PyPhi "
+            f"writes; a field is missing or malformed ({type(error).__name__}: "
+            f"{error})"
+        ) from error
 
 
 _SUFFIX_FORMATS = {".json": "json", ".msgpack": "msgpack", ".mpk": "msgpack"}

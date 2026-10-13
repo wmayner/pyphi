@@ -66,6 +66,62 @@ def _reject_unknown(caller: str, kwargs: Any, *names: str) -> None:
     reject_unknown_kwargs(f"System.{caller}", kwargs, [*names, *PARALLEL_KWARGS])
 
 
+def _check_direction(direction: Any) -> Any:
+    """Return ``direction`` if it is ``Direction.CAUSE`` or ``Direction.EFFECT``."""
+    from pyphi.direction import Direction
+
+    if not isinstance(direction, Direction) or direction not in Direction.both():
+        raise ValueError(
+            f"direction must be Direction.CAUSE or Direction.EFFECT; got {direction!r}"
+        )
+    return direction
+
+
+def _mip_options(system: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Check and resolve the options of a mechanism-level MIP query.
+
+    Measure names resolve to measures, a measure the active version of IIT
+    does not define raises :class:`~pyphi.formalism.base.MeasureNotCompatibleError`,
+    and ``state`` must be a specified state.
+    """
+    from pyphi.conf import config as _config
+    from pyphi.formalism.base import FORMALISM_REGISTRY
+    from pyphi.formalism.base import check_measure_compatible
+    from pyphi.formalism.base import check_specification_measure_compatible
+    from pyphi.measures.distribution import resolve_mechanism_measure
+    from pyphi.models.state_specification import StateSpecification
+
+    formalism = FORMALISM_REGISTRY[_config.formalism.iit.version]
+    alphabet_sizes = system.substrate.factored_tpm.alphabet_sizes
+    for name, resolve, check in (
+        (
+            "mechanism_measure",
+            lambda m: resolve_mechanism_measure(m, alphabet_sizes),
+            check_measure_compatible,
+        ),
+        (
+            "specification_measure",
+            resolve_mechanism_measure,
+            check_specification_measure_compatible,
+        ),
+    ):
+        if kwargs.get(name) is None:
+            continue
+        measure = _resolve_measure(name, kwargs[name], resolve)
+        measure_name = getattr(measure, "name", None)
+        if measure_name is not None:
+            check(formalism, measure_name)
+        kwargs[name] = measure
+    state = kwargs.get("state")
+    if state is not None and not isinstance(state, StateSpecification):
+        raise TypeError(
+            "state must be a specified state (a StateSpecification, such as a "
+            "MIP's specified_state); got "
+            f"{type(state).__name__} {state!r}"
+        )
+    return kwargs
+
+
 def _resolve_measure(argument: str, measure: Any, resolve: Any) -> Any:
     """Return the measure a name or measure argument stands for."""
     if measure is None or (callable(measure) and hasattr(measure, "name")):
@@ -846,11 +902,17 @@ class System(Displayable, ToPandasMixin, Serializable):
 
     # ---- info / phi proxies ----
 
-    def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+    def _info_kwargs(self, caller: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """The options of an information query, with the configured measure
+        filled in; any option but ``repertoire_distance`` and ``state`` raises
+        ``TypeError``."""
         from pyphi.conf import config as _config
-        from pyphi.core import repertoire_algebra as ra
+        from pyphi.conf import reject_unknown_kwargs
         from pyphi.measures.distribution import resolve_mechanism_measure
 
+        reject_unknown_kwargs(
+            f"System.{caller}", kwargs, ["repertoire_distance", "state"]
+        )
         kwargs.setdefault(
             "repertoire_distance",
             resolve_mechanism_measure(
@@ -858,35 +920,28 @@ class System(Displayable, ToPandasMixin, Serializable):
                 self.substrate.factored_tpm.alphabet_sizes,
             ),
         )
-        return ra.cause_info(self, mechanism, purview, **kwargs)
+        return kwargs
+
+    def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        from pyphi.core import repertoire_algebra as ra
+
+        return ra.cause_info(
+            self, mechanism, purview, **self._info_kwargs("cause_info", kwargs)
+        )
 
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
-        from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.measures.distribution import resolve_mechanism_measure
 
-        kwargs.setdefault(
-            "repertoire_distance",
-            resolve_mechanism_measure(
-                _config.formalism.iit.mechanism_phi_measure,
-                self.substrate.factored_tpm.alphabet_sizes,
-            ),
+        return ra.effect_info(
+            self, mechanism, purview, **self._info_kwargs("effect_info", kwargs)
         )
-        return ra.effect_info(self, mechanism, purview, **kwargs)
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
-        from pyphi.conf import config as _config
         from pyphi.core import repertoire_algebra as ra
-        from pyphi.measures.distribution import resolve_mechanism_measure
 
-        kwargs.setdefault(
-            "repertoire_distance",
-            resolve_mechanism_measure(
-                _config.formalism.iit.mechanism_phi_measure,
-                self.substrate.factored_tpm.alphabet_sizes,
-            ),
+        return ra.cause_effect_info(
+            self, mechanism, purview, **self._info_kwargs("cause_effect_info", kwargs)
         )
-        return ra.cause_effect_info(self, mechanism, purview, **kwargs)
 
     def intrinsic_specification(
         self,
@@ -1027,13 +1082,15 @@ class System(Displayable, ToPandasMixin, Serializable):
             partition schemes or system measures to set. Also if a measure
             is neither a name nor a measure object.
         ValueError
-            If a measure name is not a registered measure.
+            If a measure name is not a registered measure, or
+            ``partition_scheme`` is not a registered system partition scheme.
         ~pyphi.exceptions.StateUnreachableForwardsError
             If ``formalism`` is given and the state is unreachable under it,
             as :func:`pyphi.analyze` would raise.
         """
         from pyphi.cache.disk import maybe_disk_cached
         from pyphi.conf import presets
+        from pyphi.conf._helpers import check_progress_flag
         from pyphi.measures.distribution import resolve_mechanism_measure
         from pyphi.measures.distribution import resolve_system_measure
 
@@ -1043,6 +1100,14 @@ class System(Displayable, ToPandasMixin, Serializable):
         specification_measure = _resolve_measure(
             "specification_measure", specification_measure, resolve_mechanism_measure
         )
+        if partition_scheme is not None:
+            from pyphi.partition import system_partition_types
+
+            if partition_scheme not in system_partition_types.all():
+                raise ValueError(
+                    f"unknown partition_scheme {partition_scheme!r}; expected one "
+                    f"of {system_partition_types.all()}"
+                )
         options = _given(
             system_state=system_state,
             partitions=partitions,
@@ -1051,7 +1116,7 @@ class System(Displayable, ToPandasMixin, Serializable):
             system_measure=system_measure,
             specification_measure=specification_measure,
             parallel=parallel,
-            progress=progress,
+            progress=check_progress_flag(progress),
         )
 
         def _compute() -> Any:
@@ -1217,16 +1282,58 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> Any:
         """Return the minimum partition for a mechanism over a purview.
 
-        Resolves mechanism- and specification-level measures from config at
-        the public boundary so the active formalism's MIP search is never
-        called without explicit measures in normal flow. Explicit
-        ``mechanism_measure``/``specification_measure`` kwargs override.
+        Parameters
+        ----------
+        direction : Direction
+            ``Direction.CAUSE`` or ``Direction.EFFECT``.
+        mechanism : tuple[int, ...]
+            The mechanism's node indices.
+        purview : tuple[int, ...]
+            The purview's node indices.
+        **kwargs
+            ``partitions``: the mechanism partitions to search (default:
+            every partition of the configured scheme). ``state``: the
+            specified state (a
+            :class:`~pyphi.models.state_specification.StateSpecification`)
+            to evaluate at, instead of searching the specified states.
+            ``mechanism_measure`` and ``specification_measure``: a measure
+            name or a measure, overriding the configuration. The parallel
+            options of :func:`~pyphi.parallel.map_reduce` are also
+            accepted.
+
+        Returns
+        -------
+        RepertoireIrreducibilityAnalysis
+            The minimum partition and its φ.
+
+        Raises
+        ------
+        TypeError
+            If an option is not one of these, or ``state`` is not a
+            specified state.
+        ValueError
+            If ``direction`` is neither cause nor effect, or a measure name
+            is not registered.
+        ~pyphi.formalism.base.MeasureNotCompatibleError
+            If a measure is not defined by the active version of IIT.
         """
+        return self._find_mip("find_mip", direction, mechanism, purview, kwargs)
+
+    def _find_mip(
+        self,
+        caller: str,
+        direction: Any,
+        mechanism: Any,
+        purview: Any,
+        kwargs: dict[str, Any],
+    ) -> Any:
         from pyphi.conf import config as _config
         from pyphi.formalism import find_mip as _find_mip
         from pyphi.measures.distribution import resolve_mechanism_measure
 
-        _reject_unknown("find_mip", kwargs, *_MIP_OPTIONS)
+        _reject_unknown(caller, kwargs, *_MIP_OPTIONS)
+        _check_direction(direction)
+        kwargs = _mip_options(self, kwargs)
         if _config.formalism.iit.version != "IIT_3_0":
             alphabet_sizes = self.substrate.factored_tpm.alphabet_sizes
             kwargs.setdefault(
@@ -1242,28 +1349,46 @@ class System(Displayable, ToPandasMixin, Serializable):
         return _find_mip(self, direction, mechanism, purview, **kwargs)
 
     def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
-        from pyphi.formalism import cause_mip as _cause_mip
+        """Return the minimum partition of a mechanism's cause over a purview.
 
-        _reject_unknown("cause_mip", kwargs, *_MIP_OPTIONS)
-        return _cause_mip(self, mechanism, purview, **kwargs)
+        Takes the options of :meth:`find_mip`.
+        """
+        from pyphi.direction import Direction
+
+        return self._find_mip("cause_mip", Direction.CAUSE, mechanism, purview, kwargs)
 
     def effect_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
-        from pyphi.formalism import effect_mip as _effect_mip
+        """Return the minimum partition of a mechanism's effect over a purview.
 
-        _reject_unknown("effect_mip", kwargs, *_MIP_OPTIONS)
-        return _effect_mip(self, mechanism, purview, **kwargs)
+        Takes the options of :meth:`find_mip`.
+        """
+        from pyphi.direction import Direction
+
+        return self._find_mip("effect_mip", Direction.EFFECT, mechanism, purview, kwargs)
 
     def phi_cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
-        from pyphi.formalism import phi_cause_mip as _phi_cause_mip
+        """Return the φ of :meth:`cause_mip`, or 0 when it is null.
 
-        _reject_unknown("phi_cause_mip", kwargs, *_MIP_OPTIONS)
-        return _phi_cause_mip(self, mechanism, purview, **kwargs)
+        Takes the options of :meth:`find_mip`.
+        """
+        from pyphi.direction import Direction
+
+        mip = self._find_mip(
+            "phi_cause_mip", Direction.CAUSE, mechanism, purview, kwargs
+        )
+        return mip.phi if mip else 0
 
     def phi_effect_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
-        from pyphi.formalism import phi_effect_mip as _phi_effect_mip
+        """Return the φ of :meth:`effect_mip`, or 0 when it is null.
 
-        _reject_unknown("phi_effect_mip", kwargs, *_MIP_OPTIONS)
-        return _phi_effect_mip(self, mechanism, purview, **kwargs)
+        Takes the options of :meth:`find_mip`.
+        """
+        from pyphi.direction import Direction
+
+        mip = self._find_mip(
+            "phi_effect_mip", Direction.EFFECT, mechanism, purview, kwargs
+        )
+        return mip.phi if mip else 0
 
     def phi(self, mechanism: Any, purview: Any) -> float:
         """Return the φ of a mechanism over one purview.
@@ -1304,6 +1429,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.formalism import find_mice as _find_mice
 
         _reject_unknown("find_mice", kwargs, "purviews")
+        _check_direction(direction)
         if "purviews" in kwargs:
             kwargs["purviews"] = self._coerce_purviews(kwargs["purviews"])
         return _find_mice(self, direction, self._coerce_units(mechanism), **kwargs)

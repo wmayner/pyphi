@@ -108,6 +108,8 @@ def parallel_kwargs(
 
     if user_kwargs.get("parallel") is not None:
         user_kwargs["parallel"] = check_parallel_flag(user_kwargs["parallel"])
+    if user_kwargs.get("progress") is not None:
+        user_kwargs["progress"] = check_progress_flag(user_kwargs["progress"])
     kwargs = copy(dict(option_kwargs))
     if not config.infrastructure.progress_bars:
         kwargs["progress"] = False
@@ -133,6 +135,14 @@ PARALLEL_LEVELS = {
 ANALYSIS_PARALLEL_LEVELS = ("partitions", "purviews", "distinctions")
 
 
+def _check_flag(name: str, value: Any) -> bool | None:
+    if value is None or isinstance(value, bool):
+        return value
+    if isinstance(value, np.bool_):
+        return bool(value)
+    raise TypeError(f"{name} must be True, False or None, not {value!r}.")
+
+
 def check_parallel_flag(parallel: Any) -> bool | None:
     """Return a ``parallel=`` argument as a bool, or None if it is None.
 
@@ -141,11 +151,18 @@ def check_parallel_flag(parallel: Any) -> bool | None:
     TypeError
         If ``parallel`` is not a bool (Python or NumPy) or None.
     """
-    if parallel is None or isinstance(parallel, bool):
-        return parallel
-    if isinstance(parallel, np.bool_):
-        return bool(parallel)
-    raise TypeError(f"parallel must be True, False or None, not {parallel!r}.")
+    return _check_flag("parallel", parallel)
+
+
+def check_progress_flag(progress: Any) -> bool | None:
+    """Return a ``progress=`` argument as a bool, or None if it is None.
+
+    Raises
+    ------
+    TypeError
+        If ``progress`` is not a bool (Python or NumPy) or None.
+    """
+    return _check_flag("progress", progress)
 
 
 def parallel_overrides(
@@ -249,6 +266,7 @@ __all__ = [
     "PARALLEL_KWARGS",
     "PARALLEL_LEVELS",
     "check_parallel_flag",
+    "check_progress_flag",
     "fallback",
     "parallel_kwargs",
     "parallel_overrides",
