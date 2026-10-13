@@ -486,3 +486,19 @@ def test_estimate_analysis_subset_is_keyword_only():
     state = (0,) * substrate.size
     assert estimate_analysis(substrate, state).n_units == substrate.size
     assert estimate_analysis(substrate, subset=(0, 1)).n_units == 2
+
+
+def test_estimate_analysis_does_not_need_the_all_zeros_state_reachable():
+    """Unit A is always ON, so (0, 0, 0) is unreachable; the counts do not
+    depend on the state, so the estimate must still succeed."""
+    from pyphi.cost import mechanism_workloads
+
+    states = pyphi.utils.all_states(3)
+    tpm = np.array(
+        [[1.0, 0.9 if a else 0.1, 0.8 if (b and c) else 0.2] for a, b, c in states]
+    )
+    substrate = pyphi.Substrate(tpm, node_labels=("A", "B", "C"))
+    reachable = estimate_analysis(substrate, (1, 0, 1))
+    assert reachable == estimate_analysis(substrate)
+    assert reachable.mechanisms == 7
+    assert mechanism_workloads(substrate)

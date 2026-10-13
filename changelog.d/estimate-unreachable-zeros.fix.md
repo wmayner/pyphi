@@ -1,0 +1,1 @@
+`estimate_analysis` and `cost.mechanism_workloads` no longer fail with `StateUnreachableForwardsError` on a substrate that cannot reach the all-zeros state. The counts do not depend on the state, so the counting system is no longer checked for reachability. The MCP server's `analyze` tool, which runs the estimate before every analysis, no longer refuses such substrates.

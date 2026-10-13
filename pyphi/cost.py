@@ -632,6 +632,20 @@ def estimate_analysis(
         return _estimate_analysis(substrate, subset, compute, limit, scope)
 
 
+def _counting_system(substrate: Substrate, subset: Any) -> Any:
+    """The system over ``subset`` that the counting walks enumerate.
+
+    The counts do not depend on the state, so the system is built in the
+    all-zeros state without checking that state is reachable: a substrate
+    that can never reach it is still estimated.
+    """
+    from pyphi.conf import config
+    from pyphi.system import System
+
+    with config.override(validate_system_states=False):
+        return System(substrate, (0,) * substrate.size, subset=subset)
+
+
 def _estimate_analysis(
     substrate: Substrate,
     subset: Any,
@@ -643,9 +657,8 @@ def _estimate_analysis(
     from pyphi import utils
     from pyphi.conf import config
     from pyphi.direction import Direction
-    from pyphi.system import System
 
-    cs = System(substrate, (0,) * substrate.size, subset=subset)
+    cs = _counting_system(substrate, subset)
     indices = cs.node_indices
     m = len(indices)
     alphabet = substrate.factored_tpm.alphabet_sizes
@@ -789,9 +802,8 @@ def mechanism_workloads(
     """
     from pyphi import utils
     from pyphi.direction import Direction
-    from pyphi.system import System
 
-    cs = System(substrate, (0,) * substrate.size, subset=subset)
+    cs = _counting_system(substrate, subset)
     alphabet = substrate.factored_tpm.alphabet_sizes
     counter = _Counter(limit)
     workloads: dict[tuple[int, ...], MechanismWorkload] = {}
