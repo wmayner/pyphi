@@ -226,3 +226,11 @@ def test_optimization_result_card_is_compact():
     assert text.count("\n") < 15
     assert "OptimizationResult" in text
     assert "Substrate" not in text
+
+
+def test_landscape_partition_column_matches_the_sia_frame():
+    with pyphi.config.override(**pyphi.iit4_2026):
+        substrate = examples.iit4_2023_fig1a_substrate()
+        section = landscape_section(lambda _theta: substrate, (0, 1, 1), [0.0])
+        sia = pyphi.analyze(substrate, (0, 1, 1), compute="sia")
+    assert section.df["partition"].iloc[0] == sia.to_pandas()["partition"].iloc[0]

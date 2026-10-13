@@ -1,0 +1,1 @@
+`Distinctions.to_pandas()` and `CauseEffectStructure.to_pandas()` have a default `RangeIndex` and a `mechanism` column, like every other collection table, instead of an index of mechanisms. Use `df.set_index("mechanism")` for the old shape.

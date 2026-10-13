@@ -1459,6 +1459,20 @@ def _register_complexes_result() -> None:
     )
 
 
+def _register_sequences() -> None:
+    _ENCODERS[tuple] = lambda t: schema.SequenceSchema(
+        items=tuple(to_schema(item) for item in t)
+    )
+    _ENCODERS[list] = lambda items: schema.SequenceSchema(
+        items=tuple(to_schema(item) for item in items), is_list=True
+    )
+    _DECODERS[schema.SequenceSchema] = lambda s: (
+        [from_schema(item) for item in s.items]
+        if s.is_list
+        else tuple(from_schema(item) for item in s.items)
+    )
+
+
 def _register_analysis() -> None:
     from pyphi.analysis import Analysis
 
@@ -1945,6 +1959,7 @@ def _do_register() -> None:
     _register_complex()
     _register_macro_system()
     _register_complexes_result()
+    _register_sequences()
     _register_analysis()
     _register_coverage_report()
     _register_substrate_posterior()

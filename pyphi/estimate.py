@@ -44,6 +44,11 @@ from .analysis import analyze
 from .conf import config
 from .conf import fallback
 from .conf import presets
+from .display import Description
+from .display import Displayable
+from .display import Row
+from .display import Section
+from .display.numbers import format_value
 from .provenance import Provenance
 from .serializable import Serializable
 from .substrate import Substrate
@@ -181,9 +186,14 @@ class SubstratePosterior(Serializable):
         Returns
         -------
         An ordinary :class:`~pyphi.substrate.Substrate`.
+
+        Raises
+        ------
+        TypeError
+            If neither or both of ``seed`` and ``rng`` are given.
         """
         if (seed is None) == (rng is None):
-            raise ValueError("Provide exactly one of seed= or rng=.")
+            raise TypeError("give exactly one of seed and rng")
         if rng is None:
             rng = np.random.default_rng(seed)
         p_on = rng.beta(self.alpha_on, self.alpha_off)
@@ -262,8 +272,8 @@ class SubstratePosterior(Serializable):
         return prob
 
 
-@dataclass(frozen=True, eq=False)
-class PhiPosterior(Serializable):
+@dataclass(frozen=True, eq=False, repr=False)
+class PhiPosterior(Displayable, Serializable):
     """Posterior distribution over Φ, propagated from a substrate posterior.
 
     The distribution is generically a mixture: a point mass at zero from
@@ -323,6 +333,62 @@ class PhiPosterior(Serializable):
     screen_margin: float | None = None
     screened: bool = False
     reference_margins: dict[str, float | None] | None = None
+
+    # The sample array is mutable, so a posterior has no hash.
+    __hash__ = None  # type: ignore[assignment]
+
+    def __eq__(self, other: object) -> bool:
+        # Two posteriors are equal when they hold the same draws from the same
+        # inputs; ``provenance`` records when and where they ran, so it is
+        # left out.
+        if not isinstance(other, PhiPosterior):
+            return NotImplemented
+        return (
+            np.array_equal(self.samples, other.samples)
+            and self.complex_samples == other.complex_samples
+            and self.state == other.state
+            and self.subset == other.subset
+            and self.seed == other.seed
+            and self.regime == other.regime
+            and self.coverage.n_units == other.coverage.n_units
+            and np.array_equal(self.coverage.counts, other.coverage.counts)
+            and self.screen_margin == other.screen_margin
+            and self.screened == other.screened
+            and self.reference_margins == other.reference_margins
+        )
+
+    def to_pandas(self) -> pd.DataFrame:
+        """Return one row per draw: its index, the analysis' ``phi`` and the
+        units of the maximal complex."""
+        return pd.DataFrame(
+            {
+                "draw": range(len(self.samples)),
+                "phi": self.samples,
+                "complex": list(self.complex_samples),
+            }
+        )
+
+    def _describe(self, verbosity: int) -> Description:  # noqa: ARG002
+        n = len(self.samples)
+        p_positive = format_value(self.p_positive)
+        rows = [
+            Row("Draws", n),
+            Row("State", self.state),
+            Row("Subset", "whole substrate" if self.subset is None else self.subset),
+            Row("Regime", self.regime),
+            Row("Seed", self.seed),
+            Row("P(integrated)", p_positive),
+        ]
+        conditional = self.conditional_quantiles([0.05, 0.5, 0.95])
+        if conditional is not None:
+            low, median, high = (format_value(q) for q in conditional)
+            rows.append(Row("Median if integrated", f"{median} (90%: {low} to {high})"))
+        rows.append(Row("Screened", self.screened))
+        return Description(
+            title="PhiPosterior",
+            sections=(Section(rows=tuple(rows)),),
+            compact=f"PhiPosterior({n} draws, P(integrated)={p_positive})",
+        )
 
     @property
     def p_positive(self) -> float:

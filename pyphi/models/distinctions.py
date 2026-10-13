@@ -203,7 +203,7 @@ class Distinctions(Displayable, cmp.Orderable, Sequence, ToPandasMixin, Serializ
 
     def _to_pandas(self):
         rows = [concept._pandas_record() for concept in self._distinctions]
-        return records_to_frame(rows, index="mechanism", columns=_DISTINCTION_COLUMNS)
+        return records_to_frame(rows, columns=_DISTINCTION_COLUMNS)
 
     @property
     def flat(self):

@@ -1354,7 +1354,11 @@ class ComplexesResult(Displayable, ToPandasMixin):
                 "node_indices",
                 "units",
                 "grains",
-                *self.maximal_complex._pandas_record(),
+                *(
+                    column
+                    for column in self.maximal_complex._pandas_record()
+                    if column != "node_indices"
+                ),
             ]
         )
         return records_to_frame(rows, columns=columns)

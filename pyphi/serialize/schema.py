@@ -754,6 +754,14 @@ class OptimizationResultSchema(msgspec.Struct, frozen=True, tag="optimization_re
     direction: str | msgspec.UnsetType = msgspec.UNSET
 
 
+class SequenceSchema(msgspec.Struct, frozen=True, tag="sequence"):
+    """A tuple or list of domain objects, such as the complexes
+    ``Substrate.complexes`` returns."""
+
+    items: "tuple[Schema | float, ...]"
+    is_list: bool = False
+
+
 # The tagged union grows one member per serializable type.
 Schema = (
     DirectionSchema
@@ -821,4 +829,5 @@ Schema = (
     | ShardSpecSchema
     | CESShardTaskSchema
     | SIAShardTaskSchema
+    | SequenceSchema
 )

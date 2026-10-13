@@ -43,7 +43,8 @@ print(f"φ_s = {float(sia.phi):.4f}   |   {len(ces.distinctions)} distinctions")
 
 `pyphi.save` takes the object and a path; `pyphi.load` takes the path and
 reconstructs the object. Equality is value-based, so a round-trip compares
-equal to the original.
+equal to the original. A tuple or list of results, such as the complexes that
+`Substrate.complexes` returns, saves and loads the same way.
 
 ```{code-cell} python
 from pathlib import Path

@@ -36,8 +36,8 @@ state = (0, 1, 1)
 ## Cause-effect structures as a DataFrame
 
 Call `.to_pandas()` on a cause-effect structure to get one row per distinction,
-indexed by mechanism, with the mechanism state, cause and effect purviews, and
-$\varphi$.
+with its mechanism, mechanism state, cause and effect purviews and specified
+states, and $\varphi$.
 
 ```{code-cell} python
 analysis = pyphi.analyze(substrate, state)

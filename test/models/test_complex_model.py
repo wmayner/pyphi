@@ -259,3 +259,18 @@ def test_describe_margin_rows_present_only_when_margin_exists():
     ]
     assert "Selection margin" not in labels
     assert "Effectively tied" not in labels
+
+
+def test_grain_search_complex_frames_name_their_micro_units():
+    import pandas as pd
+
+    import pyphi
+
+    with pyphi.config.override(**pyphi.iit4_2026):
+        system = pyphi.examples.iit4_2023_fig1a_system()
+        result = pyphi.analyze(system.substrate, system.state, grains=True)
+        frame = pd.concat([c.to_pandas() for c in result.complexes])
+        whole = result.to_pandas()
+    assert sorted(frame["node_indices"]) == [(0, 1), (2,)]
+    assert whole.columns.is_unique
+    assert list(whole["node_indices"]) == list(frame["node_indices"])

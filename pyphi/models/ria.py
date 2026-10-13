@@ -622,6 +622,7 @@ class RepertoireIrreducibilityAnalysis(
 
     def _pandas_record(self):
         labels = self.node_labels
+        spec = self.specified_state
 
         def labelled(nodes):
             if labels is None:
@@ -639,7 +640,12 @@ class RepertoireIrreducibilityAnalysis(
             "current_state": (
                 None if self.current_state is None else tuple(self.current_state)
             ),
-            "specified_state": self.specified_state,
+            "specified_state": (
+                None if spec is None else tuple(int(x) for x in spec.state)
+            ),
+            "intrinsic_specification": (
+                None if spec is None else float(spec.intrinsic_specification)
+            ),
             "partition_margin": (
                 None if self.partition_margin is None else float(self.partition_margin)
             ),

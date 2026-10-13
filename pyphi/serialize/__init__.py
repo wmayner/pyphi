@@ -150,7 +150,8 @@ def save(obj: Any, target: Any, *, format: str | None = None) -> None:
     ----------
     obj : Any
         A PyPhi domain object with a registered serializer (see
-        :mod:`pyphi.serialize.convert` for the supported types).
+        :mod:`pyphi.serialize.convert` for the supported types), or a tuple
+        or list of them, which loads back as a tuple or list.
     target : str or os.PathLike or file object
         Destination path, or an open binary file object to write to.
     format : {"json", "msgpack"}, optional

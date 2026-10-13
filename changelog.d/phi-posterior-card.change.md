@@ -1,0 +1,1 @@
+`PhiPosterior` compares equal to another posterior with the same draws from the same inputs (also after a save and load), prints a compact card instead of the whole sample array and provenance record, and has `to_pandas()` with one row per draw.

@@ -110,19 +110,13 @@ def weight_axis(
     return build
 
 
-def _part_id(partition: Any) -> str:
-    """A stable, human-readable identity string for a system partition.
+def _part_id(partition: Any) -> str | None:
+    """The ``partition`` column of a result table: the string
+    ``SystemIrreducibilityAnalysis.to_pandas()`` writes, which names the parts
+    and the severed connections, so equal strings mean the same partition."""
+    from pyphi.models.partitions import concise_partition
 
-    Opaque: compare identities for equality; do not parse them.
-    """
-    if partition is None or getattr(partition, "is_null", False):
-        return "NullCut"
-    set_partition = getattr(partition, "set_partition", None)
-    if set_partition is not None:
-        parts = str(sorted(sorted(part) for part in set_partition))
-    else:
-        parts = type(partition).__name__
-    return f"{parts}|{sorted(partition.removed_edges())}"
+    return None if partition is None else concise_partition(partition)
 
 
 def _optional_float(value: Any) -> float:

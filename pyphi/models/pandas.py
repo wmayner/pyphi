@@ -115,7 +115,9 @@ class ToPandasMixin:
 
     ``to_pandas()`` returns a ``DataFrame``: one row for a single object,
     so that rows from different results concatenate, and one row per
-    element for collections and distributions. Units render as labels.
+    element for collections and distributions, with a default
+    ``RangeIndex``. Mechanisms and purviews render as tuples of labels;
+    ``subset`` and ``node_indices`` columns hold sorted unit indices.
     Subclasses implement ``_pandas_record()`` (single objects, which inherit
     the one-row ``_to_pandas``) or override ``_to_pandas()`` (collections and
     distributions).

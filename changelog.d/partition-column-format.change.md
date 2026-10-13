@@ -1,0 +1,1 @@
+The `partition` column of `LandscapeSection.df` and `OptimizationResult.to_pandas()` uses the same string as `SystemIrreducibilityAnalysis.to_pandas()`, such as `2 parts: {AB,C}; cut C→A, C→B`, so partition columns from these tables can be compared and joined.

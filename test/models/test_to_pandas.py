@@ -131,13 +131,27 @@ def test_ria_to_pandas_is_labeled_series(basic_ces):
     assert series["direction"] in ("CAUSE", "EFFECT")
 
 
+def test_mice_frame_holds_plain_values_and_writes_to_parquet(basic_ces):
+    import io
+
+    mice = next(iter(basic_ces.distinctions)).cause
+    frame = mice.to_pandas()
+    series = _one_row(frame)
+    assert series["specified_state"] == tuple(mice.specified_state.state)
+    assert series["intrinsic_specification"] == pytest.approx(
+        float(mice.specified_state.intrinsic_specification)
+    )
+    frame.to_parquet(io.BytesIO())
+
+
 def test_distinctions_to_pandas_dataframe(basic_ces):
     distinctions = basic_ces.distinctions
     frame = distinctions.to_pandas()
     assert isinstance(frame, pd.DataFrame)
-    assert frame.index.name == "mechanism"
+    assert isinstance(frame.index, pd.RangeIndex)
     assert list(frame.columns) == [
         "phi",
+        "mechanism",
         "mechanism_state",
         "cause_purview",
         "cause_state",
@@ -145,8 +159,8 @@ def test_distinctions_to_pandas_dataframe(basic_ces):
         "effect_state",
     ]
     assert len(frame) == len(distinctions)
-    # the index holds labeled mechanisms (tuples of label strings)
-    first_mechanism = frame.index[0]
+    # the mechanism column holds labeled mechanisms (tuples of label strings)
+    first_mechanism = frame["mechanism"].iloc[0]
     assert all(isinstance(label, str) for label in first_mechanism)
 
 
@@ -154,9 +168,10 @@ def test_empty_distinctions_to_pandas_has_schema():
     from pyphi.models.distinctions import ResolvedDistinctions
 
     frame = ResolvedDistinctions([]).to_pandas()
-    assert frame.index.name == "mechanism"
+    assert isinstance(frame.index, pd.RangeIndex)
     assert list(frame.columns) == [
         "phi",
+        "mechanism",
         "mechanism_state",
         "cause_purview",
         "cause_state",
@@ -264,7 +279,7 @@ def test_label_carrying_types_never_emit_raw_int_units(basic_ces):
 
     frame = basic_ces.distinctions.to_pandas()
     assert not any("." in str(column) for column in frame.columns)
-    for mechanism in frame.index:
+    for mechanism in frame["mechanism"]:
         assert all(isinstance(label, str) for label in mechanism)
 
 

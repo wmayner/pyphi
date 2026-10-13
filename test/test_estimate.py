@@ -106,8 +106,10 @@ def test_sample_seed_discipline():
     substrate = examples.basic_substrate()
     data = _exhaustive_transitions(substrate)
     posterior = estimate_substrate(data, regime="perturbational")
-    with pytest.raises(ValueError, match="seed"):
+    with pytest.raises(TypeError, match="seed"):
         posterior.sample()
+    with pytest.raises(TypeError, match="seed"):
+        posterior.sample(seed=1, rng=np.random.default_rng(1))
     a = posterior.sample(seed=3)
     b = posterior.sample(seed=3)
     np.testing.assert_array_equal(
@@ -225,6 +227,21 @@ def test_phi_posterior_is_reproducible(grid3_posterior):
     np.testing.assert_array_equal(a.samples, b.samples)
     assert a.complex_samples == b.complex_samples
     assert a.seed == 42
+    assert a == b
+
+
+def test_phi_posterior_has_value_equality_a_card_and_a_frame(grid3_phi_posterior):
+    pp = grid3_phi_posterior
+    assert pyphi.serialize.loads(pyphi.serialize.dumps(pp)) == pp
+    with pytest.raises(TypeError):
+        hash(pp)
+    frame = pp.to_pandas()
+    assert list(frame.columns) == ["draw", "phi", "complex"]
+    assert len(frame) == len(pp.samples)
+    assert list(frame["complex"]) == list(pp.complex_samples)
+    text = repr(pp)
+    assert "PhiPosterior" in text and "Provenance" not in text
+    assert "P(integrated)" in text
 
 
 def test_phi_posterior_formalism_applies_to_every_draw(grid3_posterior):

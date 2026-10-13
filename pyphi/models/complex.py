@@ -225,7 +225,9 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         return margin is not None and numerics.is_zero(margin)
 
     def _pandas_record(self) -> dict[str, Any]:
-        record = dict(self.sia._pandas_record())
+        # ``node_indices`` is the micro footprint; for a grain-search complex,
+        # ``subset`` holds indices of the macro system's units.
+        record = {"node_indices": self.node_indices, **self.sia._pandas_record()}
         record["is_maximal"] = self.is_maximal
         record["exclusion_margin"] = self.exclusion_margin
         record["effectively_tied"] = self.effectively_tied
