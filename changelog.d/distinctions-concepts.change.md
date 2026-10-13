@@ -1,1 +1,0 @@
-`Distinctions` no longer has a `concepts` attribute and takes its contents as `Distinctions(distinctions=...)`. The object is itself a sequence of distinctions, so iterate or index it; `.concepts` raises an `AttributeError` that says so. Saved files load unchanged.

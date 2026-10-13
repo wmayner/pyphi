@@ -1,1 +1,0 @@
-The `specified_state` column of `RepertoireIrreducibilityAnalysis.to_pandas()` and `MaximallyIrreducibleCause/Effect.to_pandas()` holds the specified state as a tuple, and a new `intrinsic_specification` column holds its intrinsic specification. The column used to hold a `StateSpecification` object, so the frame could not be written to Parquet.

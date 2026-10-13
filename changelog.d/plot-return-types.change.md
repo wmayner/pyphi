@@ -1,1 +1,0 @@
-Every Matplotlib plotting helper returns its figure and axes as `(fig, ax)`: `plot_system` and `plot_graph` (which returned a graph and `None`), `ising.plot` (a figure), `ising.plot_sigmoid` and `ising.plot_inputs` (axes), and `plot_repertoires` (which also returned the repertoires). Each documents its return value, and the visualization how-to shows how to save one.

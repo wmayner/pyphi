@@ -1,1 +1,0 @@
-When `import pyphi` fails because of `pyphi_config.yml`, the error names the file. When the file selects a version of IIT without the rest of its preset, the error says to write out every option the preset sets and links the complete IIT 3.0 example, `pyphi_config_3.0.yml`.

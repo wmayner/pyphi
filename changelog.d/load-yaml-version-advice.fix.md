@@ -1,1 +1,0 @@
-`pyphi.config.load_yaml` with a file that changes `formalism.iit.version` without the options that version needs now says how to select a version in a configuration file, as the `pyphi_config.yml` read at import does.

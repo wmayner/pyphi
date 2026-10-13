@@ -1,1 +1,0 @@
-A misspelt keyword given to `Substrate.sia` or `Substrate.ces` raises a `TypeError` that names the method called and suggests a close match. An old name for the candidate system (`indices=`, `nodes=`, `node_indices=`, or a third positional argument to `System`) raises a `TypeError` that says to pass `subset=`.

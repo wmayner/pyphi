@@ -1,1 +1,0 @@
-`parallel=` must be `True`, `False` or `None` (a NumPy bool is accepted). `pyphi.analyze` used to raise a confusing error for a string or an integer, and `pyphi.sweep`, `pyphi.optimize`, `Substrate.complexes` and the grain search accepted one silently; all now raise `TypeError`.

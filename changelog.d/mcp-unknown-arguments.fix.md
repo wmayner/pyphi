@@ -1,1 +1,0 @@
-The MCP server's tools reject arguments they do not define. A misspelt argument, such as `subsets` for `subset` or `formalsim` for `formalism`, used to be dropped silently, so the tool ran with that argument's default; it now fails with an error that names the argument, and each tool's input schema declares `additionalProperties: false`.

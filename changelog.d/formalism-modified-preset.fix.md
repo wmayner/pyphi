@@ -1,1 +1,0 @@
-Passing a modified copy of a preset as `formalism=` now raises `ValueError` instead of silently computing with the unmodified preset. To compute with modified settings, apply them with `pyphi.config.override` and leave `formalism` unset.

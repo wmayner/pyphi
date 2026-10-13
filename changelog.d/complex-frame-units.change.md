@@ -1,1 +1,0 @@
-`Complex.to_pandas()` has a `node_indices` column with the units of the substrate that form the complex. For a complex found by the grain search, `subset` holds indices of the macro system's units, so `node_indices` is the column to use when combining rows from both kinds of complex.

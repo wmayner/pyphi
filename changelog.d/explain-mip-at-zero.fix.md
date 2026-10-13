@@ -1,1 +1,0 @@
-`explain()` on a system irreducibility analysis names the MIP whenever it reports a runner-up partition and gap, a selection margin or the effectively-tied flag, including when φₛ is 0. It reported these without naming the partition they describe. The runner-up case applies under IIT 4.0 and IIT 3.0; IIT 3.0 analyses report no margins.

@@ -1,1 +1,0 @@
-`progress=` must be `True`, `False` or `None` (a NumPy bool is accepted), as `parallel=` must. `pyphi.analyze` and `pyphi.sweep` reported a bad value as a problem with the `progress_bars` option, and `Substrate.complexes`, `System.sia`, `pyphi.optimize` and the grain search accepted any value; all now raise a `TypeError` that refers to `progress`.

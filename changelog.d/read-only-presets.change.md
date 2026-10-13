@@ -1,1 +1,0 @@
-The presets `pyphi.iit3`, `pyphi.iit4_2023` and `pyphi.iit4_2026` are read-only mappings, so editing one can no longer change what `formalism=` applies for the rest of the process. `dict(pyphi.iit3)` or `{**pyphi.iit3, ...}` gives a mutable copy for `pyphi.config.override`.

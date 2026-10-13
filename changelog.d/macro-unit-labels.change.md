@@ -1,1 +1,0 @@
-A system of macro units built by `MacroSystem.from_micro` without `node_labels`, including every complex the grain search finds, labels each unit by its micro constituents' labels in the substrate (`"C"` for micro unit C, `"AB"` for a unit over A and B) instead of macro-local defaults such as `n0`, so its partitions print in the substrate's labels.

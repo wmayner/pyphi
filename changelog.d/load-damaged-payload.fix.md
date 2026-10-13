@@ -1,1 +1,0 @@
-`pyphi.load` raises `ValueError` with the file path in its notes for a saved file whose contents were damaged or edited, such as a missing field or a list where a section belongs. Some of these raised `KeyError`, `IndexError`, `TypeError` or `AttributeError` without the path.
