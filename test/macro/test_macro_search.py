@@ -1361,7 +1361,11 @@ class TestCertifiedComplexes:
         )
         with config.override(**presets.iit4_2026):
             off, on = self._run(Substrate(tpm), (0, 0, 0))
-        _complexes_equal(off, on)
+            _complexes_equal(off, on)
+            assert on.complexes[0].excluded == off.complexes[0].excluded
+            # A candidate gated without its φₛ ever being computed.
+            substrate = Substrate(CG_TPM, node_labels=("A", "B", "C", "D"))
+            _off, on = self._run(substrate, (0, 0, 0, 0))
         excluded = on.complexes[0].excluded
         assert any(e.gated for e in excluded)
         assert all(e.ii_ceiling > 0 for e in excluded if e.gated)
@@ -1531,3 +1535,29 @@ def test_macro_units_are_labelled_by_their_joined_micro_labels():
     with config.override(**presets.iit4_2026):
         system = MacroSystem.from_micro(substrate, (unit,), (0, 1, 1))
     assert tuple(system.substrate.node_labels) == ("AB",)
+
+
+def test_certified_prune_reports_the_rivals_and_margins_of_a_full_evaluation():
+    """A candidate the certified cascade gates but whose φₛ was computed while
+    deriving the units is an ordinary rival, so the excluded lists and the
+    selection margins equal those of prune='off'."""
+    cm = np.array([[1, 1, 0, 1], [1, 0, 1, 0], [0, 1, 1, 1], [1, 0, 1, 0]])
+    rng = np.random.default_rng(21)
+    tables = [{} for _ in range(4)]
+    tpm = np.zeros((16, 4))
+    for i in range(16):
+        bits = [(i >> k) & 1 for k in range(4)]
+        for j in range(4):
+            key = tuple(bits[k] for k in range(4) if cm[k, j])
+            if key not in tables[j]:
+                tables[j][key] = rng.uniform(0.05, 0.95)
+            tpm[i, j] = tables[j][key]
+    substrate = Substrate(tpm, cm=cm)
+    state = (1, 0, 1, 1)
+    with config.override(**presets.iit4_2026):
+        certified = complexes(substrate, state, prune="certified", progress=False)
+        full = complexes(substrate, state, prune="off", progress=False)
+    assert len(certified.complexes) == len(full.complexes) == 2
+
+    assert certified.complexes == full.complexes
+    assert not any(e.gated for c in certified.complexes for e in c.excluded)

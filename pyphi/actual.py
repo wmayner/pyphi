@@ -817,6 +817,15 @@ class Transition(Serializable):
         )
         return self.state_probability(direction, repertoire, partition.purview)
 
+    def _coerce_units(self, nodes):
+        """Sorted node indices for ``nodes``, given as indices or labels."""
+        if nodes is None:
+            raise TypeError(
+                "expected a sequence of node indices or labels, such as (0, 1) "
+                "or ('A', 'B'); got None"
+            )
+        return self.substrate.node_labels.coerce_to_indices(nodes)
+
     # MIP methods
     # =========================================================================
 
@@ -828,8 +837,9 @@ class Transition(Serializable):
         Dispatches through the active actual-causation formalism
         (``config.formalism.actual_causation.version``).
         """
+        coerce = self._coerce_units
         return _active_ac_formalism().evaluate_mechanism(
-            self, direction, mechanism, purview, allow_neg=allow_neg
+            self, direction, coerce(mechanism), coerce(purview), allow_neg=allow_neg
         )
 
     # Phi_max methods
@@ -868,8 +878,11 @@ class Transition(Serializable):
         Dispatches through the active actual-causation formalism
         (``config.formalism.actual_causation.version``).
         """
+        coerce = self._coerce_units
+        if purviews is not None:
+            purviews = [coerce(purview) for purview in purviews]
         return _active_ac_formalism().evaluate_causal_link(
-            self, direction, mechanism, purviews=purviews, allow_neg=allow_neg
+            self, direction, coerce(mechanism), purviews=purviews, allow_neg=allow_neg
         )
 
     def find_actual_cause(self, mechanism, purviews=None, *, allow_neg=False):

@@ -1535,9 +1535,27 @@ def complexes(
                 batch.append(candidate)
             return batch
 
-        outcome, sweep_gated = gated_exclusion_cascade(pending, _evaluate_band)
-        for p in sweep_gated:
-            gates.setdefault(p.payload, p.ceiling)
+        outcome, gated = gated_exclusion_cascade(pending, _evaluate_band)
+        # A candidate the cascade gated may already have been evaluated while
+        # deriving the units; its exact φₛ makes it an ordinary rival.
+        sweep_gated = []
+        for p in gated:
+            if p.payload in memo:
+                candidate = Candidate(
+                    footprint=p.footprint,
+                    phi=memo[p.payload],
+                    sia_provider=lambda system=p.payload: system.sia(),
+                    system_provider=lambda system=p.payload: system,
+                    units=p.payload.units,
+                )
+                candidates.append(candidate)
+                by_candidate[candidate] = p.payload
+            else:
+                sweep_gated.append(p)
+                gates.setdefault(p.payload, p.ceiling)
+        # List rivals in the sweep's order, as a full evaluation does.
+        position = {system: i for i, system in enumerate(sweep_systems)}
+        candidates.sort(key=lambda c: position[by_candidate[c]])
     else:
         _evaluate_systems(sweep_systems, memo, parallel_kwargs)
         evaluated: list[tuple[MacroSystem, float]] = [
@@ -1555,7 +1573,7 @@ def complexes(
         ]
         by_candidate = dict(zip(candidates, (s for s, _ in evaluated), strict=True))
         outcome = exclusion_cascade(candidates)
-        sweep_gated = ()
+        sweep_gated = []
     records_map = exclusion_records(outcome.accepted, candidates)
     if sweep_gated:
         from pyphi import numerics as _numerics

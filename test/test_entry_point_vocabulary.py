@@ -12,6 +12,7 @@ from pyphi import examples
 from pyphi import macro
 from pyphi.actual import Transition
 from pyphi.conf import config
+from test.conftest import skip_if_no_emd_backend
 
 ENTRY_POINTS = [
     pyphi.analyze,
@@ -383,3 +384,50 @@ def test_optimize_validates_inputs_before_searching(state, kwargs, match):
 def test_grain_search_names_a_state_that_is_not_a_sequence(state):
     with pytest.raises(TypeError, match="a state is a sequence"):
         pyphi.analyze(examples.basic_substrate(), state, grains=True)
+
+
+@pytest.mark.parametrize(
+    "formalism",
+    ["IIT_4_0_2026", pytest.param("IIT_3_0", marks=skip_if_no_emd_backend)],
+)
+def test_mechanism_queries_do_not_depend_on_unit_order(formalism):
+    """A mechanism or purview given out of order gives the same φ as sorted."""
+    from pyphi.direction import Direction
+
+    system = examples.basic_system()
+    with config.override(**pyphi.conf.presets.by_name[formalism]):
+        for method in ("cause_mip", "effect_mip", "phi_cause_mip", "phi_effect_mip"):
+            query = getattr(system, method)
+            sorted_value = query((0, 2), (0, 1, 2))
+            shuffled_value = query((2, 0), (2, 1, 0))
+            assert getattr(shuffled_value, "phi", shuffled_value) == getattr(
+                sorted_value, "phi", sorted_value
+            )
+        assert system.cause_mip((0, 2), (2, 1, 0)).phi > 0
+        assert system.phi((0, 2), (2, 1, 0)) == system.phi((0, 2), (0, 1, 2))
+        assert system.find_mip(Direction.EFFECT, (0,), (1, 0)) == system.find_mip(
+            Direction.EFFECT, (0,), (0, 1)
+        )
+        with pytest.raises(TypeError, match="got None"):
+            system.phi((0,), None)
+        with pytest.raises(TypeError, match="got None"):
+            system.cause_mip(None, (0,))
+
+
+def test_transition_queries_do_not_depend_on_unit_order():
+    from pyphi.direction import Direction
+
+    transition = Transition(
+        examples.actual_causation_substrate(), (0, 1), (1, 0), (0, 1), (0, 1)
+    )
+    link = transition.find_actual_cause((0,), purviews=[(1, 0)])
+    assert link.alpha == transition.find_actual_cause((0,), purviews=[(0, 1)]).alpha
+    assert link.alpha > 0
+    assert (
+        transition.find_mip(Direction.CAUSE, (1, 0), (1, 0)).alpha
+        == transition.find_mip(Direction.CAUSE, (0, 1), (0, 1)).alpha
+    )
+    with pytest.raises(TypeError, match="got None"):
+        transition.find_mip(Direction.CAUSE, (0,), None)
+    with pytest.raises(TypeError, match="got None"):
+        transition.find_actual_cause(None)

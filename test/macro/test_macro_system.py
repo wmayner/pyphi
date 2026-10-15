@@ -81,6 +81,16 @@ class TestConstruction:
         with pytest.raises(ValueError, match=r"disjoint|background"):
             MacroSystem.from_micro(substrate, units, (1, 0, 1, 0))
 
+    def test_iit3_rejected_without_suggesting_an_incompatible_setting(self):
+        substrate = _asymmetric_substrate()
+        units = (MacroUnit((0, 1), 1, coarse_grain(2, on_counts={2})),)
+        with (
+            config.override(**presets.iit3),
+            pytest.raises(ValueError, match="not defined for IIT_3_0") as info,
+        ):
+            MacroSystem.from_micro(substrate, units, (1, 0, 1, 0))
+        assert "CAUSAL_MARGINALIZATION" not in str(info.value)
+
     def test_eq12_nested_apportionment_rejected(self):
         substrate = _asymmetric_substrate()
         inner = MacroUnit((0,), 1, (0, 1), background_apportionment=(3,))

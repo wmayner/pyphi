@@ -223,10 +223,11 @@ mapping)` per group, and `MacroSystem.from_micro(substrate, units, state)`.
 
 **1.x macro values do not reproduce.** The 1.x emergence example (the
 `macro_network()` units grouped into the pairs (0, 1) and (2, 3), each ON when
-both are ON) printed a macro Φ of 0.597212. The same grouping in 2.0 builds the
-same macro TPM but gives 0.86905 under the IIT 3.0 preset; the micro value,
-0.113889, is the same in both. Tell the user that macro results computed with
-1.x have to be recomputed.
+both are ON) printed a macro Φ of 0.597212 under IIT 3.0. The same grouping in
+2.0 builds the same macro TPM, but 2.0 builds macro systems only under IIT 4.0,
+where this example gives 0; analyzing the same macro system under the IIT 3.0
+preset gives 0.86905. The micro value under IIT 3.0, 0.113889, is the same in
+both. Tell the user that macro results computed with 1.x have to be recomputed.
 
 ## 3. Choosing a formalism
 

@@ -349,3 +349,14 @@ def test_a_result_saved_by_a_release_candidate_loads_with_current_partitions(
     replace(result, trajectory=trajectory).save(path)
     back = OptimizationResult.load(path)
     pd.testing.assert_frame_equal(back.trajectory, result.trajectory)
+    # The conversion does not depend on the configuration active at load time.
+    from pyphi.landscape import _set_partition_ids
+
+    for active in (
+        pyphi.conf.presets.by_name["IIT_3_0"],
+        {**pyphi.iit4_2026, "system_partition_include_total": True},
+    ):
+        _set_partition_ids.cache_clear()
+        with pyphi.config.override(**active):
+            back = OptimizationResult.load(path)
+        pd.testing.assert_frame_equal(back.trajectory, result.trajectory)

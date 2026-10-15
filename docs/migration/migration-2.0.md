@@ -303,16 +303,16 @@ units = [
               mapping=coarse_grain(2, on_counts={2}))
     for group in [(0, 1), (2, 3)]
 ]
-with pyphi.config.override(**pyphi.iit3):
-    macro = MacroSystem.from_micro(substrate, units, (0, 0, 0, 0))
-    macro.sia().phi
+macro = MacroSystem.from_micro(substrate, units, (0, 0, 0, 0))
+macro.sia().phi
 ```
 
 **1.x macro values do not reproduce.** The macro TPM this code builds is the
-one 1.x built, but the system integrated information differs: 1.x printed
-0.597212 for this example and 2.0 gives 0.86905 under the IIT 3.0 preset. The
-micro value, 0.113889, is the same in both. Macro results computed with 1.x
-cannot be reproduced in 2.0 and have to be recomputed.
+one 1.x built, but the system integrated information differs. 1.x printed
+0.597212 under IIT 3.0. 2.0 builds macro systems only under IIT 4.0, where this
+example gives 0; analyzing the same macro system under the IIT 3.0 preset gives
+0.86905. The micro value under IIT 3.0, 0.113889, is the same in both
+versions. Macro results computed with 1.x have to be recomputed.
 
 ## Choosing a formalism
 

@@ -131,13 +131,15 @@ def _set_partition_ids(
 ) -> dict[str, str]:
     """Map the release-candidate string of each directed set partition of
     ``node_indices`` to the string :func:`_part_id` writes for it."""
-    from pyphi.partition import system_partitions
+    from pyphi.partition import DirectedSetPartition
+    from pyphi.partition import directed_set_partitions
 
     ids = {}
-    with config.override(system_partition_scheme="DIRECTED_SET_PARTITION"):
-        for partition in system_partitions(node_indices, node_labels=node_labels):
-            blocks = sorted(sorted(block) for block in partition.set_partition)
-            ids[f"{blocks}|{sorted(partition.removed_edges())}"] = _part_id(partition)
+    for partition in directed_set_partitions(node_indices, node_labels=node_labels):
+        if not isinstance(partition, DirectedSetPartition):
+            continue
+        blocks = sorted(sorted(block) for block in partition.set_partition)
+        ids[f"{blocks}|{sorted(partition.removed_edges())}"] = _part_id(partition)
     return ids
 
 

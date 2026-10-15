@@ -649,8 +649,9 @@ def prepare_ces(
     sia : optional
         A precomputed system irreducibility analysis; suppresses SIA
         shards and is used at collection. Single-cell campaigns only. It
-        must name the cell's units and state (:class:`ValueError`
-        otherwise).
+        must name the cell's units and their state (:class:`ValueError`
+        otherwise); the state of the substrate's other units is not
+        checked.
     resolution_state : optional
         Explicit congruence-resolution states; suppresses SIA shards, and
         the collected structures then carry no φₛ. One specification (the
@@ -1141,7 +1142,8 @@ def collect(
     sia : optional
         For CES campaigns: a system irreducibility analysis to use at
         assembly, overriding whatever the campaign planned. It must name
-        the campaign's units and state (:class:`ValueError` otherwise).
+        the campaign's units and their state (:class:`ValueError`
+        otherwise); the state of the substrate's other units is not checked.
     resolution_state : optional
         For CES campaigns without any SIA: explicit congruence-resolution
         states, in any of the forms :func:`prepare_ces` accepts (a single

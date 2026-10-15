@@ -1210,7 +1210,9 @@ class System(Displayable, ToPandasMixin, Serializable):
             another state: the analysis's units or state differ from this
             system's, or a distinction's mechanism or purviews lie outside
             the system or its mechanism state differs from the system's
-            state. Nothing checks that they come from the same substrate.
+            state. Only the system's own units and their state are checked:
+            an analysis of the same units in another substrate, or with the
+            other units of the substrate in another state, is accepted.
         ~pyphi.exceptions.StateUnreachableForwardsError
             If the state is unreachable under the background conditioning of
             the formalism in effect for the call, as :func:`pyphi.analyze`
@@ -1380,7 +1382,13 @@ class System(Displayable, ToPandasMixin, Serializable):
                 "specification_measure",
                 resolve_mechanism_measure(_config.formalism.iit.specification_measure),
             )
-        return _find_mip(self, direction, mechanism, purview, **kwargs)
+        return _find_mip(
+            self,
+            direction,
+            self._coerce_units(mechanism),
+            self._coerce_units(purview),
+            **kwargs,
+        )
 
     def cause_mip(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         """Return the minimum partition of a mechanism's cause over a purview.
@@ -1444,14 +1452,19 @@ class System(Displayable, ToPandasMixin, Serializable):
         """
         from pyphi.formalism import phi as _phi
 
-        return _phi(self, mechanism, purview)
+        return _phi(self, self._coerce_units(mechanism), self._coerce_units(purview))
 
     def _coerce_units(self, nodes: Any) -> tuple[int, ...]:
         """Sorted node indices for ``nodes``, given as indices or labels.
 
-        Raises ``ValueError`` for an unknown label, an index outside the
-        substrate, or a unit named twice.
+        Raises ``TypeError`` for ``None`` and ``ValueError`` for an unknown
+        label, an index outside the substrate, or a unit named twice.
         """
+        if nodes is None:
+            raise TypeError(
+                "expected a sequence of node indices or labels, such as (0, 1) "
+                "or ('A', 'B'); got None"
+            )
         return self.substrate.node_labels.coerce_to_indices(nodes)
 
     def _coerce_purviews(self, purviews: Any) -> Any:

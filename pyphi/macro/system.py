@@ -46,6 +46,13 @@ def _require_marginalized_background() -> None:
     from pyphi.conf import config as _config
 
     convention = _config.formalism.iit.background_conditioning
+    if _config.formalism.iit.version == "IIT_3_0":
+        raise ValueError(
+            "the intrinsic-units macro framework is not defined for IIT_3_0: "
+            "its construction marginalizes the cause-side background (Marshall "
+            "et al. 2026, Eq. 34), and IIT 3.0 conditions the background on "
+            "its current state"
+        )
     if convention != "CAUSAL_MARGINALIZATION":
         raise ValueError(
             "the intrinsic-units macro construction marginalizes the cause-side "
