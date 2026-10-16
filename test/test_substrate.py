@@ -439,3 +439,135 @@ def test_a_duplicate_candidate_system_in_another_state_is_rejected():
             (1, 0, 0),
             candidates=[(0, 1, 2), System(substrate, (0, 0, 0))],
         )
+
+
+def _little_endian_states(n):
+    return [tuple((i >> k) & 1 for k in range(n)) for i in range(2**n)]
+
+
+def _construction_routes(substrate):
+    """The same binary substrate built through every TPM spelling the
+    constructor accepts."""
+    from pyphi.core.tpm.factored import FactoredTPM
+
+    n = substrate.size
+    factors = [np.asarray(substrate.factored_tpm.factor(j)) for j in range(n)]
+    space = tuple(tuple(s) for s in substrate.factored_tpm.state_space)
+    cm = np.asarray(substrate.cm)
+    states = _little_endian_states(n)
+    by_node = np.array([[factors[j][s][1] for j in range(n)] for s in states])
+    multidimensional = np.zeros((2,) * n + (n,))
+    explicit = np.zeros((2,) * n + (n, 2))
+    for s in states:
+        for j in range(n):
+            multidimensional[(*s, j)] = factors[j][s][1]
+            explicit[(*s, j)] = factors[j][s]
+    return {
+        "marginals": Substrate(marginals=factors, state_space=space, cm=cm),
+        "state_by_node": Substrate(by_node, cm=cm),
+        "state_by_node_alphabet": Substrate(by_node, alphabet=2, cm=cm),
+        "multidimensional": Substrate(multidimensional, cm=cm),
+        "explicit_alphabet": Substrate(explicit, cm=cm),
+        "marginals_alphabet": Substrate(marginals=factors, alphabet=2, cm=cm),
+        "marginals_alphabet_per_unit": Substrate(
+            marginals=factors, alphabet=[2] * n, cm=cm
+        ),
+        "from_factored": Substrate.from_factored(
+            FactoredTPM(factors=factors, state_space=space), cm=cm
+        ),
+    }
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "state"),
+    [
+        ({"seed": 52, "n": 3}, (0, 0, 1)),
+        ({"seed": 120, "n": 3}, (1, 0, 1)),
+    ],
+)
+def test_every_construction_route_gives_the_same_substrate_and_analysis(kwargs, state):
+    """Marginals, state-by-node, multidimensional and explicit-alphabet TPMs
+    and a FactoredTPM describing the same dynamics build equal substrates,
+    and a state-by-state TPM builds one with the same analysis."""
+    from pyphi.conf import presets
+    from test.hypothesis_utils import random_substrate
+
+    substrate = random_substrate(**kwargs)
+    routes = _construction_routes(substrate)
+    n = substrate.size
+    states = _little_endian_states(n)
+    factors = [np.asarray(substrate.factored_tpm.factor(j)) for j in range(n)]
+    by_state = np.array(
+        [
+            [np.prod([factors[j][s][t[j]] for j in range(n)]) for t in states]
+            for s in states
+        ]
+    )
+    for name, built in routes.items():
+        assert built == routes["marginals"], name
+    with config.override(**presets.iit4_2026):
+        expected = pyphi.analyze(routes["marginals"], state, parallel=False)
+        for built in [*routes.values(), Substrate(by_state, cm=substrate.cm)]:
+            got = pyphi.analyze(built, state, parallel=False)
+            assert got.phi == pytest.approx(expected.phi, rel=1e-10, abs=1e-10)
+            assert got.big_phi == pytest.approx(expected.big_phi, rel=1e-10, abs=1e-10)
+            assert len(got.ces.distinctions) == len(expected.ces.distinctions)
+    assert expected.phi > 0 and expected.ces.distinctions
+
+
+def test_a_kary_explicit_alphabet_tpm_builds_the_marginals_substrate():
+    """A padded k-ary TPM with its state space, and marginals with a
+    per-unit alphabet, build the substrate the marginals and state space
+    build, with the same analysis."""
+    from pyphi.conf import presets
+    from test.hypothesis_utils import random_substrate
+
+    alphabet = (3, 2, 2)
+    substrate = random_substrate(18, 3, alphabet=alphabet)
+    factors = [np.asarray(substrate.factored_tpm.factor(j)) for j in range(3)]
+    explicit = np.zeros((*alphabet, 3, max(alphabet)))
+    for s in np.ndindex(*alphabet):
+        for j in range(3):
+            explicit[(*s, j)][: alphabet[j]] = factors[j][s]
+    space = tuple(tuple(range(k)) for k in alphabet)
+    routes = [
+        Substrate(explicit, cm=substrate.cm, state_space=space),
+        Substrate(marginals=factors, alphabet=list(alphabet), cm=substrate.cm),
+    ]
+    with config.override(**presets.iit4_2026):
+        expected = pyphi.analyze(substrate, (1, 1, 1), parallel=False)
+        for built in routes:
+            assert built == substrate
+            got = pyphi.analyze(built, (1, 1, 1), parallel=False)
+            assert got.phi == pytest.approx(expected.phi, rel=1e-10, abs=1e-10)
+            assert got.big_phi == pytest.approx(expected.big_phi, rel=1e-10, abs=1e-10)
+    assert expected.phi > 0
+
+
+def test_create_substrate_specs_build_the_numpy_substrate():
+    """create_substrate from a list of unit specs or a mapping in any key
+    order builds the substrate written out by hand with numpy."""
+    from pyphi.substrate_generator import create_substrate
+
+    params = {"floor": 0.1, "ceiling": 0.85}
+    specs = [
+        {"mechanism": "and", "inputs": (1, 2), "params": params},
+        {"mechanism": "or", "inputs": (0, 2), "params": params},
+        {"mechanism": "xor", "inputs": (0, 1), "params": params},
+    ]
+    # A = AND(B, C), B = OR(A, C), C = XOR(A, B), little-endian rows.
+    tpm = np.array(
+        [
+            [
+                0.85 if (b and c) else 0.1,
+                0.85 if (a or c) else 0.1,
+                0.85 if (a ^ b) else 0.1,
+            ]
+            for a, b, c in _little_endian_states(3)
+        ]
+    )
+    by_hand = Substrate(
+        tpm, cm=np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]]), node_labels=("A", "B", "C")
+    )
+    assert create_substrate(specs) == by_hand
+    assert create_substrate({2: specs[2], 0: specs[0], 1: specs[1]}) == by_hand

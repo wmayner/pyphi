@@ -286,3 +286,35 @@ def test_a_section_saved_by_a_release_candidate_loads_with_current_partitions(
     path = tmp_path / "section.json"
     pyphi.save(replace(section, df=old), path)
     pd.testing.assert_frame_equal(pyphi.load(path).df, section.df)
+
+
+@pytest.mark.parametrize(
+    "formalism",
+    ["IIT_4_0_2023", pytest.param("IIT_3_0", marks=skip_if_no_emd_backend)],
+)
+@pytest.mark.parametrize("subset", [None, (0, 1)])
+def test_section_rows_match_direct_analysis_under_other_formalisms(
+    axis, formalism, subset
+):
+    """Under 2023 and IIT 3.0, each section row equals the SIA of the
+    substrate at that point computed directly, for the whole system and for
+    a subset."""
+    grid = [0.3, 0.7, 1.1]
+    with pyphi.config.override(**pyphi.conf.presets.by_name[formalism]):
+        section = landscape_section(
+            axis, STATE, grid, subset=subset, formalism=formalism
+        )
+        direct = [
+            pyphi.analyze(axis(theta), STATE, subset=subset, compute="sia")
+            for theta in grid
+        ]
+    assert any(sia.phi > 0 for sia in direct)
+    assert list(section.df["theta"]) == grid
+    for (_, row), sia in zip(section.df.iterrows(), direct, strict=True):
+        assert row["phi"] == pytest.approx(float(sia.phi), rel=1e-10, abs=1e-10)
+        if formalism != "IIT_3_0":
+            assert row["normalized_phi"] == pytest.approx(
+                float(sia.normalized_phi), rel=1e-10, abs=1e-10
+            )
+            assert row["cause_state"] == tuple(sia.system_state.cause.state)
+            assert row["effect_state"] == tuple(sia.system_state.effect.state)

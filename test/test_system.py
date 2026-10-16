@@ -14,6 +14,7 @@ from pyphi.models import RepertoireIrreducibilityAnalysis
 from pyphi.system import System
 
 from . import example_substrates
+from .conftest import skip_if_no_emd_backend
 
 
 @config.override(validate_system_states=True)
@@ -816,3 +817,41 @@ def test_a_system_built_without_state_validation_is_not_rechecked():
         assert system.sia().phi == 0
     with config.override(**pyphi.iit3, validate_system_states=False):
         assert system.sia().phi == 0
+
+
+@pytest.mark.parametrize(
+    ("name", "kwargs", "state", "subset"),
+    [
+        ("IIT_4_0_2026", {"seed": 52, "n": 3}, (0, 0, 1), None),
+        ("IIT_4_0_2026", {"seed": 18, "n": 3, "alphabet": (3, 2, 2)}, (1, 1, 1), None),
+        ("IIT_4_0_2023", {"seed": 81, "n": 4, "extreme": 0.3}, (1, 0, 1, 0), (0, 1, 2)),
+        pytest.param(
+            "IIT_3_0",
+            {"seed": 52, "n": 3},
+            (0, 0, 1),
+            None,
+            marks=skip_if_no_emd_backend,
+        ),
+    ],
+)
+def test_ces_from_its_own_precomputed_parts_equals_the_full_computation(
+    name, kwargs, state, subset
+):
+    """System.ces(sia=..., distinctions=...) with the system's own SIA and
+    distinctions returns the structure System.ces() computes, distinctions
+    and relations included."""
+    from pyphi.conf import presets
+    from test.hypothesis_utils import random_substrate
+
+    substrate = random_substrate(**kwargs)
+    with config.override(**presets.by_name[name]):
+        system = System(substrate, state, subset=subset)
+        full = system.ces()
+        sia, distinctions = system.sia(), system.distinctions()
+        for parts in (
+            {"sia": sia},
+            {"distinctions": distinctions},
+            {"sia": sia, "distinctions": distinctions},
+        ):
+            assert system.ces(**parts) == full
+    assert full.sia.phi > 0 and full.distinctions

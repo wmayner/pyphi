@@ -360,3 +360,42 @@ def test_a_result_saved_by_a_release_candidate_loads_with_current_partitions(
         with pyphi.config.override(**active):
             back = OptimizationResult.load(path)
         pd.testing.assert_frame_equal(back.trajectory, result.trajectory)
+
+
+@pytest.mark.parametrize(
+    "formalism",
+    [
+        "IIT_4_0_2026",
+        "IIT_4_0_2023",
+        pytest.param("IIT_3_0", marks=[pytest.mark.slow, skip_if_no_emd_backend]),
+    ],
+)
+def test_every_trajectory_row_matches_a_direct_analysis(formalism):
+    """Each evaluated point's objective equals φ_s of the substrate at that
+    point computed directly, and the best row is the reported optimum."""
+    axis = weight_axes(
+        [ising.probability] * 3, FIG1A_WEIGHTS, [(0, 1), (1, 0)], temperature=0.25
+    )
+    with pyphi.config.override(**pyphi.conf.presets.by_name[formalism]):
+        result = optimize(
+            axis,
+            STATE,
+            [(0.1, 1.3), (0.1, 1.3)],
+            seed=11,
+            popsize=3,
+            maxiter=2,
+            quantity="phi",
+            formalism=formalism,
+            parallel=False,
+        )
+        df = result.to_pandas()
+        direct = [
+            pyphi.analyze(axis(np.array([row["p0"], row["p1"]])), STATE, compute="sia")
+            for _, row in df.iterrows()
+        ]
+        best = pyphi.analyze(axis(np.asarray(result.best_params)), STATE, compute="sia")
+    assert any(sia.phi > 0 for sia in direct)
+    for (_, row), sia in zip(df.iterrows(), direct, strict=True):
+        assert row["objective"] == pytest.approx(float(sia.phi), rel=1e-10, abs=1e-10)
+    assert result.best_objective == pytest.approx(float(best.phi), rel=1e-10, abs=1e-10)
+    assert result.best_objective == df["objective"].max()

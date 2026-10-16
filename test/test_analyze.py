@@ -17,6 +17,8 @@ from pyphi.display import LOW
 from pyphi.formalism import iit4
 from pyphi.models.distinctions import ResolvedDistinctions
 from pyphi.models.distinctions import UnresolvedDistinctions
+from test.conftest import skip_if_no_emd_backend
+from test.hypothesis_utils import random_substrate
 
 
 def test_analyze_bundle_parity_with_substrate_sia():
@@ -332,3 +334,96 @@ def test_analyze_to_pandas_identifies_the_analysis():
     assert row["formalism"] == "IIT_4_0_2026"
     assert row["subset"] == sia_row["subset"] == (0, 1)
     assert row["current_state"] == sia_row["current_state"]
+
+
+FORMALISM_ALIASES = {
+    "IIT_4_0_2026": "iit4_2026",
+    "IIT_4_0_2023": "iit4_2023",
+    "IIT_3_0": "iit3",
+}
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "IIT_4_0_2026",
+        "IIT_4_0_2023",
+        pytest.param("IIT_3_0", marks=skip_if_no_emd_backend),
+    ],
+)
+def test_every_formalism_spelling_selects_the_same_analysis(name):
+    """formalism= as a version name, in lower case, as the preset's exported
+    name or as the preset itself gives the analysis that
+    config.override(**preset) gives, whichever formalism is active, and
+    leaves the active configuration in place."""
+    substrate, state = random_substrate(52, 3), (0, 0, 1)
+    preset = presets.by_name[name]
+    with config.override(**preset):
+        expected = analyze(substrate, state, parallel=False)
+        expected_distinctions = analyze(
+            substrate, state, compute="distinctions", parallel=False
+        )
+        expected_complexes = substrate.complexes(state, parallel=False)
+    assert expected.phi > 0 and expected.ces.distinctions
+    alias = FORMALISM_ALIASES[name]
+    active = next(other for other in presets.by_name if other != name)
+    with config.override(**presets.by_name[active]):
+        for spelled in (name, name.lower(), alias, alias.upper(), preset, dict(preset)):
+            got = analyze(substrate, state, formalism=spelled, parallel=False)
+            assert got.formalism == name
+            assert got == expected
+        system = System(substrate, state)
+        assert system.sia(formalism=alias) == expected.sia
+        assert system.ces(formalism=alias) == expected.ces
+        assert (
+            analyze(
+                substrate,
+                state,
+                formalism=alias,
+                compute="distinctions",
+                parallel=False,
+            )
+            == expected_distinctions
+        )
+        assert substrate.complexes(state, formalism=alias) == expected_complexes
+        assert config.formalism.iit.version == active
+
+
+COMPUTE_CASES = [
+    pytest.param("IIT_4_0_2026", {"seed": 52, "n": 3}, (0, 0, 1), None),
+    pytest.param(
+        "IIT_4_0_2026",
+        {"seed": 18, "n": 3, "alphabet": (3, 2, 2)},
+        (1, 1, 1),
+        None,
+    ),
+    pytest.param(
+        "IIT_4_0_2023", {"seed": 81, "n": 4, "extreme": 0.3}, (1, 0, 1, 0), (0, 1, 2)
+    ),
+    pytest.param(
+        "IIT_3_0",
+        {"seed": 52, "n": 3},
+        (0, 0, 1),
+        None,
+        marks=skip_if_no_emd_backend,
+    ),
+]
+
+
+@pytest.mark.parametrize(("name", "kwargs", "state", "subset"), COMPUTE_CASES)
+def test_compute_modes_agree_with_the_full_analysis(name, kwargs, state, subset):
+    """compute="sia", "ces" and "distinctions" return the parts of the full
+    analysis they share."""
+    substrate = random_substrate(**kwargs)
+    with config.override(**presets.by_name[name]):
+        full = analyze(substrate, state, subset=subset, parallel=False)
+        sia = analyze(substrate, state, subset=subset, compute="sia", parallel=False)
+        ces = analyze(substrate, state, subset=subset, compute="ces", parallel=False)
+        distinctions = analyze(
+            substrate, state, subset=subset, compute="distinctions", parallel=False
+        )
+    assert full.phi > 0 and full.ces.distinctions
+    assert sia == full.sia
+    assert ces == full.ces
+    assert isinstance(distinctions, ResolvedDistinctions)
+    assert distinctions == full.ces.distinctions

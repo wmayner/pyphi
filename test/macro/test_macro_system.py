@@ -417,3 +417,37 @@ def test_identity_macro_of_a_disconnected_system_is_reducible_like_the_micro():
         ).substrate.cm,
         substrate.cm,
     )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "state", "units"),
+    [
+        ({"seed": 52, "n": 3}, (0, 0, 1), (0, 1, 2)),
+        ({"seed": 120, "n": 3}, (1, 0, 1), (2, 0, 1)),
+        ({"seed": 81, "n": 4, "extreme": 0.3}, (1, 0, 1, 0), (0, 1, 2)),
+        ({"seed": 13, "n": 4, "extreme": 0.3}, (1, 0, 0, 0), (1, 3)),
+    ],
+    ids=["whole", "out-of-order", "background", "non-contiguous"],
+)
+def test_identity_macro_system_equals_the_micro_system_under_2026(kwargs, state, units):
+    """Under 2026, a MacroSystem of single micro units (macro unit i is micro
+    unit units[i]) has the micro System's φ_s, MIP, system state,
+    distinctions with their purviews and specified states, relations and Φ."""
+    from test.hypothesis_utils import random_substrate
+    from test.integration.test_metamorphic import assert_nontrivial
+    from test.integration.test_metamorphic import assert_same_analysis
+    from test.integration.test_metamorphic import ces_form
+    from test.integration.test_metamorphic import sia_form
+
+    substrate = random_substrate(**kwargs)
+    with config.override(**presets.iit4_2026):
+        micro = System(substrate, state, subset=tuple(sorted(units))).ces()
+        macro = MacroSystem.from_micro(
+            substrate, [micro_unit(i) for i in units], (state,)
+        ).ces()
+    identity = tuple(range(substrate.size))
+    expected = {"sia": sia_form(micro.sia, identity), "ces": ces_form(micro, identity)}
+    got = {"sia": sia_form(macro.sia, units), "ces": ces_form(macro, units)}
+    assert_nontrivial(expected)
+    assert expected["ces"]["relations"]
+    assert_same_analysis(expected, got)

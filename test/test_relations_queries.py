@@ -707,3 +707,55 @@ def test_relation_face_pandas_record_keys(structures):
     record = face._pandas_record()
     assert set(record) == {"purview", "phi", "degree"}
     assert record["purview"] == tuple(sorted(face.purview))
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "state", "subset"),
+    [
+        ({"seed": 52, "n": 3}, (0, 0, 1), None),
+        ({"seed": 18, "n": 3, "alphabet": (3, 2, 2)}, (1, 1, 1), None),
+        ({"seed": 81, "n": 4, "extreme": 0.3}, (1, 0, 1, 0), (0, 1, 2)),
+    ],
+    ids=["binary", "kary", "subset"],
+)
+@pytest.mark.parametrize("name", ["IIT_4_0_2026", "IIT_4_0_2023"])
+def test_analytical_relations_equal_concrete_ones_and_satisfy_eq59(
+    name, kwargs, state, subset
+):
+    """On binary, k-ary and subset systems, the analytical relations of an
+    analysis materialize to the relations computed concretely, their counts
+    and φ sums agree by degree, and Φ = Σφ_d + Σφ_r (Albantakis et al. 2023,
+    Eq. 59) under both relation computations."""
+    import pyphi
+    from pyphi.conf import presets
+    from test.hypothesis_utils import random_substrate
+
+    def approx(x):
+        return pytest.approx(x, rel=1e-10, abs=1e-10)
+
+    substrate = random_substrate(**kwargs)
+    with config.override(**presets.by_name[name], parallel=False):
+        analytical = pyphi.analyze(substrate, state, subset=subset, progress=False)
+        with config.override(relation_computation="CONCRETE"):
+            concrete = pyphi.analyze(substrate, state, subset=subset, progress=False)
+    ra, rc = analytical.ces.relations, concrete.ces.relations
+    assert isinstance(ra, relations.AnalyticalRelations)
+    assert isinstance(rc, relations.ConcreteRelations)
+    assert rc.num_relations() > 0 and concrete.big_phi > 0
+    assert analytical.ces.distinctions == concrete.ces.distinctions
+    assert ra.materialize() == rc
+    assert ra.num_relations() == len(rc)
+    assert ra.sum_phi() == approx(sum(float(r.phi) for r in rc))
+    for degree in range(1, len(concrete.ces.distinctions) + 1):
+        of_degree = [float(r.phi) for r in rc if len(r) == degree]
+        assert ra.num_relations_of_degree(degree) == len(of_degree)
+        assert ra.sum_phi_of_degree(degree) == approx(sum(of_degree))
+    assert analytical.big_phi == approx(concrete.big_phi)
+    for analysis in (analytical, concrete):
+        ces = analysis.ces
+        assert ces.sum_phi_distinctions == approx(
+            sum(float(d.phi) for d in ces.distinctions)
+        )
+        assert analysis.big_phi == approx(
+            ces.sum_phi_distinctions + ces.relations.sum_phi()
+        )

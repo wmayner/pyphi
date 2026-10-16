@@ -13,6 +13,7 @@ from pyphi.conf import config
 from pyphi.conf import presets
 from pyphi.direction import Direction
 from pyphi.sweeps import SweepResult
+from test.conftest import skip_if_no_emd_backend
 
 
 def test_sweep_over_states_shape_and_parity():
@@ -406,3 +407,71 @@ def _forty_two(system):
 
 def _an_object(system):
     return object()
+
+
+@pytest.mark.parametrize("compute", ["sia", "ces"])
+@pytest.mark.parametrize(
+    ("name", "kwargs", "state"),
+    [
+        pytest.param(
+            "IIT_3_0",
+            {"seed": 52, "n": 3},
+            (0, 0, 1),
+            marks=skip_if_no_emd_backend,
+            id="iit3",
+        ),
+        pytest.param(
+            "IIT_4_0_2026",
+            {"seed": 18, "n": 3, "alphabet": (3, 2, 2)},
+            (1, 1, 1),
+            id="2026-kary",
+        ),
+        pytest.param(
+            "IIT_4_0_2023",
+            {"seed": 18, "n": 3, "alphabet": (3, 2, 2)},
+            (1, 1, 1),
+            id="2023-kary",
+        ),
+    ],
+)
+def test_every_subset_row_matches_a_direct_analysis(name, kwargs, state, compute):
+    """Each row of a sweep over every subset equals the analysis of that
+    subset computed directly."""
+    from pyphi import analyze
+    from test.hypothesis_utils import random_substrate
+
+    def approx(x):
+        return pytest.approx(x, rel=1e-10, abs=1e-10)
+
+    substrate = random_substrate(**kwargs)
+    with config.override(**presets.by_name[name]):
+        result = sweep(
+            substrate,
+            states=[state],
+            subsets="all",
+            formalisms=[name],
+            compute=compute,
+            parallel=False,
+        )
+        direct = {
+            tuple(row["subset"]): analyze(
+                substrate, state, subset=tuple(row["subset"]), parallel=False
+            )
+            for _, row in result.df.iterrows()
+        }
+    assert len(direct) == 2**substrate.size - 1 - len(result.skipped)
+    assert any(a.phi > 0 for a in direct.values())
+    for _, row in result.df.iterrows():
+        analysis = direct[tuple(row["subset"])]
+        assert row["phi"] == approx(analysis.phi)
+        if name != "IIT_3_0":
+            assert row["normalized_phi"] == approx(analysis.sia.normalized_phi)
+        if compute == "ces":
+            ces = analysis.ces
+            assert row["n_distinctions"] == len(ces.distinctions)
+            assert row["sum_phi_d"] == approx(
+                sum(float(d.phi) for d in ces.distinctions)
+            )
+            if name != "IIT_3_0":
+                assert row["big_phi"] == approx(analysis.big_phi)
+                assert row["sum_phi_r"] == approx(ces.sum_phi_relations)
