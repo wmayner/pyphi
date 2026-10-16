@@ -160,13 +160,16 @@ def _encode_state_spec(spec: Any, *, include_peers: bool) -> Any:
     # Tie tri-state: None = ties never computed (or suppressed for a peer);
     # () = computed with no peers (the tie family is just this spec);
     # otherwise the peer tuple. The domain tie family always contains the
-    # spec itself, so the decoder prepends the instance.
+    # spec itself, so the decoder prepends the instance. The family may hold
+    # an equal copy of the spec rather than the spec, so peers are told apart
+    # by value.
     peers: tuple | None = None
     if include_peers and spec.ties:
+        selected = (tuple(spec.purview), tuple(spec.state))
         peers = tuple(
             _encode_state_spec(t, include_peers=False)
             for t in spec.ties
-            if t is not spec
+            if (tuple(t.purview), tuple(t.state)) != selected
         )
     return schema.StateSpecificationSchema(
         direction=schema.DirectionSchema(name=spec.direction.name),

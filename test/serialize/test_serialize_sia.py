@@ -332,3 +332,25 @@ def test_rc3_saved_state_specification_still_loads(tmp_path):
     assert '"runner_up_intrinsic_information"' not in text
     assert '"purview_state"' not in text
     assert '"intrinsic_specification"' in text
+
+
+@pytest.mark.parametrize("fmt", FORMATS)
+def test_round_trip_keeps_the_system_state_tie_family(fmt):
+    """A tied SIA's system-state tie family holds an equal copy of the
+    selected state; a round trip must not add it a second time."""
+    import pyphi
+    from pyphi import examples
+
+    with pyphi.config.override(**pyphi.iit4_2023):
+        sia = pyphi.analyze(
+            examples.xor_substrate(), (0, 0, 0), compute="sia", progress=False
+        )
+    families = {
+        d: [tuple(t.state) for t in sia.system_state[d].ties] for d in Direction.both()
+    }
+    assert len(families[Direction.CAUSE]) > 1
+    restored = round_trip(sia, fmt)
+    for direction in Direction.both():
+        assert [tuple(t.state) for t in restored.system_state[direction].ties] == (
+            families[direction]
+        )

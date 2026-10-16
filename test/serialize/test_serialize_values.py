@@ -15,11 +15,11 @@ def round_trip(obj, fmt):
     return serialize.loads(serialize.dumps(obj, format=fmt), format=fmt)
 
 
-def make_state_spec(direction=Direction.CAUSE):
+def make_state_spec(direction=Direction.CAUSE, state=(1, 0)):
     return StateSpecification(
         direction=direction,
         purview=(0, 1),
-        state=(1, 0),
+        state=state,
         intrinsic_specification=0.25,
         repertoire=np.array([[0.1, 0.4], [0.3, 0.2]]),
         unconstrained_repertoire=np.array([[0.25, 0.25], [0.25, 0.25]]),
@@ -60,7 +60,7 @@ def test_state_specification_round_trips(fmt):
 @pytest.mark.parametrize("fmt", FORMATS)
 def test_state_specification_preserves_tie_peers(fmt):
     a = make_state_spec()
-    b = make_state_spec()
+    b = make_state_spec(state=(0, 1))
     a.set_ties((a, b))
     b.set_ties((a, b))
     restored = round_trip(a, fmt)
