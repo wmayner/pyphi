@@ -35,7 +35,6 @@ the hashable :class:`~pyphi.macro.system.MacroSystem`.
 from __future__ import annotations
 
 import itertools
-from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing import Any
@@ -50,7 +49,6 @@ from pyphi.display import Row
 from pyphi.display import Section
 from pyphi.display.numbers import format_value
 from pyphi.display.tables import capped_table
-from pyphi.labels import _is_sequence
 from pyphi.macro.criteria import Reason
 from pyphi.macro.criteria import UnitVerdict
 from pyphi.macro.criteria import _as_unit
@@ -58,6 +56,7 @@ from pyphi.macro.criteria import canonical_units
 from pyphi.macro.criteria import judge_candidate
 from pyphi.macro.system import MacroSystem
 from pyphi.macro.system import _require_marginalized_background
+from pyphi.macro.tpm import _normalized_history
 from pyphi.macro.tpm import _system_micro_indices
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import blackbox
@@ -238,40 +237,6 @@ def candidate_mappings(
         for index in range(1, 2**num_states - 1):
             add(tuple((index >> k) & 1 for k in range(num_states)))
     return tuple(tables)
-
-
-def _normalized_history(substrate, micro_history, required: int):
-    """Validate and shape ``micro_history`` (oldest first).
-
-    A bare state is accepted when ``required == 1``.
-    """
-    if isinstance(micro_history, (bytes, Mapping)) or not _is_sequence(micro_history):
-        # The message for a state that is not a sequence, as analyze gives.
-        validate.state_length(micro_history, substrate.size)  # pyright: ignore[reportArgumentType]
-    history: tuple[Any, ...] = tuple(micro_history)
-    if history and not _is_sequence(history[0]):
-        if required != 1:
-            raise ValueError(
-                f"micro_history must be a sequence of {required} universe "
-                "states (oldest first); got a bare state"
-            )
-        history = (history,)
-    history = tuple(
-        tuple(v.item() if isinstance(v, np.generic) else v for v in s) for s in history
-    )
-    if len(history) != required:
-        raise ValueError(
-            f"micro_history must have {required} entries (the maximum "
-            f"micro grain admitted); got {len(history)}"
-        )
-    n = substrate.size
-    for state in history:
-        if len(state) != n or any(v not in (0, 1) for v in state):
-            raise ValueError(
-                f"each history entry must be a binary universe state of "
-                f"length {n}; got {state}"
-            )
-    return history
 
 
 def _system_of(substrate, units, micro_history) -> MacroSystem | None:
@@ -1461,7 +1426,9 @@ def complexes(
     Notes
     -----
     Under the certified prune the identified complexes, φₛ values, ties,
-    and verdicts are identical to a full evaluation. The candidates the
+    verdicts and exclusion margins are identical to a full evaluation: a
+    gated candidate whose ceiling could exceed a complex's best rival is
+    evaluated to settle the margin. The candidates the
     prune gated appear in ``records`` with ``gated=True``, and those with
     a positive ceiling that overlap a complex also appear in its
     ``excluded`` list, with ``phi=None``. A gated candidate's φₛ is bounded by its
@@ -1470,7 +1437,6 @@ def complexes(
     """
     parallel_kwargs = _parallel_options(parallel, progress)
     _require_macro_formalism()
-    from pyphi import validate
     from pyphi.condensation import Candidate
     from pyphi.condensation import exclusion_cascade
     from pyphi.condensation import exclusion_records
@@ -1553,6 +1519,45 @@ def complexes(
             else:
                 sweep_gated.append(p)
                 gates.setdefault(p.payload, p.ceiling)
+        # A complex's exclusion margin is set by its best overlapping rival
+        # at or below its φₛ. Evaluate the gated rivals that could be that
+        # rival, highest ceiling first, until no remaining ceiling exceeds the
+        # best rival found; the rest cannot change the margin.
+        from pyphi import numerics as _numerics
+
+        for accepted_candidate in outcome.accepted:
+            phi = accepted_candidate.phi
+
+            def _best_rival(accepted_candidate=accepted_candidate, phi=phi):
+                # numerics: exact — the reported margin's rival, not a selection.
+                return max(
+                    (
+                        c.phi
+                        for c in candidates
+                        if c is not accepted_candidate
+                        and c.footprint & accepted_candidate.footprint
+                        # numerics: exact — composed with eq into a tolerant ≤
+                        and (c.phi < phi or _numerics.eq(c.phi, phi))
+                    ),
+                    default=0.0,
+                )
+
+            overlapping = sorted(
+                (
+                    p
+                    for p in sweep_gated
+                    if p.footprint & accepted_candidate.footprint
+                    and _numerics.is_positive(p.ceiling)
+                ),
+                key=lambda p: -p.ceiling,
+            )
+            for p in overlapping:
+                best = _best_rival()
+                # numerics: exact — composed with eq into a tolerant ≤
+                if p.ceiling < best or _numerics.eq(p.ceiling, best):
+                    break
+                _evaluate_band([p])
+                sweep_gated.remove(p)
         # List rivals in the sweep's order, as a full evaluation does.
         position = {system: i for i, system in enumerate(sweep_systems)}
         candidates.sort(key=lambda c: position[by_candidate[c]])

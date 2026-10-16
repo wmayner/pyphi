@@ -200,9 +200,11 @@ class Complex(Displayable, cmp.OrderableByPhi, ToPandasMixin, Serializable):
         of zero indicates an overlapping rival within ``precision`` of
         this complex's own φₛ: the selection was decided beyond φₛ,
         either by escalation within the tie clique or by the rival's
-        overlap with another complex. Gated rivals — certified strictly
-        below this complex's φₛ, with no exact value — do not enter the
-        margin.
+        overlap with another complex. A gated rival (see
+        :func:`pyphi.macro.complexes`) has no exact φₛ and does not enter
+        the margin; the grain search evaluates every gated rival whose
+        ceiling could exceed the best rival, so the margin equals a full
+        evaluation's.
         """
         phi = float(self.phi)
         rivals = [

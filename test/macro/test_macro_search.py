@@ -1561,3 +1561,32 @@ def test_certified_prune_reports_the_rivals_and_margins_of_a_full_evaluation():
 
     assert certified.complexes == full.complexes
     assert not any(e.gated for c in certified.complexes for e in c.excluded)
+
+
+@pytest.mark.parametrize(
+    ("seed", "n", "extreme", "state", "bounds"),
+    [
+        (52, 3, 0.0, (0, 0, 1), SearchBounds()),
+        (1, 4, 0.3, (0, 0, 1, 1), SearchBounds(max_constituents=2, max_depth=2)),
+    ],
+)
+def test_certified_prune_reports_exact_exclusion_margins(
+    seed, n, extreme, state, bounds
+):
+    """A gated rival that could set a complex's margin is evaluated, so the
+    margin equals the full evaluation's."""
+    from test.hypothesis_utils import random_substrate
+
+    substrate = random_substrate(seed, n, extreme=extreme)
+    with config.override(**presets.iit4_2026):
+        certified = complexes(substrate, state, bounds=bounds, prune="certified")
+        full = complexes(substrate, state, bounds=bounds, prune="off")
+    assert [c.node_indices for c in certified.complexes] == [
+        c.node_indices for c in full.complexes
+    ]
+    assert any(f.exclusion_margin is not None for f in full.complexes)
+    for c, f in zip(certified.complexes, full.complexes, strict=True):
+        if f.exclusion_margin is None:
+            assert c.exclusion_margin is None
+        else:
+            assert c.exclusion_margin == pytest.approx(f.exclusion_margin)

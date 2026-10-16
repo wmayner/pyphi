@@ -19,14 +19,18 @@ prefix.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
 
 from pyphi import exceptions
 from pyphi import utils
+from pyphi import validate
 from pyphi.cache.content import ContentCache
 from pyphi.core.tpm.factored import FactoredTPM
+from pyphi.labels import _is_sequence
 from pyphi.macro.units import MacroUnit
 from pyphi.macro.units import _mixed_radix_digits
 
@@ -418,31 +422,44 @@ def _validate_nested_apportionment(unit: MacroUnit) -> None:
             _validate_nested_apportionment(c)
 
 
-def _normalize_history(units, substrate, micro_history):
-    max_grain = max(unit.micro_grain for unit in units)
-    history = tuple(micro_history)
-    if history and not isinstance(history[0], (tuple, list)):
-        if max_grain == 1:
-            history = (history,)
-        else:
+def _normalized_history(substrate, micro_history, required: int):
+    """Validate and shape ``micro_history`` (oldest first).
+
+    A bare state is accepted when ``required == 1``.
+    """
+    if isinstance(micro_history, (bytes, Mapping)) or not _is_sequence(micro_history):
+        # The message for a state that is not a sequence, as analyze gives.
+        validate.state_length(micro_history, substrate.size)  # pyright: ignore[reportArgumentType]
+    history: tuple[Any, ...] = tuple(micro_history)
+    if history and not _is_sequence(history[0]):
+        if required != 1:
             raise ValueError(
-                "micro_history must be a sequence of states (oldest "
-                f"first) of length {max_grain}; got a bare state"
+                f"micro_history must be a sequence of {required} universe "
+                "states (oldest first); got a bare state"
             )
-    history = tuple(tuple(s) for s in history)
-    if len(history) != max_grain:
+        history = (history,)
+    history = tuple(
+        tuple(v.item() if isinstance(v, np.generic) else v for v in s) for s in history
+    )
+    if len(history) != required:
         raise ValueError(
-            f"micro_history must have {max_grain} entries (the maximum "
+            f"micro_history must have {required} entries (the maximum "
             f"micro grain); got {len(history)}"
         )
     n = substrate.size
-    for s in history:
-        if len(s) != n or any(v not in (0, 1) for v in s):
+    for state in history:
+        if len(state) != n or any(v not in (0, 1) for v in state):
             raise ValueError(
                 f"each history entry must be a binary universe state of "
-                f"length {n}; got {s}"
+                f"length {n}; got {state}"
             )
     return history
+
+
+def _normalize_history(units, substrate, micro_history):
+    return _normalized_history(
+        substrate, micro_history, max(unit.micro_grain for unit in units)
+    )
 
 
 def macro_tpms(substrate, units, micro_history):

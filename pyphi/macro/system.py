@@ -144,8 +144,12 @@ class MacroSystem(System):
         cause_marginal, effect_marginal = macro_tpms(substrate, units, history)
         if node_labels is None:
             node_labels = _micro_labels(substrate, units)
+        # A macro unit depends on another only where either TPM varies with
+        # it; declaring every edge would hide a system that is not strongly
+        # connected, which the micro analysis reports as reducible.
+        cm = np.maximum(effect_marginal.infer_cm(), cause_marginal.infer_cm())
         macro_substrate = Substrate.from_factored(
-            effect_marginal, node_labels=node_labels
+            effect_marginal, cm=cm, node_labels=node_labels
         )
         return cls(
             substrate=macro_substrate,

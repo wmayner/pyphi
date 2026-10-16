@@ -262,3 +262,80 @@ def mechanism_purview_pair(draw, system, allow_empty=False):
         sorted(draw(st.lists(st.sampled_from(nodes), min_size=1, unique=True)))
     )
     return mechanism, purview
+
+
+# Seeded random substrates for metamorphic and differential tests ----------
+
+_LETTERS = "ABCDEFGH"
+
+
+def random_substrate(seed, n, *, p_edge=0.6, alphabet=None, labels=False, extreme=0.0):
+    """A random substrate whose TPM depends only on the edges of its cm.
+
+    Each unit's next-state distribution comes from a table keyed by the
+    states of its inputs, so the TPM agrees with the connectivity matrix.
+    ``alphabet`` gives per-unit state counts (binary when None). ``extreme``
+    is the fraction of table entries drawn near 0 or 1 (binary units) or
+    concentrated on one state (k-ary units), which makes systems with
+    φₛ > 0 more common. Deterministic in ``seed``.
+    """
+    rng = np.random.default_rng(seed)
+    alphabet = tuple(alphabet) if alphabet is not None else (2,) * n
+    if len(alphabet) != n:
+        raise ValueError("alphabet needs one entry per unit")
+    cm = (rng.random((n, n)) < p_edge).astype(int)
+    factors = []
+    for j in range(n):
+        inputs = [i for i in range(n) if cm[i, j]]
+        table = {}
+        factor = np.zeros((*alphabet, alphabet[j]))
+        for state in np.ndindex(*alphabet):
+            key = tuple(state[i] for i in inputs)
+            if key not in table:
+                table[key] = _random_distribution(rng, alphabet[j], extreme)
+            factor[state] = table[key]
+        factors.append(factor)
+    return Substrate(
+        marginals=factors,
+        state_space=tuple(tuple(range(k)) for k in alphabet),
+        cm=cm,
+        node_labels=tuple(_LETTERS[:n]) if labels else None,
+    )
+
+
+def _random_distribution(rng, k, extreme):
+    if rng.random() < extreme:
+        if k == 2:
+            p = rng.uniform(0.0, 0.05) if rng.random() < 0.5 else rng.uniform(0.95, 1.0)
+            return np.array([1 - p, p])
+        d = np.full(k, 0.02 / (k - 1))
+        d[rng.integers(k)] = 0.98
+        return d
+    if k == 2:
+        p = rng.uniform(0.05, 0.95)
+        return np.array([1 - p, p])
+    return rng.dirichlet(np.ones(k))
+
+
+def permute_substrate(substrate, p):
+    """The substrate with its units reordered: new unit i is old unit p[i]."""
+    p = tuple(int(i) for i in p)
+    n = substrate.size
+    tpm = substrate.factored_tpm
+    return Substrate(
+        marginals=[np.transpose(np.asarray(tpm.factor(old)), (*p, n)) for old in p],
+        state_space=tuple(tuple(tpm.state_space[old]) for old in p),
+        cm=np.asarray(substrate.cm)[np.ix_(p, p)],
+        node_labels=tuple(substrate.node_labels.labels[old] for old in p),
+    )
+
+
+def permute_state(state, p):
+    """A state of the original substrate, read in the permuted unit order."""
+    return tuple(state[old] for old in p)
+
+
+def permute_units(units, p):
+    """Indices of the original substrate, as indices of the permuted one."""
+    position = {old: new for new, old in enumerate(p)}
+    return tuple(sorted(position[u] for u in units))

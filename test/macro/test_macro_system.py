@@ -197,7 +197,9 @@ def _examples_for_reduction():
 
 
 class TestMicroReduction:
-    """Identity macroing == System, exactly (paper p. 10)."""
+    """Identity macroing == System (paper p. 10). The macro TPMs come out of
+    different arithmetic, so φ values agree to config.numerics.precision,
+    not bit for bit."""
 
     @pytest.mark.parametrize(
         "substrate,state",
@@ -236,7 +238,7 @@ class TestMicroReduction:
                 macro_distinctions, micro_distinctions, strict=True
             ):
                 assert m_dist.mechanism == u_dist.mechanism
-                assert m_dist.phi == u_dist.phi
+                assert m_dist.phi == pytest.approx(u_dist.phi, abs=1e-13)
 
     def test_subset_system_sia_matches(self):
         """Background path: identity macroing of a proper subset."""
@@ -359,3 +361,59 @@ def test_macro_fingerprint_distinguishes_macro_from_plain_and_is_deterministic()
     assert m._fingerprint != plain._fingerprint
     # Re-constructing the identical macro system reproduces the fingerprint.
     assert m._fingerprint == _cg_macro_system()._fingerprint
+
+
+HISTORY_SPELLINGS = [
+    np.array,
+    lambda history: tuple(np.array(state) for state in history),
+    lambda history: [list(state) for state in history],
+]
+
+
+@pytest.mark.parametrize("spell", HISTORY_SPELLINGS)
+def test_macro_construction_accepts_numpy_histories(spell):
+    """The constructors take the history forms the grain search takes."""
+    from pyphi.macro.tpm import macro_tpms
+
+    substrate = _asymmetric_substrate()
+    grain1 = (
+        MacroUnit((0, 1), 1, coarse_grain(2, on_counts={2})),
+        MacroUnit((2,), 1, (0, 1)),
+    )
+    grain2 = (MacroUnit((0, 1), 2, blackbox(2, 2, (1,))), MacroUnit((2,), 1, (0, 1)))
+    with config.override(**presets.iit4_2026):
+        for units, history in [
+            (grain1, ((1, 0, 1, 0),)),
+            (grain2, ((0, 1, 1, 0), (1, 0, 1, 0))),
+        ]:
+            expected = macro_tpms(substrate, units, history)
+            got = macro_tpms(substrate, units, spell(history))
+            for e, g in zip(expected, got, strict=True):
+                np.testing.assert_array_equal(np.asarray(g), np.asarray(e))
+        ref = MacroSystem.from_micro(substrate, grain1, ((1, 0, 1, 0),))
+        assert (
+            MacroSystem.from_micro(substrate, grain1, spell(((1, 0, 1, 0),))).sia().phi
+            == ref.sia().phi
+        )
+
+
+def test_identity_macro_of_a_disconnected_system_is_reducible_like_the_micro():
+    """A system that is not strongly connected has a null analysis, whether
+    built from micro units or from identity macro units."""
+    from pyphi.formalism.iit4 import NullSystemIrreducibilityAnalysis
+    from test.example_substrates import dual_and_xor_substrate
+
+    substrate, state = dual_and_xor_substrate(), (0, 0, 0, 0)
+    with config.override(**presets.iit4_2026):
+        micro = System(substrate, state).sia()
+        macro = MacroSystem.from_micro(
+            substrate, [micro_unit(i) for i in range(4)], (state,)
+        ).sia()
+    assert isinstance(micro, NullSystemIrreducibilityAnalysis)
+    assert isinstance(macro, NullSystemIrreducibilityAnalysis)
+    assert np.array_equal(
+        MacroSystem.from_micro(
+            substrate, [micro_unit(i) for i in range(4)], (state,)
+        ).substrate.cm,
+        substrate.cm,
+    )
