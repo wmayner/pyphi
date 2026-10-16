@@ -614,14 +614,21 @@ class Relations(Displayable, ToPandasMixin, Serializable):
             for degree in sorted(counts)
         }
 
-    def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
+    def sum_phi_by_distinction(self, distinctions=None) -> tuple[float, ...]:
         """Return each distinction's incident Σφ_r, aligned to ``distinctions``.
 
         A distinction's incident Σφ_r is the sum of φ_r over every relation
         that contains it, including its self-relation. The result is a tuple
         parallel to ``distinctions``; a distinction that no relation reaches
-        contributes ``0.0``.
+        contributes ``0.0``. Concrete relations do not record the
+        distinctions no relation reaches, so ``distinctions`` is required
+        for them; :class:`AnalyticalRelations` defaults to its own.
         """
+        if distinctions is None:
+            raise TypeError(
+                "pass the structure's distinctions: concrete relations do not "
+                "record the distinctions that no relation reaches"
+            )
         position = {tuple(d.mechanism): i for i, d in enumerate(distinctions)}
         sums = [0.0] * len(position)
         for relation in self:  # type: ignore[attr-defined]  # iterable in subclasses
@@ -1158,16 +1165,19 @@ class AnalyticalRelations(Relations):
         ]
         return records_to_frame(rows, columns=["degree", "num_relations", "sum_phi"])
 
-    def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
+    def sum_phi_by_distinction(self, distinctions=None) -> tuple[float, ...]:
         """Return each distinction's incident Σφ_r in closed form.
 
         A relation either contains a given distinction or does not, so its
         incident Σφ_r is ``total − Σφ_r(relations avoiding it)``: the full
         total differenced against the total over the remaining distinctions.
-        No relations are enumerated. The result is parallel to ``distinctions``.
+        No relations are enumerated. The result is parallel to
+        ``distinctions``, which defaults to the structure's own.
         """
         from pyphi.models.distinctions import ResolvedDistinctions
 
+        if distinctions is None:
+            distinctions = self.distinctions
         total = self.sum_phi()
         result = []
         for distinction in distinctions:
@@ -1506,7 +1516,7 @@ class AnalyticalFoldRelations(AnalyticalRelations):
     def _num_relations(self):
         return self._full.num_relations() - self._complement.num_relations()
 
-    def sum_phi_by_distinction(self, distinctions) -> tuple[float, ...]:
+    def sum_phi_by_distinction(self, distinctions=None) -> tuple[float, ...]:
         """Each distinction's Σφ_r over the *incident* relations, in closed
         form.
 
@@ -1515,10 +1525,13 @@ class AnalyticalFoldRelations(AnalyticalRelations):
         the remaining distinctions — with the seed set restricted
         accordingly, since a relation avoiding a seed distinction is
         incident to the fold exactly when it touches one of the *other*
-        seeds. The result is parallel to ``distinctions``.
+        seeds. The result is parallel to ``distinctions``, which defaults to
+        the structure's own.
         """
         from pyphi.models.distinctions import ResolvedDistinctions
 
+        if distinctions is None:
+            distinctions = self.distinctions
         total = self.sum_phi()
         result = []
         for distinction in distinctions:

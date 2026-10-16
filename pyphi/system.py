@@ -747,6 +747,29 @@ class System(Displayable, ToPandasMixin, Serializable):
     # ---- repertoire algebra proxies ----
 
     def cause_repertoire(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
+        """Return the cause repertoire of a mechanism over a purview.
+
+        The distribution over the purview's previous states that the
+        mechanism in its current state specifies (Albantakis et al. 2023,
+        Eq. 33).
+
+        Parameters
+        ----------
+        mechanism : tuple of int or str
+            The mechanism's units, as indices or labels, in any order.
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        **kwargs
+            ``mechanism_state``: the mechanism's state, in the order of
+            ``mechanism``, instead of the system's.
+
+        Returns
+        -------
+        numpy.ndarray
+            The repertoire, with one axis per substrate unit (size 1 off the
+            purview), so axes follow ascending unit order whatever order the
+            purview was given in.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         mechanism, state = self._coerce_with_states(
@@ -759,6 +782,28 @@ class System(Displayable, ToPandasMixin, Serializable):
         )
 
     def effect_repertoire(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
+        """Return the effect repertoire of a mechanism over a purview.
+
+        The distribution over the purview's next states that the mechanism
+        in its current state specifies (Albantakis et al. 2023, Eq. 29).
+
+        Parameters
+        ----------
+        mechanism : tuple of int or str
+            The mechanism's units, as indices or labels, in any order.
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        **kwargs
+            ``mechanism_state``: the mechanism's state, in the order of
+            ``mechanism``, instead of the system's.
+
+        Returns
+        -------
+        numpy.ndarray
+            The repertoire, with one axis per substrate unit (size 1 off the
+            purview), so axes follow ascending unit order whatever order the
+            purview was given in.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         mechanism, state = self._coerce_with_states(
@@ -773,6 +818,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     def repertoire(
         self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any:
+        """Return :meth:`cause_repertoire` or :meth:`effect_repertoire`,
+        by ``direction``."""
         from pyphi.direction import Direction
 
         if direction == Direction.CAUSE:
@@ -783,16 +830,32 @@ class System(Displayable, ToPandasMixin, Serializable):
         raise AssertionError("unreachable")
 
     def unconstrained_cause_repertoire(self, purview: Any) -> Any:
+        """Return the cause repertoire of the empty mechanism over a purview.
+
+        Parameters
+        ----------
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         return ra.unconstrained_cause_repertoire(self, self._coerce_units(purview))
 
     def unconstrained_effect_repertoire(self, purview: Any) -> Any:
+        """Return the effect repertoire of the empty mechanism over a purview.
+
+        Parameters
+        ----------
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         return ra.unconstrained_effect_repertoire(self, self._coerce_units(purview))
 
     def unconstrained_repertoire(self, direction: Any, purview: Any) -> Any:
+        """Return the unconstrained cause or effect repertoire, by
+        ``direction``."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.unconstrained_repertoire(self, direction, self._coerce_units(purview))
@@ -848,6 +911,21 @@ class System(Displayable, ToPandasMixin, Serializable):
     def forward_cause_repertoire(
         self, mechanism: Any, purview: Any, purview_state: Any | None = None
     ) -> Any:
+        """Return the forward cause repertoire of a mechanism over a purview.
+
+        For each purview state, the probability that it leads to the
+        mechanism's current state.
+
+        Parameters
+        ----------
+        mechanism : tuple of int or str
+            The mechanism's units, as indices or labels, in any order.
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        purview_state : tuple of int, optional
+            One purview state, in the order of ``purview``, to evaluate
+            alone; the other entries of the result are NaN.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         mechanism = self._coerce_units(mechanism)
@@ -857,6 +935,9 @@ class System(Displayable, ToPandasMixin, Serializable):
     def forward_effect_repertoire(
         self, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any:
+        """Return the forward effect repertoire of a mechanism over a purview:
+        the effect repertoire. Takes the arguments of
+        :meth:`effect_repertoire`."""
         from pyphi.core import repertoire_algebra as ra
 
         mechanism, state = self._coerce_with_states(
@@ -876,6 +957,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         purview_state: Any | None = None,
         **kwargs: Any,
     ) -> Any:
+        """Return :meth:`forward_cause_repertoire` or
+        :meth:`forward_effect_repertoire`, by ``direction``."""
         from pyphi.direction import Direction
 
         if direction == Direction.CAUSE:
@@ -888,6 +971,9 @@ class System(Displayable, ToPandasMixin, Serializable):
     def unconstrained_forward_cause_repertoire(
         self, mechanism: Any, purview: Any
     ) -> Any:
+        """Return the forward cause repertoire with the mechanism's state
+        unconstrained (Albantakis et al. 2023, Eq. 32). Units are given as
+        in :meth:`cause_repertoire`."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.unconstrained_forward_cause_repertoire(
@@ -897,6 +983,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     def unconstrained_forward_effect_repertoire(
         self, mechanism: Any, purview: Any
     ) -> Any:
+        """Return the forward effect repertoire with the mechanism's state
+        unconstrained. Units are given as in :meth:`effect_repertoire`."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.unconstrained_forward_effect_repertoire(
@@ -906,6 +994,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     def unconstrained_forward_repertoire(
         self, direction: Any, mechanism: Any, purview: Any
     ) -> Any:
+        """Return the unconstrained forward cause or effect repertoire, by
+        ``direction``."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.unconstrained_forward_repertoire(
@@ -919,6 +1009,21 @@ class System(Displayable, ToPandasMixin, Serializable):
         purview_state: Any,
         mechanism_state: Any | None = None,
     ) -> float:
+        """Return the probability that a purview state leads to the
+        mechanism's state.
+
+        Parameters
+        ----------
+        mechanism : tuple of int or str
+            The mechanism's units, as indices or labels, in any order.
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        purview_state : tuple of int
+            The purview state, in the order of ``purview``.
+        mechanism_state : tuple of int, optional
+            The mechanism's state, in the order of ``mechanism``; the
+            system's by default.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         mechanism, mechanism_state = self._coerce_with_states(mechanism, mechanism_state)
@@ -930,6 +1035,18 @@ class System(Displayable, ToPandasMixin, Serializable):
     def forward_effect_probability(
         self, mechanism: Any, purview: Any, purview_state: Any
     ) -> float:
+        """Return the probability that the mechanism's state leads to a
+        purview state.
+
+        Parameters
+        ----------
+        mechanism : tuple of int or str
+            The mechanism's units, as indices or labels, in any order.
+        purview : tuple of int or str
+            The purview's units, as indices or labels, in any order.
+        purview_state : tuple of int
+            The purview state, in the order of ``purview``.
+        """
         from pyphi.core import repertoire_algebra as ra
 
         purview, purview_state = self._coerce_with_states(purview, purview_state)
@@ -945,6 +1062,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         purview_state: Any,
         **kwargs: Any,
     ) -> float:
+        """Return :meth:`forward_cause_probability` or
+        :meth:`forward_effect_probability`, by ``direction``."""
         from pyphi.direction import Direction
 
         if direction == Direction.CAUSE:
@@ -1001,6 +1120,9 @@ class System(Displayable, ToPandasMixin, Serializable):
         return kwargs
 
     def cause_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        """Return the distance between the cause repertoire and the
+        unconstrained one. Units are given as in :meth:`cause_repertoire`;
+        ``repertoire_distance`` names the distance (IIT 3.0's by default)."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.cause_info(
@@ -1011,6 +1133,9 @@ class System(Displayable, ToPandasMixin, Serializable):
         )
 
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        """Return the distance between the effect repertoire and the
+        unconstrained one. Units are given as in :meth:`effect_repertoire`;
+        ``repertoire_distance`` names the distance (IIT 3.0's by default)."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.effect_info(
@@ -1021,6 +1146,7 @@ class System(Displayable, ToPandasMixin, Serializable):
         )
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
+        """Return the smaller of :meth:`cause_info` and :meth:`effect_info`."""
         from pyphi.core import repertoire_algebra as ra
 
         return ra.cause_effect_info(
@@ -1331,7 +1457,8 @@ class System(Displayable, ToPandasMixin, Serializable):
         congruent : bool
             Filter to the distinctions congruent with the system's specified
             state, as the cause-effect structure does, but without the
-            system-partition search. The result is a
+            system-partition search. ``analyze(..., compute="distinctions")``
+            returns this filtered set. The result is a
             :class:`~pyphi.models.distinctions.ResolvedDistinctions` equal to
             ``ces().distinctions`` when the specified state is untied, and
             the unfiltered

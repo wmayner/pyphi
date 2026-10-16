@@ -58,6 +58,10 @@ from .substrate import maximal_complex
 REGIMES = ("perturbational", "observational")
 
 
+def _labels(labels: Sequence[str] | None) -> tuple[str, ...] | None:
+    return None if labels is None else tuple(labels)
+
+
 def _index_to_state(index: int, n_units: int) -> tuple[int, ...]:
     """Decode a little-endian row index into a binary state tuple."""
     return tuple((index >> i) & 1 for i in range(n_units))
@@ -83,6 +87,13 @@ class CoverageReport(Serializable):
 
     counts: NDArray[np.int64]
     n_units: int
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CoverageReport):
+            return NotImplemented
+        return self.n_units == other.n_units and np.array_equal(
+            self.counts, other.counts
+        )
 
     @property
     def n_states(self) -> int:
@@ -157,6 +168,20 @@ class SubstratePosterior(Serializable):
     coverage: CoverageReport
     node_labels: Sequence[str] | None
     provenance: Provenance
+
+    def __eq__(self, other: object) -> bool:
+        # ``provenance`` records when and where the estimate ran, so it is
+        # left out.
+        if not isinstance(other, SubstratePosterior):
+            return NotImplemented
+        return (
+            np.array_equal(self.alpha_on, other.alpha_on)
+            and np.array_equal(self.alpha_off, other.alpha_off)
+            and self.regime == other.regime
+            and self.prior == other.prior
+            and self.coverage == other.coverage
+            and _labels(self.node_labels) == _labels(other.node_labels)
+        )
 
     @property
     def n_units(self) -> int:

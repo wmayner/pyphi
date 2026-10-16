@@ -535,3 +535,20 @@ def test_edge_probability_directed_asymmetric_edge():
     prob = posterior.edge_probability(n_samples=200, seed=5, threshold=0.2)
     assert prob[0, 1] > 0.9
     assert prob[1, 0] < 0.1
+
+
+@pytest.mark.parametrize("regime", ["perturbational", "observational"])
+def test_posterior_round_trips_equal(tmp_path, regime):
+    import pyphi
+
+    substrate = examples.basic_substrate()
+    data = _exhaustive_transitions(substrate)
+    if regime == "observational":
+        data = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 1], [1, 0, 0]])
+    posterior = estimate_substrate(data, regime=regime)
+    path = tmp_path / "posterior.json"
+    pyphi.save(posterior, path)
+    loaded = pyphi.load(path)
+    assert loaded == posterior
+    assert loaded.coverage == posterior.coverage
+    assert loaded != estimate_substrate(data, regime=regime, prior=0.25)

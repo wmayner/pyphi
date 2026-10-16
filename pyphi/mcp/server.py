@@ -50,11 +50,12 @@ from . import content
 # under IIT 4.0 computes a system irreducibility analysis before unfolding
 # distinctions, so it answers to both.
 #
-# _SIA_PARTITION_LIMIT is the DIRECTED_SET_PARTITION count for 9 fully
+# _SIA_PARTITION_LIMIT is the DIRECTED_SET_PARTITION count for 8 fully
 # connected binary units — the largest system-level analysis admitted without
-# confirmation. _CES_SWEEP_LIMIT admits a fully connected 6-unit binary
-# cause-effect structure under JOINT_PARTITION_ALL (31,938,830 sweeps) and
-# refuses the 7-unit one (1,450,456,298 sweeps).
+# confirmation. At about 1 ms per partition it takes minutes; 9 units
+# (4,419,572 partitions) take over an hour. _CES_SWEEP_LIMIT admits a fully
+# connected 6-unit binary cause-effect structure under JOINT_PARTITION_ALL
+# (31,938,830 sweeps) and refuses the 7-unit one (1,450,456,298 sweeps).
 #
 # _GUARD_COUNT_BUDGET bounds the guard's own counting work (purview
 # evaluations plus fresh partition enumerations; memoized counts are free).
@@ -72,7 +73,7 @@ from . import content
 # ``_MAX_FORWARD_SWEEP_STATES``: past this size the sweeps refuse anyway, and
 # the guard's contribution is to say so before any work rather than partway
 # through the first sweep.
-_SIA_PARTITION_LIMIT = 4_419_572
+_SIA_PARTITION_LIMIT = 510_313
 _CES_SWEEP_LIMIT = 100_000_000
 _SPECIFIED_STATE_LIMIT = 131_072
 _GUARD_COUNT_BUDGET = 3_000_000
@@ -876,7 +877,7 @@ def prepare_ces_campaign(
     handle: str,
     state: list[int],
     directory: str,
-    units_per_job: float,
+    units_per_job: float | None = None,
     subset: list[UnitIndex | str] | None = None,
     scope: dict[str, Any] | None = None,
     formalism: str | None = None,
@@ -904,8 +905,9 @@ def prepare_ces_campaign(
         The system state.
     directory : str
         Target campaign directory; must not already exist.
-    units_per_job : float
-        Target work units per shard.
+    units_per_job : float, optional
+        Target work units per shard. Omitted, the structure is one task and,
+        under IIT 4.0, the system analysis another.
     subset : list of int or str, optional
         The candidate system, as in ``analyze``; the whole substrate when
         omitted.

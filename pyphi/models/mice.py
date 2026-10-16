@@ -170,8 +170,11 @@ class MaximallyIrreducibleCauseOrEffect(
         switch changes the cause-effect structure's composition without a
         discontinuity in φ; this margin measures how decisively the
         structural choice was made. Zero when another purview ties
-        exactly; ``None`` when there was no competing purview. Excluded
-        from equality and hashing.
+        exactly in φ, even when a later criterion of
+        ``purview_tie_resolution`` then decides the selection (IIT 3.0
+        prefers the larger purview); :attr:`purview_ties` lists only the
+        purviews that the whole cascade leaves tied. ``None`` when there
+        was no competing purview. Excluded from equality and hashing.
         """
         return self._purview_margin
 
@@ -281,8 +284,10 @@ class MaximallyIrreducibleCauseOrEffect(
 
     @property
     def purview_ties(self):
-        """tuple[MaximallyIrreducibleCauseOrEffect]: The purviews that are tied
-        for maximal φ value.
+        """tuple[MaximallyIrreducibleCauseOrEffect]: The purviews that the
+        ``purview_tie_resolution`` cascade leaves tied, this one among them.
+        Purviews tied in φ that a later criterion separates are not listed;
+        :attr:`purview_margin` is zero for them.
         """
         return self._purview_ties
 

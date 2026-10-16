@@ -272,8 +272,11 @@ def analyze(
         or ``"distinctions"`` returns the raw result object; a callable
         returns ``compute(system)``. Incompatible with ``grains``.
         ``"distinctions"`` skips the system-partition search, which is the
-        whole cost of a cause-effect structure over a sparse substrate; see
-        :meth:`~pyphi.system.System.distinctions`.
+        whole cost of a cause-effect structure over a sparse substrate, and
+        returns the congruent distinctions:
+        :meth:`System.distinctions(congruent=True)
+        <pyphi.system.System.distinctions>`, whose own default is the
+        unfiltered set.
     grains : optional
         ``None`` or ``False`` analyzes the single candidate system. ``True``
         runs the bounded intrinsic-unit search with default

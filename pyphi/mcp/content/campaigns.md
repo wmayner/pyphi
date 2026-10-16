@@ -80,8 +80,9 @@ combinatorially feasible surface as a **scope** — per-axis constraint
 objects such as `{"mechanisms": {"max_order": 3, "containing": ["A"]},
 "cause_purviews": {"within": ["A", "B", "C"]}}`, with the keys the
 `estimate_cost` tool documents; an unknown key raises — and the planner shards
-the scoped work to a per-job budget, descending mechanism → purview-range →
-partition-stride only where needed. A scope can also bound purview order
+the scoped work to a per-job budget (`units_per_job`), descending mechanism →
+purview-range → partition-stride only where needed; without a budget, the
+structure is one task and, under IIT 4.0, the system analysis another. A scope can also bound purview order
 per mechanism order (`max_purview_order_by_mechanism_order`), expressing
 order-tied caps exactly. `estimate_cost` accepts the same `scope` to price
 the surface first; for very large scoped systems, raise the planning

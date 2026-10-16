@@ -218,7 +218,12 @@ def find_mip(
     state: Any | None = None,
     **kwargs: Any,
 ) -> Any:
-    """Return the minimum partition for a mechanism over a purview."""
+    """Return the minimum partition for a mechanism over a purview.
+
+    The mechanism and purview may be given in any order and, for a
+    :class:`~pyphi.system.System`, as labels; the result is that of the
+    sorted indices. The same holds for the other mechanism queries here.
+    """
     mechanism, purview = _units(cs, mechanism), _units(cs, purview)
 
     def null_mip(**kw: Any) -> Any:  # noqa: ARG001

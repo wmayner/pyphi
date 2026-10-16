@@ -226,7 +226,9 @@ the state — so cells differing only by state share one planning pass and
 replicate its shard tasks. For large scoped systems whose planning walk
 exceeds the default work budget, raise `limit=`.
 
-The planner descends only as deep as the budget requires: whole mechanisms
+Without `units_per_job`, each cell's structure is one task and, under
+IIT 4.0, its system analysis another. With a budget, the planner descends
+only as deep as the budget requires: whole mechanisms
 are cost-balanced into jobs; a mechanism over budget splits its purview
 list into ranges; a single (mechanism, purview) pair over budget splits its
 partition sweep into interleaved strides. System-partition strides for the

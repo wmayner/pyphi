@@ -505,6 +505,16 @@ def test_sum_phi_by_distinction_parity(structures):
     assert sum(conc) == pytest.approx(sum(float(r.phi) * len(r) for r in concrete))
 
 
+def test_analytical_sum_phi_by_distinction_defaults_to_its_distinctions(structures):
+    _, _, concrete, analytical = structures
+    assert analytical.sum_phi_by_distinction() == analytical.sum_phi_by_distinction(
+        list(analytical.distinctions)
+    )
+    assert any(v > 0 for v in analytical.sum_phi_by_distinction())
+    with pytest.raises(TypeError, match="distinctions"):
+        concrete.sum_phi_by_distinction()
+
+
 def test_fold_sum_phi_by_distinction_matches_incident_concrete(
     fold_structures, structures
 ):

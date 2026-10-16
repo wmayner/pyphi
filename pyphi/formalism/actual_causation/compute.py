@@ -435,6 +435,7 @@ def _directed_account(
     *,
     alpha_measure: DistributionMeasure | None = None,
     partitioned_repertoire_scheme=None,
+    **kwargs,
 ):
     """Return the set of all
     :class:`~pyphi.models.actual_causation.CausalLink` of the specified
@@ -455,26 +456,42 @@ def _directed_account(
         Resolved partitioned-repertoire scheme callable. When ``None``, the
         active ``config.formalism.actual_causation.partitioned_repertoire_scheme``
         is resolved at the call boundary.
+    **kwargs
+        ``parallel``, ``progress`` and the other options of
+        ``config.infrastructure.parallel_distinction_evaluation``, for the
+        evaluation of the mechanisms.
     """
     if mechanisms is None:
         mechanisms = utils.powerset(
             transition.mechanism_indices(direction), nonempty=True
         )
-    links = [
-        _find_causal_link(
-            transition,
-            direction,
-            mechanism,
-            purviews=purviews,
-            allow_neg=allow_neg,
-            alpha_measure=alpha_measure,
-            partitioned_repertoire_scheme=partitioned_repertoire_scheme,
-        )
-        for mechanism in mechanisms
-    ]
+    parallel_kwargs = conf.parallel_kwargs(
+        dict(config.infrastructure.parallel_distinction_evaluation), **kwargs
+    )
+    indexed = map_reduce(
+        _indexed_causal_link,
+        list(enumerate(mechanisms)),
+        map_kwargs={
+            "transition": transition,
+            "direction": direction,
+            "purviews": purviews,
+            "allow_neg": allow_neg,
+            "alpha_measure": alpha_measure,
+            "partitioned_repertoire_scheme": partitioned_repertoire_scheme,
+        },
+        desc="Evaluating causal links",
+        **parallel_kwargs,
+    )
+    links = [link for _, link in sorted(indexed, key=lambda pair: pair[0])]
 
     # Filter out causal links with zero alpha
     return DirectedAccount(filter(None, links))
+
+
+def _indexed_causal_link(item, *, transition, direction, **kwargs):
+    """The causal link of one mechanism, with its position in the sweep."""
+    index, mechanism = item
+    return index, _find_causal_link(transition, direction, mechanism, **kwargs)
 
 
 def _account(
@@ -484,6 +501,7 @@ def _account(
     *,
     alpha_measure: DistributionMeasure | None = None,
     partitioned_repertoire_scheme=None,
+    **kwargs,
 ):
     """Return the set of all causal links for a
     :class:`~pyphi.actual.Transition`.
@@ -519,6 +537,7 @@ def _account(
             allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+            **kwargs,
         )
 
     return Account(
@@ -528,6 +547,7 @@ def _account(
             allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+            **kwargs,
         )
         + _directed_account(
             transition,
@@ -535,6 +555,7 @@ def _account(
             allow_neg=allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+            **kwargs,
         )
     )
 

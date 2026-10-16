@@ -430,7 +430,18 @@ def landscape_section(
     return LandscapeSection(df=df, sias=sias, skipped=skipped)
 
 
-@dataclass(frozen=True, repr=False)
+def _same(a: Any, b: Any) -> bool:
+    """Equal, counting NaN as equal to NaN."""
+    if isinstance(a, float) and isinstance(b, float) and math.isnan(a) and math.isnan(b):
+        return True
+    return a == b
+
+
+def _same_dict(a: dict[str, Any], b: dict[str, Any]) -> bool:
+    return a.keys() == b.keys() and all(_same(a[k], b[k]) for k in a)
+
+
+@dataclass(frozen=True, eq=False, repr=False)
 class Perturbation(Displayable, Serializable):
     """Local finite-difference behavior of one quantity at one point.
 
@@ -482,6 +493,28 @@ class Perturbation(Displayable, Serializable):
 
     # The margin dictionaries are mutable, so a perturbation has no hash.
     __hash__ = None  # type: ignore[assignment]
+
+    def __eq__(self, other: object) -> bool:
+        # An undefined margin derivative is NaN; equal results hold NaN in
+        # the same places.
+        if not isinstance(other, Perturbation):
+            return NotImplemented
+        scalars = (
+            "theta",
+            "h",
+            "value",
+            "derivative",
+            "left_derivative",
+            "right_derivative",
+        )
+        return (
+            self.quantity == other.quantity
+            and self.same_regime == other.same_regime
+            and all(_same(getattr(self, k), getattr(other, k)) for k in scalars)
+            and _same_dict(self.margins, other.margins)
+            and _same_dict(self.margin_derivatives, other.margin_derivatives)
+            and self.sias == other.sias
+        )
 
     def to_pandas(self) -> pd.DataFrame:
         """The scalar fields as a one-row DataFrame; each margin ``m`` appears

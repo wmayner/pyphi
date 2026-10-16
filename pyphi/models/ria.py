@@ -321,9 +321,12 @@ class RepertoireIrreducibilityAnalysis(
         """The gap in (clamped) normalized φ between this MIP and the best
         competing mechanism partition.
 
-        Zero when a competitor ties exactly; ``None`` when there was no
-        competitor or the partition sweep stopped early on a reducible
-        partition. Set ``shortcircuit_sia=False`` to evaluate every
+        Zero when a competitor ties exactly, even when a later criterion
+        of ``mip_tie_resolution`` then decides the selection (IIT 3.0
+        breaks φ ties lexicographically); :attr:`partition_ties` lists only
+        the partitions that the whole cascade leaves tied. ``None`` when
+        there was no competitor or the partition sweep stopped early on a
+        reducible partition. Set ``shortcircuit_sia=False`` to evaluate every
         partition and obtain an exact margin even when φ = 0. Excluded
         from equality and hashing.
         """
@@ -467,6 +470,8 @@ class RepertoireIrreducibilityAnalysis(
 
     @property
     def partition_ties(self):
+        """The RIAs of the mechanism partitions that the
+        ``mip_tie_resolution`` cascade leaves tied, this one among them."""
         return self._partition_ties
 
     def set_partition_ties(self, ties):

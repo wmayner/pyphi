@@ -408,3 +408,31 @@ def test_multi_state_per_cell_resolution_matches_single_cell_campaigns(tmp_path)
     again = collect(multi_dir, resolution_state=resolution)
     assert isinstance(again, SweepResult)
     assert len(again.results) == 2
+
+
+@pytest.mark.parametrize("formalism", ["IIT_4_0_2026", "IIT_3_0"])
+def test_unsharded_by_default(tmp_path, formalism):
+    """Without units_per_job each cell's structure is one task."""
+    directory = tmp_path / "camp"
+    prepare_ces(
+        examples.basic_substrate(),
+        states=BASIC_STATE,
+        formalisms=formalism,
+        directory=directory,
+    )
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["units_per_job"] is None
+    tasks = sorted((directory / "tasks").glob("task-*.json.gz"))
+    assert 1 <= len(tasks) <= 2  # the structure, and the SIA under IIT 4.0
+    _run_all(directory)
+    result = collect(directory)
+    with config.override(**presets.by_name[formalism], **PIN):
+        reference = System(examples.basic_substrate(), BASIC_STATE).ces()
+    assert float(result.sia.phi) == float(reference.sia.phi)
+    assert sorted(
+        (d.mechanism, d.cause.purview, d.effect.purview, float(d.phi))
+        for d in result.distinctions
+    ) == sorted(
+        (d.mechanism, d.cause.purview, d.effect.purview, float(d.phi))
+        for d in reference.distinctions
+    )

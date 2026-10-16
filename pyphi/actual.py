@@ -928,11 +928,14 @@ def directed_account(
     mechanisms=None,
     purviews=None,
     allow_neg=False,
+    parallel=None,
+    progress=None,
 ):
     """Return every causal link of the specified direction.
 
     Dispatches through the active actual-causation formalism
-    (``config.formalism.actual_causation.version``).
+    (``config.formalism.actual_causation.version``). Takes the options of
+    :func:`account`.
     """
     return _active_ac_formalism().evaluate_account(
         transition,
@@ -940,6 +943,7 @@ def directed_account(
         mechanisms=mechanisms,
         purviews=purviews,
         allow_neg=allow_neg,
+        **_run_options(parallel, progress),
     )
 
 
@@ -950,6 +954,8 @@ def account(
     mechanisms=None,
     purviews=None,
     allow_neg=False,
+    parallel=None,
+    progress=None,
 ):
     """Return the set of all causal links for a :class:`Transition`.
 
@@ -968,6 +974,12 @@ def account(
         The purviews to consider. ``None`` considers every purview.
     allow_neg : bool, optional
         Keep causal links with negative α.
+    parallel : bool or None, optional
+        Whether to evaluate the mechanisms in parallel. ``None`` defers to
+        ``config.infrastructure.parallel``.
+    progress : bool or None, optional
+        Whether to show a progress bar. ``None`` defers to
+        ``config.infrastructure.progress_bars``.
 
     Returns
     -------
@@ -982,7 +994,17 @@ def account(
         mechanisms=mechanisms,
         purviews=purviews,
         allow_neg=allow_neg,
+        **_run_options(parallel, progress),
     )
+
+
+def _run_options(parallel, progress):
+    """The ``parallel`` and ``progress`` options that were given."""
+    return {
+        name: value
+        for name, value in (("parallel", parallel), ("progress", progress))
+        if value is not None
+    }
 
 
 def sia(transition, direction=Direction.BIDIRECTIONAL, *, parallel=None, progress=None):
@@ -1010,12 +1032,9 @@ def sia(transition, direction=Direction.BIDIRECTIONAL, *, parallel=None, progres
     AcSystemIrreducibilityAnalysis
         The analysis of the transition.
     """
-    options = {
-        name: value
-        for name, value in (("parallel", parallel), ("progress", progress))
-        if value is not None
-    }
-    return _active_ac_formalism().evaluate_system(transition, direction, **options)
+    return _active_ac_formalism().evaluate_system(
+        transition, direction, **_run_options(parallel, progress)
+    )
 
 
 # =============================================================================

@@ -976,3 +976,19 @@ def test_prepare_campaign_reads_a_flat_list_as_one_state_or_subset(tmp_path):
         directory=str(tmp_path / "camp"),
     )
     assert prepared["status"]["n_cells"] == 1
+
+
+def test_guard_admits_an_8_unit_system_analysis_and_refuses_9():
+    """About 1 ms per system partition: 8 fully connected units (510,313
+    partitions) take minutes, 9 (4,419,572) take over an hour."""
+    import pyphi
+
+    for n, refused in ((8, False), (9, True)):
+        substrate = pyphi.Substrate(np.full((2**n, n), 0.5), cm=np.ones((n, n)))
+        with pyphi.config.override(**pyphi.iit4_2026):
+            estimate = pyphi.estimate_analysis(substrate, (0,) * n, compute="sia")
+        if refused:
+            with pytest.raises(ValueError, match="system partitions"):
+                srv._refuse_if_large(estimate, "sia", n)
+        else:
+            srv._refuse_if_large(estimate, "sia", n)

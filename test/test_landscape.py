@@ -200,6 +200,18 @@ def test_section_and_perturbation_round_trip(axis, tmp_path, suffix):
     loaded = pyphi.load(path)
     pd.testing.assert_frame_equal(loaded.to_pandas(), perturbation.to_pandas())
     assert loaded.sias == perturbation.sias
+    assert loaded == perturbation
+
+
+def test_perturbation_with_an_undefined_margin_round_trips(axis, tmp_path):
+    """An undefined margin derivative is NaN, and NaN must compare equal to
+    itself for a loaded Perturbation to equal the original."""
+    with pyphi.config.override(**pyphi.iit4_2026):
+        perturbation = perturb(axis, STATE, 1.1)
+    assert any(math.isnan(v) for v in perturbation.margin_derivatives.values())
+    path = tmp_path / "perturbation.json"
+    pyphi.save(perturbation, path)
+    assert pyphi.load(path) == perturbation
 
 
 def test_single_results_are_one_row_frames(axis):

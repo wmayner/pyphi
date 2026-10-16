@@ -770,7 +770,11 @@ class Substrate(Displayable, ToPandasMixin, Serializable):
     def __eq__(self, other: object) -> bool:
         """Return whether this substrate equals the other object.
 
-        Substrates are equal if they have the same TPM and CM.
+        Substrates are equal if they have the same TPM and CM. The TPMs are
+        compared exactly, as their hash requires, so the same dynamics built
+        by two routes (a state-by-state TPM and per-unit marginals, say) can
+        differ in the last bits and compare unequal; compare their factors
+        with :func:`numpy.allclose` to test equivalence.
         """
         return (
             isinstance(other, Substrate)

@@ -93,6 +93,7 @@ class AC2019Formalism:
         mechanisms = kwargs.get("mechanisms")
         purviews = kwargs.get("purviews")
         allow_neg = kwargs.get("allow_neg", False)
+        options = {k: kwargs[k] for k in ("parallel", "progress") if k in kwargs}
         resolved = _resolve_ac_measures(self)
         alpha_measure = resolved["alpha_measure"]
         scheme = resolved["partitioned_repertoire_scheme"]
@@ -107,6 +108,7 @@ class AC2019Formalism:
                 allow_neg=allow_neg,
                 alpha_measure=alpha_measure,
                 partitioned_repertoire_scheme=scheme,
+                **options,
             )
         return compute._directed_account(
             transition,
@@ -116,6 +118,7 @@ class AC2019Formalism:
             allow_neg,
             alpha_measure=alpha_measure,
             partitioned_repertoire_scheme=scheme,
+            **options,
         )
 
     def evaluate_system(

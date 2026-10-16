@@ -593,7 +593,7 @@ def prepare_ces(
     formalisms: Any = None,
     scope: Any = None,
     directory: Any,
-    units_per_job: float,
+    units_per_job: float | None = None,
     limit: int = 100_000_000,
     workloads: dict[tuple[int, ...], Any] | None = None,
     sia: Any = None,
@@ -632,8 +632,10 @@ def prepare_ces(
         substrate; ``None`` is the unconstrained scope.
     directory
         Target campaign directory; created, and must not already exist.
-    units_per_job : float
-        Target work units per shard — the planning ladder's budget.
+    units_per_job : float, optional
+        Target work units per shard — the planning ladder's budget. With
+        None (the default), each cell's structure is one task and, under
+        IIT 4.0, its system analysis another.
     limit : int, optional
         Work budget for each planning walk. The walk raises
         :class:`ValueError` past the limit — the workload is then too
@@ -699,10 +701,8 @@ def prepare_ces(
         )
     if sia is not None and resolution_state is not None:
         raise ValueError("pass either sia or resolution_state, not both")
-    if units_per_job is None:
-        raise ValueError("units_per_job must be a positive number; got None")
     _check_packing(None, units_per_job)
-    units_per_job = float(units_per_job)
+    budget = math.inf if units_per_job is None else float(units_per_job)
     if ordering not in _ORDERINGS:
         raise ValueError(
             f"unknown ordering {ordering!r}; expected 'bottleneck_first' or None"
@@ -776,16 +776,14 @@ def prepare_ces(
             ces_specs = _shards.plan_ces_shards(
                 system,
                 resolved,
-                units_per_job,
+                budget,
                 workloads=group_workloads,
                 memory_floor_bytes=memory_floor,
             )
             if not any(s.mechanisms or s.mechanism for s in ces_specs):
                 raise ValueError("the scope admits zero mechanisms")
             sia_specs = (
-                _shards.plan_sia_shards(
-                    system, units_per_job, memory_floor_bytes=memory_floor
-                )
+                _shards.plan_sia_shards(system, budget, memory_floor_bytes=memory_floor)
                 if sia is None and resolution_states is None
                 else []
             )
@@ -929,7 +927,7 @@ def prepare_ces(
             for label, formalism_, _subset in [key]
         ],
         "tasks": task_rows,
-        "units_per_job": units_per_job,
+        "units_per_job": None if units_per_job is None else budget,
         "infeasible_threshold": infeasible_threshold,
     }
     (directory / "manifest.json").write_text(json.dumps(manifest, indent=2))

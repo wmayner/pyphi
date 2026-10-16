@@ -1658,3 +1658,20 @@ def test_ac_partition_tie_backstop_resolves_duplicate_cuts():
     finally:
         del partition_types.store[name]
     assert ria is not None
+
+
+@pytest.mark.parametrize("parallel", [False, True])
+def test_account_takes_parallel_and_progress(parallel):
+    """account and directed_account take the parallel and progress options
+    sia takes, and give the same links."""
+    forced = {"parallel": True, "sequential_threshold": 1, "chunksize": 1}
+    transition = examples.prevention_transition()
+    reference = actual.account(transition)
+    assert len(reference) > 0
+    with config.override(parallel_distinction_evaluation=forced):
+        got = actual.account(transition, parallel=parallel, progress=False)
+        directed = actual.directed_account(
+            transition, Direction.CAUSE, parallel=parallel, progress=False
+        )
+    assert got == reference
+    assert directed == actual.directed_account(transition, Direction.CAUSE)
