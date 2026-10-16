@@ -195,6 +195,17 @@ def _find_mip_single_state(
     return winner
 
 
+def _units(cs: Any, nodes: Any) -> Any:
+    """``nodes`` as sorted node indices of ``cs``, given in any order and,
+    for a System, as indices or labels."""
+    coerce = getattr(cs, "_coerce_units", None)
+    return coerce(nodes) if coerce is not None else tuple(sorted(nodes))
+
+
+def _purview_list(cs: Any, purviews: Any) -> Any:
+    return None if purviews is None else [_units(cs, p) for p in purviews]
+
+
 # ---- mechanism MIP search ----
 
 
@@ -208,6 +219,7 @@ def find_mip(
     **kwargs: Any,
 ) -> Any:
     """Return the minimum partition for a mechanism over a purview."""
+    mechanism, purview = _units(cs, mechanism), _units(cs, purview)
 
     def null_mip(**kw: Any) -> Any:  # noqa: ARG001
         return _null_ria(
@@ -324,6 +336,7 @@ def find_mice(
     binary units under IIT 4.0 with the generalized intrinsic difference;
     outside that domain the check is skipped.
     """
+    mechanism, purviews = _units(cs, mechanism), _purview_list(cs, purviews)
     purviews_list = _ra.potential_purviews(cs, direction, mechanism, purviews)
 
     if direction == Direction.CAUSE:
@@ -471,8 +484,11 @@ def distinction(
     """
     if not mechanism:
         return _ra.null_distinction(cs)
+    mechanism = _units(cs, mechanism)
     cause_purviews = cause_purviews if cause_purviews is not None else purviews
     effect_purviews = effect_purviews if effect_purviews is not None else purviews
+    cause_purviews = _purview_list(cs, cause_purviews)
+    effect_purviews = _purview_list(cs, effect_purviews)
     shortcircuit = config.formalism.iit.shortcircuit_distinctions  # pyright: ignore[reportAttributeAccessIssue]
 
     if shortcircuit and not _ra.potential_purviews(

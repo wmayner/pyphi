@@ -629,7 +629,7 @@ def forward_effect_probability(
     **kwargs: Any,
 ) -> float:
     return forward_effect_repertoire(cs, mechanism, purview, **kwargs).squeeze()[
-        purview_state
+        _ascending(purview, purview_state)
     ]
 
 
@@ -649,7 +649,13 @@ def forward_cause_probability(
         mechanism_state=purview_state,
         direction=Direction.CAUSE,
     )
-    return er.squeeze()[mechanism_state]
+    return er.squeeze()[_ascending(mechanism, mechanism_state)]
+
+
+def _ascending(units: tuple[int, ...], state: Any) -> tuple[int, ...]:
+    """``state``, given in the order of ``units``, in ascending unit order:
+    the axis order of a squeezed repertoire."""
+    return tuple(state[i] for i in sorted(range(len(units)), key=units.__getitem__))
 
 
 def forward_probability(

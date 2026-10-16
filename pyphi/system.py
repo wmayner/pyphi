@@ -9,6 +9,7 @@ applied. Immutable, hashable. The partition is a constructor argument
 from __future__ import annotations
 
 import hashlib
+import itertools
 from dataclasses import KW_ONLY
 from dataclasses import InitVar
 from dataclasses import dataclass
@@ -748,34 +749,53 @@ class System(Displayable, ToPandasMixin, Serializable):
     def cause_repertoire(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.cause_repertoire(self, mechanism, purview, **kwargs)
+        mechanism, state = self._coerce_with_states(
+            mechanism, kwargs.pop("mechanism_state", None)
+        )
+        if state is not None:
+            kwargs["mechanism_state"] = state
+        return ra.cause_repertoire(
+            self, mechanism, self._coerce_units(purview), **kwargs
+        )
 
     def effect_repertoire(self, mechanism: Any, purview: Any, **kwargs: Any) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.effect_repertoire(self, mechanism, purview, **kwargs)
+        mechanism, state = self._coerce_with_states(
+            mechanism, kwargs.pop("mechanism_state", None)
+        )
+        if state is not None:
+            kwargs["mechanism_state"] = state
+        return ra.effect_repertoire(
+            self, mechanism, self._coerce_units(purview), **kwargs
+        )
 
     def repertoire(
         self, direction: Any, mechanism: Any, purview: Any, **kwargs: Any
     ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
+        from pyphi.direction import Direction
 
-        return ra.repertoire(self, direction, mechanism, purview, **kwargs)
+        if direction == Direction.CAUSE:
+            return self.cause_repertoire(mechanism, purview, **kwargs)
+        if direction == Direction.EFFECT:
+            return self.effect_repertoire(mechanism, purview, **kwargs)
+        _check_direction(direction)
+        raise AssertionError("unreachable")
 
     def unconstrained_cause_repertoire(self, purview: Any) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.unconstrained_cause_repertoire(self, purview)
+        return ra.unconstrained_cause_repertoire(self, self._coerce_units(purview))
 
     def unconstrained_effect_repertoire(self, purview: Any) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.unconstrained_effect_repertoire(self, purview)
+        return ra.unconstrained_effect_repertoire(self, self._coerce_units(purview))
 
     def unconstrained_repertoire(self, direction: Any, purview: Any) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.unconstrained_repertoire(self, direction, purview)
+        return ra.unconstrained_repertoire(self, direction, self._coerce_units(purview))
 
     def partitioned_repertoire(
         self,
@@ -830,6 +850,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
+        mechanism = self._coerce_units(mechanism)
+        purview, purview_state = self._coerce_with_states(purview, purview_state)
         return ra.forward_cause_repertoire(self, mechanism, purview, purview_state)
 
     def forward_effect_repertoire(
@@ -837,7 +859,14 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.forward_effect_repertoire(self, mechanism, purview, **kwargs)
+        mechanism, state = self._coerce_with_states(
+            mechanism, kwargs.pop("mechanism_state", None)
+        )
+        if state is not None:
+            kwargs["mechanism_state"] = state
+        return ra.forward_effect_repertoire(
+            self, mechanism, self._coerce_units(purview), **kwargs
+        )
 
     def forward_repertoire(
         self,
@@ -847,32 +876,41 @@ class System(Displayable, ToPandasMixin, Serializable):
         purview_state: Any | None = None,
         **kwargs: Any,
     ) -> Any:
-        from pyphi.core import repertoire_algebra as ra
+        from pyphi.direction import Direction
 
-        return ra.forward_repertoire(
-            self, direction, mechanism, purview, purview_state, **kwargs
-        )
+        if direction == Direction.CAUSE:
+            return self.forward_cause_repertoire(mechanism, purview, purview_state)
+        if direction == Direction.EFFECT:
+            return self.forward_effect_repertoire(mechanism, purview, **kwargs)
+        _check_direction(direction)
+        raise AssertionError("unreachable")
 
     def unconstrained_forward_cause_repertoire(
         self, mechanism: Any, purview: Any
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.unconstrained_forward_cause_repertoire(self, mechanism, purview)
+        return ra.unconstrained_forward_cause_repertoire(
+            self, self._coerce_units(mechanism), self._coerce_units(purview)
+        )
 
     def unconstrained_forward_effect_repertoire(
         self, mechanism: Any, purview: Any
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.unconstrained_forward_effect_repertoire(self, mechanism, purview)
+        return ra.unconstrained_forward_effect_repertoire(
+            self, self._coerce_units(mechanism), self._coerce_units(purview)
+        )
 
     def unconstrained_forward_repertoire(
         self, direction: Any, mechanism: Any, purview: Any
     ) -> Any:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.unconstrained_forward_repertoire(self, direction, mechanism, purview)
+        return ra.unconstrained_forward_repertoire(
+            self, direction, self._coerce_units(mechanism), self._coerce_units(purview)
+        )
 
     def forward_cause_probability(
         self,
@@ -883,6 +921,8 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> float:
         from pyphi.core import repertoire_algebra as ra
 
+        mechanism, mechanism_state = self._coerce_with_states(mechanism, mechanism_state)
+        purview, purview_state = self._coerce_with_states(purview, purview_state)
         return ra.forward_cause_probability(
             self, mechanism, purview, purview_state, mechanism_state
         )
@@ -892,7 +932,10 @@ class System(Displayable, ToPandasMixin, Serializable):
     ) -> float:
         from pyphi.core import repertoire_algebra as ra
 
-        return ra.forward_effect_probability(self, mechanism, purview, purview_state)
+        purview, purview_state = self._coerce_with_states(purview, purview_state)
+        return ra.forward_effect_probability(
+            self, self._coerce_units(mechanism), purview, purview_state
+        )
 
     def forward_probability(
         self,
@@ -902,11 +945,16 @@ class System(Displayable, ToPandasMixin, Serializable):
         purview_state: Any,
         **kwargs: Any,
     ) -> float:
-        from pyphi.core import repertoire_algebra as ra
+        from pyphi.direction import Direction
 
-        return ra.forward_probability(
-            self, direction, mechanism, purview, purview_state, **kwargs
-        )
+        if direction == Direction.CAUSE:
+            return self.forward_cause_probability(
+                mechanism, purview, purview_state, **kwargs
+            )
+        if direction == Direction.EFFECT:
+            return self.forward_effect_probability(mechanism, purview, purview_state)
+        _check_direction(direction)
+        raise AssertionError("unreachable")
 
     # ---- info / phi proxies ----
 
@@ -956,21 +1004,30 @@ class System(Displayable, ToPandasMixin, Serializable):
         from pyphi.core import repertoire_algebra as ra
 
         return ra.cause_info(
-            self, mechanism, purview, **self._info_kwargs("cause_info", kwargs)
+            self,
+            self._coerce_units(mechanism),
+            self._coerce_units(purview),
+            **self._info_kwargs("cause_info", kwargs),
         )
 
     def effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
 
         return ra.effect_info(
-            self, mechanism, purview, **self._info_kwargs("effect_info", kwargs)
+            self,
+            self._coerce_units(mechanism),
+            self._coerce_units(purview),
+            **self._info_kwargs("effect_info", kwargs),
         )
 
     def cause_effect_info(self, mechanism: Any, purview: Any, **kwargs: Any) -> float:
         from pyphi.core import repertoire_algebra as ra
 
         return ra.cause_effect_info(
-            self, mechanism, purview, **self._info_kwargs("cause_effect_info", kwargs)
+            self,
+            self._coerce_units(mechanism),
+            self._coerce_units(purview),
+            **self._info_kwargs("cause_effect_info", kwargs),
         )
 
     def intrinsic_specification(
@@ -1019,11 +1076,16 @@ class System(Displayable, ToPandasMixin, Serializable):
         specification_measure = _resolve_measure(
             "specification_measure", specification_measure, resolve_mechanism_measure
         )
+        if kwargs.get("states") is not None:
+            given = list(purview)
+            kwargs["states"] = [
+                self._coerce_with_states(given, state)[1] for state in kwargs["states"]
+            ]
         spec = ra.intrinsic_specification(
             self,
             direction,
-            mechanism,
-            purview,
+            self._coerce_units(mechanism),
+            self._coerce_units(purview),
             specification_measure=specification_measure,
             **kwargs,
         )
@@ -1465,7 +1527,34 @@ class System(Displayable, ToPandasMixin, Serializable):
                 "expected a sequence of node indices or labels, such as (0, 1) "
                 "or ('A', 'B'); got None"
             )
+        # Sorted in-range index tuples, the form the formalism's inner loops
+        # pass, need no conversion.
+        if (
+            type(nodes) is tuple
+            and all(type(n) is int for n in nodes)
+            and all(a < b for a, b in itertools.pairwise(nodes))
+            and (not nodes or (nodes[0] >= 0 and nodes[-1] < self.substrate.size))
+        ):
+            return nodes
         return self.substrate.node_labels.coerce_to_indices(nodes)
+
+    def _coerce_with_states(self, nodes: Any, *states: Any) -> tuple[Any, ...]:
+        """Sorted node indices for ``nodes``, and each of ``states`` (given in
+        the order of ``nodes``, or None) reordered to match them."""
+        units = self._coerce_units(nodes)
+        if all(state is None for state in states) or (
+            type(nodes) is tuple and nodes == units
+        ):
+            return (units, *states)
+        given = [self._coerce_units((node,))[0] for node in nodes]
+        order = sorted(range(len(given)), key=given.__getitem__)
+        return (
+            units,
+            *(
+                None if state is None else tuple(state[i] for i in order)
+                for state in states
+            ),
+        )
 
     def _coerce_purviews(self, purviews: Any) -> Any:
         if purviews is None:
