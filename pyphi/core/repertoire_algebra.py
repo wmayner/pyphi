@@ -652,10 +652,18 @@ def forward_cause_probability(
     return er.squeeze()[_ascending(mechanism, mechanism_state)]
 
 
-def _ascending(units: tuple[int, ...], state: Any) -> tuple[int, ...]:
+def _ascending(units: tuple[int, ...], state: Any) -> Any:
     """``state``, given in the order of ``units``, in ascending unit order:
     the axis order of a squeezed repertoire."""
-    return tuple(state[i] for i in sorted(range(len(units)), key=units.__getitem__))
+    order = _sorting_order(tuple(units))
+    return state if order is None else tuple(state[i] for i in order)
+
+
+@functools.cache
+def _sorting_order(units: tuple[int, ...]) -> tuple[int, ...] | None:
+    """The positions of ``units`` in ascending order, or None when sorted."""
+    order = tuple(sorted(range(len(units)), key=units.__getitem__))
+    return None if order == tuple(range(len(units))) else order
 
 
 def forward_probability(

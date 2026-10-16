@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+import pyphi
 from pyphi import actual
 from pyphi import config
 from pyphi import examples
@@ -92,3 +93,18 @@ def test_call_counts_pinned_actual_causation() -> None:
             "AC account call counts changed from the pins. If deliberate, "
             "regenerate: uv run python scripts/gen_perf_counts.py"
         )
+
+
+@pytest.mark.parametrize("preset", ["iit4_2026", "iit3"])
+def test_inner_loops_skip_the_public_unit_coercion(preset):
+    """The mechanism-partition sweep passes sorted index tuples and calls the
+    kernel directly; routing it through the System methods, which coerce
+    their arguments, cost a quarter of an analysis's time."""
+    substrate = examples.basic_substrate()
+    with config.override(**getattr(presets, preset)):
+        counts = count_calls(
+            lambda: pyphi.analyze(substrate, (1, 0, 0), progress=False),
+            [("system.py", "forward_probability"), ("system.py", "repertoire")],
+        )
+    # Both run once per mechanism partition when routed through System.
+    assert counts == {"system.py:forward_probability": 0, "system.py:repertoire": 0}

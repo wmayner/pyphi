@@ -1668,7 +1668,17 @@ class System(Displayable, ToPandasMixin, Serializable):
     def _coerce_with_states(self, nodes: Any, *states: Any) -> tuple[Any, ...]:
         """Sorted node indices for ``nodes``, and each of ``states`` (given in
         the order of ``nodes``, or None) reordered to match them."""
+        if nodes is None:
+            return (self._coerce_units(nodes), *states)  # raises TypeError
+        if not isinstance(nodes, (tuple, list, np.ndarray)):
+            nodes = tuple(nodes)  # an iterator would be consumed below
         units = self._coerce_units(nodes)
+        for state in states:
+            if state is not None and len(state) != len(units):
+                raise ValueError(
+                    f"a state of {len(state)} entries was given with "
+                    f"{len(units)} units {units}; provide one entry per unit"
+                )
         if all(state is None for state in states) or (
             type(nodes) is tuple and nodes == units
         ):

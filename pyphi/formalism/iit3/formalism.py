@@ -167,7 +167,10 @@ class IIT3Formalism:
         # explicit ``mechanism_measure``; resolve it here.
         mechanism_measure = kwargs.pop("mechanism_measure", repertoire_distance)
         if repertoire is None:
-            repertoire = system.repertoire(direction, mechanism, purview)
+            from pyphi.core import repertoire_algebra as ra
+
+            # The kernel directly: these units are already sorted indices.
+            repertoire = ra.repertoire(system, direction, mechanism, purview)
         if partitioned_repertoire is None:
             partitioned_repertoire_kwargs = partitioned_repertoire_kwargs or {}
             partitioned_repertoire = system.partitioned_repertoire(

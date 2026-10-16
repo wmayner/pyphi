@@ -1675,3 +1675,15 @@ def test_account_takes_parallel_and_progress(parallel):
         )
     assert got == reference
     assert directed == actual.directed_account(transition, Direction.CAUSE)
+
+
+def test_sia_shows_no_progress_bars_for_its_inner_accounts(monkeypatch, capsys):
+    """The partition sweep's accounts run sequentially and silently; only the
+    sweep itself may show a bar."""
+    from pyphi import _progress
+
+    monkeypatch.setattr(_progress, "DELAY", 0)
+    transition = examples.prevention_transition()
+    with config.override(progress_bars=True):
+        actual.sia(transition, progress=False)
+    assert "Evaluating causal links" not in capsys.readouterr().err

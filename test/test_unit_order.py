@@ -118,3 +118,18 @@ def test_repertoire_methods_accept_any_spelling(spell):
             system.repertoire(Direction.CAUSE, spell(mechanism), spell(purview)),
             system.repertoire(Direction.CAUSE, mechanism, purview),
         )
+
+
+def test_a_state_of_the_wrong_length_is_rejected_in_any_spelling():
+    with config.override(**presets.iit4_2026):
+        system = _fig1a_system()
+        for mechanism in [(0, 2), [0, 2], (2, 0), ("A", "C")]:
+            with pytest.raises(ValueError, match="one entry per unit"):
+                system.effect_repertoire(mechanism, (1,), mechanism_state=(1, 0, 1))
+        for purview in [(1, 2), (2, 1)]:
+            with pytest.raises(ValueError, match="one entry per unit"):
+                system.forward_cause_probability((0,), purview, (1, 0, 1))
+        assert np.allclose(
+            system.effect_repertoire(iter((2, 0)), (1,), mechanism_state=(1, 0)),
+            system.effect_repertoire((0, 2), (1,), mechanism_state=(0, 1)),
+        )

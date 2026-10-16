@@ -575,11 +575,14 @@ def _evaluate_partition(
     transition under ``partition``.
     """
     partitioned_transition = transition.apply_partition(partition)
+    # Inside the partition sweep, so sequential and without its own bar.
     partitioned_account = _account(
         partitioned_transition,
         direction,
         alpha_measure=alpha_measure,
         partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        parallel=False,
+        progress=False,
     )
 
     log.debug("Finished evaluating %s.", partition)
@@ -678,6 +681,8 @@ def _sia(
         direction,
         alpha_measure=alpha_measure,
         partitioned_repertoire_scheme=partitioned_repertoire_scheme,
+        parallel=False,
+        progress=False,
     )
     log.debug("Found unpartitioned account.")
 

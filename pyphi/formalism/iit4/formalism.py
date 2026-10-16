@@ -58,18 +58,21 @@ def _evaluate_partition_iit4(
     caller's responsibility (``IIT4_2023Formalism`` and
     ``IIT4_2026Formalism`` validate before calling this helper).
     """
+    from pyphi.core import repertoire_algebra as ra
     from pyphi.models import RepertoireIrreducibilityAnalysis
     from pyphi.utils import state_of
 
+    # The kernel directly: units here are already sorted index tuples, so
+    # the System methods' coercion would only cost time in this inner loop.
     if repertoire is None:
-        repertoire = system.repertoire(direction, mechanism, purview)
+        repertoire = ra.repertoire(system, direction, mechanism, purview)
 
     assert not isinstance(repertoire, (int, float)), "GID requires full repertoire"
 
     specified_state = kwargs["state"].state
     selectivity = float(repertoire.squeeze()[specified_state])
-    forward_pr = system.forward_probability(
-        direction, mechanism, purview, specified_state
+    forward_pr = ra.forward_probability(
+        system, direction, mechanism, purview, specified_state
     )
     if partitioned_repertoire is None:
         partitioned_pr = system.partitioned_repertoire(
