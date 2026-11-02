@@ -189,8 +189,8 @@ import pyphi
 substrate = pyphi.Substrate(tpm, cm=cm)
 analysis = pyphi.analyze(substrate, state)
 
-phi = analysis.phi   # system integrated information, φ_s
-ces = analysis.ces   # the Φ-structure
+phi = analysis.phi  # system integrated information, φ_s
+ces = analysis.ces  # the Φ-structure
 ```
 
 `pyphi.analyze` returns an `Analysis` with `.phi`, `.ces`, `.sia` (the system
@@ -238,7 +238,7 @@ In 1.x a single `IIT_VERSION` toggle selected the formalism, defaulting to IIT
 Before:
 
 ```python
-pyphi.config.IIT_VERSION = 3.0   # global toggle, default 3.0
+pyphi.config.IIT_VERSION = 3.0  # global toggle, default 3.0
 ```
 
 After:
@@ -251,7 +251,7 @@ analysis = pyphi.analyze(substrate, state, formalism="IIT_3_0")
 with pyphi.config.override(**pyphi.iit3):
     analysis = pyphi.analyze(substrate, state)
 
-pyphi.config.formalism.iit.version   # "IIT_4_0_2026" by default
+pyphi.config.formalism.iit.version  # "IIT_4_0_2026" by default
 ```
 
 The available formalisms are `"IIT_3_0"`, `"IIT_4_0_2023"`, and
@@ -304,8 +304,8 @@ After:
 ```python
 ces = analysis.ces
 
-pyphi.save(ces, "ces.json")      # or ces.save("ces.json")
-ces = pyphi.load("ces.json")     # or CauseEffectStructure.load("ces.json")
+pyphi.save(ces, "ces.json")  # or ces.save("ces.json")
+ces = pyphi.load("ces.json")  # or CauseEffectStructure.load("ces.json")
 ```
 
 The format is inferred from the extension: `.json`, `.mpk` (msgpack), and a
@@ -325,8 +325,8 @@ Use the scalar predicates in `pyphi.numerics` for tolerant comparison:
 ```python
 from pyphi import numerics
 
-numerics.eq(a.phi, b.phi)     # tolerant equality at config.numerics.precision
-numerics.is_zero(a.phi)       # tolerant test against 0
+numerics.eq(a.phi, b.phi)  # tolerant equality at config.numerics.precision
+numerics.is_zero(a.phi)  # tolerant test against 0
 numerics.is_positive(a.phi)
 ```
 

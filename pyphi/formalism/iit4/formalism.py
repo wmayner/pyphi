@@ -266,9 +266,7 @@ def _find_mip_iit4(
 
     from functools import partial
 
-    from pyphi.formalism.queries import (
-        _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
-    )
+    from pyphi.formalism.queries import _find_mip_single_state  # pyright: ignore[reportPrivateUsage]
 
     # Specified-state ties are resolved positionally downstream, so
     # results must arrive in input order, not completion order.

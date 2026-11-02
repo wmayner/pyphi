@@ -708,7 +708,7 @@ class TestPartitionSchemeNamesValidatedEagerly:
         ):
             pass
         message = str(exc.value)
-        assert path.split(".")[-1] in message
+        assert path.rsplit(".", maxsplit=1)[-1] in message
         assert "'TRI'" in message
 
     def test_mechanism_message_lists_the_registered_schemes(self) -> None:
