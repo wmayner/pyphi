@@ -106,9 +106,7 @@ class IIT3Formalism:
         :class:`ValueError`. Partitions that tie on minimum φ are resolved by
         :mod:`pyphi.resolve_ties`.
         """
-        from pyphi.formalism.queries import (
-            _find_mip_single_state,  # pyright: ignore[reportPrivateUsage]
-        )
+        from pyphi.formalism.queries import _find_mip_single_state  # pyright: ignore[reportPrivateUsage]
 
         check_measure_compatible(self, config.formalism.iit.mechanism_phi_measure)
         if partitions is None:
@@ -237,8 +235,6 @@ class IIT3Formalism:
         Returns the distinctions specified by the system; this is the IIT
         3.0 cause-effect structure.
         """
-        from pyphi.formalism.iit3 import (
-            _compute_distinctions as _ces,  # pyright: ignore[reportPrivateUsage]
-        )
+        from pyphi.formalism.iit3 import _compute_distinctions as _ces  # pyright: ignore[reportPrivateUsage]
 
         return _ces(system, **kwargs)

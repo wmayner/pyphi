@@ -1481,9 +1481,7 @@ class System(Displayable, ToPandasMixin, Serializable):
 
         formalism_name = _config.formalism.iit.version
         if formalism_name == "IIT_3_0":
-            from pyphi.formalism.iit3 import (
-                _compute_distinctions as _distinctions,  # pyright: ignore[reportPrivateUsage]
-            )
+            from pyphi.formalism.iit3 import _compute_distinctions as _distinctions  # pyright: ignore[reportPrivateUsage]
             from pyphi.models.distinctions import ResolvedDistinctions
 
             distinctions = _distinctions(self)
